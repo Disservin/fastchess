@@ -4,9 +4,6 @@
 #include <string>
 #include <vector>
 
-#include <unistd.h>
-#include <sys/types.h>
-
 struct TimeControl
 {
     uint64_t moves;
@@ -32,20 +29,12 @@ class Engine
     // time control for the engine
     TimeControl tc;
 
-    // For piping
-    int inPipe[2], outPipe[2];
-    pid_t processPid;
-
   public:
     void setName(const std::string &name);
     void setCmd(const std::string &cmd);
     void setArgs(const std::string &args);
     void setOptions(const std::vector<std::string> &options);
     void setTc(const TimeControl &tc);
-
-    void startProcess();
-    void sendCommand(const std::string &command);
-    void killProcess();
 
     std::string getName() const;
     std::string getCmd() const;

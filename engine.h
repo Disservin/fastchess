@@ -33,7 +33,7 @@ class Engine
     void setName(const std::string &name);
     void setCmd(const std::string &cmd);
     void setArgs(const std::string &args);
-    void setOptions(const std::vector<std::string> &tc);
+    void setOptions(const std::vector<std::string> &options);
     void setTc(const TimeControl &tc);
 
     std::string getName() const;

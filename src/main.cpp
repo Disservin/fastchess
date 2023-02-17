@@ -1,5 +1,6 @@
 #include <iostream>
 
+#include "engine.h"
 #include "options.h"
 
 int main(int argc, char const *argv[])

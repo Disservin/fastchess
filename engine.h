@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <string>
+#include <vector>
 
 struct TimeControl
 {
@@ -13,20 +14,31 @@ struct TimeControl
 class Engine
 {
   private:
+    // engine name
     std::string name;
+
+    // Path to engine
     std::string cmd;
-    std::string arg;
+
+    // Custom args that should be sent
+    std::string args;
+
+    // UCI options
+    std::vector<std::string> options;
+
+    // time control for the engine
     TimeControl tc;
 
   public:
-    Engine(/* args */);
-    ~Engine();
+    void setName(const std::string &name);
+    void setCmd(const std::string &cmd);
+    void setArgs(const std::string &args);
+    void setOptions(const std::vector<std::string> &tc);
+    void setTc(const TimeControl &tc);
+
+    std::string getName() const;
+    std::string getCmd() const;
+    std::string getArgs() const;
+    std::vector<std::string> getOptions() const;
+    TimeControl getTc() const;
 };
-
-Engine::Engine(/* args */)
-{
-}
-
-Engine::~Engine()
-{
-}

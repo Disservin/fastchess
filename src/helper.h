@@ -1,6 +1,7 @@
 #pragma once
 
 #include <algorithm>
+#include <array>
 #include <string>
 #include <vector>
 
@@ -15,5 +16,54 @@ template <typename T> T findElement(std::string_view needle, const std::vector<s
         return haystack[index + 1];
 }
 
-bool contains(std::string_view needle, std::string_view haystack);
-bool contains(std::string_view needle, const std::vector<std::string> &haystack);
+bool contains(std::string_view haystack, std::string_view needle);
+bool contains(const std::vector<std::string> &haystack, std::string_view needle);
+std::vector<std::string> splitInput(const std::string &fen);
+
+/// @brief Table template class for creating N-dimensional arrays.
+/// @tparam T
+/// @tparam N
+/// @tparam ...Dims
+template <typename T, size_t N, size_t... Dims> struct Table
+{
+    std::array<Table<T, Dims...>, N> data;
+    Table()
+    {
+        data.fill({});
+    }
+    Table<T, Dims...> &operator[](size_t index)
+    {
+        return data[index];
+    }
+    const Table<T, Dims...> &operator[](size_t index) const
+    {
+        return data[index];
+    }
+
+    void reset()
+    {
+        data.fill({});
+    }
+};
+
+template <typename T, size_t N> struct Table<T, N>
+{
+    std::array<T, N> data;
+    Table()
+    {
+        data.fill({});
+    }
+    T &operator[](size_t index)
+    {
+        return data[index];
+    }
+    const T &operator[](size_t index) const
+    {
+        return data[index];
+    }
+
+    void reset()
+    {
+        data.fill({});
+    }
+};

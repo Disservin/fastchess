@@ -71,4 +71,4 @@ struct Table<T, N>
     }
 };
 // Takes a string in input and returns a TimeControl object
-TimeControl ParseTc(std::string);
+TimeControl ParseTc(std::string tc_string);

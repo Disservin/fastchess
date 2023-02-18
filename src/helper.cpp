@@ -34,4 +34,15 @@ std::vector<std::string> splitString(const std::string &string, const char &deli
     return seglist;
 }
 
-TimeControl ParseTc(std::string){};
+TimeControl ParseTc(std::string tc_string)
+{
+    // Split the string into move count and time+inc
+    std::vector<std::string> move_and_time;
+    move_and_time = splitString(tc_string, '/');
+    std::string move = move_and_time.front();
+    // Split time+inc into time and inc
+    std::vector<std::string> time_and_inc = splitString(move_and_time.back(), '+');
+    std::string time = time_and_inc.front();
+    std::string inc = time_and_inc.back();
+    TimeControl time_control;
+};

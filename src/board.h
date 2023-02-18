@@ -57,8 +57,8 @@ class Board
 
     Table<Bitboard, N_SQ, N_SQ> SQUARES_BETWEEN_BB;
 
-    Bitboard us(Color c);
-    Bitboard allBB();
+    Bitboard us(Color c) const;
+    Bitboard allBB() const;
 
     Square KingSQ(Color c) const;
 
@@ -82,15 +82,28 @@ class Board
         return pieceBB[color][type];
     }
 
+    // Returns the piece at a given square on the board
+    inline Piece piece_at(Square square) const
+    {
+        return board[square];
+    }
+
+    uint64_t getHash() const;
+    uint64_t zobristHash() const;
+
+    bool isRepetition(int draw) const;
     friend std::ostream &operator<<(std::ostream &os, const Board &b);
 
   private:
     Table<Piece, N_SQ> board = {};
     Table<Bitboard, 2, 6> pieceBB = {};
     std::vector<State> prev_boards;
+    std::vector<uint64_t> hashHistory;
 
     int halfMoveClock;
     int fullMoveNumber;
+
+    uint64_t hashKey = 0;
 
     void removeCastlingRightsAll(Color c);
 
@@ -103,11 +116,12 @@ class Board
     void place_piece(Piece piece, Square sq);
     void remove_piece(Piece piece, Square sq);
 
-    // Returns the piece at a given square on the board
-    inline Piece piece_at(Square square) const
-    {
-        return board[square];
-    }
+    uint64_t updateKeyPiece(Piece piece, Square sq) const;
+    uint64_t updateKeyEnPassant(Square sq) const;
+    uint64_t updateKeyCastling() const;
+    uint64_t updateKeySideToMove() const;
 };
 
 std::string uciMove(Move move);
+
+Move convertUciToMove(const std::string &input);

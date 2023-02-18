@@ -1,5 +1,7 @@
 #include "engineprocess.h"
 
+#include <stdexcept>
+
 #ifdef _WIN64
 
 EngineProcess::EngineProcess(const std::string &command)

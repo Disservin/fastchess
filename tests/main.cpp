@@ -3,7 +3,9 @@
 #include "doctest/doctest.h"
 
 #include "engine_test.h"
+#include "fen_repetition_test.h"
 #include "functions_test.h"
+#include "hash_test.h"
 #include "perft_test.h"
 
 int main(int argc, char **argv)

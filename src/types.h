@@ -196,6 +196,9 @@ const std::string squareToString[64] = {
     "a7", "b7", "c7", "d7", "e7", "f7", "g7", "h7", "a8", "b8", "c8", "d8", "e8", "f8", "g8", "h8",
 };
 
+static std::unordered_map<char, PieceType> charToPieceType(
+    {{'n', KNIGHT}, {'b', BISHOP}, {'r', ROOK}, {'q', QUEEN}, {'N', KNIGHT}, {'B', BISHOP}, {'R', ROOK}, {'Q', QUEEN}});
+
 static std::unordered_map<PieceType, char> PieceTypeToPromPiece(
     {{KNIGHT, 'n'}, {BISHOP, 'b'}, {ROOK, 'r'}, {QUEEN, 'q'}});
 

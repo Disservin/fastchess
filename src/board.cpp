@@ -1,10 +1,12 @@
 #include <bitset>
 #include <iostream>
 #include <sstream>
+// #include <stdexcept>
 #include <vector>
 
 #include "attacks.h"
 #include "board.h"
+#include "zobrist.h"
 
 void printBitboard(Bitboard bb)
 {
@@ -21,12 +23,14 @@ void printBitboard(Bitboard bb)
 
 void Board::remove_piece(Piece piece, Square sq)
 {
+    hashKey ^= updateKeyPiece(piece, sq);
     pieceBB[colorOf(piece)][type_of_piece(piece)] &= ~(1ULL << sq);
     board[sq] = NONE;
 }
 
 void Board::place_piece(Piece piece, Square sq)
 {
+    hashKey ^= updateKeyPiece(piece, sq);
     pieceBB[colorOf(piece)][type_of_piece(piece)] |= (1ULL << sq);
     board[sq] = piece;
 }
@@ -116,6 +120,8 @@ void Board::load_fen(const std::string &fen)
 
     // full_move_counter actually half moves
     fullMoveNumber = std::stoi(full_move_counter) * 2;
+
+    hashKey = zobristHash();
 }
 
 void Board::make_move(Move move)
@@ -129,6 +135,11 @@ void Board::make_move(Move move)
     assert(from_sq >= 0 && from_sq < 64);
     assert(to_sq >= 0 && to_sq < 64);
     assert(type_of_piece(capture) != KING);
+    if (p == NONE)
+    {
+        std::cout << *this << std::endl;
+        std::cout << uciMove(move) << std::endl;
+    }
     assert(p != NONE);
 
     // *****************************
@@ -136,6 +147,7 @@ void Board::make_move(Move move)
     // *****************************
 
     prev_boards.emplace_back(enPassantSquare, castlingRights, halfMoveClock, capture);
+    hashHistory.emplace_back(hashKey);
 
     halfMoveClock++;
     fullMoveNumber++;
@@ -143,6 +155,10 @@ void Board::make_move(Move move)
     const bool ep = to_sq == enPassantSquare;
     const bool isCastling = pt == KING && std::abs(from_sq - to_sq) == 2;
 
+    if (enPassantSquare != NO_SQ)
+        hashKey ^= updateKeyEnPassant(enPassantSquare);
+
+    hashKey ^= updateKeyCastling();
     enPassantSquare = NO_SQ;
 
     if (pt == KING)
@@ -176,6 +192,7 @@ void Board::make_move(Move move)
             if (epMask & pieces(PAWN, ~sideToMove))
             {
                 enPassantSquare = Square(to_sq ^ 8);
+                hashKey ^= updateKeyEnPassant(enPassantSquare);
 
                 assert(piece_at(enPassantSquare) == NONE);
             }
@@ -205,6 +222,9 @@ void Board::make_move(Move move)
         place_piece(p, to_sq);
     }
 
+    hashKey ^= updateKeySideToMove();
+    hashKey ^= updateKeyCastling();
+
     sideToMove = ~sideToMove;
 }
 
@@ -212,6 +232,9 @@ void Board::unmake_move(Move move)
 {
     const auto restore = prev_boards.back();
     prev_boards.pop_back();
+
+    hashKey = hashHistory.back();
+    hashHistory.pop_back();
 
     enPassantSquare = restore.enPassant;
     castlingRights = restore.castling;
@@ -228,10 +251,9 @@ void Board::unmake_move(Move move)
 
     Piece p = make_piece(pt, sideToMove);
 
-    bool isCastling = pt == KING && std::abs(from_sq - to_sq) == 2;
     bool promotion = move.promotion_piece != NONETYPE;
 
-    if (isCastling)
+    if (pt == KING && std::abs(from_sq - to_sq) == 2)
     {
         Piece rook = sideToMove == WHITE ? WHITEROOK : BLACKROOK;
         const Square rookFromSq = file_rank_square(to_sq > from_sq ? FILE_H : FILE_A, square_rank(from_sq));
@@ -271,13 +293,13 @@ void Board::unmake_move(Move move)
     }
 }
 
-Bitboard Board::us(Color c)
+Bitboard Board::us(Color c) const
 {
     return pieceBB[c][PAWN] | pieceBB[c][KNIGHT] | pieceBB[c][BISHOP] | pieceBB[c][ROOK] | pieceBB[c][QUEEN] |
            pieceBB[c][KING];
 }
 
-Bitboard Board::allBB()
+Bitboard Board::allBB() const
 {
     return us(WHITE) | us(BLACK);
 }
@@ -328,6 +350,77 @@ Square Board::KingSQ(Color c) const
     return lsb(pieces(KING, c));
 }
 
+uint64_t Board::zobristHash() const
+{
+    uint64_t hash = 0ULL;
+    uint64_t wPieces = us(WHITE);
+    uint64_t bPieces = us(BLACK);
+    // Piece hashes
+    while (wPieces)
+    {
+        Square sq = poplsb(wPieces);
+        hash ^= updateKeyPiece(piece_at(sq), sq);
+    }
+    while (bPieces)
+    {
+        Square sq = poplsb(bPieces);
+        hash ^= updateKeyPiece(piece_at(sq), sq);
+    }
+    // Ep hash
+    uint64_t ep_hash = 0ULL;
+    if (enPassantSquare != NO_SQ)
+    {
+        ep_hash = updateKeyEnPassant(enPassantSquare);
+    }
+    // Turn hash
+    uint64_t turn_hash = sideToMove == WHITE ? RANDOM_ARRAY[780] : 0;
+    // Castle hash
+    uint64_t cast_hash = updateKeyCastling();
+
+    return hash ^ cast_hash ^ turn_hash ^ ep_hash;
+}
+
+uint64_t Board::getHash() const
+{
+    return hashKey;
+}
+
+uint64_t Board::updateKeyPiece(Piece piece, Square sq) const
+{
+    return RANDOM_ARRAY[64 * hash_piece[piece] + sq];
+}
+
+uint64_t Board::updateKeyEnPassant(Square sq) const
+{
+    return RANDOM_ARRAY[772 + square_file(sq)];
+}
+
+uint64_t Board::updateKeyCastling() const
+{
+    return castlingKey[castlingRights];
+}
+
+uint64_t Board::updateKeySideToMove() const
+{
+    return RANDOM_ARRAY[780];
+}
+
+bool Board::isRepetition(int draw) const
+{
+    uint8_t c = 0;
+
+    for (int i = static_cast<int>(hashHistory.size()) - 2;
+         i >= 0 && i >= static_cast<int>(hashHistory.size()) - halfMoveClock - 1; i -= 2)
+    {
+        if (hashHistory[i] == hashKey)
+            c++;
+        if (c == draw)
+            return true;
+    }
+
+    return false;
+}
+
 Board::Board()
 {
     initializeLookupTables();
@@ -373,4 +466,29 @@ std::string uciMove(Move move)
     }
 
     return ss.str();
+}
+
+Square extractSquare(std::string_view squareStr)
+{
+    char letter = squareStr[0];
+    int file = letter - 96;
+    int rank = squareStr[1] - 48;
+    int index = (rank - 1) * 8 + file - 1;
+    return Square(index);
+}
+
+Move convertUciToMove(const std::string &input)
+{
+    Square source = extractSquare(input.substr(0, 2));
+    Square target = extractSquare(input.substr(2, 2));
+    switch (input.length())
+    {
+    case 4:
+        return Move(source, target, NONETYPE);
+    case 5:
+        return Move(source, target, charToPieceType[input.at(4)]);
+    default:
+        throw std::runtime_error("Cant parse move" + input);
+        return Move(NO_SQ, NO_SQ, NONETYPE);
+    }
 }

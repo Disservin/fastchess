@@ -1,15 +1,15 @@
 #pragma once
 
-#include <string>
 #include <chrono>
+#include <cstdint>
+#include <string>
 #include <vector>
 
 class Process
 {
   public:
-
     // Read engine's stdout until the line matches last_word or timeout is reached
-    virtual std::vector<std::string> readEngine(std::string_view last_word, unsigned long timeout, bool &timedOut) = 0;
+    virtual std::vector<std::string> readEngine(std::string_view last_word, int64_t timeout, bool &timedOut) = 0;
 
     // Write input to the engine's stdin
     virtual void writeEngine(const std::string &input) = 0;
@@ -26,7 +26,7 @@ class EngineProcess : Process
     EngineProcess(const std::string &command);
     ~EngineProcess();
 
-    virtual std::vector<std::string> readEngine(std::string_view last_word, unsigned long timeout, bool &timedOut);
+    virtual std::vector<std::string> readEngine(std::string_view last_word, int64_t timeout, bool &timedOut);
     virtual void writeEngine(const std::string &input);
 
   private:
@@ -42,7 +42,7 @@ class EngineProcess : Process
     EngineProcess(const std::string &command);
     ~EngineProcess();
 
-    virtual std::vector<std::string> readEngine(std::string_view last_word, unsigned long timeout, bool &timedOut);
+    virtual std::vector<std::string> readEngine(std::string_view last_word, int64_t timeout, bool &timedOut);
     virtual void writeEngine(const std::string &input);
 
   private:

@@ -38,7 +38,7 @@ EngineProcess::~EngineProcess()
     CloseHandle(m_childStdIn);
 }
 
-std::vector<std::string> EngineProcess::readEngine(std::string_view last_word)
+std::vector<std::string> EngineProcess::readEngine(std::string_view last_word, unsigned long timeout, bool &timedOut)
 {
     std::vector<std::string> lines;
     std::string currentLine;
@@ -96,18 +96,21 @@ void EngineProcess::writeEngine(const std::string &input)
 EngineProcess::EngineProcess(const std::string &command)
 {
 
+    // Create input pipe
     if (pipe(inPipe) == -1)
     {
         perror("Failed to create input pipe");
         exit(1);
     }
 
+    // Create output pipe
     if (pipe(outPipe) == -1)
     {
         perror("Failed to create output pipe");
         exit(1);
     }
 
+    // Fork the current process
     pid_t processPid = fork();
     if (processPid < 0)
     {
@@ -115,16 +118,22 @@ EngineProcess::EngineProcess(const std::string &command)
         exit(1);
     }
 
+    // If this is the child process, set up the pipes and start the engine
     if (processPid == 0)
     {
+        // Redirect the child's standard input to the read end of the output pipe
         dup2(outPipe[0], 0);
         close(outPipe[0]);
         close(outPipe[1]);
 
+        // Redirect the child's standard output to the write end of the input pipe
         dup2(inPipe[1], 1);
         close(inPipe[0]);
         close(inPipe[1]);
-        execlp(command.c_str(), command.c_str(), (char *)0);
+
+        // Execute the engine
+        execlp(command.c_str(), command.c_str(), nullptr);
+
         perror("Failed to create child process");
         exit(1);
     }
@@ -140,32 +149,56 @@ EngineProcess::~EngineProcess()
 
 void EngineProcess::writeEngine(const std::string &input)
 {
+    // Append a newline character to the end of the input string
     constexpr char endLine = '\n';
+
+    // Close the read end of the output pipe
     close(outPipe[0]);
+
+    // Write the input and a newline to the output pipe
     write(outPipe[1], input.c_str(), input.size());
     write(outPipe[1], &endLine, 1);
 }
 
-std::vector<std::string> EngineProcess::readEngine(std::string_view last_word)
+std::vector<std::string> EngineProcess::readEngine(std::string_view last_word, unsigned long timeout, bool &timedOut)
 {
 
     // Disable blocking
     fcntl(inPipe[0], F_SETFL, fcntl(inPipe[0], F_GETFL) | O_NONBLOCK);
 
+    // Get the current time in milliseconds since epoch
+    unsigned long start = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+
     std::vector<std::string> lines;
     std::string line;
 
+    // Continue reading output lines until the line matches the specified line or a timeout occurs
     while (line != last_word)
     {
         line = "";
-
         char c = ' ';
+
+        // Read characters from the input pipe until it is a newline character
         while (c != '\n')
         {
+            // Get the current time in milliseconds since epoch
+            unsigned long now = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+
+            // Check if timeout milliseconds have elapsed
+            if (now - start > timeout)
+            {
+                timedOut = true;
+                break;
+            }
+
             if (read(inPipe[0], &c, 1) > 0 && c != '\n')
                 line += c;
         }
 
+        if (timedOut)
+            break;
+
+        // Append line to the output
         lines.push_back(line);
     }
 

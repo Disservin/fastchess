@@ -1,13 +1,12 @@
 #include "engine.h"
 
+#include <cassert>
+
+Engine::Engine(const std::string &command) : cmd(command), process(command) {}
+
 void Engine::setName(const std::string &name)
 {
     this->name = name;
-}
-
-void Engine::setCmd(const std::string &cmd)
-{
-    this->cmd = cmd;
 }
 
 void Engine::setArgs(const std::string &args)
@@ -52,10 +51,22 @@ TimeControl Engine::getTc() const
 
 void Engine::startProcess()
 {
-    // process.initProcess(cmd);
+    bool timedOut = false;
+    process.writeEngine("uci");
+    auto uciHeader = process.readEngine("uciok", 1000, timedOut);
+
+    assert(!timedOut);
 }
 
 void Engine::stopProcess()
 {
-    // process.killProcess();
+    process.writeEngine("quit");
+}
+
+void Engine::pingProcess() {
+    bool timedOut = false;
+    process.writeEngine("isready");
+    process.readEngine("readyok", 1000, timedOut);
+
+    assert(!timedOut);
 }

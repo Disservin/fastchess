@@ -1,26 +1,19 @@
 #include <iostream>
 
-#include "engine.h"
-#include "engineprocess.h"
 #include "options.h"
+#include "engine.h"
 
 int main(int argc, char const *argv[])
 {
     // CMD::Options options = CMD::Options(argc, argv);
     // options.print_params();
 
-    EngineProcess process("./BlackCore-v6-0");
+    Engine engine("./BlackCore-v6-0");
 
-    process.writeEngine("uci");
+    engine.startProcess();
 
-    std::vector<std::string> output = process.readEngine("uciok");
+    engine.pingProcess();
 
-    for (auto item : output)
-    {
-        std::cout << item << std::endl;
-    }
-
-    process.writeEngine("quit");
-
+    engine.stopProcess();
     return 0;
 }

@@ -7,7 +7,7 @@
 namespace CMD
 {
 
-  struct parameter
+  struct Parameter
   {
     std::string long_name;
     std::string short_name;

@@ -7,7 +7,8 @@
 
 bool starts_with(std::string_view haystack, std::string_view needle);
 
-template <typename T> T findElement(std::string_view needle, const std::vector<std::string> &haystack)
+template <typename T>
+T findElement(std::string_view needle, const std::vector<std::string> &haystack)
 {
     int index = std::find(haystack.begin(), haystack.end(), needle) - haystack.begin();
     if constexpr (std::is_same_v<T, int>)
@@ -18,13 +19,14 @@ template <typename T> T findElement(std::string_view needle, const std::vector<s
 
 bool contains(std::string_view haystack, std::string_view needle);
 bool contains(const std::vector<std::string> &haystack, std::string_view needle);
-std::vector<std::string> splitInput(const std::string &fen);
+std::vector<std::string> splitString(const std::string &string, const char &delimiter);
 
 /// @brief Table template class for creating N-dimensional arrays.
 /// @tparam T
 /// @tparam N
 /// @tparam ...Dims
-template <typename T, size_t N, size_t... Dims> struct Table
+template <typename T, size_t N, size_t... Dims>
+struct Table
 {
     std::array<Table<T, Dims...>, N> data;
     Table()
@@ -46,7 +48,8 @@ template <typename T, size_t N, size_t... Dims> struct Table
     }
 };
 
-template <typename T, size_t N> struct Table<T, N>
+template <typename T, size_t N>
+struct Table<T, N>
 {
     std::array<T, N> data;
     Table()

@@ -24,7 +24,7 @@ void Board::load_fen(const std::string &fen)
         }
     }
 
-    std::vector<std::string> params = splitInput(fen);
+    std::vector<std::string> params = splitString(fen, ' ');
 
     const std::string position = params[0];
     const std::string move_right = params[1];

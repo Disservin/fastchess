@@ -35,6 +35,7 @@ namespace CMD
                 std::vector<std::string> name_value_couple = splitString(cli_option, '=');
                 std::string param_name = name_value_couple.front();
                 std::string param_value = name_value_couple.back();
+                // Assign value to option
             }
             else
             {

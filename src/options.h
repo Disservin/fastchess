@@ -16,7 +16,7 @@ namespace CMD
     std::string max_limit;
   };
 
-  inline std::ostream &operator<<(std::ostream &os, const parameter param)
+  inline std::ostream &operator<<(std::ostream &os, const Parameter param)
   {
     os << "long_name" << param.long_name << "short_name" << param.short_name << "default" << param.default_value
        << "min" << param.min_limit << "max" << param.max_limit;
@@ -27,7 +27,7 @@ namespace CMD
   class Options
   {
   private:
-    std::vector<parameter> parameters;
+    std::vector<Parameter> parameters;
     std::vector<std::string> user_input;
 
     std::vector<std::string> cli_options;

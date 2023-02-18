@@ -51,7 +51,6 @@ std::vector<std::string> EngineProcess::readEngine(std::string_view last_word, i
 
     int checkTime = 1023;
 
-    int total_calls = 0;
     while (true)
     {
         if (!PeekNamedPipe(m_childStdOut, buffer, sizeof(buffer), &bytesRead, &bytesAvail, nullptr))
@@ -203,12 +202,12 @@ std::vector<std::string> EngineProcess::readEngine(std::string_view last_word, i
     fcntl(inPipe[0], F_SETFL, fcntl(inPipe[0], F_GETFL) | O_NONBLOCK);
 
     // Get the current time in milliseconds since epoch
-    int64_t start =
-        std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch())
-            .count();
+    auto start = std::chrono::high_resolution_clock::now();
 
     std::vector<std::string> lines;
     std::string line;
+
+    int checkTime = 1023;
 
     // Continue reading output lines until the line matches the specified line or a timeout occurs
     while (line != last_word)
@@ -219,16 +218,19 @@ std::vector<std::string> EngineProcess::readEngine(std::string_view last_word, i
         // Read characters from the input pipe until it is a newline character
         while (c != '\n')
         {
-            // Get the current time in milliseconds since epoch
-            int64_t now = std::chrono::duration_cast<std::chrono::milliseconds>(
-                              std::chrono::system_clock::now().time_since_epoch())
-                              .count();
-
-            // Check if timeout milliseconds have elapsed
-            if (now - start > timeoutThreshold)
+            if (checkTime-- == 0)
             {
-                timedOut = true;
-                break;
+                // Get the current time in milliseconds since epoch
+                auto now = std::chrono::high_resolution_clock::now();
+
+                // Check if timeout milliseconds have elapsed
+                if (std::chrono::duration_cast<std::chrono::milliseconds>(now - start).count() > timeoutThreshold)
+                {
+                    timedOut = true;
+                    break;
+                }
+
+                checkTime = 1023;
             }
 
             if (read(inPipe[0], &c, 1) > 0 && c != '\n')

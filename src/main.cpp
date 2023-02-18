@@ -1,7 +1,6 @@
 #include <iostream>
 
 #include "engine.h"
-#include "engineprocess.h"
 #include "options.h"
 
 int main(int argc, char const *argv[])
@@ -9,18 +8,19 @@ int main(int argc, char const *argv[])
     // CMD::Options options = CMD::Options(argc, argv);
     // options.print_params();
 
-    EngineProcess process("./BlackCore-v6-0");
+    Engine engine("./DummyEngine");
 
-    process.writeEngine("uci");
+    engine.startProcess();
 
-    std::vector<std::string> output = process.readEngine("uciok");
+    engine.writeProcess("uci"); // NOTE startProcess also sends uci some engines might not like this
+    auto output = engine.readProcess("uciok");
 
-    for (auto item : output)
+    for (const auto &item : output)
     {
         std::cout << item << std::endl;
     }
 
-    process.writeEngine("quit");
+    engine.stopProcess();
 
     return 0;
 }

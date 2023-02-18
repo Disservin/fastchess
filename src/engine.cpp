@@ -1,13 +1,15 @@
 #include "engine.h"
+#include "types.h"
+
+#include <cassert>
+
+Engine::Engine(const std::string &command) : cmd(command), process(command)
+{
+}
 
 void Engine::setName(const std::string &name)
 {
     this->name = name;
-}
-
-void Engine::setCmd(const std::string &cmd)
-{
-    this->cmd = cmd;
 }
 
 void Engine::setArgs(const std::string &args)
@@ -52,10 +54,41 @@ TimeControl Engine::getTc() const
 
 void Engine::startProcess()
 {
-    // process.initProcess(cmd);
+    bool timedOut;
+    process.writeEngine("uci");
+    auto uciHeader = process.readEngine("uciok", PING_TIMEOUT_THRESHOLD, timedOut);
+
+    assert(!timedOut);
+
+    pingProcess();
 }
 
 void Engine::stopProcess()
 {
-    // process.killProcess();
+    process.writeEngine("quit");
+}
+
+void Engine::pingProcess()
+{
+    bool timedOut;
+    process.writeEngine("isready");
+    process.readEngine("readyok", PING_TIMEOUT_THRESHOLD, timedOut);
+
+    assert(!timedOut);
+}
+
+void Engine::writeProcess(const std::string &input)
+{
+    process.writeEngine(input);
+}
+
+std::vector<std::string> Engine::readProcess(const std::string &last_word, int64_t timeoutThreshold)
+{
+    bool timedOut;
+    return process.readEngine(last_word, timeoutThreshold, timedOut);
+}
+
+std::vector<std::string> Engine::readProcess(const std::string &last_word, bool &timedOut, int64_t timeoutThreshold)
+{
+    return process.readEngine(last_word, timeoutThreshold, timedOut);
 }

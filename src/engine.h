@@ -35,14 +35,20 @@ class Engine
     EngineProcess process;
 
   public:
+    explicit Engine(const std::string &command);
+
     void setName(const std::string &name);
-    void setCmd(const std::string &cmd);
     void setArgs(const std::string &args);
     void setOptions(const std::vector<std::string> &options);
     void setTc(const TimeControl &tc);
 
     void startProcess();
     void stopProcess();
+    void pingProcess();
+
+    void writeProcess(const std::string &input);
+    std::vector<std::string> readProcess(const std::string &last_word, int64_t timeoutThreshold = 1000);
+    std::vector<std::string> readProcess(const std::string &last_word, bool &timedOut, int64_t timeoutThreshold = 1000);
 
     std::string getName() const;
     std::string getCmd() const;

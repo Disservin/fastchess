@@ -1,29 +1,20 @@
-#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
-#include "doctest.h"
+// #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#define DOCTEST_CONFIG_IMPLEMENT
+#include "doctest/doctest.h"
 
-#include "../src/helper.h"
-#include "../src/options.h"
+#include "engine_test.h"
+#include "functions_test.h"
 
-TEST_CASE("Testing the getUserInput function")
+int main(int argc, char **argv)
 {
-    const char *args[] = {"fastchess", "hello", "world"};
+    doctest::Context ctx;
 
-    CMD::Options options = CMD::Options(3, args);
+    ctx.setOption("abort-after", 5); // default - stop after 5 failed asserts
 
-    CHECK(options.getUserInput().size() == 2);
-}
+    int res = ctx.run(); // run test cases unless with --no-run
 
-TEST_CASE("Testing the starts_with function")
-{
-    CHECK(starts_with("-engine", "-"));
-    CHECK(starts_with("-engine", "") == false);
-    CHECK(starts_with("-engine", "/-") == false);
-    CHECK(starts_with("-engine", "e") == false);
-}
+    if (ctx.shouldExit()) // query flags (and --exit) rely on this
+        return res;       // propagate the result of the tests
 
-TEST_CASE("Testing the contains function")
-{
-    CHECK(contains("-engine", "-"));
-    CHECK(contains("-engine", "e"));
-    CHECK(contains("info string depth 10", "depth"));
+    return 0;
 }

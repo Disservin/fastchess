@@ -1,4 +1,5 @@
 fast-chess*
+DummyEngine*
 *.vscode
 *.d
 *.o

@@ -6,6 +6,7 @@
 using Bitboard = uint64_t;
 
 static constexpr int N_SQ = 64;
+static constexpr int64_t PING_TIMEOUT_THRESHOLD = 1000;
 
 enum Piece : uint8_t
 {

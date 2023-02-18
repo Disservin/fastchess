@@ -5,9 +5,11 @@ NATIVE = -march=native
 # Detect Windows
 ifeq ($(OS), Windows_NT)
 	uname_S  := Windows
+	SUFFIX := .exe
 else
 ifeq ($(COMP), MINGW)
 	uname_S  := Windows
+	SUFFIX := .exe
 else
 	LDFLAGS := -static -lpthread -lstdc++
 	SUFFIX  :=
@@ -23,5 +25,7 @@ endif
 
 SRCS = ../src/board.cpp ../src/engine.cpp ../src/match.cpp ../src/options.cpp ../src/helper.cpp
 
+TARGET = fast-chess-tests$(SUFFIX)
+
 all:
-	$(CXX) $(CXXFLAGS) $(NATIVE) *.cpp $(SRCS) -o fast-chess_tests $(LDFLAGS)
+	$(CXX) $(CXXFLAGS) $(NATIVE) *.cpp $(SRCS) -o $(TARGET) $(LDFLAGS)

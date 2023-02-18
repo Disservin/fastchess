@@ -34,7 +34,7 @@ clean:
 
 # Linking the executable from the object files
 $(TARGET): $(OBJECTS)
-	$(CXX) -o fast-chess $^ $(CXXFLAGS) $(NATIVE) $(FLAGS) -flto $(LDFLAGS)
+	$(CXX) -o $(TARGET) $^ $(CXXFLAGS) $(NATIVE) $(FLAGS) -flto $(LDFLAGS)
 
 -include $(DEPENDS)
 

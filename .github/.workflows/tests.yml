@@ -1,0 +1,41 @@
+name: Run tests
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  FastChess:
+    name: ${{matrix.config.name}}
+    runs-on: ${{matrix.config.os}}
+    strategy:
+      matrix:
+        config:
+          - {
+            name: "Ubuntu Unit Tests",
+            os: ubuntu-latest,
+            target: fast-chess
+          }
+          - {
+            name: "Windows Unit Tests",
+            os: windows-latest,
+            target: fast-chess.exe
+          }
+    steps:
+      - uses: actions/checkout@v3
+      - name: Installing required packages
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install g++-multilib
+          g++ --version
+      - name: Building Fast-Chess
+        run: |
+          cd tests
+          make TARGET=${{matrix.config.target}}
+      - name: Running unit tests
+        run: |
+          cd tests
+          ./${{matrix.config.target}}

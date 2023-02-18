@@ -120,11 +120,10 @@ void Board::load_fen(const std::string &fen)
 
 void Board::make_move(Move move)
 {
-    Piece p = piece_at(move.from_sq);
-    PieceType pt = type_of_piece(p);
-
     Square from_sq = move.from_sq;
     Square to_sq = move.to_sq;
+    Piece p = piece_at(from_sq);
+    PieceType pt = type_of_piece(p);
     Piece capture = piece_at(move.to_sq);
 
     assert(from_sq >= 0 && from_sq < 64);
@@ -142,13 +141,7 @@ void Board::make_move(Move move)
     fullMoveNumber++;
 
     const bool ep = to_sq == enPassantSquare;
-
-    // Castling is encoded as king captures rook
     const bool isCastling = pt == KING && std::abs(from_sq - to_sq) == 2;
-
-    // *****************************
-    // UPDATE HASH
-    // *****************************
 
     enPassantSquare = NO_SQ;
 
@@ -223,19 +216,20 @@ void Board::unmake_move(Move move)
     enPassantSquare = restore.enPassant;
     castlingRights = restore.castling;
     halfMoveClock = restore.halfMove;
-    Piece capture = restore.capturedPiece;
 
     fullMoveNumber--;
 
     Square from_sq = move.from_sq;
     Square to_sq = move.to_sq;
-    bool promotion = move.promotion_piece != NONETYPE;
+    Piece capture = restore.capturedPiece;
+    PieceType pt = type_of_piece(piece_at(to_sq));
 
     sideToMove = ~sideToMove;
-    PieceType pt = type_of_piece(piece_at(move.to_sq));
+
     Piece p = make_piece(pt, sideToMove);
 
-    const bool isCastling = pt == KING && std::abs(from_sq - to_sq) == 2;
+    bool isCastling = pt == KING && std::abs(from_sq - to_sq) == 2;
+    bool promotion = move.promotion_piece != NONETYPE;
 
     if (isCastling)
     {

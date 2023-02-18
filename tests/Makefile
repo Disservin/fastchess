@@ -1,19 +1,18 @@
-CXX = g++
+CXX      = g++
 CXXFLAGS = -O3 -std=c++17
-NATIVE = -march=native
+NATIVE   = -march=native
+SUFFIX   = .exe
 
 # Detect Windows
 ifeq ($(OS), Windows_NT)
 	uname_S  := Windows
-	SUFFIX := .exe
 else
 ifeq ($(COMP), MINGW)
 	uname_S  := Windows
-	SUFFIX := .exe
 else
 	LDFLAGS := -static -lpthread -lstdc++
-	SUFFIX  :=
 	uname_S := $(shell uname -s)
+	SUFFIX  :=
 endif
 endif
 
@@ -23,9 +22,10 @@ ifeq ($(uname_S), Darwin)
 	LDFLAGS = 
 endif
 
-SRCS = ../src/board.cpp ../src/engine.cpp ../src/match.cpp ../src/options.cpp ../src/helper.cpp
+ALL_SOURCES = $(wildcard ../src/*.cpp)
+SOURCES = $(filter-out ../src/main.cpp, $(ALL_SOURCES))
 
 TARGET = fast-chess-tests$(SUFFIX)
 
 all:
-	$(CXX) $(CXXFLAGS) $(NATIVE) *.cpp $(SRCS) -o $(TARGET) $(LDFLAGS)
+	$(CXX) $(CXXFLAGS) $(NATIVE) *.cpp $(SOURCES) -o $(TARGET) $(LDFLAGS)

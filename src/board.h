@@ -32,34 +32,35 @@ class Board
     Board &operator=(const Board &) = default;
     ~Board();
 
-  private:
-    Table<Piece, N_SQ> board;
-    Table<Bitboard, 2, 6> pieceBB;
-    std::vector<State> prev_boards;
-    Color sideToMove;
-    uint8_t castlingRights;
-    Square enPassantSquare;
-    int halfMoveClock;
-    int fullMoveNumber;
+    // Movegen vars
+    Bitboard pinD = {};
+    Bitboard pinHV = {};
+    Bitboard occEnemy = {};
+    Bitboard occUs = {};
+    Bitboard occAll = {};
+    Bitboard seen = {};
+    Bitboard enemyEmptyBB = {};
+    Bitboard checkMask = DEFAULT_CHECKMASK;
 
-    bool isKingAttacked(Color c, Square sq);
+    int doubleCheck = 0;
+
+    Color sideToMove = WHITE;
+
+    uint8_t castlingRights = 15;
+
+    Square enPassantSquare = NO_SQ;
 
     void load_fen(const std::string &fen);
 
-    void place_piece(Piece piece, Square sq);
-    void remove_piece(Piece piece, Square sq);
-
-    bool make_move(Move move);
+    void make_move(Move move);
     void unmake_move(Move move);
 
-    // Returns the piece at a given square on the board
-    inline Piece piece_at(Square square) const
-    {
-        return board[square];
-    }
+    Table<Bitboard, N_SQ, N_SQ> SQUARES_BETWEEN_BB;
 
     Bitboard us(Color c);
     Bitboard allBB();
+
+    Square KingSQ(Color c) const;
 
     template <PieceType type, Color color> Bitboard pieces() const
     {
@@ -80,4 +81,33 @@ class Board
     {
         return pieceBB[color][type];
     }
+
+    friend std::ostream &operator<<(std::ostream &os, const Board &b);
+
+  private:
+    Table<Piece, N_SQ> board = {};
+    Table<Bitboard, 2, 6> pieceBB = {};
+    std::vector<State> prev_boards;
+
+    int halfMoveClock;
+    int fullMoveNumber;
+
+    void removeCastlingRightsAll(Color c);
+
+    void removeCastlingRightsRook(Square sq);
+
+    void initializeLookupTables();
+
+    bool isKingAttacked(Color c, Square sq);
+
+    void place_piece(Piece piece, Square sq);
+    void remove_piece(Piece piece, Square sq);
+
+    // Returns the piece at a given square on the board
+    inline Piece piece_at(Square square) const
+    {
+        return board[square];
+    }
 };
+
+std::string uciMove(Move move);

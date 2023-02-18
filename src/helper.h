@@ -43,9 +43,9 @@ template <typename T, size_t N, size_t... Dims> struct Table
         return data[index];
     }
 
-    void reset()
+    void reset(T value)
     {
-        data.fill({});
+        data.fill({value});
     }
 };
 
@@ -65,9 +65,9 @@ template <typename T, size_t N> struct Table<T, N>
         return data[index];
     }
 
-    void reset()
+    void reset(T value)
     {
-        data.fill({});
+        data.fill({value});
     }
 };
 
@@ -106,4 +106,16 @@ inline Piece make_piece(PieceType type, Color c)
     if (type == NONETYPE)
         return NONE;
     return Piece(type + 6 * c);
+}
+
+// returns diagonal of given square
+inline constexpr uint8_t diagonal_of(Square sq)
+{
+    return 7 + square_rank(sq) - square_file(sq);
+}
+
+// returns anti diagonal of given square
+inline constexpr uint8_t anti_diagonal_of(Square sq)
+{
+    return square_rank(sq) + square_file(sq);
 }

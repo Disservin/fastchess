@@ -22,10 +22,10 @@ ifeq ($(uname_S), Darwin)
 	LDFLAGS = 
 endif
 
-ALL_SOURCES = $(wildcard ../src/*.cpp)
+ALL_SOURCES = $(wildcard ../src/*.cpp *.cpp)
 SOURCES = $(filter-out ../src/main.cpp, $(ALL_SOURCES))
 
-TARGET = fast-chess-tests$(SUFFIX)
+TARGET = fast-chess-test$(SUFFIX)
 
 all:
 	$(CXX) $(CXXFLAGS) $(NATIVE) ./data/engine/dummy_engine.cpp -o ./data/engine/dummy_engine $(LDFLAGS)

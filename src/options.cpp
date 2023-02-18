@@ -1,5 +1,6 @@
 #include "options.h"
 #include "helper.h"
+#include <sstream>
 #include <limits>
 
 namespace CMD
@@ -22,6 +23,20 @@ namespace CMD
         parseUserInput(argc, argv);
         // Code to Split UserInput into Cli/Engine1/Engine2/EngineN for easier parsing
         split_params();
+        // Once we properly split the string start parsing it
+        for (auto cli_option : cli_options)
+        {
+            // Create parameter object
+            parameter temp_param;
+            // non dash options come in name-value pairs separated by a = sign
+            if (!starts_with(cli_option, "-"))
+            {
+            }
+            //  get option
+            //  parse the value
+            //  create a parameter with that value
+            //  add that parameter to parameters
+        }
     }
 
     std::vector<std::string> Options::getUserInput()

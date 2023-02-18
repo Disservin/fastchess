@@ -1,4 +1,5 @@
 #include "engine.h"
+#include "types.h"
 
 #include <cassert>
 
@@ -26,11 +27,6 @@ void Engine::setTc(const TimeControl &tc)
     this->tc = tc;
 }
 
-void Engine::setTimeout(int64_t timeout)
-{
-    this->timeout = timeout;
-}
-
 std::string Engine::getName() const
 {
     return name;
@@ -56,18 +52,15 @@ TimeControl Engine::getTc() const
     return tc;
 }
 
-int64_t Engine::getTimeout() const
-{
-    return timeout;
-}
-
 void Engine::startProcess()
 {
-    bool timedOut = false;
+    bool timedOut;
     process.writeEngine("uci");
-    auto uciHeader = process.readEngine("uciok", timeout, timedOut);
+    auto uciHeader = process.readEngine("uciok", PING_TIMEOUT_THRESHOLD, timedOut);
 
     assert(!timedOut);
+
+    pingProcess();
 }
 
 void Engine::stopProcess()
@@ -77,9 +70,9 @@ void Engine::stopProcess()
 
 void Engine::pingProcess()
 {
-    bool timedOut = false;
+    bool timedOut;
     process.writeEngine("isready");
-    process.readEngine("readyok", timeout, timedOut);
+    process.readEngine("readyok", PING_TIMEOUT_THRESHOLD, timedOut);
 
     assert(!timedOut);
 }
@@ -89,8 +82,13 @@ void Engine::writeProcess(const std::string &input)
     process.writeEngine(input);
 }
 
-std::vector<std::string> Engine::readProcess(const std::string &last_word, int64_t tm)
+std::vector<std::string> Engine::readProcess(const std::string &last_word, int64_t timeoutThreshold)
 {
-    bool timedOut = false;
-    return process.readEngine(last_word, timeout, timedOut);
+    bool timedOut;
+    return process.readEngine(last_word, timeoutThreshold, timedOut);
+}
+
+std::vector<std::string> Engine::readProcess(const std::string &last_word, bool &timedOut, int64_t timeoutThreshold)
+{
+    return process.readEngine(last_word, timeoutThreshold, timedOut);
 }

@@ -8,13 +8,11 @@ int main(int argc, char const *argv[])
     // CMD::Options options = CMD::Options(argc, argv);
     // options.print_params();
 
-    Engine engine("./smallbrain.exe");
+    Engine engine("./DummyEngine");
 
     engine.startProcess();
 
-    engine.pingProcess();
-
-    engine.writeProcess("uci");
+    engine.writeProcess("uci"); // NOTE startProcess also sends uci some engines might not like this
     auto output = engine.readProcess("uciok");
 
     for (const auto &item : output)

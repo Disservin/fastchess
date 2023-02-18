@@ -34,8 +34,6 @@ class Engine
     // Process wrapper around the engine
     EngineProcess process;
 
-    int64_t timeout = 1000;
-
   public:
     explicit Engine(const std::string &command);
 
@@ -43,19 +41,18 @@ class Engine
     void setArgs(const std::string &args);
     void setOptions(const std::vector<std::string> &options);
     void setTc(const TimeControl &tc);
-    void setTimeout(int64_t timeout);
 
     void startProcess();
     void stopProcess();
     void pingProcess();
 
     void writeProcess(const std::string &input);
-    std::vector<std::string> readProcess(const std::string &last_word, int64_t tm = 1000);
+    std::vector<std::string> readProcess(const std::string &last_word, int64_t timeoutThreshold = 1000);
+    std::vector<std::string> readProcess(const std::string &last_word, bool &timedOut, int64_t timeoutThreshold = 1000);
 
     std::string getName() const;
     std::string getCmd() const;
     std::string getArgs() const;
     std::vector<std::string> getOptions() const;
-    int64_t getTimeout() const;
     TimeControl getTc() const;
 };

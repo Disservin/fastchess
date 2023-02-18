@@ -28,4 +28,5 @@ SOURCES = $(filter-out ../src/main.cpp, $(ALL_SOURCES))
 TARGET = fast-chess-tests$(SUFFIX)
 
 all:
-	$(CXX) $(CXXFLAGS) $(NATIVE) *.cpp $(SOURCES) -o $(TARGET) $(LDFLAGS)
+	$(CXX) $(CXXFLAGS) $(NATIVE) dummy_engine.cpp -o DummyEngine $(LDFLAGS)
+	$(CXX) $(CXXFLAGS) $(NATIVE) main.cpp $(SOURCES) -o $(TARGET) $(LDFLAGS)

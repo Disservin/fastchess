@@ -38,8 +38,9 @@ EngineProcess::~EngineProcess()
     CloseHandle(m_childStdIn);
 }
 
-std::vector<std::string> EngineProcess::readEngine(std::string_view last_word, int64_t timeout, bool &timedOut)
+std::vector<std::string> EngineProcess::readEngine(std::string_view last_word, int64_t timeoutThreshold, bool &timedOut)
 {
+    timedOut = false;
     std::vector<std::string> lines;
     std::string currentLine;
     char buffer[1024];
@@ -60,7 +61,7 @@ std::vector<std::string> EngineProcess::readEngine(std::string_view last_word, i
                 .count();
 
         // Check if timeout milliseconds have elapsed
-        if (now - start > timeout)
+        if (now - start > timeoutThreshold)
         {
             timedOut = true;
             break;
@@ -182,16 +183,15 @@ void EngineProcess::writeEngine(const std::string &input)
     write(outPipe[1], &endLine, 1);
 }
 
-std::vector<std::string> EngineProcess::readEngine(std::string_view last_word, unsigned long timeout, bool &timedOut)
+std::vector<std::string> EngineProcess::readEngine(std::string_view last_word, int64_t timeoutThreshold, bool &timedOut)
 {
+    timedOut = false;
 
     // Disable blocking
     fcntl(inPipe[0], F_SETFL, fcntl(inPipe[0], F_GETFL) | O_NONBLOCK);
 
     // Get the current time in milliseconds since epoch
-    unsigned long start =
-        std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch())
-            .count();
+    int64_t start = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 
     std::vector<std::string> lines;
     std::string line;
@@ -206,12 +206,12 @@ std::vector<std::string> EngineProcess::readEngine(std::string_view last_word, u
         while (c != '\n')
         {
             // Get the current time in milliseconds since epoch
-            unsigned long now = std::chrono::duration_cast<std::chrono::milliseconds>(
+            int64_t now = std::chrono::duration_cast<std::chrono::milliseconds>(
                                     std::chrono::system_clock::now().time_since_epoch())
                                     .count();
 
             // Check if timeout milliseconds have elapsed
-            if (now - start > timeout)
+            if (now - start > timeoutThreshold)
             {
                 timedOut = true;
                 break;

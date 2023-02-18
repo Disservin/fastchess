@@ -38,7 +38,7 @@ EngineProcess::~EngineProcess()
     CloseHandle(m_childStdIn);
 }
 
-std::vector<std::string> EngineProcess::read(std::string_view last_word)
+std::vector<std::string> EngineProcess::readEngine(std::string_view last_word)
 {
     std::vector<std::string> lines;
     std::string currentLine;
@@ -79,7 +79,7 @@ std::vector<std::string> EngineProcess::read(std::string_view last_word)
     return lines;
 }
 
-void EngineProcess::write(const std::string &input)
+void EngineProcess::writeEngine(const std::string &input)
 {
     constexpr char endLine = '\n';
     DWORD bytesWritten;
@@ -89,8 +89,8 @@ void EngineProcess::write(const std::string &input)
 
 #else
 
-#include <sys/types.h>
 #include <fcntl.h>
+#include <sys/types.h>
 #include <unistd.h>
 
 EngineProcess::EngineProcess(const std::string &command)
@@ -146,7 +146,8 @@ void EngineProcess::writeEngine(const std::string &input)
     write(outPipe[1], &endLine, 1);
 }
 
-std::vector<std::string> EngineProcess::readEngine(std::string_view last_word) {
+std::vector<std::string> EngineProcess::readEngine(std::string_view last_word)
+{
 
     // Disable blocking
     fcntl(inPipe[0], F_SETFL, fcntl(inPipe[0], F_GETFL) | O_NONBLOCK);
@@ -154,11 +155,13 @@ std::vector<std::string> EngineProcess::readEngine(std::string_view last_word) {
     std::vector<std::string> lines;
     std::string line;
 
-    while (line != last_word) {
+    while (line != last_word)
+    {
         line = "";
 
-        char c=' ';
-        while (c != '\n') {
+        char c = ' ';
+        while (c != '\n')
+        {
             if (read(inPipe[0], &c, 1) > 0 && c != '\n')
                 line += c;
         }

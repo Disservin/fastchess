@@ -2,3 +2,4 @@ fast-chess*
 *.vscode
 *.d
 *.o
+*.exe

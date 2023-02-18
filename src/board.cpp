@@ -1,7 +1,7 @@
 #include <bitset>
 #include <iostream>
 #include <sstream>
-// #include <stdexcept>
+#include <stdexcept>
 #include <vector>
 
 #include "attacks.h"

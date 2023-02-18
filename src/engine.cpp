@@ -1,7 +1,7 @@
+#include <cassert>
+
 #include "engine.h"
 #include "types.h"
-
-#include <cassert>
 
 Engine::Engine(const std::string &command) : cmd(command), process(command)
 {

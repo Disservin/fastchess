@@ -1,12 +1,12 @@
 #pragma once
 
-#include "types.h"
-
 #include <algorithm>
 #include <array>
 #include <cassert>
 #include <string>
 #include <vector>
+
+#include "types.h"
 
 bool starts_with(std::string_view haystack, std::string_view needle);
 

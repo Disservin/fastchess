@@ -8,6 +8,20 @@
 #include "move.h"
 #include "types.h"
 
+struct State
+{
+    Square enPassant{};
+    uint8_t castling{};
+    uint8_t halfMove{};
+    Piece capturedPiece = NONE;
+    State(Square enpassantCopy = {}, uint8_t castlingRightsCopy = {}, uint8_t halfMoveCopy = {},
+          Piece capturedPieceCopy = NONE)
+        : enPassant(enpassantCopy), castling(castlingRightsCopy), halfMove(halfMoveCopy),
+          capturedPiece(capturedPieceCopy)
+    {
+    }
+};
+
 class Board
 {
   public:
@@ -21,6 +35,7 @@ class Board
   private:
     Table<Piece, N_SQ> board;
     Table<Bitboard, 2, 6> pieceBB;
+    std::vector<State> prev_boards;
     Color sideToMove;
     uint8_t castlingRights;
     Square enPassantSquare;

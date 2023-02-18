@@ -112,21 +112,29 @@ bool Board::make_move(Move move)
 {
     auto copyPieceBB = pieceBB;
     auto copyBoard = board;
+    auto copyHMC = halfMoveClock;
 
     Piece move_piece = piece_at(move.from_sq);
     PieceType move_pt = type_of_piece(move_piece);
     Piece capture_piece = piece_at(move.to_sq);
 
+    prev_boards.emplace_back(enPassantSquare, castlingRights, halfMoveClock, capture_piece);
+
     remove_piece(move_piece, move.from_sq);
 
     if (capture_piece != NONE)
+    {
         remove_piece(capture_piece, move.to_sq);
+        halfMoveClock = 0;
+    }
 
     if (move_pt == PAWN)
     {
+        halfMoveClock = 0;
+
         if (move.to_sq == enPassantSquare)
         {
-            remove_piece(capture_piece, Square(move.to_sq ^ 8));
+            remove_piece(make_piece(PAWN, ~sideToMove), Square(move.to_sq ^ 8));
         }
         if (move.promotion_piece != NONETYPE)
         {
@@ -151,15 +159,61 @@ bool Board::make_move(Move move)
     {
         pieceBB = copyPieceBB;
         board = copyBoard;
+        halfMoveClock = copyHMC;
 
         return false;
     }
+
+    fullMoveNumber++;
+    sideToMove = ~sideToMove;
 
     return true;
 }
 
 void Board::unmake_move(Move move)
 {
+    const auto restore = prev_boards.back();
+    prev_boards.pop_back();
+
+    Piece move_piece = piece_at(move.to_sq);
+    PieceType move_pt = type_of_piece(move_piece);
+    Piece capture_piece = restore.capturedPiece;
+
+    enPassantSquare = restore.enPassant;
+    castlingRights = restore.castling;
+    halfMoveClock = restore.halfMove;
+    fullMoveNumber--;
+    sideToMove = ~sideToMove;
+
+    place_piece(move_piece, move.from_sq);
+    remove_piece(move_piece, move.to_sq);
+
+    if (capture_piece != NONE)
+        place_piece(capture_piece, move.to_sq);
+
+    if (move_pt == PAWN)
+    {
+        if (move.to_sq == enPassantSquare)
+        {
+            place_piece(make_piece(PAWN, ~sideToMove), Square(move.to_sq ^ 8));
+        }
+        if (move.promotion_piece != NONETYPE)
+        {
+            // set the moving piece to promotion piece
+            remove_piece(move_piece, move.from_sq);
+            place_piece(make_piece(PAWN, sideToMove), move.from_sq);
+        }
+    }
+
+    if (move_pt == KING && std::abs(move.to_sq - move.from_sq) == 2)
+    {
+        const Piece rook = sideToMove == WHITE ? WHITEROOK : BLACKROOK;
+        Square rookFromSq = file_rank_square(move.to_sq > move.from_sq ? FILE_H : FILE_A, square_rank(move.from_sq));
+        Square rookToSq = file_rank_square(move.to_sq > move.from_sq ? FILE_F : FILE_D, square_rank(move.from_sq));
+
+        place_piece(rook, rookFromSq);
+        remove_piece(rook, rookToSq);
+    }
 }
 
 Bitboard Board::us(Color c)

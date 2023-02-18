@@ -25,7 +25,11 @@ int main() {
             cout << "line1" << std::endl;
             cout << "uciok" << std::endl;
         } else if (cmd == "sleep") {
+#ifdef _WIN32
+            Sleep(1);
+#else
             sleep(1);
+#endif
             cout << "done" << std::endl;
         }
     }

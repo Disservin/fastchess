@@ -130,7 +130,8 @@ bool Board::make_move(Move move)
         }
         if (move.promotion_piece != NONETYPE)
         {
-            // TODO
+            // set the moving piece to promotion piece
+            move_piece = make_piece(move.promotion_piece, sideToMove);
         }
     }
 

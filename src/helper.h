@@ -71,24 +71,12 @@ template <typename T, size_t N> struct Table<T, N>
     }
 };
 
-/// @brief least significant bit instruction
-/// @param mask
-/// @return the least significant bit as the Square
 Square lsb(Bitboard mask);
 
-/// @brief most significant bit instruction
-/// @param mask
-/// @return the most significant bit as the Square
 Square msb(Bitboard mask);
 
-/// @brief Counts the set bits
-/// @param mask
-/// @return the count
 int popcount(Bitboard mask);
 
-/// @brief remove the lsb and return it
-/// @param mask
-/// @return the lsb
 Square poplsb(Bitboard &mask);
 
 inline constexpr PieceType type_of_piece(const Piece piece)
@@ -98,27 +86,24 @@ inline constexpr PieceType type_of_piece(const Piece piece)
     return PieceToPieceType[piece];
 }
 
-/// @brief Gets the file index of the square where 0 is the a-file
-/// @param sq
-/// @return the file of the square
 inline constexpr File square_file(Square sq)
 {
     return File(sq & 7);
 }
 
-/// @brief Gets the rank index of the square where 0 is the first rank.
-/// @param sq
-/// @return the rank of the square
 inline constexpr Rank square_rank(Square sq)
 {
     return Rank(sq >> 3);
 }
 
-/// @brief makes a square out of rank and file
-/// @param f
-/// @param r
-/// @return
 inline constexpr Square file_rank_square(File f, Rank r)
 {
     return Square((r << 3) + f);
+}
+
+inline Piece make_piece(PieceType type, Color c)
+{
+    if (type == NONETYPE)
+        return NONE;
+    return Piece(type + 6 * c);
 }

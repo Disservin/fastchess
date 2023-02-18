@@ -42,27 +42,26 @@ std::vector<std::string> EngineProcess::readEngine(std::string_view last_word, i
 {
     timedOut = false;
     std::vector<std::string> lines;
-    std::string currentLine;
+    std::string currentLine{};
     char buffer[1024];
     DWORD bytesRead;
     DWORD bytesAvail;
 
-    auto start =
-        std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch())
-            .count();
+    auto start = std::chrono::high_resolution_clock::now();
 
     while (true)
     {
         if (!PeekNamedPipe(m_childStdOut, buffer, sizeof(buffer), &bytesRead, &bytesAvail, nullptr))
-            break;
+        {
+            throw std::runtime_error("Cant peek Pipe");
+        }
 
-        auto now =
-            std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch())
-                .count();
+        auto now = std::chrono::high_resolution_clock::now();
 
         // Check if timeout milliseconds have elapsed
-        if (now - start > timeoutThreshold)
+        if (std::chrono::duration_cast<std::chrono::milliseconds>(now - start).count() > timeoutThreshold)
         {
+            lines.push_back(currentLine);
             timedOut = true;
             break;
         }
@@ -71,7 +70,9 @@ std::vector<std::string> EngineProcess::readEngine(std::string_view last_word, i
             continue;
 
         if (!ReadFile(m_childStdOut, buffer, sizeof(buffer), &bytesRead, nullptr))
-            break;
+        {
+            throw std::runtime_error("Cant read process correctly");
+        }
 
         if (bytesRead == 0)
             break;
@@ -79,22 +80,25 @@ std::vector<std::string> EngineProcess::readEngine(std::string_view last_word, i
         // Iterate over each character in the buffer
         for (DWORD i = 0; i < bytesRead; i++)
         {
-            if (currentLine == last_word)
-            {
-                lines.push_back(currentLine);
-                return lines;
-            }
-
             // If we encounter a newline, add the current line to the vector and start a new one
-            if (buffer[i] == '\n')
+            if (buffer[i] == '\n' || buffer[i] == '\r')
             {
-                lines.push_back(currentLine);
-                currentLine.clear();
+                if (!currentLine.empty())
+                {
+                    lines.push_back(currentLine);
+                    currentLine.clear();
+                }
             }
             // Otherwise, append the character to the current line
             else
             {
                 currentLine += buffer[i];
+            }
+
+            if (currentLine == last_word)
+            {
+                lines.push_back(currentLine);
+                return lines;
             }
         }
     }
@@ -191,7 +195,9 @@ std::vector<std::string> EngineProcess::readEngine(std::string_view last_word, i
     fcntl(inPipe[0], F_SETFL, fcntl(inPipe[0], F_GETFL) | O_NONBLOCK);
 
     // Get the current time in milliseconds since epoch
-    int64_t start = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+    int64_t start =
+        std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch())
+            .count();
 
     std::vector<std::string> lines;
     std::string line;
@@ -207,8 +213,8 @@ std::vector<std::string> EngineProcess::readEngine(std::string_view last_word, i
         {
             // Get the current time in milliseconds since epoch
             int64_t now = std::chrono::duration_cast<std::chrono::milliseconds>(
-                                    std::chrono::system_clock::now().time_since_epoch())
-                                    .count();
+                              std::chrono::system_clock::now().time_since_epoch())
+                              .count();
 
             // Check if timeout milliseconds have elapsed
             if (now - start > timeoutThreshold)

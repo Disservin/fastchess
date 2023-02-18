@@ -97,3 +97,28 @@ inline constexpr PieceType type_of_piece(const Piece piece)
                                                 KNIGHT, BISHOP, ROOK,   QUEEN, KING,  NONETYPE};
     return PieceToPieceType[piece];
 }
+
+/// @brief Gets the file index of the square where 0 is the a-file
+/// @param sq
+/// @return the file of the square
+inline constexpr File square_file(Square sq)
+{
+    return File(sq & 7);
+}
+
+/// @brief Gets the rank index of the square where 0 is the first rank.
+/// @param sq
+/// @return the rank of the square
+inline constexpr Rank square_rank(Square sq)
+{
+    return Rank(sq >> 3);
+}
+
+/// @brief makes a square out of rank and file
+/// @param f
+/// @param r
+/// @return
+inline constexpr Square file_rank_square(File f, Rank r)
+{
+    return Square((r << 3) + f);
+}

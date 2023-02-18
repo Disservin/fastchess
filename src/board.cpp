@@ -114,6 +114,7 @@ bool Board::make_move(Move move)
     auto copyBoard = board;
 
     Piece move_piece = piece_at(move.from_sq);
+    PieceType move_pt = type_of_piece(move_piece);
     Piece capture_piece = piece_at(move.to_sq);
 
     remove_piece(move_piece, move.from_sq);
@@ -121,9 +122,27 @@ bool Board::make_move(Move move)
     if (capture_piece != NONE)
         remove_piece(capture_piece, move.to_sq);
 
-    if (type_of_piece(move_piece) == KING && std::abs(move.to_sq - move.from_sq) == 2)
+    if (move_pt == PAWN)
     {
+        if (move.to_sq == enPassantSquare)
+        {
+            remove_piece(capture_piece, Square(move.to_sq ^ 8));
         }
+        if (move.promotion_piece != NONETYPE)
+        {
+            // TODO
+        }
+    }
+
+    if (move_pt == KING && std::abs(move.to_sq - move.from_sq) == 2)
+    {
+        const Piece rook = sideToMove == WHITE ? WHITEROOK : BLACKROOK;
+        Square rookFromSq = file_rank_square(move.to_sq > move.from_sq ? FILE_H : FILE_A, square_rank(move.from_sq));
+        Square rookToSq = file_rank_square(move.to_sq > move.from_sq ? FILE_F : FILE_D, square_rank(move.from_sq));
+
+        remove_piece(rook, rookFromSq);
+        place_piece(rook, rookToSq);
+    }
 
     place_piece(move_piece, move.to_sq);
 

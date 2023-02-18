@@ -49,6 +49,9 @@ std::vector<std::string> EngineProcess::readEngine(std::string_view last_word, i
 
     auto start = std::chrono::high_resolution_clock::now();
 
+    int checkTime = 1023;
+
+    int total_calls = 0;
     while (true)
     {
         if (!PeekNamedPipe(m_childStdOut, buffer, sizeof(buffer), &bytesRead, &bytesAvail, nullptr))
@@ -56,14 +59,19 @@ std::vector<std::string> EngineProcess::readEngine(std::string_view last_word, i
             throw std::runtime_error("Cant peek Pipe");
         }
 
-        auto now = std::chrono::high_resolution_clock::now();
-
         // Check if timeout milliseconds have elapsed
-        if (std::chrono::duration_cast<std::chrono::milliseconds>(now - start).count() > timeoutThreshold)
+        if (checkTime-- == 0)
         {
-            lines.push_back(currentLine);
-            timedOut = true;
-            break;
+            auto now = std::chrono::high_resolution_clock::now();
+
+            if (std::chrono::duration_cast<std::chrono::milliseconds>(now - start).count() > timeoutThreshold)
+            {
+                lines.push_back(currentLine);
+                timedOut = true;
+                break;
+            }
+
+            checkTime = 1023;
         }
 
         if (bytesAvail == 0)

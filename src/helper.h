@@ -1,5 +1,5 @@
 #pragma once
-
+#include "engine.h"
 #include <algorithm>
 #include <array>
 #include <string>
@@ -70,3 +70,5 @@ struct Table<T, N>
         data.fill({});
     }
 };
+// Takes a string in input and returns a TimeControl object
+TimeControl ParseTc(std::string);

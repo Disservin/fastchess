@@ -33,3 +33,5 @@ std::vector<std::string> splitString(const std::string &string, const char &deli
 
     return seglist;
 }
+
+TimeControl ParseTc(std::string){};

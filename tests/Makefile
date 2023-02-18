@@ -29,4 +29,4 @@ TARGET = fast-chess-tests$(SUFFIX)
 
 all:
 	$(CXX) $(CXXFLAGS) $(NATIVE) ./data/engine/dummy_engine.cpp -o ./data/engine/dummy_engine $(LDFLAGS)
-	$(CXX) $(CXXFLAGS) $(NATIVE) main.cpp $(SOURCES) -o $(TARGET) $(LDFLAGS)
+	$(CXX) $(CXXFLAGS) $(NATIVE) $(SOURCES) -o $(TARGET) $(LDFLAGS)

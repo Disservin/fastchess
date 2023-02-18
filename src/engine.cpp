@@ -50,10 +50,12 @@ TimeControl Engine::getTc() const
     return tc;
 }
 
-void Engine::startProcess() {
-    process.initProcess(cmd);
+void Engine::startProcess()
+{
+    // process.initProcess(cmd);
 }
 
-void Engine::stopProcess() {
-    process.killProcess();
+void Engine::stopProcess()
+{
+    // process.killProcess();
 }

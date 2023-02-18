@@ -7,8 +7,8 @@ class Process
 {
   public:
     // reads until it finds last_word
-    virtual std::vector<std::string> read(std::string_view last_word) = 0;
-    virtual void write(const std::string &input) = 0;
+    virtual std::vector<std::string> readEngine(std::string_view last_word) = 0;
+    virtual void writeEngine(const std::string &input) = 0;
 };
 
 #ifdef _WIN64
@@ -22,8 +22,8 @@ class EngineProcess : Process
     EngineProcess(const std::string &command);
     ~EngineProcess();
 
-    virtual std::vector<std::string> read(std::string_view last_word);
-    virtual void write(const std::string &input);
+    virtual std::vector<std::string> readEngine(std::string_view last_word);
+    virtual void writeEngine(const std::string &input);
 
   private:
     HANDLE m_childProcessHandle;
@@ -35,12 +35,11 @@ class EngineProcess : Process
 class EngineProcess : Process
 {
   public:
-    void sendCommand(const std::string &cmd);
-    void initProcess(const std::string &cmd);
-    void killProcess();
+    EngineProcess(const std::string &command);
+    ~EngineProcess();
 
-    std::vector<std::string> read(std::string_view last_word);
-    void write(const std::string &input);
+    virtual std::vector<std::string> readEngine(std::string_view last_word);
+    virtual void writeEngine(const std::string &input);
 
   private:
     int inPipe[2], outPipe[2];

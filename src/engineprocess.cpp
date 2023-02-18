@@ -38,7 +38,7 @@ EngineProcess::~EngineProcess()
     CloseHandle(m_childStdIn);
 }
 
-std::vector<std::string> EngineProcess::read(std::string_view last_word)
+std::vector<std::string> EngineProcess::readEngine(std::string_view last_word)
 {
     std::vector<std::string> lines;
     std::string currentLine;
@@ -79,18 +79,21 @@ std::vector<std::string> EngineProcess::read(std::string_view last_word)
     return lines;
 }
 
-void EngineProcess::write(const std::string &input)
+void EngineProcess::writeEngine(const std::string &input)
 {
+    constexpr char endLine = '\n';
     DWORD bytesWritten;
     WriteFile(m_childStdIn, input.c_str(), input.length(), &bytesWritten, nullptr);
+    WriteFile(m_childStdIn, &endLine, 1, &bytesWritten, nullptr);
 }
 
 #else
 
+#include <fcntl.h>
 #include <sys/types.h>
 #include <unistd.h>
 
-void EngineProcess::initProcess(const std::string &cmd)
+EngineProcess::EngineProcess(const std::string &command)
 {
 
     if (pipe(inPipe) == -1)
@@ -121,35 +124,52 @@ void EngineProcess::initProcess(const std::string &cmd)
         dup2(inPipe[1], 1);
         close(inPipe[0]);
         close(inPipe[1]);
-        execlp(cmd.c_str(), cmd.c_str(), (char *)0);
+        execlp(command.c_str(), command.c_str(), (char *)0);
         perror("Failed to create child process");
         exit(1);
     }
-    else
-    {
-
-        sendCommand("uci");
-
-        /*sleep(1);
-        char buffer[500];
-        close(inPipe[1]);
-        read(inPipe[0], buffer, 500);
-        printf("%s\n", buffer);*/
-    }
 }
 
-void EngineProcess::sendCommand(const std::string &cmd)
+EngineProcess::~EngineProcess()
+{
+    close(inPipe[0]);
+    close(inPipe[1]);
+    close(outPipe[0]);
+    close(outPipe[1]);
+}
+
+void EngineProcess::writeEngine(const std::string &input)
 {
     constexpr char endLine = '\n';
     close(outPipe[0]);
-    write(outPipe[1], cmd.c_str(), cmd.size());
+    write(outPipe[1], input.c_str(), input.size());
     write(outPipe[1], &endLine, 1);
 }
 
-void EngineProcess::killProcess()
+std::vector<std::string> EngineProcess::readEngine(std::string_view last_word)
 {
-    sendCommand("quit");
-    close(outPipe[1]);
+
+    // Disable blocking
+    fcntl(inPipe[0], F_SETFL, fcntl(inPipe[0], F_GETFL) | O_NONBLOCK);
+
+    std::vector<std::string> lines;
+    std::string line;
+
+    while (line != last_word)
+    {
+        line = "";
+
+        char c = ' ';
+        while (c != '\n')
+        {
+            if (read(inPipe[0], &c, 1) > 0 && c != '\n')
+                line += c;
+        }
+
+        lines.push_back(line);
+    }
+
+    return lines;
 }
 
 #endif

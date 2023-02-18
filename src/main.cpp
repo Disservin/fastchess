@@ -9,16 +9,18 @@ int main(int argc, char const *argv[])
     // CMD::Options options = CMD::Options(argc, argv);
     // options.print_params();
 
-    EngineProcess process("E:\\Github\\fast-chess\\src\\smallbrain.exe");
+    EngineProcess process("./BlackCore-v6-0");
 
-    process.write("uci\n");
+    process.writeEngine("uci");
 
-    std::vector<std::string> output = process.read("uciok");
+    std::vector<std::string> output = process.readEngine("uciok");
 
     for (auto item : output)
     {
         std::cout << item << std::endl;
     }
+
+    process.writeEngine("quit");
 
     return 0;
 }

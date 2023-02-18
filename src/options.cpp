@@ -26,16 +26,22 @@ namespace CMD
         // Once we properly split the string start parsing it
         for (auto cli_option : cli_options)
         {
-            // Create parameter object
-            parameter temp_param;
             // non dash options come in name-value pairs separated by a = sign
             if (!starts_with(cli_option, "-"))
             {
+                // Get what structure you are supposed to put values in
+
+                // split the option into a name value pair
+                std::vector<std::string> name_value_couple = splitString(cli_option, '=');
+                std::string param_name = name_value_couple.front();
+                std::string param_value = name_value_couple.back();
             }
-            //  get option
-            //  parse the value
-            //  create a parameter with that value
-            //  add that parameter to parameters
+            else
+            {
+                // Read option
+                // Determine appropriate structure to put values in until there's another change
+                continue;
+            }
         }
     }
 

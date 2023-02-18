@@ -1,7 +1,10 @@
 #pragma once
 
+#include "types.h"
+
 #include <algorithm>
 #include <array>
+#include <cassert>
 #include <string>
 #include <vector>
 
@@ -67,3 +70,30 @@ template <typename T, size_t N> struct Table<T, N>
         data.fill({});
     }
 };
+
+/// @brief least significant bit instruction
+/// @param mask
+/// @return the least significant bit as the Square
+Square lsb(Bitboard mask);
+
+/// @brief most significant bit instruction
+/// @param mask
+/// @return the most significant bit as the Square
+Square msb(Bitboard mask);
+
+/// @brief Counts the set bits
+/// @param mask
+/// @return the count
+int popcount(Bitboard mask);
+
+/// @brief remove the lsb and return it
+/// @param mask
+/// @return the lsb
+Square poplsb(Bitboard &mask);
+
+inline constexpr PieceType type_of_piece(const Piece piece)
+{
+    constexpr PieceType PieceToPieceType[13] = {PAWN,   KNIGHT, BISHOP, ROOK,  QUEEN, KING,    PAWN,
+                                                KNIGHT, BISHOP, ROOK,   QUEEN, KING,  NONETYPE};
+    return PieceToPieceType[piece];
+}

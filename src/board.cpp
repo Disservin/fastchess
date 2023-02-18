@@ -1,6 +1,7 @@
-#include "board.h"
-
 #include <vector>
+
+#include "attacks.h"
+#include "board.h"
 
 void Board::remove_piece(Piece piece, Square sq)
 {
@@ -12,6 +13,23 @@ void Board::place_piece(Piece piece, Square sq)
 {
     pieceBB[colorOf(piece)][piece] |= (1ULL << sq);
     board[sq] = piece;
+}
+
+bool Board::isKingAttacked(Color c, Square sq)
+{
+    Bitboard all = allBB();
+
+    if (pieces(PAWN, c) & PawnAttacks(sq, ~c))
+        return true;
+    if (pieces(KNIGHT, c) & KnightAttacks(sq))
+        return true;
+    if ((pieces(BISHOP, c) | pieces(QUEEN, c)) & BishopAttacks(sq, all))
+        return true;
+    if ((pieces(ROOK, c) | pieces(QUEEN, c)) & RookAttacks(sq, all))
+        return true;
+    if (pieces(KING, c) & KingAttacks(sq))
+        return true;
+    return false;
 }
 
 void Board::load_fen(const std::string &fen)
@@ -90,10 +108,55 @@ void Board::load_fen(const std::string &fen)
     fullMoveNumber = std::stoi(full_move_counter) * 2;
 }
 
-void Board::make_move(Move move)
+bool Board::make_move(Move move)
 {
+    auto copyPieceBB = pieceBB;
+    auto copyBoard = board;
+
+    Piece move_piece = piece_at(move.from_sq);
+    Piece capture_piece = piece_at(move.to_sq);
+
+    remove_piece(move_piece, move.from_sq);
+
+    if (capture_piece != NONE)
+        remove_piece(capture_piece, move.to_sq);
+
+    if (type_of_piece(move_piece) == KING && std::abs(move.to_sq - move.from_sq) == 2)
+    {
+        }
+
+    place_piece(move_piece, move.to_sq);
+
+    if (isKingAttacked(~sideToMove, lsb(pieces<KING>(sideToMove))))
+    {
+        pieceBB = copyPieceBB;
+        board = copyBoard;
+
+        return false;
+    }
+
+    return true;
 }
 
 void Board::unmake_move(Move move)
+{
+}
+
+Bitboard Board::us(Color c)
+{
+    return pieceBB[c][PAWN] | pieceBB[c][KNIGHT] | pieceBB[c][BISHOP] | pieceBB[c][ROOK] | pieceBB[c][QUEEN] |
+           pieceBB[c][KING];
+}
+
+Bitboard Board::allBB()
+{
+    return us(WHITE) | us(BLACK);
+}
+
+Board::Board()
+{
+}
+
+Board::~Board()
 {
 }

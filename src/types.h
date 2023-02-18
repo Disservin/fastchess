@@ -66,6 +66,11 @@ enum Color : uint8_t
     NO_COLOR
 };
 
+constexpr Color operator~(Color C)
+{
+    return Color(C ^ BLACK);
+}
+
 static std::unordered_map<char, Piece> charToPiece({{'P', WHITEPAWN},
                                                     {'N', WHITEKNIGHT},
                                                     {'B', WHITEBISHOP},

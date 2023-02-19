@@ -70,6 +70,4 @@ class Engine
     std::vector<std::pair<std::string, std::string>> getOptions() const;
 
     TimeControl getTc() const;
-
-    EngineProcess getProcess() const;
 };

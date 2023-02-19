@@ -14,13 +14,15 @@ class UciEngine : protected Engine
         setEngine(engine);
     }
 
-    UciEngine sendUci();
-    UciEngine sendSetoption(const std::string &name, const std::string &value);
-    UciEngine sendGo(const std::string &limit);
+    void sendUci();
+    void sendQuit();
+    void sendSetoption(const std::string &name, const std::string &value);
+    void sendGo(const std::string &limit);
 
-    UciEngine setEngine(const Engine &rhs);
+    void setEngine(const Engine &rhs);
 
     void startEngine(const std::string &cmd /* cmd and , add engines options here*/);
+    void stopEngine();
 
   private:
 };

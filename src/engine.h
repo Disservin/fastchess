@@ -11,8 +11,6 @@ struct TimeControl
     uint64_t moves;
     uint64_t time;
     uint64_t increment;
-    uint64_t nodes;
-    uint64_t plies;
 };
 
 class Engine
@@ -32,7 +30,10 @@ class Engine
 
     // time control for the engine
     TimeControl tc;
-
+    // Node limit for the engine
+    uint64_t nodes;
+    // Ply limit for the engine
+    uint64_t plies;
     // Process wrapper around the engine
     EngineProcess process;
 

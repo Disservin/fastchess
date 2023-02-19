@@ -149,17 +149,39 @@ TimeControl Options::ParseTc(const std::string tc_string)
     bool has_inc = contains(tc_string, "+");
     if (has_moves && has_inc)
     {
+        // Split the string into move count and time+inc
+        std::vector<std::string> moves_and_time;
+        moves_and_time = splitString(tc_string, '/');
+        std::string moves = moves_and_time.front();
+        // Split time+inc into time and inc
+        std::vector<std::string> time_and_inc = splitString(moves_and_time.back(), '+');
+        std::string time = time_and_inc.front();
+        std::string inc = time_and_inc.back();
     }
     else if (has_moves)
     {
+        // Split the string into move count and time+inc
+        std::vector<std::string> moves_and_time;
+        moves_and_time = splitString(tc_string, '/');
+        std::string moves = moves_and_time.front();
+        std::string time = moves_and_time.back();
+        time_control.moves = std::stoi(moves);
+        time_control.time = std::stof(time) * 1000;
+        time_control.increment = 0;
     }
     else if (has_inc)
     {
+        std::vector<std::string> time_and_inc = splitString(tc_string, '+');
+        std::string time = time_and_inc.front();
+        std::string inc = time_and_inc.back();
+        time_control.moves = 0;
+        time_control.time = std::stof(time) * 1000;
+        time_control.increment = std::stof(inc) * 1000;
     }
     else
     {
         time_control.moves = 0;
-        time_control.time = std::stol(tc_string) * 1000;
+        time_control.time = std::stof(tc_string) * 1000;
         time_control.increment = 0;
     }
 

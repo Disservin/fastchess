@@ -2,6 +2,7 @@
 #include <stdexcept>
 
 #include "engineprocess.h"
+#include "types.h"
 
 #ifdef _WIN64
 
@@ -150,6 +151,7 @@ void EngineProcess::writeEngine(const std::string &input)
 #include <fcntl.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <sys/wait.h>
 
 EngineProcess::EngineProcess(const std::string &command)
 {
@@ -276,6 +278,28 @@ std::vector<std::string> EngineProcess::readEngine(std::string_view last_word, i
     }
 
     return lines;
+}
+
+bool EngineProcess::isAlive() {
+    int status;
+    pid_t r = waitpid(processPid, &status, WNOHANG);
+    if (r == -1) {
+        perror("waitpid() error");
+        exit(1);
+    } else {
+        return r == 0;
+    }
+}
+
+bool EngineProcess::isResponsive() {
+    bool timedOut;
+    writeEngine("isready");
+    readEngine("readyok", PING_TIMEOUT_THRESHOLD, timedOut);
+    return !timedOut;
+}
+
+void EngineProcess::killProcess() {
+
 }
 
 #endif

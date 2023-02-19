@@ -1,4 +1,5 @@
 #include <iostream>
+#include <csignal>
 
 #include "engine.h"
 #include "options.h"

@@ -19,12 +19,6 @@ class Process
 
     // Returns true of the engine responds to isready in PING_TIMEOUT_THRESHOLD milliseconds
     virtual bool isResponsive() = 0;
-
-    // Kills the process
-    virtual void killProcess() = 0;
-
-    // Init the process
-    virtual void initProcess(const std::string &command) = 0;
 };
 
 #ifdef _WIN64
@@ -39,15 +33,15 @@ class EngineProcess : Process
     EngineProcess(const std::string &command);
     ~EngineProcess();
 
-    virtual void initProcess(const std::string &command);
+    void initProcess(const std::string &command);
+    void killProcess();
+    void closeProcess();
 
     virtual std::vector<std::string> readEngine(std::string_view last_word, int64_t timeout, bool &timedOut);
     virtual void writeEngine(const std::string &input);
 
     virtual bool isAlive();
     virtual bool isResponsive();
-    virtual void killProcess();
-    void closeProcess();
 
   private:
     HANDLE m_childProcessHandle;
@@ -63,14 +57,14 @@ class EngineProcess : Process
     EngineProcess(const std::string &command);
     ~EngineProcess();
 
-    virtual void initProcess(const std::string &command);
+    void initProcess(const std::string &command);
+    void killProcess();
 
     virtual std::vector<std::string> readEngine(std::string_view last_word, int64_t timeout, bool &timedOut);
     virtual void writeEngine(const std::string &input);
 
     virtual bool isAlive();
     virtual bool isResponsive();
-    virtual void killProcess();
 
   private:
     pid_t processPid;

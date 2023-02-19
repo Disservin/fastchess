@@ -1,24 +1,26 @@
 #include "uci.h"
 
-Uci Uci::sendUci()
+#include <stdexcept>
+
+UciEngine UciEngine::sendUci()
 {
     writeProcess("uci");
     return *this;
 }
 
-Uci Uci::sendSetoption(const std::string &name, const std::string &value)
+UciEngine UciEngine::sendSetoption(const std::string &name, const std::string &value)
 {
     writeProcess("setoption name " + name + " value " + value);
     return *this;
 }
 
-Uci Uci::sendGo(const std::string &limit)
+UciEngine UciEngine::sendGo(const std::string &limit)
 {
     writeProcess("go " + limit);
     return *this;
 }
 
-void Uci::startEngine(const std::string &cmd /* add engines options here*/)
+void UciEngine::startEngine(const std::string &cmd /* add engines options here*/)
 {
     setCmd(cmd);
 

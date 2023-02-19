@@ -31,7 +31,7 @@ class Engine
     // time control for the engine
     TimeControl tc;
 
-    // Process wrapper around the engine
+    // Process wrapper around the engines process
     EngineProcess process;
 
   public:
@@ -41,15 +41,15 @@ class Engine
 
     ~Engine();
 
-    Engine setName(const std::string &name);
+    void setName(const std::string &name);
 
-    Engine setArgs(const std::string &args);
+    void setArgs(const std::string &args);
 
-    Engine setOptions(const std::vector<std::pair<std::string, std::string>> &options);
+    void setOptions(const std::vector<std::pair<std::string, std::string>> &options);
 
-    Engine setTc(const TimeControl &tc);
+    void setTc(const TimeControl &tc);
 
-    Engine setCmd(const std::string &command);
+    void setCmd(const std::string &command);
 
     void stopProcess();
 

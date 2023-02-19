@@ -11,9 +11,7 @@ int main(int argc, char const* argv[])
 
 	Engine engine("./DummyEngine");
 
-	engine.startProcess();
-
-	engine.writeProcess("uci"); // NOTE startProcess also sends uci some engines might not like this
+	engine.writeProcess("uci");
 	auto output = engine.readProcess("uciok");
 
 	for (const auto& item: output)
@@ -21,8 +19,7 @@ int main(int argc, char const* argv[])
 		std::cout << item << std::endl;
 	}
 
-	sleep(5);
-	engine.stopProcess();
+	sleep(1);
 
 	return 0;
 }

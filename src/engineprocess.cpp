@@ -4,12 +4,24 @@
 #include "engineprocess.h"
 #include "types.h"
 
-#ifdef _WIN64
-
-EngineProcess::EngineProcess(const std::string &command)
+EngineProcess::EngineProcess(const std::string& command)
 {
 	initProcess(command);
 }
+
+bool EngineProcess::isResponsive()
+{
+	if (!isAlive())
+		return false;
+
+	bool timedOut;
+	writeEngine("isready");
+	readEngine("readyok", PING_TIMEOUT_THRESHOLD, timedOut);
+	return !timedOut;
+}
+
+
+#ifdef _WIN64
 
 void EngineProcess::initProcess(const std::string &command)
 {
@@ -151,11 +163,6 @@ bool EngineProcess::isAlive()
 	return true;
 }
 
-bool EngineProcess::isResponsive()
-{
-	return true;
-}
-
 void EngineProcess::killProcess()
 {
 }
@@ -166,11 +173,6 @@ void EngineProcess::killProcess()
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
-
-EngineProcess::EngineProcess(const std::string& command)
-{
-	initProcess(command);
-}
 
 void EngineProcess::initProcess(const std::string& command)
 {
@@ -320,16 +322,13 @@ bool EngineProcess::isAlive()
 	}
 }
 
-bool EngineProcess::isResponsive()
-{
-	bool timedOut;
-	writeEngine("isready");
-	readEngine("readyok", PING_TIMEOUT_THRESHOLD, timedOut);
-	return !timedOut;
-}
-
 void EngineProcess::killProcess()
 {
+    if (isResponsive()) {
+        writeEngine("quit");
+        sleep(1);
+    }
+	if (isAlive()) kill(processPid, SIGKILL);
 }
 
 #endif

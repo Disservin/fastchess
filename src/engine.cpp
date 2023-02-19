@@ -70,29 +70,14 @@ TimeControl Engine::getTc() const
 	return tc;
 }
 
-void Engine::startProcess()
-{
-	bool timedOut;
-	process.writeEngine("uci");
-	auto uciHeader = process.readEngine("uciok", PING_TIMEOUT_THRESHOLD, timedOut);
-
-	assert(!timedOut);
-
-	pingProcess();
-}
-
 void Engine::stopProcess()
 {
-	process.writeEngine("quit");
+	process.killProcess();
 }
 
-void Engine::pingProcess()
+bool Engine::pingProcess()
 {
-	bool timedOut;
-	process.writeEngine("isready");
-	process.readEngine("readyok", PING_TIMEOUT_THRESHOLD, timedOut);
-
-	assert(!timedOut);
+	return process.isResponsive();
 }
 
 void Engine::writeProcess(const std::string& input)

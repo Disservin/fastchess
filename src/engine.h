@@ -51,11 +51,9 @@ public:
 
 	Engine setCmd(const std::string& command);
 
-	void startProcess();
-
 	void stopProcess();
 
-	void pingProcess();
+	bool pingProcess();
 
 	void writeProcess(const std::string& input);
 

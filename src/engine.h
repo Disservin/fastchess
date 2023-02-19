@@ -24,7 +24,7 @@ private:
   std::string args;
 
   // UCI options
-  std::vector<std::string> options;
+  std::vector<std::pair<std::string, std::string>> options;
 
   // time control for the engine
   TimeControl tc;

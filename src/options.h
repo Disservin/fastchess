@@ -1,5 +1,5 @@
 #pragma once
-
+#include "engine.h"
 #include <iostream>
 #include <string>
 #include <vector>
@@ -53,7 +53,8 @@ namespace CMD
     void split_params();
     std::vector<std::vector<std::string>> group_cli_params();
     bool isEngineSettableOption(std::string string_format);
-    TimeControl ParseTc(std::string tc_string);
+    TimeControl ParseTc(const std::string tc_string);
+    void parse_engines_options();
     void fill_parameters();
     void print_params();
   };

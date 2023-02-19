@@ -26,40 +26,8 @@ namespace CMD
         // Code to Split UserInput into Cli/Engine1/Engine2/EngineN for easier parsing
         split_params();
         // Parse engine options
-        for (auto engine_options : engines_options)
-        {
-            // Create engine object
-            Engine engine;
-            // Create Args vector
-            std::vector<std::pair<std::string, std::string>> engine_settable_options;
-            for (auto option : engine_options)
-            {
-                // get key and value pair
-                std::vector<std::string> name_value_couple = splitString(option, '=');
-                std::string param_name = name_value_couple.front();
-                std::string param_value = name_value_couple.back();
-                // Assign the value
-                if (param_name == "cmd")
-                {
-                    engine.setCmd(param_value);
-                }
-                if (param_name == "name")
-                {
-                    engine.setName(param_value);
-                }
-                if (param_name == "tc")
-                {
-                    engine.setTc(ParseTc(param_value));
-                }
-                if (isEngineSettableOption(param_name))
-                {
-                    engine_settable_options.push_back(std::make_pair(param_name, param_value));
-                }
-            }
-            engine.setOptions(engine_settable_options);
-            // Add engine
-            engines.push_back(engine);
-        }
+        parse_engines_options();
+
         // Parse Cli options//
         // group those into functionality related subgroups
         std::vector<std::vector<std::string>> cli_parameters_groups = group_cli_params();
@@ -157,7 +125,7 @@ namespace CMD
         return false;
     }
     // Takes a string in input and returns a TimeControl object
-    TimeControl ParseTc(const std::string tc_string)
+    TimeControl Options::ParseTc(const std::string tc_string)
     {
         // Split the string into move count and time+inc
         std::vector<std::string> moves_and_time;
@@ -174,6 +142,43 @@ namespace CMD
         time_control.increment = std::stol(inc) * 1000;
         return time_control;
     };
+    void Options::parse_engines_options()
+    {
+        for (auto engine_options : engines_options)
+        {
+            // Create engine object
+            Engine engine;
+            // Create Args vector
+            std::vector<std::pair<std::string, std::string>> engine_settable_options;
+            for (auto option : engine_options)
+            {
+                // get key and value pair
+                std::vector<std::string> name_value_couple = splitString(option, '=');
+                std::string param_name = name_value_couple.front();
+                std::string param_value = name_value_couple.back();
+                // Assign the value
+                if (param_name == "cmd")
+                {
+                    engine.setCmd(param_value);
+                }
+                if (param_name == "name")
+                {
+                    engine.setName(param_value);
+                }
+                if (param_name == "tc")
+                {
+                    engine.setTc(ParseTc(param_value));
+                }
+                if (isEngineSettableOption(param_name))
+                {
+                    engine_settable_options.push_back(std::make_pair(param_name, param_value));
+                }
+            }
+            engine.setOptions(engine_settable_options);
+            // Add engine
+            engines.push_back(engine);
+        }
+    }
     void Options::print_params()
     {
         std::cout << "Printing cli options" << std::endl;

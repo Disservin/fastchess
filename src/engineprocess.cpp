@@ -183,7 +183,7 @@ void EngineProcess::killProcess()
 
         DWORD exitCode = 0;
         GetExitCodeProcess(m_childProcessHandle, &exitCode);
-        if (exitCode != STILL_ACTIVE)
+        if (exitCode == STILL_ACTIVE)
         {
             UINT uExitCode = 0;
             TerminateProcess(m_childProcessHandle, uExitCode);

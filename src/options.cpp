@@ -76,7 +76,7 @@ void Options::split_params()
 {
     bool meant_for_engine = false;
     // Read option token
-    for (auto item : getUserInput())
+    for (const auto &item : getUserInput())
     {
         // it's if a dash command check if we are moving from cli arguments to engine arguments or viceversa
         if (starts_with(item, "-"))
@@ -115,7 +115,7 @@ void Options::split_params()
 std::vector<std::vector<std::string>> Options::group_cli_params()
 {
     std::vector<std::vector<std::string>> option_groups;
-    for (auto cli_option : cli_options)
+    for (const auto &cli_option : cli_options)
     {
         // New functionally independent group
         if (starts_with(cli_option, "-"))
@@ -195,13 +195,13 @@ TimeControl Options::ParseTc(const std::string tc_string)
 
 void Options::parse_engines_options()
 {
-    for (auto engine_options : engines_options)
+    for (const auto &engine_options : engines_options)
     {
         // Create engine object
         Engine engine;
         // Create Args vector
         std::vector<std::pair<std::string, std::string>> engine_settable_options;
-        for (auto option : engine_options)
+        for (const auto &option : engine_options)
         {
             // get key and value pair
             std::vector<std::string> name_value_couple = splitString(option, '=');
@@ -242,13 +242,13 @@ void Options::parse_engines_options()
 void Options::print_params()
 {
     std::cout << "Printing cli options" << std::endl;
-    for (auto cli_option : cli_options)
+    for (const auto &cli_option : cli_options)
         std::cout << cli_option << std::endl;
     std::cout << "Printing Engines options" << std::endl;
-    for (auto engine_options : engines_options)
+    for (const auto &engine_options : engines_options)
     {
         std::cout << "New Engine" << std::endl;
-        for (auto option : engine_options)
+        for (const auto &option : engine_options)
             std::cout << option << std::endl;
     }
 };

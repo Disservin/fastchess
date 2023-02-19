@@ -2,20 +2,20 @@
 
 class Match
 {
-public:
-	Match();
+  public:
+    Match();
 
-	Match(Match&&) = default;
+    Match(Match &&) = default;
 
-	Match(const Match&) = default;
+    Match(const Match &) = default;
 
-	Match& operator=(Match&&) = default;
+    Match &operator=(Match &&) = default;
 
-	Match& operator=(const Match&) = default;
+    Match &operator=(const Match &) = default;
 
-	~Match();
+    ~Match();
 
-private:
+  private:
 };
 
 Match::Match()

@@ -14,44 +14,42 @@ Engine::~Engine()
     stopProcess();
 }
 
-Engine Engine::setName(const std::string &name)
+void Engine::setName(const std::string &name)
 {
     this->name = name;
-    return *this;
 }
 
-Engine Engine::setArgs(const std::string &args)
+void Engine::setArgs(const std::string &args)
 {
     this->args = args;
-    return *this;
 }
 
-Engine Engine::setOptions(const std::vector<std::pair<std::string, std::string>> &options)
+void Engine::setOptions(const std::vector<std::pair<std::string, std::string>> &options)
 {
     this->options = options;
-    return *this;
 }
 
-Engine Engine::setTc(const TimeControl &tc)
+void Engine::setTc(const TimeControl &tc)
 {
     this->tc = tc;
-    return *this;
 }
+
 Engine Engine::setNodeLimit(const uint64_t nodes)
 {
     this->nodes = nodes;
     return *this;
 }
+
 Engine Engine::setPlyLimit(const uint64_t plies)
 {
     this->plies = plies;
     return *this;
 }
+
 Engine Engine::setCmd(const std::string &command)
 {
     this->cmd = command;
     process.initProcess(cmd);
-    return *this;
 }
 
 std::string Engine::getName() const

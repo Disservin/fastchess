@@ -30,10 +30,13 @@ class Engine
 
     // time control for the engine
     TimeControl tc;
+
     // Node limit for the engine
     uint64_t nodes = 0;
+    
     // Ply limit for the engine
     uint64_t plies = 0;
+    
     // Process wrapper around the engine
     EngineProcess process;
 
@@ -44,13 +47,13 @@ class Engine
 
     ~Engine();
 
-    Engine setName(const std::string &name);
+    void setName(const std::string &name);
 
-    Engine setArgs(const std::string &args);
+    void setArgs(const std::string &args);
 
-    Engine setOptions(const std::vector<std::pair<std::string, std::string>> &options);
+    void setOptions(const std::vector<std::pair<std::string, std::string>> &options);
 
-    Engine setTc(const TimeControl &tc);
+    void setTc(const TimeControl &tc);
 
     Engine setNodeLimit(const uint64_t nodes);
 

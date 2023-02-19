@@ -45,10 +45,10 @@ TEST_CASE("Testing the EngineProcess class with setCmd")
 {
 #ifdef _WIN32
     Engine engine;
-    engine.setCmd("./data/engine/dummy_engine.exe");
+    engine.initProcess("./data/engine/dummy_engine.exe");
 #else
     Engine engine;
-    engine.setCmd("./data/engine/dummy_engine");
+    engine.initProcess("./data/engine/dummy_engine");
 
 #endif
     bool timeout = false;

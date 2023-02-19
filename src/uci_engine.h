@@ -9,9 +9,9 @@ class UciEngine : public Engine
     {
     }
 
-    UciEngine(Engine engine)
+    UciEngine(EngineConfiguration config)
     {
-        setEngine(engine);
+        setConfig(config);
     }
 
     void sendUci();
@@ -21,7 +21,7 @@ class UciEngine : public Engine
     void sendSetoption(const std::string &name, const std::string &value);
     void sendGo(const std::string &limit);
 
-    void setEngine(const Engine &rhs);
+    void setConfig(const EngineConfiguration &rhs);
 
     void startEngine(const std::string &cmd /* cmd and , add engines options here*/);
     void stopEngine();

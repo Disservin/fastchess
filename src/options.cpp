@@ -28,20 +28,7 @@ Options::Options(int argc, char const *argv[])
 
     // Parse engine options
     parse_engines_options();
-    for (auto engine : engines)
-    {
-        std::cout << "Name:" << engine.getName() << std::endl;
-        std::cout << "Command: " << engine.getCmd() << std::endl;
-        std::cout << "TC:" << engine.getTc().moves << "/" << engine.getTc().time << "+" << engine.getTc().increment
-                  << std::endl;
-        std::cout << "Nodes: " << engine.getNodeLimit() << std::endl;
-        std::cout << "Plies: " << engine.getPlyLimit() << std::endl;
-        for (auto option : engine.getOptions())
-        {
-            std::cout << "Option name: " << option.first;
-            std::cout << " value: " << option.second << std::endl;
-        }
-    }
+
     /*
        // Parse Cli options//
        // group those into functionality related subgroups
@@ -198,7 +185,7 @@ void Options::parse_engines_options()
     for (const auto &engine_options : engines_options)
     {
         // Create engine object
-        Engine engine;
+        EngineConfiguration config;
         // Create Args vector
         std::vector<std::pair<std::string, std::string>> engine_settable_options;
         for (const auto &option : engine_options)
@@ -210,32 +197,32 @@ void Options::parse_engines_options()
             // Assign the value
             if (param_name == "cmd")
             {
-                engine.setCmd(param_value);
+                config.cmd = param_value;
             }
             if (param_name == "name")
             {
-                engine.setName(param_value);
+                config.name = param_value;
             }
             if (param_name == "tc")
             {
-                engine.setTc(ParseTc(param_value));
+                config.tc = ParseTc(param_value);
             }
             if (param_name == "nodes")
             {
-                engine.setNodeLimit(std::stoll(param_value));
+                config.nodes = std::stoll(param_value);
             }
             if (param_name == "plies")
             {
-                engine.setPlyLimit(std::stoll(param_value));
+                config.plies = std::stoll(param_value);
             }
             if (isEngineSettableOption(param_name))
             {
                 engine_settable_options.push_back(std::make_pair(param_name, param_value));
             }
         }
-        engine.setOptions(engine_settable_options);
+        config.options = engine_settable_options;
         // Add engine
-        engines.push_back(engine);
+        configs.push_back(config);
     }
 }
 

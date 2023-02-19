@@ -34,11 +34,16 @@ EngineProcess::EngineProcess(const std::string &command)
     m_childStdIn = childStdInWr;
 }
 
-EngineProcess::~EngineProcess()
+void EngineProcess::closeProcess()
 {
     CloseHandle(m_childProcessHandle);
     CloseHandle(m_childStdOut);
     CloseHandle(m_childStdIn);
+}
+
+EngineProcess::~EngineProcess()
+{
+    closeProcess();
 }
 
 std::vector<std::string> EngineProcess::readEngine(std::string_view last_word, int64_t timeoutThreshold, bool &timedOut)
@@ -122,6 +127,8 @@ void EngineProcess::writeEngine(const std::string &input)
     GetExitCodeProcess(m_childProcessHandle, &exitCode);
     if (exitCode != STILL_ACTIVE)
     {
+        closeProcess();
+
         std::stringstream ss;
         ss << "Trying to write to process with exit code " << exitCode;
         throw std::runtime_error(ss.str());

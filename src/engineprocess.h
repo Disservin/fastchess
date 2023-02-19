@@ -29,6 +29,8 @@ class EngineProcess : Process
     virtual std::vector<std::string> readEngine(std::string_view last_word, int64_t timeout, bool &timedOut);
     virtual void writeEngine(const std::string &input);
 
+    void closeProcess();
+
   private:
     HANDLE m_childProcessHandle;
     HANDLE m_childStdOut;

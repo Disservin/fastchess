@@ -52,9 +52,9 @@ class Engine
 
     Engine setTc(const TimeControl &tc);
 
-    Engine Engine::setNodeLimit(const uint64_t nodes);
+    Engine setNodeLimit(const uint64_t nodes);
 
-    Engine Engine::setPlyLimit(const uint64_t plies);
+    Engine setPlyLimit(const uint64_t plies);
 
     Engine setCmd(const std::string &command);
 

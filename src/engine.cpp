@@ -44,7 +44,7 @@ void Engine::setPlyLimit(const uint64_t plies)
     this->plies = plies;
 }
 
-Engine Engine::setCmd(const std::string &command)
+void Engine::setCmd(const std::string &command)
 {
     this->cmd = command;
     process.initProcess(cmd);

@@ -7,6 +7,11 @@
 
 EngineProcess::EngineProcess(const std::string &command)
 {
+    initProcess(command);
+}
+
+void EngineProcess::initProcess(const std::string &command)
+{
     STARTUPINFOA si = STARTUPINFOA();
     si.dwFlags = STARTF_USESTDHANDLES;
 
@@ -148,6 +153,11 @@ void EngineProcess::writeEngine(const std::string &input)
 
 EngineProcess::EngineProcess(const std::string &command)
 {
+    initProcess(command);
+}
+
+void EngineProcess::initProcess(const std::string &command)
+{
 
     // Create input pipe
     if (pipe(inPipe) == -1)
@@ -164,15 +174,15 @@ EngineProcess::EngineProcess(const std::string &command)
     }
 
     // Fork the current process
-    pid_t processPid = fork();
-    if (processPid < 0)
+    pid_t forkPid = fork();
+    if (forkPid < 0)
     {
         perror("Fork failed");
         exit(1);
     }
 
     // If this is the child process, set up the pipes and start the engine
-    if (processPid == 0)
+    if (forkPid == 0)
     {
         // Redirect the child's standard input to the read end of the output pipe
         dup2(outPipe[0], 0);
@@ -183,6 +193,8 @@ EngineProcess::EngineProcess(const std::string &command)
         dup2(inPipe[1], 1);
         close(inPipe[0]);
         close(inPipe[1]);
+
+        processPid = getpid();
 
         // Execute the engine
         execlp(command.c_str(), command.c_str(), nullptr);

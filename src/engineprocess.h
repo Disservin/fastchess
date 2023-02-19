@@ -13,6 +13,18 @@ class Process
 
     // Write input to the engine's stdin
     virtual void writeEngine(const std::string &input) = 0;
+
+    // Returns true if the engine process is alive
+    // virtual bool isAlive() = 0;
+
+    // Returns true of the engine responds to isready in PING_TIMEOUT_THRESHOLD milliseconds
+    // virtual bool isResponsive() = 0;
+
+    // Kills the process
+    // virtual void killProcess() = 0;
+
+    // Init the process
+    virtual void initProcess(const std::string &command) = 0;
 };
 
 #ifdef _WIN64
@@ -23,8 +35,11 @@ class Process
 class EngineProcess : Process
 {
   public:
+    EngineProcess() = default;
     EngineProcess(const std::string &command);
     ~EngineProcess();
+
+    virtual void initProcess(const std::string &command);
 
     virtual std::vector<std::string> readEngine(std::string_view last_word, int64_t timeout, bool &timedOut);
     virtual void writeEngine(const std::string &input);
@@ -41,13 +56,17 @@ class EngineProcess : Process
 class EngineProcess : Process
 {
   public:
+    EngineProcess() = default;
     EngineProcess(const std::string &command);
     ~EngineProcess();
+
+    virtual void initProcess(const std::string &command);
 
     virtual std::vector<std::string> readEngine(std::string_view last_word, int64_t timeout, bool &timedOut);
     virtual void writeEngine(const std::string &input);
 
   private:
+    pid_t processPid;
     int inPipe[2], outPipe[2];
 };
 #endif

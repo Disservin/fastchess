@@ -1,7 +1,5 @@
 #include "options.h"
 #include "helper.h"
-#include "engine.h"
-#include <map>
 #include <sstream>
 #include <limits>
 
@@ -25,53 +23,26 @@ namespace CMD
         parseUserInput(argc, argv);
         // Code to Split UserInput into Cli/Engine1/Engine2/EngineN for easier parsing
         split_params();
-        // Parse engine options
-        for (auto engine_options : engines_options)
+        // Once we properly split the string start parsing it
+        for (auto cli_option : cli_options)
         {
-            // Create engine object
-            Engine engine;
-            // Create Args vector
-            std::vector<std::pair<std::string, std::string>> engine_settable_options;
-            for (auto option : engine_options)
+            // non dash options come in name-value pairs separated by a = sign
+            if (!starts_with(cli_option, "-"))
             {
-                // get key and value pair
-                std::vector<std::string> name_value_couple = splitString(option, '=');
+                // Get what structure you are supposed to put values in
+
+                // split the option into a name value pair
+                std::vector<std::string> name_value_couple = splitString(cli_option, '=');
                 std::string param_name = name_value_couple.front();
                 std::string param_value = name_value_couple.back();
-                // Assign the value
-                if (param_name == "cmd")
-                {
-                    engine.setCmd(param_value);
-                }
-                if (param_name == "name")
-                {
-                    engine.setName(param_value);
-                }
-                if (param_name == "tc")
-                {
-                    engine.setTc(ParseTc(param_value));
-                }
-                if (isEngineSettableOption(param_name))
-                {
-                    engine_settable_options.push_back(std::make_pair(param_name, param_value));
-                }
+                // Assign value to option
             }
-            engine.setOptions(engine_settable_options);
-            // Add engine
-            engines.push_back(engine);
-        }
-        // Parse Cli options//
-        // group those into functionality related subgroups
-        std::vector<std::vector<std::string>> cli_parameters_groups = group_cli_params();
-        // For each parameter group we use the first element as a key of a map, the rest as part of the value
-        std::map<std::string, std::vector<std::string>> map;
-        for (auto parameter_group : cli_parameters_groups)
-        {
-            // The first element of the group is our key
-            std::string key = parameter_group.front();
-            // Drop the  first element from the vector and use that as a value(this is much easier than copying a subset of it)
-            parameter_group.erase(parameter_group.begin());
-            map[key] = parameter_group;
+            else
+            {
+                // Read option
+                // Determine appropriate structure to put values in until there's another change
+                continue;
+            }
         }
     }
 
@@ -126,54 +97,6 @@ namespace CMD
             }
         }
     }
-    // groups functionally linked subset of cli parameters
-    std::vector<std::vector<std::string>> Options::group_cli_params()
-    {
-        std::vector<std::vector<std::string>> option_groups;
-        for (auto cli_option : cli_options)
-        {
-            // New functionally independent group
-            if (starts_with(cli_option, "-"))
-            {
-                // Create new option group
-                std::vector<std::string> new_option_group;
-                option_groups.push_back(new_option_group);
-                // add new option to group
-                engines_options.back().push_back(cli_option);
-            }
-            else
-            {
-                // Add to the current option group
-                engines_options.back().push_back(cli_option);
-            }
-        }
-        return option_groups;
-    }
-
-    bool Options::isEngineSettableOption(std::string string_format)
-    {
-        if (starts_with(string_format, "option."))
-            return true;
-        return false;
-    }
-    // Takes a string in input and returns a TimeControl object
-    TimeControl ParseTc(const std::string tc_string)
-    {
-        // Split the string into move count and time+inc
-        std::vector<std::string> moves_and_time;
-        moves_and_time = splitString(tc_string, '/');
-        std::string moves = moves_and_time.front();
-        // Split time+inc into time and inc
-        std::vector<std::string> time_and_inc = splitString(moves_and_time.back(), '+');
-        std::string time = time_and_inc.front();
-        std::string inc = time_and_inc.back();
-        // Create time control object and parse the strings into usable values
-        TimeControl time_control;
-        time_control.moves = std::stoi(moves);
-        time_control.time = std::stol(time) * 1000;
-        time_control.increment = std::stol(inc) * 1000;
-        return time_control;
-    };
     void Options::print_params()
     {
         std::cout << "Printing cli options" << std::endl;

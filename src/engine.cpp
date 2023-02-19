@@ -7,24 +7,28 @@ Engine::Engine(const std::string &command) : cmd(command), process(command)
 {
 }
 
-void Engine::setName(const std::string &name)
+Engine Engine::setName(const std::string &name)
 {
     this->name = name;
+    return *this;
 }
 
-void Engine::setArgs(const std::string &args)
+Engine Engine::setArgs(const std::string &args)
 {
     this->args = args;
+    return *this;
 }
 
-void Engine::setOptions(const std::vector<std::string> &options)
+Engine Engine::setOptions(const std::vector<std::string> &options)
 {
     this->options = options;
+    return *this;
 }
 
-void Engine::setTc(const TimeControl &tc)
+Engine Engine::setTc(const TimeControl &tc)
 {
     this->tc = tc;
+    return *this;
 }
 
 std::string Engine::getName() const

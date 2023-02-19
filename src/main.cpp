@@ -5,8 +5,8 @@
 
 int main(int argc, char const *argv[])
 {
-    // CMD::Options options = CMD::Options(argc, argv);
-    // options.print_params();
+    CMD::Options options = CMD::Options(argc, argv);
+    options.print_params();
 
     Engine engine("./DummyEngine");
 

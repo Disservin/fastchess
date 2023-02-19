@@ -146,12 +146,26 @@ void EngineProcess::writeEngine(const std::string &input)
     WriteFile(m_childStdIn, &endLine, 1, &bytesWritten, nullptr);
 }
 
+bool EngineProcess::isAlive()
+{
+    return true;
+}
+
+bool EngineProcess::isResponsive()
+{
+    return true;
+}
+
+void EngineProcess::killProcess()
+{
+}
+
 #else
 
 #include <fcntl.h>
 #include <sys/types.h>
-#include <unistd.h>
 #include <sys/wait.h>
+#include <unistd.h>
 
 EngineProcess::EngineProcess(const std::string &command)
 {
@@ -201,7 +215,9 @@ void EngineProcess::initProcess(const std::string &command)
 
         perror("Failed to create child process");
         exit(1);
-    } else {
+    }
+    else
+    {
         processPid = forkPid;
     }
 }
@@ -216,7 +232,8 @@ EngineProcess::~EngineProcess()
 
 void EngineProcess::writeEngine(const std::string &input)
 {
-    if (isAlive()) {
+    if (isAlive())
+    {
         // Append a newline character to the end of the input string
         constexpr char endLine = '\n';
 
@@ -226,7 +243,9 @@ void EngineProcess::writeEngine(const std::string &input)
         // Write the input and a newline to the output pipe
         write(outPipe[1], input.c_str(), input.size());
         write(outPipe[1], &endLine, 1);
-    } else {
+    }
+    else
+    {
         throw std::runtime_error("Trying to write to process that's not alive");
         exit(1);
     }
@@ -285,27 +304,32 @@ std::vector<std::string> EngineProcess::readEngine(std::string_view last_word, i
     return lines;
 }
 
-bool EngineProcess::isAlive() {
+bool EngineProcess::isAlive()
+{
     int status;
 
     pid_t r = waitpid(processPid, &status, WNOHANG);
-    if (r == -1) {
+    if (r == -1)
+    {
         perror("waitpid() error");
         exit(1);
-    } else {
+    }
+    else
+    {
         return r == 0;
     }
 }
 
-bool EngineProcess::isResponsive() {
+bool EngineProcess::isResponsive()
+{
     bool timedOut;
     writeEngine("isready");
     readEngine("readyok", PING_TIMEOUT_THRESHOLD, timedOut);
     return !timedOut;
 }
 
-void EngineProcess::killProcess() {
-
+void EngineProcess::killProcess()
+{
 }
 
 #endif

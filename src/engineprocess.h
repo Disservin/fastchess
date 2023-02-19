@@ -44,6 +44,9 @@ class EngineProcess : Process
     virtual std::vector<std::string> readEngine(std::string_view last_word, int64_t timeout, bool &timedOut);
     virtual void writeEngine(const std::string &input);
 
+    virtual bool isAlive();
+    virtual bool isResponsive();
+    virtual void killProcess();
     void closeProcess();
 
   private:

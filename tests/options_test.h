@@ -28,7 +28,7 @@ TEST_CASE("Testing options")
                           "plies=16",
                           "-pgnout",
                           "PGNs/Alexandria-EA649FED_vs_Alexandria-27E42728"};
-    CMD::Options options = CMD::Options(24, argv);
+    CMD::Options options = CMD::Options(22, argv);
 
     CHECK(options.configs[0].name == "Alexandria-27E42728");
     CHECK(options.configs[0].tc.moves == 0);

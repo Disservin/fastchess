@@ -1,3 +1,4 @@
+#include <sstream>
 #include <stdexcept>
 
 #include "engineprocess.h"
@@ -117,6 +118,15 @@ std::vector<std::string> EngineProcess::readEngine(std::string_view last_word, i
 
 void EngineProcess::writeEngine(const std::string &input)
 {
+    DWORD exitCode = 0;
+    GetExitCodeProcess(m_childProcessHandle, &exitCode);
+    if (exitCode != STILL_ACTIVE)
+    {
+        std::stringstream ss;
+        ss << "Trying to write to process with exit code " << exitCode;
+        throw std::runtime_error(ss.str());
+    }
+
     constexpr char endLine = '\n';
     DWORD bytesWritten;
     WriteFile(m_childStdIn, input.c_str(), input.length(), &bytesWritten, nullptr);

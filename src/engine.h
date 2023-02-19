@@ -36,6 +36,7 @@ class Engine
 
   public:
     explicit Engine(const std::string &command);
+    ~Engine();
 
     Engine setName(const std::string &name);
     Engine setArgs(const std::string &args);

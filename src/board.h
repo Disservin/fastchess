@@ -32,6 +32,13 @@ class Board
     Board &operator=(const Board &) = default;
     ~Board();
 
+    Table<Bitboard, N_SQ, N_SQ> SQUARES_BETWEEN_BB;
+    Color sideToMove = WHITE;
+
+    uint8_t castlingRights = 15;
+
+    Square enPassantSquare = NO_SQ;
+
     // Movegen vars
     Bitboard pinD = {};
     Bitboard pinHV = {};
@@ -41,52 +48,27 @@ class Board
     Bitboard seen = {};
     Bitboard enemyEmptyBB = {};
     Bitboard checkMask = DEFAULT_CHECKMASK;
-
     int doubleCheck = 0;
-
-    Color sideToMove = WHITE;
-
-    uint8_t castlingRights = 15;
-
-    Square enPassantSquare = NO_SQ;
 
     void load_fen(const std::string &fen);
 
     void make_move(Move move);
     void unmake_move(Move move);
 
-    Table<Bitboard, N_SQ, N_SQ> SQUARES_BETWEEN_BB;
-
     Bitboard us(Color c) const;
     Bitboard allBB() const;
 
     Square KingSQ(Color c) const;
 
-    template <PieceType type, Color color> Bitboard pieces() const
-    {
-        return pieceBB[color][type];
-    }
+    template <PieceType type, Color color> Bitboard pieces() const;
 
-    template <Color color> Bitboard pieces(PieceType type) const
-    {
-        return pieceBB[color][type];
-    }
+    template <Color color> Bitboard pieces(PieceType type) const;
 
-    template <PieceType type> Bitboard pieces(Color color) const
-    {
-        return pieceBB[color][type];
-    }
+    template <PieceType type> Bitboard pieces(Color color) const;
 
-    inline Bitboard pieces(PieceType type, Color color) const
-    {
-        return pieceBB[color][type];
-    }
+    Bitboard pieces(PieceType type, Color color) const;
 
-    // Returns the piece at a given square on the board
-    inline Piece piece_at(Square square) const
-    {
-        return board[square];
-    }
+    Piece piece_at(Square square) const;
 
     uint64_t getHash() const;
     uint64_t zobristHash() const;
@@ -106,12 +88,11 @@ class Board
     uint64_t hashKey = 0;
 
     void removeCastlingRightsAll(Color c);
-
     void removeCastlingRightsRook(Square sq);
 
     void initializeLookupTables();
 
-    bool isKingAttacked(Color c, Square sq);
+    bool isKingAttacked(Color c, Square sq) const;
 
     void place_piece(Piece piece, Square sq);
     void remove_piece(Piece piece, Square sq);
@@ -121,6 +102,21 @@ class Board
     uint64_t updateKeyCastling() const;
     uint64_t updateKeySideToMove() const;
 };
+
+template <PieceType type, Color color> Bitboard Board::pieces() const
+{
+    return pieceBB[color][type];
+}
+
+template <Color color> Bitboard Board::pieces(PieceType type) const
+{
+    return pieceBB[color][type];
+}
+
+template <PieceType type> Bitboard Board::pieces(Color color) const
+{
+    return pieceBB[color][type];
+}
 
 std::string uciMove(Move move);
 

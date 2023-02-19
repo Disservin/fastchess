@@ -7,6 +7,11 @@ Engine::Engine(const std::string &command) : cmd(command), process(command)
 {
 }
 
+Engine::~Engine()
+{
+    stopProcess();
+}
+
 Engine Engine::setName(const std::string &name)
 {
     this->name = name;

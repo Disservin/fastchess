@@ -8,50 +8,6 @@
 #include "board.h"
 #include "zobrist.h"
 
-void printBitboard(Bitboard bb)
-{
-    std::bitset<64> b(bb);
-    std::string str_bitset = b.to_string();
-    for (int i = 0; i < N_SQ; i += 8)
-    {
-        std::string x = str_bitset.substr(i, 8);
-        reverse(x.begin(), x.end());
-        std::cout << x << std::endl;
-    }
-    std::cout << '\n' << std::endl;
-}
-
-void Board::remove_piece(Piece piece, Square sq)
-{
-    hashKey ^= updateKeyPiece(piece, sq);
-    pieceBB[colorOf(piece)][type_of_piece(piece)] &= ~(1ULL << sq);
-    board[sq] = NONE;
-}
-
-void Board::place_piece(Piece piece, Square sq)
-{
-    hashKey ^= updateKeyPiece(piece, sq);
-    pieceBB[colorOf(piece)][type_of_piece(piece)] |= (1ULL << sq);
-    board[sq] = piece;
-}
-
-bool Board::isKingAttacked(Color c, Square sq)
-{
-    Bitboard all = allBB();
-
-    if (pieces(PAWN, c) & PawnAttacks(sq, ~c))
-        return true;
-    if (pieces(KNIGHT, c) & KnightAttacks(sq))
-        return true;
-    if ((pieces(BISHOP, c) | pieces(QUEEN, c)) & BishopAttacks(sq, all))
-        return true;
-    if ((pieces(ROOK, c) | pieces(QUEEN, c)) & RookAttacks(sq, all))
-        return true;
-    if (pieces(KING, c) & KingAttacks(sq))
-        return true;
-    return false;
-}
-
 void Board::load_fen(const std::string &fen)
 {
     for (auto c : {WHITE, BLACK})
@@ -304,6 +260,72 @@ Bitboard Board::allBB() const
     return us(WHITE) | us(BLACK);
 }
 
+Square Board::KingSQ(Color c) const
+{
+    return lsb(pieces(KING, c));
+}
+
+uint64_t Board::getHash() const
+{
+    return hashKey;
+}
+
+Bitboard Board::pieces(PieceType type, Color color) const
+{
+    return pieceBB[color][type];
+}
+
+Piece Board::piece_at(Square square) const
+{
+    return board[square];
+}
+
+uint64_t Board::zobristHash() const
+{
+    uint64_t hash = 0ULL;
+    uint64_t wPieces = us(WHITE);
+    uint64_t bPieces = us(BLACK);
+    // Piece hashes
+    while (wPieces)
+    {
+        Square sq = poplsb(wPieces);
+        hash ^= updateKeyPiece(piece_at(sq), sq);
+    }
+    while (bPieces)
+    {
+        Square sq = poplsb(bPieces);
+        hash ^= updateKeyPiece(piece_at(sq), sq);
+    }
+    // Ep hash
+    uint64_t ep_hash = 0ULL;
+    if (enPassantSquare != NO_SQ)
+    {
+        ep_hash = updateKeyEnPassant(enPassantSquare);
+    }
+    // Turn hash
+    uint64_t turn_hash = sideToMove == WHITE ? RANDOM_ARRAY[780] : 0;
+    // Castle hash
+    uint64_t cast_hash = updateKeyCastling();
+
+    return hash ^ cast_hash ^ turn_hash ^ ep_hash;
+}
+
+bool Board::isRepetition(int draw) const
+{
+    uint8_t c = 0;
+
+    for (int i = static_cast<int>(hashHistory.size()) - 2;
+         i >= 0 && i >= static_cast<int>(hashHistory.size()) - halfMoveClock - 1; i -= 2)
+    {
+        if (hashHistory[i] == hashKey)
+            c++;
+        if (c == draw)
+            return true;
+    }
+
+    return false;
+}
+
 void Board::removeCastlingRightsAll(Color c)
 {
     if (c == WHITE)
@@ -345,44 +367,35 @@ void Board::initializeLookupTables()
     }
 }
 
-Square Board::KingSQ(Color c) const
+bool Board::isKingAttacked(Color c, Square sq) const
 {
-    return lsb(pieces(KING, c));
+    Bitboard all = allBB();
+
+    if (pieces(PAWN, c) & PawnAttacks(sq, ~c))
+        return true;
+    if (pieces(KNIGHT, c) & KnightAttacks(sq))
+        return true;
+    if ((pieces(BISHOP, c) | pieces(QUEEN, c)) & BishopAttacks(sq, all))
+        return true;
+    if ((pieces(ROOK, c) | pieces(QUEEN, c)) & RookAttacks(sq, all))
+        return true;
+    if (pieces(KING, c) & KingAttacks(sq))
+        return true;
+    return false;
 }
 
-uint64_t Board::zobristHash() const
+void Board::place_piece(Piece piece, Square sq)
 {
-    uint64_t hash = 0ULL;
-    uint64_t wPieces = us(WHITE);
-    uint64_t bPieces = us(BLACK);
-    // Piece hashes
-    while (wPieces)
-    {
-        Square sq = poplsb(wPieces);
-        hash ^= updateKeyPiece(piece_at(sq), sq);
-    }
-    while (bPieces)
-    {
-        Square sq = poplsb(bPieces);
-        hash ^= updateKeyPiece(piece_at(sq), sq);
-    }
-    // Ep hash
-    uint64_t ep_hash = 0ULL;
-    if (enPassantSquare != NO_SQ)
-    {
-        ep_hash = updateKeyEnPassant(enPassantSquare);
-    }
-    // Turn hash
-    uint64_t turn_hash = sideToMove == WHITE ? RANDOM_ARRAY[780] : 0;
-    // Castle hash
-    uint64_t cast_hash = updateKeyCastling();
-
-    return hash ^ cast_hash ^ turn_hash ^ ep_hash;
+    hashKey ^= updateKeyPiece(piece, sq);
+    pieceBB[colorOf(piece)][type_of_piece(piece)] |= (1ULL << sq);
+    board[sq] = piece;
 }
 
-uint64_t Board::getHash() const
+void Board::remove_piece(Piece piece, Square sq)
 {
-    return hashKey;
+    hashKey ^= updateKeyPiece(piece, sq);
+    pieceBB[colorOf(piece)][type_of_piece(piece)] &= ~(1ULL << sq);
+    board[sq] = NONE;
 }
 
 uint64_t Board::updateKeyPiece(Piece piece, Square sq) const
@@ -405,22 +418,6 @@ uint64_t Board::updateKeySideToMove() const
     return RANDOM_ARRAY[780];
 }
 
-bool Board::isRepetition(int draw) const
-{
-    uint8_t c = 0;
-
-    for (int i = static_cast<int>(hashHistory.size()) - 2;
-         i >= 0 && i >= static_cast<int>(hashHistory.size()) - halfMoveClock - 1; i -= 2)
-    {
-        if (hashHistory[i] == hashKey)
-            c++;
-        if (c == draw)
-            return true;
-    }
-
-    return false;
-}
-
 Board::Board()
 {
     initializeLookupTables();
@@ -440,7 +437,6 @@ std::ostream &operator<<(std::ostream &os, const Board &b)
            << " \n";
     }
     os << "\n\n";
-    // os << "Fen: " << b.getFen() << "\n";
     os << "Side to move: " << static_cast<int>(b.sideToMove) << "\n";
     os << "Castling rights: " << static_cast<int>(b.castlingRights) << "\n";
     os << "Halfmoves: " << static_cast<int>(b.halfMoveClock) << "\n";
@@ -449,6 +445,19 @@ std::ostream &operator<<(std::ostream &os, const Board &b)
 
     os << std::endl;
     return os;
+}
+
+void printBitboard(Bitboard bb)
+{
+    std::bitset<64> b(bb);
+    std::string str_bitset = b.to_string();
+    for (int i = 0; i < N_SQ; i += 8)
+    {
+        std::string x = str_bitset.substr(i, 8);
+        reverse(x.begin(), x.end());
+        std::cout << x << std::endl;
+    }
+    std::cout << '\n' << std::endl;
 }
 
 std::string uciMove(Move move)

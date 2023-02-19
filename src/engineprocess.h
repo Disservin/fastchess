@@ -47,6 +47,7 @@ class EngineProcess : Process
     void closeProcess();
 
   private:
+    DWORD m_childdwProcessId;
     HANDLE m_childProcessHandle;
     HANDLE m_childStdOut;
     HANDLE m_childStdIn;

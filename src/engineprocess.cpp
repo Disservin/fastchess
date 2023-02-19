@@ -35,12 +35,30 @@ void EngineProcess::initProcess(const std::string &command)
     CloseHandle(childStdInRd);
 
     m_childProcessHandle = pi.hProcess;
+    m_childdwProcessId = pi.dwProcessId;
     m_childStdOut = childStdOutRd;
     m_childStdIn = childStdInWr;
 }
 
 void EngineProcess::closeProcess()
 {
+
+    // Send a CTRL+C signal to the child process
+    GenerateConsoleCtrlEvent(CTRL_C_EVENT, m_childdwProcessId);
+
+    // Wait for the child process to exit
+    // give it 1000 ms
+    WaitForSingleObject(m_childProcessHandle, 1000);
+
+    DWORD exitCode = 0;
+    GetExitCodeProcess(m_childProcessHandle, &exitCode);
+    if (exitCode != STILL_ACTIVE)
+    {
+        UINT uExitCode = 0;
+        TerminateProcess(m_childProcessHandle, uExitCode);
+    }
+
+    // Clean up the child process resources
     CloseHandle(m_childProcessHandle);
     CloseHandle(m_childStdOut);
     CloseHandle(m_childStdIn);

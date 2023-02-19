@@ -64,11 +64,13 @@ void EngineProcess::closeHandles()
 
 EngineProcess::~EngineProcess()
 {
-    closeHandles();
+    killProcess();
 }
 
 std::vector<std::string> EngineProcess::readEngine(std::string_view last_word, int64_t timeoutThreshold, bool &timedOut)
 {
+    assert(isInitalized);
+
     timedOut = false;
     std::vector<std::string> lines;
     std::string currentLine{};
@@ -144,6 +146,7 @@ std::vector<std::string> EngineProcess::readEngine(std::string_view last_word, i
 
 void EngineProcess::writeEngine(const std::string &input)
 {
+    assert(isInitalized);
     if (!isAlive())
     {
         closeHandles();
@@ -248,14 +251,13 @@ void EngineProcess::initProcess(const std::string &command)
 
 EngineProcess::~EngineProcess()
 {
-    close(inPipe[0]);
-    close(inPipe[1]);
-    close(outPipe[0]);
-    close(outPipe[1]);
+    killProcess();
 }
 
 void EngineProcess::writeEngine(const std::string &input)
 {
+    assert(isInitalized);
+
     if (isAlive())
     {
         // Append a newline character to the end of the input string
@@ -278,6 +280,8 @@ void EngineProcess::writeEngine(const std::string &input)
 
 std::vector<std::string> EngineProcess::readEngine(std::string_view last_word, int64_t timeoutThreshold, bool &timedOut)
 {
+    assert(isInitalized);
+
     timedOut = false;
 
     // Disable blocking
@@ -354,6 +358,11 @@ void EngineProcess::killProcess()
         pid_t r = waitpid(processPid, &status, WNOHANG);
         if (r == 0)
             kill(processPid, SIGKILL);
+
+        close(inPipe[0]);
+        close(inPipe[1]);
+        close(outPipe[0]);
+        close(outPipe[1]);
     }
 }
 

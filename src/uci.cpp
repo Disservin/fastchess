@@ -49,5 +49,5 @@ void UciEngine::startEngine(const std::string &cmd /* add engines options here*/
 void UciEngine::stopEngine()
 {
     sendQuit();
-    process.killProcess();
+    stopProcess();
 }

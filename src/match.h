@@ -1,5 +1,7 @@
 #pragma once
 
+#include "uci.h"
+
 class Match
 {
   public:
@@ -14,6 +16,8 @@ class Match
     Match &operator=(const Match &) = default;
 
     ~Match();
+
+    void startMatch(std::vector<Engine> engines /* Match stuff*/);
 
   private:
 };

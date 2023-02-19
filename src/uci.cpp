@@ -2,6 +2,17 @@
 
 #include <stdexcept>
 
+UciEngine UciEngine::setEngine(const Engine &rhs)
+{
+    name = rhs.getName();
+    cmd = rhs.getName();
+    args = rhs.getName();
+    options = rhs.getOptions();
+    tc = rhs.getTc();
+
+    return *this;
+}
+
 UciEngine UciEngine::sendUci()
 {
     writeProcess("uci");
@@ -23,13 +34,11 @@ UciEngine UciEngine::sendGo(const std::string &limit)
 void UciEngine::startEngine(const std::string &cmd /* add engines options here*/)
 {
     setCmd(cmd);
-
+    sendUci();
     if (!pingProcess())
     {
         throw std::runtime_error("Something went wrong when pinging the engine.");
     }
-
-    sendUci();
 
     /*
     TODO: set all the engine options

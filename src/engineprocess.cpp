@@ -26,6 +26,7 @@ bool EngineProcess::isResponsive()
 
 void EngineProcess::initProcess(const std::string &command)
 {
+    std::cout << "init process" << std::endl;
     isInitalized = true;
     STARTUPINFOA si = STARTUPINFOA();
     si.dwFlags = STARTF_USESTDHANDLES;
@@ -64,6 +65,7 @@ void EngineProcess::closeHandles()
 
 EngineProcess::~EngineProcess()
 {
+    std::cout << "destructor called engineprocess" << std::endl;
     killProcess();
 }
 
@@ -167,6 +169,7 @@ bool EngineProcess::isAlive()
     assert(isInitalized);
     DWORD exitCode = 0;
     GetExitCodeProcess(m_childProcessHandle, &exitCode);
+    std::cout << "exitcode" << int(exitCode) << std::endl;
     return exitCode == STILL_ACTIVE;
 }
 

@@ -23,9 +23,10 @@ namespace CMD
         std::string current_exec_name = argv[0];
         // Parse the user command into a series of strings
         parseUserInput(argc, argv);
-        // Code to Split UserInput into Cli/Engine1/Engine2/EngineN for easier parsing
+         // Code to Split UserInput into Cli/Engine1/Engine2/EngineN for easier parsing
         split_params();
-        // Parse engine options
+        /*
+         // Parse engine options
         parse_engines_options();
 
         // Parse Cli options//
@@ -41,6 +42,7 @@ namespace CMD
             parameter_group.erase(parameter_group.begin());
             map[key] = parameter_group;
         }
+        */
     }
 
     std::vector<std::string> Options::getUserInput()

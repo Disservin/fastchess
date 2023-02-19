@@ -7,6 +7,11 @@
 
 EngineProcess::EngineProcess(const std::string &command)
 {
+    initProcess(command);
+}
+
+void EngineProcess::initProcess(const std::string &command)
+{
     STARTUPINFOA si = STARTUPINFOA();
     si.dwFlags = STARTF_USESTDHANDLES;
 
@@ -147,6 +152,11 @@ void EngineProcess::writeEngine(const std::string &input)
 #include <unistd.h>
 
 EngineProcess::EngineProcess(const std::string &command)
+{
+    initProcess(command);
+}
+
+void EngineProcess::initProcess(const std::string &command)
 {
 
     // Create input pipe

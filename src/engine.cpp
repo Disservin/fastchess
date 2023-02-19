@@ -3,8 +3,9 @@
 #include "engine.h"
 #include "types.h"
 
-Engine::Engine(const std::string &command) : cmd(command), process(command)
+Engine::Engine(const std::string &command) : cmd(command)
 {
+    process.initProcess(cmd);
 }
 
 Engine::~Engine()
@@ -33,6 +34,13 @@ Engine Engine::setOptions(const std::vector<std::string> &options)
 Engine Engine::setTc(const TimeControl &tc)
 {
     this->tc = tc;
+    return *this;
+}
+
+Engine Engine::setCmd(const std::string &command)
+{
+    this->cmd = command;
+    process.initProcess(cmd);
     return *this;
 }
 

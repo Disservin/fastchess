@@ -35,13 +35,15 @@ class Engine
     EngineProcess process;
 
   public:
-    explicit Engine(const std::string &command);
+    Engine() = default;
+    Engine(const std::string &command);
     ~Engine();
 
     Engine setName(const std::string &name);
     Engine setArgs(const std::string &args);
     Engine setOptions(const std::vector<std::string> &options);
     Engine setTc(const TimeControl &tc);
+    Engine setCmd(const std::string &command);
 
     void startProcess();
     void stopProcess();

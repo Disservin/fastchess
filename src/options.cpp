@@ -57,6 +57,8 @@ namespace CMD
                 }
             }
             engine.setOptions(engine_settable_options);
+            // Add engine
+            engines.push_back(engine);
         }
         // Parse Cli options//
         // group those into functionality related subgroups

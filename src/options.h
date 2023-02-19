@@ -41,6 +41,8 @@ namespace CMD
     std::vector<std::vector<std::string>> engines_options;
     // Holds all the relevant settings for the handling of the games
     gameManagerOptions game_options;
+    // Holds all the engines with their options
+    std::vector<Engine> engines;
 
   public:
     Options(int argc, char const *argv[]);

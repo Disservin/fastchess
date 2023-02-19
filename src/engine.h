@@ -52,6 +52,10 @@ class Engine
 
     Engine setTc(const TimeControl &tc);
 
+    Engine Engine::setNodeLimit(const uint64_t nodes);
+
+    Engine Engine::setPlyLimit(const uint64_t plies);
+
     Engine setCmd(const std::string &command);
 
     void stopProcess();
@@ -73,4 +77,6 @@ class Engine
     std::vector<std::pair<std::string, std::string>> getOptions() const;
 
     TimeControl getTc() const;
+    uint64_t getNodeLimit() const;
+    uint64_t getPlyLimit() const;
 };

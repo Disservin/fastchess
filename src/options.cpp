@@ -5,7 +5,6 @@
 #include <map>
 #include <sstream>
 
-
 namespace CMD
 {
 
@@ -26,23 +25,35 @@ Options::Options(int argc, char const *argv[])
     parseUserInput(argc, argv);
     // Code to Split UserInput into Cli/Engine1/Engine2/EngineN for easier parsing
     split_params();
-    /*
-     // Parse engine options
-    parse_engines_options();
 
-    // Parse Cli options//
-    // group those into functionality related subgroups
-    std::vector<std::vector<std::string>> cli_parameters_groups = group_cli_params();
-    // For each parameter group we use the first element as a key of a map, the rest as part of the value
-    std::map<std::string, std::vector<std::string>> map;
-    for (auto parameter_group : cli_parameters_groups)
+    // Parse engine options
+    parse_engines_options();
+    for (auto engine : engines)
     {
-        // The first element of the group is our key
-        std::string key = parameter_group.front();
-        // Drop the  first element from the vector and use that as a value(this is much easier than copying a subset of
-    it) parameter_group.erase(parameter_group.begin()); map[key] = parameter_group;
+        std::cout << "Name:" << engine.getName() << std::endl;
+        std::cout << "Command: " << engine.getCmd() << std::endl;
+        std::cout << "TC:" << engine.getTc().moves << "/" << engine.getTc().time << "+" << engine.getTc().increment
+                  << std::endl;
+        for (auto option : engine.getOptions())
+        {
+            std::cout << "Option name: " << option.first;
+            std::cout << " value: " << option.second << std::endl;
+        }
     }
-    */
+    /*
+       // Parse Cli options//
+       // group those into functionality related subgroups
+       std::vector<std::vector<std::string>> cli_parameters_groups = group_cli_params();
+       // For each parameter group we use the first element as a key of a map, the rest as part of the value
+       std::map<std::string, std::vector<std::string>> map;
+       for (auto parameter_group : cli_parameters_groups)
+       {
+           // The first element of the group is our key
+           std::string key = parameter_group.front();
+           // Drop the  first element from the vector and use that as a value(this is much easier than copying a subset
+       of it) parameter_group.erase(parameter_group.begin()); map[key] = parameter_group;
+       }
+       */
 }
 
 std::vector<std::string> Options::getUserInput()
@@ -132,19 +143,26 @@ bool Options::isEngineSettableOption(std::string string_format)
 // Takes a string in input and returns a TimeControl object
 TimeControl Options::ParseTc(const std::string tc_string)
 {
-    // Split the string into move count and time+inc
-    std::vector<std::string> moves_and_time;
-    moves_and_time = splitString(tc_string, '/');
-    std::string moves = moves_and_time.front();
-    // Split time+inc into time and inc
-    std::vector<std::string> time_and_inc = splitString(moves_and_time.back(), '+');
-    std::string time = time_and_inc.front();
-    std::string inc = time_and_inc.back();
     // Create time control object and parse the strings into usable values
     TimeControl time_control;
-    time_control.moves = std::stoi(moves);
-    time_control.time = std::stol(time) * 1000;
-    time_control.increment = std::stol(inc) * 1000;
+    bool has_moves = contains(tc_string, "/");
+    bool has_inc = contains(tc_string, "+");
+    if (has_moves && has_inc)
+    {
+    }
+    else if (has_moves)
+    {
+    }
+    else if (has_inc)
+    {
+    }
+    else
+    {
+        time_control.moves = 0;
+        time_control.time = std::stol(tc_string) * 1000;
+        time_control.increment = 0;
+    }
+
     return time_control;
 };
 

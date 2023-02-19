@@ -1,28 +1,47 @@
-#include "engine.h"
+#include <cassert>
 
-void Engine::setName(const std::string &name)
+#include "engine.h"
+#include "types.h"
+
+Engine::Engine(const std::string &command) : cmd(command)
+{
+    process.initProcess(cmd);
+}
+
+Engine::~Engine()
+{
+    stopProcess();
+}
+
+Engine Engine::setName(const std::string &name)
 {
     this->name = name;
+    return *this;
 }
 
-void Engine::setCmd(const std::string &cmd)
-{
-    this->cmd = cmd;
-}
-
-void Engine::setArgs(const std::string &args)
+Engine Engine::setArgs(const std::string &args)
 {
     this->args = args;
+    return *this;
 }
 
-void Engine::setOptions(const std::vector<std::pair<std::string, std::string>> &options)
+Engine Engine::setOptions(const std::vector<std::pair<std::string, std::string>> &options)
 {
     this->options = options;
+    return *this;
 }
 
-void Engine::setTc(const TimeControl &tc)
+Engine Engine::setTc(const TimeControl &tc)
 {
     this->tc = tc;
+    return *this;
+}
+
+Engine Engine::setCmd(const std::string &command)
+{
+    this->cmd = command;
+    process.initProcess(cmd);
+    return *this;
 }
 
 std::string Engine::getName() const
@@ -48,4 +67,45 @@ std::vector<std::pair<std::string, std::string>> Engine::getOptions() const
 TimeControl Engine::getTc() const
 {
     return tc;
+}
+
+void Engine::startProcess()
+{
+    bool timedOut;
+    process.writeEngine("uci");
+    auto uciHeader = process.readEngine("uciok", PING_TIMEOUT_THRESHOLD, timedOut);
+
+    assert(!timedOut);
+
+    pingProcess();
+}
+
+void Engine::stopProcess()
+{
+    process.writeEngine("quit");
+}
+
+void Engine::pingProcess()
+{
+    bool timedOut;
+    process.writeEngine("isready");
+    process.readEngine("readyok", PING_TIMEOUT_THRESHOLD, timedOut);
+
+    assert(!timedOut);
+}
+
+void Engine::writeProcess(const std::string &input)
+{
+    process.writeEngine(input);
+}
+
+std::vector<std::string> Engine::readProcess(const std::string &last_word, int64_t timeoutThreshold)
+{
+    bool timedOut;
+    return process.readEngine(last_word, timeoutThreshold, timedOut);
+}
+
+std::vector<std::string> Engine::readProcess(const std::string &last_word, bool &timedOut, int64_t timeoutThreshold)
+{
+    return process.readEngine(last_word, timeoutThreshold, timedOut);
 }

@@ -4,6 +4,8 @@
 #include <string>
 #include <vector>
 
+#include "engineprocess.h"
+
 struct TimeControl
 {
   uint64_t moves;
@@ -29,12 +31,27 @@ private:
   // time control for the engine
   TimeControl tc;
 
+  // Process wrapper around the engine
+  EngineProcess process;
+
 public:
-  void setName(const std::string &name);
-  void setCmd(const std::string &cmd);
-  void setArgs(const std::string &args);
-  void setOptions(const std::vector<std::pair<std::string, std::string>> &options);
-  void setTc(const TimeControl &tc);
+  Engine() = default;
+  Engine(const std::string &command);
+  ~Engine();
+
+  Engine setName(const std::string &name);
+  Engine setArgs(const std::string &args);
+  Engine setOptions(const std::vector<std::string> &options);
+  Engine setTc(const TimeControl &tc);
+  Engine setCmd(const std::string &command);
+
+  void startProcess();
+  void stopProcess();
+  void pingProcess();
+
+  void writeProcess(const std::string &input);
+  std::vector<std::string> readProcess(const std::string &last_word, int64_t timeoutThreshold = 1000);
+  std::vector<std::string> readProcess(const std::string &last_word, bool &timedOut, int64_t timeoutThreshold = 1000);
 
   std::string getName() const;
   std::string getCmd() const;

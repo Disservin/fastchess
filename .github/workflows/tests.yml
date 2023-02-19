@@ -1,0 +1,55 @@
+name: Run tests
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  FastChess:
+    name: ${{matrix.config.name}}
+    runs-on: ${{matrix.config.os}}
+    strategy:
+      matrix:
+        config:
+          - {
+            name: "Ubuntu Unit Tests",
+            os: ubuntu-latest,
+            shell: 'bash {0}'
+          }
+          - {
+            name: "Windows Unit Tests",
+            os: windows-latest,
+            msys_sys: 'mingw64',
+            msys_env: 'x86_64-gcc',
+            shell: 'msys2 {0}',
+          }
+    defaults:
+      run:
+        shell: ${{ matrix.config.shell }}
+    steps:
+      - uses: actions/checkout@v3
+      - name: Installing required packages
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install g++-multilib
+          g++ --version
+
+      - name: Install windows make
+        if: runner.os == 'Windows'
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: ${{matrix.config.msys_sys}}
+          install: mingw-w64-${{matrix.config.msys_env}} make git expect
+
+      - name: Building Fast-Chess
+        run: |
+          cd tests
+          make NATIVE=-march=core-avx2
+
+      - name: Running unit tests
+        run: |
+          cd tests
+          ./fast-chess-tests*

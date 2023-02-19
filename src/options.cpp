@@ -215,6 +215,14 @@ void Options::parse_engines_options()
             {
                 engine.setTc(ParseTc(param_value));
             }
+            if (param_name == "nodes")
+            {
+                engine.setNodeLimit(std::stoll(param_value));
+            }
+            if (param_name == "plies")
+            {
+                engine.setPlyLimit(std::stoll(param_value));
+            }
             if (isEngineSettableOption(param_name))
             {
                 engine_settable_options.push_back(std::make_pair(param_name, param_value));

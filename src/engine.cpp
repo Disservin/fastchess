@@ -34,16 +34,14 @@ void Engine::setTc(const TimeControl &tc)
     this->tc = tc;
 }
 
-Engine Engine::setNodeLimit(const uint64_t nodes)
+void Engine::setNodeLimit(const uint64_t nodes)
 {
     this->nodes = nodes;
-    return *this;
 }
 
-Engine Engine::setPlyLimit(const uint64_t plies)
+void Engine::setPlyLimit(const uint64_t plies)
 {
     this->plies = plies;
-    return *this;
 }
 
 Engine Engine::setCmd(const std::string &command)

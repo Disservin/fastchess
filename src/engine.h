@@ -33,10 +33,10 @@ class Engine
 
     // Node limit for the engine
     uint64_t nodes = 0;
-    
+
     // Ply limit for the engine
     uint64_t plies = 0;
-    
+
     // Process wrapper around the engine
     EngineProcess process;
 
@@ -55,9 +55,9 @@ class Engine
 
     void setTc(const TimeControl &tc);
 
-    Engine setNodeLimit(const uint64_t nodes);
+    void setNodeLimit(const uint64_t nodes);
 
-    Engine setPlyLimit(const uint64_t plies);
+    void setPlyLimit(const uint64_t plies);
 
     Engine setCmd(const std::string &command);
 

@@ -26,7 +26,7 @@ Engine Engine::setArgs(const std::string &args)
     return *this;
 }
 
-Engine Engine::setOptions(const std::vector<std::string> &options)
+Engine Engine::setOptions(const std::vector<std::pair<std::string, std::string>> &options)
 {
     this->options = options;
     return *this;
@@ -60,7 +60,7 @@ std::string Engine::getArgs() const
     return args;
 }
 
-std::vector<std::string> Engine::getOptions() const
+std::vector<std::pair<std::string, std::string>> Engine::getOptions() const
 {
     return options;
 }

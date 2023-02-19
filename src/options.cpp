@@ -34,6 +34,8 @@ Options::Options(int argc, char const *argv[])
         std::cout << "Command: " << engine.getCmd() << std::endl;
         std::cout << "TC:" << engine.getTc().moves << "/" << engine.getTc().time << "+" << engine.getTc().increment
                   << std::endl;
+        std::cout << "Nodes: " << engine.getNodeLimit() << std::endl;
+        std::cout << "Plies: " << engine.getPlyLimit() << std::endl;
         for (auto option : engine.getOptions())
         {
             std::cout << "Option name: " << option.first;
@@ -157,6 +159,9 @@ TimeControl Options::ParseTc(const std::string tc_string)
         std::vector<std::string> time_and_inc = splitString(moves_and_time.back(), '+');
         std::string time = time_and_inc.front();
         std::string inc = time_and_inc.back();
+        time_control.moves = std::stoi(moves);
+        time_control.time = std::stof(time) * 1000;
+        time_control.increment = std::stof(inc) * 1000;
     }
     else if (has_moves)
     {

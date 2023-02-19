@@ -59,7 +59,7 @@ class Engine
 
     void setPlyLimit(const uint64_t plies);
 
-    Engine setCmd(const std::string &command);
+    void setCmd(const std::string &command);
 
     void stopProcess();
 

@@ -8,9 +8,9 @@
 
 struct TimeControl
 {
-    uint64_t moves;
-    uint64_t time;
-    uint64_t increment;
+    uint64_t moves = 0;
+    uint64_t time = 0;
+    uint64_t increment = 0;
 };
 
 class Engine
@@ -31,7 +31,13 @@ class Engine
     // time control for the engine
     TimeControl tc;
 
-    // Process wrapper around the engines process
+    // Node limit for the engine
+    uint64_t nodes = 0;
+
+    // Ply limit for the engine
+    uint64_t plies = 0;
+
+    // Process wrapper around the engine
     EngineProcess process;
 
   public:
@@ -48,6 +54,10 @@ class Engine
     void setOptions(const std::vector<std::pair<std::string, std::string>> &options);
 
     void setTc(const TimeControl &tc);
+
+    void setNodeLimit(const uint64_t nodes);
+
+    void setPlyLimit(const uint64_t plies);
 
     void setCmd(const std::string &command);
 
@@ -70,4 +80,6 @@ class Engine
     std::vector<std::pair<std::string, std::string>> getOptions() const;
 
     TimeControl getTc() const;
+    uint64_t getNodeLimit() const;
+    uint64_t getPlyLimit() const;
 };

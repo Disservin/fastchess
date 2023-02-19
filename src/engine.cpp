@@ -34,6 +34,16 @@ void Engine::setTc(const TimeControl &tc)
     this->tc = tc;
 }
 
+void Engine::setNodeLimit(const uint64_t nodes)
+{
+    this->nodes = nodes;
+}
+
+void Engine::setPlyLimit(const uint64_t plies)
+{
+    this->plies = plies;
+}
+
 void Engine::setCmd(const std::string &command)
 {
     this->cmd = command;
@@ -64,7 +74,14 @@ TimeControl Engine::getTc() const
 {
     return tc;
 }
-
+uint64_t Engine::getNodeLimit() const
+{
+    return nodes;
+}
+uint64_t Engine::getPlyLimit() const
+{
+    return plies;
+}
 void Engine::stopProcess()
 {
     process.killProcess();

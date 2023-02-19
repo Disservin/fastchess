@@ -15,13 +15,16 @@ class Process
     virtual void writeEngine(const std::string &input) = 0;
 
     // Returns true if the engine process is alive
-    virtual bool isAlive() = 0;
+    // virtual bool isAlive() = 0;
 
     // Returns true of the engine responds to isready in PING_TIMEOUT_THRESHOLD milliseconds
-    virtual bool isResponsive() = 0;
+    // virtual bool isResponsive() = 0;
 
     // Kills the process
-    virtual void killProcess() = 0;
+    // virtual void killProcess() = 0;
+
+    // Init the process
+    virtual void initProcess(const std::string &command) = 0;
 };
 
 #ifdef _WIN64

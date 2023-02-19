@@ -37,4 +37,6 @@ TEST_CASE("Testing the EngineProcess class")
     CHECK(timedOut == false);
     CHECK(sleeper2.size() == 1);
     CHECK(sleeper2[0] == "done");
+
+    engine.writeProcess("quit");
 }

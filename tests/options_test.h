@@ -6,8 +6,7 @@
 TEST_CASE("Testing options")
 {
     const char *argv[] = {"fast-chess.exe",
-                          "-engine",
-                          "dir=Engines/",
+                          "-engine dir=Engines/",
                           "cmd=./Alexandria-EA649FED.exe",
                           "proto=uci"
                           "tc=9.64+0.10",
@@ -29,7 +28,7 @@ TEST_CASE("Testing options")
                           "plies=16",
                           "-pgnout",
                           "PGNs/Alexandria-EA649FED_vs_Alexandria-27E42728"};
-    CMD::Options options = CMD::Options(23, argv);
+    CMD::Options options = CMD::Options(22, argv);
 
     CHECK(options.configs[0].name == "Alexandria-27E42728");
     CHECK(options.configs[0].tc.moves == 0);

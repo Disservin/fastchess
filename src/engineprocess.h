@@ -54,7 +54,7 @@ class EngineProcess : public Process
 
 #else
 
-class EngineProcess : Process
+class EngineProcess : public Process
 {
   public:
     EngineProcess() = default;

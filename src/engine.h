@@ -34,10 +34,10 @@ private:
   // Process wrapper around the engine
   EngineProcess process;
 
-public:
-  Engine() = default;
-  Engine(const std::string &command);
-  ~Engine();
+  public:
+    Engine() = default;
+    Engine(std::string command);
+    ~Engine();
 
   Engine setName(const std::string &name);
   Engine setArgs(const std::string &args);

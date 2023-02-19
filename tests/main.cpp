@@ -14,6 +14,7 @@ int main(int argc, char **argv)
 
     ctx.setOption("abort-after", 5); // default - stop after 5 failed asserts
     ctx.setOption("no-exitcode", false);
+    ctx.setOption("success", true);
 
     int res = ctx.run(); // run test cases unless with --no-run
 

@@ -1,9 +1,10 @@
 #include <cassert>
+#include <utility>
 
 #include "engine.h"
 #include "types.h"
 
-Engine::Engine(const std::string &command) : cmd(command)
+Engine::Engine(std::string command) : cmd(std::move(command))
 {
     process.initProcess(cmd);
 }

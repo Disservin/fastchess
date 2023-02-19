@@ -9,16 +9,18 @@ class Process
 {
   public:
     // Read engine's stdout until the line matches last_word or timeout is reached
-    virtual std::vector<std::string> readEngine(std::string_view last_word, int64_t timeout, bool &timedOut) = 0;
-
+    virtual std::vector<std::string> readProcess(std::string_view last_word, bool &timeout,
+                                                 int64_t timeoutThreshold = 1000) = 0;
     // Write input to the engine's stdin
-    virtual void writeEngine(const std::string &input) = 0;
+    virtual void writeProcess(const std::string &input) = 0;
 
     // Returns true if the engine process is alive
     virtual bool isAlive() = 0;
 
     // Returns true of the engine responds to isready in PING_TIMEOUT_THRESHOLD milliseconds
-    virtual bool isResponsive() = 0;
+    bool isResponsive();
+
+    bool isInitalized = false;
 };
 
 #ifdef _WIN64
@@ -26,7 +28,7 @@ class Process
 #include <iostream>
 #include <windows.h>
 
-class EngineProcess : Process
+class EngineProcess : public Process
 {
   public:
     EngineProcess() = default;
@@ -37,14 +39,13 @@ class EngineProcess : Process
     void killProcess();
     void closeHandles();
 
-    virtual std::vector<std::string> readEngine(std::string_view last_word, int64_t timeout, bool &timedOut);
-    virtual void writeEngine(const std::string &input);
-
     virtual bool isAlive();
-    virtual bool isResponsive();
+
+    virtual std::vector<std::string> readProcess(std::string_view last_word, bool &timeout,
+                                                 int64_t timeoutThreshold = 1000);
+    virtual void writeProcess(const std::string &input);
 
   private:
-    bool isInitalized;
     DWORD m_childdwProcessId;
     HANDLE m_childProcessHandle;
     HANDLE m_childStdOut;
@@ -53,29 +54,23 @@ class EngineProcess : Process
 
 #else
 
-class EngineProcess : Process
+class EngineProcess : public Process
 {
   public:
     EngineProcess() = default;
-
     EngineProcess(const std::string &command);
-
     ~EngineProcess();
 
     void initProcess(const std::string &command);
-
     void killProcess();
-
-    virtual std::vector<std::string> readEngine(std::string_view last_word, int64_t timeout, bool &timedOut);
-
-    virtual void writeEngine(const std::string &input);
 
     virtual bool isAlive();
 
-    virtual bool isResponsive();
+    virtual std::vector<std::string> readProcess(std::string_view last_word, bool &timeout,
+                                                 int64_t timeoutThreshold = 1000);
+    virtual void writeProcess(const std::string &input);
 
   private:
-    bool isInitalized;
     pid_t processPid;
     int inPipe[2], outPipe[2];
 };

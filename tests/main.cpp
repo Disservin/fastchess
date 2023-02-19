@@ -7,6 +7,7 @@
 #include "functions_test.h"
 #include "hash_test.h"
 #include "perft_test.h"
+#include "uci_engine_test.h"
 
 int main(int argc, char **argv)
 {

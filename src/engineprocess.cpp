@@ -10,16 +10,16 @@ EngineProcess::EngineProcess(const std::string &command)
     initProcess(command);
 }
 
-bool EngineProcess::isResponsive()
+bool Process::isResponsive()
 {
     assert(isInitalized);
     if (!isAlive())
         return false;
 
-    bool timedOut;
-    writeEngine("isready");
-    readEngine("readyok", PING_TIMEOUT_THRESHOLD, timedOut);
-    return !timedOut;
+    bool timeout = false;
+    writeProcess("isready");
+    readProcess("readyok", timeout, PING_TIMEOUT_THRESHOLD);
+    return !timeout;
 }
 
 #ifdef _WIN64
@@ -67,20 +67,21 @@ EngineProcess::~EngineProcess()
     killProcess();
 }
 
-std::vector<std::string> EngineProcess::readEngine(std::string_view last_word, int64_t timeoutThreshold, bool &timedOut)
+std::vector<std::string> EngineProcess::readProcess(std::string_view last_word, bool &timeout, int64_t timeoutThreshold)
 {
     assert(isInitalized);
 
-    timedOut = false;
     std::vector<std::string> lines;
     std::string currentLine{};
     char buffer[1024];
     DWORD bytesRead;
     DWORD bytesAvail;
 
+    int checkTime = 255;
+
     auto start = std::chrono::high_resolution_clock::now();
 
-    int checkTime = 1023;
+    timeout = false;
 
     while (true)
     {
@@ -97,11 +98,11 @@ std::vector<std::string> EngineProcess::readEngine(std::string_view last_word, i
             if (std::chrono::duration_cast<std::chrono::milliseconds>(now - start).count() > timeoutThreshold)
             {
                 lines.push_back(currentLine);
-                timedOut = true;
+                timeout = true;
                 break;
             }
 
-            checkTime = 1023;
+            checkTime = 255;
         }
 
         if (bytesAvail == 0)
@@ -144,7 +145,7 @@ std::vector<std::string> EngineProcess::readEngine(std::string_view last_word, i
     return lines;
 }
 
-void EngineProcess::writeEngine(const std::string &input)
+void EngineProcess::writeProcess(const std::string &input)
 {
     assert(isInitalized);
     if (!isAlive())
@@ -247,7 +248,7 @@ EngineProcess::~EngineProcess()
     killProcess();
 }
 
-void EngineProcess::writeEngine(const std::string &input)
+void EngineProcess::writeProcess(const std::string &input)
 {
     assert(isInitalized);
 
@@ -271,11 +272,11 @@ void EngineProcess::writeEngine(const std::string &input)
     }
 }
 
-std::vector<std::string> EngineProcess::readEngine(std::string_view last_word, int64_t timeoutThreshold, bool &timedOut)
+std::vector<std::string> EngineProcess::readProcess(std::string_view last_word, bool &timeout, int64_t timeoutThreshold)
 {
     assert(isInitalized);
 
-    timedOut = false;
+    timeout = false;
 
     // Disable blocking
     fcntl(inPipe[0], F_SETFL, fcntl(inPipe[0], F_GETFL) | O_NONBLOCK);
@@ -286,7 +287,7 @@ std::vector<std::string> EngineProcess::readEngine(std::string_view last_word, i
     std::vector<std::string> lines;
     std::string line;
 
-    int checkTime = 1023;
+    int checkTime = 255;
 
     // Continue reading output lines until the line matches the specified line or a timeout occurs
     while (line != last_word)
@@ -305,18 +306,18 @@ std::vector<std::string> EngineProcess::readEngine(std::string_view last_word, i
                 // Check if timeout milliseconds have elapsed
                 if (std::chrono::duration_cast<std::chrono::milliseconds>(now - start).count() > timeoutThreshold)
                 {
-                    timedOut = true;
+                    timeout = true;
                     break;
                 }
 
-                checkTime = 1023;
+                checkTime = 255;
             }
 
             if (read(inPipe[0], &c, 1) > 0 && c != '\n')
                 line += c;
         }
 
-        if (timedOut)
+        if (timeout)
             break;
 
         // Append line to the output

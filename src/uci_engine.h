@@ -2,7 +2,7 @@
 
 #include "engine.h"
 
-class UciEngine : protected Engine
+class UciEngine : public Engine
 {
   public:
     UciEngine() : Engine()
@@ -15,6 +15,8 @@ class UciEngine : protected Engine
     }
 
     void sendUci();
+    std::vector<std::string> readUci();
+
     void sendQuit();
     void sendSetoption(const std::string &name, const std::string &value);
     void sendGo(const std::string &limit);

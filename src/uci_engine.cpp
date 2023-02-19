@@ -1,4 +1,4 @@
-#include "uci.h"
+#include "uci_engine.h"
 
 #include <stdexcept>
 
@@ -14,6 +14,12 @@ void UciEngine::setEngine(const Engine &rhs)
 void UciEngine::sendUci()
 {
     writeProcess("uci");
+}
+
+std::vector<std::string> UciEngine::readUci()
+{
+    bool timeout = false;
+    return readProcess("uciok", timeout);
 }
 
 void UciEngine::sendQuit()
@@ -35,7 +41,7 @@ void UciEngine::startEngine(const std::string &cmd /* add engines options here*/
 {
     setCmd(cmd);
     sendUci();
-    if (!pingProcess())
+    if (!pingEngine())
     {
         throw std::runtime_error("Something went wrong when pinging the engine.");
     }
@@ -49,5 +55,5 @@ void UciEngine::startEngine(const std::string &cmd /* add engines options here*/
 void UciEngine::stopEngine()
 {
     sendQuit();
-    stopProcess();
+    killProcess();
 }

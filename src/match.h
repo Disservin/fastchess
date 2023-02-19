@@ -1,31 +1,25 @@
 #pragma once
 
+#include "engine_config.h"
 #include "uci_engine.h"
+
+struct MatchConfig
+{
+    /*
+    TODO
+    */
+};
 
 class Match
 {
   public:
-    Match();
+    Match() = default;
+    Match(const MatchConfig &mc);
 
-    Match(Match &&) = default;
+    void startMatch(std::vector<EngineConfiguration> engines /* Match stuff*/);
 
-    Match(const Match &) = default;
-
-    Match &operator=(Match &&) = default;
-
-    Match &operator=(const Match &) = default;
-
-    ~Match();
-
-    void startMatch(std::vector<Engine> engines /* Match stuff*/);
+    void load_config(const MatchConfig &mc);
 
   private:
+    MatchConfig match_config;
 };
-
-Match::Match()
-{
-}
-
-Match::~Match()
-{
-}

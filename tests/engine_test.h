@@ -11,7 +11,6 @@ TEST_CASE("Testing the EngineProcess class")
     Engine engine("./data/engine/dummy_engine");
 #endif
 
-    engine.startProcess();
     bool timedOut = false;
 
     engine.writeProcess("uci");
@@ -38,6 +37,4 @@ TEST_CASE("Testing the EngineProcess class")
     CHECK(timedOut == false);
     CHECK(sleeper2.size() == 1);
     CHECK(sleeper2[0] == "done");
-
-    engine.stopProcess();
 }

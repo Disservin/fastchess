@@ -30,6 +30,8 @@ namespace CMD
         {
             // Create engine object
             Engine engine;
+            // Create Args vector
+            std::vector<std::pair<std::string, std::string>> engine_settable_options;
             for (auto option : engine_options)
             {
                 // get key and value pair
@@ -49,9 +51,14 @@ namespace CMD
                 {
                     engine.setTc(ParseTc(param_value));
                 }
+                if (isEngineSettableOption(param_name))
+                {
+                    engine_settable_options.push_back(std::make_pair(param_name, param_value));
+                }
             }
+            engine.setOptions(engine_settable_options);
         }
-        // Parse Cli option//
+        // Parse Cli options//
         // group those into functionality related subgroups
         std::vector<std::vector<std::string>> cli_parameters_groups = group_cli_params();
         // For each parameter group we use the first element as a key of a map, the rest as part of the value
@@ -141,6 +148,30 @@ namespace CMD
         return option_groups;
     }
 
+    bool Options::isEngineSettableOption(std::string string_format)
+    {
+        if (starts_with(string_format, "option."))
+            return true;
+        return false;
+    }
+    // Takes a string in input and returns a TimeControl object
+    TimeControl ParseTc(const std::string tc_string)
+    {
+        // Split the string into move count and time+inc
+        std::vector<std::string> moves_and_time;
+        moves_and_time = splitString(tc_string, '/');
+        std::string moves = moves_and_time.front();
+        // Split time+inc into time and inc
+        std::vector<std::string> time_and_inc = splitString(moves_and_time.back(), '+');
+        std::string time = time_and_inc.front();
+        std::string inc = time_and_inc.back();
+        // Create time control object and parse the strings into usable values
+        TimeControl time_control;
+        time_control.moves = std::stoi(moves);
+        time_control.time = std::stol(time) * 1000;
+        time_control.increment = std::stol(inc) * 1000;
+        return time_control;
+    };
     void Options::print_params()
     {
         std::cout << "Printing cli options" << std::endl;

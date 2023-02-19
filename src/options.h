@@ -37,7 +37,6 @@ namespace CMD
   private:
     std::vector<Parameter> parameters;
     std::vector<std::string> user_input;
-
     std::vector<std::string> cli_options;
     std::vector<std::vector<std::string>> engines_options;
     // Holds all the relevant settings for the handling of the games
@@ -51,6 +50,8 @@ namespace CMD
     void parseUserInput(int argc, char const *argv[]);
     void split_params();
     std::vector<std::vector<std::string>> group_cli_params();
+    bool isEngineSettableOption(std::string string_format);
+    TimeControl ParseTc(std::string tc_string);
     void fill_parameters();
     void print_params();
   };

@@ -196,13 +196,13 @@ void EngineProcess::initProcess(const std::string &command)
         close(inPipe[0]);
         close(inPipe[1]);
 
-        processPid = getpid();
-
         // Execute the engine
         execlp(command.c_str(), command.c_str(), nullptr);
 
         perror("Failed to create child process");
         exit(1);
+    } else {
+        processPid = forkPid;
     }
 }
 
@@ -216,15 +216,20 @@ EngineProcess::~EngineProcess()
 
 void EngineProcess::writeEngine(const std::string &input)
 {
-    // Append a newline character to the end of the input string
-    constexpr char endLine = '\n';
+    if (isAlive()) {
+        // Append a newline character to the end of the input string
+        constexpr char endLine = '\n';
 
-    // Close the read end of the output pipe
-    close(outPipe[0]);
+        // Close the read end of the output pipe
+        close(outPipe[0]);
 
-    // Write the input and a newline to the output pipe
-    write(outPipe[1], input.c_str(), input.size());
-    write(outPipe[1], &endLine, 1);
+        // Write the input and a newline to the output pipe
+        write(outPipe[1], input.c_str(), input.size());
+        write(outPipe[1], &endLine, 1);
+    } else {
+        throw std::runtime_error("Trying to write to process that's not alive");
+        exit(1);
+    }
 }
 
 std::vector<std::string> EngineProcess::readEngine(std::string_view last_word, int64_t timeoutThreshold, bool &timedOut)
@@ -282,6 +287,7 @@ std::vector<std::string> EngineProcess::readEngine(std::string_view last_word, i
 
 bool EngineProcess::isAlive() {
     int status;
+
     pid_t r = waitpid(processPid, &status, WNOHANG);
     if (r == -1) {
         perror("waitpid() error");

@@ -36,7 +36,7 @@ class Engine
 
   public:
     Engine() = default;
-    Engine(const std::string &command);
+    Engine(std::string command);
     ~Engine();
 
     Engine setName(const std::string &name);

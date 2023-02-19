@@ -6,12 +6,12 @@
 
 Engine::Engine(std::string command) : cmd(std::move(command))
 {
-    process.initProcess(cmd);
+    initProcess(cmd);
 }
 
 Engine::~Engine()
 {
-    stopProcess();
+    stopEngine();
 }
 
 void Engine::setName(const std::string &name)
@@ -47,7 +47,7 @@ void Engine::setPlyLimit(const uint64_t plies)
 void Engine::setCmd(const std::string &command)
 {
     this->cmd = command;
-    process.initProcess(cmd);
+    initProcess(cmd);
 }
 
 std::string Engine::getName() const
@@ -82,28 +82,12 @@ uint64_t Engine::getPlyLimit() const
 {
     return plies;
 }
-void Engine::stopProcess()
+void Engine::stopEngine()
 {
-    process.killProcess();
+    killProcess();
 }
 
-bool Engine::pingProcess()
+bool Engine::pingEngine()
 {
-    return process.isResponsive();
-}
-
-void Engine::writeProcess(const std::string &input)
-{
-    process.writeEngine(input);
-}
-
-std::vector<std::string> Engine::readProcess(const std::string &last_word, int64_t timeoutThreshold)
-{
-    bool timedOut;
-    return process.readEngine(last_word, timeoutThreshold, timedOut);
-}
-
-std::vector<std::string> Engine::readProcess(const std::string &last_word, bool &timedOut, int64_t timeoutThreshold)
-{
-    return process.readEngine(last_word, timeoutThreshold, timedOut);
+    return isResponsive();
 }

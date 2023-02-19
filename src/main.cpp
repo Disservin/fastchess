@@ -5,18 +5,20 @@
 
 #include "engine.h"
 #include "options.h"
-#include "uci.h"
+#include "uci_engine.h"
 
 int main(int argc, char const *argv[])
 {
     CMD::Options options = CMD::Options(argc, argv);
     options.print_params();
 
+    bool timeout = false;
+
     Engine engine;
 
     engine.setCmd("./DummyEngine.exe");
     engine.writeProcess("uci");
-    auto output = engine.readProcess("uciok");
+    auto output = engine.readProcess("uciok", timeout);
 
     for (const auto &item : output)
     {
@@ -25,7 +27,7 @@ int main(int argc, char const *argv[])
 
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
     engine.writeProcess("quit");
-    engine.stopProcess();
+    engine.stopEngine();
 
     UciEngine uci;
     uci.setEngine(engine);

@@ -13,7 +13,7 @@ struct TimeControl
     uint64_t increment = 0;
 };
 
-class Engine
+class Engine : public EngineProcess
 {
   protected:
     // engine name
@@ -37,9 +37,6 @@ class Engine
     // Ply limit for the engine
     uint64_t plies = 0;
 
-    // Process wrapper around the engine
-    EngineProcess process;
-
   public:
     Engine() = default;
 
@@ -61,15 +58,9 @@ class Engine
 
     void setCmd(const std::string &command);
 
-    void stopProcess();
+    void stopEngine();
 
-    bool pingProcess();
-
-    void writeProcess(const std::string &input);
-
-    std::vector<std::string> readProcess(const std::string &last_word, int64_t timeoutThreshold = 1000);
-
-    std::vector<std::string> readProcess(const std::string &last_word, bool &timedOut, int64_t timeoutThreshold = 1000);
+    bool pingEngine();
 
     std::string getName() const;
 

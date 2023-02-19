@@ -174,13 +174,6 @@ void EngineProcess::killProcess()
 {
     if (isInitalized)
     {
-        // Send a CTRL+C signal to the child process
-        GenerateConsoleCtrlEvent(CTRL_C_EVENT, m_childdwProcessId);
-
-        // Wait for the child process to exit
-        // give it 1000 ms
-        WaitForSingleObject(m_childProcessHandle, 1000);
-
         DWORD exitCode = 0;
         GetExitCodeProcess(m_childProcessHandle, &exitCode);
         if (exitCode == STILL_ACTIVE)

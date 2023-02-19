@@ -15,13 +15,13 @@ class Process
     virtual void writeEngine(const std::string &input) = 0;
 
     // Returns true if the engine process is alive
-    // virtual bool isAlive() = 0;
+    virtual bool isAlive() = 0;
 
     // Returns true of the engine responds to isready in PING_TIMEOUT_THRESHOLD milliseconds
-    // virtual bool isResponsive() = 0;
+    virtual bool isResponsive() = 0;
 
     // Kills the process
-    // virtual void killProcess() = 0;
+    virtual void killProcess() = 0;
 
     // Init the process
     virtual void initProcess(const std::string &command) = 0;
@@ -44,6 +44,9 @@ class EngineProcess : Process
     virtual std::vector<std::string> readEngine(std::string_view last_word, int64_t timeout, bool &timedOut);
     virtual void writeEngine(const std::string &input);
 
+    virtual bool isAlive();
+    virtual bool isResponsive();
+    virtual void killProcess();
     void closeProcess();
 
   private:
@@ -64,6 +67,10 @@ class EngineProcess : Process
 
     virtual std::vector<std::string> readEngine(std::string_view last_word, int64_t timeout, bool &timedOut);
     virtual void writeEngine(const std::string &input);
+
+    virtual bool isAlive();
+    virtual bool isResponsive();
+    virtual void killProcess();
 
   private:
     pid_t processPid;

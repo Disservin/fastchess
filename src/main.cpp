@@ -1,4 +1,5 @@
 #include <iostream>
+#include <csignal>
 
 #include "engine.h"
 #include "options.h"
@@ -20,6 +21,7 @@ int main(int argc, char const *argv[])
         std::cout << item << std::endl;
     }
 
+    sleep(5);
     engine.stopProcess();
 
     return 0;

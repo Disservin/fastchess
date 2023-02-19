@@ -1,14 +1,11 @@
 #include "uci_engine.h"
+#include "engine_config.h"
 
 #include <stdexcept>
 
-void UciEngine::setEngine(const Engine &rhs)
+void UciEngine::setConfig(const EngineConfiguration &rhs)
 {
-    name = rhs.getName();
-    cmd = rhs.getName();
-    args = rhs.getName();
-    options = rhs.getOptions();
-    tc = rhs.getTc();
+    config = rhs;
 }
 
 void UciEngine::sendUci()
@@ -39,7 +36,7 @@ void UciEngine::sendGo(const std::string &limit)
 
 void UciEngine::startEngine(const std::string &cmd /* add engines options here*/)
 {
-    setCmd(cmd);
+    initProcess(cmd);
     sendUci();
     if (!pingEngine())
     {

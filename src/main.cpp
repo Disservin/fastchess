@@ -16,7 +16,7 @@ int main(int argc, char const *argv[])
 
     Engine engine;
 
-    engine.setCmd("./DummyEngine.exe");
+    engine.initProcess("./DummyEngine.exe");
     engine.writeProcess("uci");
     auto output = engine.readProcess("uciok", timeout);
 
@@ -29,15 +29,5 @@ int main(int argc, char const *argv[])
     engine.writeProcess("quit");
     engine.stopEngine();
 
-    UciEngine uci;
-    uci.setEngine(engine);
-    uci.startEngine("./DummyEngine.exe");
-    uci.sendUci();
-    uci.stopEngine();
-
-    UciEngine uciNew = UciEngine(engine);
-    uciNew.startEngine("./DummyEngine.exe");
-    uciNew.sendUci();
-    uciNew.stopEngine();
     return 0;
 }

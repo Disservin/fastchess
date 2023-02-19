@@ -1,10 +1,10 @@
 #pragma once
 
-#include "engine.h"
 #include <iostream>
 #include <string>
 #include <vector>
 
+#include "engine_config.h"
 namespace CMD
 {
 
@@ -44,7 +44,7 @@ class Options
     // Holds all the relevant settings for the handling of the games
     gameManagerOptions game_options;
     // Holds all the engines with their options
-    std::vector<Engine> engines;
+    std::vector<EngineConfiguration> configs;
 
   public:
     Options(int argc, char const *argv[]);

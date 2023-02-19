@@ -1,3 +1,4 @@
+#include <cassert>
 #include <sstream>
 #include <stdexcept>
 
@@ -11,6 +12,7 @@ EngineProcess::EngineProcess(const std::string &command)
 
 bool EngineProcess::isResponsive()
 {
+    assert(isInitalized);
     if (!isAlive())
         return false;
 
@@ -142,12 +144,12 @@ std::vector<std::string> EngineProcess::readEngine(std::string_view last_word, i
 
 void EngineProcess::writeEngine(const std::string &input)
 {
-    if (isAlive())
+    if (!isAlive())
     {
         closeHandles();
 
         std::stringstream ss;
-        ss << "Trying to write to process with exit code ";
+        ss << "Trying to write to process with message: " << input;
         throw std::runtime_error(ss.str());
     }
 
@@ -159,6 +161,7 @@ void EngineProcess::writeEngine(const std::string &input)
 
 bool EngineProcess::isAlive()
 {
+    assert(isInitalized);
     DWORD exitCode = 0;
     GetExitCodeProcess(m_childProcessHandle, &exitCode);
     return exitCode == STILL_ACTIVE;
@@ -267,8 +270,9 @@ void EngineProcess::writeEngine(const std::string &input)
     }
     else
     {
-        throw std::runtime_error("Trying to write to process that's not alive");
-        exit(1);
+        std::stringstream ss;
+        ss << "Trying to write to process with message: " << input;
+        throw std::runtime_error(ss.str());
     }
 }
 
@@ -327,6 +331,7 @@ std::vector<std::string> EngineProcess::readEngine(std::string_view last_word, i
 
 bool EngineProcess::isAlive()
 {
+    assert(isInitalized);
     int status;
 
     pid_t r = waitpid(processPid, &status, WNOHANG);

@@ -41,7 +41,7 @@ public:
 
   Engine setName(const std::string &name);
   Engine setArgs(const std::string &args);
-  Engine setOptions(const std::vector<std::string> &options);
+  Engine setOptions(const std::vector<std::pair<std::string, std::string>> &options);
   Engine setTc(const TimeControl &tc);
   Engine setCmd(const std::string &command);
 

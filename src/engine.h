@@ -15,7 +15,7 @@ struct TimeControl
 
 class Engine
 {
-  private:
+  protected:
     // engine name
     std::string name;
 

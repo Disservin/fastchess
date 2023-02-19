@@ -1,6 +1,6 @@
-CXX = g++
-CXXFLAGS = -O3 -std=c++17 -Wall -Wextra -pedantic -DNDEBUG
-NATIVE = -march=native
+CXX 	 := g++
+CXXFLAGS := -O3 -std=c++17 -Wall -Wextra -pedantic -DNDEBUG
+NATIVE 	 := -march=native
 
 # Detect Windows
 ifeq ($(OS), Windows_NT)
@@ -19,6 +19,10 @@ endif
 ifeq ($(uname_S), Darwin)
 	NATIVE = -mcpu=apple-a14	
 	LDFLAGS = 
+endif
+
+ifeq ($(build), debug)
+	CXXFLAGS := -O3 -std=c++17 -Wall -Wextra -pedantic
 endif
 
 SOURCES := $(wildcard *.cpp)

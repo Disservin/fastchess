@@ -324,11 +324,9 @@ bool EngineProcess::isAlive()
 
 void EngineProcess::killProcess()
 {
-    if (isResponsive()) {
-        writeEngine("quit");
-        sleep(1);
-    }
-	if (isAlive()) kill(processPid, SIGKILL);
+    int status;
+    pid_t r = waitpid(processPid, &status, WNOHANG);
+	if (r == 0) kill(processPid, SIGKILL);
 }
 
 #endif

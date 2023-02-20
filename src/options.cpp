@@ -88,6 +88,7 @@ void Options::split_params()
 std::vector<std::vector<std::string>> Options::group_cli_params()
 {
     std::vector<std::vector<std::string>> option_groups;
+
     for (const auto &cli_option : cli_options)
     {
         // New functionally independent group
@@ -95,16 +96,16 @@ std::vector<std::vector<std::string>> Options::group_cli_params()
         {
             // Create new option group
             std::vector<std::string> new_option_group;
+            new_option_group.push_back(cli_option);
             option_groups.push_back(new_option_group);
-            // add new option to group
-            engines_options.back().push_back(cli_option);
         }
         else
         {
             // Add to the current option group
-            engines_options.back().push_back(cli_option);
+            option_groups.back().push_back(cli_option);
         }
     }
+
     return option_groups;
 }
 
@@ -169,15 +170,15 @@ TimeControl Options::parseTc(const std::string tc_string)
 // Takes a string in input and returns a TimeControl object
 int Options::parseConcurrency(const std::vector<std::string> concurrency_string)
 {
-
-    return 0;
+    assert(concurrency_string.size() == 2);
+    int concurrency = std::stoi(concurrency_string.at(1));
+    return concurrency;
 };
 
-// Takes a string in input and returns a TimeControl object
-std::string Options::parseEvent(const std::vector<std::string> concurrency_string)
+std::string Options::parseEvent(const std::vector<std::string> event_string)
 {
-
-    return "blabla";
+    assert(event_string.size() == 2);
+    return event_string.at(1);
 };
 
 // Takes a string in input and returns a TimeControl object
@@ -245,6 +246,10 @@ void Options::parseEnginesOptions()
             {
                 config.plies = std::stoll(param_value);
             }
+            else if (param_name == "dir")
+            {
+                config.dir = param_value;
+            }
             else if (isEngineSettableOption(param_name))
             {
                 engine_settable_options.push_back(std::make_pair(param_name, param_value));
@@ -266,6 +271,7 @@ void Options::parseCliOptions()
     // Parse Cli options//
     // group those into functionality related subgroups
     std::vector<std::vector<std::string>> cli_parameters_groups = group_cli_params();
+
     for (auto parameter_group : cli_parameters_groups)
     {
         // The first element of the group is our key

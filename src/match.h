@@ -1,25 +1,29 @@
 #pragma once
 
 #include "engine_config.h"
+#include "threadpool.h"
 #include "uci_engine.h"
 
-struct MatchConfig
+struct TournamentConfig
 {
     /*
     TODO
     */
 };
 
-class Match
+class Tournament
 {
   public:
-    Match() = default;
-    Match(const MatchConfig &mc);
+    Tournament() = default;
+    Tournament(const TournamentConfig &mc);
 
-    void startMatch(std::vector<EngineConfiguration> engines /* Match stuff*/);
+    void startTournament(/* Tournament stuff*/);
+    std::vector<std::string> startMatch(int i /* Tournament stuff*/);
 
-    void loadConfig(const MatchConfig &mc);
+    void loadConfig(const Tournament &mc);
 
   private:
-    MatchConfig match_config;
+    TournamentConfig match_config;
+
+    ThreadPool pool = ThreadPool(1);
 };

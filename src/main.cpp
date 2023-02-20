@@ -4,6 +4,7 @@
 #include <thread>
 
 #include "engine.h"
+#include "match.h"
 #include "options.h"
 #include "uci_engine.h"
 
@@ -41,6 +42,10 @@ int main(int argc, char const *argv[])
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
     engine.writeProcess("quit");
     engine.stopEngine();
+
+    Tournament tour;
+
+    tour.startTournament();
 
     return 0;
 }

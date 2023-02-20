@@ -3,6 +3,7 @@
 #include <stdexcept>
 
 #include "engineprocess.h"
+#include "helper.h"
 #include "types.h"
 
 EngineProcess::EngineProcess(const std::string &command)
@@ -125,6 +126,12 @@ std::vector<std::string> EngineProcess::readProcess(std::string_view last_word, 
                 if (!currentLine.empty())
                 {
                     lines.push_back(currentLine);
+
+                    if (contains(currentLine, last_word))
+                    {
+                        return lines;
+                    }
+
                     currentLine.clear();
                 }
             }
@@ -132,12 +139,6 @@ std::vector<std::string> EngineProcess::readProcess(std::string_view last_word, 
             else
             {
                 currentLine += buffer[i];
-            }
-
-            if (currentLine == last_word)
-            {
-                lines.push_back(currentLine);
-                return lines;
             }
         }
     }

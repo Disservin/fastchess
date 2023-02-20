@@ -16,6 +16,14 @@ struct Parameter
     std::string min_limit;
     std::string max_limit;
 };
+struct openingOptions
+{
+    std::string file;
+    // TODO use enums for this
+    std::string format;
+    std::string order;
+    int plies;
+};
 struct gameManagerOptions
 {
     int games = 1;
@@ -24,6 +32,7 @@ struct gameManagerOptions
     bool repeat = false;
     int concurrency = 1;
     std::string event_name;
+    openingOptions opening_options;
 };
 
 inline std::ostream &operator<<(std::ostream &os, const Parameter param)
@@ -60,7 +69,15 @@ class Options
 
     bool isEngineSettableOption(std::string string_format);
 
-    TimeControl ParseTc(const std::string tc_string);
+    TimeControl parseTc(const std::string tc_string);
+
+    int parseConcurrency(const std::vector<std::string> concurrency_string);
+
+    std::string parseEvent(const std::vector<std::string> concurrency_string);
+
+    int parseGames(const std::vector<std::string> concurrency_string);
+
+    int parseRounds(const std::vector<std::string> concurrency_string);
 
     void parse_engines_options();
 

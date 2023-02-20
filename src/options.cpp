@@ -29,20 +29,30 @@ Options::Options(int argc, char const *argv[])
     // Parse engine options
     parse_engines_options();
 
-    /*
-       // Parse Cli options//
-       // group those into functionality related subgroups
-       std::vector<std::vector<std::string>> cli_parameters_groups = group_cli_params();
-       // For each parameter group we use the first element as a key of a map, the rest as part of the value
-       std::map<std::string, std::vector<std::string>> map;
-       for (auto parameter_group : cli_parameters_groups)
-       {
-           // The first element of the group is our key
-           std::string key = parameter_group.front();
-           // Drop the  first element from the vector and use that as a value(this is much easier than copying a subset
-       of it) parameter_group.erase(parameter_group.begin()); map[key] = parameter_group;
-       }
-       */
+    // Parse Cli options//
+    // group those into functionality related subgroups
+    std::vector<std::vector<std::string>> cli_parameters_groups = group_cli_params();
+    for (auto parameter_group : cli_parameters_groups)
+    {
+        // The first element of the group is our key
+        std::string key = parameter_group.front();
+        if (key == "-concurrency")
+            game_options.concurrency = parseConcurrency(parameter_group);
+        if (key == "-event")
+            game_options.concurrency = true;
+        if (key == "-games")
+            game_options.games = true;
+        if (key == "-rounds")
+            game_options.rounds = true;
+        if (key == "-recover")
+            game_options.recover = true;
+        if (key == "-repeat")
+            game_options.repeat = true;
+        if (key == "-openings")
+            game_options.opening_options;
+        if (key == "-pgnout")
+            game_options.opening_options;
+    }
 }
 
 std::vector<std::string> Options::getUserInput()
@@ -130,7 +140,7 @@ bool Options::isEngineSettableOption(std::string string_format)
 }
 
 // Takes a string in input and returns a TimeControl object
-TimeControl Options::ParseTc(const std::string tc_string)
+TimeControl Options::parseTc(const std::string tc_string)
 {
     // Create time control object and parse the strings into usable values
     TimeControl time_control;
@@ -180,6 +190,34 @@ TimeControl Options::ParseTc(const std::string tc_string)
     return time_control;
 };
 
+// Takes a string in input and returns a TimeControl object
+int Options::parseConcurrency(const std::vector<std::string> concurrency_string)
+{
+
+    return 0;
+};
+
+// Takes a string in input and returns a TimeControl object
+std::string Options::parseEvent(const std::vector<std::string> concurrency_string)
+{
+
+    return "blabla";
+};
+
+// Takes a string in input and returns a TimeControl object
+int Options::parseGames(const std::vector<std::string> concurrency_string)
+{
+
+    return 0;
+};
+
+// Takes a string in input and returns a TimeControl object
+int Options::parseRounds(const std::vector<std::string> concurrency_string)
+{
+
+    return 0;
+};
+
 void Options::parse_engines_options()
 {
     for (const auto &engine_options : engines_options)
@@ -218,6 +256,11 @@ void Options::parse_engines_options()
             if (isEngineSettableOption(param_name))
             {
                 engine_settable_options.push_back(std::make_pair(param_name, param_value));
+            }
+            else
+            {
+                std::cout << "\n unrecognized engine option:" << option << " parsing failed\n";
+                return;
             }
         }
         config.options = engine_settable_options;

@@ -16,7 +16,7 @@ class ThreadPool
         for (size_t i = 0; i < threads; ++i)
             // Each worker thread runs an infinite loop that waits for tasks to be added to the queue
             workers.emplace_back([this] {
-                for (;;)
+                while (true)
                 {
                     std::function<void()> task;
 
@@ -77,7 +77,7 @@ class ThreadPool
             for (size_t i = 0; i < num_threads - curr_threads; ++i)
             {
                 workers.emplace_back([this] {
-                    for (;;)
+                    while (true)
                     {
                         std::function<void()> task;
 
@@ -110,7 +110,7 @@ class ThreadPool
             for (size_t i = curr_threads; i < num_threads; ++i)
             {
                 workers.emplace_back([this] {
-                    for (;;)
+                    while (true)
                     {
                         std::function<void()> task;
 

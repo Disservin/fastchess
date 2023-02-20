@@ -91,7 +91,9 @@ class Options
 
     pgnOptions parsePgnOptions(const std::vector<std::string> concurrency_string);
 
-    void parse_engines_options();
+    void parseEnginesOptions();
+
+    void parseCliOptions();
 
     void fill_parameters();
 

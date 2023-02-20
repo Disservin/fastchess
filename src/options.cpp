@@ -25,34 +25,10 @@ Options::Options(int argc, char const *argv[])
     parseUserInput(argc, argv);
     // Code to Split UserInput into Cli/Engine1/Engine2/EngineN for easier parsing
     split_params();
-
     // Parse engine options
-    parse_engines_options();
-
-    // Parse Cli options//
-    // group those into functionality related subgroups
-    std::vector<std::vector<std::string>> cli_parameters_groups = group_cli_params();
-    for (auto parameter_group : cli_parameters_groups)
-    {
-        // The first element of the group is our key
-        std::string key = parameter_group.front();
-        if (key == "-concurrency")
-            game_options.concurrency = parseConcurrency(parameter_group);
-        else if (key == "-event")
-            game_options.event_name = parseEvent(parameter_group);
-        else if (key == "-games")
-            game_options.games = parseGames(parameter_group);
-        else if (key == "-rounds")
-            game_options.rounds = parseRounds(parameter_group);
-        else if (key == "-openings")
-            game_options.opening_options = parseOpeningOptions(parameter_group);
-        else if (key == "-pgnout")
-            game_options.pgn_options = parsePgnOptions(parameter_group);
-        else if (key == "-recover")
-            game_options.recover = true;
-        else if (key == "-repeat")
-            game_options.repeat = true;
-    }
+    parseEnginesOptions();
+    // Parse cli options
+    parseCliOptions();
 }
 
 std::vector<std::string> Options::getUserInput()
@@ -234,7 +210,7 @@ pgnOptions Options::parsePgnOptions(const std::vector<std::string> concurrency_s
     return pgn_options;
 };
 
-void Options::parse_engines_options()
+void Options::parseEnginesOptions()
 {
     for (const auto &engine_options : engines_options)
     {
@@ -253,23 +229,23 @@ void Options::parse_engines_options()
             {
                 config.cmd = param_value;
             }
-            if (param_name == "name")
+            else if (param_name == "name")
             {
                 config.name = param_value;
             }
-            if (param_name == "tc")
+            else if (param_name == "tc")
             {
-                config.tc = ParseTc(param_value);
+                config.tc = parseTc(param_value);
             }
-            if (param_name == "nodes")
+            else if (param_name == "nodes")
             {
                 config.nodes = std::stoll(param_value);
             }
-            if (param_name == "plies")
+            else if (param_name == "plies")
             {
                 config.plies = std::stoll(param_value);
             }
-            if (isEngineSettableOption(param_name))
+            else if (isEngineSettableOption(param_name))
             {
                 engine_settable_options.push_back(std::make_pair(param_name, param_value));
             }
@@ -282,6 +258,34 @@ void Options::parse_engines_options()
         config.options = engine_settable_options;
         // Add engine
         configs.push_back(config);
+    }
+}
+
+void Options::parseCliOptions()
+{
+    // Parse Cli options//
+    // group those into functionality related subgroups
+    std::vector<std::vector<std::string>> cli_parameters_groups = group_cli_params();
+    for (auto parameter_group : cli_parameters_groups)
+    {
+        // The first element of the group is our key
+        std::string key = parameter_group.front();
+        if (key == "-concurrency")
+            game_options.concurrency = parseConcurrency(parameter_group);
+        else if (key == "-event")
+            game_options.event_name = parseEvent(parameter_group);
+        else if (key == "-games")
+            game_options.games = parseGames(parameter_group);
+        else if (key == "-rounds")
+            game_options.rounds = parseRounds(parameter_group);
+        else if (key == "-openings")
+            game_options.opening_options = parseOpeningOptions(parameter_group);
+        else if (key == "-pgnout")
+            game_options.pgn_options = parsePgnOptions(parameter_group);
+        else if (key == "-recover")
+            game_options.recover = true;
+        else if (key == "-repeat")
+            game_options.repeat = true;
     }
 }
 

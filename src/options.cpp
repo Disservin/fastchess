@@ -38,20 +38,20 @@ Options::Options(int argc, char const *argv[])
         std::string key = parameter_group.front();
         if (key == "-concurrency")
             game_options.concurrency = parseConcurrency(parameter_group);
-        if (key == "-event")
-            game_options.concurrency = true;
-        if (key == "-games")
-            game_options.games = true;
-        if (key == "-rounds")
-            game_options.rounds = true;
-        if (key == "-recover")
+        else if (key == "-event")
+            game_options.event_name = parseEvent(parameter_group);
+        else if (key == "-games")
+            game_options.games = parseGames(parameter_group);
+        else if (key == "-rounds")
+            game_options.rounds = parseRounds(parameter_group);
+        else if (key == "-openings")
+            game_options.opening_options = parseOpeningOptions(parameter_group);
+        else if (key == "-pgnout")
+            game_options.pgn_options = parsePgnOptions(parameter_group);
+        else if (key == "-recover")
             game_options.recover = true;
-        if (key == "-repeat")
+        else if (key == "-repeat")
             game_options.repeat = true;
-        if (key == "-openings")
-            game_options.opening_options;
-        if (key == "-pgnout")
-            game_options.opening_options;
     }
 }
 
@@ -216,6 +216,22 @@ int Options::parseRounds(const std::vector<std::string> concurrency_string)
 {
 
     return 0;
+};
+
+// Takes a string in input and returns a TimeControl object
+openingOptions Options::parseOpeningOptions(const std::vector<std::string> concurrency_string)
+{
+    openingOptions opop;
+
+    return opop;
+};
+
+// Takes a string in input and returns a TimeControl object
+pgnOptions Options::parsePgnOptions(const std::vector<std::string> concurrency_string)
+{
+    pgnOptions pgn_options;
+
+    return pgn_options;
 };
 
 void Options::parse_engines_options()

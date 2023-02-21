@@ -83,7 +83,7 @@ class Options
 
     std::string parseEvent(const std::vector<std::string> event_string);
 
-    int parseGames(const std::vector<std::string> concurrency_string);
+    int parseGames(const std::vector<std::string> games_string);
 
     int parseRounds(const std::vector<std::string> concurrency_string);
 

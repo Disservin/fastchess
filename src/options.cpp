@@ -182,10 +182,11 @@ std::string Options::parseEvent(const std::vector<std::string> event_string)
 };
 
 // Takes a string in input and returns a TimeControl object
-int Options::parseGames(const std::vector<std::string> concurrency_string)
+int Options::parseGames(const std::vector<std::string> games_string)
 {
 
-    return 0;
+    assert(games_string.size() == 2);
+    return std::stoi(games_string.at(1));
 };
 
 // Takes a string in input and returns a TimeControl object

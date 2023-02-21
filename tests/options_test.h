@@ -72,7 +72,7 @@ TEST_CASE("Testing Cli options parsing")
     CHECK(options.game_options.repeat == true);
     CHECK(options.game_options.recover == true);
     CHECK(options.game_options.concurrency == 8);
-    // CHECK(options.game_options.games == 256);
+    CHECK(options.game_options.games == 256);
     //  Test opening settings parsing
     // CHECK(options.game_options.opening_options.file == "Books/Pohl.epd");
     // CHECK(options.game_options.opening_options.format == "epd");

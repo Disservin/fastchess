@@ -192,6 +192,7 @@ void EngineProcess::killProcess()
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
+#include <signal.h>
 
 void EngineProcess::initProcess(const std::string &command)
 {

@@ -4,3 +4,4 @@ DummyEngine*
 *.d
 *.o
 *.exe
+dummy_engine*

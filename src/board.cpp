@@ -311,7 +311,7 @@ uint64_t Board::zobristHash() const
     return hash ^ cast_hash ^ turn_hash ^ ep_hash;
 }
 
-bool Board::isRepetition(int draw) const
+bool Board::isRepetition() const
 {
     uint8_t c = 0;
 
@@ -320,7 +320,8 @@ bool Board::isRepetition(int draw) const
     {
         if (hashHistory[i] == hashKey)
             c++;
-        if (c == draw)
+
+        if (c == 2)
             return true;
     }
 
@@ -348,6 +349,49 @@ Bitboard Board::attacksByPiece(PieceType pt, Square sq, Color c, Bitboard occ) c
     default:
         return 0ULL;
     }
+}
+
+GameResult Board::isGameOver()
+{
+
+    if (halfMoveClock >= 100)
+    {
+        if (isSquareAttacked(~sideToMove, lsb(pieces(KING, sideToMove))) && !Movegen::hasLegalMoves(*this))
+            return GameResult(~sideToMove);
+        return GameResult::DRAW;
+    }
+
+    const auto count = popcount(allBB());
+
+    if (count == 2)
+        return GameResult::DRAW;
+
+    if (count == 3)
+    {
+        if (pieces<BISHOP, WHITE>() || pieces<BISHOP, BLACK>())
+            return GameResult::DRAW;
+        if (pieces<KNIGHT, WHITE>() || pieces<KNIGHT, BLACK>())
+            return GameResult::DRAW;
+    }
+
+    if (count == 4)
+    {
+        if (pieces<BISHOP, WHITE>() && pieces<BISHOP, BLACK>() &&
+            sameColor(lsb(pieces<BISHOP, WHITE>()), lsb(pieces<BISHOP, BLACK>())))
+            return GameResult::DRAW;
+    }
+
+    if (isRepetition())
+        return GameResult::DRAW;
+
+    if (!Movegen::hasLegalMoves(*this))
+    {
+        if (isSquareAttacked(~sideToMove, lsb(pieces(KING, sideToMove))))
+            return GameResult(~sideToMove);
+        return GameResult::DRAW;
+    }
+
+    return GameResult::NONE;
 }
 
 void Board::removeCastlingRightsAll(Color c)

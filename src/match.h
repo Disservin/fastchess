@@ -1,8 +1,10 @@
 #pragma once
 
+#include "board.h"
 #include "engine_config.h"
 #include "threadpool.h"
 #include "uci_engine.h"
+
 
 struct TournamentConfig
 {
@@ -18,7 +20,7 @@ class Tournament
     Tournament(const TournamentConfig &mc);
 
     void startTournament(/* Tournament stuff*/);
-    std::vector<std::string> startMatch(int i /* Tournament stuff*/);
+    GameResult startMatch(int i /* Tournament stuff*/);
 
     void loadConfig(const Tournament &mc);
 

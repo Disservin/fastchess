@@ -643,6 +643,129 @@ template <Color c> void legalmoves(Board &board, Movelist &movelist)
     }
 }
 
+// all legal moves for a position
+template <Color c> bool hasLegalMoves(Board &board, Movelist &movelist)
+{
+    /********************
+     * The size of the movelist might not
+     * be 0! This is done on purpose since it enables
+     * you to append new move types to any movelist.
+     *******************/
+
+    init<c>(board, board.KingSQ(c));
+
+    assert(board.doubleCheck <= 2);
+
+    /********************
+     * Moves have to be on the checkmask
+     *******************/
+    Bitboard movableSquare = board.checkMask;
+
+    /********************
+     * Slider, Knights and King moves can only go to enemy or empty squares.
+     *******************/
+    movableSquare &= board.enemyEmptyBB;
+
+    Square from = board.KingSQ(c);
+    Bitboard moves;
+
+    if (!board.castlingRights || board.checkMask != DEFAULT_CHECKMASK)
+        moves = LegalKingMoves(board, from);
+    else
+        moves = LegalKingMovesCastling<c>(board, from);
+
+    while (moves)
+    {
+        return true;
+    }
+
+    /********************
+     * Early return for double check as described earlier
+     *******************/
+    if (board.doubleCheck == 2)
+        return false;
+
+    /********************
+     * Prune knights that are pinned since these cannot move.
+     *******************/
+    Bitboard knights_mask = board.pieces<KNIGHT, c>() & ~(board.pinD | board.pinHV);
+
+    /********************
+     * Prune horizontally pinned bishops
+     *******************/
+    Bitboard bishops_mask = board.pieces<BISHOP, c>() & ~board.pinHV;
+
+    /********************
+     * Prune diagonally pinned rooks
+     *******************/
+    Bitboard rooks_mask = board.pieces<ROOK, c>() & ~board.pinD;
+
+    /********************
+     * Prune double pinned queens
+     *******************/
+    Bitboard queens_mask = board.pieces<QUEEN, c>() & ~(board.pinD & board.pinHV);
+
+    /********************
+     * Add the moves to the movelist.
+     *******************/
+    const auto size = movelist.size;
+    LegalPawnMovesAll<c>(board, movelist);
+
+    if (movelist.size != size)
+        return true;
+
+    while (knights_mask)
+    {
+        Square from = poplsb(knights_mask);
+        Bitboard moves = LegalKnightMoves(from, movableSquare);
+        while (moves)
+        {
+            return true;
+        }
+    }
+
+    while (bishops_mask)
+    {
+        Square from = poplsb(bishops_mask);
+        Bitboard moves = LegalBishopMoves(board, from, movableSquare);
+        while (moves)
+        {
+            return true;
+        }
+    }
+
+    while (rooks_mask)
+    {
+        Square from = poplsb(rooks_mask);
+        Bitboard moves = LegalRookMoves(board, from, movableSquare);
+        while (moves)
+        {
+            return true;
+        }
+    }
+
+    while (queens_mask)
+    {
+        Square from = poplsb(queens_mask);
+        Bitboard moves = LegalQueenMoves(board, from, movableSquare);
+        while (moves)
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+inline bool hasLegalMoves(Board &board)
+{
+    Movelist moves;
+    if (board.sideToMove == WHITE)
+        return hasLegalMoves<WHITE>(board, moves);
+    else
+        return hasLegalMoves<BLACK>(board, moves);
+}
+
 /********************
  * Entry function for the
  * Color template.

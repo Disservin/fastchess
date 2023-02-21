@@ -96,7 +96,8 @@ std::vector<std::string> EngineProcess::readProcess(std::string_view last_word, 
         {
             auto now = std::chrono::high_resolution_clock::now();
 
-            if (std::chrono::duration_cast<std::chrono::milliseconds>(now - start).count() > timeoutThreshold)
+            if (timeoutThreshold > 0 &&
+                std::chrono::duration_cast<std::chrono::milliseconds>(now - start).count() > timeoutThreshold)
             {
                 lines.push_back(currentLine);
                 timeout = true;

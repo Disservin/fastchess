@@ -127,3 +127,8 @@ Square poplsb(Bitboard &mask)
     mask &= mask - 1; // compiler optimizes this to _blsr_Bitboard
     return Square(s);
 }
+
+bool sameColor(int sq1, int sq2)
+{
+    return ((9 * (sq1 ^ sq2)) & 8) == 0;
+}

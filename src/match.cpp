@@ -10,70 +10,89 @@ void Tournament::loadConfig(const MatchConfig &mc)
     match_config = mc;
 }
 
-GameResult Tournament::startMatch(int i /* Tournament stuff*/)
+std::array<GameResult, 2> Tournament::startMatch(std::vector<EngineConfiguration> configs)
 {
     // Initialize variables
     const int64_t timeoutThreshold = 0;
 
-    Board board;
-    board.load_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
-
     UciEngine engine1, engine2;
-    engine1.startEngine("./DummyEngine.exe");
-    engine2.startEngine("./DummyEngine.exe");
+    engine1.loadConfig(configs[0]);
+    engine2.loadConfig(configs[1]);
 
-    GameResult result;
+    engine1.startEngine();
+    engine2.startEngine();
+
+    engine1.color = WHITE;
+    engine2.color = BLACK;
+
+    std::array<GameResult, 2> result;
     bool timeout = false;
-    std::string positionInput = "position startpos moves";
     std::vector<std::string> output;
 
-    while (true)
+    for (size_t i = 0; i < 2; i++)
     {
-        // Check for game over
-        result = board.isGameOver();
-        if (result != GameResult::NONE)
+        engine1.sendUciNewGame();
+        engine2.sendUciNewGame();
+
+        Board board;
+        board.load_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+
+        std::string positionInput = "position startpos moves";
+        while (true)
         {
-            return result;
+            // Check for game over
+            result[i] = board.isGameOver();
+            if (result[i] != GameResult::NONE)
+            {
+                break;
+            }
+
+            // Engine 1's turn
+            engine1.writeProcess(positionInput);
+            engine1.writeProcess(engine1.buildGoInput());
+            output = engine1.readProcess("bestmove", timeout, timeoutThreshold);
+            std::string bestMove = findElement<std::string>(splitString(output.back(), ' '), "bestmove");
+            positionInput += " " + bestMove;
+            board.make_move(convertUciToMove(bestMove));
+
+            // Check for game over
+            result[i] = board.isGameOver();
+            if (result[i] != GameResult::NONE)
+            {
+                break;
+            }
+
+            // Engine 2's turn
+            engine2.writeProcess(positionInput);
+            engine2.writeProcess(engine1.buildGoInput());
+            output = engine2.readProcess("bestmove", timeout, timeoutThreshold);
+            bestMove = findElement<std::string>(splitString(output.back(), ' '), "bestmove");
+            positionInput += " " + bestMove;
+            board.make_move(convertUciToMove(bestMove));
         }
 
-        // Engine 1's turn
-        engine1.writeProcess(positionInput);
-        engine1.writeProcess("go depth 20");
-        output = engine1.readProcess("bestmove", timeout, timeoutThreshold);
-        std::string bestMove = findElement<std::string>(splitString(output.back(), ' '), "bestmove");
-        positionInput += " " + bestMove;
-        board.make_move(convertUciToMove(bestMove));
+        std::cout << positionInput << std::endl;
 
-        // Check for game over
-        result = board.isGameOver();
-        if (result != GameResult::NONE)
-        {
-            return result;
-        }
-
-        // Engine 2's turn
-        engine2.writeProcess(positionInput);
-        engine2.writeProcess("go depth 20");
-        output = engine2.readProcess("bestmove", timeout, timeoutThreshold);
-        bestMove = findElement<std::string>(splitString(output.back(), ' '), "bestmove");
-        positionInput += " " + bestMove;
-        board.make_move(convertUciToMove(bestMove));
+        engine1.color = ~engine1.color;
+        engine2.color = ~engine2.color;
     }
+
+    return result;
 }
 
-void Tournament::startTournament(/* Tournament stuff*/)
+void Tournament::startTournament(std::vector<EngineConfiguration> configs /* Tournament stuff*/)
 {
 
-    std::vector<std::future<GameResult>> results;
+    std::vector<std::future<std::array<GameResult, 2>>> results;
 
     for (int i = 1; i < 2; ++i)
     {
-        results.emplace_back(pool.enqueue(startMatch, this, 0));
+        results.emplace_back(pool.enqueue(startMatch, this, configs));
     }
 
     for (auto &&result : results)
     {
         auto res = result.get();
-        std::cout << int(res) << std::endl;
+        std::cout << int(res[0]) << " " << int(res[1]) << std::endl;
     }
 }

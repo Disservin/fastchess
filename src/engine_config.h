@@ -15,6 +15,7 @@ struct EngineConfiguration
 {
     // engine name
     std::string name;
+
     // Path to engine
     std::string dir;
 

@@ -5,6 +5,7 @@
 #include "threadpool.h"
 #include "uci_engine.h"
 
+#include <array>
 
 struct TournamentConfig
 {
@@ -19,8 +20,8 @@ class Tournament
     Tournament() = default;
     Tournament(const TournamentConfig &mc);
 
-    void startTournament(/* Tournament stuff*/);
-    GameResult startMatch(int i /* Tournament stuff*/);
+    void startTournament(std::vector<EngineConfiguration> configs);
+    std::array<GameResult, 2> startMatch(std::vector<EngineConfiguration> configs);
 
     void loadConfig(const Tournament &mc);
 

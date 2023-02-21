@@ -28,24 +28,24 @@ int main(int argc, char const *argv[])
 
     bool timeout = false;
 
-    Engine engine;
+    // Engine engine;
 
-    engine.initProcess("./DummyEngine.exe");
-    engine.writeProcess("uci");
-    auto output = engine.readProcess("uciok", timeout);
+    // engine.initProcess("./DummyEngine.exe");
+    // engine.writeProcess("uci");
+    // auto output = engine.readProcess("uciok", timeout);
 
-    for (const auto &item : output)
-    {
-        std::cout << item.str() << std::endl;
-    }
+    // for (const auto &item : output)
+    // {
+    //     std::cout << item.str() << std::endl;
+    // }
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    engine.writeProcess("quit");
-    engine.stopEngine();
+    // std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    // engine.writeProcess("quit");
+    // engine.stopEngine();
 
     Tournament tour;
 
-    tour.startTournament();
+    tour.startTournament(options.getEngineConfigs());
 
     return 0;
 }

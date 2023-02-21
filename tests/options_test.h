@@ -29,26 +29,28 @@ TEST_CASE("Testing Engine options parsing")
                           "PGNs/Alexandria-EA649FED_vs_Alexandria-27E42728"};
     CMD::Options options = CMD::Options(22, argv);
     CHECK(options.configs.size() == 2);
-    CHECK(options.configs[0].name == "Alexandria-EA649FED");
-    CHECK(options.configs[0].tc.moves == 10);
-    CHECK(options.configs[0].tc.time == 9640);
-    CHECK(options.configs[0].tc.increment == 0);
-    CHECK(options.configs[0].nodes == 0);
-    CHECK(options.configs[0].plies == 0);
-    CHECK(options.configs[0].options.at(0).first == "option.Threads");
-    CHECK(options.configs[0].options.at(0).second == "1");
-    CHECK(options.configs[0].options.at(1).first == "option.Hash");
-    CHECK(options.configs[0].options.at(1).second == "16");
-    CHECK(options.configs[1].name == "Alexandria-27E42728");
-    CHECK(options.configs[1].tc.moves == 0);
-    CHECK(options.configs[1].tc.time == 9640);
-    CHECK(options.configs[1].tc.increment == 100);
-    CHECK(options.configs[1].nodes == 0);
-    CHECK(options.configs[1].plies == 0);
-    CHECK(options.configs[1].options.at(0).first == "option.Threads");
-    CHECK(options.configs[1].options.at(0).second == "1");
-    CHECK(options.configs[1].options.at(1).first == "option.Hash");
-    CHECK(options.configs[1].options.at(1).second == "32");
+    EngineConfiguration config0 = options.getEngineConfig(0);
+    EngineConfiguration config1 = options.getEngineConfig(1);
+    CHECK(config0.name == "Alexandria-EA649FED");
+    CHECK(config0.tc.moves == 10);
+    CHECK(config0.tc.time == 9640);
+    CHECK(config0.tc.increment == 0);
+    CHECK(config0.nodes == 0);
+    CHECK(config0.plies == 0);
+    CHECK(config0.options.at(0).first == "option.Threads");
+    CHECK(config0.options.at(0).second == "1");
+    CHECK(config0.options.at(1).first == "option.Hash");
+    CHECK(config0.options.at(1).second == "16");
+    CHECK(config1.name == "Alexandria-27E42728");
+    CHECK(config1.tc.moves == 0);
+    CHECK(config1.tc.time == 9640);
+    CHECK(config1.tc.increment == 100);
+    CHECK(config1.nodes == 0);
+    CHECK(config1.plies == 0);
+    CHECK(config1.options.at(0).first == "option.Threads");
+    CHECK(config1.options.at(0).second == "1");
+    CHECK(config1.options.at(1).first == "option.Hash");
+    CHECK(config1.options.at(1).second == "32");
 }
 TEST_CASE("Testing Cli options parsing")
 {

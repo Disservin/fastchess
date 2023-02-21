@@ -296,6 +296,13 @@ void Options::parseCliOptions()
     }
 }
 
+EngineConfiguration Options::getEngineConfig(int engine_index)
+{
+    assert(engine_index >= 0);
+    assert(engine_index <= configs.size() - 1);
+    return configs.at(engine_index);
+};
+
 void Options::print_params()
 {
     std::cout << "Printing cli options" << std::endl;

@@ -93,6 +93,8 @@ class Options
 
     void parseEnginesOptions();
 
+    EngineConfiguration getEngineConfig(int engine_index);
+
     void parseCliOptions();
 
     void fill_parameters();

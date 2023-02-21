@@ -160,10 +160,9 @@ void Options::parseConcurrency(int &i, int argc, char const *argv[], gameManager
 {
     i++;
     if (i < argc && argv[i][0] != '-')
-    {4
+    {
         std::string thread_num = argv[i];
         cli_options.concurrency = std::stoi(thread_num);
-
     }
     return;
 };

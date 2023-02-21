@@ -31,6 +31,7 @@ class UciEngine : public Engine
     void setConfig(const EngineConfiguration &rhs);
 
     void startEngine();
+    void startEngine(const std::string &cmd);
     void stopEngine();
 
     Color color;

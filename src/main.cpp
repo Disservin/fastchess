@@ -43,7 +43,7 @@ int main(int argc, char const *argv[])
     // engine.writeProcess("quit");
     // engine.stopEngine();
 
-    Tournament tour;
+    Tournament tour(options.game_options);
 
     tour.startTournament(options.getEngineConfigs());
 

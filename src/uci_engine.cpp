@@ -95,6 +95,17 @@ void UciEngine::startEngine()
     */
 }
 
+void UciEngine::startEngine(const std::string &cmd)
+{
+    initProcess(cmd);
+    sendUci();
+    readUci();
+    if (!pingEngine())
+    {
+        throw std::runtime_error("Something went wrong when pinging the engine.");
+    }
+}
+
 void UciEngine::stopEngine()
 {
     sendQuit();

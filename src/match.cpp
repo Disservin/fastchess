@@ -1,11 +1,11 @@
 #include "match.h"
 
-Tournament::Tournament(const TournamentConfig &mc)
+Tournament::Tournament(const CMD::TournamentConfig &mc)
 {
     loadConfig(mc);
 }
 
-void Tournament::loadConfig(const MatchConfig &mc)
+void Tournament::loadConfig(const CMD::TournamentConfig &mc)
 {
     match_config = mc;
 }
@@ -71,7 +71,7 @@ std::array<GameResult, 2> Tournament::startMatch(std::vector<EngineConfiguration
             board.make_move(convertUciToMove(bestMove));
         }
 
-        std::cout << positionInput << std::endl;
+        std::cout << "Game " << i + 1 << "\n" << positionInput << std::endl;
 
         engine1.color = ~engine1.color;
         engine2.color = ~engine2.color;
@@ -82,10 +82,11 @@ std::array<GameResult, 2> Tournament::startMatch(std::vector<EngineConfiguration
 
 void Tournament::startTournament(std::vector<EngineConfiguration> configs /* Tournament stuff*/)
 {
+    pool.resize(match_config.concurrency);
 
     std::vector<std::future<std::array<GameResult, 2>>> results;
 
-    for (int i = 1; i < 2; ++i)
+    for (int i = 1; i < match_config.games; ++i)
     {
         results.emplace_back(pool.enqueue(startMatch, this, configs));
     }

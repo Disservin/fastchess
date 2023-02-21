@@ -5,7 +5,7 @@
 
 TEST_CASE("Testing the getUserInput function")
 {
-    const char *args[] = {"fastchess", "hello", "world"};
+    const char *args[] = {"fastchess", "-recover", "-restart"};
 
     CMD::Options options = CMD::Options(3, args);
 

@@ -15,8 +15,10 @@ struct EngineConfiguration
 {
     // engine name
     std::string name;
-
     // Path to engine
+    std::string dir;
+
+    // Engine binary name
     std::string cmd;
 
     // Custom args that should be sent

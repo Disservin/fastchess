@@ -16,6 +16,21 @@ struct Parameter
     std::string min_limit;
     std::string max_limit;
 };
+struct openingOptions
+{
+    std::string file;
+    // TODO use enums for this
+    std::string format;
+    std::string order;
+    int plies;
+};
+struct pgnOptions
+{
+    std::string file;
+    // TODO use enums for this
+    bool min = false;
+    bool fi = false;
+};
 struct gameManagerOptions
 {
     int games = 1;
@@ -24,6 +39,8 @@ struct gameManagerOptions
     bool repeat = false;
     int concurrency = 1;
     std::string event_name;
+    openingOptions opening_options;
+    pgnOptions pgn_options;
 };
 
 inline std::ostream &operator<<(std::ostream &os, const Parameter param)
@@ -60,9 +77,25 @@ class Options
 
     bool isEngineSettableOption(std::string string_format);
 
-    TimeControl ParseTc(const std::string tc_string);
+    TimeControl parseTc(const std::string tc_string);
 
-    void parse_engines_options();
+    int parseConcurrency(const std::vector<std::string> concurrency_string);
+
+    std::string parseEvent(const std::vector<std::string> event_string);
+
+    int parseGames(const std::vector<std::string> games_string);
+
+    int parseRounds(const std::vector<std::string> concurrency_string);
+
+    openingOptions parseOpeningOptions(const std::vector<std::string> concurrency_string);
+
+    pgnOptions parsePgnOptions(const std::vector<std::string> concurrency_string);
+
+    void parseEnginesOptions();
+
+    EngineConfiguration getEngineConfig(int engine_index);
+
+    void parseCliOptions();
 
     void fill_parameters();
 

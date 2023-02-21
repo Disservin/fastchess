@@ -25,24 +25,10 @@ Options::Options(int argc, char const *argv[])
     parseUserInput(argc, argv);
     // Code to Split UserInput into Cli/Engine1/Engine2/EngineN for easier parsing
     split_params();
-
     // Parse engine options
-    parse_engines_options();
-
-    /*
-       // Parse Cli options//
-       // group those into functionality related subgroups
-       std::vector<std::vector<std::string>> cli_parameters_groups = group_cli_params();
-       // For each parameter group we use the first element as a key of a map, the rest as part of the value
-       std::map<std::string, std::vector<std::string>> map;
-       for (auto parameter_group : cli_parameters_groups)
-       {
-           // The first element of the group is our key
-           std::string key = parameter_group.front();
-           // Drop the  first element from the vector and use that as a value(this is much easier than copying a subset
-       of it) parameter_group.erase(parameter_group.begin()); map[key] = parameter_group;
-       }
-       */
+    parseEnginesOptions();
+    // Parse cli options
+    parseCliOptions();
 }
 
 std::vector<std::string> Options::getUserInput()
@@ -102,6 +88,7 @@ void Options::split_params()
 std::vector<std::vector<std::string>> Options::group_cli_params()
 {
     std::vector<std::vector<std::string>> option_groups;
+
     for (const auto &cli_option : cli_options)
     {
         // New functionally independent group
@@ -109,16 +96,16 @@ std::vector<std::vector<std::string>> Options::group_cli_params()
         {
             // Create new option group
             std::vector<std::string> new_option_group;
+            new_option_group.push_back(cli_option);
             option_groups.push_back(new_option_group);
-            // add new option to group
-            engines_options.back().push_back(cli_option);
         }
         else
         {
             // Add to the current option group
-            engines_options.back().push_back(cli_option);
+            option_groups.back().push_back(cli_option);
         }
     }
+
     return option_groups;
 }
 
@@ -130,7 +117,7 @@ bool Options::isEngineSettableOption(std::string string_format)
 }
 
 // Takes a string in input and returns a TimeControl object
-TimeControl Options::ParseTc(const std::string tc_string)
+TimeControl Options::parseTc(const std::string tc_string)
 {
     // Create time control object and parse the strings into usable values
     TimeControl time_control;
@@ -180,7 +167,52 @@ TimeControl Options::ParseTc(const std::string tc_string)
     return time_control;
 };
 
-void Options::parse_engines_options()
+// Takes a string in input and returns a TimeControl object
+int Options::parseConcurrency(const std::vector<std::string> concurrency_string)
+{
+    assert(concurrency_string.size() == 2);
+    int concurrency = std::stoi(concurrency_string.at(1));
+    return concurrency;
+};
+
+std::string Options::parseEvent(const std::vector<std::string> event_string)
+{
+    assert(event_string.size() == 2);
+    return event_string.at(1);
+};
+
+// Takes a string in input and returns a TimeControl object
+int Options::parseGames(const std::vector<std::string> games_string)
+{
+
+    assert(games_string.size() == 2);
+    return std::stoi(games_string.at(1));
+};
+
+// Takes a string in input and returns a TimeControl object
+int Options::parseRounds(const std::vector<std::string> concurrency_string)
+{
+
+    return 0;
+};
+
+// Takes a string in input and returns a TimeControl object
+openingOptions Options::parseOpeningOptions(const std::vector<std::string> concurrency_string)
+{
+    openingOptions opop;
+
+    return opop;
+};
+
+// Takes a string in input and returns a TimeControl object
+pgnOptions Options::parsePgnOptions(const std::vector<std::string> concurrency_string)
+{
+    pgnOptions pgn_options;
+
+    return pgn_options;
+};
+
+void Options::parseEnginesOptions()
 {
     for (const auto &engine_options : engines_options)
     {
@@ -199,25 +231,34 @@ void Options::parse_engines_options()
             {
                 config.cmd = param_value;
             }
-            if (param_name == "name")
+            else if (param_name == "name")
             {
                 config.name = param_value;
             }
-            if (param_name == "tc")
+            else if (param_name == "tc")
             {
-                config.tc = ParseTc(param_value);
+                config.tc = parseTc(param_value);
             }
-            if (param_name == "nodes")
+            else if (param_name == "nodes")
             {
                 config.nodes = std::stoll(param_value);
             }
-            if (param_name == "plies")
+            else if (param_name == "plies")
             {
                 config.plies = std::stoll(param_value);
             }
-            if (isEngineSettableOption(param_name))
+            else if (param_name == "dir")
+            {
+                config.dir = param_value;
+            }
+            else if (isEngineSettableOption(param_name))
             {
                 engine_settable_options.push_back(std::make_pair(param_name, param_value));
+            }
+            else
+            {
+                std::cout << "\n unrecognized engine option:" << option << " parsing failed\n";
+                return;
             }
         }
         config.options = engine_settable_options;
@@ -225,6 +266,42 @@ void Options::parse_engines_options()
         configs.push_back(config);
     }
 }
+
+void Options::parseCliOptions()
+{
+    // Parse Cli options//
+    // group those into functionality related subgroups
+    std::vector<std::vector<std::string>> cli_parameters_groups = group_cli_params();
+
+    for (auto parameter_group : cli_parameters_groups)
+    {
+        // The first element of the group is our key
+        std::string key = parameter_group.front();
+        if (key == "-concurrency")
+            game_options.concurrency = parseConcurrency(parameter_group);
+        else if (key == "-event")
+            game_options.event_name = parseEvent(parameter_group);
+        else if (key == "-games")
+            game_options.games = parseGames(parameter_group);
+        else if (key == "-rounds")
+            game_options.rounds = parseRounds(parameter_group);
+        else if (key == "-openings")
+            game_options.opening_options = parseOpeningOptions(parameter_group);
+        else if (key == "-pgnout")
+            game_options.pgn_options = parsePgnOptions(parameter_group);
+        else if (key == "-recover")
+            game_options.recover = true;
+        else if (key == "-repeat")
+            game_options.repeat = true;
+    }
+}
+
+EngineConfiguration Options::getEngineConfig(int engine_index)
+{
+    assert(engine_index >= 0);
+    assert(engine_index <= configs.size() - 1);
+    return configs.at(engine_index);
+};
 
 void Options::print_params()
 {

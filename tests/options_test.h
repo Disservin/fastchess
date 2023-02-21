@@ -54,7 +54,6 @@ TEST_CASE("Testing Engine options parsing")
 }
 TEST_CASE("Testing Cli options parsing")
 {
-
     const char *argv[] = {"fast-chess.exe",
                           "-repeat",
                           "-recover",

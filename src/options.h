@@ -23,7 +23,7 @@ struct OpeningOptions
     // TODO use enums for this
     std::string format;
     std::string order;
-    int plies;
+    int plies = 0;
 };
 
 struct PgnOptions
@@ -31,16 +31,32 @@ struct PgnOptions
     std::string file;
 };
 
+struct DrawAdjudication
+{
+    bool enabled = false;
+    int moves = 0;
+    int score = 0;
+};
+
+struct ResignAdjudication
+{
+    bool enabled = false;
+    int moves = 0;
+    int score = 0;
+};
+
 struct GameManagerOptions
 {
     int games = 1;
-    int rounds = 1;
+    int rounds = 2;
     bool recover = false;
     bool repeat = false;
     int concurrency = 1;
     std::string eventName;
     OpeningOptions opening;
     PgnOptions pgn;
+    DrawAdjudication draw;
+    ResignAdjudication resign;
 };
 
 inline std::ostream &operator<<(std::ostream &os, const Parameter param)
@@ -74,6 +90,8 @@ class Options
     // Generic function to parse option
     template <typename T> void parseOption(int &i, int argc, const char *argv[], T &optionValue);
 
+    void parseDrawOptions(int &i, int argc, char const *argv[]);
+    void parseResignOptions(int &i, int argc, char const *argv[]);
     void parseOpeningOptions(int &i, int argc, char const *argv[]);
 
     void parseEngineParams(int &i, int argc, char const *argv[], EngineConfiguration &engineParams);

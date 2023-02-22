@@ -3,7 +3,7 @@
 
 #include "helper.h"
 
-bool starts_with(std::string_view haystack, std::string_view needle)
+bool startsWith(std::string_view haystack, std::string_view needle)
 {
     if (needle == "")
         return false;

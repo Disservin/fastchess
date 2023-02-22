@@ -18,9 +18,9 @@ uint64_t Perft::perftFunction(Board &b, int depth, int max)
 
     for (auto move : moves)
     {
-        b.make_move(move);
+        b.makeMove(move);
         nodesIt += perftFunction(b, depth - 1, depth);
-        b.unmake_move(move);
+        b.unmakeMove(move);
         if (depth == max)
         {
             nodes += nodesIt;

@@ -9,7 +9,7 @@
 
 #include "types.h"
 
-bool starts_with(std::string_view haystack, std::string_view needle);
+bool startsWith(std::string_view haystack, std::string_view needle);
 
 template <typename T> T findElement(const std::vector<std::string> &haystack, std::string_view needle)
 {
@@ -88,24 +88,24 @@ int popcount(Bitboard mask);
 
 Square poplsb(Bitboard &mask);
 
-inline constexpr PieceType type_of_piece(const Piece piece)
+inline constexpr PieceType typeOfPiece(const Piece piece)
 {
     constexpr PieceType PieceToPieceType[13] = {PAWN,   KNIGHT, BISHOP, ROOK,  QUEEN, KING,    PAWN,
                                                 KNIGHT, BISHOP, ROOK,   QUEEN, KING,  NONETYPE};
     return PieceToPieceType[piece];
 }
 
-inline constexpr File square_file(Square sq)
+inline constexpr File squareFile(Square sq)
 {
     return File(sq & 7);
 }
 
-inline constexpr Rank square_rank(Square sq)
+inline constexpr Rank squareRank(Square sq)
 {
     return Rank(sq >> 3);
 }
 
-inline constexpr Square file_rank_square(File f, Rank r)
+inline constexpr Square fileRankSquare(File f, Rank r)
 {
     return Square((r << 3) + f);
 }
@@ -118,13 +118,13 @@ inline Piece make_piece(PieceType type, Color c)
 }
 
 // returns diagonal of given square
-inline constexpr uint8_t diagonal_of(Square sq)
+inline constexpr uint8_t diagonalOf(Square sq)
 {
-    return 7 + square_rank(sq) - square_file(sq);
+    return 7 + squareRank(sq) - squareFile(sq);
 }
 
 // returns anti diagonal of given square
-inline constexpr uint8_t anti_diagonal_of(Square sq)
+inline constexpr uint8_t anti_diagonalOf(Square sq)
 {
-    return square_rank(sq) + square_file(sq);
+    return squareRank(sq) + squareFile(sq);
 }

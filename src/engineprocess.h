@@ -46,10 +46,10 @@ class EngineProcess : public Process
     virtual void writeProcess(const std::string &input);
 
   private:
-    DWORD m_childdwProcessId;
-    HANDLE m_childProcessHandle;
-    HANDLE m_childStdOut;
-    HANDLE m_childStdIn;
+    DWORD childdwProcessId;
+    HANDLE childProcessHandle;
+    HANDLE childStdOut;
+    HANDLE childStdIn;
 };
 
 #else

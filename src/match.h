@@ -18,7 +18,7 @@ class Match
 
     void startMatch(std::vector<EngineConfiguration> engines /* Match stuff*/);
 
-    void load_config(const MatchConfig &mc);
+    void loadConfig(const MatchConfig &mc);
 
   private:
     MatchConfig match_config;

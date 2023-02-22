@@ -11,9 +11,9 @@ inline bool testFenRepetition(const std::string &input)
     bool hasMoves = contains(tokens, "moves");
 
     if (tokens[1] == "fen")
-        board.load_fen(input.substr(input.find("fen") + 4));
+        board.loadFen(input.substr(input.find("fen") + 4));
     else
-        board.load_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+        board.loadFen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
 
     if (hasMoves)
     {
@@ -22,7 +22,7 @@ inline bool testFenRepetition(const std::string &input)
         for (; index < tokens.size(); index++)
         {
             Move move = convertUciToMove(tokens[index]);
-            board.make_move(move);
+            board.makeMove(move);
         }
     }
 

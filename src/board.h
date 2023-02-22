@@ -56,11 +56,11 @@ class Board
     Bitboard checkMask = DEFAULT_CHECKMASK;
     int doubleCheck = 0;
 
-    void load_fen(const std::string &fen);
+    void loadFen(const std::string &fen);
 
-    void make_move(Move move);
+    void makeMove(Move move);
 
-    void unmake_move(Move move);
+    void unmakeMove(Move move);
 
     Bitboard us(Color c) const;
 
@@ -76,7 +76,7 @@ class Board
 
     Bitboard pieces(PieceType type, Color color) const;
 
-    Piece piece_at(Square square) const;
+    Piece pieceAt(Square square) const;
 
     uint64_t getHash() const;
 
@@ -89,7 +89,7 @@ class Board
   private:
     Table<Piece, N_SQ> board = {};
     Table<Bitboard, 2, 6> pieceBB = {};
-    std::vector<State> prev_boards;
+    std::vector<State> prevBoards;
     std::vector<uint64_t> hashHistory;
 
     int halfMoveClock;
@@ -105,9 +105,9 @@ class Board
 
     bool isKingAttacked(Color c, Square sq) const;
 
-    void place_piece(Piece piece, Square sq);
+    void placePiece(Piece piece, Square sq);
 
-    void remove_piece(Piece piece, Square sq);
+    void removePiece(Piece piece, Square sq);
 
     uint64_t updateKeyPiece(Piece piece, Square sq) const;
 

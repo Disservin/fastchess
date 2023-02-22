@@ -49,17 +49,17 @@ void EngineProcess::initProcess(const std::string &command)
     CloseHandle(childStdOutWr);
     CloseHandle(childStdInRd);
 
-    m_childdwProcessId = pi.dwProcessId;
-    m_childProcessHandle = pi.hProcess;
-    m_childStdOut = childStdOutRd;
-    m_childStdIn = childStdInWr;
+    childdwProcessId = pi.dwProcessId;
+    childProcessHandle = pi.hProcess;
+    childStdOut = childStdOutRd;
+    childStdIn = childStdInWr;
 }
 
 void EngineProcess::closeHandles()
 {
-    CloseHandle(m_childProcessHandle);
-    CloseHandle(m_childStdOut);
-    CloseHandle(m_childStdIn);
+    CloseHandle(childProcessHandle);
+    CloseHandle(childStdOut);
+    CloseHandle(childStdIn);
 }
 
 EngineProcess::~EngineProcess()
@@ -85,7 +85,7 @@ std::vector<std::string> EngineProcess::readProcess(std::string_view last_word, 
 
     while (true)
     {
-        if (!PeekNamedPipe(m_childStdOut, buffer, sizeof(buffer), &bytesRead, &bytesAvail, nullptr))
+        if (!PeekNamedPipe(childStdOut, buffer, sizeof(buffer), &bytesRead, &bytesAvail, nullptr))
         {
             throw std::runtime_error("Cant peek Pipe");
         }
@@ -108,7 +108,7 @@ std::vector<std::string> EngineProcess::readProcess(std::string_view last_word, 
         if (bytesAvail == 0)
             continue;
 
-        if (!ReadFile(m_childStdOut, buffer, sizeof(buffer), &bytesRead, nullptr))
+        if (!ReadFile(childStdOut, buffer, sizeof(buffer), &bytesRead, nullptr))
         {
             throw std::runtime_error("Cant read process correctly");
         }
@@ -159,15 +159,15 @@ void EngineProcess::writeProcess(const std::string &input)
 
     constexpr char endLine = '\n';
     DWORD bytesWritten;
-    WriteFile(m_childStdIn, input.c_str(), input.length(), &bytesWritten, nullptr);
-    WriteFile(m_childStdIn, &endLine, 1, &bytesWritten, nullptr);
+    WriteFile(childStdIn, input.c_str(), input.length(), &bytesWritten, nullptr);
+    WriteFile(childStdIn, &endLine, 1, &bytesWritten, nullptr);
 }
 
 bool EngineProcess::isAlive()
 {
     assert(isInitalized);
     DWORD exitCode = 0;
-    GetExitCodeProcess(m_childProcessHandle, &exitCode);
+    GetExitCodeProcess(childProcessHandle, &exitCode);
     return exitCode == STILL_ACTIVE;
 }
 
@@ -176,11 +176,11 @@ void EngineProcess::killProcess()
     if (isInitalized)
     {
         DWORD exitCode = 0;
-        GetExitCodeProcess(m_childProcessHandle, &exitCode);
+        GetExitCodeProcess(childProcessHandle, &exitCode);
         if (exitCode == STILL_ACTIVE)
         {
             UINT uExitCode = 0;
-            TerminateProcess(m_childProcessHandle, uExitCode);
+            TerminateProcess(childProcessHandle, uExitCode);
         }
         // Clean up the child process resources
         closeHandles();
@@ -189,10 +189,10 @@ void EngineProcess::killProcess()
 #else
 
 #include <fcntl.h>
+#include <signal.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
-#include <signal.h>
 
 void EngineProcess::initProcess(const std::string &command)
 {

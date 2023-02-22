@@ -2,10 +2,10 @@
 
 Match::Match(const MatchConfig &mc)
 {
-    load_config(mc);
+    loadConfig(mc);
 }
 
-void Match::load_config(const MatchConfig &mc)
+void Match::loadConfig(const MatchConfig &mc)
 {
     match_config = mc;
 }

@@ -3,12 +3,12 @@
 #include "../src/helper.h"
 #include "../src/options.h"
 
-TEST_CASE("Testing the starts_with function")
+TEST_CASE("Testing the startsWith function")
 {
-    CHECK(starts_with("-engine", "-"));
-    CHECK(starts_with("-engine", "") == false);
-    CHECK(starts_with("-engine", "/-") == false);
-    CHECK(starts_with("-engine", "e") == false);
+    CHECK(startsWith("-engine", "-"));
+    CHECK(startsWith("-engine", "") == false);
+    CHECK(startsWith("-engine", "/-") == false);
+    CHECK(startsWith("-engine", "e") == false);
 }
 
 TEST_CASE("Testing the contains function")

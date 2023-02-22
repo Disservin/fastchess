@@ -28,9 +28,12 @@ TEST_CASE("Testing Engine options parsing")
                           "-pgnout",
                           "PGNs/Alexandria-EA649FED_vs_Alexandria-27E42728"};
     CMD::Options options = CMD::Options(22, argv);
-    CHECK(options.configs.size() == 2);
-    EngineConfiguration config0 = options.getEngineConfig(0);
-    EngineConfiguration config1 = options.getEngineConfig(1);
+
+    auto configs = options.getEngineConfig();
+
+    CHECK(configs.size() == 2);
+    EngineConfiguration config0 = configs[0];
+    EngineConfiguration config1 = configs[1];
     CHECK(config0.name == "Alexandria-EA649FED");
     CHECK(config0.tc.moves == 10);
     CHECK(config0.tc.time == 9640);
@@ -70,16 +73,18 @@ TEST_CASE("Testing Cli options parsing")
                           "-pgnout",
                           "PGNs/Alexandria-EA649FED_vs_Alexandria-27E42728"};
     CMD::Options options = CMD::Options(14, argv);
+    auto gameOptions = options.getGameOptions();
+
     // Test proper cli settings
-    CHECK(options.game_options.repeat == true);
-    CHECK(options.game_options.recover == true);
-    CHECK(options.game_options.concurrency == 8);
-    CHECK(options.game_options.games == 256);
+    CHECK(gameOptions.repeat == true);
+    CHECK(gameOptions.recover == true);
+    CHECK(gameOptions.concurrency == 8);
+    CHECK(gameOptions.games == 256);
     //  Test opening settings parsing
-    // CHECK(options.game_options.opening_options.file == "Books/Pohl.epd");
-    // CHECK(options.game_options.opening_options.format == "epd");
-    // CHECK(options.game_options.opening_options.order == "random");
-    // CHECK(options.game_options.opening_options.plies == 16);
+    // CHECK(options.gameOptions.OpeningOptions.file == "Books/Pohl.epd");
+    // CHECK(options.gameOptions.OpeningOptions.format == "epd");
+    // CHECK(options.gameOptions.OpeningOptions.order == "random");
+    // CHECK(options.gameOptions.OpeningOptions.plies == 16);
     //  Test pgn settings parsing
-    // CHECK(options.game_options.pgn_options.file == "PGNs/Alexandria-EA649FED_vs_Alexandria-27E42728");
+    // CHECK(options.gameOptions.PgnOptions.file == "PGNs/Alexandria-EA649FED_vs_Alexandria-27E42728");
 }

@@ -1,21 +1,13 @@
-#include "options.h"
-#include "engine.h"
-#include "helper.h"
 #include <limits>
 #include <map>
 #include <sstream>
 
+#include "engine.h"
+#include "helper.h"
+#include "options.h"
+
 namespace CMD
 {
-
-void Options::fill_parameters()
-{
-    parameters.push_back({"--engine", "-e", "", "", ""});
-    parameters.push_back({"--concurrency", "-c", "1", "1", "512"});
-    parameters.push_back({"--openings", "-o", "", "", ""});
-    parameters.push_back({"--debug", "-d", "false", "false", "true"});
-    parameters.push_back({"--games", "-g", "1", "1", std::to_string(std::numeric_limits<int>::max())});
-}
 
 Options::Options(int argc, char const *argv[])
 {
@@ -30,27 +22,27 @@ Options::Options(int argc, char const *argv[])
             parseEngineParams(i, argc, argv, configs.back());
         }
         else if (arg == "-concurrency")
-            parseConcurrency(i, argc, argv, game_options);
+            parseConcurrency(i, argc, argv, gameOptions);
         else if (arg == "-event")
-            parseEvent(i, argc, argv, game_options);
+            parseEvent(i, argc, argv, gameOptions);
         else if (arg == "-games")
-            parseGames(i, argc, argv, game_options);
+            parseGames(i, argc, argv, gameOptions);
         else if (arg == "-rounds")
-            parseRounds(i, argc, argv, game_options);
+            parseRounds(i, argc, argv, gameOptions);
         else if (arg == "-openings")
-            parseOpeningOptions(i, argc, argv, game_options);
+            parseOpeningOptions(i, argc, argv, gameOptions);
         else if (arg == "-pgnout")
-            parsePgnOptions(i, argc, argv, game_options);
+            parsePgnOptions(i, argc, argv, gameOptions);
         else if (arg == "-recover")
-            game_options.recover = true;
+            gameOptions.recover = true;
         else if (arg == "-repeat")
-            game_options.repeat = true;
+            gameOptions.repeat = true;
     }
 }
 
-bool Options::isEngineSettableOption(std::string string_format)
+bool Options::isEngineSettableOption(std::string stringFormat) const
 {
-    if (starts_with(string_format, "option."))
+    if (startsWith(stringFormat, "option."))
         return true;
     return false;
 }
@@ -105,17 +97,17 @@ void Options::parseEngineParams(int &i, int argc, char const *argv[], EngineConf
 }
 
 // Takes a string in input and returns a TimeControl object
-TimeControl Options::parseTc(const std::string tc_string)
+TimeControl Options::parseTc(const std::string tcString)
 {
     // Create time control object and parse the strings into usable values
     TimeControl time_control;
-    bool has_moves = contains(tc_string, "/");
-    bool has_inc = contains(tc_string, "+");
+    bool has_moves = contains(tcString, "/");
+    bool has_inc = contains(tcString, "+");
     if (has_moves && has_inc)
     {
         // Split the string into move count and time+inc
         std::vector<std::string> moves_and_time;
-        moves_and_time = splitString(tc_string, '/');
+        moves_and_time = splitString(tcString, '/');
         std::string moves = moves_and_time.front();
         // Split time+inc into time and inc
         std::vector<std::string> time_and_inc = splitString(moves_and_time.back(), '+');
@@ -129,7 +121,7 @@ TimeControl Options::parseTc(const std::string tc_string)
     {
         // Split the string into move count and time+inc
         std::vector<std::string> moves_and_time;
-        moves_and_time = splitString(tc_string, '/');
+        moves_and_time = splitString(tcString, '/');
         std::string moves = moves_and_time.front();
         std::string time = moves_and_time.back();
         time_control.moves = std::stoi(moves);
@@ -138,7 +130,7 @@ TimeControl Options::parseTc(const std::string tc_string)
     }
     else if (has_inc)
     {
-        std::vector<std::string> time_and_inc = splitString(tc_string, '+');
+        std::vector<std::string> time_and_inc = splitString(tcString, '+');
         std::string time = time_and_inc.front();
         std::string inc = time_and_inc.back();
         time_control.moves = 0;
@@ -148,7 +140,7 @@ TimeControl Options::parseTc(const std::string tc_string)
     else
     {
         time_control.moves = 0;
-        time_control.time = std::stof(tc_string) * 1000;
+        time_control.time = std::stof(tcString) * 1000;
         time_control.increment = 0;
     }
 
@@ -156,69 +148,72 @@ TimeControl Options::parseTc(const std::string tc_string)
 };
 
 // Takes a string in input and returns a TimeControl object
-void Options::parseConcurrency(int &i, int argc, char const *argv[], gameManagerOptions &cli_options)
+void Options::parseConcurrency(int &i, int argc, char const *argv[], GameManagerOptions &cliOptions)
 {
     i++;
     if (i < argc && argv[i][0] != '-')
     {
         std::string thread_num = argv[i];
-        cli_options.concurrency = std::stoi(thread_num);
+        cliOptions.concurrency = std::stoi(thread_num);
     }
     return;
 };
 
-void Options::parseEvent(int &i, int argc, char const *argv[], gameManagerOptions &cli_options)
+void Options::parseEvent(int &i, int argc, char const *argv[], GameManagerOptions &cliOptions)
 {
     i++;
     if (i < argc && argv[i][0] != '-')
     {
-        std::string event_name = argv[i];
-        cli_options.event_name = event_name;
+        std::string eventName = argv[i];
+        cliOptions.eventName = eventName;
     }
     return;
 };
 
 // Takes a string in input and returns a TimeControl object
-void Options::parseGames(int &i, int argc, char const *argv[], gameManagerOptions &cli_options)
+void Options::parseGames(int &i, int argc, char const *argv[], GameManagerOptions &cliOptions)
 {
     i++;
     if (i < argc && argv[i][0] != '-')
     {
         std::string games_num = argv[i];
-        cli_options.games = std::stoi(games_num);
+        cliOptions.games = std::stoi(games_num);
     }
     return;
 };
 
 // Takes a string in input and returns a TimeControl object
-void Options::parseRounds(int &i, int argc, char const *argv[], gameManagerOptions &cli_options)
+void Options::parseRounds(int &i, int argc, char const *argv[], GameManagerOptions &cliOptions)
 {
 
     return;
 };
 
 // Takes a string in input and returns a TimeControl object
-void Options::parseOpeningOptions(int &i, int argc, char const *argv[], gameManagerOptions &cli_options)
+void Options::parseOpeningOptions(int &i, int argc, char const *argv[], GameManagerOptions &cliOptions)
 {
-    openingOptions opop;
+    OpeningOptions opop;
 
     return;
 };
 
 // Takes a string in input and returns a TimeControl object
-void Options::parsePgnOptions(int &i, int argc, char const *argv[], gameManagerOptions &cli_options)
+void Options::parsePgnOptions(int &i, int argc, char const *argv[], GameManagerOptions &cliOptions)
 {
-    pgnOptions pgn_options;
+    PgnOptions PgnOptions;
 
     return;
 };
 
-EngineConfiguration Options::getEngineConfig(int engine_index)
+std::vector<EngineConfiguration> Options::getEngineConfig() const
 {
-    assert(engine_index >= 0);
-    assert(engine_index <= configs.size() - 1);
-    return configs.at(engine_index);
+    return configs;
 };
+
+GameManagerOptions Options::getGameOptions() const
+{
+    return gameOptions;
+}
 
 Options::~Options()
 {

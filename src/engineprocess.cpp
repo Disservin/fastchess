@@ -255,24 +255,22 @@ void EngineProcess::writeProcess(const std::string &input)
 {
     assert(isInitalized);
 
-    if (isAlive())
-    {
-        // Append a newline character to the end of the input string
-        constexpr char endLine = '\n';
-
-        // Close the read end of the output pipe
-        close(outPipe[0]);
-
-        // Write the input and a newline to the output pipe
-        write(outPipe[1], input.c_str(), input.size());
-        write(outPipe[1], &endLine, 1);
-    }
-    else
+    if (!isAlive())
     {
         std::stringstream ss;
         ss << "Trying to write to process with message: " << input;
         throw std::runtime_error(ss.str());
     }
+
+    // Append a newline character to the end of the input string
+    constexpr char endLine = '\n';
+
+    // Close the read end of the output pipe
+    close(outPipe[0]);
+
+    // Write the input and a newline to the output pipe
+    write(outPipe[1], input.c_str(), input.size());
+    write(outPipe[1], &endLine, 1);
 }
 
 std::vector<std::string> EngineProcess::readProcess(std::string_view last_word, bool &timeout, int64_t timeoutThreshold)
@@ -293,7 +291,7 @@ std::vector<std::string> EngineProcess::readProcess(std::string_view last_word, 
     int checkTime = 255;
 
     // Continue reading output lines until the line matches the specified line or a timeout occurs
-    while (line != last_word)
+    while (!contains(currentLine, last_word))
     {
         line = "";
         char c = ' ';
@@ -303,12 +301,12 @@ std::vector<std::string> EngineProcess::readProcess(std::string_view last_word, 
         {
             if (checkTime-- == 0)
             {
-                // Get the current time in milliseconds since epoch
                 auto now = std::chrono::high_resolution_clock::now();
 
-                // Check if timeout milliseconds have elapsed
-                if (std::chrono::duration_cast<std::chrono::milliseconds>(now - start).count() > timeoutThreshold)
+                if (timeoutThreshold > 0 &&
+                    std::chrono::duration_cast<std::chrono::milliseconds>(now - start).count() > timeoutThreshold)
                 {
+                    lines.push_back(currentLine);
                     timeout = true;
                     break;
                 }

@@ -11,7 +11,7 @@ int main(int argc, char const *argv[])
 {
     CMD::Options options = CMD::Options(argc, argv);
 
-    for (auto config : options.configs)
+    for (auto config : options.getEngineConfig())
     {
         std::cout << "Name:" << config.name << std::endl;
         std::cout << "Command: " << config.cmd << std::endl;
@@ -24,8 +24,6 @@ int main(int argc, char const *argv[])
             std::cout << " value: " << option.second << std::endl;
         }
     }
-
-    options.print_params();
 
     bool timeout = false;
 

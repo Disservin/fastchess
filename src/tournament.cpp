@@ -97,7 +97,7 @@ void Tournament::startTournament(std::vector<EngineConfiguration> configs)
 
     for (int i = 0; i < matchConfig.games; ++i)
     {
-        results.emplace_back(pool.enqueue(startMatch, this, configs, fetchNextFen()));
+        results.emplace_back(pool.enqueue(std::bind(&Tournament::startMatch, this, configs, fetchNextFen())));
     }
 
     int i = 1;

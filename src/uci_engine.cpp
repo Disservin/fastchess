@@ -11,7 +11,6 @@ void UciEngine::setConfig(const EngineConfiguration &rhs)
 
 void UciEngine::sendUciNewGame()
 {
-    bool timeout = false;
     writeProcess("ucinewgame");
     isResponsive();
 }

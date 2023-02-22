@@ -52,9 +52,9 @@ TEST_CASE("Testing Engine options parsing")
     CHECK(config1.options.at(1).first == "option.Hash");
     CHECK(config1.options.at(1).second == "32");
 }
+
 TEST_CASE("Testing Cli options parsing")
 {
-
     const char *argv[] = {"fast-chess.exe",
                           "-repeat",
                           "-recover",

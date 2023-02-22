@@ -55,9 +55,6 @@ class Options
 {
   public:
     std::vector<Parameter> parameters;
-    std::vector<std::string> user_input;
-    std::vector<std::string> cli_options;
-    std::vector<std::vector<std::string>> engines_options;
     // Holds all the relevant settings for the handling of the games
     gameManagerOptions game_options;
     // Holds all the engines with their options
@@ -67,39 +64,27 @@ class Options
 
     ~Options();
 
-    std::vector<std::string> getUserInput();
-
-    void parseUserInput(int argc, char const *argv[]);
-
-    void split_params();
-
-    std::vector<std::vector<std::string>> group_cli_params();
-
     bool isEngineSettableOption(std::string string_format);
 
     TimeControl parseTc(const std::string tc_string);
 
-    int parseConcurrency(const std::vector<std::string> concurrency_string);
+    void parseConcurrency(int &i, int argc, char const *argv[], gameManagerOptions &cli_options);
 
-    std::string parseEvent(const std::vector<std::string> event_string);
+    void parseEvent(int &i, int argc, char const *argv[], gameManagerOptions &cli_options);
 
-    int parseGames(const std::vector<std::string> games_string);
+    void parseGames(int &i, int argc, char const *argv[], gameManagerOptions &cli_options);
 
-    int parseRounds(const std::vector<std::string> concurrency_string);
+    void parseRounds(int &i, int argc, char const *argv[], gameManagerOptions &cli_options);
 
-    openingOptions parseOpeningOptions(const std::vector<std::string> concurrency_string);
+    void parseOpeningOptions(int &i, int argc, char const *argv[], gameManagerOptions &cli_options);
 
-    pgnOptions parsePgnOptions(const std::vector<std::string> concurrency_string);
+    void parsePgnOptions(int &i, int argc, char const *argv[], gameManagerOptions &cli_options);
 
-    void parseEnginesOptions();
+    void parseEngineParams(int &i, int argc, char const *argv[], EngineConfiguration &engine_params);
 
     EngineConfiguration getEngineConfig(int engine_index);
 
-    void parseCliOptions();
-
     void fill_parameters();
-
-    void print_params();
 };
 
 } // namespace CMD

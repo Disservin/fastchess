@@ -115,7 +115,6 @@ TimeControl Options::parseTc(const std::string tcString)
     if (has_inc)
     {
         auto moves = splitString(remainingStringVector, '+');
-
         tc.increment = std::stof(moves[1].c_str()) * 1000;
         remainingStringVector = moves[0];
     }

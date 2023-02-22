@@ -25,13 +25,12 @@ struct OpeningOptions
     std::string order;
     int plies;
 };
+
 struct PgnOptions
 {
     std::string file;
-    // TODO use enums for this
-    bool min = false;
-    bool fi = false;
 };
+
 struct GameManagerOptions
 {
     int games = 1;
@@ -57,8 +56,6 @@ class Options
   public:
     Options(int argc, char const *argv[]);
 
-    ~Options();
-
     std::vector<EngineConfiguration> getEngineConfig() const;
 
     GameManagerOptions getGameOptions() const;
@@ -74,17 +71,17 @@ class Options
 
     TimeControl parseTc(const std::string tcString);
 
-    void parseConcurrency(int &i, int argc, char const *argv[], GameManagerOptions &cliOptions);
+    void parseConcurrency(int &i, int argc, char const *argv[]);
 
-    void parseEvent(int &i, int argc, char const *argv[], GameManagerOptions &cliOptions);
+    void parseEvent(int &i, int argc, char const *argv[]);
 
-    void parseGames(int &i, int argc, char const *argv[], GameManagerOptions &cliOptions);
+    void parseGames(int &i, int argc, char const *argv[]);
 
-    void parseRounds(int &i, int argc, char const *argv[], GameManagerOptions &cliOptions);
+    void parseRounds(int &i, int argc, char const *argv[]);
 
-    void parseOpeningOptions(int &i, int argc, char const *argv[], GameManagerOptions &cliOptions);
+    void parseOpeningOptions(int &i, int argc, char const *argv[]);
 
-    void parsePgnOptions(int &i, int argc, char const *argv[], GameManagerOptions &cliOptions);
+    void parsePgnOptions(int &i, int argc, char const *argv[]);
 
     void parseEngineParams(int &i, int argc, char const *argv[], EngineConfiguration &engine_params);
 };

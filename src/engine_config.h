@@ -6,7 +6,7 @@
 
 struct TimeControl
 {
-    uint64_t moves = 0;
+    int moves = 0;
     uint64_t time = 0;
     uint64_t increment = 0;
 };

@@ -16,7 +16,7 @@ TEST_CASE("Testing Engine options parsing")
                           "-engine",
                           "dir=Engines/",
                           "cmd=./Alexandria-27E42728.exe",
-                          "tc=9.64+0.10",
+                          "tc=40/9.65",
                           "option.Threads=1",
                           "option.Hash=32",
                           "name=Alexandria-27E42728",
@@ -45,9 +45,9 @@ TEST_CASE("Testing Engine options parsing")
     CHECK(config0.options.at(1).first == "option.Hash");
     CHECK(config0.options.at(1).second == "16");
     CHECK(config1.name == "Alexandria-27E42728");
-    CHECK(config1.tc.moves == 0);
-    CHECK(config1.tc.time == 9640);
-    CHECK(config1.tc.increment == 100);
+    CHECK(config1.tc.moves == 40);
+    CHECK(config1.tc.time == 9650);
+    CHECK(config1.tc.increment == 0);
     CHECK(config1.nodes == 0);
     CHECK(config1.plies == 0);
     CHECK(config1.options.at(0).first == "option.Threads");

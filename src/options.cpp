@@ -48,7 +48,7 @@ bool Options::isEngineSettableOption(std::string stringFormat) const
     return false;
 }
 
-void Options::parseEngineParams(int &i, int argc, char const *argv[], EngineConfiguration &engine_params)
+void Options::parseEngineParams(int &i, int argc, char const *argv[], EngineConfiguration &engineParams)
 {
     i++;
     std::vector<std::pair<std::string, std::string>> engine_settable_options;
@@ -60,27 +60,27 @@ void Options::parseEngineParams(int &i, int argc, char const *argv[], EngineConf
         std::string value = param.substr(pos + 1);
         if (key == "cmd")
         {
-            engine_params.cmd = value;
+            engineParams.cmd = value;
         }
         else if (key == "name")
         {
-            engine_params.name = value;
+            engineParams.name = value;
         }
         else if (key == "tc")
         {
-            engine_params.tc = parseTc(value);
+            engineParams.tc = parseTc(value);
         }
         else if (key == "nodes")
         {
-            engine_params.nodes = std::stoll(value);
+            engineParams.nodes = std::stoll(value);
         }
         else if (key == "plies")
         {
-            engine_params.plies = std::stoll(value);
+            engineParams.plies = std::stoll(value);
         }
         else if (key == "dir")
         {
-            engine_params.dir = value;
+            engineParams.dir = value;
         }
         else if (isEngineSettableOption(key))
         {
@@ -93,7 +93,7 @@ void Options::parseEngineParams(int &i, int argc, char const *argv[], EngineConf
         }
         i++;
     }
-    engine_params.options = engine_settable_options;
+    engineParams.options = engine_settable_options;
     i--;
 }
 

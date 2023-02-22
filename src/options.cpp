@@ -177,7 +177,7 @@ void Options::parseOpeningOptions(int &i, int argc, char const *argv[])
     i--;
 };
 
-std::vector<EngineConfiguration> Options::getEngineConfig() const
+std::vector<EngineConfiguration> Options::getEngineConfigs() const
 {
     return configs;
 };

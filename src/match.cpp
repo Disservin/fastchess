@@ -1,11 +1,11 @@
 #include "match.h"
 
-Tournament::Tournament(const CMD::TournamentConfig &mc)
+Tournament::Tournament(const CMD::GameManagerOptions &mc)
 {
     loadConfig(mc);
 }
 
-void Tournament::loadConfig(const CMD::TournamentConfig &mc)
+void Tournament::loadConfig(const CMD::GameManagerOptions &mc)
 {
     match_config = mc;
 }
@@ -35,7 +35,7 @@ std::array<GameResult, 2> Tournament::startMatch(std::vector<EngineConfiguration
         engine2.sendUciNewGame();
 
         Board board;
-        board.load_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+        board.loadFen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
 
         std::string positionInput = "position startpos moves";
         while (true)
@@ -53,7 +53,7 @@ std::array<GameResult, 2> Tournament::startMatch(std::vector<EngineConfiguration
             output = engine1.readProcess("bestmove", timeout, timeoutThreshold);
             std::string bestMove = findElement<std::string>(splitString(output.back(), ' '), "bestmove");
             positionInput += " " + bestMove;
-            board.make_move(convertUciToMove(bestMove));
+            board.makeMove(convertUciToMove(bestMove));
 
             // Check for game over
             result[i] = board.isGameOver();
@@ -68,7 +68,7 @@ std::array<GameResult, 2> Tournament::startMatch(std::vector<EngineConfiguration
             output = engine2.readProcess("bestmove", timeout, timeoutThreshold);
             bestMove = findElement<std::string>(splitString(output.back(), ' '), "bestmove");
             positionInput += " " + bestMove;
-            board.make_move(convertUciToMove(bestMove));
+            board.makeMove(convertUciToMove(bestMove));
         }
 
         std::cout << "Game " << i + 1 << "\n" << positionInput << std::endl;

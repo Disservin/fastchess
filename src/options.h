@@ -56,7 +56,7 @@ class Options
   public:
     Options(int argc, char const *argv[]);
 
-    std::vector<EngineConfiguration> getEngineConfig() const;
+    std::vector<EngineConfiguration> getEngineConfigs() const;
 
     GameManagerOptions getGameOptions() const;
 

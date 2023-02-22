@@ -29,7 +29,7 @@ TEST_CASE("Testing Engine options parsing")
                           "PGNs/Alexandria-EA649FED_vs_Alexandria-27E42728"};
     CMD::Options options = CMD::Options(22, argv);
 
-    auto configs = options.getEngineConfig();
+    auto configs = options.getEngineConfigs();
 
     CHECK(configs.size() == 2);
     EngineConfiguration config0 = configs[0];

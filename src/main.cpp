@@ -12,7 +12,7 @@ int main(int argc, char const *argv[])
 {
     CMD::Options options = CMD::Options(argc, argv);
 
-    for (auto config : options.getEngineConfig())
+    for (auto config : options.getEngineConfigs())
     {
         std::cout << "Name:" << config.name << std::endl;
         std::cout << "Command: " << config.cmd << std::endl;
@@ -43,7 +43,7 @@ int main(int argc, char const *argv[])
     // engine.writeProcess("quit");
     // engine.stopEngine();
 
-    Tournament tour(options.game_options);
+    Tournament tour(options.getGameOptions());
 
     tour.startTournament(options.getEngineConfigs());
 

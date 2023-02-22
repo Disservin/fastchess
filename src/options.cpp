@@ -96,7 +96,6 @@ void Options::parseEngineParams(int &i, int argc, char const *argv[], EngineConf
     i--;
 }
 
-// Takes a string in input and returns a TimeControl object
 TimeControl Options::parseTc(const std::string tcString)
 {
     TimeControl tc;
@@ -124,7 +123,6 @@ TimeControl Options::parseTc(const std::string tcString)
     return tc;
 };
 
-// Takes a string in input and returns a TimeControl object
 void Options::parseConcurrency(int &i, int argc, char const *argv[])
 {
     i++;
@@ -145,7 +143,6 @@ void Options::parseEvent(int &i, int argc, char const *argv[])
     return;
 };
 
-// Takes a string in input and returns a TimeControl object
 void Options::parseGames(int &i, int argc, char const *argv[])
 {
     i++;
@@ -156,7 +153,6 @@ void Options::parseGames(int &i, int argc, char const *argv[])
     return;
 };
 
-// Takes a string in input and returns a TimeControl object
 void Options::parseRounds(int &i, int argc, char const *argv[])
 {
     i++;
@@ -167,7 +163,6 @@ void Options::parseRounds(int &i, int argc, char const *argv[])
     return;
 };
 
-// Takes a string in input and returns a TimeControl object
 void Options::parseOpeningOptions(int &i, int argc, char const *argv[])
 {
     i++;
@@ -205,7 +200,6 @@ void Options::parseOpeningOptions(int &i, int argc, char const *argv[])
     i--;
 };
 
-// Takes a string in input and returns a TimeControl object
 void Options::parsePgnOptions(int &i, int argc, char const *argv[])
 {
     i++;

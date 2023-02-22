@@ -4,9 +4,10 @@
 #include <thread>
 
 #include "engine.h"
-#include "match.h"
 #include "options.h"
+#include "tournament.h"
 #include "uci_engine.h"
+
 
 int main(int argc, char const *argv[])
 {

@@ -20,7 +20,7 @@ class Tournament
     void loadConfig(const CMD::GameManagerOptions &mc);
 
   private:
-    CMD::GameManagerOptions match_config;
+    CMD::GameManagerOptions matchConfig;
 
     ThreadPool pool = ThreadPool(1);
 };

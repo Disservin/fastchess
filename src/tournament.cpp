@@ -1,4 +1,4 @@
-#include "match.h"
+#include "tournament.h"
 
 Tournament::Tournament(const CMD::GameManagerOptions &mc)
 {
@@ -7,7 +7,7 @@ Tournament::Tournament(const CMD::GameManagerOptions &mc)
 
 void Tournament::loadConfig(const CMD::GameManagerOptions &mc)
 {
-    match_config = mc;
+    matchConfig = mc;
 }
 
 std::array<GameResult, 2> Tournament::startMatch(std::vector<EngineConfiguration> configs)
@@ -71,8 +71,6 @@ std::array<GameResult, 2> Tournament::startMatch(std::vector<EngineConfiguration
             board.makeMove(convertUciToMove(bestMove));
         }
 
-        std::cout << "Game " << i + 1 << "\n" << positionInput << std::endl;
-
         engine1.color = ~engine1.color;
         engine2.color = ~engine2.color;
     }
@@ -82,18 +80,23 @@ std::array<GameResult, 2> Tournament::startMatch(std::vector<EngineConfiguration
 
 void Tournament::startTournament(std::vector<EngineConfiguration> configs /* Tournament stuff*/)
 {
-    pool.resize(match_config.concurrency);
+    pool.resize(matchConfig.concurrency);
 
     std::vector<std::future<std::array<GameResult, 2>>> results;
 
-    for (int i = 1; i < match_config.games; ++i)
+    for (int i = 0; i < matchConfig.games; ++i)
     {
         results.emplace_back(pool.enqueue(startMatch, this, configs));
     }
 
+    int i = 1;
     for (auto &&result : results)
     {
         auto res = result.get();
+
+        std::cout << "Finished " << i << "/" << matchConfig.games << std::endl;
         std::cout << int(res[0]) << " " << int(res[1]) << std::endl;
+
+        i++;
     }
 }

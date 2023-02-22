@@ -78,27 +78,36 @@ void UciEngine::sendGo(const std::string &limit)
 void UciEngine::startEngine()
 {
     initProcess(config.cmd);
+
     sendUci();
     readUci();
+
     if (!pingEngine())
     {
         throw std::runtime_error("Something went wrong when pinging the engine.");
     }
 
-    /*
-    TODO: set all the engine options
-    sendSetoption("Hash", "16");
-    */
+    for (const auto &option : config.options)
+    {
+        sendSetoption(option.first, option.second);
+    }
 }
 
 void UciEngine::startEngine(const std::string &cmd)
 {
     initProcess(cmd);
+
     sendUci();
     readUci();
+
     if (!pingEngine())
     {
         throw std::runtime_error("Something went wrong when pinging the engine.");
+    }
+
+    for (const auto &option : config.options)
+    {
+        sendSetoption(option.first, option.second);
     }
 }
 

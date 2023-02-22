@@ -78,7 +78,7 @@ std::array<GameResult, 2> Tournament::startMatch(std::vector<EngineConfiguration
     return result;
 }
 
-void Tournament::startTournament(std::vector<EngineConfiguration> configs /* Tournament stuff*/)
+void Tournament::startTournament(std::vector<EngineConfiguration> configs)
 {
     pool.resize(matchConfig.concurrency);
 

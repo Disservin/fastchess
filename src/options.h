@@ -40,8 +40,8 @@ struct GameManagerOptions
     bool repeat = false;
     int concurrency = 1;
     std::string eventName;
-    OpeningOptions OpeningOptions;
-    PgnOptions PgnOptions;
+    OpeningOptions opening;
+    PgnOptions pgn;
 };
 
 inline std::ostream &operator<<(std::ostream &os, const Parameter param)

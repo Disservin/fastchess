@@ -1,6 +1,7 @@
 #include <limits>
 #include <map>
 #include <sstream>
+#include <type_traits>
 
 #include "engine.h"
 #include "helper.h"
@@ -22,17 +23,17 @@ Options::Options(int argc, char const *argv[])
             parseEngineParams(i, argc, argv, configs.back());
         }
         else if (arg == "-concurrency")
-            parseConcurrency(i, argc, argv);
+            parseOption(i, argc, argv, gameOptions.concurrency);
         else if (arg == "-event")
-            parseEvent(i, argc, argv);
+            parseOption(i, argc, argv, gameOptions.eventName);
         else if (arg == "-games")
-            parseGames(i, argc, argv);
+            parseOption(i, argc, argv, gameOptions.games);
         else if (arg == "-rounds")
-            parseRounds(i, argc, argv);
+            parseOption(i, argc, argv, gameOptions.rounds);
+        else if (arg == "-pgnout")
+            parseOption(i, argc, argv, gameOptions.pgn.file);
         else if (arg == "-openings")
             parseOpeningOptions(i, argc, argv);
-        else if (arg == "-pgnout")
-            parsePgnOptions(i, argc, argv);
         else if (arg == "-recover")
             gameOptions.recover = true;
         else if (arg == "-repeat")
@@ -123,45 +124,21 @@ TimeControl Options::parseTc(const std::string tcString)
     return tc;
 };
 
-void Options::parseConcurrency(int &i, int argc, char const *argv[])
+template <typename T> void Options::parseOption(int &i, int argc, const char *argv[], T &optionValue)
 {
     i++;
     if (i < argc && argv[i][0] != '-')
     {
-        gameOptions.concurrency = std::stoi(argv[i]);
+        if constexpr (std::is_same_v<T, int>)
+            optionValue = std::stoi(argv[i]);
+        else if constexpr (std::is_same_v<T, float>)
+            optionValue = std::stof(argv[i]);
+        else if constexpr (std::is_same_v<T, double>)
+            optionValue = std::stod(argv[i]);
+        else
+            optionValue = argv[i];
     }
-    return;
-};
-
-void Options::parseEvent(int &i, int argc, char const *argv[])
-{
-    i++;
-    if (i < argc && argv[i][0] != '-')
-    {
-        gameOptions.eventName = argv[i];
-    }
-    return;
-};
-
-void Options::parseGames(int &i, int argc, char const *argv[])
-{
-    i++;
-    if (i < argc && argv[i][0] != '-')
-    {
-        gameOptions.games = std::stoi(argv[i]);
-    }
-    return;
-};
-
-void Options::parseRounds(int &i, int argc, char const *argv[])
-{
-    i++;
-    if (i < argc && argv[i][0] != '-')
-    {
-        gameOptions.rounds = std::stoi(argv[i]);
-    }
-    return;
-};
+}
 
 void Options::parseOpeningOptions(int &i, int argc, char const *argv[])
 {
@@ -198,16 +175,6 @@ void Options::parseOpeningOptions(int &i, int argc, char const *argv[])
         i++;
     }
     i--;
-};
-
-void Options::parsePgnOptions(int &i, int argc, char const *argv[])
-{
-    i++;
-    if (i < argc && argv[i][0] != '-')
-    {
-        gameOptions.pgn.file = argv[i];
-    }
-    return;
 };
 
 std::vector<EngineConfiguration> Options::getEngineConfig() const

@@ -71,17 +71,10 @@ class Options
 
     TimeControl parseTc(const std::string tcString);
 
-    void parseConcurrency(int &i, int argc, char const *argv[]);
-
-    void parseEvent(int &i, int argc, char const *argv[]);
-
-    void parseGames(int &i, int argc, char const *argv[]);
-
-    void parseRounds(int &i, int argc, char const *argv[]);
+    // Generic function to parse option
+    template <typename T> void parseOption(int &i, int argc, const char *argv[], T &optionValue);
 
     void parseOpeningOptions(int &i, int argc, char const *argv[]);
-
-    void parsePgnOptions(int &i, int argc, char const *argv[]);
 
     void parseEngineParams(int &i, int argc, char const *argv[], EngineConfiguration &engine_params);
 };

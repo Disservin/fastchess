@@ -286,14 +286,14 @@ std::vector<std::string> EngineProcess::readProcess(std::string_view last_word, 
     auto start = std::chrono::high_resolution_clock::now();
 
     std::vector<std::string> lines;
-    std::string line;
+    std::string currentLine;
 
     int checkTime = 255;
 
     // Continue reading output lines until the line matches the specified line or a timeout occurs
     while (!contains(currentLine, last_word))
     {
-        line = "";
+        currentLine = "";
         char c = ' ';
 
         // Read characters from the input pipe until it is a newline character
@@ -315,14 +315,14 @@ std::vector<std::string> EngineProcess::readProcess(std::string_view last_word, 
             }
 
             if (read(inPipe[0], &c, 1) > 0 && c != '\n')
-                line += c;
+                currentLine += c;
         }
 
         if (timeout)
             break;
 
         // Append line to the output
-        lines.push_back(line);
+        lines.push_back(currentLine);
     }
 
     return lines;

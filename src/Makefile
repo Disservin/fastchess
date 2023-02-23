@@ -9,7 +9,7 @@ else
 ifeq ($(COMP), MINGW)
 	uname_S  := Windows
 else
-	LDFLAGS   := -static -lpthread -lstdc++
+	LDFLAGS := -static -lrt -pthread -Wl,--whole-archive -lpthread -Wl,--no-whole-archive
 	SUFFIX  :=
 	uname_S := $(shell uname -s)
 endif

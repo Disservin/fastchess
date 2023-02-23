@@ -81,6 +81,86 @@ void Board::loadFen(const std::string &fen)
     hashKey = zobristHash();
 }
 
+std::string Board::getFen() const
+{
+    std::stringstream ss;
+
+    // Loop through the ranks of the board in reverse order
+    for (int rank = 7; rank >= 0; rank--)
+    {
+        int free_space = 0;
+
+        // Loop through the files of the board
+        for (int file = 0; file < 8; file++)
+        {
+            // Calculate the square index
+            int sq = rank * 8 + file;
+
+            // Get the piece at the current square
+            Piece piece = pieceAt(Square(sq));
+
+            // If there is a piece at the current square
+            if (piece != NONE)
+            {
+                // If there were any empty squares before this piece,
+                // append the number of empty squares to the FEN string
+                if (free_space)
+                {
+                    ss << free_space;
+                    free_space = 0;
+                }
+
+                // Append the character representing the piece to the FEN string
+                ss << pieceToChar[piece];
+            }
+            else
+            {
+                // If there is no piece at the current square, increment the
+                // counter for the number of empty squares
+                free_space++;
+            }
+        }
+
+        // If there are any empty squares at the end of the rank,
+        // append the number of empty squares to the FEN string
+        if (free_space != 0)
+        {
+            ss << free_space;
+        }
+
+        // Append a "/" character to the FEN string, unless this is the last rank
+        ss << (rank > 0 ? "/" : "");
+    }
+
+    // Append " w " or " b " to the FEN string, depending on which player's turn it is
+    ss << (sideToMove == WHITE ? " w " : " b ");
+
+    // Append the appropriate characters to the FEN string to indicate
+    // whether or not castling is allowed for each player
+    if (castlingRights & WK)
+        ss << "K";
+    if (castlingRights & WQ)
+        ss << "Q";
+    if (castlingRights & BK)
+        ss << "k";
+    if (castlingRights & BQ)
+        ss << "q";
+    if (castlingRights == 0)
+        ss << "-";
+
+    // Append information about the en passant square (if any)
+    // and the halfmove clock and fullmove number to the FEN string
+    if (enPassantSquare == NO_SQ)
+        ss << " - ";
+    else
+        ss << " " << squareToString[enPassantSquare] << " ";
+
+    ss << int(halfMoveClock) << " " << int(fullMoveNumber / 2);
+
+    // Return the resulting FEN string
+    return ss.str();
+}
+
 void Board::makeMove(Move move)
 {
     Square from_sq = move.from_sq;
@@ -311,7 +391,7 @@ uint64_t Board::zobristHash() const
     return hash ^ cast_hash ^ turn_hash ^ ep_hash;
 }
 
-bool Board::isRepetition(int draw) const
+bool Board::isRepetition() const
 {
     uint8_t c = 0;
 
@@ -320,7 +400,8 @@ bool Board::isRepetition(int draw) const
     {
         if (hashHistory[i] == hashKey)
             c++;
-        if (c == draw)
+
+        if (c == 2)
             return true;
     }
 
@@ -348,6 +429,49 @@ Bitboard Board::attacksByPiece(PieceType pt, Square sq, Color c, Bitboard occ) c
     default:
         return 0ULL;
     }
+}
+
+GameResult Board::isGameOver()
+{
+
+    if (halfMoveClock >= 100)
+    {
+        if (isSquareAttacked(~sideToMove, lsb(pieces(KING, sideToMove))) && !Movegen::hasLegalMoves(*this))
+            return GameResult(~sideToMove);
+        return GameResult::DRAW;
+    }
+
+    const auto count = popcount(allBB());
+
+    if (count == 2)
+        return GameResult::DRAW;
+
+    if (count == 3)
+    {
+        if (pieces<BISHOP, WHITE>() || pieces<BISHOP, BLACK>())
+            return GameResult::DRAW;
+        if (pieces<KNIGHT, WHITE>() || pieces<KNIGHT, BLACK>())
+            return GameResult::DRAW;
+    }
+
+    if (count == 4)
+    {
+        if (pieces<BISHOP, WHITE>() && pieces<BISHOP, BLACK>() &&
+            sameColor(lsb(pieces<BISHOP, WHITE>()), lsb(pieces<BISHOP, BLACK>())))
+            return GameResult::DRAW;
+    }
+
+    if (isRepetition())
+        return GameResult::DRAW;
+
+    if (!Movegen::hasLegalMoves(*this))
+    {
+        if (isSquareAttacked(~sideToMove, lsb(pieces(KING, sideToMove))))
+            return GameResult(~sideToMove);
+        return GameResult::DRAW;
+    }
+
+    return GameResult::NONE;
 }
 
 void Board::removeCastlingRightsAll(Color c)
@@ -553,7 +677,7 @@ std::string MoveToSan(Board &b, Move move)
 
     for (const auto &cand : moves)
     {
-        if (move != cand && typeOfPiece(b.pieceAt(cand.from_sq)) == pt && move.to_sq == cand.to_sq)
+        if (pt != PAWN && move != cand && typeOfPiece(b.pieceAt(cand.from_sq)) == pt && move.to_sq == cand.to_sq)
         {
             san += sanFile[squareFile(move.from_sq)];
             break;
@@ -562,7 +686,7 @@ std::string MoveToSan(Board &b, Move move)
 
     // capture
     if (b.pieceAt(move.to_sq) != NONE || (pt == PAWN && b.enPassantSquare == move.to_sq))
-        san += "x";
+        san += (pt == PAWN ? sanFile[squareFile(move.from_sq)] : "") + "x";
 
     san += sanFile[squareFile(move.to_sq)];
     san += std::to_string(squareRank(move.to_sq) + 1);

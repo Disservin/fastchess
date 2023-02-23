@@ -8,6 +8,14 @@
 #include "move.h"
 #include "types.h"
 
+enum class GameResult
+{
+    WHITE_WIN,
+    BLACK_WIN,
+    DRAW,
+    NONE
+};
+
 struct State
 {
     Square enPassant{};
@@ -57,6 +65,7 @@ class Board
     int doubleCheck = 0;
 
     void loadFen(const std::string &fen);
+    std::string getFen() const;
 
     void makeMove(Move move);
 
@@ -82,7 +91,9 @@ class Board
 
     uint64_t zobristHash() const;
 
-    bool isRepetition(int draw) const;
+    bool isRepetition() const;
+
+    GameResult isGameOver();
 
     Bitboard attacksByPiece(PieceType pt, Square sq, Color c, Bitboard occ) const;
 

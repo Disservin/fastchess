@@ -128,3 +128,5 @@ inline constexpr uint8_t anti_diagonalOf(Square sq)
 {
     return squareRank(sq) + squareFile(sq);
 }
+
+bool sameColor(int sq1, int sq2);

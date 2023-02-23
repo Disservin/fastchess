@@ -1,6 +1,7 @@
 #pragma once
 
 #include "engine.h"
+#include "types.h"
 
 class UciEngine : public Engine
 {
@@ -14,8 +15,14 @@ class UciEngine : public Engine
         setConfig(config);
     }
 
+    void sendUciNewGame();
+
     void sendUci();
     std::vector<std::string> readUci();
+
+    std::string buildGoInput();
+
+    void loadConfig(const EngineConfiguration &config);
 
     void sendQuit();
     void sendSetoption(const std::string &name, const std::string &value);
@@ -23,8 +30,9 @@ class UciEngine : public Engine
 
     void setConfig(const EngineConfiguration &rhs);
 
-    void startEngine(const std::string &cmd /* cmd and , add engines options here*/);
+    void startEngine();
+    void startEngine(const std::string &cmd);
     void stopEngine();
 
-  private:
+    Color color;
 };

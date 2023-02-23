@@ -4,10 +4,17 @@
 #include <thread>
 #include <vector>
 
+bool contains(std::string_view haystack, std::string_view needle)
+{
+    return haystack.find(needle) != std::string::npos;
+}
+
 using namespace std;
 
 int main()
 {
+    std::vector<std::string> moves = {"f2f3", "e7e5", "g2g4", "d8h4"};
+    int moveIndex = 0;
 
     while (true)
     {
@@ -69,6 +76,21 @@ int main()
             this_thread::sleep_for(chrono::milliseconds(1000));
 
             cout << "done" << endl;
+        }
+        else if (contains(cmd, "position"))
+        {
+            for (int i = moves.size() - 1; i >= 0; i--)
+            {
+                if (contains(cmd, moves[i]))
+                {
+                    moveIndex = i + 1;
+                    break;
+                }
+            }
+        }
+        else if (contains(cmd, "go"))
+        {
+            std::cout << "bestmove " << moves[moveIndex] << std::endl;
         }
     }
 

@@ -26,7 +26,7 @@ inline bool testFenRepetition(const std::string &input)
         }
     }
 
-    return board.isRepetition(2);
+    return board.isRepetition();
 }
 
 TEST_CASE("Test First Repetition")

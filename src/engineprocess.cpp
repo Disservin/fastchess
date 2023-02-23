@@ -1,8 +1,10 @@
 #include <cassert>
 #include <sstream>
 #include <stdexcept>
+#include <iostream>
 
 #include "engineprocess.h"
+#include "helper.h"
 #include "types.h"
 
 EngineProcess::EngineProcess(const std::string &command)
@@ -72,16 +74,19 @@ std::vector<std::string> EngineProcess::readProcess(std::string_view last_word, 
     assert(isInitalized);
 
     std::vector<std::string> lines;
-    std::string currentLine{};
-    char buffer[1024];
+    lines.reserve(30);
+
+    std::stringstream currentLine{};
+
+    char buffer[4096];
     DWORD bytesRead;
     DWORD bytesAvail;
 
     int checkTime = 255;
 
-    auto start = std::chrono::high_resolution_clock::now();
-
     timeout = false;
+
+    auto start = std::chrono::high_resolution_clock::now();
 
     while (true)
     {
@@ -95,9 +100,10 @@ std::vector<std::string> EngineProcess::readProcess(std::string_view last_word, 
         {
             auto now = std::chrono::high_resolution_clock::now();
 
-            if (std::chrono::duration_cast<std::chrono::milliseconds>(now - start).count() > timeoutThreshold)
+            if (timeoutThreshold > 0 &&
+                std::chrono::duration_cast<std::chrono::milliseconds>(now - start).count() > timeoutThreshold)
             {
-                lines.push_back(currentLine);
+                lines.emplace_back(currentLine.str());
                 timeout = true;
                 break;
             }
@@ -105,6 +111,7 @@ std::vector<std::string> EngineProcess::readProcess(std::string_view last_word, 
             checkTime = 255;
         }
 
+        // no new bytes to read
         if (bytesAvail == 0)
             continue;
 
@@ -113,31 +120,34 @@ std::vector<std::string> EngineProcess::readProcess(std::string_view last_word, 
             throw std::runtime_error("Cant read process correctly");
         }
 
+        // this is actually an error. There are bytes to read but we read zero.
         if (bytesRead == 0)
             break;
 
         // Iterate over each character in the buffer
         for (DWORD i = 0; i < bytesRead; i++)
         {
-            // If we encounter a newline, add the current line to the vector and start a new one
+            // If we encounter a newline, add the current line to the vector and reset the currentLine
+            // on windows newlines are \r\n
             if (buffer[i] == '\n' || buffer[i] == '\r')
             {
-                if (!currentLine.empty())
+                // dont add empty lines
+                if (!currentLine.str().empty())
                 {
-                    lines.push_back(currentLine);
-                    currentLine.clear();
+                    lines.emplace_back(currentLine.str());
+
+                    if (contains(currentLine.str(), last_word))
+                    {
+                        return lines;
+                    }
+
+                    currentLine.str(std::string());
                 }
             }
             // Otherwise, append the character to the current line
             else
             {
-                currentLine += buffer[i];
-            }
-
-            if (currentLine == last_word)
-            {
-                lines.push_back(currentLine);
-                return lines;
+                currentLine << buffer[i];
             }
         }
     }
@@ -225,11 +235,9 @@ void EngineProcess::initProcess(const std::string &command)
         // Redirect the child's standard input to the read end of the output pipe
         dup2(outPipe[0], 0);
         close(outPipe[0]);
-        close(outPipe[1]);
 
         // Redirect the child's standard output to the write end of the input pipe
         dup2(inPipe[1], 1);
-        close(inPipe[0]);
         close(inPipe[1]);
 
         // Execute the engine
@@ -253,76 +261,92 @@ void EngineProcess::writeProcess(const std::string &input)
 {
     assert(isInitalized);
 
-    if (isAlive())
-    {
-        // Append a newline character to the end of the input string
-        constexpr char endLine = '\n';
-
-        // Close the read end of the output pipe
-        close(outPipe[0]);
-
-        // Write the input and a newline to the output pipe
-        write(outPipe[1], input.c_str(), input.size());
-        write(outPipe[1], &endLine, 1);
-    }
-    else
+    if (!isAlive())
     {
         std::stringstream ss;
         ss << "Trying to write to process with message: " << input;
         throw std::runtime_error(ss.str());
     }
+
+    // Append a newline character to the end of the input string
+    constexpr char endLine = '\n';
+
+    // Write the input and a newline to the output pipe
+    write(outPipe[1], input.c_str(), input.size());
+    write(outPipe[1], &endLine, 1);
 }
 
 std::vector<std::string> EngineProcess::readProcess(std::string_view last_word, bool &timeout, int64_t timeoutThreshold)
 {
     assert(isInitalized);
 
-    timeout = false;
-
     // Disable blocking
     fcntl(inPipe[0], F_SETFL, fcntl(inPipe[0], F_GETFL) | O_NONBLOCK);
+
+    std::vector<std::string> lines;
+    lines.reserve(30);
+
+    std::stringstream currentLine;
+
+    char buffer[4096];
+    int bytesRead = 0;
+    int checkTime = 255;
+
+    timeout = false;
 
     // Get the current time in milliseconds since epoch
     auto start = std::chrono::high_resolution_clock::now();
 
-    std::vector<std::string> lines;
-    std::string line;
-
-    int checkTime = 255;
-
     // Continue reading output lines until the line matches the specified line or a timeout occurs
-    while (line != last_word)
+    while (true)
     {
-        line = "";
-        char c = ' ';
-
-        // Read characters from the input pipe until it is a newline character
-        while (c != '\n')
+        // Check if timeout milliseconds have elapsed
+        if (checkTime-- == 0)
         {
-            if (checkTime-- == 0)
+            auto now = std::chrono::high_resolution_clock::now();
+
+            if (timeoutThreshold > 0 &&
+                std::chrono::duration_cast<std::chrono::milliseconds>(now - start).count() > timeoutThreshold)
             {
-                // Get the current time in milliseconds since epoch
-                auto now = std::chrono::high_resolution_clock::now();
-
-                // Check if timeout milliseconds have elapsed
-                if (std::chrono::duration_cast<std::chrono::milliseconds>(now - start).count() > timeoutThreshold)
-                {
-                    timeout = true;
-                    break;
-                }
-
-                checkTime = 255;
+                lines.emplace_back(currentLine.str());
+                timeout = true;
+                break;
             }
 
-            if (read(inPipe[0], &c, 1) > 0 && c != '\n')
-                line += c;
+            checkTime = 255;
         }
 
-        if (timeout)
-            break;
+        bytesRead = read(inPipe[0], &buffer, sizeof(buffer));
 
-        // Append line to the output
-        lines.push_back(line);
+        // no new bytes to read
+        if (bytesRead == 0)
+            continue;
+
+        // Iterate over each character in the buffer
+        for (int i = 0; i < bytesRead; i++)
+        {
+            // If we encounter a newline, add the current line to the vector and reset the currentLine
+            if (buffer[i] == '\n')
+            {
+                // dont add empty lines
+                if (!currentLine.str().empty())
+                {
+                    lines.emplace_back(currentLine.str());
+
+                    if (contains(currentLine.str(), last_word))
+                    {
+                        return lines;
+                    }
+
+                    currentLine.str(std::string());
+                }
+            }
+            // Otherwise, append the character to the current line
+            else
+            {
+                currentLine << buffer[i];
+            }
+        }
     }
 
     return lines;

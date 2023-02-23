@@ -52,6 +52,16 @@ TEST_CASE("Test ambiguous rook move with checkmate")
     CHECK(MoveToSan(b, m) == "Rh1#");
 }
 
+TEST_CASE("Test Pawn move")
+{
+    Board b;
+    b.loadFen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+
+    Move m = {SQ_E2, SQ_E4, NONETYPE};
+
+    CHECK(MoveToSan(b, m) == "e4");
+}
+
 TEST_CASE("Test Knight move")
 {
     Board b;
@@ -120,4 +130,24 @@ TEST_CASE("Test King Castling Short move")
     Move m = {SQ_E1, SQ_C1, NONETYPE};
 
     CHECK(MoveToSan(b, m) == "O-O-O");
+}
+
+TEST_CASE("Test Pawn Promotion")
+{
+    Board b;
+    b.loadFen("2k5/5P2/8/8/8/4K3/8/8 w - - 0 1");
+
+    Move m = {SQ_F7, SQ_F8, QUEEN};
+
+    CHECK(MoveToSan(b, m) == "f8=Q+");
+}
+
+TEST_CASE("Test Pawn Promotion")
+{
+    Board b;
+    b.loadFen("3k2n1/5P1P/8/8/8/8/8/4K3 w - - 0 1");
+
+    Move m = {SQ_F7, SQ_G8, QUEEN};
+
+    CHECK(MoveToSan(b, m) == "fxg8=Q+");
 }

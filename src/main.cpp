@@ -5,13 +5,14 @@
 
 #include "engine.h"
 #include "options.h"
+#include "tournament.h"
 #include "uci_engine.h"
 
 int main(int argc, char const *argv[])
 {
     CMD::Options options = CMD::Options(argc, argv);
 
-    for (auto config : options.getEngineConfig())
+    for (auto config : options.getEngineConfigs())
     {
         std::cout << "Name:" << config.name << std::endl;
         std::cout << "Command: " << config.cmd << std::endl;
@@ -25,22 +26,9 @@ int main(int argc, char const *argv[])
         }
     }
 
-    bool timeout = false;
+    Tournament tour(options.getGameOptions());
 
-    Engine engine;
-
-    engine.initProcess("./DummyEngine.exe");
-    engine.writeProcess("uci");
-    auto output = engine.readProcess("uciok", timeout);
-
-    for (const auto &item : output)
-    {
-        std::cout << item << std::endl;
-    }
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    engine.writeProcess("quit");
-    engine.stopEngine();
+    tour.startTournament(options.getEngineConfigs());
 
     return 0;
 }

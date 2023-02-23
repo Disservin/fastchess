@@ -38,6 +38,10 @@ Options::Options(int argc, char const *argv[])
             gameOptions.recover = true;
         else if (arg == "-repeat")
             gameOptions.repeat = true;
+        else if (arg == "-draw")
+            parseDrawOptions(i, argc, argv);
+        else if (arg == "-resign")
+            parseDrawOptions(i, argc, argv);
     }
 }
 
@@ -140,6 +144,60 @@ template <typename T> void Options::parseOption(int &i, int argc, const char *ar
     }
 }
 
+void Options::parseDrawOptions(int &i, int argc, char const *argv[])
+{
+    i++;
+
+    int internalIndex = 0;
+
+    while (i < argc && argv[i][0] != '-')
+    {
+        gameOptions.draw.enabled = true;
+
+        if (internalIndex == 0)
+        {
+            gameOptions.draw.moves = std::stoi(argv[i]);
+        }
+        else
+        {
+            gameOptions.draw.score = std::stoi(argv[i]);
+        }
+
+        internalIndex++;
+
+        i++;
+    }
+
+    i--;
+};
+
+void Options::parseResignOptions(int &i, int argc, char const *argv[])
+{
+    i++;
+
+    int internalIndex = 0;
+
+    while (i < argc && argv[i][0] != '-')
+    {
+        gameOptions.resign.enabled = true;
+
+        if (internalIndex == 0)
+        {
+            gameOptions.resign.moves = std::stoi(argv[i]);
+        }
+        else
+        {
+            gameOptions.resign.score = std::stoi(argv[i]);
+        }
+
+        internalIndex++;
+
+        i++;
+    }
+
+    i--;
+};
+
 void Options::parseOpeningOptions(int &i, int argc, char const *argv[])
 {
     i++;
@@ -177,7 +235,7 @@ void Options::parseOpeningOptions(int &i, int argc, char const *argv[])
     i--;
 };
 
-std::vector<EngineConfiguration> Options::getEngineConfig() const
+std::vector<EngineConfiguration> Options::getEngineConfigs() const
 {
     return configs;
 };

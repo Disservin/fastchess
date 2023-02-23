@@ -1,5 +1,5 @@
 CXX 	 := g++
-CXXFLAGS := -O3 -std=c++17 -Wall -Wextra -pedantic -DNDEBUG
+CXXFLAGS := -O3 -std=c++17 -Wall -Wextra -pedantic -DNDEBUG -finline-functions
 NATIVE 	 := -march=native
 
 # Detect Windows
@@ -9,7 +9,7 @@ else
 ifeq ($(COMP), MINGW)
 	uname_S  := Windows
 else
-	LDFLAGS   := -static -lpthread -lstdc++
+	LDFLAGS := -static -lrt -pthread -Wl,--whole-archive -lpthread -Wl,--no-whole-archive
 	SUFFIX  :=
 	uname_S := $(shell uname -s)
 endif

@@ -2,7 +2,7 @@
 
 #include "pgn_builder.h"
 
-PgnBuilder::PgnBuilder(const std::vector<Match> &matches)
+PgnBuilder::PgnBuilder(const std::vector<Match> &matches, CMD::Options options)
 {
 
     // [Event "?"]
@@ -42,23 +42,27 @@ PgnBuilder::PgnBuilder(const std::vector<Match> &matches)
         }
 
         std::stringstream ss;
-
+        auto gameOptions = options.getGameOptions();
+        std::time_t matchStartTime = match.matchStartTime;
+        std::time_t matchEndTime = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+        auto gameDuration = matchEndTime - matchStartTime;
+        auto tc = match.whiteEngine.tc;
         // clang-format off
-        ss << "[Event " << "\"?\"" << "]" << "\n";
+        ss << "[Event " << "\""<<gameOptions.eventName<<"\"" << "]" << "\n";
         ss << "[Site " << "\"?\"" << "]" << "\n";
         ss << "[Date " << "\"?\"" << "]" << "\n";
         ss << "[Round " << "\"?\"" << "]" << "\n";
-        ss << "[White " << "\"?\"" << "]" << "\n";
-        ss << "[Black " << "\"?\"" << "]" << "\n";
+        ss << "[White " << "\""<<match.whiteEngine.cmd<<"\"" << "]" << "\n";
+        ss << "[Black " << "\""<<match.blackEngine.cmd<<"\"" << "]" << "\n";
         ss << "[Result " << "\"" << result << "\"" << "]" << "\n";
         ss << "[FEN " << "\"" << match.board.getFen() << "\""<< "]" << "\n";
-        ss << "[GameDuration " << "\"?\"" << "]" << "\n";
-        ss << "[GameEndTime " << "\"?\"" << "]" << "\n";
-        ss << "[GameStartTime " << "\"?\"" << "]" << "\n";
-        ss << "[PlyCount " << "\"?\"" << "]" << "\n";
+        ss << "[GameDuration " << "\""<<gameDuration<<"\"" << "]" << "\n";
+        ss << "[GameEndTime " << "\""<<matchEndTime<<"\"" << "]" << "\n";
+        ss << "[GameStartTime " << "\""<<matchStartTime<<"\"" << "]" << "\n";
+        ss << "[PlyCount " << "\""<<match.moves.size()<<"\"" << "]" << "\n";
         ss << "[SetUp " << "\"?\"" << "]" << "\n";
         ss << "[Termination " << "\"?\"" << "]" << "\n";
-        ss << "[TimeControl " << "\"?\"" << "]" << "\n\n";
+        ss << "[TimeControl " << "\""<<"\"" << "]" << "\n\n";
         // clang-format on
 
         Board b = match.board;

@@ -11,8 +11,11 @@
 
 struct Match
 {
+    std::time_t matchStartTime = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
     std::vector<Move> moves;
     GameResult result;
+    EngineConfiguration whiteEngine;
+    EngineConfiguration blackEngine;
     Board board;
 };
 

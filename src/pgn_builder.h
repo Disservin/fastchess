@@ -1,13 +1,13 @@
 #pragma once
 
-#include <vector>
-
+#include "options.h"
 #include "tournament.h"
+#include <vector>
 
 class PgnBuilder
 {
   private:
     /* data */
   public:
-    PgnBuilder(const std::vector<Match> &matches);
+    PgnBuilder::PgnBuilder(const std::vector<Match> &matches, CMD::Options options);
 };

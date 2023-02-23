@@ -81,6 +81,86 @@ void Board::loadFen(const std::string &fen)
     hashKey = zobristHash();
 }
 
+std::string Board::getFen() const
+{
+    std::stringstream ss;
+
+    // Loop through the ranks of the board in reverse order
+    for (int rank = 7; rank >= 0; rank--)
+    {
+        int free_space = 0;
+
+        // Loop through the files of the board
+        for (int file = 0; file < 8; file++)
+        {
+            // Calculate the square index
+            int sq = rank * 8 + file;
+
+            // Get the piece at the current square
+            Piece piece = pieceAt(Square(sq));
+
+            // If there is a piece at the current square
+            if (piece != NONE)
+            {
+                // If there were any empty squares before this piece,
+                // append the number of empty squares to the FEN string
+                if (free_space)
+                {
+                    ss << free_space;
+                    free_space = 0;
+                }
+
+                // Append the character representing the piece to the FEN string
+                ss << pieceToChar[piece];
+            }
+            else
+            {
+                // If there is no piece at the current square, increment the
+                // counter for the number of empty squares
+                free_space++;
+            }
+        }
+
+        // If there are any empty squares at the end of the rank,
+        // append the number of empty squares to the FEN string
+        if (free_space != 0)
+        {
+            ss << free_space;
+        }
+
+        // Append a "/" character to the FEN string, unless this is the last rank
+        ss << (rank > 0 ? "/" : "");
+    }
+
+    // Append " w " or " b " to the FEN string, depending on which player's turn it is
+    ss << (sideToMove == WHITE ? " w " : " b ");
+
+    // Append the appropriate characters to the FEN string to indicate
+    // whether or not castling is allowed for each player
+    if (castlingRights & WK)
+        ss << "K";
+    if (castlingRights & WQ)
+        ss << "Q";
+    if (castlingRights & BK)
+        ss << "k";
+    if (castlingRights & BQ)
+        ss << "q";
+    if (castlingRights == 0)
+        ss << "-";
+
+    // Append information about the en passant square (if any)
+    // and the halfmove clock and fullmove number to the FEN string
+    if (enPassantSquare == NO_SQ)
+        ss << " - ";
+    else
+        ss << " " << squareToString[enPassantSquare] << " ";
+
+    ss << int(halfMoveClock) << " " << int(fullMoveNumber / 2);
+
+    // Return the resulting FEN string
+    return ss.str();
+}
+
 void Board::makeMove(Move move)
 {
     Square from_sq = move.from_sq;
@@ -606,7 +686,7 @@ std::string MoveToSan(Board &b, Move move)
 
     // capture
     if (b.pieceAt(move.to_sq) != NONE || (pt == PAWN && b.enPassantSquare == move.to_sq))
-        san += "x";
+        san += (pt == PAWN ? sanFile[squareFile(move.from_sq)] : "") + "x";
 
     san += sanFile[squareFile(move.to_sq)];
     san += std::to_string(squareRank(move.to_sq) + 1);

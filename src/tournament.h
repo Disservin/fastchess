@@ -7,6 +7,14 @@
 #include "uci_engine.h"
 
 #include <array>
+#include <vector>
+
+struct Match
+{
+    std::vector<Move> moves;
+    GameResult result;
+    Board board;
+};
 
 class Tournament
 {
@@ -15,7 +23,7 @@ class Tournament
     Tournament(const CMD::GameManagerOptions &mc);
 
     void startTournament(std::vector<EngineConfiguration> configs);
-    std::array<GameResult, 2> startMatch(std::vector<EngineConfiguration> configs, std::string openingFen);
+    std::vector<Match> startMatch(std::vector<EngineConfiguration> configs, std::string openingFen);
 
     void loadConfig(const CMD::GameManagerOptions &mc);
 

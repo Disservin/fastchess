@@ -1,4 +1,5 @@
 #include "tournament.h"
+#include "pgn_builder.h"
 
 Tournament::Tournament(const CMD::GameManagerOptions &mc)
 {
@@ -15,9 +16,11 @@ std::string Tournament::fetchNextFen() const
     return "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 }
 
-std::array<GameResult, 2> Tournament::startMatch(std::vector<EngineConfiguration> configs, std::string openingFen)
+std::vector<Match> Tournament::startMatch(std::vector<EngineConfiguration> configs, std::string openingFen)
 {
     // Initialize variables
+    std::vector<Match> matches;
+
     const int64_t timeoutThreshold = 0;
 
     UciEngine engine1, engine2;
@@ -38,15 +41,22 @@ std::array<GameResult, 2> Tournament::startMatch(std::vector<EngineConfiguration
     int rounds = matchConfig.repeat ? 2 : 1;
 
     Board board;
+    Move move;
 
     for (int i = 0; i < rounds; i++)
     {
+
         engine1.sendUciNewGame();
         engine2.sendUciNewGame();
 
         board.loadFen(openingFen);
 
+        Match match;
+
+        match.board = board;
+
         std::string positionInput = "position startpos moves";
+
         while (true)
         {
             // Check for game over
@@ -63,7 +73,10 @@ std::array<GameResult, 2> Tournament::startMatch(std::vector<EngineConfiguration
 
             std::string bestMove = findElement<std::string>(splitString(output.back(), ' '), "bestmove");
             positionInput += " " + bestMove;
-            board.makeMove(convertUciToMove(bestMove));
+
+            move = convertUciToMove(bestMove);
+            board.makeMove(move);
+            match.moves.emplace_back(move);
 
             // Check for game over
             result[i] = board.isGameOver();
@@ -79,21 +92,29 @@ std::array<GameResult, 2> Tournament::startMatch(std::vector<EngineConfiguration
 
             bestMove = findElement<std::string>(splitString(output.back(), ' '), "bestmove");
             positionInput += " " + bestMove;
-            board.makeMove(convertUciToMove(bestMove));
+
+            move = convertUciToMove(bestMove);
+            board.makeMove(move);
+            match.moves.emplace_back(move);
         }
-        std::cout << positionInput << std::endl;
+
+        match.result = result[i];
+        matches.emplace_back(match);
+
+        // std::cout << positionInput << std::endl;
+
         engine1.color = ~engine1.color;
         engine2.color = ~engine2.color;
     }
 
-    return result;
+    return matches;
 }
 
 void Tournament::startTournament(std::vector<EngineConfiguration> configs)
 {
     pool.resize(matchConfig.concurrency);
 
-    std::vector<std::future<std::array<GameResult, 2>>> results;
+    std::vector<std::future<std::vector<Match>>> results;
 
     for (int i = 0; i < matchConfig.games; ++i)
     {
@@ -109,12 +130,24 @@ void Tournament::startTournament(std::vector<EngineConfiguration> configs)
         auto res = result.get();
 
         std::cout << "Finished " << i << "/" << matchConfig.games << std::endl;
-        std::cout << int(res[0]) << " " << int(res[1]) << std::endl;
+
+        PgnBuilder pgn(res);
+        // for (auto var : res)
+        // {
+        //     Board b = var.board;
+        //     for (auto move : var.moves)
+        //     {
+        //         std::cout << MoveToSan(b, move) << " ";
+        //         b.makeMove(move);
+        //     }
+        //     std::cout << std::endl;
+        // }
 
         i++;
     }
 
     auto now = std::chrono::high_resolution_clock::now();
 
-    std::cout << "finished in " << std::chrono::duration_cast<std::chrono::milliseconds>(now - start).count() << "ms"<<std::endl;
+    std::cout << "finished in " << std::chrono::duration_cast<std::chrono::milliseconds>(now - start).count() << "ms"
+              << std::endl;
 }

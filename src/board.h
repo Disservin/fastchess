@@ -65,6 +65,7 @@ class Board
     int doubleCheck = 0;
 
     void loadFen(const std::string &fen);
+    std::string getFen() const;
 
     void makeMove(Move move);
 

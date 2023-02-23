@@ -23,6 +23,24 @@ PgnBuilder::PgnBuilder(std::vector<Match> matches)
 
     for (auto match : matches)
     {
+        std::string result;
+        if (match.result == GameResult::BLACK_WIN)
+        {
+            result = "0-1";
+        }
+        else if (match.result == GameResult::WHITE_WIN)
+        {
+            result = "1-0";
+        }
+        else if (match.result == GameResult::DRAW)
+        {
+            result = "1/2-1/2";
+        }
+        else
+        {
+            result = "*";
+        }
+
         std::stringstream ss;
 
         // clang-format off
@@ -32,7 +50,7 @@ PgnBuilder::PgnBuilder(std::vector<Match> matches)
         ss << "[Round " << "\"?\"" << "]" << "\n";
         ss << "[White " << "\"?\"" << "]" << "\n";
         ss << "[Black " << "\"?\"" << "]" << "\n";
-        ss << "[Result " << "\"?\"" << "]" << "\n";
+        ss << "[Result " << "\"" << result << "\"" << "]" << "\n";
         ss << "[FEN " << "\"" << match.board.getFen() << "\""<< "]" << "\n";
         ss << "[GameDuration " << "\"?\"" << "]" << "\n";
         ss << "[GameEndTime " << "\"?\"" << "]" << "\n";
@@ -40,7 +58,7 @@ PgnBuilder::PgnBuilder(std::vector<Match> matches)
         ss << "[PlyCount " << "\"?\"" << "]" << "\n";
         ss << "[SetUp " << "\"?\"" << "]" << "\n";
         ss << "[Termination " << "\"?\"" << "]" << "\n";
-        ss << "[TimeControl " << "\"?\"" << "]" << "\n";
+        ss << "[TimeControl " << "\"?\"" << "]" << "\n\n";
         // clang-format on
 
         Board b = match.board;
@@ -61,6 +79,7 @@ PgnBuilder::PgnBuilder(std::vector<Match> matches)
 
             i++;
         }
+        ss << " " << result;
         std::cout << ss.str() << std::endl;
     }
 }

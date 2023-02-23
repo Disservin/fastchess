@@ -87,7 +87,7 @@ std::vector<Match> Tournament::startMatch(std::vector<EngineConfiguration> confi
 
             // Engine 2's turn
             engine2.writeProcess(positionInput);
-            engine2.writeProcess(engine1.buildGoInput());
+            engine2.writeProcess(engine2.buildGoInput());
             output = engine2.readProcess("bestmove", timeout, timeoutThreshold);
 
             bestMove = findElement<std::string>(splitString(output.back(), ' '), "bestmove");

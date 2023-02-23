@@ -677,7 +677,7 @@ std::string MoveToSan(Board &b, Move move)
 
     for (const auto &cand : moves)
     {
-        if (move != cand && typeOfPiece(b.pieceAt(cand.from_sq)) == pt && move.to_sq == cand.to_sq)
+        if (pt != PAWN && move != cand && typeOfPiece(b.pieceAt(cand.from_sq)) == pt && move.to_sq == cand.to_sq)
         {
             san += sanFile[squareFile(move.from_sq)];
             break;

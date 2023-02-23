@@ -25,12 +25,89 @@ std::vector<std::string> Tournament::getPGNS() const
     return pgns;
 }
 
-std::vector<Match> Tournament::startMatch(std::vector<EngineConfiguration> configs, std::string openingFen)
+Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, std::string openingFen)
+{
+    Board board;
+    board.loadFen(openingFen);
+
+    GameResult result;
+    Match match;
+    Move move;
+
+    const int64_t timeoutThreshold = 0;
+    bool timeout = false;
+
+    engine1.sendUciNewGame();
+    engine2.sendUciNewGame();
+
+    match.date = saveTimeHeader ? getDateTime("%Y-%m-%d") : "";
+    match.startTime = saveTimeHeader ? getDateTime() : "";
+    match.board = board;
+
+    std::vector<std::string> output;
+    output.reserve(30);
+
+    std::string positionInput = "position startpos moves";
+
+    auto start = std::chrono::high_resolution_clock::now();
+
+    while (true)
+    {
+        // Check for game over
+        result = board.isGameOver();
+        if (result != GameResult::NONE)
+        {
+            break;
+        }
+
+        // Engine 1's turn
+        engine1.writeProcess(positionInput);
+        engine1.writeProcess(engine1.buildGoInput());
+        output = engine1.readProcess("bestmove", timeout, timeoutThreshold);
+
+        std::string bestMove = findElement<std::string>(splitString(output.back(), ' '), "bestmove");
+        positionInput += " " + bestMove;
+
+        move = convertUciToMove(bestMove);
+        board.makeMove(move);
+        match.moves.emplace_back(move);
+
+        // Check for game over
+        result = board.isGameOver();
+        if (result != GameResult::NONE)
+        {
+            break;
+        }
+
+        // Engine 2's turn
+        engine2.writeProcess(positionInput);
+        engine2.writeProcess(engine2.buildGoInput());
+        output = engine2.readProcess("bestmove", timeout, timeoutThreshold);
+
+        bestMove = findElement<std::string>(splitString(output.back(), ' '), "bestmove");
+        positionInput += " " + bestMove;
+
+        move = convertUciToMove(bestMove);
+        board.makeMove(move);
+        match.moves.emplace_back(move);
+    }
+
+    auto end = std::chrono::high_resolution_clock::now();
+
+    match.round = round;
+    match.result = result;
+    match.endTime = saveTimeHeader ? getDateTime() : "";
+    match.duration =
+        saveTimeHeader ? formatDuration(std::chrono::duration_cast<std::chrono::seconds>(end - start)) : "";
+
+    return match;
+}
+
+std::vector<Match> Tournament::runH2H(CMD::GameManagerOptions localMatchConfig,
+                                      std::vector<EngineConfiguration> configs, int gameId)
 {
     // Initialize variables
     std::vector<Match> matches;
-
-    const int64_t timeoutThreshold = 0;
 
     UciEngine engine1, engine2;
     engine1.loadConfig(configs[0]);
@@ -42,83 +119,21 @@ std::vector<Match> Tournament::startMatch(std::vector<EngineConfiguration> confi
     engine1.color = WHITE;
     engine2.color = BLACK;
 
-    std::array<GameResult, 2> result;
-    std::vector<std::string> output;
-
-    bool timeout = false;
-
-    int rounds = matchConfig.repeat ? 2 : 1;
-
-    Board board;
-    Move move;
+    int rounds = localMatchConfig.repeat ? 2 : 1;
 
     for (int i = 0; i < rounds; i++)
     {
+        matches.emplace_back(startMatch(engine1, engine2, i, fetchNextFen()));
 
-        engine1.sendUciNewGame();
-        engine2.sendUciNewGame();
+        std::stringstream ss;
 
-        board.loadFen(openingFen);
+        std::string whiteEngineName = engine1.color == WHITE ? engine1.getConfig().name : engine2.getConfig().name;
+        std::string blackEngineName = engine1.color == WHITE ? engine2.getConfig().name : engine1.getConfig().name;
 
-        auto start = std::chrono::high_resolution_clock::now();
+        ss << "Finished " << gameId + i << "/" << localMatchConfig.games * rounds << " " << whiteEngineName << " vs "
+           << blackEngineName << "\n";
 
-        Match match;
-
-        match.date = saveTimeHeader ? getDateTime("%Y-%m-%d") : "";
-        match.startTime = saveTimeHeader ? getDateTime() : "";
-        match.board = board;
-
-        std::string positionInput = "position startpos moves";
-
-        while (true)
-        {
-            // Check for game over
-            result[i] = board.isGameOver();
-            if (result[i] != GameResult::NONE)
-            {
-                break;
-            }
-
-            // Engine 1's turn
-            engine1.writeProcess(positionInput);
-            engine1.writeProcess(engine1.buildGoInput());
-            output = engine1.readProcess("bestmove", timeout, timeoutThreshold);
-
-            std::string bestMove = findElement<std::string>(splitString(output.back(), ' '), "bestmove");
-            positionInput += " " + bestMove;
-
-            move = convertUciToMove(bestMove);
-            board.makeMove(move);
-            match.moves.emplace_back(move);
-
-            // Check for game over
-            result[i] = board.isGameOver();
-            if (result[i] != GameResult::NONE)
-            {
-                break;
-            }
-
-            // Engine 2's turn
-            engine2.writeProcess(positionInput);
-            engine2.writeProcess(engine2.buildGoInput());
-            output = engine2.readProcess("bestmove", timeout, timeoutThreshold);
-
-            bestMove = findElement<std::string>(splitString(output.back(), ' '), "bestmove");
-            positionInput += " " + bestMove;
-
-            move = convertUciToMove(bestMove);
-            board.makeMove(move);
-            match.moves.emplace_back(move);
-        }
-
-        auto end = std::chrono::high_resolution_clock::now();
-
-        match.round = i;
-        match.result = result[i];
-        match.endTime = saveTimeHeader ? getDateTime() : "";
-        match.duration =
-            saveTimeHeader ? formatDuration(std::chrono::duration_cast<std::chrono::seconds>(end - start)) : "";
-        matches.emplace_back(match);
+        std::cout << ss.str();
 
         engine1.color = ~engine1.color;
         engine2.color = ~engine2.color;
@@ -134,20 +149,20 @@ void Tournament::startTournament(std::vector<EngineConfiguration> configs)
 
     std::vector<std::future<std::vector<Match>>> results;
 
-    for (int i = 0; i < matchConfig.games; ++i)
+    int rounds = matchConfig.repeat ? 2 : 1;
+
+    for (int i = 1; i <= matchConfig.games * rounds; i += rounds)
     {
-        results.emplace_back(pool.enqueue(std::bind(&Tournament::startMatch, this, configs, fetchNextFen())));
+        results.emplace_back(pool.enqueue(std::bind(&Tournament::runH2H, this, matchConfig, configs, i)));
     }
 
     int i = 1;
-
-    auto start = std::chrono::high_resolution_clock::now();
 
     for (auto &&result : results)
     {
         auto res = result.get();
 
-        std::cout << "Finished " << i << "/" << matchConfig.games << std::endl;
+        // std::cout << "Finished " << i << "/" << matchConfig.games << std::endl;
 
         for (auto match : res)
         {
@@ -157,11 +172,6 @@ void Tournament::startTournament(std::vector<EngineConfiguration> configs)
 
         i++;
     }
-
-    auto now = std::chrono::high_resolution_clock::now();
-
-    std::cout << "finished in " << std::chrono::duration_cast<std::chrono::milliseconds>(now - start).count() << "ms"
-              << std::endl;
 }
 
 std::string Tournament::getDateTime(std::string format)

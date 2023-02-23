@@ -22,4 +22,6 @@ class Engine : public EngineProcess
     void stopEngine();
 
     bool pingEngine();
+
+    EngineConfiguration getConfig() const;
 };

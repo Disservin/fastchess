@@ -23,3 +23,8 @@ bool Engine::pingEngine()
 {
     return isResponsive();
 }
+
+EngineConfiguration Engine::getConfig() const
+{
+    return config;
+}

@@ -1,8 +1,8 @@
-#include "pgn_builder.h"
-
 #include <sstream>
 
-PgnBuilder::PgnBuilder(std::vector<Match> matches)
+#include "pgn_builder.h"
+
+PgnBuilder::PgnBuilder(const std::vector<Match> &matches)
 {
 
     // [Event "?"]
@@ -82,8 +82,4 @@ PgnBuilder::PgnBuilder(std::vector<Match> matches)
         ss << " " << result;
         std::cout << ss.str() << std::endl;
     }
-}
-
-PgnBuilder::~PgnBuilder()
-{
 }

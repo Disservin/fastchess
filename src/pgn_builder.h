@@ -1,13 +1,13 @@
 #pragma once
-#include "tournament.h"
 
 #include <vector>
+
+#include "tournament.h"
 
 class PgnBuilder
 {
   private:
     /* data */
   public:
-    PgnBuilder(std::vector<Match> matches);
-    ~PgnBuilder();
+    PgnBuilder(const std::vector<Match> &matches);
 };

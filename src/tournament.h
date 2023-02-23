@@ -1,13 +1,13 @@
 #pragma once
 
+#include <array>
+#include <vector>
+
 #include "board.h"
 #include "engine_config.h"
 #include "options.h"
 #include "threadpool.h"
 #include "uci_engine.h"
-
-#include <array>
-#include <vector>
 
 struct Match
 {

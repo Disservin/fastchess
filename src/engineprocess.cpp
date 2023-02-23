@@ -1,6 +1,7 @@
 #include <cassert>
 #include <sstream>
 #include <stdexcept>
+#include <iostream>
 
 #include "engineprocess.h"
 #include "helper.h"
@@ -73,16 +74,17 @@ std::vector<std::string> EngineProcess::readProcess(std::string_view last_word, 
     assert(isInitalized);
 
     std::vector<std::string> lines;
-    std::string currentLine{};
-    char buffer[1024];
+    std::stringstream currentLine{};
+
+    char buffer[4096];
     DWORD bytesRead;
     DWORD bytesAvail;
 
     int checkTime = 255;
 
-    auto start = std::chrono::high_resolution_clock::now();
-
     timeout = false;
+
+    auto start = std::chrono::high_resolution_clock::now();
 
     while (true)
     {
@@ -99,7 +101,7 @@ std::vector<std::string> EngineProcess::readProcess(std::string_view last_word, 
             if (timeoutThreshold > 0 &&
                 std::chrono::duration_cast<std::chrono::milliseconds>(now - start).count() > timeoutThreshold)
             {
-                lines.push_back(currentLine);
+                lines.emplace_back(currentLine.str());
                 timeout = true;
                 break;
             }
@@ -107,6 +109,7 @@ std::vector<std::string> EngineProcess::readProcess(std::string_view last_word, 
             checkTime = 255;
         }
 
+        // no new bytes to read
         if (bytesAvail == 0)
             continue;
 
@@ -115,31 +118,34 @@ std::vector<std::string> EngineProcess::readProcess(std::string_view last_word, 
             throw std::runtime_error("Cant read process correctly");
         }
 
+        // this is actually an error. There are bytes to read but we read zero.
         if (bytesRead == 0)
             break;
 
         // Iterate over each character in the buffer
         for (DWORD i = 0; i < bytesRead; i++)
         {
-            // If we encounter a newline, add the current line to the vector and start a new one
+            // If we encounter a newline, add the current line to the vector and reset the currentLine
+            // on windows newlines are \r\n
             if (buffer[i] == '\n' || buffer[i] == '\r')
             {
-                if (!currentLine.empty())
+                // dont add empty lines
+                if (!currentLine.str().empty())
                 {
-                    lines.push_back(currentLine);
+                    lines.emplace_back(currentLine.str());
 
-                    if (contains(currentLine, last_word))
+                    if (contains(currentLine.str(), last_word))
                     {
                         return lines;
                     }
 
-                    currentLine.clear();
+                    currentLine.str(std::string());
                 }
             }
             // Otherwise, append the character to the current line
             else
             {
-                currentLine += buffer[i];
+                currentLine << buffer[i];
             }
         }
     }
@@ -195,7 +201,6 @@ void EngineProcess::killProcess()
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
-#include <iostream>
 
 void EngineProcess::initProcess(const std::string &command)
 {
@@ -273,53 +278,71 @@ std::vector<std::string> EngineProcess::readProcess(std::string_view last_word, 
 {
     assert(isInitalized);
 
-    timeout = false;
-
     // Disable blocking
     fcntl(inPipe[0], F_SETFL, fcntl(inPipe[0], F_GETFL) | O_NONBLOCK);
+
+    std::vector<std::string> lines;
+    std::stringstream currentLine;
+
+    char buffer[4096];
+    int bytesRead = 0;
+    int checkTime = 255;
+
+    timeout = false;
 
     // Get the current time in milliseconds since epoch
     auto start = std::chrono::high_resolution_clock::now();
 
-    std::vector<std::string> lines;
-    std::string currentLine;
-
-    int checkTime = 255;
-
     // Continue reading output lines until the line matches the specified line or a timeout occurs
-    while (!contains(currentLine, last_word))
+    while (true)
     {
-        currentLine = "";
-        char c = ' ';
-
-        // Read characters from the input pipe until it is a newline character
-        while (c != '\n')
+        // Check if timeout milliseconds have elapsed
+        if (checkTime-- == 0)
         {
-            if (checkTime-- == 0)
+            auto now = std::chrono::high_resolution_clock::now();
+
+            if (timeoutThreshold > 0 &&
+                std::chrono::duration_cast<std::chrono::milliseconds>(now - start).count() > timeoutThreshold)
             {
-                auto now = std::chrono::high_resolution_clock::now();
-
-                if (timeoutThreshold > 0 &&
-                    std::chrono::duration_cast<std::chrono::milliseconds>(now - start).count() > timeoutThreshold)
-                {
-                    lines.push_back(currentLine);
-                    timeout = true;
-                    break;
-                }
-
-                checkTime = 255;
+                lines.emplace_back(currentLine.str());
+                timeout = true;
+                break;
             }
 
-            if (read(inPipe[0], &c, 1) > 0 && c != '\n')
-                currentLine += c;
-
+            checkTime = 255;
         }
 
-        if (timeout)
-            break;
+        bytesRead = read(inPipe[0], &buffer, sizeof(buffer));
 
-        // Append line to the output
-        lines.push_back(currentLine);
+        // no new bytes to read
+        if (bytesRead == 0)
+            continue;
+
+        // Iterate over each character in the buffer
+        for (int i = 0; i < bytesRead; i++)
+        {
+            // If we encounter a newline, add the current line to the vector and reset the currentLine
+            if (buffer[i] == '\n')
+            {
+                // dont add empty lines
+                if (!currentLine.str().empty())
+                {
+                    lines.emplace_back(currentLine.str());
+
+                    if (contains(currentLine.str(), last_word))
+                    {
+                        return lines;
+                    }
+
+                    currentLine.str(std::string());
+                }
+            }
+            // Otherwise, append the character to the current line
+            else
+            {
+                currentLine << buffer[i];
+            }
+        }
     }
 
     return lines;

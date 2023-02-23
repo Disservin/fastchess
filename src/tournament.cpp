@@ -81,7 +81,7 @@ std::array<GameResult, 2> Tournament::startMatch(std::vector<EngineConfiguration
             positionInput += " " + bestMove;
             board.makeMove(convertUciToMove(bestMove));
         }
-
+        std::cout << positionInput << std::endl;
         engine1.color = ~engine1.color;
         engine2.color = ~engine2.color;
     }
@@ -101,6 +101,9 @@ void Tournament::startTournament(std::vector<EngineConfiguration> configs)
     }
 
     int i = 1;
+
+    auto start = std::chrono::high_resolution_clock::now();
+
     for (auto &&result : results)
     {
         auto res = result.get();
@@ -110,4 +113,8 @@ void Tournament::startTournament(std::vector<EngineConfiguration> configs)
 
         i++;
     }
+
+    auto now = std::chrono::high_resolution_clock::now();
+
+    std::cout << "finished in " << std::chrono::duration_cast<std::chrono::milliseconds>(now - start).count() << "ms"<<std::endl;
 }

@@ -7,7 +7,10 @@
 class PgnBuilder
 {
   private:
-    /* data */
+    std::string pgn;
+
   public:
-    PgnBuilder(const std::vector<Match> &matches, CMD::GameManagerOptions gameOptions);
+    PgnBuilder(const Match &match, CMD::GameManagerOptions gameOptions);
+
+    std::string getPGN() const;
 };

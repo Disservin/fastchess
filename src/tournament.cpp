@@ -20,6 +20,11 @@ std::string Tournament::fetchNextFen() const
     return "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 }
 
+std::vector<std::string> Tournament::getPGNS() const
+{
+    return pgns;
+}
+
 std::vector<Match> Tournament::startMatch(std::vector<EngineConfiguration> configs, std::string openingFen)
 {
     // Initialize variables
@@ -59,8 +64,8 @@ std::vector<Match> Tournament::startMatch(std::vector<EngineConfiguration> confi
 
         Match match;
 
-        match.date = getDateTime("%Y-%m-%d");
-        match.startTime = getDateTime();
+        match.date = saveTimeHeader ? getDateTime("%Y-%m-%d") : "";
+        match.startTime = saveTimeHeader ? getDateTime() : "";
         match.board = board;
 
         std::string positionInput = "position startpos moves";
@@ -110,8 +115,9 @@ std::vector<Match> Tournament::startMatch(std::vector<EngineConfiguration> confi
 
         match.round = i;
         match.result = result[i];
-        match.endTime = getDateTime();
-        match.duration = formatDuration(std::chrono::duration_cast<std::chrono::seconds>(end - start));
+        match.endTime = saveTimeHeader ? getDateTime() : "";
+        match.duration =
+            saveTimeHeader ? formatDuration(std::chrono::duration_cast<std::chrono::seconds>(end - start)) : "";
         matches.emplace_back(match);
 
         engine1.color = ~engine1.color;
@@ -123,6 +129,7 @@ std::vector<Match> Tournament::startMatch(std::vector<EngineConfiguration> confi
 
 void Tournament::startTournament(std::vector<EngineConfiguration> configs)
 {
+    pgns.clear();
     pool.resize(matchConfig.concurrency);
 
     std::vector<std::future<std::vector<Match>>> results;
@@ -142,7 +149,11 @@ void Tournament::startTournament(std::vector<EngineConfiguration> configs)
 
         std::cout << "Finished " << i << "/" << matchConfig.games << std::endl;
 
-        PgnBuilder pgn(res, matchConfig);
+        for (auto match : res)
+        {
+            PgnBuilder pgn(match, matchConfig);
+            pgns.emplace_back(pgn.getPGN());
+        }
 
         i++;
     }

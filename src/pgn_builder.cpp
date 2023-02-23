@@ -4,26 +4,10 @@
 
 PgnBuilder::PgnBuilder(const std::vector<Match> &matches, CMD::GameManagerOptions gameOptions)
 {
-
-    // [Event "?"]
-    // [Site "?"]
-    // [Date "2023.01.24"]
-    // [Round "1"]
-    // [White ".\smallbrain.exe"]
-    // [Black ".\Caissa_1.5_AVX2_BMI2.exe"]
-    // [Result "*"]
-    // [FEN "r1b1kbnr/1p3ppp/p2p4/q3p3/2PQP3/P1N5/1P3PPP/R1B1KB1R w KQkq - 0 1"]
-    // [GameDuration "00:00:10"]
-    // [GameEndTime "2023-01-24T23:06:07.769 Mitteleuropäische Zeit"]
-    // [GameStartTime "2023-01-24T23:05:57.204 Mitteleuropäische Zeit"]
-    // [PlyCount "37"]
-    // [SetUp "1"]
-    // [Termination "unterminated"]
-    // [TimeControl "8+0.08"]
-
     for (auto match : matches)
     {
         std::string result;
+
         if (match.result == GameResult::BLACK_WIN)
         {
             result = "0-1";
@@ -61,8 +45,8 @@ PgnBuilder::PgnBuilder(const std::vector<Match> &matches, CMD::GameManagerOption
         // clang-format on
 
         Board b = match.board;
-
         int i = 3;
+
         for (auto move : match.moves)
         {
             if (i % 2 != 0)
@@ -78,6 +62,7 @@ PgnBuilder::PgnBuilder(const std::vector<Match> &matches, CMD::GameManagerOption
 
             i++;
         }
+
         ss << " " << result;
         std::cout << ss.str() << std::endl;
     }

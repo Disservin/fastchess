@@ -195,6 +195,7 @@ void EngineProcess::killProcess()
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
+#include <iostream>
 
 void EngineProcess::initProcess(const std::string &command)
 {
@@ -227,11 +228,9 @@ void EngineProcess::initProcess(const std::string &command)
         // Redirect the child's standard input to the read end of the output pipe
         dup2(outPipe[0], 0);
         close(outPipe[0]);
-        close(outPipe[1]);
 
         // Redirect the child's standard output to the write end of the input pipe
         dup2(inPipe[1], 1);
-        close(inPipe[0]);
         close(inPipe[1]);
 
         // Execute the engine
@@ -264,9 +263,6 @@ void EngineProcess::writeProcess(const std::string &input)
 
     // Append a newline character to the end of the input string
     constexpr char endLine = '\n';
-
-    // Close the read end of the output pipe
-    close(outPipe[0]);
 
     // Write the input and a newline to the output pipe
     write(outPipe[1], input.c_str(), input.size());
@@ -316,6 +312,7 @@ std::vector<std::string> EngineProcess::readProcess(std::string_view last_word, 
 
             if (read(inPipe[0], &c, 1) > 0 && c != '\n')
                 currentLine += c;
+
         }
 
         if (timeout)

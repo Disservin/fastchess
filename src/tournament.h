@@ -32,7 +32,10 @@ class Tournament
 
     void loadConfig(const CMD::GameManagerOptions &mc);
     void startTournament(std::vector<EngineConfiguration> configs);
-    std::vector<Match> startMatch(std::vector<EngineConfiguration> configs, std::string openingFen);
+
+    Match startMatch(UciEngine &engine1, UciEngine &engine2, int round, std::string openingFen);
+    std::vector<Match> runH2H(CMD::GameManagerOptions localMatchConfig, std::vector<EngineConfiguration> configs,
+                              int gameId);
 
     std::string fetchNextFen() const;
 

@@ -1,5 +1,6 @@
+#pragma once
+
 #include "../src/options.h"
-#include "doctest/doctest.h"
 
 #include <cassert>
 

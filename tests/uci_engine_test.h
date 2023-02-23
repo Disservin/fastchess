@@ -1,5 +1,6 @@
+#pragma once
+
 #include "../src/uci_engine.h"
-#include "doctest/doctest.h"
 
 #include <cassert>
 

@@ -1,5 +1,6 @@
+#pragma once
+
 #include "../src/engine.h"
-#include "doctest/doctest.h"
 
 #include <cassert>
 

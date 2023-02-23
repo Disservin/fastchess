@@ -1,7 +1,5 @@
 #pragma once
 
-#include "doctest/doctest.h"
-
 #include "../src/board.h"
 
 TEST_CASE("Test ambiguous pawn capture")

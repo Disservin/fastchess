@@ -1,4 +1,4 @@
-#include "doctest/doctest.h"
+#pragma once
 
 #include "../src/board.h"
 

@@ -1,4 +1,3 @@
-// #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #define DOCTEST_CONFIG_IMPLEMENT
 #include "doctest/doctest.h"
 

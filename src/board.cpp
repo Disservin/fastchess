@@ -583,9 +583,7 @@ std::string MoveToSan(Board &b, Move move)
         return san + "#";
 
     if (inCheck)
-    {
         return san + "+";
-    }
 
     return san;
 }

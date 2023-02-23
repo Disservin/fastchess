@@ -73,7 +73,7 @@ PgnBuilder::PgnBuilder(std::vector<Match> matches)
             }
             else
             {
-                ss << " " << MoveToSan(b, move) << "\n";
+                ss << " " << MoveToSan(b, move) << (move != match.moves.back() ? "\n" : "");
             }
             b.makeMove(move);
 

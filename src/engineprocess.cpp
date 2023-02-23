@@ -74,6 +74,8 @@ std::vector<std::string> EngineProcess::readProcess(std::string_view last_word, 
     assert(isInitalized);
 
     std::vector<std::string> lines;
+    lines.reserve(30);
+
     std::stringstream currentLine{};
 
     char buffer[4096];
@@ -282,6 +284,8 @@ std::vector<std::string> EngineProcess::readProcess(std::string_view last_word, 
     fcntl(inPipe[0], F_SETFL, fcntl(inPipe[0], F_GETFL) | O_NONBLOCK);
 
     std::vector<std::string> lines;
+    lines.reserve(30);
+
     std::stringstream currentLine;
 
     char buffer[4096];

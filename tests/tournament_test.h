@@ -16,7 +16,7 @@ TEST_CASE("Test Tournament")
 #ifdef _WIN32
     engine.cmd = "./data/engine/dummy_engine.exe";
 #else
-    engiengine.cmd = "./data/engine/dummy_engine";
+    engine.cmd = "./data/engine/dummy_engine";
 #endif
 
     Tournament tour(false);

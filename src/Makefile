@@ -1,5 +1,5 @@
 CXX 	 := g++
-CXXFLAGS := -O3 -std=c++17 -Wall -Wextra -pedantic -DNDEBUG -finline-functions
+CXXFLAGS := -O3 -std=c++17 -Wall -Wextra -pedantic -DNDEBUG
 NATIVE 	 := -march=native
 
 # Detect Windows

@@ -42,26 +42,22 @@ PgnBuilder::PgnBuilder(const std::vector<Match> &matches, CMD::GameManagerOption
         }
 
         std::stringstream ss;
-        std::time_t matchStartTime = match.matchStartTime;
-        std::time_t matchEndTime = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
-        auto gameDuration = matchEndTime - matchStartTime;
-        auto tc = match.whiteEngine.tc;
+
         // clang-format off
-        ss << "[Event " << "\""<<gameOptions.eventName<<"\"" << "]" << "\n";
+        ss << "[Event " << "\""<< gameOptions.eventName <<"\"" << "]" << "\n";
         ss << "[Site " << "\"?\"" << "]" << "\n";
-        ss << "[Date " << "\"?\"" << "]" << "\n";
-        ss << "[Round " << "\"?\"" << "]" << "\n";
+        ss << "[Date " << match.date << "]" << "\n";
+        ss << "[Round " << match.round << "]" << "\n";
         ss << "[White " << "\""<<match.whiteEngine.cmd<<"\"" << "]" << "\n";
         ss << "[Black " << "\""<<match.blackEngine.cmd<<"\"" << "]" << "\n";
         ss << "[Result " << "\"" << result << "\"" << "]" << "\n";
         ss << "[FEN " << "\"" << match.board.getFen() << "\""<< "]" << "\n";
-        ss << "[GameDuration " << "\""<<gameDuration<<"\"" << "]" << "\n";
-        ss << "[GameEndTime " << "\""<<matchEndTime<<"\"" << "]" << "\n";
-        ss << "[GameStartTime " << "\""<<matchStartTime<<"\"" << "]" << "\n";
-        ss << "[PlyCount " << "\""<<match.moves.size()<<"\"" << "]" << "\n";
-        ss << "[SetUp " << "\"?\"" << "]" << "\n";
-        ss << "[Termination " << "\"?\"" << "]" << "\n";
-        ss << "[TimeControl " << "\""<<"\"" << "]" << "\n\n";
+        ss << "[GameDuration " << "\"" << match.duration << "\"" << "]" << "\n";
+        ss << "[GameEndTime " << "\"" << match.endTime << "\"" << "]" << "\n";
+        ss << "[GameStartTime " << "\"" << match.startTime << "\"" << "]" << "\n";
+        ss << "[PlyCount " << "\"" << match.moves.size() <<"\"" << "]" << "\n";
+        // ss << "[Termination " << "\"?\"" << "]" << "\n";
+        ss << "[TimeControl " << match.whiteEngine.tc << "]" << "\n\n";
         // clang-format on
 
         Board b = match.board;

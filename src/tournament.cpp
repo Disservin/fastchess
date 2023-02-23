@@ -1,5 +1,9 @@
-#include "tournament.h"
+#include <chrono>
+#include <iomanip>
+#include <iostream>
+
 #include "pgn_builder.h"
+#include "tournament.h"
 
 Tournament::Tournament(const CMD::GameManagerOptions &mc)
 {
@@ -51,8 +55,12 @@ std::vector<Match> Tournament::startMatch(std::vector<EngineConfiguration> confi
 
         board.loadFen(openingFen);
 
+        auto start = std::chrono::high_resolution_clock::now();
+
         Match match;
 
+        match.date = getDateTime("%Y-%m-%d");
+        match.startTime = getDateTime();
         match.board = board;
 
         std::string positionInput = "position startpos moves";
@@ -98,10 +106,13 @@ std::vector<Match> Tournament::startMatch(std::vector<EngineConfiguration> confi
             match.moves.emplace_back(move);
         }
 
-        match.result = result[i];
-        matches.emplace_back(match);
+        auto end = std::chrono::high_resolution_clock::now();
 
-        // std::cout << positionInput << std::endl;
+        match.round = i;
+        match.result = result[i];
+        match.endTime = getDateTime();
+        match.duration = formatDuration(std::chrono::duration_cast<std::chrono::seconds>(end - start));
+        matches.emplace_back(match);
 
         engine1.color = ~engine1.color;
         engine2.color = ~engine2.color;
@@ -132,16 +143,6 @@ void Tournament::startTournament(std::vector<EngineConfiguration> configs)
         std::cout << "Finished " << i << "/" << matchConfig.games << std::endl;
 
         PgnBuilder pgn(res, matchConfig);
-        // for (auto var : res)
-        // {
-        //     Board b = var.board;
-        //     for (auto move : var.moves)
-        //     {
-        //         std::cout << MoveToSan(b, move) << " ";
-        //         b.makeMove(move);
-        //     }
-        //     std::cout << std::endl;
-        // }
 
         i++;
     }
@@ -150,4 +151,30 @@ void Tournament::startTournament(std::vector<EngineConfiguration> configs)
 
     std::cout << "finished in " << std::chrono::duration_cast<std::chrono::milliseconds>(now - start).count() << "ms"
               << std::endl;
+}
+
+std::string Tournament::getDateTime(std::string format)
+{
+    // Get the current time in UTC
+    auto now = std::chrono::system_clock::now();
+    auto time_t_now = std::chrono::system_clock::to_time_t(now);
+
+    // Format the time as an ISO 8601 string
+    std::stringstream ss;
+    ss << std::put_time(std::gmtime(&time_t_now), format.c_str());
+    return ss.str();
+}
+
+std::string Tournament::formatDuration(std::chrono::seconds duration)
+{
+    auto hours = std::chrono::duration_cast<std::chrono::hours>(duration);
+    duration -= hours;
+    auto minutes = std::chrono::duration_cast<std::chrono::minutes>(duration);
+    duration -= minutes;
+    auto seconds = duration;
+
+    std::stringstream ss;
+    ss << std::setfill('0') << std::setw(2) << hours.count() << ":" << std::setfill('0') << std::setw(2)
+       << minutes.count() << ":" << std::setfill('0') << std::setw(2) << seconds.count();
+    return ss.str();
 }

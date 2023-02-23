@@ -1,8 +1,10 @@
 #pragma once
 
+#include <iostream>
 #include <string>
 #include <tuple>
 #include <vector>
+
 
 struct TimeControl
 {
@@ -10,6 +12,19 @@ struct TimeControl
     uint64_t time = 0;
     uint64_t increment = 0;
 };
+
+inline std::ostream &operator<<(std::ostream &os, const TimeControl &tc)
+{
+    if (tc.moves > 0)
+        os << tc.moves << "/";
+
+    os << tc.time;
+
+    if (tc.increment > 0)
+        os << "+" << tc.increment;
+
+    return os;
+}
 
 struct EngineConfiguration
 {

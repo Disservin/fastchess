@@ -11,13 +11,16 @@
 
 struct Match
 {
-    std::time_t matchStartTime = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
     std::vector<Move> moves;
     GameResult result;
     EngineConfiguration whiteEngine;
     EngineConfiguration blackEngine;
-    int round;
+    std::string startTime;
+    std::string endTime;
+    std::string duration;
+    std::string date;
     Board board;
+    int round;
 };
 
 class Tournament
@@ -37,4 +40,7 @@ class Tournament
     CMD::GameManagerOptions matchConfig;
 
     ThreadPool pool = ThreadPool(1);
+
+    std::string getDateTime(std::string format = "%Y-%m-%dT%H:%M:%S %z");
+    std::string formatDuration(std::chrono::seconds duration);
 };

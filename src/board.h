@@ -84,6 +84,10 @@ class Board
 
     bool isRepetition(int draw) const;
 
+    Bitboard attacksByPiece(PieceType pt, Square sq, Color c, Bitboard occ) const;
+
+    bool isSquareAttacked(Color c, Square sq) const;
+
     friend std::ostream &operator<<(std::ostream &os, const Board &b);
 
   private:
@@ -102,8 +106,6 @@ class Board
     void removeCastlingRightsRook(Square sq);
 
     void initializeLookupTables();
-
-    bool isKingAttacked(Color c, Square sq) const;
 
     void placePiece(Piece piece, Square sq);
 
@@ -136,3 +138,4 @@ template <PieceType type> Bitboard Board::pieces(Color color) const
 std::string uciMove(Move move);
 
 Move convertUciToMove(const std::string &input);
+std::string MoveToSan(Board &b, Move move);

@@ -6,6 +6,7 @@
 
 #include "attacks.h"
 #include "board.h"
+#include "movegen.h"
 #include "zobrist.h"
 
 void Board::loadFen(const std::string &fen)
@@ -326,6 +327,29 @@ bool Board::isRepetition(int draw) const
     return false;
 }
 
+Bitboard Board::attacksByPiece(PieceType pt, Square sq, Color c, Bitboard occ) const
+{
+    switch (pt)
+    {
+    case PAWN:
+        return PawnAttacks(sq, c);
+    case KNIGHT:
+        return KnightAttacks(sq);
+    case BISHOP:
+        return BishopAttacks(sq, occ);
+    case ROOK:
+        return RookAttacks(sq, occ);
+    case QUEEN:
+        return QueenAttacks(sq, occ);
+    case KING:
+        return KingAttacks(sq);
+    case NONETYPE:
+        return 0ULL;
+    default:
+        return 0ULL;
+    }
+}
+
 void Board::removeCastlingRightsAll(Color c)
 {
     if (c == WHITE)
@@ -367,7 +391,7 @@ void Board::initializeLookupTables()
     }
 }
 
-bool Board::isKingAttacked(Color c, Square sq) const
+bool Board::isSquareAttacked(Color c, Square sq) const
 {
     Bitboard all = allBB();
 
@@ -500,4 +524,68 @@ Move convertUciToMove(const std::string &input)
         throw std::runtime_error("Cant parse move" + input);
         return Move(NO_SQ, NO_SQ, NONETYPE);
     }
+}
+
+std::string MoveToSan(Board &b, Move move)
+{
+    static const std::string sanPieceType[] = {"", "N", "B", "R", "Q", "K"};
+    static const std::string sanFile[] = {"a", "b", "c", "d", "e", "f", "g", "h"};
+
+    PieceType pt = typeOfPiece(b.pieceAt(move.from_sq));
+
+    assert(b.pieceAt(move.from_sq) != NONE);
+
+    if (pt == KING && std::abs(move.from_sq - move.to_sq) == 2)
+    {
+        if (squareFile(move.to_sq) < squareFile(move.from_sq))
+            return "O-O-O";
+        else
+            return "O-O";
+    }
+
+    std::string san = "";
+    if (pt != PAWN)
+        san = sanPieceType[pt];
+
+    // ambiguous move
+    Movelist moves;
+    Movegen::legalmoves(b, moves);
+
+    for (const auto &cand : moves)
+    {
+        if (move != cand && typeOfPiece(b.pieceAt(cand.from_sq)) == pt && move.to_sq == cand.to_sq)
+        {
+            san += sanFile[squareFile(move.from_sq)];
+            break;
+        }
+    }
+
+    // capture
+    if (b.pieceAt(move.to_sq) != NONE || (pt == PAWN && b.enPassantSquare == move.to_sq))
+        san += "x";
+
+    san += sanFile[squareFile(move.to_sq)];
+    san += std::to_string(squareRank(move.to_sq) + 1);
+
+    if (move.promotion_piece != NONETYPE)
+        san += "=" + sanPieceType[move.promotion_piece];
+
+    b.makeMove(move);
+
+    moves.size = 0;
+    Movegen::legalmoves(b, moves);
+
+    bool inCheck = b.isSquareAttacked(~b.sideToMove, lsb(b.pieces<KING>(b.sideToMove)));
+
+    b.unmakeMove(move);
+
+    if (moves.size == 0 && inCheck)
+        return san + "#";
+
+    if (inCheck)
+    {
+        return san + "+";
+    }
+
+    return san;
 }

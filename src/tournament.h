@@ -16,6 +16,7 @@ struct Match
     GameResult result;
     EngineConfiguration whiteEngine;
     EngineConfiguration blackEngine;
+    int round;
     Board board;
 };
 

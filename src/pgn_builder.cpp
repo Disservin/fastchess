@@ -2,7 +2,7 @@
 
 #include "pgn_builder.h"
 
-PgnBuilder::PgnBuilder(const std::vector<Match> &matches, CMD::Options options)
+PgnBuilder::PgnBuilder(const std::vector<Match> &matches, CMD::GameManagerOptions gameOptions)
 {
 
     // [Event "?"]
@@ -42,7 +42,6 @@ PgnBuilder::PgnBuilder(const std::vector<Match> &matches, CMD::Options options)
         }
 
         std::stringstream ss;
-        auto gameOptions = options.getGameOptions();
         std::time_t matchStartTime = match.matchStartTime;
         std::time_t matchEndTime = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
         auto gameDuration = matchEndTime - matchStartTime;

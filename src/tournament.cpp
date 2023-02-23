@@ -131,7 +131,7 @@ void Tournament::startTournament(std::vector<EngineConfiguration> configs)
 
         std::cout << "Finished " << i << "/" << matchConfig.games << std::endl;
 
-        PgnBuilder pgn(res);
+        PgnBuilder pgn(res, matchConfig);
         // for (auto var : res)
         // {
         //     Board b = var.board;

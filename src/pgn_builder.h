@@ -9,5 +9,5 @@ class PgnBuilder
   private:
     /* data */
   public:
-    PgnBuilder::PgnBuilder(const std::vector<Match> &matches, CMD::Options options);
+    PgnBuilder(const std::vector<Match> &matches, CMD::GameManagerOptions gameOptions);
 };

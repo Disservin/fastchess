@@ -38,17 +38,29 @@ std::string Tournament::fetchNextFen()
     {
         return "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
     }
-    else if (matchConfig.opening.order == "random")
+    else if (matchConfig.opening.format == "pgn")
     {
-        std::uniform_int_distribution<unsigned long> maxLines{startIndex % (openingBook.size() - 1), openingBook.size() - 1};
-
-        auto randLine = maxLines(Random::generator);
-
-        return openingBook[randLine];
+        // todo: implementation
     }
-    else if (matchConfig.opening.order == "sequential")
+    else if (matchConfig.opening.format == "epd")
     {
-        return openingBook[startIndex++ % (openingBook.size() - 1)];
+        if (matchConfig.opening.order == "random")
+        {
+            std::uniform_int_distribution<unsigned long> maxLines{startIndex % (openingBook.size() - 1),
+                                                                  openingBook.size() - 1};
+
+            auto randLine = maxLines(Random::generator);
+            assert(randLine >= 0 && randLine < openingBook.size());
+
+            return openingBook[randLine];
+        }
+        else if (matchConfig.opening.order == "sequential")
+        {
+            assert(startIndex++ % (openingBook.size() - 1) >= 0 &&
+                   startIndex++ % (openingBook.size() - 1) < openingBook.size());
+
+            return openingBook[startIndex++ % (openingBook.size() - 1)];
+        }
     }
 
     return "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";

@@ -253,10 +253,10 @@ void Tournament::startTournament(std::vector<EngineConfiguration> configs)
                 std::cout << "Couldnt obtain Game Result" << std::endl;
             }
 
-            Elo elo(wins, draws, losses);
+            Elo elo(wins, losses, draws);
 
             std::cout << "Wins: " << wins << " Draws: " << draws << " Losses: " << losses << "\n"
-                      << "Elo diff: " << elo.diff() << std::endl;
+                      << "Elo diff: " << elo.getElo() << std::endl;
         }
 
         i++;

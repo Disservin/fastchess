@@ -1,13 +1,22 @@
+#include <string>
+
 class Elo
 {
   private:
-    double mu;
-    double stdev;
+    double diff;
+    double error;
 
   public:
-    Elo(int wins, int draws, int losses);
+    Elo(int wins, int losses, int draws);
 
-    double diff() const;
+    double inverseError(double x);
 
-    double diff(double p) const;
+    double phiInv(double p);
+
+    double getDiff(double percentage);
+    double getDiff(int wins, int losses, int draws);
+
+    double getError(int wins, int losses, int draws);
+
+    std::string getElo() const;
 };

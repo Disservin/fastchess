@@ -3,6 +3,17 @@
 #include "engine.h"
 #include "types.h"
 
+enum class Turn
+{
+    FIRST,
+    SECOND
+};
+
+constexpr Turn operator~(Turn t)
+{
+    return Turn(static_cast<int>(t) ^ static_cast<int>(Turn::SECOND));
+}
+
 class UciEngine : public Engine
 {
   public:
@@ -20,7 +31,7 @@ class UciEngine : public Engine
     void sendUci();
     std::vector<std::string> readUci();
 
-    std::string buildGoInput();
+    std::string buildGoInput(Color stm);
 
     void loadConfig(const EngineConfiguration &config);
 
@@ -34,5 +45,5 @@ class UciEngine : public Engine
     void startEngine(const std::string &cmd);
     void stopEngine();
 
-    Color color;
+    Turn turn;
 };

@@ -26,7 +26,7 @@ std::vector<std::string> UciEngine::readUci()
     return readProcess("uciok", timeout);
 }
 
-std::string UciEngine::buildGoInput()
+std::string UciEngine::buildGoInput(Color stm)
 {
     std::stringstream input;
     input << "go";
@@ -38,10 +38,10 @@ std::string UciEngine::buildGoInput()
         input << " depth " << config.plies;
 
     if (config.tc.time != 0)
-        input << (color == WHITE ? " wtime " : " btime ") << config.tc.time;
+        input << (stm == WHITE ? " wtime " : " btime ") << config.tc.time;
 
     if (config.tc.increment != 0)
-        input << (color == WHITE ? " winc " : " binc ") << config.tc.increment;
+        input << (stm == WHITE ? " winc " : " binc ") << config.tc.increment;
 
     if (config.tc.moves != 0)
         input << " movestogo " << config.tc.moves;

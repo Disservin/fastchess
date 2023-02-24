@@ -43,6 +43,8 @@ uint8_t anti_diagonalOf(Square sq);
 
 bool sameColor(int sq1, int sq2);
 
+Color colorOf(Piece p);
+
 template <typename T> T findElement(const std::vector<std::string> &haystack, std::string_view needle)
 {
     int index = std::find(haystack.begin(), haystack.end(), needle) - haystack.begin();

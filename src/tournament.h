@@ -42,14 +42,11 @@ class Tournament
     std::vector<std::string> getPGNS() const;
 
   private:
-    CMD::GameManagerOptions matchConfig;
-
     ThreadPool pool = ThreadPool(1);
+    CMD::GameManagerOptions matchConfig;
+    std::vector<std::string> pgns;
+    bool saveTimeHeader = true;
 
     std::string getDateTime(std::string format = "%Y-%m-%dT%H:%M:%S %z");
     std::string formatDuration(std::chrono::seconds duration);
-
-    std::vector<std::string> pgns;
-
-    bool saveTimeHeader= true;
 };

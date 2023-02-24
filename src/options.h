@@ -91,6 +91,7 @@ class Options
     // Generic function to parse option
     template <typename T> void parseOption(int &i, int argc, const char *argv[], T &optionValue);
 
+    void parseEachOptions(int &i, int argc, char const *argv[]);
     void parseDrawOptions(int &i, int argc, char const *argv[]);
     void parseResignOptions(int &i, int argc, char const *argv[]);
     void parseOpeningOptions(int &i, int argc, char const *argv[]);

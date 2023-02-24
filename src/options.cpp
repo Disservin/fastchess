@@ -22,6 +22,8 @@ Options::Options(int argc, char const *argv[])
             configs.push_back(EngineConfiguration());
             parseEngineParams(i, argc, argv, configs.back());
         }
+        else if (arg == "-each")
+            parseEachOptions(i, argc, argv);
         else if (arg == "-concurrency")
             parseOption(i, argc, argv, gameOptions.concurrency);
         else if (arg == "-event")
@@ -42,6 +44,14 @@ Options::Options(int argc, char const *argv[])
             parseDrawOptions(i, argc, argv);
         else if (arg == "-resign")
             parseDrawOptions(i, argc, argv);
+    }
+
+    for (const auto &config : configs)
+    {
+        if (config.name == "")
+        {
+            throw std::runtime_error("Each engine must have a name!");
+        }
     }
 }
 
@@ -93,7 +103,6 @@ void Options::parseEngineParams(int &i, int argc, char const *argv[], EngineConf
         else
         {
             std::cout << "\n unrecognized engine option:" << key << " parsing failed\n";
-            return;
         }
         i++;
     }
@@ -142,6 +151,57 @@ template <typename T> void Options::parseOption(int &i, int argc, const char *ar
         else
             optionValue = argv[i];
     }
+}
+
+void Options::parseEachOptions(int &i, int argc, char const *argv[])
+{
+    i++;
+    while (i < argc && argv[i][0] != '-')
+    {
+        std::string param = argv[i];
+        size_t pos = param.find('=');
+        std::string key = param.substr(0, pos);
+        std::string value = param.substr(pos + 1);
+
+        for (auto &config : configs)
+        {
+            if (key == "cmd")
+            {
+                config.cmd = value;
+            }
+            else if (key == "name")
+            {
+                config.name = value;
+            }
+            else if (key == "tc")
+            {
+                config.tc = parseTc(value);
+            }
+            else if (key == "nodes")
+            {
+                config.nodes = std::stoll(value);
+            }
+            else if (key == "plies")
+            {
+                config.plies = std::stoll(value);
+            }
+            else if (key == "dir")
+            {
+                config.dir = value;
+            }
+            else if (isEngineSettableOption(key))
+            {
+                config.options.push_back(std::make_pair(key, value));
+            }
+            else
+            {
+                std::cout << "\n unrecognized engine option:" << key << " parsing failed" << std::endl;
+            }
+        }
+
+        i++;
+    }
+    i--;
 }
 
 void Options::parseDrawOptions(int &i, int argc, char const *argv[])

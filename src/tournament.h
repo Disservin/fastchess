@@ -35,9 +35,9 @@ class Tournament
 
     Match startMatch(UciEngine &engine1, UciEngine &engine2, int round, std::string openingFen);
     std::vector<Match> runH2H(CMD::GameManagerOptions localMatchConfig, std::vector<EngineConfiguration> configs,
-                              int gameId);
+                              int gameId, std::string fen);
 
-    std::string fetchNextFen() const;
+    std::string fetchNextFen();
 
     std::vector<std::string> getPGNS() const;
 
@@ -50,6 +50,9 @@ class Tournament
     std::string formatDuration(std::chrono::seconds duration);
 
     std::vector<std::string> pgns;
+    std::vector<std::string> openingBook;
+
+    size_t startIndex = 0;
 
     bool saveTimeHeader;
 };

@@ -1,9 +1,11 @@
 #include <chrono>
+#include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <sstream>
 
 #include "pgn_builder.h"
+#include "rand.h"
 #include "tournament.h"
 
 Tournament::Tournament(const CMD::GameManagerOptions &mc)
@@ -14,10 +16,41 @@ Tournament::Tournament(const CMD::GameManagerOptions &mc)
 void Tournament::loadConfig(const CMD::GameManagerOptions &mc)
 {
     matchConfig = mc;
+
+    if (matchConfig.opening.file != "")
+    {
+        std::ifstream openingFile;
+        std::string line;
+        openingFile.open(matchConfig.opening.file);
+
+        while (std::getline(openingFile, line))
+        {
+            openingBook.emplace_back(line);
+        }
+
+        openingFile.close();
+    }
 }
 
-std::string Tournament::fetchNextFen() const
+std::string Tournament::fetchNextFen()
 {
+    if (openingBook.size() == 0)
+    {
+        return "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+    }
+    else if (matchConfig.opening.order == "random")
+    {
+        std::uniform_int_distribution<unsigned long> maxLines{startIndex % (openingBook.size() - 1), openingBook.size() - 1};
+
+        auto randLine = maxLines(Random::generator);
+
+        return openingBook[randLine];
+    }
+    else if (matchConfig.opening.order == "sequential")
+    {
+        return openingBook[startIndex++ % (openingBook.size() - 1)];
+    }
+
     return "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 }
 
@@ -105,7 +138,7 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, 
 }
 
 std::vector<Match> Tournament::runH2H(CMD::GameManagerOptions localMatchConfig,
-                                      std::vector<EngineConfiguration> configs, int gameId)
+                                      std::vector<EngineConfiguration> configs, int gameId, std::string fen)
 {
     // Initialize variables
     std::vector<Match> matches;
@@ -124,7 +157,7 @@ std::vector<Match> Tournament::runH2H(CMD::GameManagerOptions localMatchConfig,
 
     for (int i = 0; i < rounds; i++)
     {
-        matches.emplace_back(startMatch(engine1, engine2, i, fetchNextFen()));
+        matches.emplace_back(startMatch(engine1, engine2, i, fen));
 
         std::stringstream ss;
 
@@ -154,7 +187,8 @@ void Tournament::startTournament(std::vector<EngineConfiguration> configs)
 
     for (int i = 1; i <= matchConfig.games * rounds; i += rounds)
     {
-        results.emplace_back(pool.enqueue(std::bind(&Tournament::runH2H, this, matchConfig, configs, i)));
+        results.emplace_back(
+            pool.enqueue(std::bind(&Tournament::runH2H, this, matchConfig, configs, i, fetchNextFen())));
     }
 
     int i = 1;

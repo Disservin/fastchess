@@ -103,7 +103,7 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, 
     auto timeLeft_1 = engine1.getConfig().tc;
     auto timeLeft_2 = engine2.getConfig().tc;
 
-    std::chrono::high_resolution_clock::time_point start;
+    auto start = std::chrono::high_resolution_clock::now();
     std::chrono::high_resolution_clock::time_point t0;
     std::chrono::high_resolution_clock::time_point t1;
 
@@ -238,6 +238,7 @@ std::vector<Match> Tournament::runH2H(CMD::GameManagerOptions localMatchConfig,
         std::stringstream ss;
         ss << "Finished " << gameId + i << "/" << localMatchConfig.games * rounds << " " << positiveEngine << " vs "
            << negativeEngine << "\n";
+        //    << pgn.getPGN() << "\n";
 
         std::cout << ss.str();
 

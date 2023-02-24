@@ -188,9 +188,9 @@ std::vector<Match> Tournament::runH2H(CMD::GameManagerOptions localMatchConfig,
         PgnBuilder pgn(match, matchConfig);
 
         std::stringstream ss;
-        ss << "Finished " << gameId + i << "/" << localMatchConfig.games * rounds << " " << positiveEngine << " vs "
-           << negativeEngine << "\n"
-           << pgn.getPGN();
+        // ss << "Finished " << gameId + i << "/" << localMatchConfig.games * rounds << " " << positiveEngine << " vs "
+        //    << negativeEngine << "\n"
+        //    << pgn.getPGN();
 
         std::cout << ss.str();
 

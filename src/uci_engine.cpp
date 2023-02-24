@@ -38,19 +38,13 @@ std::string UciEngine::buildGoInput()
         input << " depth " << config.plies;
 
     if (config.tc.time != 0)
-    {
         input << (color == WHITE ? " wtime " : " btime ") << config.tc.time;
-    }
 
     if (config.tc.increment != 0)
-    {
         input << (color == WHITE ? " winc " : " binc ") << config.tc.increment;
-    }
 
     if (config.tc.moves != 0)
-    {
         input << " movestogo " << config.tc.moves;
-    }
 
     return input.str();
 }

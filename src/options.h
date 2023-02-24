@@ -24,6 +24,7 @@ struct OpeningOptions
     std::string format;
     std::string order;
     int plies = 0;
+    int start = 0;
 };
 
 struct PgnOptions

@@ -225,6 +225,10 @@ void Options::parseOpeningOptions(int &i, int argc, char const *argv[])
         {
             gameOptions.opening.plies = std::stoi(value);
         }
+        else if (key == "start")
+        {
+            gameOptions.opening.start = std::stoi(value);
+        }
         else
         {
             std::cout << "\n unrecognized engine option:" << key << " with value " << value << " parsing failed\n";

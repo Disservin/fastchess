@@ -11,6 +11,38 @@
 
 bool startsWith(std::string_view haystack, std::string_view needle);
 
+bool contains(std::string_view haystack, std::string_view needle);
+
+bool contains(const std::vector<std::string> &haystack, std::string_view needle);
+
+std::vector<std::string> splitString(const std::string &string, const char &delimiter);
+
+Square lsb(Bitboard mask);
+
+Square msb(Bitboard mask);
+
+int popcount(Bitboard mask);
+
+Square poplsb(Bitboard &mask);
+
+PieceType typeOfPiece(const Piece piece);
+
+File squareFile(Square sq);
+
+Rank squareRank(Square sq);
+
+Square fileRankSquare(File f, Rank r);
+
+Piece make_piece(PieceType type, Color c);
+
+// returns diagonal of given square
+uint8_t diagonalOf(Square sq);
+
+// returns anti diagonal of given square
+uint8_t anti_diagonalOf(Square sq);
+
+bool sameColor(int sq1, int sq2);
+
 template <typename T> T findElement(const std::vector<std::string> &haystack, std::string_view needle)
 {
     int index = std::find(haystack.begin(), haystack.end(), needle) - haystack.begin();
@@ -19,12 +51,6 @@ template <typename T> T findElement(const std::vector<std::string> &haystack, st
     else
         return haystack[index + 1];
 }
-
-bool contains(std::string_view haystack, std::string_view needle);
-
-bool contains(const std::vector<std::string> &haystack, std::string_view needle);
-
-std::vector<std::string> splitString(const std::string &string, const char &delimiter);
 
 /// @brief Table template class for creating N-dimensional arrays.
 /// @tparam T
@@ -79,54 +105,3 @@ template <typename T, size_t N> struct Table<T, N>
         data.fill({value});
     }
 };
-
-Square lsb(Bitboard mask);
-
-Square msb(Bitboard mask);
-
-int popcount(Bitboard mask);
-
-Square poplsb(Bitboard &mask);
-
-inline constexpr PieceType typeOfPiece(const Piece piece)
-{
-    constexpr PieceType PieceToPieceType[13] = {PAWN,   KNIGHT, BISHOP, ROOK,  QUEEN, KING,    PAWN,
-                                                KNIGHT, BISHOP, ROOK,   QUEEN, KING,  NONETYPE};
-    return PieceToPieceType[piece];
-}
-
-inline constexpr File squareFile(Square sq)
-{
-    return File(sq & 7);
-}
-
-inline constexpr Rank squareRank(Square sq)
-{
-    return Rank(sq >> 3);
-}
-
-inline constexpr Square fileRankSquare(File f, Rank r)
-{
-    return Square((r << 3) + f);
-}
-
-inline Piece make_piece(PieceType type, Color c)
-{
-    if (type == NONETYPE)
-        return NONE;
-    return Piece(type + 6 * c);
-}
-
-// returns diagonal of given square
-inline constexpr uint8_t diagonalOf(Square sq)
-{
-    return 7 + squareRank(sq) - squareFile(sq);
-}
-
-// returns anti diagonal of given square
-inline constexpr uint8_t anti_diagonalOf(Square sq)
-{
-    return squareRank(sq) + squareFile(sq);
-}
-
-bool sameColor(int sq1, int sq2);

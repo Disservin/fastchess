@@ -128,6 +128,47 @@ Square poplsb(Bitboard &mask)
     return Square(s);
 }
 
+ PieceType typeOfPiece(const Piece piece)
+{
+    constexpr PieceType PieceToPieceType[13] = {PAWN,   KNIGHT, BISHOP, ROOK,  QUEEN, KING,    PAWN,
+                                                KNIGHT, BISHOP, ROOK,   QUEEN, KING,  NONETYPE};
+    return PieceToPieceType[piece];
+}
+
+ File squareFile(Square sq)
+{
+    return File(sq & 7);
+}
+
+Rank squareRank(Square sq)
+{
+    return Rank(sq >> 3);
+}
+
+ Square fileRankSquare(File f, Rank r)
+{
+    return Square((r << 3) + f);
+}
+
+Piece make_piece(PieceType type, Color c)
+{
+    if (type == NONETYPE)
+        return NONE;
+    return Piece(type + 6 * c);
+}
+
+// returns diagonal of given square
+uint8_t diagonalOf(Square sq)
+{
+    return 7 + squareRank(sq) - squareFile(sq);
+}
+
+// returns anti diagonal of given square
+uint8_t anti_diagonalOf(Square sq)
+{
+    return squareRank(sq) + squareFile(sq);
+}
+
 bool sameColor(int sq1, int sq2)
 {
     return ((9 * (sq1 ^ sq2)) & 8) == 0;

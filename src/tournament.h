@@ -51,5 +51,5 @@ class Tournament
 
     std::vector<std::string> pgns;
 
-    bool saveTimeHeader;
+    bool saveTimeHeader= true;
 };

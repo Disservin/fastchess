@@ -1,7 +1,7 @@
 #include <cassert>
+#include <iostream>
 #include <sstream>
 #include <stdexcept>
-#include <iostream>
 
 #include "engineprocess.h"
 #include "helper.h"
@@ -90,11 +90,6 @@ std::vector<std::string> EngineProcess::readProcess(std::string_view last_word, 
 
     while (true)
     {
-        if (!PeekNamedPipe(childStdOut, buffer, sizeof(buffer), &bytesRead, &bytesAvail, nullptr))
-        {
-            throw std::runtime_error("Cant peek Pipe");
-        }
-
         // Check if timeout milliseconds have elapsed
         if (checkTime-- == 0)
         {
@@ -111,18 +106,10 @@ std::vector<std::string> EngineProcess::readProcess(std::string_view last_word, 
             checkTime = 255;
         }
 
-        // no new bytes to read
-        if (bytesAvail == 0)
-            continue;
-
         if (!ReadFile(childStdOut, buffer, sizeof(buffer), &bytesRead, nullptr))
         {
             throw std::runtime_error("Cant read process correctly");
         }
-
-        // this is actually an error. There are bytes to read but we read zero.
-        if (bytesRead == 0)
-            break;
 
         // Iterate over each character in the buffer
         for (DWORD i = 0; i < bytesRead; i++)
@@ -317,10 +304,6 @@ std::vector<std::string> EngineProcess::readProcess(std::string_view last_word, 
         }
 
         bytesRead = read(inPipe[0], &buffer, sizeof(buffer));
-
-        // no new bytes to read
-        if (bytesRead == 0)
-            continue;
 
         // Iterate over each character in the buffer
         for (int i = 0; i < bytesRead; i++)

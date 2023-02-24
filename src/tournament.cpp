@@ -74,6 +74,13 @@ std::vector<std::string> Tournament::getPGNS() const
 
 Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, std::string openingFen)
 {
+    const int64_t timeoutThreshold = 0;
+    bool timeout = false;
+
+    std::vector<std::string> output;
+    output.reserve(30);
+
+    GameResult res;
     Match match;
     Move move;
 
@@ -83,11 +90,6 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, 
     match.whiteEngine = board.sideToMove == WHITE ? engine1.getConfig() : engine2.getConfig();
     match.blackEngine = board.sideToMove != WHITE ? engine1.getConfig() : engine2.getConfig();
 
-    GameResult res;
-
-    const int64_t timeoutThreshold = 0;
-    bool timeout = false;
-
     engine1.sendUciNewGame();
     engine2.sendUciNewGame();
 
@@ -95,10 +97,8 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, 
     match.startTime = saveTimeHeader ? getDateTime() : "";
     match.board = board;
 
-    std::vector<std::string> output;
-    output.reserve(30);
-
     std::string positionInput = "position startpos moves";
+    std::string bestMove;
 
     auto timeLeft_1 = engine1.getConfig().tc;
     auto timeLeft_2 = engine2.getConfig().tc;
@@ -117,36 +117,33 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, 
         }
 
         // Engine 1's turn
-        auto timeBefore = timeLeft_1.time;
-        auto inputstr = engine1.buildGoInput(board.sideToMove, timeLeft_1);
-
+        // Write new position
         engine1.writeProcess(positionInput);
+        engine1.writeProcess(engine1.buildGoInput(board.sideToMove, timeLeft_1));
 
+        // Start measuring time
         t0 = std::chrono::high_resolution_clock::now();
 
-        engine1.writeProcess(inputstr);
         output = engine1.readProcess("bestmove", timeout, timeoutThreshold);
 
         t1 = std::chrono::high_resolution_clock::now();
 
-        auto measuredTime = std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count();
-        timeLeft_1.time -= measuredTime - timeLeft_1.increment;
+        // Subtract measured time
+        timeLeft_1.time -=
+            std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count() - timeLeft_1.increment;
 
+        // Timeout!
         if (timeLeft_1.time < 0)
         {
-            std::stringstream ss;
-            ss << "Engine " << engine1.getConfig().name << " timed out \n"
-               << "engine input: " << inputstr << "\ntime now:" << timeLeft_1.time << "\nmeasured time:" << measuredTime
-               << "\ntime before: " << timeBefore << "\n"
-               << output[output.size() - 2] << "\n";
-            std::cout << ss.str();
             res = GameResult(~board.sideToMove);
             break;
         }
 
-        std::string bestMove = findElement<std::string>(splitString(output.back(), ' '), "bestmove");
+        // find bestmove and add it to the position string
+        bestMove = findElement<std::string>(splitString(output.back(), ' '), "bestmove");
         positionInput += " " + bestMove;
 
+        // play move on internal board and store it for later pgn creation
         move = convertUciToMove(bestMove);
         board.makeMove(move);
         match.moves.emplace_back(move);
@@ -158,37 +155,34 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, 
             break;
         }
 
-        // Engine 2's turn
-        timeBefore = timeLeft_2.time;
-        inputstr = engine2.buildGoInput(board.sideToMove, timeLeft_2);
-
+        // Engine 1's turn
+        // Write new position
         engine2.writeProcess(positionInput);
+        engine2.writeProcess(engine2.buildGoInput(board.sideToMove, timeLeft_2));
 
+        // Start measuring time
         t0 = std::chrono::high_resolution_clock::now();
 
-        engine2.writeProcess(inputstr);
         output = engine2.readProcess("bestmove", timeout, timeoutThreshold);
 
         t1 = std::chrono::high_resolution_clock::now();
 
-        measuredTime = std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count();
-        timeLeft_2.time -= measuredTime - timeLeft_2.increment;
+        // Subtract measured time
+        timeLeft_2.time -=
+            std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count() - timeLeft_2.increment;
 
+        // Timeout!
         if (timeLeft_2.time < 0)
         {
-            std::stringstream ss;
-            ss << "Engine " << engine1.getConfig().name << " timed out \n"
-               << "engine input: " << inputstr << "\ntime now:" << timeLeft_2.time << "\nmeasured time:" << measuredTime
-               << "\ntime before: " << timeBefore << "\n"
-               << output[output.size() - 2] << "\n";
-            std::cout << ss.str();
             res = GameResult(~board.sideToMove);
             break;
         }
 
+        // find bestmove and add it to the position string
         bestMove = findElement<std::string>(splitString(output.back(), ' '), "bestmove");
         positionInput += " " + bestMove;
 
+        // play move on internal board and store it for later pgn creation
         move = convertUciToMove(bestMove);
         board.makeMove(move);
         match.moves.emplace_back(move);
@@ -218,6 +212,7 @@ std::vector<Match> Tournament::runH2H(CMD::GameManagerOptions localMatchConfig,
     engine1.startEngine();
     engine2.startEngine();
 
+    // engine1 always starts first
     engine1.turn = Turn::FIRST;
     engine2.turn = Turn::SECOND;
 
@@ -236,12 +231,13 @@ std::vector<Match> Tournament::runH2H(CMD::GameManagerOptions localMatchConfig,
         std::string positiveEngine = engine1.turn == Turn::FIRST ? engine1.getConfig().name : engine2.getConfig().name;
         std::string negativeEngine = engine1.turn == Turn::FIRST ? engine2.getConfig().name : engine1.getConfig().name;
 
+        // create a pgn from the played match
         PgnBuilder pgn(match, matchConfig);
 
+        // use a stringstream to build the output to avoid data races with cout <<
         std::stringstream ss;
         ss << "Finished " << gameId + i << "/" << localMatchConfig.games * rounds << " " << positiveEngine << " vs "
            << negativeEngine << "\n";
-        //    << pgn.getPGN() << "\n";
 
         std::cout << ss.str();
 
@@ -266,8 +262,6 @@ void Tournament::startTournament(std::vector<EngineConfiguration> configs)
         results.emplace_back(
             pool.enqueue(std::bind(&Tournament::runH2H, this, matchConfig, configs, i, fetchNextFen())));
     }
-
-    int i = 1;
 
     int wins = 0;
     int draws = 0;
@@ -315,8 +309,6 @@ void Tournament::startTournament(std::vector<EngineConfiguration> configs)
                       << " - " << draws << " Games: " << gameCount << "\n"
                       << "Elo difference: " << elo.getElo() << std::endl;
         }
-
-        i++;
     }
 }
 

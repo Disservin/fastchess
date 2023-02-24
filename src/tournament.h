@@ -56,5 +56,5 @@ class Tournament
 
     size_t startIndex = 0;
 
-    bool saveTimeHeader;
+    bool saveTimeHeader = true;
 };

@@ -188,9 +188,9 @@ std::vector<Match> Tournament::runH2H(CMD::GameManagerOptions localMatchConfig,
         PgnBuilder pgn(match, matchConfig);
 
         std::stringstream ss;
-        // ss << "Finished " << gameId + i << "/" << localMatchConfig.games * rounds << " " << positiveEngine << " vs "
-        //    << negativeEngine << "\n"
-        //    << pgn.getPGN();
+        ss << "Finished " << gameId + i << "/" << localMatchConfig.games * rounds << " " << positiveEngine << " vs "
+           << negativeEngine << "\n";
+        //    << pgn.getPGN() << "\n";
 
         std::cout << ss.str();
 
@@ -222,14 +222,16 @@ void Tournament::startTournament(std::vector<EngineConfiguration> configs)
     int draws = 0;
     int losses = 0;
 
+    int gameCount = 0;
+
     for (auto &&result : results)
     {
         auto res = result.get();
 
-        // std::cout << "Finished " << i << "/" << matchConfig.games << std::endl;
-
         for (auto match : res)
         {
+            gameCount++;
+
             PgnBuilder pgn(match, matchConfig);
             pgns.emplace_back(pgn.getPGN());
 
@@ -258,8 +260,9 @@ void Tournament::startTournament(std::vector<EngineConfiguration> configs)
 
             Elo elo(wins, losses, draws);
 
-            std::cout << "Wins: " << wins << " Draws: " << draws << " Losses: " << losses << "\n"
-                      << "Elo diff: " << elo.getElo() << std::endl;
+            std::cout << "Score of " << configs[0].name << " vs " << configs[1].name << ": " << wins << " - " << losses
+                      << " - " << draws << " Games: " << gameCount << "\n"
+                      << "Elo difference: " << elo.getElo() << std::endl;
         }
 
         i++;

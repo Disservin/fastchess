@@ -4,6 +4,7 @@
 #include <iostream>
 #include <sstream>
 
+#include "elo.h"
 #include "pgn_builder.h"
 #include "rand.h"
 #include "tournament.h"
@@ -46,8 +47,8 @@ std::string Tournament::fetchNextFen()
     {
         if (matchConfig.opening.order == "random")
         {
-            std::uniform_int_distribution<unsigned long> maxLines{startIndex % (openingBook.size() - 1),
-                                                                  openingBook.size() - 1};
+            std::uniform_int_distribution<uint64_t> maxLines{startIndex % (openingBook.size() - 1),
+                                                             openingBook.size() - 1};
 
             auto randLine = maxLines(Random::generator);
             assert(randLine >= 0 && randLine < openingBook.size());
@@ -73,12 +74,16 @@ std::vector<std::string> Tournament::getPGNS() const
 
 Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, std::string openingFen)
 {
+    Match match;
+    Move move;
+
     Board board;
     board.loadFen(openingFen);
 
-    GameResult result;
-    Match match;
-    Move move;
+    match.whiteEngine = board.sideToMove == WHITE ? engine1.getConfig() : engine2.getConfig();
+    match.blackEngine = board.sideToMove != WHITE ? engine1.getConfig() : engine2.getConfig();
+
+    GameResult res;
 
     const int64_t timeoutThreshold = 0;
     bool timeout = false;
@@ -100,15 +105,15 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, 
     while (true)
     {
         // Check for game over
-        result = board.isGameOver();
-        if (result != GameResult::NONE)
+        res = board.isGameOver();
+        if (res != GameResult::NONE)
         {
             break;
         }
 
         // Engine 1's turn
         engine1.writeProcess(positionInput);
-        engine1.writeProcess(engine1.buildGoInput());
+        engine1.writeProcess(engine1.buildGoInput(board.sideToMove));
         output = engine1.readProcess("bestmove", timeout, timeoutThreshold);
 
         std::string bestMove = findElement<std::string>(splitString(output.back(), ' '), "bestmove");
@@ -119,15 +124,15 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, 
         match.moves.emplace_back(move);
 
         // Check for game over
-        result = board.isGameOver();
-        if (result != GameResult::NONE)
+        res = board.isGameOver();
+        if (res != GameResult::NONE)
         {
             break;
         }
 
         // Engine 2's turn
         engine2.writeProcess(positionInput);
-        engine2.writeProcess(engine2.buildGoInput());
+        engine2.writeProcess(engine2.buildGoInput(board.sideToMove));
         output = engine2.readProcess("bestmove", timeout, timeoutThreshold);
 
         bestMove = findElement<std::string>(splitString(output.back(), ' '), "bestmove");
@@ -141,7 +146,7 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, 
     auto end = std::chrono::high_resolution_clock::now();
 
     match.round = round;
-    match.result = result;
+    match.result = res;
     match.endTime = saveTimeHeader ? getDateTime() : "";
     match.duration =
         saveTimeHeader ? formatDuration(std::chrono::duration_cast<std::chrono::seconds>(end - start)) : "";
@@ -162,27 +167,35 @@ std::vector<Match> Tournament::runH2H(CMD::GameManagerOptions localMatchConfig,
     engine1.startEngine();
     engine2.startEngine();
 
-    engine1.color = WHITE;
-    engine2.color = BLACK;
+    engine1.turn = Turn::FIRST;
+    engine2.turn = Turn::SECOND;
 
     int rounds = localMatchConfig.repeat ? 2 : 1;
 
     for (int i = 0; i < rounds; i++)
     {
-        matches.emplace_back(startMatch(engine1, engine2, i, fen));
+        Match match;
+        if (engine1.turn == Turn::FIRST)
+            match = startMatch(engine1, engine2, i, fen);
+        else
+            match = startMatch(engine2, engine1, i, fen);
+
+        matches.emplace_back(match);
+
+        std::string positiveEngine = engine1.turn == Turn::FIRST ? engine1.getConfig().name : engine2.getConfig().name;
+        std::string negativeEngine = engine1.turn == Turn::FIRST ? engine2.getConfig().name : engine1.getConfig().name;
+
+        PgnBuilder pgn(match, matchConfig);
 
         std::stringstream ss;
-
-        std::string whiteEngineName = engine1.color == WHITE ? engine1.getConfig().name : engine2.getConfig().name;
-        std::string blackEngineName = engine1.color == WHITE ? engine2.getConfig().name : engine1.getConfig().name;
-
-        ss << "Finished " << gameId + i << "/" << localMatchConfig.games * rounds << " " << whiteEngineName << " vs "
-           << blackEngineName << "\n";
+        // ss << "Finished " << gameId + i << "/" << localMatchConfig.games * rounds << " " << positiveEngine << " vs "
+        //    << negativeEngine << "\n"
+        //    << pgn.getPGN();
 
         std::cout << ss.str();
 
-        engine1.color = ~engine1.color;
-        engine2.color = ~engine2.color;
+        engine1.turn = ~engine1.turn;
+        engine2.turn = ~engine2.turn;
     }
 
     return matches;
@@ -205,6 +218,10 @@ void Tournament::startTournament(std::vector<EngineConfiguration> configs)
 
     int i = 1;
 
+    int wins = 0;
+    int draws = 0;
+    int losses = 0;
+
     for (auto &&result : results)
     {
         auto res = result.get();
@@ -215,6 +232,34 @@ void Tournament::startTournament(std::vector<EngineConfiguration> configs)
         {
             PgnBuilder pgn(match, matchConfig);
             pgns.emplace_back(pgn.getPGN());
+
+            if (match.result == GameResult::WHITE_WIN)
+            {
+                if (match.whiteEngine.name == configs[0].name)
+                    wins++;
+                else
+                    losses++;
+            }
+            else if (match.result == GameResult::BLACK_WIN)
+            {
+                if (match.blackEngine.name == configs[0].name)
+                    wins++;
+                else
+                    losses++;
+            }
+            else if (match.result == GameResult::DRAW)
+            {
+                draws++;
+            }
+            else
+            {
+                std::cout << "Couldnt obtain Game Result" << std::endl;
+            }
+
+            Elo elo(wins, losses, draws);
+
+            std::cout << "Wins: " << wins << " Draws: " << draws << " Losses: " << losses << "\n"
+                      << "Elo diff: " << elo.getElo() << std::endl;
         }
 
         i++;

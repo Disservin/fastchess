@@ -1,6 +1,7 @@
 #pragma once
 
 #include <array>
+#include <utility>
 #include <vector>
 
 #include "board.h"
@@ -12,9 +13,10 @@
 struct Match
 {
     std::vector<Move> moves;
-    GameResult result;
     EngineConfiguration whiteEngine;
     EngineConfiguration blackEngine;
+    GameResult result;
+    std::string termination;
     std::string startTime;
     std::string endTime;
     std::string duration;

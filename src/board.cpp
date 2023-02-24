@@ -679,7 +679,10 @@ std::string MoveToSan(Board &b, Move move)
     {
         if (pt != PAWN && move != cand && typeOfPiece(b.pieceAt(cand.from_sq)) == pt && move.to_sq == cand.to_sq)
         {
-            san += sanFile[squareFile(move.from_sq)];
+            if (squareFile(move.from_sq) == squareFile(cand.from_sq))
+                san += std::to_string(squareRank(move.from_sq) + 1);
+            else
+                san += sanFile[squareFile(move.from_sq)];
             break;
         }
     }

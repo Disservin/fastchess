@@ -50,13 +50,13 @@ jobs:
           install: mingw-w64-${{matrix.config.msys_env}} make git expect
 
       - name: Building Fast-Chess
-        if: runner.os != 'macos-12'
+        if: runner.os != 'Macos'
         run: |
           cd tests
           make NATIVE=-march=core-avx2
 
       - name: Building Fast-Chess
-        if: runner.os == 'macos-12'
+        if: runner.os == 'Macos'
         run: |
           cd tests
           make -j

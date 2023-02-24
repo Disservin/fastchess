@@ -130,7 +130,7 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, 
         t1 = std::chrono::high_resolution_clock::now();
 
         auto measuredTime = std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count();
-        timeLeft_1.time -= measuredTime + timeLeft_1.increment;
+        timeLeft_1.time -= measuredTime - timeLeft_1.increment;
 
         if (timeLeft_1.time < 0)
         {
@@ -172,7 +172,7 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, 
         t1 = std::chrono::high_resolution_clock::now();
 
         measuredTime = std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count();
-        timeLeft_2.time -= measuredTime + timeLeft_2.increment;
+        timeLeft_2.time -= measuredTime - timeLeft_2.increment;
 
         if (timeLeft_2.time < 0)
         {

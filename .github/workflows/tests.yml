@@ -53,6 +53,12 @@ jobs:
         if: runner.os != 'macos-12'
         run: |
           cd tests
+          make NATIVE=-march=core-avx2
+
+      - name: Building Fast-Chess
+        if: runner.os == 'macos-12'
+        run: |
+          cd tests
           make -j
 
       - name: Running unit tests

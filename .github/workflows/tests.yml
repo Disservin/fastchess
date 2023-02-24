@@ -25,6 +25,11 @@ jobs:
             msys_env: 'x86_64-gcc',
             shell: 'msys2 {0}',
           }
+          - name: MacOS 12 Unit Tests
+            os: macos-12
+            compiler: clang++
+            comp: clang
+            shell: bash {0}
     defaults:
       run:
         shell: ${{ matrix.config.shell }}

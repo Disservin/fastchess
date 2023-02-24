@@ -90,6 +90,11 @@ std::vector<std::string> EngineProcess::readProcess(std::string_view last_word, 
 
     while (true)
     {
+        if (!PeekNamedPipe(childStdOut, nullptr, 0, &bytesRead, &bytesAvail, nullptr))
+        {
+            throw std::runtime_error("Cant peek Pipe");
+        }
+
         // Check if timeout milliseconds have elapsed
         if (checkTime-- == 0)
         {
@@ -105,6 +110,10 @@ std::vector<std::string> EngineProcess::readProcess(std::string_view last_word, 
 
             checkTime = 255;
         }
+
+        // no new bytes to read
+        if (bytesAvail == 0)
+            continue;
 
         if (!ReadFile(childStdOut, buffer, sizeof(buffer), &bytesRead, nullptr))
         {

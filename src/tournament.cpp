@@ -100,7 +100,12 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, 
 
     std::string positionInput = "position startpos moves";
 
-    auto start = std::chrono::high_resolution_clock::now();
+    auto timeLeft_1 = engine1.getConfig().tc;
+    auto timeLeft_2 = engine2.getConfig().tc;
+
+    std::chrono::high_resolution_clock::time_point start;
+    std::chrono::high_resolution_clock::time_point t0;
+    std::chrono::high_resolution_clock::time_point t1;
 
     while (true)
     {
@@ -112,9 +117,32 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, 
         }
 
         // Engine 1's turn
+        auto timeBefore = timeLeft_1.time;
+        auto inputstr = engine1.buildGoInput(board.sideToMove, timeLeft_1);
+
         engine1.writeProcess(positionInput);
-        engine1.writeProcess(engine1.buildGoInput(board.sideToMove));
+
+        t0 = std::chrono::high_resolution_clock::now();
+
+        engine1.writeProcess(inputstr);
         output = engine1.readProcess("bestmove", timeout, timeoutThreshold);
+
+        t1 = std::chrono::high_resolution_clock::now();
+
+        auto measuredTime = std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count();
+        timeLeft_1.time -= measuredTime + timeLeft_1.increment;
+
+        if (timeLeft_1.time < 0)
+        {
+            std::stringstream ss;
+            ss << "Engine " << engine1.getConfig().name << " timed out \n"
+               << "engine input: " << inputstr << "\ntime now:" << timeLeft_1.time << "\nmeasured time:" << measuredTime
+               << "\ntime before: " << timeBefore << "\n"
+               << output[output.size() - 2] << "\n";
+            std::cout << ss.str();
+            res = GameResult(~board.sideToMove);
+            break;
+        }
 
         std::string bestMove = findElement<std::string>(splitString(output.back(), ' '), "bestmove");
         positionInput += " " + bestMove;
@@ -131,9 +159,32 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, 
         }
 
         // Engine 2's turn
+        timeBefore = timeLeft_2.time;
+        inputstr = engine2.buildGoInput(board.sideToMove, timeLeft_2);
+
         engine2.writeProcess(positionInput);
-        engine2.writeProcess(engine2.buildGoInput(board.sideToMove));
+
+        t0 = std::chrono::high_resolution_clock::now();
+
+        engine2.writeProcess(inputstr);
         output = engine2.readProcess("bestmove", timeout, timeoutThreshold);
+
+        t1 = std::chrono::high_resolution_clock::now();
+
+        measuredTime = std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count();
+        timeLeft_2.time -= measuredTime + timeLeft_2.increment;
+
+        if (timeLeft_2.time < 0)
+        {
+            std::stringstream ss;
+            ss << "Engine " << engine1.getConfig().name << " timed out \n"
+               << "engine input: " << inputstr << "\ntime now:" << timeLeft_2.time << "\nmeasured time:" << measuredTime
+               << "\ntime before: " << timeBefore << "\n"
+               << output[output.size() - 2] << "\n";
+            std::cout << ss.str();
+            res = GameResult(~board.sideToMove);
+            break;
+        }
 
         bestMove = findElement<std::string>(splitString(output.back(), ' '), "bestmove");
         positionInput += " " + bestMove;

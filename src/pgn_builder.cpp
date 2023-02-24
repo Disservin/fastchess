@@ -46,8 +46,9 @@ PgnBuilder::PgnBuilder(const Match &match, CMD::GameManagerOptions gameOptions)
     Board b = match.board;
     int i = 3;
 
-    for (auto move : match.moves)
+    for (size_t i = 0; i < match.moves.size(); i++)
     {
+        Move move = match.moves[i];
         if (i % 2 != 0)
         {
             ss << i / 2 << "."
@@ -55,8 +56,9 @@ PgnBuilder::PgnBuilder(const Match &match, CMD::GameManagerOptions gameOptions)
         }
         else
         {
-            ss << " " << MoveToSan(b, move) << (move != match.moves.back() ? "\n" : "");
+            ss << " " << MoveToSan(b, move) << (i == match.moves.size() - 1 ? "\n" : "");
         }
+
         b.makeMove(move);
 
         i++;

@@ -1,6 +1,7 @@
 #include <chrono>
 #include <iomanip>
 #include <iostream>
+#include <sstream>
 
 #include "pgn_builder.h"
 #include "tournament.h"

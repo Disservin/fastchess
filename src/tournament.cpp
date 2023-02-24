@@ -4,6 +4,7 @@
 #include <iostream>
 #include <sstream>
 
+#include "elo.h"
 #include "pgn_builder.h"
 #include "rand.h"
 #include "tournament.h"
@@ -76,7 +77,9 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, 
     Board board;
     board.loadFen(openingFen);
 
-    GameResult result;
+    std::string winner;
+    GameResult res;
+
     Match match;
     Move move;
 
@@ -100,9 +103,17 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, 
     while (true)
     {
         // Check for game over
-        result = board.isGameOver();
-        if (result != GameResult::NONE)
+        res = board.isGameOver();
+        if (res != GameResult::NONE)
         {
+            if (res == GameResult::DRAW)
+            {
+                winner = "draw";
+            }
+            else
+            {
+                winner = Color(res) == engine1.color ? engine1.getConfig().name : engine2.getConfig().name;
+            }
             break;
         }
 
@@ -119,9 +130,17 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, 
         match.moves.emplace_back(move);
 
         // Check for game over
-        result = board.isGameOver();
-        if (result != GameResult::NONE)
+        res = board.isGameOver();
+        if (res != GameResult::NONE)
         {
+            if (res == GameResult::DRAW)
+            {
+                winner = "draw";
+            }
+            else
+            {
+                winner = Color(res) == engine1.color ? engine1.getConfig().name : engine2.getConfig().name;
+            }
             break;
         }
 
@@ -141,7 +160,8 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, 
     auto end = std::chrono::high_resolution_clock::now();
 
     match.round = round;
-    match.result = result;
+    match.result = res;
+    match.winner = winner;
     match.endTime = saveTimeHeader ? getDateTime() : "";
     match.duration =
         saveTimeHeader ? formatDuration(std::chrono::duration_cast<std::chrono::seconds>(end - start)) : "";
@@ -205,6 +225,10 @@ void Tournament::startTournament(std::vector<EngineConfiguration> configs)
 
     int i = 1;
 
+    int wins = 0;
+    int draws = 0;
+    int losses = 0;
+
     for (auto &&result : results)
     {
         auto res = result.get();
@@ -215,6 +239,23 @@ void Tournament::startTournament(std::vector<EngineConfiguration> configs)
         {
             PgnBuilder pgn(match, matchConfig);
             pgns.emplace_back(pgn.getPGN());
+
+            if (match.winner == configs[0].name)
+            {
+                wins++;
+            }
+            else if (match.winner == configs[1].name)
+            {
+                losses++;
+            }
+            else
+            {
+                draws++;
+            }
+            Elo elo(wins, draws, losses);
+
+            std::cout << "Wins: " << wins << " Draws: " << draws << " Losses: " << losses << "\n"
+                      << "Elo diff: " << elo.diff() << std::endl;
         }
 
         i++;

@@ -12,6 +12,7 @@
 struct Match
 {
     std::vector<Move> moves;
+    std::string winner;
     GameResult result;
     EngineConfiguration whiteEngine;
     EngineConfiguration blackEngine;

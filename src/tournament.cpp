@@ -174,18 +174,23 @@ std::vector<Match> Tournament::runH2H(CMD::GameManagerOptions localMatchConfig,
 
     for (int i = 0; i < rounds; i++)
     {
+        Match match;
         if (engine1.turn == Turn::FIRST)
-            matches.emplace_back(startMatch(engine1, engine2, i, fen));
+            match = startMatch(engine1, engine2, i, fen);
         else
-            matches.emplace_back(startMatch(engine2, engine1, i, fen));
+            match = startMatch(engine2, engine1, i, fen);
 
-        std::stringstream ss;
+        matches.emplace_back(match);
 
         std::string positiveEngine = engine1.turn == Turn::FIRST ? engine1.getConfig().name : engine2.getConfig().name;
         std::string negativeEngine = engine1.turn == Turn::FIRST ? engine2.getConfig().name : engine1.getConfig().name;
 
+        PgnBuilder pgn(match, matchConfig);
+
+        std::stringstream ss;
         ss << "Finished " << gameId + i << "/" << localMatchConfig.games * rounds << " " << positiveEngine << " vs "
-           << negativeEngine << "\n";
+           << negativeEngine << "\n"
+           << pgn.getPGN();
 
         std::cout << ss.str();
 
@@ -227,8 +232,6 @@ void Tournament::startTournament(std::vector<EngineConfiguration> configs)
         {
             PgnBuilder pgn(match, matchConfig);
             pgns.emplace_back(pgn.getPGN());
-
-            std::cout << pgn.getPGN() << std::endl;
 
             if (match.result == GameResult::WHITE_WIN)
             {

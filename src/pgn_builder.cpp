@@ -44,14 +44,13 @@ PgnBuilder::PgnBuilder(const Match &match, CMD::GameManagerOptions gameOptions)
     // clang-format on
 
     Board b = match.board;
-    int i = 3;
 
     for (size_t i = 0; i < match.moves.size(); i++)
     {
         Move move = match.moves[i];
-        if (i % 2 != 0)
+        if ((i + 3) % 2 != 0)
         {
-            ss << i / 2 << "."
+            ss << (i + 3) / 2 << "."
                << " " << MoveToSan(b, move);
         }
         else

@@ -196,13 +196,6 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, 
         if (res == GameResult::NONE)
         {
             res = checkAdj(match, drawTracker, resignTracker, bestMoveScore, ~board.sideToMove);
-            if (res != GameResult::NONE)
-            {
-                std::stringstream ss;
-                ss << "adjudicated" << int(res);
-
-                std::cout << ss.str();
-            }
         }
         if (res != GameResult::NONE)
         {
@@ -291,13 +284,6 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, 
         if (res == GameResult::NONE)
         {
             res = checkAdj(match, drawTracker, resignTracker, bestMoveScore, ~board.sideToMove);
-            if (res != GameResult::NONE)
-            {
-                std::stringstream ss;
-                ss << "adjudicated" << int(res);
-
-                std::cout << ss.str();
-            }
         }
         if (res != GameResult::NONE)
         {
@@ -392,6 +378,19 @@ void Tournament::startTournament(std::vector<EngineConfiguration> configs)
 
     for (auto &&result : results)
     {
+        // Everytime when we are waiting a future to be available we inform the user
+        if (result.wait_for(std::chrono::seconds(0)) != std::future_status::ready && gameCount != 0)
+        {
+            Elo elo(wins, losses, draws);
+
+            std::stringstream ss;
+            ss << "Score of " << configs[0].name << " vs " << configs[1].name << ": " << wins << " - " << losses
+               << " - " << draws << " (" << std::fixed << std::setprecision(2)
+               << (float(wins) + (float(draws) * 0.5)) / gameCount << ")\n"
+               << "Elo difference: " << elo.getElo() << std::endl;
+            std::cout << ss.str();
+        }
+
         auto res = result.get();
 
         for (const Match &match : res)
@@ -427,15 +426,15 @@ void Tournament::startTournament(std::vector<EngineConfiguration> configs)
                 std::cout << "Couldnt obtain Game Result" << std::endl;
             }
         }
-
-        Elo elo(wins, losses, draws);
-        std::stringstream ss;
-        ss << "---------------------------\nResult of " << configs[0].name << " vs " << configs[1].name << ": " << wins
-           << " - " << losses << " - " << draws << " (" << std::fixed << std::setprecision(2)
-           << (float(wins) + (float(draws) * 0.5)) / gameCount << ")\n"
-           << "Elo difference: " << elo.getElo() << "\n---------------------------" << std::endl;
-        std::cout << ss.str();
     }
+
+    Elo elo(wins, losses, draws);
+    std::stringstream ss;
+    ss << "---------------------------\nResult of " << configs[0].name << " vs " << configs[1].name << ": " << wins
+       << " - " << losses << " - " << draws << " (" << std::fixed << std::setprecision(2)
+       << (float(wins) + (float(draws) * 0.5)) / gameCount << ")\n"
+       << "Elo difference: " << elo.getElo() << "\n---------------------------" << std::endl;
+    std::cout << ss.str();
 }
 
 std::string Tournament::getDateTime(std::string format)

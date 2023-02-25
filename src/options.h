@@ -77,6 +77,14 @@ class Options
 
     GameManagerOptions getGameOptions() const;
 
+    static bool startsWith(std::string_view haystack, std::string_view needle);
+
+    static bool contains(std::string_view haystack, std::string_view needle);
+
+    static bool contains(const std::vector<std::string> &haystack, std::string_view needle);
+
+    static std::vector<std::string> splitString(const std::string &string, const char &delimiter);
+
   private:
     // Holds all the relevant settings for the handling of the games
     GameManagerOptions gameOptions;

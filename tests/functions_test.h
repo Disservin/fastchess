@@ -1,19 +1,21 @@
 #pragma once
 
+#include "doctest/doctest.h"
+
 #include "../src/helper.h"
 #include "../src/options.h"
 
-TEST_CASE("Testing the startsWith function")
+TEST_CASE("Testing the CMD::Options::startsWith function")
 {
-    CHECK(startsWith("-engine", "-"));
-    CHECK(startsWith("-engine", "") == false);
-    CHECK(startsWith("-engine", "/-") == false);
-    CHECK(startsWith("-engine", "e") == false);
+    CHECK(CMD::Options::startsWith("-engine", "-"));
+    CHECK(CMD::Options::startsWith("-engine", "") == false);
+    CHECK(CMD::Options::startsWith("-engine", "/-") == false);
+    CHECK(CMD::Options::startsWith("-engine", "e") == false);
 }
 
-TEST_CASE("Testing the contains function")
+TEST_CASE("Testing the CMD::Options::contains function")
 {
-    CHECK(contains("-engine", "-"));
-    CHECK(contains("-engine", "e"));
-    CHECK(contains("info string depth 10", "depth"));
+    CHECK(CMD::Options::contains("-engine", "-"));
+    CHECK(CMD::Options::contains("-engine", "e"));
+    CHECK(CMD::Options::contains("info string depth 10", "depth"));
 }

@@ -9,7 +9,7 @@ else
 ifeq ($(COMP), MINGW)
 	uname_S  := Windows
 else
-	LDFLAGS := -static -lrt -pthread -Wl,--whole-archive -lpthread -Wl,--no-whole-archive
+	LDFLAGS := -pthread
 	SUFFIX  :=
 	uname_S := $(shell uname -s)
 endif
@@ -22,7 +22,7 @@ ifeq ($(uname_S), Darwin)
 endif
 
 ifeq ($(build), debug)
-	CXXFLAGS := -O3 -std=c++17 -Wall -Wextra -pedantic
+	CXXFLAGS := -g3 -O3 -std=c++17 -Wall -Wextra -pedantic
 endif
 
 SOURCES := $(wildcard *.cpp)

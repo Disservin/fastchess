@@ -1,6 +1,5 @@
 #pragma once
 
-#include <array>
 #include <utility>
 #include <vector>
 
@@ -42,6 +41,15 @@ class Tournament
     std::string fetchNextFen();
 
     std::vector<std::string> getPGNS() const;
+
+    template <typename T> static T findElement(const std::vector<std::string> &haystack, std::string_view needle)
+    {
+        int index = std::find(haystack.begin(), haystack.end(), needle) - haystack.begin();
+        if constexpr (std::is_same_v<T, int>)
+            return std::stoi(haystack[index + 1]);
+        else
+            return haystack[index + 1];
+    }
 
   private:
     CMD::GameManagerOptions matchConfig;

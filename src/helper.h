@@ -1,21 +1,8 @@
 #pragma once
 
-#include "engine.h"
-#include <algorithm>
 #include <array>
-#include <cassert>
-#include <string>
-#include <vector>
 
 #include "types.h"
-
-bool startsWith(std::string_view haystack, std::string_view needle);
-
-bool contains(std::string_view haystack, std::string_view needle);
-
-bool contains(const std::vector<std::string> &haystack, std::string_view needle);
-
-std::vector<std::string> splitString(const std::string &string, const char &delimiter);
 
 Square lsb(Bitboard mask);
 
@@ -24,35 +11,6 @@ Square msb(Bitboard mask);
 int popcount(Bitboard mask);
 
 Square poplsb(Bitboard &mask);
-
-PieceType typeOfPiece(const Piece piece);
-
-File squareFile(Square sq);
-
-Rank squareRank(Square sq);
-
-Square fileRankSquare(File f, Rank r);
-
-Piece make_piece(PieceType type, Color c);
-
-// returns diagonal of given square
-uint8_t diagonalOf(Square sq);
-
-// returns anti diagonal of given square
-uint8_t anti_diagonalOf(Square sq);
-
-bool sameColor(int sq1, int sq2);
-
-Color colorOf(Piece p);
-
-template <typename T> T findElement(const std::vector<std::string> &haystack, std::string_view needle)
-{
-    int index = std::find(haystack.begin(), haystack.end(), needle) - haystack.begin();
-    if constexpr (std::is_same_v<T, int>)
-        return std::stoi(haystack[index + 1]);
-    else
-        return haystack[index + 1];
-}
 
 /// @brief Table template class for creating N-dimensional arrays.
 /// @tparam T

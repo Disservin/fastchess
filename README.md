@@ -14,6 +14,7 @@ fast-chess.exe -engine cmd=Engine1.exe name=Engine1 -engine cmd=Engine2.exe name
 Options:
   -engine OPTIONS
   -each OPTIONS
+    apply OPTIONS to both engines
   -concurrency N
   -draw movenumber=NUMBER movecount=COUNT score=SCORE
   -resign movecount=COUNT score=SCORE
@@ -23,9 +24,11 @@ Options:
   -repeat
     This has the same effect as -games 2.
   -ratinginterval N
-  -openings file=FILE format=FORMAT order=ORDER plies=PLIES start=START
-  -pgnout FILE
-  -event
+    print elo estimation every n
+  -openings file=NAME format=FORMAT order=ORDER plies=PLIES start=START
+    format can be "epd" and order "sequential" or "random", start specifies the offset
+  -pgnout NAME
+  -event NAME
   -option.OPTION=VALUE
 
 Engine;

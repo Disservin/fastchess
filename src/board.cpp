@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <bitset>
 #include <iostream>
 #include <sstream>
@@ -7,6 +8,7 @@
 #include "attacks.h"
 #include "board.h"
 #include "movegen.h"
+#include "options.h"
 #include "zobrist.h"
 
 void Board::loadFen(const std::string &fen)
@@ -19,7 +21,7 @@ void Board::loadFen(const std::string &fen)
         }
     }
 
-    std::vector<std::string> params = splitString(fen, ' ');
+    std::vector<std::string> params = CMD::Options::splitString(fen, ' ');
 
     const std::string position = params[0];
     const std::string move_right = params[1];
@@ -532,6 +534,59 @@ bool Board::isSquareAttacked(Color c, Square sq) const
     return false;
 }
 
+PieceType Board::typeOfPiece(const Piece piece)
+{
+    constexpr PieceType PieceToPieceType[13] = {PAWN,   KNIGHT, BISHOP, ROOK,  QUEEN, KING,    PAWN,
+                                                KNIGHT, BISHOP, ROOK,   QUEEN, KING,  NONETYPE};
+    return PieceToPieceType[piece];
+}
+
+File Board::squareFile(Square sq)
+{
+    return File(sq & 7);
+}
+
+Rank Board::squareRank(Square sq)
+{
+    return Rank(sq >> 3);
+}
+
+Square Board::fileRankSquare(File f, Rank r)
+{
+    return Square((r << 3) + f);
+}
+
+Piece Board::make_piece(PieceType type, Color c)
+{
+    if (type == NONETYPE)
+        return NONE;
+    return Piece(type + 6 * c);
+}
+
+// returns diagonal of given square
+uint8_t Board::diagonalOf(Square sq)
+{
+    return 7 + squareRank(sq) - squareFile(sq);
+}
+
+// returns anti diagonal of given square
+uint8_t Board::anti_diagonalOf(Square sq)
+{
+    return squareRank(sq) + squareFile(sq);
+}
+
+bool Board::sameColor(int sq1, int sq2)
+{
+    return ((9 * (sq1 ^ sq2)) & 8) == 0;
+}
+
+Color Board::colorOf(Piece p)
+{
+    if (p == NONE)
+        return NO_COLOR;
+    return Color(p / 6);
+}
+
 void Board::placePiece(Piece piece, Square sq)
 {
     hashKey ^= updateKeyPiece(piece, sq);
@@ -655,13 +710,13 @@ std::string MoveToSan(Board &b, Move move)
     static const std::string sanPieceType[] = {"", "N", "B", "R", "Q", "K"};
     static const std::string sanFile[] = {"a", "b", "c", "d", "e", "f", "g", "h"};
 
-    PieceType pt = typeOfPiece(b.pieceAt(move.from_sq));
+    PieceType pt = Board::typeOfPiece(b.pieceAt(move.from_sq));
 
     assert(b.pieceAt(move.from_sq) != NONE);
 
     if (pt == KING && std::abs(move.from_sq - move.to_sq) == 2)
     {
-        if (squareFile(move.to_sq) < squareFile(move.from_sq))
+        if (Board::squareFile(move.to_sq) < Board::squareFile(move.from_sq))
             return "O-O-O";
         else
             return "O-O";
@@ -677,22 +732,22 @@ std::string MoveToSan(Board &b, Move move)
 
     for (const auto &cand : moves)
     {
-        if (pt != PAWN && move != cand && typeOfPiece(b.pieceAt(cand.from_sq)) == pt && move.to_sq == cand.to_sq)
+        if (pt != PAWN && move != cand && Board::typeOfPiece(b.pieceAt(cand.from_sq)) == pt && move.to_sq == cand.to_sq)
         {
-            if (squareFile(move.from_sq) == squareFile(cand.from_sq))
-                san += std::to_string(squareRank(move.from_sq) + 1);
+            if (Board::squareFile(move.from_sq) == Board::squareFile(cand.from_sq))
+                san += std::to_string(Board::squareRank(move.from_sq) + 1);
             else
-                san += sanFile[squareFile(move.from_sq)];
+                san += sanFile[Board::squareFile(move.from_sq)];
             break;
         }
     }
 
     // capture
     if (b.pieceAt(move.to_sq) != NONE || (pt == PAWN && b.enPassantSquare == move.to_sq))
-        san += (pt == PAWN ? sanFile[squareFile(move.from_sq)] : "") + "x";
+        san += (pt == PAWN ? sanFile[Board::squareFile(move.from_sq)] : "") + "x";
 
-    san += sanFile[squareFile(move.to_sq)];
-    san += std::to_string(squareRank(move.to_sq) + 1);
+    san += sanFile[Board::squareFile(move.to_sq)];
+    san += std::to_string(Board::squareRank(move.to_sq) + 1);
 
     if (move.promotion_piece != NONETYPE)
         san += "=" + sanPieceType[move.promotion_piece];

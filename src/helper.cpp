@@ -1,38 +1,6 @@
-#include <sstream>
-#include <vector>
+#include <cassert>
 
 #include "helper.h"
-
-bool startsWith(std::string_view haystack, std::string_view needle)
-{
-    if (needle == "")
-        return false;
-    return (haystack.rfind(needle, 0) != std::string::npos);
-}
-
-bool contains(std::string_view haystack, std::string_view needle)
-{
-    return haystack.find(needle) != std::string::npos;
-}
-
-bool contains(const std::vector<std::string> &haystack, std::string_view needle)
-{
-    return std::find(haystack.begin(), haystack.end(), needle) != haystack.end();
-}
-
-std::vector<std::string> splitString(const std::string &string, const char &delimiter)
-{
-    std::stringstream string_stream(string);
-    std::string segment;
-    std::vector<std::string> seglist;
-
-    while (std::getline(string_stream, segment, delimiter))
-    {
-        seglist.emplace_back(segment);
-    }
-
-    return seglist;
-}
 
 #if defined(__GNUC__) // GCC, Clang, ICC
 
@@ -126,57 +94,4 @@ Square poplsb(Bitboard &mask)
     int8_t s = lsb(mask);
     mask &= mask - 1; // compiler optimizes this to _blsr_Bitboard
     return Square(s);
-}
-
-PieceType typeOfPiece(const Piece piece)
-{
-    constexpr PieceType PieceToPieceType[13] = {PAWN,   KNIGHT, BISHOP, ROOK,  QUEEN, KING,    PAWN,
-                                                KNIGHT, BISHOP, ROOK,   QUEEN, KING,  NONETYPE};
-    return PieceToPieceType[piece];
-}
-
-File squareFile(Square sq)
-{
-    return File(sq & 7);
-}
-
-Rank squareRank(Square sq)
-{
-    return Rank(sq >> 3);
-}
-
-Square fileRankSquare(File f, Rank r)
-{
-    return Square((r << 3) + f);
-}
-
-Piece make_piece(PieceType type, Color c)
-{
-    if (type == NONETYPE)
-        return NONE;
-    return Piece(type + 6 * c);
-}
-
-// returns diagonal of given square
-uint8_t diagonalOf(Square sq)
-{
-    return 7 + squareRank(sq) - squareFile(sq);
-}
-
-// returns anti diagonal of given square
-uint8_t anti_diagonalOf(Square sq)
-{
-    return squareRank(sq) + squareFile(sq);
-}
-
-bool sameColor(int sq1, int sq2)
-{
-    return ((9 * (sq1 ^ sq2)) & 8) == 0;
-}
-
-Color colorOf(Piece p)
-{
-    if (p == NONE)
-        return NO_COLOR;
-    return Color(p / 6);
 }

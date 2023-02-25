@@ -1,3 +1,4 @@
+#include <cassert>
 #include <chrono>
 #include <fstream>
 #include <iomanip>
@@ -74,7 +75,6 @@ std::vector<std::string> Tournament::getPGNS() const
 
 Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, std::string openingFen)
 {
-    const int64_t timeoutThreshold = 0;
     bool timeout = false;
 
     std::vector<std::string> output;
@@ -124,23 +124,27 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, 
         // Start measuring time
         t0 = std::chrono::high_resolution_clock::now();
 
-        output = engine1.readProcess("bestmove", timeout, timeoutThreshold);
+        output = engine1.readProcess("bestmove", timeout, timeLeft_1.time);
 
         t1 = std::chrono::high_resolution_clock::now();
 
         // Subtract measured time
-        timeLeft_1.time -=
-            std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count() - timeLeft_1.increment;
+        timeLeft_1.time -= std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count();
 
         // Timeout!
         if (timeLeft_1.time < 0)
         {
             res = GameResult(~board.sideToMove);
+            std::stringstream ss;
+            ss << "engine " << engine1.getConfig().name << " timed out\n";
+            std::cout << ss.str();
             break;
         }
 
+        timeLeft_1.time += timeLeft_1.increment;
+
         // find bestmove and add it to the position string
-        bestMove = findElement<std::string>(splitString(output.back(), ' '), "bestmove");
+        bestMove = findElement<std::string>(CMD::Options::splitString(output.back(), ' '), "bestmove");
         positionInput += " " + bestMove;
 
         // play move on internal board and store it for later pgn creation
@@ -163,7 +167,7 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, 
         // Start measuring time
         t0 = std::chrono::high_resolution_clock::now();
 
-        output = engine2.readProcess("bestmove", timeout, timeoutThreshold);
+        output = engine2.readProcess("bestmove", timeout, timeLeft_1.time);
 
         t1 = std::chrono::high_resolution_clock::now();
 
@@ -175,11 +179,16 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, 
         if (timeLeft_2.time < 0)
         {
             res = GameResult(~board.sideToMove);
+            std::stringstream ss;
+            ss << "engine " << engine2.getConfig().name << " timed out\n";
+            std::cout << ss.str();
             break;
         }
 
+        timeLeft_2.time += timeLeft_2.increment;
+
         // find bestmove and add it to the position string
-        bestMove = findElement<std::string>(splitString(output.back(), ' '), "bestmove");
+        bestMove = findElement<std::string>(CMD::Options::splitString(output.back(), ' '), "bestmove");
         positionInput += " " + bestMove;
 
         // play move on internal board and store it for later pgn creation

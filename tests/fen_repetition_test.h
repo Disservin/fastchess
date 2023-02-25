@@ -1,14 +1,17 @@
 #pragma once
 
+#include "doctest/doctest.h"
+
 #include "../src/board.h"
+#include "../src/options.h"
 
 inline bool testFenRepetition(const std::string &input)
 {
     Board board;
 
-    std::vector<std::string> tokens = splitString(input, ' ');
+    std::vector<std::string> tokens = CMD::Options::splitString(input, ' ');
 
-    bool hasMoves = contains(tokens, "moves");
+    bool hasMoves = CMD::Options::contains(tokens, "moves");
 
     if (tokens[1] == "fen")
         board.loadFen(input.substr(input.find("fen") + 4));

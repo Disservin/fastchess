@@ -1,10 +1,10 @@
+#include <algorithm>
 #include <limits>
 #include <map>
 #include <sstream>
 #include <type_traits>
 
 #include "engine.h"
-#include "helper.h"
 #include "options.h"
 
 namespace CMD
@@ -307,6 +307,37 @@ std::vector<EngineConfiguration> Options::getEngineConfigs() const
 GameManagerOptions Options::getGameOptions() const
 {
     return gameOptions;
+}
+
+bool Options::startsWith(std::string_view haystack, std::string_view needle)
+{
+    if (needle == "")
+        return false;
+    return (haystack.rfind(needle, 0) != std::string::npos);
+}
+
+bool Options::contains(std::string_view haystack, std::string_view needle)
+{
+    return haystack.find(needle) != std::string::npos;
+}
+
+bool Options::contains(const std::vector<std::string> &haystack, std::string_view needle)
+{
+    return std::find(haystack.begin(), haystack.end(), needle) != haystack.end();
+}
+
+std::vector<std::string> Options::splitString(const std::string &string, const char &delimiter)
+{
+    std::stringstream string_stream(string);
+    std::string segment;
+    std::vector<std::string> seglist;
+
+    while (std::getline(string_stream, segment, delimiter))
+    {
+        seglist.emplace_back(segment);
+    }
+
+    return seglist;
 }
 
 } // namespace CMD

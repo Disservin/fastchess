@@ -1,10 +1,11 @@
 #include <cassert>
+#include <chrono>
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
 
 #include "engineprocess.h"
-#include "helper.h"
+#include "options.h"
 #include "types.h"
 
 EngineProcess::EngineProcess(const std::string &command)
@@ -80,7 +81,7 @@ std::vector<std::string> EngineProcess::readProcess(std::string_view last_word, 
 
     char buffer[4096];
     DWORD bytesRead;
-    DWORD bytesAvail;
+    DWORD bytesAvail = 0;
 
     int checkTime = 255;
 
@@ -90,14 +91,20 @@ std::vector<std::string> EngineProcess::readProcess(std::string_view last_word, 
 
     while (true)
     {
-        if (!PeekNamedPipe(childStdOut, nullptr, 0, &bytesRead, &bytesAvail, nullptr))
-        {
-            throw std::runtime_error("Cant peek Pipe");
-        }
 
         // Check if timeout milliseconds have elapsed
-        if (checkTime-- == 0)
+        if (timeoutThreshold && checkTime-- == 0)
         {
+            /* To achieve "non blocking" file reading on windows with anonymous pipes the only solution
+            that I found was using peeknamedpipe however it turns out this function is terribly slow and leads to
+            timeouts for the engines. Checking this only after n runs seems to reduce the impact of this.
+            For high concurrency windows setups timeoutThreshold should probably be 0. Using
+            the assumption that the engine works rather clean and is able to send the last word.*/
+            if (!PeekNamedPipe(childStdOut, NULL, 0, 0, &bytesAvail, nullptr))
+            {
+                throw std::runtime_error("Cant peek Pipe");
+            }
+
             auto now = std::chrono::high_resolution_clock::now();
 
             if (timeoutThreshold > 0 &&
@@ -112,7 +119,7 @@ std::vector<std::string> EngineProcess::readProcess(std::string_view last_word, 
         }
 
         // no new bytes to read
-        if (bytesAvail == 0)
+        if (timeoutThreshold && bytesAvail == 0)
             continue;
 
         if (!ReadFile(childStdOut, buffer, sizeof(buffer), &bytesRead, nullptr))
@@ -132,7 +139,7 @@ std::vector<std::string> EngineProcess::readProcess(std::string_view last_word, 
                 {
                     lines.emplace_back(currentLine.str());
 
-                    if (contains(currentLine.str(), last_word))
+                    if (CMD::Options::contains(currentLine.str(), last_word))
                     {
                         return lines;
                     }

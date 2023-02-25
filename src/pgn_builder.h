@@ -2,7 +2,6 @@
 
 #include "options.h"
 #include "tournament.h"
-#include <vector>
 
 class PgnBuilder
 {

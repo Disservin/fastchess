@@ -1,5 +1,3 @@
-#include <iostream>
-
 #include "board.h"
 #include "movegen.h"
 

@@ -37,6 +37,18 @@ struct Match
     int round;
 };
 
+struct DrawAdjTracker
+{
+    int moveNumber = 0;
+    int moveCount = 0;
+};
+
+struct ResignAdjTracker
+{
+    int moveCount = 0;
+    Color losingSide = WHITE;
+};
+
 class Tournament
 {
   public:
@@ -71,6 +83,7 @@ class Tournament
 
     std::string getDateTime(std::string format = "%Y-%m-%dT%H:%M:%S %z");
     std::string formatDuration(std::chrono::seconds duration);
+    GameResult CheckAdj(DrawAdjTracker drawTracker, ResignAdjTracker resignTracker);
 
     std::vector<std::string> pgns;
     std::vector<std::string> openingBook;

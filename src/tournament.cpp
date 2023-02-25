@@ -80,6 +80,8 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, 
     output.reserve(30);
 
     GameResult res;
+    DrawAdjTracker drawTracker;
+    ResignAdjTracker resignTracker;
     Match match;
     Move move;
     int score, depth;
@@ -192,6 +194,11 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, 
 
         // Check for game over
         res = board.isGameOver();
+        // If game isn't over by other means check adj
+        if (res == GameResult::NONE)
+        {
+            res = CheckAdj(drawTracker, resignTracker);
+        }
         if (res != GameResult::NONE)
         {
             break;
@@ -426,4 +433,28 @@ std::string Tournament::formatDuration(std::chrono::seconds duration)
     ss << std::setfill('0') << std::setw(2) << hours.count() << ":" << std::setfill('0') << std::setw(2)
        << minutes.count() << ":" << std::setfill('0') << std::setw(2) << seconds.count();
     return ss.str();
+}
+
+GameResult Tournament::CheckAdj(DrawAdjTracker drawTracker, ResignAdjTracker resignTracker)
+{
+    // Check draw adj
+    if (matchConfig.draw.enabled)
+    {
+        if (drawTracker.moveNumber >= matchConfig.draw.moveNumber)
+        {
+            if (drawTracker.moveCount >= matchConfig.draw.moveCount)
+            {
+                return GameResult::DRAW;
+            }
+        }
+    }
+    // Check Resign adj
+    if (matchConfig.resign.enabled)
+    {
+        if (resignTracker.moveCount >= matchConfig.resign.moveCount)
+        {
+            return resignTracker.losingSide == WHITE ? GameResult::BLACK_WIN : GameResult::WHITE_WIN;
+        }
+    }
+    return GameResult::NONE;
 }

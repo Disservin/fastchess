@@ -1,5 +1,6 @@
 #include <cmath>
 #include <iomanip>
+#include <sstream>
 
 #include "elo.h"
 

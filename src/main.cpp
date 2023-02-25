@@ -66,5 +66,7 @@ int main(int argc, char const *argv[])
     tour->loadConfig(options.getGameOptions());
     tour->startTournament(options.getEngineConfigs());
 
+    delete tour;
+
     return 0;
 }

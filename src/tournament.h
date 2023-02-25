@@ -1,5 +1,6 @@
 #pragma once
 
+#include <atomic>
 #include <utility>
 #include <vector>
 
@@ -11,7 +12,7 @@
 
 struct MoveData
 {
-    Move move = {};
+    std::string move = {};
     std::string scoreString;
     int64_t elapsedMillis = 0;
     int depth = 0;
@@ -19,7 +20,7 @@ struct MoveData
 
     MoveData() = default;
 
-    MoveData(Move _move, std::string _scoreString, int64_t _elapsedMillis, int _depth, int _score)
+    MoveData(std::string _move, std::string _scoreString, int64_t _elapsedMillis, int _depth, int _score)
         : move(_move), scoreString(std::move(_scoreString)), elapsedMillis(_elapsedMillis), depth(_depth), score(_score)
     {
     }
@@ -38,6 +39,7 @@ struct Match
     std::string date;
     Board board;
     int round;
+    bool legal;
 };
 
 struct DrawAdjTracker
@@ -75,7 +77,7 @@ class Tournament
 
     Match startMatch(UciEngine &engine1, UciEngine &engine2, int round, std::string openingFen);
     std::vector<Match> runH2H(CMD::GameManagerOptions localMatchConfig, std::vector<EngineConfiguration> configs,
-                              int gameId, std::string fen);
+                              int roundId, std::string fen);
 
     std::string fetchNextFen();
 
@@ -92,14 +94,17 @@ class Tournament
 
     void setStorePGN(bool v);
 
+    void printElo();
+
   private:
+    const std::string STARTPOS = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
     const Score MATE_SCORE = 100'000;
 
-    CMD::GameManagerOptions matchConfig;
+    CMD::GameManagerOptions matchConfig = {};
 
     ThreadPool pool = ThreadPool(1);
 
-    MoveData parseEngineOutput(const std::vector<std::string> &output, const Move &move, int64_t measuredTime);
+    MoveData parseEngineOutput(const std::vector<std::string> &output, const std::string &move, int64_t measuredTime);
     std::string getDateTime(std::string format = "%Y-%m-%dT%H:%M:%S %z");
     std::string formatDuration(std::chrono::seconds duration);
     void updateTrackers(DrawAdjTracker &drawTracker, ResignAdjTracker &resignTracker, const Score moveScore);
@@ -113,4 +118,11 @@ class Tournament
 
     bool storePGNS = false;
     bool saveTimeHeader = true;
+
+    std::atomic<int> wins = 0;
+    std::atomic<int> draws = 0;
+    std::atomic<int> losses = 0;
+    std::atomic<int> roundCount = 0;
+
+    std::vector<std::string> engineNames;
 };

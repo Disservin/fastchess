@@ -17,10 +17,10 @@ inline std::ostream &operator<<(std::ostream &os, const TimeControl &tc)
     if (tc.moves > 0)
         os << tc.moves << "/";
 
-    os << tc.time;
+    os << (tc.time / 1000.0);
 
     if (tc.increment > 0)
-        os << "+" << tc.increment;
+        os << "+" << (tc.increment / 1000.0);
 
     return os;
 }

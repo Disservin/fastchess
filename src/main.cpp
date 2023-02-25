@@ -8,8 +8,43 @@
 #include "tournament.h"
 #include "uci_engine.h"
 
+namespace
+{
+Tournament *tour;
+}
+
+#ifdef _WIN64
+
+BOOL WINAPI consoleHandler(DWORD signal)
+{
+
+    if (signal == CTRL_C_EVENT)
+        tour->printElo();
+
+    return TRUE;
+}
+
+#else
+void sigintHandler(int param)
+{
+    tour->printElo();
+}
+
+#endif
+
 int main(int argc, char const *argv[])
 {
+#ifdef _WIN64
+    if (!SetConsoleCtrlHandler(consoleHandler, TRUE))
+    {
+        std::cout << "\nERROR: Could not set control handler";
+        return 1;
+    }
+
+#else
+    signal(SIGINT, sigintHandler);
+#endif
+
     CMD::Options options = CMD::Options(argc, argv);
 
     for (auto config : options.getEngineConfigs())
@@ -26,9 +61,12 @@ int main(int argc, char const *argv[])
         }
     }
 
-    Tournament tour(options.getGameOptions());
+    tour = new Tournament();
 
-    tour.startTournament(options.getEngineConfigs());
+    tour->loadConfig(options.getGameOptions());
+    tour->startTournament(options.getEngineConfigs());
+
+    delete tour;
 
     return 0;
 }

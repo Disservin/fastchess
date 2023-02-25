@@ -54,11 +54,12 @@ struct GameManagerOptions
     bool recover = false;
     bool repeat = false;
     int concurrency = 1;
-    std::string eventName;
-    OpeningOptions opening;
-    PgnOptions pgn;
-    DrawAdjudication draw;
-    ResignAdjudication resign;
+    int ratinginterval = 10;
+    std::string eventName = {};
+    OpeningOptions opening = {};
+    PgnOptions pgn = {};
+    DrawAdjudication draw = {};
+    ResignAdjudication resign = {};
 };
 
 inline std::ostream &operator<<(std::ostream &os, const Parameter param)

@@ -124,15 +124,30 @@ class ThreadPool
         }
     }
 
-    ~ThreadPool()
+    void kill()
     {
         {
             std::unique_lock<std::mutex> lock(queue_mutex);
             stop = true;
         }
         condition.notify_all();
-        for (std::thread &worker : workers)
-            worker.join();
+        for (auto &worker : workers)
+        {
+            if (worker.joinable())
+            {
+                /*is using detach or join here better?
+                this gets called when ctrl c happens
+                so in order to quickly cleanup i guess detach?
+                */
+                worker.detach();
+            }
+        }
+        workers.clear();
+    }
+
+    ~ThreadPool()
+    {
+        kill();
     }
 
   private:

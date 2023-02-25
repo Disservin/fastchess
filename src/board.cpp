@@ -163,8 +163,14 @@ std::string Board::getFen() const
     return ss.str();
 }
 
-void Board::makeMove(Move move)
+bool Board::makeMove(Move move)
 {
+    Movelist moves;
+    Movegen::legalmoves(*this, moves);
+
+    if (moves.find(move) == -1)
+        return false;
+
     Square from_sq = move.from_sq;
     Square to_sq = move.to_sq;
     Piece p = pieceAt(from_sq);
@@ -265,6 +271,8 @@ void Board::makeMove(Move move)
     hashKey ^= updateKeyCastling();
 
     sideToMove = ~sideToMove;
+
+    return true;
 }
 
 void Board::unmakeMove(Move move)

@@ -44,6 +44,8 @@ Options::Options(int argc, char const *argv[])
             parseDrawOptions(i, argc, argv);
         else if (arg == "-resign")
             parseDrawOptions(i, argc, argv);
+        else if (arg == "-ratinginterval")
+            parseOption(i, argc, argv, gameOptions.ratinginterval);
     }
 
     for (const auto &config : configs)

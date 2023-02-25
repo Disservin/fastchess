@@ -5,8 +5,13 @@
 PgnBuilder::PgnBuilder(const Match &match, CMD::GameManagerOptions gameOptions)
 {
     std::string result = resultToString(match.result);
-
+    std::string termination = match.termination;
     std::stringstream ss;
+
+    if (!match.legal)
+    {
+        termination = std::string("illegal move");
+    }
 
     // clang-format off
     ss << "[Event "         << "\"" << gameOptions.eventName    << "\"" << "]" << "\n";
@@ -21,10 +26,17 @@ PgnBuilder::PgnBuilder(const Match &match, CMD::GameManagerOptions gameOptions)
     ss << "[GameEndTime "   << "\"" << match.endTime            << "\"" << "]" << "\n";
     ss << "[GameStartTime " << "\"" << match.startTime          << "\"" << "]" << "\n";
     ss << "[PlyCount "      << "\"" << match.moves.size()       << "\"" << "]" << "\n";
-    if (match.termination != "")
-        ss << "[Termination " << "\"" << match.termination << "\"" << "]" << "\n";
+    if (termination != "")
+        ss << "[Termination " << "\"" << termination << "\"" << "]" << "\n";
     ss << "[TimeControl "   << "\"" << match.whiteEngine.tc     << "\"" << "]"  << "\n\n";
     // clang-format on
+
+    std::stringstream illegalMove;
+
+    if (!match.legal)
+    {
+        illegalMove << ", other side makes an illegal move: " << match.moves[match.moves.size() - 1].move;
+    }
 
     Board b = match.board;
 
@@ -35,19 +47,24 @@ PgnBuilder::PgnBuilder(const Match &match, CMD::GameManagerOptions gameOptions)
 
         if (moveCount % 2 != 0)
             ss << moveCount / 2 << "."
-               << " " << MoveToSan(b, data.move) << " {" << data.scoreString << "/" << data.depth << " "
-               << data.elapsedMillis << "ms}";
+               << " " << MoveToSan(b, convertUciToMove(data.move)) << " {" << data.scoreString << "/" << data.depth
+               << " " << data.elapsedMillis << (data.elapsedMillis < 1000 ? "ms" : "s") << illegalMove.str() << "}";
         else
         {
-            ss << " " << MoveToSan(b, data.move) << " {" << data.scoreString << "/" << data.depth << " "
-               << data.elapsedMillis << "ms}";
+            ss << " " << MoveToSan(b, convertUciToMove(data.move)) << " {" << data.scoreString << "/" << data.depth
+               << " " << data.elapsedMillis << (data.elapsedMillis < 1000 ? "ms" : "s") << illegalMove.str() << "}";
             if (i != match.moves.size() - 1 && i % 7 == 0)
                 ss << "\n";
             else
                 ss << " ";
+        };
+
+        if (!match.legal && i == match.moves.size() - 2)
+        {
+            break;
         }
 
-        b.makeMove(data.move);
+        b.makeMove(convertUciToMove(data.move));
 
         moveCount++;
     }

@@ -68,7 +68,7 @@ class Board
     void loadFen(const std::string &fen);
     std::string getFen() const;
 
-    void makeMove(Move move);
+    bool makeMove(Move move);
 
     void unmakeMove(Move move);
 

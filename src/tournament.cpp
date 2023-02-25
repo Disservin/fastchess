@@ -191,14 +191,17 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, 
         move = convertUciToMove(bestMove);
         board.makeMove(move);
         match.moves.emplace_back(move, scoreString, depth, measuredTime);
+
+        // Somehow get move score
+        Score bestMoveScore = 28;
         // Update Trackers
-        updateTrackers(drawTracker, resignTracker, 28);
+        updateTrackers(drawTracker, resignTracker, bestMoveScore);
         // Check for game over
         res = board.isGameOver();
         // If game isn't over by other means check adj
         if (res == GameResult::NONE)
         {
-            res = CheckAdj(match.moves.size() / 2, drawTracker, resignTracker);
+            res = CheckAdj(match.moves.size() / 2, drawTracker, resignTracker, bestMoveScore, ~board.sideToMove);
         }
         if (res != GameResult::NONE)
         {
@@ -461,7 +464,7 @@ void Tournament::updateTrackers(DrawAdjTracker &drawTracker, ResignAdjTracker &r
 }
 
 GameResult Tournament::CheckAdj(const int moveNumber, const DrawAdjTracker drawTracker,
-                                const ResignAdjTracker resignTracker)
+                                const ResignAdjTracker resignTracker, const Score score, const Color lastSideThatMoved)
 {
     // Check draw adj
     if (matchConfig.draw.enabled)
@@ -479,8 +482,15 @@ GameResult Tournament::CheckAdj(const int moveNumber, const DrawAdjTracker drawT
     {
         if (resignTracker.moveCount >= matchConfig.resign.moveCount)
         {
-            // Get what side is losing
-            return GameResult::NONE;
+            // We have the Score for the last side that moved, if it's bad that side is the resigning one
+            if (score < resignTracker.resignScore)
+            {
+                return lastSideThatMoved == Color::WHITE ? GameResult::BLACK_WIN : GameResult::WHITE_WIN;
+            }
+            else
+            {
+                return lastSideThatMoved == Color::WHITE ? GameResult::WHITE_WIN : GameResult::BLACK_WIN;
+            }
         }
     }
     return GameResult::NONE;

@@ -95,7 +95,8 @@ class Tournament
     std::string getDateTime(std::string format = "%Y-%m-%dT%H:%M:%S %z");
     std::string formatDuration(std::chrono::seconds duration);
     void updateTrackers(DrawAdjTracker &drawTracker, ResignAdjTracker &resignTracker, const Score moveScore);
-    GameResult CheckAdj(const int moveNumber, const DrawAdjTracker drawTracker, const ResignAdjTracker resignTracker);
+    GameResult CheckAdj(const int moveNumber, const DrawAdjTracker drawTracker, const ResignAdjTracker resignTracker,
+                        const Score score, const Color lastSideThatMoved);
 
     std::vector<std::string> pgns;
     std::vector<std::string> openingBook;

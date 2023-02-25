@@ -155,7 +155,11 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, 
 
             if (scoreType == "cp") {
                 score = findElement<int>(info, "cp");
-                scoreString = (score > 0 ? '+' : '-') + std::to_string(std::abs(score));
+
+                std::stringstream ss;
+                ss << (score >= 0 ? '+' : '-');
+                ss << std::fixed << std::setprecision(2) << (float(std::abs(score)) / 100);
+                scoreString = ss.str();
             } else if (scoreType == "mate") {
                 score = findElement<int>(info, "mate");
                 scoreString = (score > 0 ? "+M" : "-M") + std::to_string(std::abs(score));
@@ -223,7 +227,11 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, 
 
             if (scoreType == "cp") {
                 score = findElement<int>(info, "cp");
-                scoreString = (score > 0 ? '+' : '-') + std::to_string(std::abs(score));
+
+                std::stringstream ss;
+                ss << (score >= 0 ? '+' : '-');
+                ss << std::fixed << std::setprecision(2) << (float(std::abs(score)) / 100);
+                scoreString = ss.str();
             } else if (scoreType == "mate") {
                 score = findElement<int>(info, "mate");
                 scoreString = (score > 0 ? "+M" : "-M") + std::to_string(std::abs(score));

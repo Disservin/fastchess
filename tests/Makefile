@@ -1,5 +1,5 @@
 CXX      = g++
-CXXFLAGS = -O3 -std=c++17
+CXXFLAGS = -O3 -std=c++17 -g3
 NATIVE   = -march=native
 SUFFIX   = .exe
 
@@ -10,7 +10,7 @@ else
 ifeq ($(COMP), MINGW)
 	uname_S  := Windows
 else
-	LDFLAGS := -static -lpthread -lstdc++
+	LDFLAGS := -pthread
 	uname_S := $(shell uname -s)
 	SUFFIX  :=
 endif

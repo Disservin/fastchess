@@ -26,21 +26,21 @@ PgnBuilder::PgnBuilder(const Match &match, CMD::GameManagerOptions gameOptions)
     std::stringstream ss;
 
     // clang-format off
-        ss << "[Event "         << "\"" << gameOptions.eventName    << "\"" << "]" << "\n";
-        ss << "[Site "          << "\"?\""                          << "]"  << "\n";
-        ss << "[Date "          << "\"" << match.date               << "\"" << "]"  << "\n";
-        ss << "[Round "         << "\"" << match.round              << "\"" << "]"  << "\n";
-        ss << "[White "         << "\"" << match.whiteEngine.name   << "\"" << "]" << "\n";
-        ss << "[Black "         << "\"" << match.blackEngine.name   << "\"" << "]" << "\n";
-        ss << "[Result "        << "\"" << result                   << "\"" << "]" << "\n";
-        ss << "[FEN "           << "\"" << match.board.getFen()     << "\"" << "]" << "\n";
-        ss << "[GameDuration "  << "\"" << match.duration           << "\"" << "]" << "\n";
-        ss << "[GameEndTime "   << "\"" << match.endTime            << "\"" << "]" << "\n";
-        ss << "[GameStartTime " << "\"" << match.startTime          << "\"" << "]" << "\n";
-        ss << "[PlyCount "      << "\"" << match.moves.size()       << "\"" << "]" << "\n";
-        if (match.termination != "")
-            ss << "[Termination " << "\"?\"" << "]" << "\n";
-        ss << "[TimeControl "   << "\"" << match.whiteEngine.tc     << "\"" << "]"  << "\n\n";
+    ss << "[Event "         << "\"" << gameOptions.eventName    << "\"" << "]" << "\n";
+    ss << "[Site "          << "\"?\""                          << "]"  << "\n";
+    ss << "[Date "          << "\"" << match.date               << "\"" << "]"  << "\n";
+    ss << "[Round "         << "\"" << match.round              << "\"" << "]"  << "\n";
+    ss << "[White "         << "\"" << match.whiteEngine.name   << "\"" << "]" << "\n";
+    ss << "[Black "         << "\"" << match.blackEngine.name   << "\"" << "]" << "\n";
+    ss << "[Result "        << "\"" << result                   << "\"" << "]" << "\n";
+    ss << "[FEN "           << "\"" << match.board.getFen()     << "\"" << "]" << "\n";
+    ss << "[GameDuration "  << "\"" << match.duration           << "\"" << "]" << "\n";
+    ss << "[GameEndTime "   << "\"" << match.endTime            << "\"" << "]" << "\n";
+    ss << "[GameStartTime " << "\"" << match.startTime          << "\"" << "]" << "\n";
+    ss << "[PlyCount "      << "\"" << match.moves.size()       << "\"" << "]" << "\n";
+    if (match.termination != "")
+        ss << "[Termination " << "\"" << match.termination << "\"" << "]" << "\n";
+    ss << "[TimeControl "   << "\"" << match.whiteEngine.tc     << "\"" << "]"  << "\n\n";
     // clang-format on
 
     Board b = match.board;

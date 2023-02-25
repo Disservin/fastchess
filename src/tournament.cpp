@@ -162,6 +162,7 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, 
             {
                 score = findElement<int>(info, "mate");
                 scoreString = (score > 0 ? "+M" : "-M") + std::to_string(std::abs(score));
+                score = MATE_SCORE;
             }
             else
             {
@@ -194,7 +195,7 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, 
         // If game isn't over by other means check adj
         if (res == GameResult::NONE)
         {
-            res = checkAdj(match.moves.size() / 2, drawTracker, resignTracker, bestMoveScore, ~board.sideToMove);
+            res = checkAdj(match, drawTracker, resignTracker, bestMoveScore, ~board.sideToMove);
             if (res != GameResult::NONE)
             {
                 std::stringstream ss;
@@ -257,6 +258,7 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, 
             {
                 score = findElement<int>(info, "mate");
                 scoreString = (score > 0 ? "+M" : "-M") + std::to_string(std::abs(score));
+                score = MATE_SCORE;
             }
             else
             {
@@ -288,7 +290,7 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, 
         // If game isn't over by other means check adj
         if (res == GameResult::NONE)
         {
-            res = checkAdj(match.moves.size() / 2, drawTracker, resignTracker, bestMoveScore, ~board.sideToMove);
+            res = checkAdj(match, drawTracker, resignTracker, bestMoveScore, ~board.sideToMove);
             if (res != GameResult::NONE)
             {
                 std::stringstream ss;
@@ -485,9 +487,11 @@ void Tournament::updateTrackers(DrawAdjTracker &drawTracker, ResignAdjTracker &r
     }
 }
 
-GameResult Tournament::checkAdj(const int moveNumber, const DrawAdjTracker drawTracker,
-                                const ResignAdjTracker resignTracker, const Score score, const Color lastSideThatMoved)
+GameResult Tournament::checkAdj(Match &match, const DrawAdjTracker drawTracker, const ResignAdjTracker resignTracker,
+                                const Score score, const Color lastSideThatMoved)
+
 {
+    const int moveNumber = match.moves.size() / 2;
     // Check draw adj
     if (matchConfig.draw.enabled)
     {
@@ -495,6 +499,7 @@ GameResult Tournament::checkAdj(const int moveNumber, const DrawAdjTracker drawT
         {
             if (drawTracker.moveCount >= matchConfig.draw.moveCount)
             {
+                match.termination = "adjudication";
                 return GameResult::DRAW;
             }
         }
@@ -502,8 +507,9 @@ GameResult Tournament::checkAdj(const int moveNumber, const DrawAdjTracker drawT
     // Check Resign adj
     if (matchConfig.resign.enabled)
     {
-        if (resignTracker.moveCount >= matchConfig.resign.moveCount)
+        if (resignTracker.moveCount >= matchConfig.resign.moveCount && score != MATE_SCORE)
         {
+            match.termination = "adjudication";
             // We have the Score for the last side that moved, if it's bad that side is the resigning one
             if (score < resignTracker.resignScore)
             {

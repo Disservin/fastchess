@@ -26,7 +26,7 @@ TEST_CASE("Test Tournament")
     std::string pgn =
         "[Event \"\"]\n[Site \"?\"]\n[Date \"\"]\n[Round \"0\"]\n[White \"\"]\n[Black \"\"]\n[Result \"0-1\"]\n[FEN "
         "\"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1\"]\n[GameDuration \"\"]\n[GameEndTime "
-        "\"\"]\n[GameStartTime \"\"]\n[PlyCount \"4\"]\n[TimeControl \"0\"]\n\n1. f3 e5 2. g4 Qh4#  0-1\n";
+        "\"\"]\n[GameStartTime \"\"]\n[PlyCount \"4\"]\n[TimeControl \"0\"]\n\n1. f3 {0.00/0 0ms} e5 {0.00/0 0ms} 2. g4 {0.00/0 0ms} Qh4# {0.00/0 0ms}  0-1\n";
 
     CHECK(tour.getPGNS()[0] == pgn);
 }

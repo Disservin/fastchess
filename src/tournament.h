@@ -9,9 +9,22 @@
 #include "threadpool.h"
 #include "uci_engine.h"
 
+struct MoveData
+{
+    Move move;
+    std::string scoreString;
+    int depth;
+    int64_t elapsedMillis;
+
+    MoveData(Move _move, std::string _scoreString, int _depth, int64_t _elapsedMillis)
+        : move(_move), scoreString(std::move(_scoreString)), depth(_depth), elapsedMillis(_elapsedMillis)
+    {
+    }
+};
+
 struct Match
 {
-    std::vector<Move> moves;
+    std::vector<MoveData> moves;
     EngineConfiguration whiteEngine;
     EngineConfiguration blackEngine;
     GameResult result;

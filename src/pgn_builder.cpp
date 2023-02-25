@@ -48,21 +48,23 @@ PgnBuilder::PgnBuilder(const Match &match, CMD::GameManagerOptions gameOptions)
     int moveCount = 3;
     for (size_t i = 0; i < match.moves.size(); i++)
     {
-        Move move = match.moves[i];
+        MoveData data = match.moves[i];
 
         if (moveCount % 2 != 0)
             ss << moveCount / 2 << "."
-               << " " << MoveToSan(b, move);
+               << " " << MoveToSan(b, data.move) << " {" << data.scoreString << "/" << data.depth << " "
+               << data.elapsedMillis << "ms}";
         else
         {
-            ss << " " << MoveToSan(b, move);
+            ss << " " << MoveToSan(b, data.move) << " {" << data.scoreString << "/" << data.depth << " "
+               << data.elapsedMillis << "ms}";
             if (i != match.moves.size() - 1 && i % 7 == 0)
                 ss << "\n";
             else
                 ss << " ";
         }
 
-        b.makeMove(move);
+        b.makeMove(data.move);
 
         moveCount++;
     }

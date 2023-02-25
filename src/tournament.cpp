@@ -82,6 +82,9 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, 
     GameResult res;
     Match match;
     Move move;
+    int score, depth;
+    int64_t measuredTime;
+    std::string scoreString, scoreType;
 
     Board board;
     board.loadFen(openingFen);
@@ -128,7 +131,8 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, 
         t1 = std::chrono::high_resolution_clock::now();
 
         // Subtract measured time
-        timeLeft_1.time -= std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count();
+        measuredTime = std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count();
+        timeLeft_1.time -= measuredTime;
 
         // Timeout!
         if (timeLeft_1.time < 0)
@@ -142,6 +146,41 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, 
 
         timeLeft_1.time += timeLeft_1.increment;
 
+        // extract last info line
+        if (output.size() > 1)
+        {
+            std::vector<std::string> info = CMD::Options::splitString(output[output.size() - 2], ' ');
+
+            depth = findElement<int>(info, "depth");
+            scoreType = findElement<std::string>(info, "score");
+
+            if (scoreType == "cp")
+            {
+                score = findElement<int>(info, "cp");
+
+                std::stringstream ss;
+                ss << (score >= 0 ? '+' : '-');
+                ss << std::fixed << std::setprecision(2) << (float(std::abs(score)) / 100);
+                scoreString = ss.str();
+            }
+            else if (scoreType == "mate")
+            {
+                score = findElement<int>(info, "mate");
+                scoreString = (score > 0 ? "+M" : "-M") + std::to_string(std::abs(score));
+            }
+            else
+            {
+                score = 0;
+                scoreString = "0.00";
+            }
+        }
+        else
+        {
+            score = 0;
+            scoreString = "0.00";
+            depth = 0;
+        }
+
         // find bestmove and add it to the position string
         bestMove = findElement<std::string>(CMD::Options::splitString(output.back(), ' '), "bestmove");
         positionInput += " " + bestMove;
@@ -149,7 +188,7 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, 
         // play move on internal board and store it for later pgn creation
         move = convertUciToMove(bestMove);
         board.makeMove(move);
-        match.moves.emplace_back(move);
+        match.moves.emplace_back(move, scoreString, depth, measuredTime);
 
         // Check for game over
         res = board.isGameOver();
@@ -158,7 +197,7 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, 
             break;
         }
 
-        // Engine 1's turn
+        // Engine 2's turn
         // Write new position
         engine2.writeProcess(positionInput);
         engine2.writeProcess(engine2.buildGoInput(board.sideToMove, timeLeft_2));
@@ -171,8 +210,8 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, 
         t1 = std::chrono::high_resolution_clock::now();
 
         // Subtract measured time
-        timeLeft_2.time -=
-            std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count() - timeLeft_2.increment;
+        measuredTime = std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count();
+        timeLeft_2.time -= measuredTime;
 
         // Timeout!
         if (timeLeft_2.time < 0)
@@ -186,6 +225,41 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, 
 
         timeLeft_2.time += timeLeft_2.increment;
 
+        // extract last info line
+        if (output.size() > 1)
+        {
+            std::vector<std::string> info = CMD::Options::splitString(output[output.size() - 2], ' ');
+
+            depth = findElement<int>(info, "depth");
+            scoreType = findElement<std::string>(info, "score");
+
+            if (scoreType == "cp")
+            {
+                score = findElement<int>(info, "cp");
+
+                std::stringstream ss;
+                ss << (score >= 0 ? '+' : '-');
+                ss << std::fixed << std::setprecision(2) << (float(std::abs(score)) / 100);
+                scoreString = ss.str();
+            }
+            else if (scoreType == "mate")
+            {
+                score = findElement<int>(info, "mate");
+                scoreString = (score > 0 ? "+M" : "-M") + std::to_string(std::abs(score));
+            }
+            else
+            {
+                score = 0;
+                scoreString = "0.00";
+            }
+        }
+        else
+        {
+            score = 0;
+            scoreString = "0.00";
+            depth = 0;
+        }
+
         // find bestmove and add it to the position string
         bestMove = findElement<std::string>(CMD::Options::splitString(output.back(), ' '), "bestmove");
         positionInput += " " + bestMove;
@@ -193,7 +267,7 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, 
         // play move on internal board and store it for later pgn creation
         move = convertUciToMove(bestMove);
         board.makeMove(move);
-        match.moves.emplace_back(move);
+        match.moves.emplace_back(move, scoreString, depth, measuredTime);
     }
 
     auto end = std::chrono::high_resolution_clock::now();

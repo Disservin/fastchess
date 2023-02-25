@@ -97,7 +97,7 @@ class Tournament
   private:
     const Score MATE_SCORE = 100'000;
 
-    CMD::GameManagerOptions matchConfig;
+    CMD::GameManagerOptions matchConfig = {};
 
     ThreadPool pool = ThreadPool(1);
 

@@ -2,7 +2,7 @@
 
 #include "helper.h"
 
-#if defined(__GNUC__) // GCC, Clang, ICC
+#if defined(__GNUC__) // GCC, Clang
 
 Square lsb(Bitboard b)
 {
@@ -16,7 +16,7 @@ Square msb(Bitboard b)
     return Square(63 ^ __builtin_clzll(b));
 }
 
-#elif defined(_MSC_VER) // MSVC
+#elif defined(_MSC_VER)
 
 #ifdef _WIN64 // MSVC, WIN64
 #include <intrin.h>
@@ -34,43 +34,9 @@ Square msb(Bitboard b)
     return (Square)idx;
 }
 
-#else // MSVC, WIN32
-#include <intrin.h>
-Square lsb(Bitboard b)
-{
-    unsigned long idx;
-
-    if (b & 0xffffffff)
-    {
-        _BitScanForward(&idx, int32_t(b));
-        return Square(idx);
-    }
-    else
-    {
-        _BitScanForward(&idx, int32_t(b >> 32));
-        return Square(idx + 32);
-    }
-}
-
-Square msb(Bitboard b)
-{
-    unsigned long idx;
-
-    if (b >> 32)
-    {
-        _BitScanReverse(&idx, int32_t(b >> 32));
-        return Square(idx + 32);
-    }
-    else
-    {
-        _BitScanReverse(&idx, int32_t(b));
-        return Square(idx);
-    }
-}
-
 #endif
 
-#else // Compiler is neither GCC nor MSVC compatible
+#else
 
 #error "Compiler not supported."
 
@@ -80,9 +46,9 @@ int popcount(Bitboard mask)
 {
 #if defined(_MSC_VER) || defined(__INTEL_COMPILER)
 
-    return (uint8_t)_mm_popcnt_Bitboard(mask);
+    return (uint8_t)_mm_popcnt_u64(mask);
 
-#else // Assumed gcc or compatible compiler
+#else
 
     return __builtin_popcountll(mask);
 
@@ -92,6 +58,6 @@ int popcount(Bitboard mask)
 Square poplsb(Bitboard &mask)
 {
     int8_t s = lsb(mask);
-    mask &= mask - 1; // compiler optimizes this to _blsr_Bitboard
+    mask &= mask - 1; // compiler optimizes this to _blsr_
     return Square(s);
 }

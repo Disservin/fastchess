@@ -13,7 +13,7 @@ TEST_CASE("Test Tournament")
 
     engine.plies = 1;
 
-#ifdef _WIN32
+#ifdef _WIN64
     engine.cmd = "./data/engine/dummy_engine.exe";
 #else
     engine.cmd = "./data/engine/dummy_engine";

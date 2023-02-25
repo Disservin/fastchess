@@ -6,7 +6,7 @@
 
 TEST_CASE("Testing the EngineProcess class")
 {
-#ifdef _WIN32
+#ifdef _WIN64
     Engine engine("./data/engine/dummy_engine.exe");
 #else
     Engine engine("./data/engine/dummy_engine");
@@ -44,7 +44,7 @@ TEST_CASE("Testing the EngineProcess class")
 
 TEST_CASE("Testing the EngineProcess class with setCmd")
 {
-#ifdef _WIN32
+#ifdef _WIN64
     Engine engine;
     engine.initProcess("./data/engine/dummy_engine.exe");
 #else

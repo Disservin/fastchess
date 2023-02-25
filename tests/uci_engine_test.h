@@ -7,7 +7,7 @@
 TEST_CASE("Testing the EngineProcess class")
 {
     UciEngine uci_engine;
-#ifdef _WIN32
+#ifdef _WIN64
     uci_engine.startEngine("./data/engine/dummy_engine.exe");
 #else
     uci_engine.startEngine("./data/engine/dummy_engine");

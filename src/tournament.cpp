@@ -284,6 +284,8 @@ void Tournament::startTournament(std::vector<EngineConfiguration> configs)
 
             PgnBuilder pgn(match, matchConfig);
 
+            pgns.emplace_back(pgn.getPGN());
+
             file << pgn.getPGN() << std::endl;
 
             if (match.result == GameResult::WHITE_WIN)

@@ -75,7 +75,7 @@ class Tournament
 
     Match startMatch(UciEngine &engine1, UciEngine &engine2, int round, std::string openingFen);
     std::vector<Match> runH2H(CMD::GameManagerOptions localMatchConfig, std::vector<EngineConfiguration> configs,
-                              int gameId, std::string fen);
+                              int roundId, std::string fen);
 
     std::string fetchNextFen();
 
@@ -91,6 +91,8 @@ class Tournament
     }
 
     void setStorePGN(bool v);
+
+    void printElo();
 
   private:
     const Score MATE_SCORE = 100'000;
@@ -113,4 +115,11 @@ class Tournament
 
     bool storePGNS = false;
     bool saveTimeHeader = true;
+
+    int wins = 0;
+    int draws = 0;
+    int losses = 0;
+    int roundCount = 0;
+
+    std::vector<std::string> engineNames;
 };

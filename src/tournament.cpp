@@ -77,6 +77,17 @@ void Tournament::setStorePGN(bool v)
     storePGNS = v;
 }
 
+void Tournament::printElo()
+{
+    Elo elo(wins, losses, draws);
+    std::stringstream ss;
+    ss << "---------------------------\nResult of " << engineNames[0] << " vs " << engineNames[1] << ": " << wins
+       << " - " << losses << " - " << draws << " (" << std::fixed << std::setprecision(2)
+       << (float(wins) + (float(draws) * 0.5)) / roundCount << ")\n"
+       << "Elo difference: " << elo.getElo() << "\n---------------------------" << std::endl;
+    std::cout << ss.str();
+}
+
 Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, std::string openingFen)
 {
     std::vector<std::string> output;
@@ -236,7 +247,7 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, 
 }
 
 std::vector<Match> Tournament::runH2H(CMD::GameManagerOptions localMatchConfig,
-                                      std::vector<EngineConfiguration> configs, int gameId, std::string fen)
+                                      std::vector<EngineConfiguration> configs, int roundId, std::string fen)
 {
     // Initialize variables
     std::vector<Match> matches;
@@ -252,15 +263,15 @@ std::vector<Match> Tournament::runH2H(CMD::GameManagerOptions localMatchConfig,
     engine1.turn = Turn::FIRST;
     engine2.turn = Turn::SECOND;
 
-    int rounds = localMatchConfig.repeat ? 2 : 1;
+    int games = localMatchConfig.repeat ? 2 : localMatchConfig.games;
 
-    for (int i = 0; i < rounds; i++)
+    for (int i = 0; i < games; i++)
     {
         Match match;
         if (engine1.turn == Turn::FIRST)
-            match = startMatch(engine1, engine2, i, fen);
+            match = startMatch(engine1, engine2, roundId, fen);
         else
-            match = startMatch(engine2, engine1, i, fen);
+            match = startMatch(engine2, engine1, roundId, fen);
 
         matches.emplace_back(match);
 
@@ -269,8 +280,8 @@ std::vector<Match> Tournament::runH2H(CMD::GameManagerOptions localMatchConfig,
 
         // use a stringstream to build the output to avoid data races with cout <<
         std::stringstream ss;
-        ss << "Finished " << gameId + i << "/" << localMatchConfig.games * rounds << " " << positiveEngine << " vs "
-           << negativeEngine << ": " << resultToString(match.result) << "\n";
+        ss << "Finished game " << i + 1 << "/" << games << " in round " << roundId << "/" << localMatchConfig.rounds
+           << " " << positiveEngine << " vs " << negativeEngine << ": " << resultToString(match.result) << "\n";
 
         std::cout << ss.str();
 
@@ -288,44 +299,32 @@ void Tournament::startTournament(std::vector<EngineConfiguration> configs)
 
     std::vector<std::future<std::vector<Match>>> results;
 
-    int rounds = matchConfig.repeat ? 2 : 1;
-
-    for (int i = 1; i <= matchConfig.games * rounds; i += rounds)
+    for (int i = 1; i <= matchConfig.rounds; i++)
     {
         results.emplace_back(
             pool.enqueue(std::bind(&Tournament::runH2H, this, matchConfig, configs, i, fetchNextFen())));
     }
 
-    int wins = 0;
-    int draws = 0;
-    int losses = 0;
-
-    int gameCount = 0;
-
     std::ofstream file;
     std::string filename = (matchConfig.opening.file == "" ? "fast-chess" : matchConfig.opening.file) + ".pgn";
     file.open(filename, std::ios::app);
 
+    engineNames.push_back(configs[0].name);
+    engineNames.push_back(configs[1].name);
+
     for (auto &&result : results)
     {
         // Everytime when we are waiting a future to be available we inform the user
-        if (result.wait_for(std::chrono::seconds(0)) != std::future_status::ready && gameCount != 0)
+        if (result.wait_for(std::chrono::seconds(0)) != std::future_status::ready && roundCount != 0)
         {
-            Elo elo(wins, losses, draws);
-
-            std::stringstream ss;
-            ss << "Score of " << configs[0].name << " vs " << configs[1].name << ": " << wins << " - " << losses
-               << " - " << draws << " (" << std::fixed << std::setprecision(2)
-               << (float(wins) + (float(draws) * 0.5)) / gameCount << ")\n"
-               << "Elo difference: " << elo.getElo() << std::endl;
-            std::cout << ss.str();
+            printElo();
         }
 
         auto res = result.get();
 
         for (const Match &match : res)
         {
-            gameCount++;
+            roundCount++;
 
             PgnBuilder pgn(match, matchConfig);
 
@@ -359,13 +358,7 @@ void Tournament::startTournament(std::vector<EngineConfiguration> configs)
         }
     }
 
-    Elo elo(wins, losses, draws);
-    std::stringstream ss;
-    ss << "---------------------------\nResult of " << configs[0].name << " vs " << configs[1].name << ": " << wins
-       << " - " << losses << " - " << draws << " (" << std::fixed << std::setprecision(2)
-       << (float(wins) + (float(draws) * 0.5)) / gameCount << ")\n"
-       << "Elo difference: " << elo.getElo() << "\n---------------------------" << std::endl;
-    std::cout << ss.str();
+    printElo();
 }
 
 MoveData Tournament::parseEngineOutput(const std::vector<std::string> &output, const Move &move, int64_t measuredTime)

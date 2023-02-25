@@ -457,7 +457,6 @@ void Tournament::updateTrackers(DrawAdjTracker &drawTracker, ResignAdjTracker &r
     else
     {
         resignTracker.moveCount = 0;
-        resignTracker.losingSide = Color::NO_COLOR;
     }
 }
 
@@ -480,8 +479,8 @@ GameResult Tournament::CheckAdj(const int moveNumber, const DrawAdjTracker drawT
     {
         if (resignTracker.moveCount >= matchConfig.resign.moveCount)
         {
-            assert(resignTracker.losingSide != Color::NO_COLOR);
-            return resignTracker.losingSide == WHITE ? GameResult::BLACK_WIN : GameResult::WHITE_WIN;
+            // Get what side is losing
+            return GameResult::NONE;
         }
     }
     return GameResult::NONE;

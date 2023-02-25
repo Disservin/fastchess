@@ -53,7 +53,6 @@ struct ResignAdjTracker
 {
     int moveCount = 0;
     Score resignScore;
-    Color losingSide = Color::NO_COLOR;
     ResignAdjTracker(Score resignScore, int moveCount)
     {
         this->resignScore = resignScore;

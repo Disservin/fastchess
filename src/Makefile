@@ -22,7 +22,7 @@ ifeq ($(uname_S), Darwin)
 endif
 
 ifeq ($(build), debug)
-	CXXFLAGS := -O3 -std=c++17 -Wall -Wextra -pedantic
+	CXXFLAGS := -g3 -O3 -std=c++17 -Wall -Wextra -pedantic
 endif
 
 SOURCES := $(wildcard *.cpp)

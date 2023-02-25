@@ -52,14 +52,13 @@ std::string Tournament::fetchNextFen()
                                                              openingBook.size() - 1};
 
             auto randLine = maxLines(Random::generator);
-            assert(randLine >= 0 && randLine < openingBook.size());
+            assert(randLine < openingBook.size());
 
             return openingBook[randLine];
         }
         else if (matchConfig.opening.order == "sequential")
         {
-            assert(startIndex++ % (openingBook.size() - 1) >= 0 &&
-                   startIndex++ % (openingBook.size() - 1) < openingBook.size());
+            assert(startIndex++ % (openingBook.size() - 1) < openingBook.size());
 
             return openingBook[startIndex++ % (openingBook.size() - 1)];
         }

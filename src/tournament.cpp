@@ -191,7 +191,8 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, 
         move = convertUciToMove(bestMove);
         board.makeMove(move);
         match.moves.emplace_back(move, scoreString, depth, measuredTime);
-
+        // Update Trackers
+        UpdateTrackers(drawTracker, resignTracker);
         // Check for game over
         res = board.isGameOver();
         // If game isn't over by other means check adj
@@ -435,7 +436,12 @@ std::string Tournament::formatDuration(std::chrono::seconds duration)
     return ss.str();
 }
 
-GameResult Tournament::CheckAdj(DrawAdjTracker drawTracker, ResignAdjTracker resignTracker)
+void updateTrackers(DrawAdjTracker &drawTracker, ResignAdjTracker &resignTracker)
+{
+    return;
+}
+
+GameResult Tournament::CheckAdj(const DrawAdjTracker drawTracker, const ResignAdjTracker resignTracker)
 {
     // Check draw adj
     if (matchConfig.draw.enabled)

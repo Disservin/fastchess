@@ -80,8 +80,8 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, 
     output.reserve(30);
 
     GameResult res;
-    DrawAdjTracker drawTracker;
-    ResignAdjTracker resignTracker;
+    DrawAdjTracker drawTracker = DrawAdjTracker(matchConfig.draw.score, 0);
+    ResignAdjTracker resignTracker = ResignAdjTracker(matchConfig.resign.score, 0);
     Match match;
     Move move;
     int score, depth;
@@ -192,13 +192,13 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, 
         board.makeMove(move);
         match.moves.emplace_back(move, scoreString, depth, measuredTime);
         // Update Trackers
-        UpdateTrackers(drawTracker, resignTracker);
+        updateTrackers(drawTracker, resignTracker, 28);
         // Check for game over
         res = board.isGameOver();
         // If game isn't over by other means check adj
         if (res == GameResult::NONE)
         {
-            res = CheckAdj(drawTracker, resignTracker);
+            res = CheckAdj(match.moves.size() / 2, drawTracker, resignTracker);
         }
         if (res != GameResult::NONE)
         {
@@ -436,17 +436,38 @@ std::string Tournament::formatDuration(std::chrono::seconds duration)
     return ss.str();
 }
 
-void updateTrackers(DrawAdjTracker &drawTracker, ResignAdjTracker &resignTracker)
+void Tournament::updateTrackers(DrawAdjTracker &drawTracker, ResignAdjTracker &resignTracker, const Score moveScore)
 {
-    return;
+    // Score is low for draw adj, increase the counter
+    if (abs(moveScore) < drawTracker.drawScore)
+    {
+        drawTracker.moveCount++;
+    }
+    // Score wasn't low enough for draw adj, since we care about consecutive moves we have to reset the counter
+    else
+    {
+        drawTracker.moveCount = 0;
+    }
+    // Score is low for resign adj, increase the counter (this purposely makes it possible that a move can work for both
+    // draw and resign adj for whatever reason that might be the case)
+    if (abs(moveScore) > resignTracker.resignScore)
+    {
+        resignTracker.moveCount++;
+    }
+    else
+    {
+        resignTracker.moveCount = 0;
+        resignTracker.losingSide = Color::NO_COLOR;
+    }
 }
 
-GameResult Tournament::CheckAdj(const DrawAdjTracker drawTracker, const ResignAdjTracker resignTracker)
+GameResult Tournament::CheckAdj(const int moveNumber, const DrawAdjTracker drawTracker,
+                                const ResignAdjTracker resignTracker)
 {
     // Check draw adj
     if (matchConfig.draw.enabled)
     {
-        if (drawTracker.moveNumber >= matchConfig.draw.moveNumber)
+        if (moveNumber >= matchConfig.draw.moveNumber)
         {
             if (drawTracker.moveCount >= matchConfig.draw.moveCount)
             {
@@ -459,6 +480,7 @@ GameResult Tournament::CheckAdj(const DrawAdjTracker drawTracker, const ResignAd
     {
         if (resignTracker.moveCount >= matchConfig.resign.moveCount)
         {
+            assert(resignTracker.losingSide != Color::NO_COLOR);
             return resignTracker.losingSide == WHITE ? GameResult::BLACK_WIN : GameResult::WHITE_WIN;
         }
     }

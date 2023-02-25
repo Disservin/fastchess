@@ -18,7 +18,7 @@ TEST_CASE("Test Tournament")
     engine.name = "engine";
     engine_2.name = "engine_2";
 
-#ifdef _WIN32
+#ifdef _WIN64
     engine.cmd = "./data/engine/dummy_engine.exe";
     engine_2.cmd = "./data/engine/dummy_engine.exe";
 #else

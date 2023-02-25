@@ -4,24 +4,7 @@
 
 PgnBuilder::PgnBuilder(const Match &match, CMD::GameManagerOptions gameOptions)
 {
-    std::string result;
-
-    if (match.result == GameResult::BLACK_WIN)
-    {
-        result = "0-1";
-    }
-    else if (match.result == GameResult::WHITE_WIN)
-    {
-        result = "1-0";
-    }
-    else if (match.result == GameResult::DRAW)
-    {
-        result = "1/2-1/2";
-    }
-    else
-    {
-        result = "*";
-    }
+    std::string result = resultToString(match.result);
 
     std::stringstream ss;
 

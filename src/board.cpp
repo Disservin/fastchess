@@ -769,3 +769,23 @@ std::string MoveToSan(Board &b, Move move)
 
     return san;
 }
+
+std::string resultToString(GameResult result)
+{
+    if (result == GameResult::BLACK_WIN)
+    {
+        return "0-1";
+    }
+    else if (result == GameResult::WHITE_WIN)
+    {
+        return "1-0";
+    }
+    else if (result == GameResult::DRAW)
+    {
+        return "1/2-1/2";
+    }
+    else
+    {
+        return "*";
+    }
+}

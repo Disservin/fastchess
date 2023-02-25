@@ -1,4 +1,5 @@
 #include <cmath>
+#include <iomanip>
 
 #include "elo.h"
 
@@ -62,5 +63,10 @@ double Elo::getDiff(int wins, int losses, int draws)
 
 std::string Elo::getElo() const
 {
-    return std::to_string(diff) + " +/- " + std::to_string(error);
+    std::stringstream ss;
+
+    ss << std::fixed << std::setprecision(2) << diff;
+    ss << " +/- ";
+    ss << std::fixed << std::setprecision(2) << error;
+    return ss.str();
 }

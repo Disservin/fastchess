@@ -113,13 +113,6 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, 
 
     while (true)
     {
-        // Check for game over
-        res = board.isGameOver();
-        if (res != GameResult::NONE)
-        {
-            break;
-        }
-
         // Engine 1's turn
         // Write new position
         engine1.writeProcess(positionInput);
@@ -202,6 +195,13 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, 
         if (res == GameResult::NONE)
         {
             res = CheckAdj(match.moves.size() / 2, drawTracker, resignTracker, bestMoveScore, ~board.sideToMove);
+            if (res != GameResult::NONE)
+            {
+                std::stringstream ss;
+                ss << "adjudicated" << int(res);
+
+                std::cout << ss.str();
+            }
         }
         if (res != GameResult::NONE)
         {
@@ -279,6 +279,29 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, 
         move = convertUciToMove(bestMove);
         board.makeMove(move);
         match.moves.emplace_back(move, scoreString, depth, measuredTime);
+
+        // Somehow get move score
+        Score bestMoveScore = 28;
+        // Update Trackers
+        updateTrackers(drawTracker, resignTracker, bestMoveScore);
+        // Check for game over
+        res = board.isGameOver();
+        // If game isn't over by other means check adj
+        if (res == GameResult::NONE)
+        {
+            res = CheckAdj(match.moves.size() / 2, drawTracker, resignTracker, bestMoveScore, ~board.sideToMove);
+            if (res != GameResult::NONE)
+            {
+                std::stringstream ss;
+                ss << "adjudicated" << int(res);
+
+                std::cout << ss.str();
+            }
+        }
+        if (res != GameResult::NONE)
+        {
+            break;
+        }
     }
 
     auto end = std::chrono::high_resolution_clock::now();

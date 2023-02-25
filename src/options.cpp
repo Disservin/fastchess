@@ -208,22 +208,25 @@ void Options::parseDrawOptions(int &i, int argc, char const *argv[])
 {
     i++;
 
-    int internalIndex = 0;
-
     while (i < argc && argv[i][0] != '-')
     {
         gameOptions.draw.enabled = true;
-
-        if (internalIndex == 0)
+        std::string param = argv[i];
+        size_t pos = param.find('=');
+        std::string key = param.substr(0, pos);
+        std::string value = param.substr(pos + 1);
+        if (key == "movenumber")
         {
-            gameOptions.draw.moves = std::stoi(argv[i]);
+            gameOptions.draw.moveNumber = std::stoi(value);
         }
-        else
+        else if (key == "movecount")
         {
-            gameOptions.draw.score = std::stoi(argv[i]);
+            gameOptions.draw.moveCount = std::stoi(value);
         }
-
-        internalIndex++;
+        else if (key == "score")
+        {
+            gameOptions.draw.score = std::stoi(value);
+        }
 
         i++;
     }
@@ -235,22 +238,22 @@ void Options::parseResignOptions(int &i, int argc, char const *argv[])
 {
     i++;
 
-    int internalIndex = 0;
-
     while (i < argc && argv[i][0] != '-')
     {
         gameOptions.resign.enabled = true;
+        std::string param = argv[i];
+        size_t pos = param.find('=');
+        std::string key = param.substr(0, pos);
+        std::string value = param.substr(pos + 1);
 
-        if (internalIndex == 0)
+        if (key == "movecount")
         {
-            gameOptions.resign.moves = std::stoi(argv[i]);
+            gameOptions.resign.moveCount = std::stoi(value);
         }
-        else
+        else if (key == "score")
         {
-            gameOptions.resign.score = std::stoi(argv[i]);
+            gameOptions.resign.score = std::stoi(value);
         }
-
-        internalIndex++;
 
         i++;
     }

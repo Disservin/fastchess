@@ -35,14 +35,15 @@ struct PgnOptions
 struct DrawAdjudication
 {
     bool enabled = false;
-    int moves = 0;
+    int moveNumber = 0;
+    int moveCount = 0;
     int score = 0;
 };
 
 struct ResignAdjudication
 {
     bool enabled = false;
-    int moves = 0;
+    int moveCount = 0;
     int score = 0;
 };
 

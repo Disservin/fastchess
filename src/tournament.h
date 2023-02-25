@@ -37,6 +37,29 @@ struct Match
     int round;
 };
 
+struct DrawAdjTracker
+{
+    Score drawScore;
+    int moveCount = 0;
+
+    DrawAdjTracker(Score drawScore, int moveCount)
+    {
+        this->drawScore = drawScore;
+        this->moveCount = moveCount;
+    }
+};
+
+struct ResignAdjTracker
+{
+    int moveCount = 0;
+    Score resignScore;
+    ResignAdjTracker(Score resignScore, int moveCount)
+    {
+        this->resignScore = resignScore;
+        this->moveCount = moveCount;
+    }
+};
+
 class Tournament
 {
   public:
@@ -65,12 +88,17 @@ class Tournament
     }
 
   private:
+    const Score MATE_SCORE = 100'000;
+
     CMD::GameManagerOptions matchConfig;
 
     ThreadPool pool = ThreadPool(1);
 
     std::string getDateTime(std::string format = "%Y-%m-%dT%H:%M:%S %z");
     std::string formatDuration(std::chrono::seconds duration);
+    void updateTrackers(DrawAdjTracker &drawTracker, ResignAdjTracker &resignTracker, const Score moveScore);
+    GameResult checkAdj(Match &match, const DrawAdjTracker drawTracker, const ResignAdjTracker resignTracker,
+                        const Score score, const Color lastSideThatMoved);
 
     std::vector<std::string> pgns;
     std::vector<std::string> openingBook;

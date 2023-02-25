@@ -80,6 +80,8 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, 
     output.reserve(30);
 
     GameResult res;
+    DrawAdjTracker drawTracker = DrawAdjTracker(matchConfig.draw.score, 0);
+    ResignAdjTracker resignTracker = ResignAdjTracker(matchConfig.resign.score, 0);
     Match match;
     Move move;
     int score, depth;
@@ -111,13 +113,6 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, 
 
     while (true)
     {
-        // Check for game over
-        res = board.isGameOver();
-        if (res != GameResult::NONE)
-        {
-            break;
-        }
-
         // Engine 1's turn
         // Write new position
         engine1.writeProcess(positionInput);
@@ -167,6 +162,7 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, 
             {
                 score = findElement<int>(info, "mate");
                 scoreString = (score > 0 ? "+M" : "-M") + std::to_string(std::abs(score));
+                score = MATE_SCORE;
             }
             else
             {
@@ -190,8 +186,24 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, 
         board.makeMove(move);
         match.moves.emplace_back(move, scoreString, depth, measuredTime);
 
+        // Somehow get move score
+        Score bestMoveScore = score;
+        // Update Trackers
+        updateTrackers(drawTracker, resignTracker, bestMoveScore);
         // Check for game over
         res = board.isGameOver();
+        // If game isn't over by other means check adj
+        if (res == GameResult::NONE)
+        {
+            res = checkAdj(match, drawTracker, resignTracker, bestMoveScore, ~board.sideToMove);
+            if (res != GameResult::NONE)
+            {
+                std::stringstream ss;
+                ss << "adjudicated" << int(res);
+
+                std::cout << ss.str();
+            }
+        }
         if (res != GameResult::NONE)
         {
             break;
@@ -246,6 +258,7 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, 
             {
                 score = findElement<int>(info, "mate");
                 scoreString = (score > 0 ? "+M" : "-M") + std::to_string(std::abs(score));
+                score = MATE_SCORE;
             }
             else
             {
@@ -268,6 +281,28 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, 
         move = convertUciToMove(bestMove);
         board.makeMove(move);
         match.moves.emplace_back(move, scoreString, depth, measuredTime);
+
+        // Update Trackers
+        bestMoveScore = score;
+        updateTrackers(drawTracker, resignTracker, bestMoveScore);
+        // Check for game over
+        res = board.isGameOver();
+        // If game isn't over by other means check adj
+        if (res == GameResult::NONE)
+        {
+            res = checkAdj(match, drawTracker, resignTracker, bestMoveScore, ~board.sideToMove);
+            if (res != GameResult::NONE)
+            {
+                std::stringstream ss;
+                ss << "adjudicated" << int(res);
+
+                std::cout << ss.str();
+            }
+        }
+        if (res != GameResult::NONE)
+        {
+            break;
+        }
     }
 
     auto end = std::chrono::high_resolution_clock::now();
@@ -426,4 +461,65 @@ std::string Tournament::formatDuration(std::chrono::seconds duration)
     ss << std::setfill('0') << std::setw(2) << hours.count() << ":" << std::setfill('0') << std::setw(2)
        << minutes.count() << ":" << std::setfill('0') << std::setw(2) << seconds.count();
     return ss.str();
+}
+
+void Tournament::updateTrackers(DrawAdjTracker &drawTracker, ResignAdjTracker &resignTracker, const Score moveScore)
+{
+    // Score is low for draw adj, increase the counter
+    if (abs(moveScore) < drawTracker.drawScore)
+    {
+        drawTracker.moveCount++;
+    }
+    // Score wasn't low enough for draw adj, since we care about consecutive moves we have to reset the counter
+    else
+    {
+        drawTracker.moveCount = 0;
+    }
+    // Score is low for resign adj, increase the counter (this purposely makes it possible that a move can work for both
+    // draw and resign adj for whatever reason that might be the case)
+    if (abs(moveScore) > resignTracker.resignScore)
+    {
+        resignTracker.moveCount++;
+    }
+    else
+    {
+        resignTracker.moveCount = 0;
+    }
+}
+
+GameResult Tournament::checkAdj(Match &match, const DrawAdjTracker drawTracker, const ResignAdjTracker resignTracker,
+                                const Score score, const Color lastSideThatMoved)
+
+{
+    const int moveNumber = match.moves.size() / 2;
+    // Check draw adj
+    if (matchConfig.draw.enabled)
+    {
+        if (moveNumber >= matchConfig.draw.moveNumber)
+        {
+            if (drawTracker.moveCount >= matchConfig.draw.moveCount)
+            {
+                match.termination = "adjudication";
+                return GameResult::DRAW;
+            }
+        }
+    }
+    // Check Resign adj
+    if (matchConfig.resign.enabled)
+    {
+        if (resignTracker.moveCount >= matchConfig.resign.moveCount && score != MATE_SCORE)
+        {
+            match.termination = "adjudication";
+            // We have the Score for the last side that moved, if it's bad that side is the resigning one
+            if (score < resignTracker.resignScore)
+            {
+                return lastSideThatMoved == Color::WHITE ? GameResult::BLACK_WIN : GameResult::WHITE_WIN;
+            }
+            else
+            {
+                return lastSideThatMoved == Color::WHITE ? GameResult::WHITE_WIN : GameResult::BLACK_WIN;
+            }
+        }
+    }
+    return GameResult::NONE;
 }

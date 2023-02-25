@@ -332,7 +332,7 @@ std::vector<std::string> EngineProcess::readProcess(std::string_view last_word, 
                 {
                     lines.emplace_back(currentLine.str());
 
-                    if (contains(currentLine.str(), last_word))
+                    if (CMD::Options::contains(currentLine.str(), last_word))
                     {
                         return lines;
                     }

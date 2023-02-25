@@ -147,28 +147,35 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, 
         timeLeft_1.time += timeLeft_1.increment;
 
         // extract last info line
-        if (output.size() > 1) {
+        if (output.size() > 1)
+        {
             std::vector<std::string> info = CMD::Options::splitString(output[output.size() - 2], ' ');
 
             depth = findElement<int>(info, "depth");
             scoreType = findElement<std::string>(info, "score");
 
-            if (scoreType == "cp") {
+            if (scoreType == "cp")
+            {
                 score = findElement<int>(info, "cp");
 
                 std::stringstream ss;
                 ss << (score >= 0 ? '+' : '-');
                 ss << std::fixed << std::setprecision(2) << (float(std::abs(score)) / 100);
                 scoreString = ss.str();
-            } else if (scoreType == "mate") {
+            }
+            else if (scoreType == "mate")
+            {
                 score = findElement<int>(info, "mate");
                 scoreString = (score > 0 ? "+M" : "-M") + std::to_string(std::abs(score));
-            } else {
+            }
+            else
+            {
                 score = 0;
                 scoreString = "0.00";
             }
-
-        } else {
+        }
+        else
+        {
             score = 0;
             scoreString = "0.00";
             depth = 0;
@@ -219,28 +226,35 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, 
         timeLeft_2.time += timeLeft_2.increment;
 
         // extract last info line
-        if (output.size() > 1) {
+        if (output.size() > 1)
+        {
             std::vector<std::string> info = CMD::Options::splitString(output[output.size() - 2], ' ');
 
             depth = findElement<int>(info, "depth");
             scoreType = findElement<std::string>(info, "score");
 
-            if (scoreType == "cp") {
+            if (scoreType == "cp")
+            {
                 score = findElement<int>(info, "cp");
 
                 std::stringstream ss;
                 ss << (score >= 0 ? '+' : '-');
                 ss << std::fixed << std::setprecision(2) << (float(std::abs(score)) / 100);
                 scoreString = ss.str();
-            } else if (scoreType == "mate") {
+            }
+            else if (scoreType == "mate")
+            {
                 score = findElement<int>(info, "mate");
                 scoreString = (score > 0 ? "+M" : "-M") + std::to_string(std::abs(score));
-            } else {
+            }
+            else
+            {
                 score = 0;
                 scoreString = "0.00";
             }
-
-        } else {
+        }
+        else
+        {
             score = 0;
             scoreString = "0.00";
             depth = 0;

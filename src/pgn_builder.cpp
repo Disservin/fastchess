@@ -52,10 +52,12 @@ PgnBuilder::PgnBuilder(const Match &match, CMD::GameManagerOptions gameOptions)
 
         if (moveCount % 2 != 0)
             ss << moveCount / 2 << "."
-               << " " << MoveToSan(b, data.move) << " {" << data.scoreString << "/" << data.depth << " " << data.elapsedMillis << "ms}";
+               << " " << MoveToSan(b, data.move) << " {" << data.scoreString << "/" << data.depth << " "
+               << data.elapsedMillis << "ms}";
         else
         {
-            ss << " " << MoveToSan(b, data.move) << " {" << data.scoreString << "/" << data.depth << " " << data.elapsedMillis << "ms}";
+            ss << " " << MoveToSan(b, data.move) << " {" << data.scoreString << "/" << data.depth << " "
+               << data.elapsedMillis << "ms}";
             if (i != match.moves.size() - 1 && i % 7 == 0)
                 ss << "\n";
             else

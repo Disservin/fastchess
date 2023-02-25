@@ -161,8 +161,10 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, 
 
         // play move on internal board and store it for later pgn creation
         move = convertUciToMove(bestMove);
-        board.makeMove(move);
-        match.moves.emplace_back(parseEngineOutput(output, move, measuredTime));
+
+        match.legal = board.makeMove(move);
+
+        match.moves.emplace_back(parseEngineOutput(output, bestMove, measuredTime));
 
         // Update Trackers
         updateTrackers(drawTracker, resignTracker, match.moves.back().score);
@@ -171,12 +173,12 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, 
         res = board.isGameOver();
 
         // If game isn't over by other means check adj
-        if (res == GameResult::NONE)
+        if (res == GameResult::NONE && !match.legal)
         {
             res = checkAdj(match, drawTracker, resignTracker, match.moves.back().score, ~board.sideToMove);
         }
 
-        if (res != GameResult::NONE)
+        if (res != GameResult::NONE || !match.legal)
         {
             break;
         }
@@ -215,8 +217,8 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, 
 
         // play move on internal board and store it for later pgn creation
         move = convertUciToMove(bestMove);
-        board.makeMove(move);
-        match.moves.emplace_back(parseEngineOutput(output, move, measuredTime));
+        match.legal = board.makeMove(move);
+        match.moves.emplace_back(parseEngineOutput(output, bestMove, measuredTime));
 
         // Update Trackers
         updateTrackers(drawTracker, resignTracker, match.moves.back().score);
@@ -225,11 +227,11 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, 
         res = board.isGameOver();
 
         // If game isn't over by other means check adj
-        if (res == GameResult::NONE)
+        if (res == GameResult::NONE && !match.legal)
         {
             res = checkAdj(match, drawTracker, resignTracker, match.moves.back().score, ~board.sideToMove);
         }
-        if (res != GameResult::NONE)
+        if (res != GameResult::NONE || !match.legal)
         {
             break;
         }
@@ -359,7 +361,8 @@ void Tournament::startTournament(std::vector<EngineConfiguration> configs)
     printElo();
 }
 
-MoveData Tournament::parseEngineOutput(const std::vector<std::string> &output, const Move &move, int64_t measuredTime)
+MoveData Tournament::parseEngineOutput(const std::vector<std::string> &output, const std::string &move,
+                                       int64_t measuredTime)
 {
     std::string scoreString = "";
     std::string scoreType;

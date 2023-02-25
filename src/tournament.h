@@ -12,7 +12,7 @@
 
 struct MoveData
 {
-    Move move = {};
+    std::string move = {};
     std::string scoreString;
     int64_t elapsedMillis = 0;
     int depth = 0;
@@ -20,7 +20,7 @@ struct MoveData
 
     MoveData() = default;
 
-    MoveData(Move _move, std::string _scoreString, int64_t _elapsedMillis, int _depth, int _score)
+    MoveData(std::string _move, std::string _scoreString, int64_t _elapsedMillis, int _depth, int _score)
         : move(_move), scoreString(std::move(_scoreString)), elapsedMillis(_elapsedMillis), depth(_depth), score(_score)
     {
     }
@@ -39,6 +39,7 @@ struct Match
     std::string date;
     Board board;
     int round;
+    bool legal;
 };
 
 struct DrawAdjTracker
@@ -102,7 +103,7 @@ class Tournament
 
     ThreadPool pool = ThreadPool(1);
 
-    MoveData parseEngineOutput(const std::vector<std::string> &output, const Move &move, int64_t measuredTime);
+    MoveData parseEngineOutput(const std::vector<std::string> &output, const std::string &move, int64_t measuredTime);
     std::string getDateTime(std::string format = "%Y-%m-%dT%H:%M:%S %z");
     std::string formatDuration(std::chrono::seconds duration);
     void updateTrackers(DrawAdjTracker &drawTracker, ResignAdjTracker &resignTracker, const Score moveScore);

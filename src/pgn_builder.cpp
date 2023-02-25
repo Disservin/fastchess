@@ -5,8 +5,13 @@
 PgnBuilder::PgnBuilder(const Match &match, CMD::GameManagerOptions gameOptions)
 {
     std::string result = resultToString(match.result);
-
+    std::string termination = match.termination;
     std::stringstream ss;
+
+    if (!match.legal)
+    {
+        termination = std::string("illegal move");
+    }
 
     // clang-format off
     ss << "[Event "         << "\"" << gameOptions.eventName    << "\"" << "]" << "\n";
@@ -21,8 +26,8 @@ PgnBuilder::PgnBuilder(const Match &match, CMD::GameManagerOptions gameOptions)
     ss << "[GameEndTime "   << "\"" << match.endTime            << "\"" << "]" << "\n";
     ss << "[GameStartTime " << "\"" << match.startTime          << "\"" << "]" << "\n";
     ss << "[PlyCount "      << "\"" << match.moves.size()       << "\"" << "]" << "\n";
-    if (match.termination != "")
-        ss << "[Termination " << "\"" << match.termination << "\"" << "]" << "\n";
+    if (termination != "")
+        ss << "[Termination " << "\"" << termination << "\"" << "]" << "\n";
     ss << "[TimeControl "   << "\"" << match.whiteEngine.tc     << "\"" << "]"  << "\n\n";
     // clang-format on
 
@@ -33,21 +38,30 @@ PgnBuilder::PgnBuilder(const Match &match, CMD::GameManagerOptions gameOptions)
     {
         MoveData data = match.moves[i];
 
-        if (moveCount % 2 != 0)
-            ss << moveCount / 2 << "."
-               << " " << MoveToSan(b, data.move) << " {" << data.scoreString << "/" << data.depth << " "
-               << data.elapsedMillis << "ms}";
-        else
+        if (!match.legal && i == match.moves.size() - 2)
         {
-            ss << " " << MoveToSan(b, data.move) << " {" << data.scoreString << "/" << data.depth << " "
-               << data.elapsedMillis << "ms}";
-            if (i != match.moves.size() - 1 && i % 7 == 0)
-                ss << "\n";
-            else
-                ss << " ";
+            ss << " " << data.move << " {" << data.scoreString << "/" << data.depth << " " << data.elapsedMillis
+               << "ms, " << (~b.sideToMove == WHITE ? "White" : "Black")
+               << " makes an illegal move: " << match.moves[i + 1].move;
+            break;
         }
 
-        b.makeMove(data.move);
+        if (moveCount % 2 != 0)
+            ss << moveCount / 2 << "."
+               << " " << data.move << " {" << data.scoreString << "/" << data.depth << " " << data.elapsedMillis
+               << "ms}";
+        else
+        {
+            ss << " " << data.move << " {" << data.scoreString << "/" << data.depth << " " << data.elapsedMillis
+               << "ms}";
+        };
+
+        if (i != match.moves.size() - 1 && i % 7 == 0)
+            ss << "\n";
+        else
+            ss << " ";
+
+        b.makeMove(convertUciToMove(data.move));
 
         moveCount++;
     }

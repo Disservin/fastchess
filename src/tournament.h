@@ -11,13 +11,16 @@
 
 struct MoveData
 {
-    Move move;
+    Move move = {};
     std::string scoreString;
-    int depth;
-    int64_t elapsedMillis;
+    int64_t elapsedMillis = 0;
+    int depth = 0;
+    int score = 0;
 
-    MoveData(Move _move, std::string _scoreString, int _depth, int64_t _elapsedMillis)
-        : move(_move), scoreString(std::move(_scoreString)), depth(_depth), elapsedMillis(_elapsedMillis)
+    MoveData() = default;
+
+    MoveData(Move _move, std::string _scoreString, int64_t _elapsedMillis, int _depth, int _score)
+        : move(_move), scoreString(std::move(_scoreString)), elapsedMillis(_elapsedMillis), depth(_depth), score(_score)
     {
     }
 };
@@ -87,6 +90,8 @@ class Tournament
             return haystack[index + 1];
     }
 
+    void setStorePGN(bool v);
+
   private:
     const Score MATE_SCORE = 100'000;
 
@@ -94,6 +99,7 @@ class Tournament
 
     ThreadPool pool = ThreadPool(1);
 
+    MoveData parseEngineOutput(const std::vector<std::string> &output, const Move &move, int64_t measuredTime);
     std::string getDateTime(std::string format = "%Y-%m-%dT%H:%M:%S %z");
     std::string formatDuration(std::chrono::seconds duration);
     void updateTrackers(DrawAdjTracker &drawTracker, ResignAdjTracker &resignTracker, const Score moveScore);
@@ -105,5 +111,6 @@ class Tournament
 
     size_t startIndex = 0;
 
+    bool storePGNS = false;
     bool saveTimeHeader = true;
 };

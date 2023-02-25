@@ -72,21 +72,24 @@ std::vector<std::string> Tournament::getPGNS() const
     return pgns;
 }
 
+void Tournament::setStorePGN(bool v)
+{
+    storePGNS = v;
+}
+
 Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, std::string openingFen)
 {
-    bool timeout = false;
-
     std::vector<std::string> output;
     output.reserve(30);
 
-    GameResult res;
     DrawAdjTracker drawTracker = DrawAdjTracker(matchConfig.draw.score, 0);
     ResignAdjTracker resignTracker = ResignAdjTracker(matchConfig.resign.score, 0);
+    GameResult res;
+    std::string scoreString, scoreType;
     Match match;
     Move move;
-    int score, depth;
     int64_t measuredTime;
-    std::string scoreString, scoreType;
+    bool timeout = false;
 
     Board board;
     board.loadFen(openingFen);
@@ -141,42 +144,6 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, 
 
         timeLeft_1.time += timeLeft_1.increment;
 
-        // extract last info line
-        if (output.size() > 1)
-        {
-            std::vector<std::string> info = CMD::Options::splitString(output[output.size() - 2], ' ');
-
-            depth = findElement<int>(info, "depth");
-            scoreType = findElement<std::string>(info, "score");
-
-            if (scoreType == "cp")
-            {
-                score = findElement<int>(info, "cp");
-
-                std::stringstream ss;
-                ss << (score >= 0 ? '+' : '-');
-                ss << std::fixed << std::setprecision(2) << (float(std::abs(score)) / 100);
-                scoreString = ss.str();
-            }
-            else if (scoreType == "mate")
-            {
-                score = findElement<int>(info, "mate");
-                scoreString = (score > 0 ? "+M" : "-M") + std::to_string(std::abs(score));
-                score = MATE_SCORE;
-            }
-            else
-            {
-                score = 0;
-                scoreString = "0.00";
-            }
-        }
-        else
-        {
-            score = 0;
-            scoreString = "0.00";
-            depth = 0;
-        }
-
         // find bestmove and add it to the position string
         bestMove = findElement<std::string>(CMD::Options::splitString(output.back(), ' '), "bestmove");
         positionInput += " " + bestMove;
@@ -184,19 +151,20 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, 
         // play move on internal board and store it for later pgn creation
         move = convertUciToMove(bestMove);
         board.makeMove(move);
-        match.moves.emplace_back(move, scoreString, depth, measuredTime);
+        match.moves.emplace_back(parseEngineOutput(output, move, measuredTime));
 
-        // Somehow get move score
-        Score bestMoveScore = score;
         // Update Trackers
-        updateTrackers(drawTracker, resignTracker, bestMoveScore);
+        updateTrackers(drawTracker, resignTracker, match.moves.back().score);
+
         // Check for game over
         res = board.isGameOver();
+
         // If game isn't over by other means check adj
         if (res == GameResult::NONE)
         {
-            res = checkAdj(match, drawTracker, resignTracker, bestMoveScore, ~board.sideToMove);
+            res = checkAdj(match, drawTracker, resignTracker, match.moves.back().score, ~board.sideToMove);
         }
+
         if (res != GameResult::NONE)
         {
             break;
@@ -230,42 +198,6 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, 
 
         timeLeft_2.time += timeLeft_2.increment;
 
-        // extract last info line
-        if (output.size() > 1)
-        {
-            std::vector<std::string> info = CMD::Options::splitString(output[output.size() - 2], ' ');
-
-            depth = findElement<int>(info, "depth");
-            scoreType = findElement<std::string>(info, "score");
-
-            if (scoreType == "cp")
-            {
-                score = findElement<int>(info, "cp");
-
-                std::stringstream ss;
-                ss << (score >= 0 ? '+' : '-');
-                ss << std::fixed << std::setprecision(2) << (float(std::abs(score)) / 100);
-                scoreString = ss.str();
-            }
-            else if (scoreType == "mate")
-            {
-                score = findElement<int>(info, "mate");
-                scoreString = (score > 0 ? "+M" : "-M") + std::to_string(std::abs(score));
-                score = MATE_SCORE;
-            }
-            else
-            {
-                score = 0;
-                scoreString = "0.00";
-            }
-        }
-        else
-        {
-            score = 0;
-            scoreString = "0.00";
-            depth = 0;
-        }
-
         // find bestmove and add it to the position string
         bestMove = findElement<std::string>(CMD::Options::splitString(output.back(), ' '), "bestmove");
         positionInput += " " + bestMove;
@@ -273,17 +205,18 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, 
         // play move on internal board and store it for later pgn creation
         move = convertUciToMove(bestMove);
         board.makeMove(move);
-        match.moves.emplace_back(move, scoreString, depth, measuredTime);
+        match.moves.emplace_back(parseEngineOutput(output, move, measuredTime));
 
         // Update Trackers
-        bestMoveScore = score;
-        updateTrackers(drawTracker, resignTracker, bestMoveScore);
+        updateTrackers(drawTracker, resignTracker, match.moves.back().score);
+
         // Check for game over
         res = board.isGameOver();
+
         // If game isn't over by other means check adj
         if (res == GameResult::NONE)
         {
-            res = checkAdj(match, drawTracker, resignTracker, bestMoveScore, ~board.sideToMove);
+            res = checkAdj(match, drawTracker, resignTracker, match.moves.back().score, ~board.sideToMove);
         }
         if (res != GameResult::NONE)
         {
@@ -333,9 +266,6 @@ std::vector<Match> Tournament::runH2H(CMD::GameManagerOptions localMatchConfig,
 
         std::string positiveEngine = engine1.turn == Turn::FIRST ? engine1.getConfig().name : engine2.getConfig().name;
         std::string negativeEngine = engine1.turn == Turn::FIRST ? engine2.getConfig().name : engine1.getConfig().name;
-
-        // create a pgn from the played match
-        PgnBuilder pgn(match, matchConfig);
 
         // use a stringstream to build the output to avoid data races with cout <<
         std::stringstream ss;
@@ -399,7 +329,8 @@ void Tournament::startTournament(std::vector<EngineConfiguration> configs)
 
             PgnBuilder pgn(match, matchConfig);
 
-            pgns.emplace_back(pgn.getPGN());
+            if (storePGNS)
+                pgns.emplace_back(pgn.getPGN());
 
             file << pgn.getPGN() << std::endl;
 
@@ -435,6 +366,52 @@ void Tournament::startTournament(std::vector<EngineConfiguration> configs)
        << (float(wins) + (float(draws) * 0.5)) / gameCount << ")\n"
        << "Elo difference: " << elo.getElo() << "\n---------------------------" << std::endl;
     std::cout << ss.str();
+}
+
+MoveData Tournament::parseEngineOutput(const std::vector<std::string> &output, const Move &move, int64_t measuredTime)
+{
+    std::string scoreString = "";
+    std::string scoreType;
+    int score = 0;
+    int depth = 0;
+
+    // extract last info line
+    if (output.size() > 1)
+    {
+        std::vector<std::string> info = CMD::Options::splitString(output[output.size() - 2], ' ');
+
+        depth = findElement<int>(info, "depth");
+        scoreType = findElement<std::string>(info, "score");
+
+        if (scoreType == "cp")
+        {
+            score = findElement<int>(info, "cp");
+
+            std::stringstream ss;
+            ss << (score >= 0 ? '+' : '-');
+            ss << std::fixed << std::setprecision(2) << (float(std::abs(score)) / 100);
+            scoreString = ss.str();
+        }
+        else if (scoreType == "mate")
+        {
+            score = findElement<int>(info, "mate");
+            scoreString = (score > 0 ? "+M" : "-M") + std::to_string(std::abs(score));
+            score = MATE_SCORE;
+        }
+        else
+        {
+            score = 0;
+            scoreString = "0.00";
+        }
+    }
+    else
+    {
+        score = 0;
+        scoreString = "0.00";
+        depth = 0;
+    }
+
+    return MoveData(move, scoreString, measuredTime, depth, score);
 }
 
 std::string Tournament::getDateTime(std::string format)
@@ -475,6 +452,7 @@ void Tournament::updateTrackers(DrawAdjTracker &drawTracker, ResignAdjTracker &r
     {
         drawTracker.moveCount = 0;
     }
+
     // Score is low for resign adj, increase the counter (this purposely makes it possible that a move can work for both
     // draw and resign adj for whatever reason that might be the case)
     if (abs(moveScore) > resignTracker.resignScore)
@@ -492,34 +470,24 @@ GameResult Tournament::checkAdj(Match &match, const DrawAdjTracker drawTracker, 
 
 {
     const int moveNumber = match.moves.size() / 2;
+
     // Check draw adj
-    if (matchConfig.draw.enabled)
+    if (matchConfig.draw.enabled && moveNumber >= matchConfig.draw.moveNumber &&
+        drawTracker.moveCount >= matchConfig.draw.moveCount)
     {
-        if (moveNumber >= matchConfig.draw.moveNumber)
-        {
-            if (drawTracker.moveCount >= matchConfig.draw.moveCount)
-            {
-                match.termination = "adjudication";
-                return GameResult::DRAW;
-            }
-        }
+        match.termination = "adjudication";
+        return GameResult::DRAW;
     }
+
     // Check Resign adj
-    if (matchConfig.resign.enabled)
+    if (matchConfig.resign.enabled && resignTracker.moveCount >= matchConfig.resign.moveCount && score != MATE_SCORE)
     {
-        if (resignTracker.moveCount >= matchConfig.resign.moveCount && score != MATE_SCORE)
-        {
-            match.termination = "adjudication";
-            // We have the Score for the last side that moved, if it's bad that side is the resigning one
-            if (score < resignTracker.resignScore)
-            {
-                return lastSideThatMoved == Color::WHITE ? GameResult::BLACK_WIN : GameResult::WHITE_WIN;
-            }
-            else
-            {
-                return lastSideThatMoved == Color::WHITE ? GameResult::WHITE_WIN : GameResult::BLACK_WIN;
-            }
-        }
+        match.termination = "adjudication";
+
+        // We have the Score for the last side that moved, if it's bad that side is the resigning one so give the other
+        // side the win.
+        return score < resignTracker.resignScore ? GameResult(~lastSideThatMoved) : GameResult(lastSideThatMoved);
     }
+
     return GameResult::NONE;
 }

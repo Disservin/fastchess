@@ -38,7 +38,7 @@ std::string Tournament::fetchNextFen()
 {
     if (openingBook.size() == 0)
     {
-        return "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+        return STARTPOS;
     }
     else if (matchConfig.opening.format == "pgn")
     {
@@ -64,7 +64,7 @@ std::string Tournament::fetchNextFen()
         }
     }
 
-    return "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+    return STARTPOS;
 }
 
 std::vector<std::string> Tournament::getPGNS() const
@@ -115,7 +115,8 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, 
     match.startTime = saveTimeHeader ? getDateTime() : "";
     match.board = board;
 
-    std::string positionInput = "position startpos moves";
+    std::string positionInput =
+        openingFen == STARTPOS ? "position startpos moves" : "position fen " + openingFen + " moves";
     std::string bestMove;
 
     auto timeLeft_1 = engine1.getConfig().tc;
@@ -353,7 +354,7 @@ void Tournament::startTournament(std::vector<EngineConfiguration> configs)
     }
 
     std::ofstream file;
-    std::string filename = (matchConfig.opening.file == "" ? "fast-chess" : matchConfig.opening.file) + ".pgn";
+    std::string filename = "fast-chess.pgn";
     file.open(filename, std::ios::app);
 
     engineNames.push_back(configs[0].name);

@@ -306,7 +306,7 @@ std::vector<std::string> EngineProcess::readProcess(std::string_view last_word, 
     // Continue reading output lines until the line matches the specified line or a timeout occurs
     while (true)
     {
-        int ret = select(inPipe[0] + 1, &readSet, nullptr, nullptr, &tm);
+        int ret = select(inPipe[0] + 1, &readSet, nullptr, nullptr, (timeoutThreshold == 0 ? nullptr : &tm));
 
         if (ret == -1)
         {

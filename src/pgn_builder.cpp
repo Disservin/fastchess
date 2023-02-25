@@ -54,14 +54,20 @@ PgnBuilder::PgnBuilder(const Match &match, CMD::GameManagerOptions gameOptions)
             ss << moveCount / 2 << "."
                << " " << MoveToSan(b, move);
         else
-            ss << " " << MoveToSan(b, move) << (i != match.moves.size() - 1 ? "\n" : "");
+        {
+            ss << " " << MoveToSan(b, move);
+            if (i != match.moves.size() - 1 && i % 7 == 0)
+                ss << "\n";
+            else
+                ss << " ";
+        }
 
         b.makeMove(move);
 
         moveCount++;
     }
 
-    ss << " " << result;
+    ss << " " << result << "\n";
 
     pgn = ss.str();
 }

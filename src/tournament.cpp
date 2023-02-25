@@ -270,6 +270,10 @@ void Tournament::startTournament(std::vector<EngineConfiguration> configs)
 
     int gameCount = 0;
 
+    std::ofstream file;
+    std::string filename = (matchConfig.opening.file == "" ? "fast-chess" : matchConfig.opening.file) + ".pgn";
+    file.open(filename, std::ios::app);
+
     for (auto &&result : results)
     {
         auto res = result.get();
@@ -279,7 +283,8 @@ void Tournament::startTournament(std::vector<EngineConfiguration> configs)
             gameCount++;
 
             PgnBuilder pgn(match, matchConfig);
-            pgns.emplace_back(pgn.getPGN());
+
+            file << pgn.getPGN() << std::endl;
 
             if (match.result == GameResult::WHITE_WIN)
             {

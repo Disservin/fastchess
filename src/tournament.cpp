@@ -83,7 +83,7 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, 
     Match match;
     Move move;
     int score, depth;
-    long measuredTime;
+    int64_t measuredTime;
     std::string scoreString, scoreType;
 
     Board board;
@@ -150,14 +150,14 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, 
         if (output.size() > 1) {
             std::vector<std::string> info = CMD::Options::splitString(output[output.size() - 2], ' ');
 
-            depth = std::stoi(findElement<std::string>(info, "depth"));
+            depth = findElement<int>(info, "depth");
             scoreType = findElement<std::string>(info, "score");
 
             if (scoreType == "cp") {
-                score = std::stoi(findElement<std::string>(info, "cp"));
+                score = findElement<int>(info, "cp");
                 scoreString = (score > 0 ? '+' : '-') + std::to_string(std::abs(score));
             } else if (scoreType == "mate") {
-                score = std::stoi(findElement<std::string>(info, "mate"));
+                score = findElement<int>(info, "mate");
                 scoreString = (score > 0 ? "+M" : "-M") + std::to_string(std::abs(score));
             } else {
                 score = 0;
@@ -218,14 +218,14 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, 
         if (output.size() > 1) {
             std::vector<std::string> info = CMD::Options::splitString(output[output.size() - 2], ' ');
 
-            depth = std::stoi(findElement<std::string>(info, "depth"));
+            depth = findElement<int>(info, "depth");
             scoreType = findElement<std::string>(info, "score");
 
             if (scoreType == "cp") {
-                score = std::stoi(findElement<std::string>(info, "cp"));
+                score = findElement<int>(info, "cp");
                 scoreString = (score > 0 ? '+' : '-') + std::to_string(std::abs(score));
             } else if (scoreType == "mate") {
-                score = std::stoi(findElement<std::string>(info, "mate"));
+                score = findElement<int>(info, "mate");
                 scoreString = (score > 0 ? "+M" : "-M") + std::to_string(std::abs(score));
             } else {
                 score = 0;

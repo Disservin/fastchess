@@ -208,22 +208,25 @@ void Options::parseDrawOptions(int &i, int argc, char const *argv[])
 {
     i++;
 
-    int internalIndex = 0;
-
     while (i < argc && argv[i][0] != '-')
     {
         gameOptions.draw.enabled = true;
-
-        if (internalIndex == 0)
+        std::string param = argv[i];
+        size_t pos = param.find('=');
+        std::string key = param.substr(0, pos);
+        std::string value = param.substr(pos + 1);
+        if (key == "movenumber")
         {
-            gameOptions.draw.moves = std::stoi(argv[i]);
+            gameOptions.draw.moveNumber = std::stoi(param);
         }
-        else
+        else if (key == "movecount")
         {
-            gameOptions.draw.score = std::stoi(argv[i]);
+            gameOptions.draw.moveCount = std::stoi(param);
         }
-
-        internalIndex++;
+        else if (key == "score")
+        {
+            gameOptions.draw.score = std::stoi(param);
+        }
 
         i++;
     }

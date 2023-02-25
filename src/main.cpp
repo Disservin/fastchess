@@ -13,29 +13,37 @@ namespace
 Tournament *tour;
 }
 
-// void sigintHandler(int param)
-// {
-//     tour->printElo();
-// }
+#ifdef _WIN64
 
-// BOOL WINAPI consoleHandler(DWORD signal)
-// {
+BOOL WINAPI consoleHandler(DWORD signal)
+{
 
-//     if (signal == CTRL_C_EVENT)
-//         printf("Ctrl-C handled\n");
+    if (signal == CTRL_C_EVENT)
+        tour->printElo();
 
-//     return TRUE;
-// }
+    return TRUE;
+}
+
+#else
+void sigintHandler(int param)
+{
+    tour->printElo();
+}
+
+#endif
 
 int main(int argc, char const *argv[])
 {
-    // signal(SIGINT, sigintHandler);
+#ifdef _WIN64
+    if (!SetConsoleCtrlHandler(consoleHandler, TRUE))
+    {
+        std::cout << "\nERROR: Could not set control handler";
+        return 1;
+    }
 
-    // if (!SetConsoleCtrlHandler(consoleHandler, TRUE))
-    // {
-    //     printf("\nERROR: Could not set control handler");
-    //     return 1;
-    // }
+#else
+    signal(SIGINT, sigintHandler);
+#endif
 
     CMD::Options options = CMD::Options(argc, argv);
 
@@ -52,6 +60,8 @@ int main(int argc, char const *argv[])
             std::cout << " value: " << option.second << std::endl;
         }
     }
+
+    tour = new Tournament();
 
     tour->loadConfig(options.getGameOptions());
     tour->startTournament(options.getEngineConfigs());

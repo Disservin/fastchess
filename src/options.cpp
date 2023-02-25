@@ -217,15 +217,15 @@ void Options::parseDrawOptions(int &i, int argc, char const *argv[])
         std::string value = param.substr(pos + 1);
         if (key == "movenumber")
         {
-            gameOptions.draw.moveNumber = std::stoi(param);
+            gameOptions.draw.moveNumber = std::stoi(value);
         }
         else if (key == "movecount")
         {
-            gameOptions.draw.moveCount = std::stoi(param);
+            gameOptions.draw.moveCount = std::stoi(value);
         }
         else if (key == "score")
         {
-            gameOptions.draw.score = std::stoi(param);
+            gameOptions.draw.score = std::stoi(value);
         }
 
         i++;
@@ -248,11 +248,11 @@ void Options::parseResignOptions(int &i, int argc, char const *argv[])
 
         if (key == "movecount")
         {
-            gameOptions.resign.moveCount = std::stoi(argv[i]);
+            gameOptions.resign.moveCount = std::stoi(value);
         }
         else if (key == "score")
         {
-            gameOptions.resign.score = std::stoi(argv[i]);
+            gameOptions.resign.score = std::stoi(value);
         }
 
         i++;

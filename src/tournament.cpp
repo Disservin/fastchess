@@ -186,7 +186,7 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, 
         match.moves.emplace_back(move, scoreString, depth, measuredTime);
 
         // Somehow get move score
-        Score bestMoveScore = 28;
+        Score bestMoveScore = score;
         // Update Trackers
         updateTrackers(drawTracker, resignTracker, bestMoveScore);
         // Check for game over
@@ -194,7 +194,7 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, 
         // If game isn't over by other means check adj
         if (res == GameResult::NONE)
         {
-            res = CheckAdj(match.moves.size() / 2, drawTracker, resignTracker, bestMoveScore, ~board.sideToMove);
+            res = checkAdj(match.moves.size() / 2, drawTracker, resignTracker, bestMoveScore, ~board.sideToMove);
             if (res != GameResult::NONE)
             {
                 std::stringstream ss;
@@ -280,16 +280,15 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, 
         board.makeMove(move);
         match.moves.emplace_back(move, scoreString, depth, measuredTime);
 
-        // Somehow get move score
-        Score bestMoveScore = 28;
         // Update Trackers
+        bestMoveScore = score;
         updateTrackers(drawTracker, resignTracker, bestMoveScore);
         // Check for game over
         res = board.isGameOver();
         // If game isn't over by other means check adj
         if (res == GameResult::NONE)
         {
-            res = CheckAdj(match.moves.size() / 2, drawTracker, resignTracker, bestMoveScore, ~board.sideToMove);
+            res = checkAdj(match.moves.size() / 2, drawTracker, resignTracker, bestMoveScore, ~board.sideToMove);
             if (res != GameResult::NONE)
             {
                 std::stringstream ss;
@@ -486,7 +485,7 @@ void Tournament::updateTrackers(DrawAdjTracker &drawTracker, ResignAdjTracker &r
     }
 }
 
-GameResult Tournament::CheckAdj(const int moveNumber, const DrawAdjTracker drawTracker,
+GameResult Tournament::checkAdj(const int moveNumber, const DrawAdjTracker drawTracker,
                                 const ResignAdjTracker resignTracker, const Score score, const Color lastSideThatMoved)
 {
     // Check draw adj

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cassert>
 #include <iterator>
 
 #include "attacks.h"
@@ -410,7 +411,7 @@ template <Color c> void LegalPawnMovesAll(Board &board, Movelist &movelist)
             return;
 
         const Square kSQ = board.KingSQ(c);
-        const Bitboard kingMask = (1ull << kSQ) & MASK_RANK[squareRank(epPawn)];
+        const Bitboard kingMask = (1ull << kSQ) & MASK_RANK[Board::squareRank(epPawn)];
         const Bitboard enemyQueenRook = board.pieces<ROOK, ~c>() | board.pieces<QUEEN, ~c>();
 
         const bool isPossiblePin = kingMask && enemyQueenRook;

@@ -1,10 +1,11 @@
 #include <cassert>
+#include <chrono>
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
 
 #include "engineprocess.h"
-#include "helper.h"
+#include "options.h"
 #include "types.h"
 
 EngineProcess::EngineProcess(const std::string &command)
@@ -76,11 +77,11 @@ std::vector<std::string> EngineProcess::readProcess(std::string_view last_word, 
     std::vector<std::string> lines;
     lines.reserve(30);
 
-    std::stringstream currentLine{};
+    std::string currentLine;
 
     char buffer[4096];
     DWORD bytesRead;
-    DWORD bytesAvail;
+    DWORD bytesAvail = 0;
 
     int checkTime = 255;
 
@@ -90,20 +91,25 @@ std::vector<std::string> EngineProcess::readProcess(std::string_view last_word, 
 
     while (true)
     {
-        if (!PeekNamedPipe(childStdOut, nullptr, 0, &bytesRead, &bytesAvail, nullptr))
-        {
-            throw std::runtime_error("Cant peek Pipe");
-        }
 
         // Check if timeout milliseconds have elapsed
         if (checkTime-- == 0)
         {
-            auto now = std::chrono::high_resolution_clock::now();
+            /* To achieve "non blocking" file reading on windows with anonymous pipes the only solution
+            that I found was using peeknamedpipe however it turns out this function is terribly slow and leads to
+            timeouts for the engines. Checking this only after n runs seems to reduce the impact of this.
+            For high concurrency windows setups timeoutThreshold should probably be 0. Using
+            the assumption that the engine works rather clean and is able to send the last word.*/
+            if (!PeekNamedPipe(childStdOut, NULL, 0, 0, &bytesAvail, nullptr))
+            {
+                throw std::runtime_error("Cant peek Pipe");
+            }
 
             if (timeoutThreshold > 0 &&
-                std::chrono::duration_cast<std::chrono::milliseconds>(now - start).count() > timeoutThreshold)
+                std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - start)
+                        .count() > timeoutThreshold)
             {
-                lines.emplace_back(currentLine.str());
+                lines.emplace_back(currentLine);
                 timeout = true;
                 break;
             }
@@ -112,7 +118,7 @@ std::vector<std::string> EngineProcess::readProcess(std::string_view last_word, 
         }
 
         // no new bytes to read
-        if (bytesAvail == 0)
+        if (timeoutThreshold && bytesAvail == 0)
             continue;
 
         if (!ReadFile(childStdOut, buffer, sizeof(buffer), &bytesRead, nullptr))
@@ -128,22 +134,22 @@ std::vector<std::string> EngineProcess::readProcess(std::string_view last_word, 
             if (buffer[i] == '\n' || buffer[i] == '\r')
             {
                 // dont add empty lines
-                if (!currentLine.str().empty())
+                if (!currentLine.empty())
                 {
-                    lines.emplace_back(currentLine.str());
+                    lines.emplace_back(currentLine);
 
-                    if (contains(currentLine.str(), last_word))
+                    if (currentLine.rfind(last_word, 0) == 0)
                     {
                         return lines;
                     }
 
-                    currentLine.str(std::string());
+                    currentLine = "";
                 }
             }
             // Otherwise, append the character to the current line
             else
             {
-                currentLine << buffer[i];
+                currentLine += buffer[i];
             }
         }
     }
@@ -271,7 +277,6 @@ void EngineProcess::writeProcess(const std::string &input)
     write(outPipe[1], input.c_str(), input.size());
     write(outPipe[1], &endLine, 1);
 }
-
 std::vector<std::string> EngineProcess::readProcess(std::string_view last_word, bool &timeout, int64_t timeoutThreshold)
 {
     assert(isInitalized);
@@ -282,61 +287,67 @@ std::vector<std::string> EngineProcess::readProcess(std::string_view last_word, 
     std::vector<std::string> lines;
     lines.reserve(30);
 
-    std::stringstream currentLine;
+    std::string currentLine;
 
     char buffer[4096];
-    int bytesRead = 0;
     int checkTime = 255;
-
     timeout = false;
 
-    // Get the current time in milliseconds since epoch
-    auto start = std::chrono::high_resolution_clock::now();
+    // Set up the file descriptor set for select
+    fd_set readSet;
+    FD_ZERO(&readSet);
+    FD_SET(inPipe[0], &readSet);
+
+    // Set up the timeout for select
+    struct timeval tm;
+    tm.tv_sec = timeoutThreshold / 1000; // convert milliseconds to secs
+    tm.tv_usec = (timeoutThreshold % 1000) * 1000;
 
     // Continue reading output lines until the line matches the specified line or a timeout occurs
     while (true)
     {
-        // Check if timeout milliseconds have elapsed
-        if (checkTime-- == 0)
+        int ret = select(inPipe[0] + 1, &readSet, nullptr, nullptr, &tm);
+
+        if (ret == -1)
         {
-            auto now = std::chrono::high_resolution_clock::now();
-
-            if (timeoutThreshold > 0 &&
-                std::chrono::duration_cast<std::chrono::milliseconds>(now - start).count() > timeoutThreshold)
-            {
-                lines.emplace_back(currentLine.str());
-                timeout = true;
-                break;
-            }
-
-            checkTime = 255;
+            throw std::runtime_error("Select error occured in engineprocess.cpp");
         }
-
-        bytesRead = read(inPipe[0], &buffer, sizeof(buffer));
-
-        // Iterate over each character in the buffer
-        for (int i = 0; i < bytesRead; i++)
+        else if (ret == 0)
         {
-            // If we encounter a newline, add the current line to the vector and reset the currentLine
-            if (buffer[i] == '\n')
+            // timeout
+            lines.emplace_back(currentLine);
+            timeout = true;
+            break;
+        }
+        else
+        {
+            // input available on the pipe
+            int bytesRead = read(inPipe[0], buffer, sizeof(buffer));
+
+            // Iterate over each character in the buffer
+            for (int i = 0; i < bytesRead; i++)
             {
-                // dont add empty lines
-                if (!currentLine.str().empty())
+                // If we encounter a newline, add the current line to the vector and reset the currentLine
+                if (buffer[i] == '\n')
                 {
-                    lines.emplace_back(currentLine.str());
-
-                    if (contains(currentLine.str(), last_word))
+                    // dont add empty lines
+                    if (!currentLine.empty())
                     {
-                        return lines;
-                    }
+                        lines.emplace_back(currentLine);
 
-                    currentLine.str(std::string());
+                        if (currentLine.rfind(last_word, 0) == 0)
+                        {
+                            return lines;
+                        }
+
+                        currentLine = "";
+                    }
                 }
-            }
-            // Otherwise, append the character to the current line
-            else
-            {
-                currentLine << buffer[i];
+                // Otherwise, append the character to the current line
+                else
+                {
+                    currentLine += buffer[i];
+                }
             }
         }
     }

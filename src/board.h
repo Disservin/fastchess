@@ -3,6 +3,7 @@
 #include <array>
 #include <cstdint>
 #include <string>
+#include <vector>
 
 #include "helper.h"
 #include "move.h"
@@ -98,6 +99,22 @@ class Board
     Bitboard attacksByPiece(PieceType pt, Square sq, Color c, Bitboard occ) const;
 
     bool isSquareAttacked(Color c, Square sq) const;
+
+    static PieceType typeOfPiece(const Piece piece);
+    static File squareFile(Square sq);
+    static Rank squareRank(Square sq);
+
+    static Square fileRankSquare(File f, Rank r);
+    static Piece make_piece(PieceType type, Color c);
+
+    // returns diagonal of given square
+    static uint8_t diagonalOf(Square sq);
+
+    // returns anti diagonal of given square
+    static uint8_t anti_diagonalOf(Square sq);
+
+    static bool sameColor(int sq1, int sq2);
+    static Color colorOf(Piece p);
 
     friend std::ostream &operator<<(std::ostream &os, const Board &b);
 

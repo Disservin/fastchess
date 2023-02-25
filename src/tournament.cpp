@@ -281,12 +281,41 @@ std::vector<Match> Tournament::runH2H(CMD::GameManagerOptions localMatchConfig,
         // use a stringstream to build the output to avoid data races with cout <<
         std::stringstream ss;
         ss << "Finished game " << i + 1 << "/" << games << " in round " << roundId << "/" << localMatchConfig.rounds
-           << " " << positiveEngine << " vs " << negativeEngine << ": " << resultToString(match.result) << "\n";
+           << " total played " << roundCount << "/" << localMatchConfig.rounds * games << " " << positiveEngine
+           << " vs " << negativeEngine << ": " << resultToString(match.result) << "\n";
 
         std::cout << ss.str();
 
         engine1.turn = ~engine1.turn;
         engine2.turn = ~engine2.turn;
+
+        if (match.result == GameResult::WHITE_WIN)
+        {
+            if (match.whiteEngine.name == configs[0].name)
+                wins++;
+            else
+                losses++;
+        }
+        else if (match.result == GameResult::BLACK_WIN)
+        {
+            if (match.blackEngine.name == configs[0].name)
+                wins++;
+            else
+                losses++;
+        }
+        else if (match.result == GameResult::DRAW)
+        {
+            draws++;
+        }
+        else
+        {
+            std::cout << "Couldnt obtain Game Result" << std::endl;
+        }
+
+        roundCount++;
+
+        if (roundCount % localMatchConfig.ratinginterval == 0)
+            printElo();
     }
 
     return matches;
@@ -314,47 +343,16 @@ void Tournament::startTournament(std::vector<EngineConfiguration> configs)
 
     for (auto &&result : results)
     {
-        // Everytime when we are waiting a future to be available we inform the user
-        if (result.wait_for(std::chrono::seconds(0)) != std::future_status::ready && roundCount != 0)
-        {
-            printElo();
-        }
-
         auto res = result.get();
 
         for (const Match &match : res)
         {
-            roundCount++;
-
             PgnBuilder pgn(match, matchConfig);
 
             if (storePGNS)
                 pgns.emplace_back(pgn.getPGN());
 
             file << pgn.getPGN() << std::endl;
-
-            if (match.result == GameResult::WHITE_WIN)
-            {
-                if (match.whiteEngine.name == configs[0].name)
-                    wins++;
-                else
-                    losses++;
-            }
-            else if (match.result == GameResult::BLACK_WIN)
-            {
-                if (match.blackEngine.name == configs[0].name)
-                    wins++;
-                else
-                    losses++;
-            }
-            else if (match.result == GameResult::DRAW)
-            {
-                draws++;
-            }
-            else
-            {
-                std::cout << "Couldnt obtain Game Result" << std::endl;
-            }
         }
     }
 

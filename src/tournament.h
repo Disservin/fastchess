@@ -1,5 +1,6 @@
 #pragma once
 
+#include <atomic>
 #include <utility>
 #include <vector>
 
@@ -116,10 +117,10 @@ class Tournament
     bool storePGNS = false;
     bool saveTimeHeader = true;
 
-    int wins = 0;
-    int draws = 0;
-    int losses = 0;
-    int roundCount = 0;
+    std::atomic<int> wins = 0;
+    std::atomic<int> draws = 0;
+    std::atomic<int> losses = 0;
+    std::atomic<int> roundCount = 0;
 
     std::vector<std::string> engineNames;
 };

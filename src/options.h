@@ -54,6 +54,7 @@ struct GameManagerOptions
     bool recover = false;
     bool repeat = false;
     int concurrency = 1;
+    int ratinginterval = 10;
     std::string eventName = {};
     OpeningOptions opening = {};
     PgnOptions pgn = {};

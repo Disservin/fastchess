@@ -31,6 +31,13 @@ PgnBuilder::PgnBuilder(const Match &match, CMD::GameManagerOptions gameOptions)
     ss << "[TimeControl "   << "\"" << match.whiteEngine.tc     << "\"" << "]"  << "\n\n";
     // clang-format on
 
+    std::stringstream illegalMove;
+
+    if (!match.legal)
+    {
+        illegalMove << ", other side makes an illegal move: " << match.moves[match.moves.size() - 1].move;
+    }
+
     Board b = match.board;
 
     int moveCount = 3;
@@ -38,28 +45,24 @@ PgnBuilder::PgnBuilder(const Match &match, CMD::GameManagerOptions gameOptions)
     {
         MoveData data = match.moves[i];
 
-        if (!match.legal && i == match.moves.size() - 2)
-        {
-            ss << " " << data.move << " {" << data.scoreString << "/" << data.depth << " " << data.elapsedMillis
-               << "ms, " << (~b.sideToMove == WHITE ? "White" : "Black")
-               << " makes an illegal move: " << match.moves[i + 1].move;
-            break;
-        }
-
         if (moveCount % 2 != 0)
             ss << moveCount / 2 << "."
                << " " << data.move << " {" << data.scoreString << "/" << data.depth << " " << data.elapsedMillis
-               << "ms}";
+               << (data.elapsedMillis < 1000 ? "ms" : "s") << illegalMove.str() << "}";
         else
         {
             ss << " " << data.move << " {" << data.scoreString << "/" << data.depth << " " << data.elapsedMillis
-               << "ms}";
+               << (data.elapsedMillis < 1000 ? "ms" : "s") << illegalMove.str() << "}";
+            if (i != match.moves.size() - 1 && i % 7 == 0)
+                ss << "\n";
+            else
+                ss << " ";
         };
 
-        if (i != match.moves.size() - 1 && i % 7 == 0)
-            ss << "\n";
-        else
-            ss << " ";
+        if (!match.legal && i == match.moves.size() - 2)
+        {
+            break;
+        }
 
         b.makeMove(convertUciToMove(data.move));
 

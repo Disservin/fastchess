@@ -161,10 +161,17 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, 
 
         // play move on internal board and store it for later pgn creation
         move = convertUciToMove(bestMove);
-
         match.legal = board.makeMove(move);
-
         match.moves.emplace_back(parseEngineOutput(output, bestMove, measuredTime));
+
+        if (!match.legal)
+        {
+            std::stringstream ss;
+            ss << "engine " << engine2.getConfig().name << " played an illegal move: " << bestMove << "\n";
+            std::cout << ss.str();
+
+            break;
+        }
 
         // Update Trackers
         updateTrackers(drawTracker, resignTracker, match.moves.back().score);
@@ -219,6 +226,15 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, 
         move = convertUciToMove(bestMove);
         match.legal = board.makeMove(move);
         match.moves.emplace_back(parseEngineOutput(output, bestMove, measuredTime));
+
+        if (!match.legal)
+        {
+            std::stringstream ss;
+            ss << "engine " << engine2.getConfig().name << " played an illegal move: " << bestMove << "\n";
+            std::cout << ss.str();
+
+            break;
+        }
 
         // Update Trackers
         updateTrackers(drawTracker, resignTracker, match.moves.back().score);

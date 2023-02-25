@@ -167,7 +167,7 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, 
         // Start measuring time
         t0 = std::chrono::high_resolution_clock::now();
 
-        output = engine2.readProcess("bestmove", timeout, timeLeft_1.time);
+        output = engine2.readProcess("bestmove", timeout, timeLeft_2.time);
 
         t1 = std::chrono::high_resolution_clock::now();
 

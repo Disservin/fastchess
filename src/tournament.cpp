@@ -1,6 +1,5 @@
 #include <cassert>
 #include <chrono>
-#include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <sstream>
@@ -80,12 +79,22 @@ void Tournament::setStorePGN(bool v)
 void Tournament::printElo()
 {
     Elo elo(wins, losses, draws);
+
     std::stringstream ss;
     ss << "---------------------------\nResult of " << engineNames[0] << " vs " << engineNames[1] << ": " << wins
        << " - " << losses << " - " << draws << " (" << std::fixed << std::setprecision(2)
        << (float(wins) + (float(draws) * 0.5)) / roundCount << ")\n"
        << "Elo difference: " << elo.getElo() << "\n---------------------------" << std::endl;
+
     std::cout << ss.str();
+}
+
+void Tournament::writeToFile(const std::string &data)
+{
+    // Acquire the lock
+    const std::lock_guard<std::mutex> lock(fileMutex);
+
+    file << data << std::endl;
 }
 
 Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, std::string openingFen)
@@ -98,7 +107,6 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, 
     GameResult res;
     std::string scoreString, scoreType;
     Match match;
-    Move move;
     int64_t measuredTime;
     bool timeout = false;
 
@@ -131,7 +139,7 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, 
         // Engine 1's turn
         // Write new position
         engine1.writeProcess(positionInput);
-        engine1.writeProcess(engine1.buildGoInput(board.sideToMove, timeLeft_1));
+        engine1.writeProcess(engine1.buildGoInput(board.sideToMove, timeLeft_1, timeLeft_2));
 
         // Start measuring time
         t0 = std::chrono::high_resolution_clock::now();
@@ -145,7 +153,7 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, 
         timeLeft_1.time -= measuredTime;
 
         // Timeout!
-        if (timeLeft_1.time < 0)
+        if (timeLeft_1.time < 0 || timeout)
         {
             res = GameResult(~board.sideToMove);
             std::stringstream ss;
@@ -161,14 +169,15 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, 
         positionInput += " " + bestMove;
 
         // play move on internal board and store it for later pgn creation
-        move = convertUciToMove(bestMove);
-        match.legal = board.makeMove(move);
+        match.legal = board.makeMove(convertUciToMove(bestMove));
         match.moves.emplace_back(parseEngineOutput(output, bestMove, measuredTime));
 
         if (!match.legal)
         {
+            res = GameResult(~board.sideToMove);
+
             std::stringstream ss;
-            ss << "engine " << engine2.getConfig().name << " played an illegal move: " << bestMove << "\n";
+            ss << "engine " << engine1.getConfig().name << " played an illegal move: " << bestMove << "\n";
             std::cout << ss.str();
 
             break;
@@ -181,12 +190,12 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, 
         res = board.isGameOver();
 
         // If game isn't over by other means check adj
-        if (res == GameResult::NONE && !match.legal)
+        if (res == GameResult::NONE)
         {
             res = checkAdj(match, drawTracker, resignTracker, match.moves.back().score, ~board.sideToMove);
         }
 
-        if (res != GameResult::NONE || !match.legal)
+        if (res != GameResult::NONE)
         {
             break;
         }
@@ -194,7 +203,7 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, 
         // Engine 2's turn
         // Write new position
         engine2.writeProcess(positionInput);
-        engine2.writeProcess(engine2.buildGoInput(board.sideToMove, timeLeft_2));
+        engine2.writeProcess(engine2.buildGoInput(board.sideToMove, timeLeft_2, timeLeft_1));
 
         // Start measuring time
         t0 = std::chrono::high_resolution_clock::now();
@@ -208,7 +217,7 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, 
         timeLeft_2.time -= measuredTime;
 
         // Timeout!
-        if (timeLeft_2.time < 0)
+        if (timeLeft_2.time < 0 || timeout)
         {
             res = GameResult(~board.sideToMove);
             std::stringstream ss;
@@ -224,12 +233,13 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, 
         positionInput += " " + bestMove;
 
         // play move on internal board and store it for later pgn creation
-        move = convertUciToMove(bestMove);
-        match.legal = board.makeMove(move);
+        match.legal = board.makeMove(convertUciToMove(bestMove));
         match.moves.emplace_back(parseEngineOutput(output, bestMove, measuredTime));
 
         if (!match.legal)
         {
+            res = GameResult(~board.sideToMove);
+
             std::stringstream ss;
             ss << "engine " << engine2.getConfig().name << " played an illegal move: " << bestMove << "\n";
             std::cout << ss.str();
@@ -244,11 +254,11 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, 
         res = board.isGameOver();
 
         // If game isn't over by other means check adj
-        if (res == GameResult::NONE && !match.legal)
+        if (res == GameResult::NONE)
         {
             res = checkAdj(match, drawTracker, resignTracker, match.moves.back().score, ~board.sideToMove);
         }
-        if (res != GameResult::NONE || !match.legal)
+        if (res != GameResult::NONE)
         {
             break;
         }
@@ -337,6 +347,14 @@ std::vector<Match> Tournament::runH2H(CMD::GameManagerOptions localMatchConfig,
             printElo();
     }
 
+    // Write matches to file
+    for (const auto &match : matches)
+    {
+        PgnBuilder pgn(match, matchConfig);
+
+        writeToFile(pgn.getPGN());
+    }
+
     return matches;
 }
 
@@ -347,15 +365,14 @@ void Tournament::startTournament(std::vector<EngineConfiguration> configs)
 
     std::vector<std::future<std::vector<Match>>> results;
 
+    std::string filename = (matchConfig.pgn.file == "" ? "fast-chess" : matchConfig.pgn.file) + ".pgn";
+    file.open(filename, std::ios::app);
+
     for (int i = 1; i <= matchConfig.rounds; i++)
     {
         results.emplace_back(
             pool.enqueue(std::bind(&Tournament::runH2H, this, matchConfig, configs, i, fetchNextFen())));
     }
-
-    std::ofstream file;
-    std::string filename = (matchConfig.pgn.file == "" ? "fast-chess" : matchConfig.pgn.file) + ".pgn";
-    file.open(filename, std::ios::app);
 
     engineNames.push_back(configs[0].name);
     engineNames.push_back(configs[1].name);
@@ -366,12 +383,11 @@ void Tournament::startTournament(std::vector<EngineConfiguration> configs)
 
         for (const Match &match : res)
         {
-            PgnBuilder pgn(match, matchConfig);
-
             if (storePGNS)
+            {
+                PgnBuilder pgn(match, matchConfig);
                 pgns.emplace_back(pgn.getPGN());
-
-            file << pgn.getPGN() << std::endl;
+            }
         }
     }
 

@@ -2,7 +2,7 @@
 
 #include "pgn_builder.h"
 
-PgnBuilder::PgnBuilder(const Match &match, CMD::GameManagerOptions gameOptions)
+PgnBuilder::PgnBuilder(const Match &match, const CMD::GameManagerOptions &gameOptions)
 {
     std::string result = resultToString(match.result);
     std::string termination = match.termination;

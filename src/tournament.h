@@ -1,6 +1,7 @@
 #pragma once
 
 #include <atomic>
+#include <fstream>
 #include <utility>
 #include <vector>
 
@@ -88,6 +89,8 @@ class Tournament
         int index = std::find(haystack.begin(), haystack.end(), needle) - haystack.begin();
         if constexpr (std::is_same_v<T, int>)
             return std::stoi(haystack[index + 1]);
+        else if constexpr (std::is_same_v<T, float>)
+            return std::stof(haystack[index + 1]);
         else
             return haystack[index + 1];
     }
@@ -95,6 +98,8 @@ class Tournament
     void setStorePGN(bool v);
 
     void printElo();
+
+    void writeToFile(const std::string &data);
 
   private:
     const std::string STARTPOS = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
@@ -119,10 +124,14 @@ class Tournament
     bool storePGNS = false;
     bool saveTimeHeader = true;
 
+    std::mutex fileMutex;
+
     std::atomic<int> wins = 0;
     std::atomic<int> draws = 0;
     std::atomic<int> losses = 0;
     std::atomic<int> roundCount = 0;
 
     std::vector<std::string> engineNames;
+
+    std::ofstream file;
 };

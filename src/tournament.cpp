@@ -302,6 +302,10 @@ std::vector<Match> Tournament::runH2H(CMD::GameManagerOptions localMatchConfig,
 
     int games = localMatchConfig.repeat ? 2 : localMatchConfig.games;
 
+    int localWins = 0;
+    int localLosses = 0;
+    int localDraws = 0;
+
     for (int i = 0; i < games; i++)
     {
         Match match;
@@ -329,20 +333,20 @@ std::vector<Match> Tournament::runH2H(CMD::GameManagerOptions localMatchConfig,
         if (match.result == GameResult::WHITE_WIN)
         {
             if (match.whiteEngine.name == configs[0].name)
-                wins++;
+                localWins++;
             else
-                losses++;
+                localLosses++;
         }
         else if (match.result == GameResult::BLACK_WIN)
         {
             if (match.blackEngine.name == configs[0].name)
-                wins++;
+                localWins++;
             else
-                losses++;
+                localLosses++;
         }
         else if (match.result == GameResult::DRAW)
         {
-            draws++;
+            localDraws++;
         }
         else
         {
@@ -351,6 +355,10 @@ std::vector<Match> Tournament::runH2H(CMD::GameManagerOptions localMatchConfig,
 
         totalCount++;
     }
+
+    wins += localWins;
+    losses += localLosses;
+    draws += localDraws;
 
     roundCount++;
 

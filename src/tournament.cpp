@@ -139,7 +139,7 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, 
         // Engine 1's turn
         // Write new position
         engine1.writeProcess(positionInput);
-        engine1.writeProcess(engine1.buildGoInput(board.sideToMove, timeLeft_1));
+        engine1.writeProcess(engine1.buildGoInput(board.sideToMove, timeLeft_1, timeLeft_2));
 
         // Start measuring time
         t0 = std::chrono::high_resolution_clock::now();
@@ -203,7 +203,7 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, 
         // Engine 2's turn
         // Write new position
         engine2.writeProcess(positionInput);
-        engine2.writeProcess(engine2.buildGoInput(board.sideToMove, timeLeft_2));
+        engine2.writeProcess(engine2.buildGoInput(board.sideToMove, timeLeft_2, timeLeft_1));
 
         // Start measuring time
         t0 = std::chrono::high_resolution_clock::now();

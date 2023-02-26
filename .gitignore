@@ -6,3 +6,4 @@ DummyEngine*
 *.exe
 dummy_engine*
 .DS_Store
+*.pgn

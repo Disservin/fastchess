@@ -1,6 +1,5 @@
 #include <cassert>
 #include <chrono>
-#include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <sstream>
@@ -86,6 +85,18 @@ void Tournament::printElo()
        << (float(wins) + (float(draws) * 0.5)) / roundCount << ")\n"
        << "Elo difference: " << elo.getElo() << "\n---------------------------" << std::endl;
     std::cout << ss.str();
+}
+
+void Tournament::writeToFile(const std::string &data)
+{
+    // Acquire the lock
+    std::unique_lock<std::mutex> lock(fileMutex);
+
+    // Write the data to the file
+    file << data << std::endl;
+
+    // Release the lock
+    lock.unlock();
 }
 
 Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, std::string openingFen)
@@ -297,6 +308,10 @@ std::vector<Match> Tournament::runH2H(CMD::GameManagerOptions localMatchConfig,
         std::string positiveEngine = engine1.turn == Turn::FIRST ? engine1.getConfig().name : engine2.getConfig().name;
         std::string negativeEngine = engine1.turn == Turn::FIRST ? engine2.getConfig().name : engine1.getConfig().name;
 
+        PgnBuilder pgn(match, matchConfig);
+
+        writeToFile(pgn.getPGN());
+
         // use a stringstream to build the output to avoid data races with cout <<
         std::stringstream ss;
         ss << "Finished game " << i + 1 << "/" << games << " in round " << roundId << "/" << localMatchConfig.rounds
@@ -347,15 +362,14 @@ void Tournament::startTournament(std::vector<EngineConfiguration> configs)
 
     std::vector<std::future<std::vector<Match>>> results;
 
+    std::string filename = (matchConfig.pgn.file == "" ? "fast-chess" : matchConfig.pgn.file) + ".pgn";
+    file.open(filename, std::ios::app);
+
     for (int i = 1; i <= matchConfig.rounds; i++)
     {
         results.emplace_back(
             pool.enqueue(std::bind(&Tournament::runH2H, this, matchConfig, configs, i, fetchNextFen())));
     }
-
-    std::ofstream file;
-    std::string filename = (matchConfig.pgn.file == "" ? "fast-chess" : matchConfig.pgn.file) + ".pgn";
-    file.open(filename, std::ios::app);
 
     engineNames.push_back(configs[0].name);
     engineNames.push_back(configs[1].name);
@@ -366,12 +380,11 @@ void Tournament::startTournament(std::vector<EngineConfiguration> configs)
 
         for (const Match &match : res)
         {
-            PgnBuilder pgn(match, matchConfig);
-
             if (storePGNS)
+            {
+                PgnBuilder pgn(match, matchConfig);
                 pgns.emplace_back(pgn.getPGN());
-
-            file << pgn.getPGN() << std::endl;
+            }
         }
     }
 

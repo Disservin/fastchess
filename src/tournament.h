@@ -1,6 +1,7 @@
 #pragma once
 
 #include <atomic>
+#include <fstream>
 #include <utility>
 #include <vector>
 
@@ -96,6 +97,8 @@ class Tournament
 
     void printElo();
 
+    void writeToFile(const std::string &data);
+
   private:
     const std::string STARTPOS = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
     const Score MATE_SCORE = 100'000;
@@ -119,10 +122,14 @@ class Tournament
     bool storePGNS = false;
     bool saveTimeHeader = true;
 
+    std::mutex fileMutex;
+
     std::atomic<int> wins = 0;
     std::atomic<int> draws = 0;
     std::atomic<int> losses = 0;
     std::atomic<int> roundCount = 0;
 
     std::vector<std::string> engineNames;
+
+    std::ofstream file;
 };

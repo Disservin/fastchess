@@ -177,7 +177,7 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, 
             res = GameResult(~board.sideToMove);
 
             std::stringstream ss;
-            ss << "engine " << engine2.getConfig().name << " played an illegal move: " << bestMove << "\n";
+            ss << "engine " << engine1.getConfig().name << " played an illegal move: " << bestMove << "\n";
             std::cout << ss.str();
 
             break;

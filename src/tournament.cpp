@@ -354,7 +354,7 @@ void Tournament::startTournament(std::vector<EngineConfiguration> configs)
     }
 
     std::ofstream file;
-    std::string filename = "fast-chess.pgn";
+    std::string filename = (matchConfig.pgn.file == "" ? "fast-chess" : matchConfig.pgn.file) + ".pgn";
     file.open(filename, std::ios::app);
 
     engineNames.push_back(configs[0].name);

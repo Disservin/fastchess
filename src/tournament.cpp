@@ -158,12 +158,13 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, 
         timeLeft_1.time -= measuredTime;
 
         // Timeout!
-        if (timeLeft_1.time < 0 || timeout)
+        if (timeLeft_1.time < 0)
         {
             res = GameResult(~board.sideToMove);
             std::stringstream ss;
             ss << "engine " << engine1.getConfig().name << " timed out\n";
             std::cout << ss.str();
+            match.termination = "timeout";
             break;
         }
 
@@ -222,12 +223,14 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, 
         timeLeft_2.time -= measuredTime;
 
         // Timeout!
-        if (timeLeft_2.time < 0 || timeout)
+        if (timeLeft_2.time < 0)
         {
             res = GameResult(~board.sideToMove);
             std::stringstream ss;
             ss << "engine " << engine2.getConfig().name << " timed out\n";
             std::cout << ss.str();
+            match.termination = "timeout";
+
             break;
         }
 
@@ -384,12 +387,21 @@ void Tournament::startTournament(std::vector<EngineConfiguration> configs)
 
     sprt = SPRT(matchConfig.sprt.alpha, matchConfig.sprt.beta, matchConfig.sprt.elo0, matchConfig.sprt.elo1);
 
-    for (auto &&result : results)
+    while (sprt.isValid())
     {
         double llr = sprt.getLLR(wins, draws, losses);
         if (sprt.getResult(llr) != SPRT_CONTINUE)
-            break;
+        {
+            pool.kill();
+            printElo();
 
+            return;
+        }
+        std::this_thread::sleep_for(std::chrono::microseconds(500));
+    }
+
+    for (auto &&result : results)
+    {
         auto res = result.get();
 
         for (const Match &match : res)

@@ -214,6 +214,9 @@ void Options::parseSprt(int &i, int argc, char const *argv[])
 
     while (i < argc && argv[i][0] != '-')
     {
+        // If the user didn't set a game param just use a very big default
+        if (gameOptions.rounds == 0)
+            gameOptions.rounds = 500000;
         std::string param = argv[i];
         size_t pos = param.find('=');
         std::string key = param.substr(0, pos);

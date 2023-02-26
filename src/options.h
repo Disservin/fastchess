@@ -58,7 +58,7 @@ struct ResignAdjudication
 
 struct GameManagerOptions
 {
-    int games = 1;
+    int games = 2;
     int rounds = 0;
     bool recover = false;
     bool repeat = false;

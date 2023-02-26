@@ -78,6 +78,7 @@ std::vector<std::string> EngineProcess::readProcess(std::string_view last_word, 
     lines.reserve(30);
 
     std::string currentLine;
+    currentLine.reserve(300);
 
     char buffer[4096];
     DWORD bytesRead;
@@ -136,11 +137,15 @@ std::vector<std::string> EngineProcess::readProcess(std::string_view last_word, 
                 // dont add empty lines
                 if (!currentLine.empty())
                 {
-                    lines.emplace_back(currentLine);
-
                     if (currentLine.rfind(last_word, 0) == 0)
                     {
+                        lines.emplace_back(currentLine);
                         return lines;
+                    }
+                    else
+                    {
+                        lines.clear();
+                        lines.emplace_back(currentLine);
                     }
 
                     currentLine = "";
@@ -288,9 +293,9 @@ std::vector<std::string> EngineProcess::readProcess(std::string_view last_word, 
     lines.reserve(30);
 
     std::string currentLine;
+    currentLine.reserve(300);
 
     char buffer[4096];
-    int checkTime = 255;
     timeout = false;
 
     // Set up the file descriptor set for select
@@ -333,11 +338,15 @@ std::vector<std::string> EngineProcess::readProcess(std::string_view last_word, 
                     // dont add empty lines
                     if (!currentLine.empty())
                     {
-                        lines.emplace_back(currentLine);
-
                         if (currentLine.rfind(last_word, 0) == 0)
                         {
+                            lines.emplace_back(currentLine);
                             return lines;
+                        }
+                        else
+                        {
+                            lines.clear();
+                            lines.emplace_back(currentLine);
                         }
 
                         currentLine = "";

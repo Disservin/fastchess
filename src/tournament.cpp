@@ -85,7 +85,8 @@ void Tournament::printElo()
        << " - " << losses << " - " << draws << " (" << std::fixed << std::setprecision(2)
        << (float(wins) + (float(draws) * 0.5)) / roundCount << ")\n";
 
-    if (sprt.isValid()) {
+    if (sprt.isValid())
+    {
         ss << "LLR: " << sprt.getLLR(wins, draws, losses) << " " << sprt.getBounds() << "\n";
     }
 
@@ -381,7 +382,7 @@ void Tournament::startTournament(std::vector<EngineConfiguration> configs)
     engineNames.push_back(configs[0].name);
     engineNames.push_back(configs[1].name);
 
-    sprt = SPRT(matchConfig.alpha, matchConfig.beta, matchConfig.elo0, matchConfig.elo1);
+    sprt = SPRT(matchConfig.sprt.alpha, matchConfig.sprt.beta, matchConfig.sprt.elo0, matchConfig.sprt.elo1);
 
     for (auto &&result : results)
     {

@@ -24,14 +24,6 @@ Options::Options(int argc, char const *argv[])
         }
         else if (arg == "-each")
             parseEachOptions(i, argc, argv);
-        else if (arg == "-elo0")
-            parseOption(i, argc, argv, gameOptions.elo0);
-        else if (arg == "-elo1")
-            parseOption(i, argc, argv, gameOptions.elo1);
-        else if (arg == "-alpha")
-            parseOption(i, argc, argv, gameOptions.alpha);
-        else if (arg == "-beta")
-            parseOption(i, argc, argv, gameOptions.beta);
         else if (arg == "-concurrency")
             parseOption(i, argc, argv, gameOptions.concurrency);
         else if (arg == "-event")
@@ -48,10 +40,12 @@ Options::Options(int argc, char const *argv[])
             gameOptions.recover = true;
         else if (arg == "-repeat")
             gameOptions.repeat = true;
+        else if (arg == "-sprt")
+            parseSprt(i, argc, argv);
         else if (arg == "-draw")
             parseDrawOptions(i, argc, argv);
         else if (arg == "-resign")
-            parseDrawOptions(i, argc, argv);
+            parseResignOptions(i, argc, argv);
         else if (arg == "-ratinginterval")
             parseOption(i, argc, argv, gameOptions.ratinginterval);
     }
@@ -213,6 +207,39 @@ void Options::parseEachOptions(int &i, int argc, char const *argv[])
     }
     i--;
 }
+
+void Options::parseSprt(int &i, int argc, char const *argv[])
+{
+    i++;
+
+    while (i < argc && argv[i][0] != '-')
+    {
+        std::string param = argv[i];
+        size_t pos = param.find('=');
+        std::string key = param.substr(0, pos);
+        std::string value = param.substr(pos + 1);
+        if (key == "elo0")
+        {
+            gameOptions.sprt.elo0 = std::stod(key);
+        }
+        else if (key == "elo1")
+        {
+            gameOptions.sprt.elo1 = std::stod(key);
+        }
+        else if (key == "alpha")
+        {
+            gameOptions.sprt.alpha = std::stod(key);
+        }
+        else if (key == "beta")
+        {
+            gameOptions.sprt.beta = std::stod(key);
+        }
+
+        i++;
+    }
+
+    i--;
+};
 
 void Options::parseDrawOptions(int &i, int argc, char const *argv[])
 {

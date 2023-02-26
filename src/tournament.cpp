@@ -350,10 +350,10 @@ std::vector<Match> Tournament::runH2H(CMD::GameManagerOptions localMatchConfig,
         }
 
         roundCount++;
-
-        if (roundCount % localMatchConfig.ratinginterval == 0)
-            printElo();
     }
+
+    if (roundCount % localMatchConfig.ratinginterval == 0)
+        printElo();
 
     // Write matches to file
     for (const auto &match : matches)

@@ -28,6 +28,7 @@ BOOL WINAPI consoleHandler(DWORD signal)
 void sigintHandler(int param)
 {
     tour->printElo();
+    exit(param);
 }
 
 #endif

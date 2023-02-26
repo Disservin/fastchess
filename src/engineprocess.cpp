@@ -137,17 +137,11 @@ std::vector<std::string> EngineProcess::readProcess(std::string_view last_word, 
                 // dont add empty lines
                 if (!currentLine.empty())
                 {
+                    lines.emplace_back(currentLine);
                     if (currentLine.rfind(last_word, 0) == 0)
                     {
-                        lines.emplace_back(currentLine);
                         return lines;
                     }
-                    else
-                    {
-                        lines.clear();
-                        lines.emplace_back(currentLine);
-                    }
-
                     currentLine = "";
                 }
             }
@@ -338,17 +332,11 @@ std::vector<std::string> EngineProcess::readProcess(std::string_view last_word, 
                     // dont add empty lines
                     if (!currentLine.empty())
                     {
+                        lines.emplace_back(currentLine);
                         if (currentLine.rfind(last_word, 0) == 0)
                         {
-                            lines.emplace_back(currentLine);
                             return lines;
                         }
-                        else
-                        {
-                            lines.clear();
-                            lines.emplace_back(currentLine);
-                        }
-
                         currentLine = "";
                     }
                 }

@@ -174,6 +174,8 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, 
 
         if (!match.legal)
         {
+            res = GameResult(~board.sideToMove);
+
             std::stringstream ss;
             ss << "engine " << engine2.getConfig().name << " played an illegal move: " << bestMove << "\n";
             std::cout << ss.str();
@@ -188,12 +190,12 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, 
         res = board.isGameOver();
 
         // If game isn't over by other means check adj
-        if (res == GameResult::NONE && !match.legal)
+        if (res == GameResult::NONE)
         {
             res = checkAdj(match, drawTracker, resignTracker, match.moves.back().score, ~board.sideToMove);
         }
 
-        if (res != GameResult::NONE || !match.legal)
+        if (res != GameResult::NONE)
         {
             break;
         }
@@ -236,6 +238,8 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, 
 
         if (!match.legal)
         {
+            res = GameResult(~board.sideToMove);
+
             std::stringstream ss;
             ss << "engine " << engine2.getConfig().name << " played an illegal move: " << bestMove << "\n";
             std::cout << ss.str();
@@ -250,11 +254,11 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, 
         res = board.isGameOver();
 
         // If game isn't over by other means check adj
-        if (res == GameResult::NONE && !match.legal)
+        if (res == GameResult::NONE)
         {
             res = checkAdj(match, drawTracker, resignTracker, match.moves.back().score, ~board.sideToMove);
         }
-        if (res != GameResult::NONE || !match.legal)
+        if (res != GameResult::NONE)
         {
             break;
         }

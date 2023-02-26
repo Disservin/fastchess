@@ -83,7 +83,7 @@ void Tournament::printElo()
     std::stringstream ss;
     ss << "---------------------------\nResult of " << engineNames[0] << " vs " << engineNames[1] << ": " << wins
        << " - " << losses << " - " << draws << " (" << std::fixed << std::setprecision(2)
-       << (float(wins) + (float(draws) * 0.5)) / roundCount << ")\n";
+       << (float(wins) + (float(draws) * 0.5)) / totalCount << ")\n";
 
     if (sprt.isValid())
     {
@@ -318,7 +318,7 @@ std::vector<Match> Tournament::runH2H(CMD::GameManagerOptions localMatchConfig,
         // use a stringstream to build the output to avoid data races with cout <<
         std::stringstream ss;
         ss << "Finished game " << i + 1 << "/" << games << " in round " << roundId << "/" << localMatchConfig.rounds
-           << " total played " << roundCount << "/" << localMatchConfig.rounds * games << " " << positiveEngine
+           << " total played " << totalCount << "/" << localMatchConfig.rounds * games << " " << positiveEngine
            << " vs " << negativeEngine << ": " << resultToString(match.result) << "\n";
 
         std::cout << ss.str();
@@ -349,8 +349,10 @@ std::vector<Match> Tournament::runH2H(CMD::GameManagerOptions localMatchConfig,
             std::cout << "Couldnt obtain Game Result" << std::endl;
         }
 
-        roundCount++;
+        totalCount++;
     }
+
+    roundCount++;
 
     if (roundCount % localMatchConfig.ratinginterval == 0)
         printElo();

@@ -133,6 +133,7 @@ class Tournament
     std::atomic<int> draws = 0;
     std::atomic<int> losses = 0;
     std::atomic<int> roundCount = 0;
+    std::atomic<int> totalCount = 0;
 
     std::vector<std::string> engineNames;
 

@@ -220,19 +220,19 @@ void Options::parseSprt(int &i, int argc, char const *argv[])
         std::string value = param.substr(pos + 1);
         if (key == "elo0")
         {
-            gameOptions.sprt.elo0 = std::stod(key);
+            gameOptions.sprt.elo0 = std::stod(value);
         }
         else if (key == "elo1")
         {
-            gameOptions.sprt.elo1 = std::stod(key);
+            gameOptions.sprt.elo1 = std::stod(value);
         }
         else if (key == "alpha")
         {
-            gameOptions.sprt.alpha = std::stod(key);
+            gameOptions.sprt.alpha = std::stod(value);
         }
         else if (key == "beta")
         {
-            gameOptions.sprt.beta = std::stod(key);
+            gameOptions.sprt.beta = std::stod(value);
         }
 
         i++;

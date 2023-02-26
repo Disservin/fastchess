@@ -376,15 +376,18 @@ void EngineProcess::killProcess()
 {
     if (isInitalized)
     {
-        int status;
-        pid_t r = waitpid(processPid, &status, WNOHANG);
-        if (r == 0)
-            kill(processPid, SIGKILL);
-
         close(inPipe[0]);
         close(inPipe[1]);
         close(outPipe[0]);
         close(outPipe[1]);
+
+        int status;
+        pid_t r = waitpid(processPid, &status, WNOHANG);
+
+        if (r == 0) {
+            kill(processPid, SIGKILL);
+            wait(nullptr);
+        }
     }
 }
 

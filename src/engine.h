@@ -13,10 +13,6 @@ class Engine : public EngineProcess
 
     Engine(std::string command);
 
-    ~Engine();
-
-    void stopEngine();
-
     bool pingEngine();
 
     EngineConfiguration getConfig() const;

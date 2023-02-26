@@ -104,9 +104,3 @@ void UciEngine::startEngine(const std::string &cmd)
         sendSetoption(option.first, option.second);
     }
 }
-
-void UciEngine::stopEngine()
-{
-    sendQuit();
-    killProcess();
-}

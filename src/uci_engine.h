@@ -26,6 +26,10 @@ class UciEngine : public Engine
         setConfig(config);
     }
 
+    ~UciEngine() {
+        sendQuit();
+    }
+
     void sendUciNewGame();
 
     void sendUci();
@@ -43,7 +47,6 @@ class UciEngine : public Engine
 
     void startEngine();
     void startEngine(const std::string &cmd);
-    void stopEngine();
 
     Turn turn;
 };

@@ -8,6 +8,7 @@
 #include "board.h"
 #include "engine_config.h"
 #include "options.h"
+#include "sprt.h"
 #include "threadpool.h"
 #include "uci_engine.h"
 
@@ -108,6 +109,8 @@ class Tournament
     CMD::GameManagerOptions matchConfig = {};
 
     ThreadPool pool = ThreadPool(1);
+
+    SPRT sprt;
 
     MoveData parseEngineOutput(const std::vector<std::string> &output, const std::string &move, int64_t measuredTime);
     std::string getDateTime(std::string format = "%Y-%m-%dT%H:%M:%S %z");

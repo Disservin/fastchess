@@ -55,6 +55,10 @@ struct GameManagerOptions
     bool repeat = false;
     int concurrency = 1;
     int ratinginterval = 10;
+    double alpha = 0.0;
+    double beta = 0.0;
+    double elo0 = 0.0;
+    double elo1 = 0.0;
     std::string eventName = {};
     OpeningOptions opening = {};
     PgnOptions pgn = {};

@@ -24,6 +24,14 @@ Options::Options(int argc, char const *argv[])
         }
         else if (arg == "-each")
             parseEachOptions(i, argc, argv);
+        else if (arg == "-elo0")
+            parseOption(i, argc, argv, gameOptions.elo0);
+        else if (arg == "-elo1")
+            parseOption(i, argc, argv, gameOptions.elo1);
+        else if (arg == "-alpha")
+            parseOption(i, argc, argv, gameOptions.alpha);
+        else if (arg == "-beta")
+            parseOption(i, argc, argv, gameOptions.beta);
         else if (arg == "-concurrency")
             parseOption(i, argc, argv, gameOptions.concurrency);
         else if (arg == "-event")

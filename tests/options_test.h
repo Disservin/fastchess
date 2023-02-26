@@ -66,6 +66,11 @@ TEST_CASE("Testing Cli options parsing")
                           "8",
                           "-games",
                           "256",
+                          "-sprt",
+                          "alpha=0.5",
+                          "beta=0.5",
+                          "elo0=0",
+                          "elo1=5",
                           "-openings",
                           "file=Books/Pohl.epd",
                           "format=epd",
@@ -81,6 +86,11 @@ TEST_CASE("Testing Cli options parsing")
     CHECK(gameOptions.recover == true);
     CHECK(gameOptions.concurrency == 8);
     CHECK(gameOptions.games == 256);
+    // Test Sprt options parsing
+    CHECK(gameOptions.sprt.alpha == 0.5);
+    CHECK(gameOptions.sprt.beta == 0.5);
+    CHECK(gameOptions.sprt.elo0 == 0);
+    CHECK(gameOptions.sprt.elo1 == 5.0);
     //  Test opening settings parsing
     // CHECK(options.gameOptions.OpeningOptions.file == "Books/Pohl.epd");
     // CHECK(options.gameOptions.OpeningOptions.format == "epd");

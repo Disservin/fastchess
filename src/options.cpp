@@ -40,10 +40,12 @@ Options::Options(int argc, char const *argv[])
             gameOptions.recover = true;
         else if (arg == "-repeat")
             gameOptions.repeat = true;
+        else if (arg == "-sprt")
+            parseSprt(i, argc, argv);
         else if (arg == "-draw")
             parseDrawOptions(i, argc, argv);
         else if (arg == "-resign")
-            parseDrawOptions(i, argc, argv);
+            parseResignOptions(i, argc, argv);
         else if (arg == "-ratinginterval")
             parseOption(i, argc, argv, gameOptions.ratinginterval);
     }
@@ -205,6 +207,42 @@ void Options::parseEachOptions(int &i, int argc, char const *argv[])
     }
     i--;
 }
+
+void Options::parseSprt(int &i, int argc, char const *argv[])
+{
+    i++;
+
+    while (i < argc && argv[i][0] != '-')
+    {
+        // If the user didn't set a game param just use a very big default
+        if (gameOptions.rounds == 0)
+            gameOptions.rounds = 500000;
+        std::string param = argv[i];
+        size_t pos = param.find('=');
+        std::string key = param.substr(0, pos);
+        std::string value = param.substr(pos + 1);
+        if (key == "elo0")
+        {
+            gameOptions.sprt.elo0 = std::stod(value);
+        }
+        else if (key == "elo1")
+        {
+            gameOptions.sprt.elo1 = std::stod(value);
+        }
+        else if (key == "alpha")
+        {
+            gameOptions.sprt.alpha = std::stod(value);
+        }
+        else if (key == "beta")
+        {
+            gameOptions.sprt.beta = std::stod(value);
+        }
+
+        i++;
+    }
+
+    i--;
+};
 
 void Options::parseDrawOptions(int &i, int argc, char const *argv[])
 {

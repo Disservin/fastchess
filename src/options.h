@@ -17,6 +17,7 @@ struct Parameter
     std::string minLimit;
     std::string maxLimit;
 };
+
 struct OpeningOptions
 {
     std::string file;
@@ -30,6 +31,14 @@ struct OpeningOptions
 struct PgnOptions
 {
     std::string file;
+};
+
+struct SprtOptions
+{
+    double alpha = 0.0;
+    double beta = 0.0;
+    double elo0 = 0.0;
+    double elo1 = 0.0;
 };
 
 struct DrawAdjudication
@@ -49,12 +58,13 @@ struct ResignAdjudication
 
 struct GameManagerOptions
 {
-    int games = 1;
-    int rounds = 2;
+    int games = 2;
+    int rounds = 0;
     bool recover = false;
     bool repeat = false;
     int concurrency = 1;
     int ratinginterval = 10;
+    SprtOptions sprt = {};
     std::string eventName = {};
     OpeningOptions opening = {};
     PgnOptions pgn = {};
@@ -105,7 +115,7 @@ class Options
     void parseDrawOptions(int &i, int argc, char const *argv[]);
     void parseResignOptions(int &i, int argc, char const *argv[]);
     void parseOpeningOptions(int &i, int argc, char const *argv[]);
-
+    void parseSprt(int &i, int argc, char const *argv[]);
     void parseEngineParams(int &i, int argc, char const *argv[], EngineConfiguration &engineParams);
 };
 

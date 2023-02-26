@@ -83,9 +83,14 @@ void Tournament::printElo()
     std::stringstream ss;
     ss << "---------------------------\nResult of " << engineNames[0] << " vs " << engineNames[1] << ": " << wins
        << " - " << losses << " - " << draws << " (" << std::fixed << std::setprecision(2)
-       << (float(wins) + (float(draws) * 0.5)) / roundCount << ")\n"
-       << "Elo difference: " << elo.getElo() << "\n---------------------------" << std::endl;
+       << (float(wins) + (float(draws) * 0.5)) / roundCount << ")\n";
 
+    if (sprt.isValid())
+    {
+        ss << "LLR: " << sprt.getLLR(wins, draws, losses) << " " << sprt.getBounds() << "\n";
+    }
+
+    ss << "Elo difference: " << elo.getElo() << "\n---------------------------" << std::endl;
     std::cout << ss.str();
 }
 
@@ -153,12 +158,13 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, 
         timeLeft_1.time -= measuredTime;
 
         // Timeout!
-        if (timeLeft_1.time < 0 || timeout)
+        if (timeLeft_1.time < 0)
         {
             res = GameResult(~board.sideToMove);
             std::stringstream ss;
             ss << "engine " << engine1.getConfig().name << " timed out\n";
             std::cout << ss.str();
+            match.termination = "timeout";
             break;
         }
 
@@ -217,12 +223,14 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, 
         timeLeft_2.time -= measuredTime;
 
         // Timeout!
-        if (timeLeft_2.time < 0 || timeout)
+        if (timeLeft_2.time < 0)
         {
             res = GameResult(~board.sideToMove);
             std::stringstream ss;
             ss << "engine " << engine2.getConfig().name << " timed out\n";
             std::cout << ss.str();
+            match.termination = "timeout";
+
             break;
         }
 
@@ -376,6 +384,21 @@ void Tournament::startTournament(std::vector<EngineConfiguration> configs)
 
     engineNames.push_back(configs[0].name);
     engineNames.push_back(configs[1].name);
+
+    sprt = SPRT(matchConfig.sprt.alpha, matchConfig.sprt.beta, matchConfig.sprt.elo0, matchConfig.sprt.elo1);
+
+    while (sprt.isValid())
+    {
+        double llr = sprt.getLLR(wins, draws, losses);
+        if (sprt.getResult(llr) != SPRT_CONTINUE)
+        {
+            pool.kill();
+            printElo();
+
+            return;
+        }
+        std::this_thread::sleep_for(std::chrono::microseconds(500));
+    }
 
     for (auto &&result : results)
     {

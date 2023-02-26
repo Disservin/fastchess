@@ -9,6 +9,8 @@
 TEST_CASE("Test Tournament")
 {
     CMD::GameManagerOptions mang = CMD::GameManagerOptions();
+    mang.games = 1;
+    mang.rounds = 2;
     EngineConfiguration engine;
     EngineConfiguration engine_2;
 

@@ -89,6 +89,8 @@ class Tournament
         int index = std::find(haystack.begin(), haystack.end(), needle) - haystack.begin();
         if constexpr (std::is_same_v<T, int>)
             return std::stoi(haystack[index + 1]);
+        else if constexpr (std::is_same_v<T, float>)
+            return std::stof(haystack[index + 1]);
         else
             return haystack[index + 1];
     }

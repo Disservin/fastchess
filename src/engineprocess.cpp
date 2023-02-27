@@ -216,7 +216,8 @@ void EngineProcess::initProcess(const std::string &command)
 
     if (forkPid < 0)
     {
-        throw std::runtime_error(strerror(errno));
+        perror(strerror(errno));
+        exit(1);
     }
 
     // If this is the child process, set up the pipes and start the engine
@@ -224,23 +225,23 @@ void EngineProcess::initProcess(const std::string &command)
     {
         // Redirect the child's standard input to the read end of the output pipe
         if (dup2(outPipe[0], 0) == -1)
-            throw std::runtime_error(strerror(errno));
+            perror("Failed to duplicate outpipe");
 
         if (close(outPipe[0]) == -1)
-            throw std::runtime_error(strerror(errno));
+            perror("Failed to close outpipe");
 
         // Redirect the child's standard output to the write end of the input pipe
         if (dup2(inPipe[1], 1) == -1)
-            throw std::runtime_error(strerror(errno));
+            perror("Failed to duplicate inpipe");
 
-        if (close(inPipe[1]))
-            throw std::runtime_error(strerror(errno));
+        if (close(inPipe[1]) == -1)
+            perror("Failed to close inpipe");
 
         // Execute the engine
         if (execl(command.c_str(), command.c_str(), nullptr) == -1)
-            throw std::runtime_error(strerror(errno));
+            perror(strerror(errno));
 
-        perror("Failed to create child process. Possibly wrong engine name/path.");
+        perror(strerror(errno));
         exit(1);
     }
     else
@@ -271,15 +272,17 @@ void EngineProcess::writeProcess(const std::string &input)
     // Write the input and a newline to the output pipe
     if (write(outPipe[1], input.c_str(), input.size()) == -1)
     {
+        perror(strerror(errno));
         std::stringstream ss;
-        ss << "Process is not alive and write occured with message: " << input << "\nError: " << strerror(errno);
+        ss << "Process is not alive and write occured with message: " << input;
         throw std::runtime_error(ss.str());
     }
 
     if (write(outPipe[1], &endLine, 1) == -1)
     {
+        perror(strerror(errno));
         std::stringstream ss;
-        ss << "Process is not alive and write occured with message: " << input << "\nError: " << strerror(errno);
+        ss << "Process is not alive and write occured with message: " << input;
         throw std::runtime_error(ss.str());
     }
 }
@@ -316,6 +319,7 @@ std::vector<std::string> EngineProcess::readProcess(std::string_view last_word, 
 
         if (ret == -1)
         {
+            perror(strerror(errno));
             throw std::runtime_error(strerror(errno));
         }
         else if (ret == 0)
@@ -330,6 +334,11 @@ std::vector<std::string> EngineProcess::readProcess(std::string_view last_word, 
             // input available on the pipe
             int bytesRead = read(inPipe[0], buffer, sizeof(buffer));
 
+            if (bytesRead == -1)
+            {
+                perror(strerror(errno));
+                throw std::runtime_error("Error at read");
+            }
             // Iterate over each character in the buffer
             for (int i = 0; i < bytesRead; i++)
             {
@@ -367,7 +376,8 @@ bool EngineProcess::isAlive()
     pid_t r = waitpid(processPid, &status, WNOHANG);
     if (r == -1)
     {
-        throw std::runtime_error(strerror(errno));
+        perror(strerror(errno));
+        throw std::runtime_error("isalive");
     }
     else
     {

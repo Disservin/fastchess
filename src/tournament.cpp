@@ -142,7 +142,7 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, 
     while (true)
     {
         // Engine 1's turn
-        if (!engine1.isResponsive(PING_TIME))
+        if (!engine1.isResponsive())
         {
             std::stringstream ss;
             ss << "Engine " << engine1.getConfig().name << " was not responsive.\n";
@@ -215,7 +215,7 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, 
 
         // Engine 2's turn
         // Write new position
-        if (!engine2.isResponsive(PING_TIME))
+        if (!engine2.isResponsive())
         {
             std::stringstream ss;
             ss << "Engine " << engine2.getConfig().name << " was not responsive.\n";

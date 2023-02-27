@@ -16,6 +16,10 @@ constexpr Turn operator~(Turn t)
 
 class UciEngine : public Engine
 {
+
+  private:
+    static const int64_t PING_TIME = 60000;
+
   public:
     UciEngine() : Engine()
     {
@@ -31,7 +35,7 @@ class UciEngine : public Engine
         sendQuit();
     }
 
-    bool isResponsive(int64_t threshold);
+    bool isResponsive(int64_t threshold = PING_TIME);
     void sendUciNewGame();
 
     void sendUci();

@@ -20,4 +20,5 @@ TEST_CASE("Testing the EngineProcess class")
     CHECK(uciOutput[0] == "line0");
     CHECK(uciOutput[1] == "line1");
     CHECK(uciOutput[2] == "uciok");
+    CHECK(uci_engine.isResponsive());
 }

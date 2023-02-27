@@ -105,8 +105,6 @@ class Tournament
   private:
     const std::string STARTPOS = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
     const Score MATE_SCORE = 100'000;
-    const Score PING_TIME = 60000;
-
 
     CMD::GameManagerOptions matchConfig = {};
 

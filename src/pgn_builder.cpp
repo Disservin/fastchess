@@ -1,4 +1,5 @@
 #include <sstream>
+#include <iomanip>      // std::setprecision
 
 #include "pgn_builder.h"
 

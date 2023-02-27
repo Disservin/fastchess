@@ -142,6 +142,13 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, 
     while (true)
     {
         // Engine 1's turn
+        if (!engine1.isResponsive())
+        {
+            std::stringstream ss;
+            ss << "Engine " << engine1.getConfig().name << " was not responsive.\n";
+            std::cout << ss.str(); 
+        }
+
         // Write new position
         engine1.writeProcess(positionInput);
         engine1.writeProcess(engine1.buildGoInput(board.sideToMove, timeLeft_1, timeLeft_2));
@@ -208,6 +215,13 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, 
 
         // Engine 2's turn
         // Write new position
+        if (!engine2.isResponsive())
+        {
+            std::stringstream ss;
+            ss << "Engine " << engine2.getConfig().name << " was not responsive.\n";
+            std::cout << ss.str(); 
+        }
+
         engine2.writeProcess(positionInput);
         engine2.writeProcess(engine2.buildGoInput(board.sideToMove, timeLeft_2, timeLeft_1));
 

@@ -9,7 +9,6 @@ using Bitboard = uint64_t;
 using Score = int32_t;
 
 static constexpr int N_SQ = 64;
-static constexpr int64_t PING_TIMEOUT_THRESHOLD = 1000;
 static constexpr int MAX_MOVES = 128;
 static constexpr Bitboard DEFAULT_CHECKMASK = 18446744073709551615ULL;
 

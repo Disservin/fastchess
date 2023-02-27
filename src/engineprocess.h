@@ -16,9 +16,6 @@ class Process
     // Returns true if the engine process is alive
     virtual bool isAlive() = 0;
 
-    // Returns true of the engine responds to isready in PING_TIMEOUT_THRESHOLD milliseconds
-    bool isResponsive();
-
     bool isInitalized = false;
 };
 

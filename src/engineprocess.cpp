@@ -188,6 +188,7 @@ void EngineProcess::killProcess()
 #else
 
 #include <fcntl.h>
+#include <poll.h>
 #include <signal.h>
 #include <string.h>
 #include <sys/types.h>
@@ -302,20 +303,21 @@ std::vector<std::string> EngineProcess::readProcess(std::string_view last_word, 
     char buffer[4096];
     timeout = false;
 
-    // Set up the file descriptor set for select
-    fd_set readSet;
-    FD_ZERO(&readSet);
-    FD_SET(inPipe[0], &readSet);
+    struct pollfd pollfds[1];
+    pollfds[0].fd = inPipe[0];
+    pollfds[0].events = POLLIN;
 
-    // Set up the timeout for select
-    struct timeval tm;
-    tm.tv_sec = timeoutThreshold / 1000; // convert milliseconds to secs
-    tm.tv_usec = (timeoutThreshold % 1000) * 1000;
+    // Set up the timeout for poll
+    int timeoutMillis = timeoutThreshold;
+    if (timeoutMillis <= 0)
+    {
+        timeoutMillis = -1; // wait indefinitely
+    }
 
     // Continue reading output lines until the line matches the specified line or a timeout occurs
     while (true)
     {
-        int ret = select(inPipe[0] + 1, &readSet, nullptr, nullptr, (timeoutThreshold == 0 ? nullptr : &tm));
+        int ret = poll(pollfds, 1, timeoutMillis);
 
         if (ret == -1)
         {
@@ -329,7 +331,7 @@ std::vector<std::string> EngineProcess::readProcess(std::string_view last_word, 
             timeout = true;
             break;
         }
-        else
+        else if (pollfds[0].revents & POLLIN)
         {
             // input available on the pipe
             int bytesRead = read(inPipe[0], buffer, sizeof(buffer));

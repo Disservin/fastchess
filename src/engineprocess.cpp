@@ -261,8 +261,19 @@ void EngineProcess::writeProcess(const std::string &input)
     constexpr char endLine = '\n';
 
     // Write the input and a newline to the output pipe
-    write(outPipe[1], input.c_str(), input.size());
-    write(outPipe[1], &endLine, 1);
+    if (write(outPipe[1], input.c_str(), input.size()) == -1)
+    {
+        std::stringstream ss;
+        ss << "Process is not alive and write occured with message: " << input;
+        throw std::runtime_error(ss.str());
+    }
+
+    if (write(outPipe[1], &endLine, 1))
+    {
+        std::stringstream ss;
+        ss << "Process is not alive and write occured with message: " << input;
+        throw std::runtime_error(ss.str());
+    }
 }
 std::vector<std::string> EngineProcess::readProcess(std::string_view last_word, bool &timeout, int64_t timeoutThreshold)
 {
@@ -369,7 +380,8 @@ void EngineProcess::killProcess()
         int status;
         pid_t r = waitpid(processPid, &status, WNOHANG);
 
-        if (r == 0) {
+        if (r == 0)
+        {
             kill(processPid, SIGKILL);
             wait(nullptr);
         }

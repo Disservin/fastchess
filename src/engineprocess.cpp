@@ -268,7 +268,7 @@ void EngineProcess::writeProcess(const std::string &input)
         throw std::runtime_error(ss.str());
     }
 
-    if (write(outPipe[1], &endLine, 1))
+    if (write(outPipe[1], &endLine, 1) == -1)
     {
         std::stringstream ss;
         ss << "Process is not alive and write occured with message: " << input;

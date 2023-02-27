@@ -230,7 +230,7 @@ void EngineProcess::initProcess(const std::string &command)
         close(inPipe[1]);
 
         // Execute the engine
-        execlp(command.c_str(), command.c_str(), nullptr);
+        execl(command.c_str(), command.c_str(), nullptr);
 
         perror("Failed to create child process. Possibly wrong engine name/path.");
         exit(1);

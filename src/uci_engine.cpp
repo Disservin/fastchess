@@ -9,10 +9,21 @@ void UciEngine::setConfig(const EngineConfiguration &rhs)
     config = rhs;
 }
 
+bool UciEngine::isResponsive(int64_t threshold)
+{
+    if (!isAlive())
+        return false;
+
+    bool timeout = false;
+    writeProcess("isready");
+    readProcess("readyok", timeout, threshold);
+    return !timeout;
+}
+
 void UciEngine::sendUciNewGame()
 {
     writeProcess("ucinewgame");
-    isResponsive();
+    isResponsive(60000);
 }
 
 void UciEngine::sendUci()
@@ -94,7 +105,7 @@ void UciEngine::startEngine()
     sendUci();
     readUci();
 
-    if (!pingEngine())
+    if (!isResponsive(60000))
     {
         throw std::runtime_error("Something went wrong when pinging the engine.");
     }
@@ -112,7 +123,7 @@ void UciEngine::startEngine(const std::string &cmd)
     sendUci();
     readUci();
 
-    if (!pingEngine())
+    if (!isResponsive(60000))
     {
         throw std::runtime_error("Something went wrong when pinging the engine.");
     }

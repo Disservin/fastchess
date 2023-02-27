@@ -13,18 +13,6 @@ EngineProcess::EngineProcess(const std::string &command)
     initProcess(command);
 }
 
-bool Process::isResponsive()
-{
-    assert(isInitalized);
-    if (!isAlive())
-        return false;
-
-    bool timeout = false;
-    writeProcess("isready");
-    readProcess("readyok", timeout, PING_TIMEOUT_THRESHOLD);
-    return !timeout;
-}
-
 #ifdef _WIN64
 
 void EngineProcess::initProcess(const std::string &command)
@@ -164,7 +152,7 @@ void EngineProcess::writeProcess(const std::string &input)
         closeHandles();
 
         std::stringstream ss;
-        ss << "Trying to write to process with message: " << input;
+        ss << "Process is not alive and write occured with message: " << input;
         throw std::runtime_error(ss.str());
     }
 
@@ -244,7 +232,7 @@ void EngineProcess::initProcess(const std::string &command)
         // Execute the engine
         execlp(command.c_str(), command.c_str(), nullptr);
 
-        perror("Failed to create child process");
+        perror("Failed to create child process. Possibly wrong engine name/path.");
         exit(1);
     }
     else
@@ -265,7 +253,7 @@ void EngineProcess::writeProcess(const std::string &input)
     if (!isAlive())
     {
         std::stringstream ss;
-        ss << "Trying to write to process with message: " << input;
+        ss << "Process is not alive and write occured with message: " << input;
         throw std::runtime_error(ss.str());
     }
 
@@ -361,7 +349,7 @@ bool EngineProcess::isAlive()
     if (r == -1)
     {
         perror("waitpid() error");
-        exit(1);
+        throw std::runtime_error("Engine seems to be not alive.");
     }
     else
     {

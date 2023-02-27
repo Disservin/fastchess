@@ -13,7 +13,5 @@ class Engine : public EngineProcess
 
     Engine(std::string command);
 
-    bool pingEngine();
-
     EngineConfiguration getConfig() const;
 };

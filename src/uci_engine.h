@@ -26,10 +26,12 @@ class UciEngine : public Engine
         setConfig(config);
     }
 
-    ~UciEngine() {
+    ~UciEngine()
+    {
         sendQuit();
     }
 
+    bool isResponsive(int64_t threshold);
     void sendUciNewGame();
 
     void sendUci();

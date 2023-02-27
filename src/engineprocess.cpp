@@ -309,7 +309,7 @@ std::vector<std::string> EngineProcess::readProcess(std::string_view last_word, 
 
     // Set up the timeout for poll
     int timeoutMillis = timeoutThreshold;
-    if (timeoutMillis < 0)
+    if (timeoutMillis <= 0)
     {
         timeoutMillis = -1; // wait indefinitely
     }
@@ -327,6 +327,7 @@ std::vector<std::string> EngineProcess::readProcess(std::string_view last_word, 
         else if (ret == 0)
         {
             // timeout
+            std::cout << "timeout" << std::endl;
             lines.emplace_back(currentLine);
             timeout = true;
             break;

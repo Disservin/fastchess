@@ -10,7 +10,7 @@
 
 namespace
 {
-Tournament *tour;
+Tournament tour;
 }
 
 #ifdef _WIN64
@@ -24,8 +24,8 @@ BOOL WINAPI consoleHandler(DWORD signal)
     case CTRL_SHUTDOWN_EVENT:
     case CTRL_C_EVENT:
 
-        tour->printElo();
-        tour->stopPool();
+        tour.printElo();
+        tour.stopPool();
 
         return TRUE;
     default:
@@ -38,7 +38,7 @@ BOOL WINAPI consoleHandler(DWORD signal)
 #else
 void sigintHandler(int param)
 {
-    tour->printElo();
+    tour.printElo();
     exit(param);
 }
 
@@ -94,12 +94,8 @@ int main(int argc, char const *argv[])
     std::cout << "Resign score: " << options.getGameOptions().resign.score << std::endl;
     std::cout << "Rounds: " << options.getGameOptions().rounds << std::endl;
 
-    tour = new Tournament();
-
-    tour->loadConfig(options.getGameOptions());
-    tour->startTournament(options.getEngineConfigs());
-
-    delete tour;
+    tour.loadConfig(options.getGameOptions());
+    tour.startTournament(options.getEngineConfigs());
 
     return 0;
 }

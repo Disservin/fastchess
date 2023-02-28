@@ -25,6 +25,11 @@ ifeq ($(build), debug)
 	CXXFLAGS := -g3 -O3 -std=c++17 -Wall -Wextra -pedantic
 endif
 
+ifeq ($(build), release)
+	CXXFLAGS :=-O3 -std=c++17 -Wall -Wextra -pedantic -DNDEBUG
+	LDFLAGS = pthread -lstdc++ -static -Wl,--no-as-needed
+endif
+
 # Versioning
 GIT_SHA = $(shell git rev-parse --short HEAD 2>/dev/null)
 ifneq ($(GIT_SHA), )

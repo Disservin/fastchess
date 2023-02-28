@@ -18,7 +18,7 @@ void Tournament::loadConfig(const CMD::GameManagerOptions &mc)
 {
     matchConfig = mc;
 
-    if (matchConfig.opening.file != "")
+    if (!matchConfig.opening.file.empty())
     {
         std::ifstream openingFile;
         std::string line;
@@ -120,7 +120,7 @@ void Tournament::writeToFile(const std::string &data)
 
 void Tournament::checkEngineStatus(UciEngine &engine, Match &match, int &retflag, int roundId)
 {
-    if (engine.checkErrors(roundId) != "")
+    if (!engine.checkErrors(roundId).empty())
     {
         match.needsRestart = matchConfig.recover;
         retflag = 2;
@@ -165,7 +165,7 @@ void Tournament::playNextMove(UciEngine &engine, std::string &positionInput, Boa
 
     auto t1 = std::chrono::high_resolution_clock::now();
 
-    if (engine.getError() != "")
+    if (!engine.getError().empty())
     {
         match.needsRestart = matchConfig.recover;
         retflag = 2;
@@ -432,7 +432,7 @@ void Tournament::startTournament(std::vector<EngineConfiguration> configs)
 
     std::vector<std::future<std::vector<Match>>> results;
 
-    std::string filename = (matchConfig.pgn.file == "" ? "fast-chess" : matchConfig.pgn.file) + ".pgn";
+    std::string filename = (matchConfig.pgn.file.empty() ? "fast-chess" : matchConfig.pgn.file) + ".pgn";
     file.open(filename, std::ios::app);
 
     for (int i = 1; i <= matchConfig.rounds; i++)

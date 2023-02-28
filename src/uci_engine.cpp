@@ -11,7 +11,7 @@ void UciEngine::setConfig(const EngineConfiguration &rhs)
 
 std::string UciEngine::checkErrors(int id)
 {
-    if (getError() != "")
+    if (!getError().empty())
     {
         std::stringstream ss;
         ss << getError() << "\nCant write to engine " << getConfig().name

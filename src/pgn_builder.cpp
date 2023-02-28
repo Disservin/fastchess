@@ -23,7 +23,7 @@ PgnBuilder::PgnBuilder(const Match &match, const CMD::GameManagerOptions &gameOp
     ss << "[GameEndTime "   << "\"" << match.endTime            << "\"" << "]" << "\n";
     ss << "[GameStartTime " << "\"" << match.startTime          << "\"" << "]" << "\n";
     ss << "[PlyCount "      << "\"" << match.moves.size()       << "\"" << "]" << "\n";
-    if (termination != "")
+    if (!termination.empty())
         ss << "[Termination " << "\"" << termination << "\"" << "]" << "\n";
     ss << "[TimeControl "   << "\"" << match.whiteEngine.tc     << "\"" << "]"  << "\n\n";
     // clang-format on

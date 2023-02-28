@@ -60,7 +60,7 @@ Options::Options(int argc, char const *argv[])
 
     for (auto &config : configs)
     {
-        if (config.name == "")
+        if (config.name.empty())
         {
             throw std::runtime_error("Each engine must have a name!");
         }
@@ -420,7 +420,7 @@ GameManagerOptions Options::getGameOptions() const
 
 bool Options::startsWith(std::string_view haystack, std::string_view needle)
 {
-    if (needle == "")
+    if (needle.empty())
         return false;
     return (haystack.rfind(needle, 0) != std::string::npos);
 }

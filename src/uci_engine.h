@@ -54,5 +54,5 @@ class UciEngine : public Engine
     void startEngine();
     void startEngine(const std::string &cmd);
 
-    Turn turn;
+    Turn turn = Turn::FIRST;
 };

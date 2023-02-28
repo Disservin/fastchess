@@ -135,6 +135,12 @@ class Tournament
     std::atomic<int> roundCount = 0;
     std::atomic<int> totalCount = 0;
 
+    std::atomic<int> pentaWW = 0;
+    std::atomic<int> pentaWD = 0;
+    std::atomic<int> pentaWL = 0;
+    std::atomic<int> pentaLD = 0;
+    std::atomic<int> pentaLL = 0;
+
     std::vector<std::string> engineNames;
 
     std::ofstream file;

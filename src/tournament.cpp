@@ -84,8 +84,20 @@ void Tournament::printElo()
     ss << "---------------------------\nResult of " << engineNames[0] << " vs " << engineNames[1] << ": " << wins
        << " - " << losses << " - " << draws << " (" << std::fixed << std::setprecision(2)
        << (float(wins) + (float(draws) * 0.5)) / totalCount << ")\n"
-       << "Ptnml: " << pentaWW << ", " << pentaWD << ", " << pentaWL << ", " << pentaLD << ", " << pentaLL << "\n";
-
+       // clang-format off
+       << "Ptnml:   " 
+       << std::right << std::setw(7) << "WW" 
+       << std::right << std::setw(7) << "WD" 
+       << std::right << std::setw(7) << "WL" 
+       << std::right << std::setw(7) << "LD" 
+       << std::right << std::setw(7) << "LL" << "\n"
+       << "         " 
+       << std::right << std::setw(7) << pentaWW 
+       << std::right << std::setw(7) << pentaWD 
+       << std::right << std::setw(7) << pentaWL 
+       << std::right << std::setw(7) << pentaLD 
+       << std::right << std::setw(7) << pentaLL << "\n";
+       // clang-format on
     if (sprt.isValid())
     {
         ss << "LLR: " << sprt.getLLR(wins, draws, losses) << " " << sprt.getBounds() << "\n";
@@ -147,7 +159,7 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, 
         {
             std::stringstream ss;
             ss << "Engine " << engine1.getConfig().name << " was not responsive.\n";
-            std::cout << ss.str(); 
+            std::cout << ss.str();
         }
 
         // Write new position
@@ -220,7 +232,7 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, 
         {
             std::stringstream ss;
             ss << "Engine " << engine2.getConfig().name << " was not responsive.\n";
-            std::cout << ss.str(); 
+            std::cout << ss.str();
         }
 
         engine2.writeProcess(positionInput);
@@ -377,7 +389,7 @@ std::vector<Match> Tournament::runH2H(CMD::GameManagerOptions localMatchConfig,
     if (localWins == 1 && localDraws == 0)
         pentaWD++;
 
-    if (localWins == localLosses)
+    if (localWins == 1 && localLosses == 1)
         pentaWL++;
 
     if (localLosses == 1 && localDraws == 1)

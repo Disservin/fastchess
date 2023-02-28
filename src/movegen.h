@@ -556,18 +556,20 @@ template <Color c> void legalmoves(Board &board, Movelist &movelist)
      *******************/
     movableSquare &= board.enemyEmptyBB;
 
-    Square from = board.KingSQ(c);
-    Bitboard moves;
-
-    if (!board.castlingRights || board.checkMask != DEFAULT_CHECKMASK)
-        moves = LegalKingMoves(board, from);
-    else
-        moves = LegalKingMovesCastling<c>(board, from);
-
-    while (moves)
     {
-        Square to = poplsb(moves);
-        movelist.Add({from, to, NONETYPE});
+        Square from = board.KingSQ(c);
+        Bitboard moves;
+
+        if (!board.castlingRights || board.checkMask != DEFAULT_CHECKMASK)
+            moves = LegalKingMoves(board, from);
+        else
+            moves = LegalKingMovesCastling<c>(board, from);
+
+        while (moves)
+        {
+            Square to = poplsb(moves);
+            movelist.Add({from, to, NONETYPE});
+        }
     }
 
     /********************
@@ -669,17 +671,19 @@ template <Color c> bool hasLegalMoves(Board &board, Movelist &movelist)
      *******************/
     movableSquare &= board.enemyEmptyBB;
 
-    Square from = board.KingSQ(c);
-    Bitboard moves;
-
-    if (!board.castlingRights || board.checkMask != DEFAULT_CHECKMASK)
-        moves = LegalKingMoves(board, from);
-    else
-        moves = LegalKingMovesCastling<c>(board, from);
-
-    while (moves)
     {
-        return true;
+        Square from = board.KingSQ(c);
+        Bitboard moves;
+
+        if (!board.castlingRights || board.checkMask != DEFAULT_CHECKMASK)
+            moves = LegalKingMoves(board, from);
+        else
+            moves = LegalKingMovesCastling<c>(board, from);
+
+        while (moves)
+        {
+            return true;
+        }
     }
 
     /********************

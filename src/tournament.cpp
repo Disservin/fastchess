@@ -380,7 +380,7 @@ std::vector<Match> Tournament::runH2H(CMD::GameManagerOptions localMatchConfig,
         }
         else
         {
-            std::cout << "Couldnt obtain Game Result\n";
+            std::cout << "Couldn't obtain Game Result\n";
         }
 
         totalCount++;

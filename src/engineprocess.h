@@ -19,7 +19,7 @@ class Process
     bool isInitalized = false;
 
     int errCode = 0;
-    std::string errStr = "";
+    std::string errStr;
 
     std::string getError()
     {

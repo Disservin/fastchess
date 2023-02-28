@@ -490,7 +490,7 @@ void Tournament::stopPool()
 MoveData Tournament::parseEngineOutput(const std::vector<std::string> &output, const std::string &move,
                                        int64_t measuredTime)
 {
-    std::string scoreString = "";
+    std::string scoreString;
     std::string scoreType;
     int score = 0;
     int depth = 0;

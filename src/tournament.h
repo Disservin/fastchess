@@ -14,7 +14,7 @@
 
 struct MoveData
 {
-    std::string move = {};
+    std::string move;
     std::string scoreString;
     int64_t elapsedMillis = 0;
     int depth = 0;

@@ -65,7 +65,7 @@ struct GameManagerOptions
     int concurrency = 1;
     int ratinginterval = 10;
     SprtOptions sprt = {};
-    std::string eventName = {};
+    std::string eventName;
     OpeningOptions opening = {};
     PgnOptions pgn = {};
     DrawAdjudication draw = {};

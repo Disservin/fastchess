@@ -726,7 +726,7 @@ std::string MoveToSan(Board &b, Move move)
             return "O-O";
     }
 
-    std::string san = "";
+    std::string san;
     if (pt != PAWN)
         san = sanPieceType[pt];
 

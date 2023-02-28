@@ -1,6 +1,6 @@
-# FastChess
+# Fast-Chess
 
-FastChess is a cli tool for creating tournaments between chess engines. Written in mostly C++17 and using [doctest](https://github.com/doctest/doctest) as a testing framework. Compilation can be easily done with a recent C++ Compiler and using the Makefile in /src.
+Fast-Chess is a cli tool for creating tournaments between chess engines. Written in mostly C++17 and using [doctest](https://github.com/doctest/doctest) as a testing framework. Compilation can be easily done with a recent C++ Compiler and using the Makefile in /src.
 The POSIX implementation was tested with very high concurrency (250) and very short TC (0.2+0.002) and had very little timeout problems, only 10 matches out of 20000 timed out.
 
 ## Example usage
@@ -37,3 +37,13 @@ Engine;
   plies=N
   
 ```
+
+## Contributing
+
+__Contributions__ are very welcome.
+The entire code is formatted with clang-format using the __Microsoft Style__.  
+If you create pull requests make sure the code is formatted using that style.  
+Changes have to pass CI and be benificial to the development.  
+
+To __contribute__ you need a recent __g++ compiler__ with support of C++17. As well as a way to run Makefile.  
+__Tests__ can be run locally by going into the /tests directory and running `make -j` there. Then run the `./fast-chess-tests` executable.

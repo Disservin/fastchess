@@ -3,6 +3,7 @@
 #include <map>
 #include <sstream>
 #include <type_traits>
+#include <unordered_map>
 
 #include "engine.h"
 #include "options.h"
@@ -48,6 +49,8 @@ Options::Options(int argc, char const *argv[])
             parseResignOptions(i, argc, argv);
         else if (arg == "-ratinginterval")
             parseOption(i, argc, argv, gameOptions.ratinginterval);
+        else if (arg == "-version")
+            printVersion(i);
     }
 
     for (const auto &config : configs)
@@ -139,6 +142,46 @@ TimeControl Options::parseTc(const std::string tcString)
     tc.time = std::stof(remainingStringVector.c_str()) * 1000;
 
     return tc;
+}
+
+void Options::printVersion(int &i)
+{
+    i++;
+    std::unordered_map<std::string, std::string> months({{"Jan", "01"},
+                                                         {"Feb", "02"},
+                                                         {"Mar", "03"},
+                                                         {"Apr", "04"},
+                                                         {"May", "05"},
+                                                         {"Jun", "06"},
+                                                         {"Jul", "07"},
+                                                         {"Aug", "08"},
+                                                         {"Sep", "09"},
+                                                         {"Oct", "10"},
+                                                         {"Nov", "11"},
+                                                         {"Dec", "12"}});
+
+    std::string month, day, year;
+    std::stringstream ss, date(__DATE__); // {month} {date} {year}
+
+    ss << "fast-chess ";
+#ifdef GIT_DATE
+    ss << GIT_DATE;
+#else
+
+    date >> month >> day >> year;
+    if (day.length() == 1)
+        day = "0" + day;
+    ss << year.substr(2) << months[month] << day;
+#endif
+
+#ifdef GIT_SHA
+    ss << "-" << GIT_SHA;
+#endif
+
+    ss << "\n";
+
+    std::cout << ss.str();
+    exit(0);
 }
 
 template <typename T> void Options::parseOption(int &i, int argc, const char *argv[], T &optionValue)

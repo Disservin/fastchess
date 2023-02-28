@@ -117,6 +117,7 @@ class Options
     void parseOpeningOptions(int &i, int argc, char const *argv[]);
     void parseSprt(int &i, int argc, char const *argv[]);
     void parseEngineParams(int &i, int argc, char const *argv[], EngineConfiguration &engineParams);
+    void printVersion(int &i);
 };
 
 } // namespace CMD

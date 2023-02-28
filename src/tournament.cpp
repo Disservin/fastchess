@@ -175,6 +175,8 @@ void Tournament::playNextMove(UciEngine &engine, std::string &positionInput, Boa
 
     if (!match.legal)
     {
+        match.termination = "illegal move";
+
         res = GameResult(~board.sideToMove);
 
         std::stringstream ss;

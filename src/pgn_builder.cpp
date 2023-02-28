@@ -1,5 +1,6 @@
+#include <iomanip> // std::setprecision
 #include <sstream>
-#include <iomanip>      // std::setprecision
+
 
 #include "pgn_builder.h"
 
@@ -8,11 +9,6 @@ PgnBuilder::PgnBuilder(const Match &match, const CMD::GameManagerOptions &gameOp
     std::string result = resultToString(match.result);
     std::string termination = match.termination;
     std::stringstream ss;
-
-    if (!match.legal)
-    {
-        termination = std::string("illegal move");
-    }
 
     // clang-format off
     ss << "[Event "         << "\"" << gameOptions.eventName    << "\"" << "]" << "\n";
@@ -48,7 +44,7 @@ PgnBuilder::PgnBuilder(const Match &match, const CMD::GameManagerOptions &gameOp
         std::stringstream timeString;
 
         if (data.elapsedMillis >= 1000)
-            timeString << std::fixed << std::setprecision(2) <<data.elapsedMillis / 1000.0;
+            timeString << std::fixed << std::setprecision(2) << data.elapsedMillis / 1000.0;
         else
             timeString << data.elapsedMillis;
 

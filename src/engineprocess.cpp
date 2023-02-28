@@ -34,21 +34,21 @@ void EngineProcess::initProcess(const std::string &command)
     SetHandleInformation(childStdInWr, HANDLE_FLAG_INHERIT, 0);
     si.hStdInput = childStdInRd;
 
-    PROCESS_INFORMATION pi = PROCESS_INFORMATION();
     CreateProcessA(nullptr, const_cast<char *>(command.c_str()), nullptr, nullptr, TRUE, 0, nullptr, nullptr, &si, &pi);
 
     CloseHandle(childStdOutWr);
     CloseHandle(childStdInRd);
 
-    childdwProcessId = pi.dwProcessId;
-    childProcessHandle = pi.hProcess;
     childStdOut = childStdOutRd;
     childStdIn = childStdInWr;
 }
 
 void EngineProcess::closeHandles()
 {
-    CloseHandle(childProcessHandle);
+
+    CloseHandle(pi.hThread);
+    CloseHandle(pi.hProcess);
+
     CloseHandle(childStdOut);
     CloseHandle(childStdIn);
 }
@@ -166,7 +166,7 @@ bool EngineProcess::isAlive()
 {
     assert(isInitalized);
     DWORD exitCode = 0;
-    GetExitCodeProcess(childProcessHandle, &exitCode);
+    GetExitCodeProcess(pi.hProcess, &exitCode);
     return exitCode == STILL_ACTIVE;
 }
 
@@ -175,11 +175,11 @@ void EngineProcess::killProcess()
     if (isInitalized)
     {
         DWORD exitCode = 0;
-        GetExitCodeProcess(childProcessHandle, &exitCode);
+        GetExitCodeProcess(pi.hProcess, &exitCode);
         if (exitCode == STILL_ACTIVE)
         {
             UINT uExitCode = 0;
-            TerminateProcess(childProcessHandle, uExitCode);
+            TerminateProcess(pi.hProcess, uExitCode);
         }
         // Clean up the child process resources
         closeHandles();

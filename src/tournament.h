@@ -40,8 +40,8 @@ struct Match
     std::string duration;
     std::string date;
     Board board;
-    int round;
-    bool legal;
+    int round = 0;
+    bool legal = true;
 };
 
 struct DrawAdjTracker
@@ -78,6 +78,9 @@ class Tournament
     void startTournament(std::vector<EngineConfiguration> configs);
 
     Match startMatch(UciEngine &engine1, UciEngine &engine2, int round, std::string openingFen);
+    void playNextMove(UciEngine &engine, std::string &positionInput, Board &board, TimeControl &timeLeftUs,
+                      TimeControl &timeLeftThem, GameResult &res, Match &match, DrawAdjTracker &drawTracker,
+                      ResignAdjTracker &resignTracker, int &retflag);
     std::vector<Match> runH2H(CMD::GameManagerOptions localMatchConfig, std::vector<EngineConfiguration> configs,
                               int roundId, std::string fen);
 
@@ -87,7 +90,7 @@ class Tournament
 
     template <typename T> static T findElement(const std::vector<std::string> &haystack, std::string_view needle)
     {
-        int index = std::find(haystack.begin(), haystack.end(), needle) - haystack.begin();
+        auto index = std::find(haystack.begin(), haystack.end(), needle) - haystack.begin();
         if constexpr (std::is_same_v<T, int>)
             return std::stoi(haystack[index + 1]);
         else if constexpr (std::is_same_v<T, float>)

@@ -42,8 +42,7 @@ class EngineProcess : public Process
     virtual void writeProcess(const std::string &input);
 
   private:
-    DWORD childdwProcessId;
-    HANDLE childProcessHandle;
+    PROCESS_INFORMATION pi = PROCESS_INFORMATION();
     HANDLE childStdOut;
     HANDLE childStdIn;
 };

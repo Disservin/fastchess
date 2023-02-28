@@ -12,7 +12,7 @@ static constexpr int N_SQ = 64;
 static constexpr int MAX_MOVES = 128;
 static constexpr Bitboard DEFAULT_CHECKMASK = 18446744073709551615ULL;
 
-enum Piece : uint8_t
+enum Piece
 {
     WHITEPAWN,
     WHITEKNIGHT,
@@ -29,7 +29,7 @@ enum Piece : uint8_t
     NONE
 };
 
-enum PieceType : uint8_t
+enum PieceType
 {
     PAWN,
     KNIGHT,
@@ -41,7 +41,7 @@ enum PieceType : uint8_t
 };
 
 // clang-format off
-enum Square : uint8_t
+enum Square
 {
 	SQ_A1, SQ_B1, SQ_C1, SQ_D1, SQ_E1, SQ_F1, SQ_G1, SQ_H1,
 	SQ_A2, SQ_B2, SQ_C2, SQ_D2, SQ_E2, SQ_F2, SQ_G2, SQ_H2,
@@ -162,8 +162,6 @@ static std::unordered_map<char, CastlingRight> readCastleString({{'K', WK}, {'k'
         ++p;                                                                                                           \
         return old;                                                                                                    \
     }
-
-INCR_OP_ON(Piece)
 
 INCR_OP_ON(Square)
 

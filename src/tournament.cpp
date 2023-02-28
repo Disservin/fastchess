@@ -83,7 +83,8 @@ void Tournament::printElo()
     std::stringstream ss;
     ss << "---------------------------\nResult of " << engineNames[0] << " vs " << engineNames[1] << ": " << wins
        << " - " << losses << " - " << draws << " (" << std::fixed << std::setprecision(2)
-       << (float(wins) + (float(draws) * 0.5)) / totalCount << ")\n"
+       << (float(wins) + (float(draws) * 0.5)) / totalCount
+       << ")\n"
        // clang-format off
        << "Ptnml:   " 
        << std::right << std::setw(7) << "WW" 
@@ -97,7 +98,7 @@ void Tournament::printElo()
        << std::right << std::setw(7) << pentaWL 
        << std::right << std::setw(7) << pentaLD 
        << std::right << std::setw(7) << pentaLL << "\n";
-       // clang-format on
+    // clang-format on
     if (sprt.isValid())
     {
         ss << "LLR: " << sprt.getLLR(wins, draws, losses) << " " << sprt.getBounds() << "\n";
@@ -117,16 +118,10 @@ void Tournament::writeToFile(const std::string &data)
 
 Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, std::string openingFen)
 {
-    std::vector<std::string> output;
-    output.reserve(30);
-
     DrawAdjTracker drawTracker = DrawAdjTracker(matchConfig.draw.score, 0);
     ResignAdjTracker resignTracker = ResignAdjTracker(matchConfig.resign.score, 0);
     GameResult res;
-    std::string scoreString, scoreType;
     Match match;
-    int64_t measuredTime;
-    bool timeout = false;
 
     Board board;
     board.loadFen(openingFen);
@@ -143,160 +138,26 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, 
 
     std::string positionInput =
         openingFen == STARTPOS ? "position startpos moves" : "position fen " + openingFen + " moves";
-    std::string bestMove;
 
     auto timeLeft_1 = engine1.getConfig().tc;
     auto timeLeft_2 = engine2.getConfig().tc;
 
     auto start = std::chrono::high_resolution_clock::now();
-    std::chrono::high_resolution_clock::time_point t0;
-    std::chrono::high_resolution_clock::time_point t1;
 
     while (true)
     {
-        // Engine 1's turn
-        if (!engine1.isResponsive())
-        {
-            std::stringstream ss;
-            ss << "Engine " << engine1.getConfig().name << " was not responsive.\n";
-            std::cout << ss.str();
-        }
+        int retflag;
+        playNextMove(engine1, positionInput, board, timeLeft_1, timeLeft_2, res, match, drawTracker, resignTracker,
+                     retflag);
 
-        // Write new position
-        engine1.writeProcess(positionInput);
-        engine1.writeProcess(engine1.buildGoInput(board.sideToMove, timeLeft_1, timeLeft_2));
-
-        // Start measuring time
-        t0 = std::chrono::high_resolution_clock::now();
-
-        output = engine1.readProcess("bestmove", timeout, timeLeft_1.time);
-
-        t1 = std::chrono::high_resolution_clock::now();
-
-        // Subtract measured time
-        measuredTime = std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count();
-        timeLeft_1.time -= measuredTime;
-
-        // Timeout!
-        if (timeLeft_1.time < 0)
-        {
-            res = GameResult(~board.sideToMove);
-            std::stringstream ss;
-            ss << "engine " << engine1.getConfig().name << " timed out\n";
-            std::cout << ss.str();
-            match.termination = "timeout";
+        if (retflag == 2)
             break;
-        }
 
-        timeLeft_1.time += timeLeft_1.increment;
+        playNextMove(engine2, positionInput, board, timeLeft_2, timeLeft_1, res, match, drawTracker, resignTracker,
+                     retflag);
 
-        // find bestmove and add it to the position string
-        bestMove = findElement<std::string>(CMD::Options::splitString(output.back(), ' '), "bestmove");
-        positionInput += " " + bestMove;
-
-        // play move on internal board and store it for later pgn creation
-        match.legal = board.makeMove(convertUciToMove(bestMove));
-        match.moves.emplace_back(parseEngineOutput(output, bestMove, measuredTime));
-
-        if (!match.legal)
-        {
-            res = GameResult(~board.sideToMove);
-
-            std::stringstream ss;
-            ss << "engine " << engine1.getConfig().name << " played an illegal move: " << bestMove << "\n";
-            std::cout << ss.str();
-
+        if (retflag == 2)
             break;
-        }
-
-        // Update Trackers
-        updateTrackers(drawTracker, resignTracker, match.moves.back().score);
-
-        // Check for game over
-        res = board.isGameOver();
-
-        // If game isn't over by other means check adj
-        if (res == GameResult::NONE)
-        {
-            res = checkAdj(match, drawTracker, resignTracker, match.moves.back().score, ~board.sideToMove);
-        }
-
-        if (res != GameResult::NONE)
-        {
-            break;
-        }
-
-        // Engine 2's turn
-        // Write new position
-        if (!engine2.isResponsive())
-        {
-            std::stringstream ss;
-            ss << "Engine " << engine2.getConfig().name << " was not responsive.\n";
-            std::cout << ss.str();
-        }
-
-        engine2.writeProcess(positionInput);
-        engine2.writeProcess(engine2.buildGoInput(board.sideToMove, timeLeft_2, timeLeft_1));
-
-        // Start measuring time
-        t0 = std::chrono::high_resolution_clock::now();
-
-        output = engine2.readProcess("bestmove", timeout, timeLeft_2.time);
-
-        t1 = std::chrono::high_resolution_clock::now();
-
-        // Subtract measured time
-        measuredTime = std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count();
-        timeLeft_2.time -= measuredTime;
-
-        // Timeout!
-        if (timeLeft_2.time < 0)
-        {
-            res = GameResult(~board.sideToMove);
-            std::stringstream ss;
-            ss << "engine " << engine2.getConfig().name << " timed out\n";
-            std::cout << ss.str();
-            match.termination = "timeout";
-
-            break;
-        }
-
-        timeLeft_2.time += timeLeft_2.increment;
-
-        // find bestmove and add it to the position string
-        bestMove = findElement<std::string>(CMD::Options::splitString(output.back(), ' '), "bestmove");
-        positionInput += " " + bestMove;
-
-        // play move on internal board and store it for later pgn creation
-        match.legal = board.makeMove(convertUciToMove(bestMove));
-        match.moves.emplace_back(parseEngineOutput(output, bestMove, measuredTime));
-
-        if (!match.legal)
-        {
-            res = GameResult(~board.sideToMove);
-
-            std::stringstream ss;
-            ss << "engine " << engine2.getConfig().name << " played an illegal move: " << bestMove << "\n";
-            std::cout << ss.str();
-
-            break;
-        }
-
-        // Update Trackers
-        updateTrackers(drawTracker, resignTracker, match.moves.back().score);
-
-        // Check for game over
-        res = board.isGameOver();
-
-        // If game isn't over by other means check adj
-        if (res == GameResult::NONE)
-        {
-            res = checkAdj(match, drawTracker, resignTracker, match.moves.back().score, ~board.sideToMove);
-        }
-        if (res != GameResult::NONE)
-        {
-            break;
-        }
     }
 
     auto end = std::chrono::high_resolution_clock::now();
@@ -308,6 +169,98 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, 
         saveTimeHeader ? formatDuration(std::chrono::duration_cast<std::chrono::seconds>(end - start)) : "";
 
     return match;
+}
+
+void Tournament::playNextMove(UciEngine &engine, std::string &positionInput, Board &board, TimeControl &timeLeftUs,
+                              TimeControl &timeLeftThem, GameResult &res, Match &match, DrawAdjTracker &drawTracker,
+                              ResignAdjTracker &resignTracker, int &retflag)
+{
+    std::vector<std::string> output;
+    output.reserve(30);
+
+    bool timeout = false;
+
+    retflag = 1;
+    // Engine 1's turn
+    if (!engine.isResponsive())
+    {
+        std::stringstream ss;
+        ss << "Engine " << engine.getConfig().name << " was not responsive.\n";
+        std::cout << ss.str();
+    }
+
+    // Write new position
+    engine.writeProcess(positionInput);
+    engine.writeProcess(engine.buildGoInput(board.sideToMove, timeLeftUs, timeLeftThem));
+
+    // Start measuring time
+    auto t0 = std::chrono::high_resolution_clock::now();
+
+    output = engine.readProcess("bestmove", timeout, timeLeftUs.time);
+
+    auto t1 = std::chrono::high_resolution_clock::now();
+
+    // Subtract measured time
+    auto measuredTime = std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count();
+    timeLeftUs.time -= measuredTime;
+
+    // Timeout!
+    if (timeLeftUs.time < 0)
+    {
+        res = GameResult(~board.sideToMove);
+        std::stringstream ss;
+        ss << "engine " << engine.getConfig().name << " timed out\n";
+        std::cout << ss.str();
+        match.termination = "timeout";
+        {
+            retflag = 2;
+            return;
+        };
+    }
+
+    timeLeftUs.time += timeLeftUs.increment;
+
+    // find bestmove and add it to the position string
+    const auto bestMove = findElement<std::string>(CMD::Options::splitString(output.back(), ' '), "bestmove");
+    positionInput += " " + bestMove;
+
+    // play move on internal board and store it for later pgn creation
+    match.legal = board.makeMove(convertUciToMove(bestMove));
+    match.moves.emplace_back(parseEngineOutput(output, bestMove, measuredTime));
+
+    if (!match.legal)
+    {
+        res = GameResult(~board.sideToMove);
+
+        std::stringstream ss;
+        ss << "engine " << engine.getConfig().name << " played an illegal move: " << bestMove << "\n";
+        std::cout << ss.str();
+
+        {
+            retflag = 2;
+            return;
+        };
+    }
+
+    // Update Trackers
+    updateTrackers(drawTracker, resignTracker, match.moves.back().score);
+
+    // Check for game over
+    res = board.isGameOver();
+
+    // If game isn't over by other means check adj
+    if (res == GameResult::NONE)
+    {
+        res = checkAdj(match, drawTracker, resignTracker, match.moves.back().score, ~board.sideToMove);
+    }
+
+    if (res != GameResult::NONE)
+    {
+        {
+            retflag = 2;
+            return;
+        };
+    }
 }
 
 std::vector<Match> Tournament::runH2H(CMD::GameManagerOptions localMatchConfig,
@@ -420,6 +373,11 @@ std::vector<Match> Tournament::runH2H(CMD::GameManagerOptions localMatchConfig,
 
 void Tournament::startTournament(std::vector<EngineConfiguration> configs)
 {
+    if (configs.size() < 2)
+    {
+        throw std::runtime_error("Need at least two engines to start!");
+    }
+
     pgns.clear();
     pool.resize(matchConfig.concurrency);
 

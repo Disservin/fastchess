@@ -6,10 +6,10 @@ enum SPRTResult {
 
 class SPRT {
   private:
-    double lower;
-    double upper;
-    double s0;
-    double s1;
+    double lower = 0;
+    double upper = 0;
+    double s0 = 0;
+    double s1 = 0;
 
     bool valid = false;
 

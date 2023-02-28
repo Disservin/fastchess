@@ -269,6 +269,8 @@ template <Direction direction> constexpr Bitboard shift(const Bitboard b)
     case SOUTH_EAST:
         return (b & ~MASK_FILE[7]) >> 7;
     }
+    assert(false);
+    return 0;
 }
 
 template <Color c> void LegalPawnMovesAll(Board &board, Movelist &movelist)

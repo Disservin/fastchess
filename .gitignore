@@ -8,3 +8,4 @@ dummy_engine*
 .DS_Store
 *.pgn
 *.epd
+src/x64/*

@@ -57,7 +57,7 @@ std::string Tournament::fetchNextFen()
         }
         else if (matchConfig.opening.order == "sequential")
         {
-            assert(startIndex++ % (openingBook.size() - 1) < openingBook.size());
+            assert(startIndex % (openingBook.size() - 1) < openingBook.size());
 
             return openingBook[startIndex++ % (openingBook.size() - 1)];
         }

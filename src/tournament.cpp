@@ -118,7 +118,7 @@ void Tournament::writeToFile(const std::string &data)
     file << data << std::endl;
 }
 
-void Tournament::checkEngineStatus(UciEngine &engine, Match &match, int &retflag, int roundId)
+void Tournament::checkEngineStatus(UciEngine &engine, Match &match, int &retflag, int roundId) const
 {
     if (!engine.checkErrors(roundId).empty())
     {
@@ -602,7 +602,7 @@ void Tournament::updateTrackers(DrawAdjTracker &drawTracker, ResignAdjTracker &r
 }
 
 GameResult Tournament::checkAdj(Match &match, const DrawAdjTracker drawTracker, const ResignAdjTracker resignTracker,
-                                const Score score, const Color lastSideThatMoved)
+                                const Score score, const Color lastSideThatMoved) const
 
 {
     const int moveNumber = match.moves.size() / 2;

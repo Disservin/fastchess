@@ -54,7 +54,7 @@ std::vector<std::string> UciEngine::readUci()
     return readProcess("uciok", timeout);
 }
 
-std::string UciEngine::buildGoInput(Color stm, const TimeControl &tc, const TimeControl &tc_2)
+std::string UciEngine::buildGoInput(Color stm, const TimeControl &tc, const TimeControl &tc_2) const
 {
     std::stringstream input;
     input << "go";

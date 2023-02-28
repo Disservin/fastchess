@@ -43,7 +43,7 @@ class UciEngine : public Engine
     void sendUci();
     std::vector<std::string> readUci();
 
-    std::string buildGoInput(Color stm, const TimeControl &tc, const TimeControl &tc_2);
+    std::string buildGoInput(Color stm, const TimeControl &tc, const TimeControl &tc_2) const;
 
     void loadConfig(const EngineConfiguration &config);
 

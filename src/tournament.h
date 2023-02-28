@@ -129,9 +129,9 @@ class Tournament
     void updateTrackers(DrawAdjTracker &drawTracker, ResignAdjTracker &resignTracker, const Score moveScore);
 
     GameResult checkAdj(Match &match, const DrawAdjTracker drawTracker, const ResignAdjTracker resignTracker,
-                        const Score score, const Color lastSideThatMoved);
+                        const Score score, const Color lastSideThatMoved) const;
 
-    void checkEngineStatus(UciEngine &engine, Match &match, int &retflag, int roundId);
+    void checkEngineStatus(UciEngine &engine, Match &match, int &retflag, int roundId) const;
 
     std::vector<std::string> pgns;
     std::vector<std::string> openingBook;

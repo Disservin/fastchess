@@ -495,11 +495,11 @@ std::string Tournament::getDateTime(std::string format)
     ss << std::put_time(&buf, format.c_str());
     return ss.str();
 #else
-    auto res = gmtime_r(&buf, &time_t_now);
+    auto res = gmtime_r(&time_t_now, &buf);
 
     // Format the time as an ISO 8601 string
     std::stringstream ss;
-    ss << std::put_time(&res, format.c_str());
+    ss << std::put_time(res, format.c_str());
     return ss.str();
 #endif
 }

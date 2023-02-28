@@ -483,12 +483,25 @@ std::string Tournament::getDateTime(std::string format)
     auto time_t_now = std::chrono::system_clock::to_time_t(now);
     struct tm buf;
 
+#ifdef _WIN32
     auto res = gmtime_s(&buf, &time_t_now);
+    if (res != 0)
+    {
+        throw std::runtime_error("gmtime_s failed");
+    }
 
     // Format the time as an ISO 8601 string
     std::stringstream ss;
     ss << std::put_time(&buf, format.c_str());
     return ss.str();
+#else
+    auto res = gmtime_r(&buf, &time_t_now);
+
+    // Format the time as an ISO 8601 string
+    std::stringstream ss;
+    ss << std::put_time(&res, format.c_str());
+    return ss.str();
+#endif
 }
 
 std::string Tournament::formatDuration(std::chrono::seconds duration)

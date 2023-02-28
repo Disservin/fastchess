@@ -418,6 +418,7 @@ bool EngineProcess::isAlive()
         perror(strerror(errno));
         errCode = 1;
         errStr = strerror(errno);
+        return false;
     }
     else
     {

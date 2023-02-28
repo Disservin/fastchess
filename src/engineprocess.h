@@ -17,6 +17,22 @@ class Process
     virtual bool isAlive() = 0;
 
     bool isInitalized = false;
+
+    int errCode = 0;
+    std::string errStr = "";
+
+    std::string getError()
+    {
+        if (errCode != 0)
+            return errStr + ": " + std::to_string(errCode) + "\n";
+        return "";
+    }
+
+    void resetError()
+    {
+        errCode = 0;
+        errStr = "";
+    }
 };
 
 #ifdef _WIN64

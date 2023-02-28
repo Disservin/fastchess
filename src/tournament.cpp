@@ -106,7 +106,7 @@ void Tournament::printElo()
         ss << "LLR: " << sprt.getLLR(wins, draws, losses) << " " << sprt.getBounds() << "\n";
     }
 
-    ss << "Elo difference: " << elo.getElo() << "\n---------------------------" << std::endl;
+    ss << "Elo difference: " << elo.getElo() << "\n---------------------------\n";
     std::cout << ss.str();
 }
 
@@ -116,6 +116,15 @@ void Tournament::writeToFile(const std::string &data)
     const std::lock_guard<std::mutex> lock(fileMutex);
 
     file << data << std::endl;
+}
+
+void Tournament::checkEngineStatus(UciEngine &engine, Match &match, int &retflag, int roundId)
+{
+    if (engine.checkErrors(roundId) != "")
+    {
+        match.needsRestart = matchConfig.recover;
+        retflag = 2;
+    }
 }
 
 void Tournament::playNextMove(UciEngine &engine, std::string &positionInput, Board &board, TimeControl &timeLeftUs,
@@ -133,13 +142,21 @@ void Tournament::playNextMove(UciEngine &engine, std::string &positionInput, Boa
     if (!engine.isResponsive())
     {
         std::stringstream ss;
-        ss << "Engine " << engine.getConfig().name << " was not responsive.\n";
+        ss << "\nEngine " << engine.getConfig().name << " was not responsive.\n";
         std::cout << ss.str();
+        if (!matchConfig.recover)
+        {
+            throw std::runtime_error(ss.str());
+        }
+        return;
     }
 
     // Write new position
     engine.writeProcess(positionInput);
+    checkEngineStatus(engine, match, retflag, roundId);
+
     engine.writeProcess(engine.buildGoInput(board.sideToMove, timeLeftUs, timeLeftThem));
+    checkEngineStatus(engine, match, retflag, roundId);
 
     // Start measuring time
     auto t0 = std::chrono::high_resolution_clock::now();
@@ -147,6 +164,18 @@ void Tournament::playNextMove(UciEngine &engine, std::string &positionInput, Boa
     output = engine.readProcess("bestmove", timeout, timeLeftUs.time);
 
     auto t1 = std::chrono::high_resolution_clock::now();
+
+    if (engine.getError() != "")
+    {
+        match.needsRestart = matchConfig.recover;
+        retflag = 2;
+        std::stringstream ss;
+        ss << engine.getError() << "\nCant write to engine " << engine.getConfig().name << " #" << roundId << "\n";
+        if (!matchConfig.recover)
+        {
+            throw std::runtime_error(ss.str());
+        }
+    }
 
     // Subtract measured time
     auto measuredTime = std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count();
@@ -220,11 +249,16 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int roundId
     Board board = {};
     board.loadFen(openingFen);
 
+    int retflag = 0;
+
     match.whiteEngine = board.sideToMove == WHITE ? engine1.getConfig() : engine2.getConfig();
     match.blackEngine = board.sideToMove != WHITE ? engine1.getConfig() : engine2.getConfig();
 
     engine1.sendUciNewGame();
     engine2.sendUciNewGame();
+
+    checkEngineStatus(engine1, match, retflag, roundId);
+    checkEngineStatus(engine2, match, retflag, roundId);
 
     match.date = saveTimeHeader ? getDateTime("%Y-%m-%d") : "";
     match.startTime = saveTimeHeader ? getDateTime() : "";
@@ -238,9 +272,9 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int roundId
 
     auto start = std::chrono::high_resolution_clock::now();
 
-    while (true)
+    while (!pool.stop)
     {
-        int retflag;
+
         playNextMove(engine1, positionInput, board, timeLeft_1, timeLeft_2, res, match, drawTracker, resignTracker,
                      retflag, roundId);
 
@@ -273,10 +307,15 @@ std::vector<Match> Tournament::runH2H(CMD::GameManagerOptions localMatchConfig,
 
     UciEngine engine1, engine2;
     engine1.loadConfig(configs[0]);
-    engine2.loadConfig(configs[1]);
-
+    engine1.resetError();
     engine1.startEngine();
+
+    engine2.loadConfig(configs[1]);
+    engine2.resetError();
     engine2.startEngine();
+
+    engine1.checkErrors(roundId);
+    engine2.checkErrors(roundId);
 
     // engine1 always starts first
     engine1.turn = Turn::FIRST;
@@ -295,6 +334,14 @@ std::vector<Match> Tournament::runH2H(CMD::GameManagerOptions localMatchConfig,
             match = startMatch(engine1, engine2, roundId, fen);
         else
             match = startMatch(engine2, engine1, roundId, fen);
+
+        if (match.needsRestart)
+        {
+            i--;
+            engine1.restartEngine();
+            engine2.restartEngine();
+            continue;
+        }
 
         matches.emplace_back(match);
 
@@ -332,7 +379,7 @@ std::vector<Match> Tournament::runH2H(CMD::GameManagerOptions localMatchConfig,
         }
         else
         {
-            std::cout << "Couldnt obtain Game Result" << std::endl;
+            std::cout << "Couldnt obtain Game Result\n";
         }
 
         totalCount++;
@@ -399,7 +446,7 @@ void Tournament::startTournament(std::vector<EngineConfiguration> configs)
 
     sprt = SPRT(matchConfig.sprt.alpha, matchConfig.sprt.beta, matchConfig.sprt.elo0, matchConfig.sprt.elo1);
 
-    while (sprt.isValid())
+    while (sprt.isValid() && !pool.stop)
     {
         double llr = sprt.getLLR(wins, draws, losses);
         if (sprt.getResult(llr) != SPRT_CONTINUE)
@@ -409,16 +456,16 @@ void Tournament::startTournament(std::vector<EngineConfiguration> configs)
 
             return;
         }
-        std::this_thread::sleep_for(std::chrono::microseconds(500));
+        std::this_thread::sleep_for(std::chrono::microseconds(250));
     }
 
-    for (auto &&result : results)
+    if (storePGNS)
     {
-        auto res = result.get();
-
-        for (const Match &match : res)
+        for (auto &&result : results)
         {
-            if (storePGNS)
+            auto res = result.get();
+
+            for (const Match &match : res)
             {
                 PgnBuilder pgn(match, matchConfig);
                 pgns.emplace_back(pgn.getPGN());
@@ -426,7 +473,18 @@ void Tournament::startTournament(std::vector<EngineConfiguration> configs)
         }
     }
 
+    while (!pool.stop && roundCount < matchConfig.rounds)
+    {
+        // prevent accessive atomic checks
+        std::this_thread::sleep_for(std::chrono::microseconds(250));
+    }
+
     printElo();
+}
+
+void Tournament::stopPool()
+{
+    pool.kill();
 }
 
 MoveData Tournament::parseEngineOutput(const std::vector<std::string> &output, const std::string &move,

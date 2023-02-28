@@ -9,6 +9,23 @@ void UciEngine::setConfig(const EngineConfiguration &rhs)
     config = rhs;
 }
 
+std::string UciEngine::checkErrors(int id)
+{
+    if (getError() != "")
+    {
+        std::stringstream ss;
+        ss << getError() << "\nCant write to engine " << getConfig().name
+           << (id != -1 ? ("# " + std::to_string(id)) : "");
+
+        if (!getConfig().recover)
+        {
+            throw std::runtime_error(ss.str());
+        }
+        return ss.str();
+    }
+    return "";
+}
+
 bool UciEngine::isResponsive(int64_t threshold)
 {
     if (!isAlive())
@@ -86,6 +103,7 @@ void UciEngine::loadConfig(const EngineConfiguration &config)
 void UciEngine::sendQuit()
 {
     writeProcess("quit");
+    checkErrors();
 }
 
 void UciEngine::sendSetoption(const std::string &name, const std::string &value)
@@ -96,6 +114,13 @@ void UciEngine::sendSetoption(const std::string &name, const std::string &value)
 void UciEngine::sendGo(const std::string &limit)
 {
     writeProcess("go " + limit);
+}
+
+void UciEngine::restartEngine()
+{
+    resetError();
+    killProcess();
+    initProcess(config.cmd);
 }
 
 void UciEngine::startEngine()

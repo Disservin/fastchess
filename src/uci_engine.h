@@ -35,6 +35,8 @@ class UciEngine : public Engine
         sendQuit();
     }
 
+    std::string checkErrors(int id = -1);
+
     bool isResponsive(int64_t threshold = PING_TIME);
     void sendUciNewGame();
 
@@ -51,6 +53,7 @@ class UciEngine : public Engine
 
     void setConfig(const EngineConfiguration &rhs);
 
+    void restartEngine();
     void startEngine();
     void startEngine(const std::string &cmd);
 

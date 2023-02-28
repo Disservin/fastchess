@@ -17,11 +17,22 @@ Tournament *tour;
 
 BOOL WINAPI consoleHandler(DWORD signal)
 {
+    switch (signal)
+    {
+    case CTRL_CLOSE_EVENT:
+    case CTRL_LOGOFF_EVENT:
+    case CTRL_SHUTDOWN_EVENT:
+    case CTRL_C_EVENT:
 
-    if (signal == CTRL_C_EVENT)
         tour->printElo();
+        tour->stopPool();
 
-    return TRUE;
+        return TRUE;
+    default:
+        break;
+    }
+
+    return FALSE;
 }
 
 #else
@@ -38,7 +49,7 @@ int main(int argc, char const *argv[])
 #ifdef _WIN64
     if (!SetConsoleCtrlHandler(consoleHandler, TRUE))
     {
-        std::cout << "\nERROR: Could not set control handler";
+        std::cout << "\nERROR: Could not set control handler\n";
         return 1;
     }
 

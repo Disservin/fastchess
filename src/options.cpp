@@ -51,6 +51,11 @@ Options::Options(int argc, char const *argv[])
             parseOption(i, argc, argv, gameOptions.ratinginterval);
         else if (arg == "-version")
             printVersion(i);
+        else
+        {
+            i++;
+            std::cout << "\nDash command: " << arg << " doesnt exist!" << std::endl;
+        }
     }
 
     for (const auto &config : configs)
@@ -109,7 +114,7 @@ void Options::parseEngineParams(int &i, int argc, char const *argv[], EngineConf
         }
         else
         {
-            std::cout << "\n unrecognized engine option:" << key << " parsing failed\n";
+            std::cout << "\nUnrecognized engine option: " << key << " parsing failed." << std::endl;
         }
         i++;
     }
@@ -242,7 +247,7 @@ void Options::parseEachOptions(int &i, int argc, char const *argv[])
             }
             else
             {
-                std::cout << "\n unrecognized engine option:" << key << " parsing failed" << std::endl;
+                std::cout << "\nUnrecognized each option: " << key << " parsing failed." << std::endl;
             }
         }
 
@@ -280,6 +285,11 @@ void Options::parseSprt(int &i, int argc, char const *argv[])
         {
             gameOptions.sprt.beta = std::stod(value);
         }
+        else
+        {
+            std::cout << "\nUnrecognized sprt option: " << key << " with value " << value << " parsing failed."
+                      << std::endl;
+        }
 
         i++;
     }
@@ -310,6 +320,11 @@ void Options::parseDrawOptions(int &i, int argc, char const *argv[])
         {
             gameOptions.draw.score = std::stoi(value);
         }
+        else
+        {
+            std::cout << "\nUnrecognized draw option: " << key << " with value " << value << " parsing failed."
+                      << std::endl;
+        }
 
         i++;
     }
@@ -336,6 +351,11 @@ void Options::parseResignOptions(int &i, int argc, char const *argv[])
         else if (key == "score")
         {
             gameOptions.resign.score = std::stoi(value);
+        }
+        else
+        {
+            std::cout << "\nUnrecognized resign option: " << key << " with value " << value << " parsing failed."
+                      << std::endl;
         }
 
         i++;
@@ -377,7 +397,8 @@ void Options::parseOpeningOptions(int &i, int argc, char const *argv[])
         }
         else
         {
-            std::cout << "\n unrecognized engine option:" << key << " with value " << value << " parsing failed\n";
+            std::cout << "\nUnrecognized opening option: " << key << " with value " << value << " parsing failed."
+                      << std::endl;
             return;
         }
         i++;

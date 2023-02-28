@@ -634,10 +634,6 @@ Board::Board()
     initializeLookupTables();
 }
 
-Board::~Board()
-{
-}
-
 std::ostream &operator<<(std::ostream &os, const Board &b)
 {
     for (int i = 63; i >= 0; i -= 8)

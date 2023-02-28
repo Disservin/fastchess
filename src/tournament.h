@@ -46,9 +46,10 @@ struct Match
 
 struct DrawAdjTracker
 {
-    Score drawScore;
+    Score drawScore = 0;
     int moveCount = 0;
 
+    DrawAdjTracker() = default;
     DrawAdjTracker(Score drawScore, int moveCount)
     {
         this->drawScore = drawScore;
@@ -59,7 +60,9 @@ struct DrawAdjTracker
 struct ResignAdjTracker
 {
     int moveCount = 0;
-    Score resignScore;
+    Score resignScore = 0;
+
+    ResignAdjTracker() = default;
     ResignAdjTracker(Score resignScore, int moveCount)
     {
         this->resignScore = resignScore;
@@ -106,9 +109,9 @@ class Tournament
 
     void playNextMove(UciEngine &engine, std::string &positionInput, Board &board, TimeControl &timeLeftUs,
                       TimeControl &timeLeftThem, GameResult &res, Match &match, DrawAdjTracker &drawTracker,
-                      ResignAdjTracker &resignTracker, int &retflag);
+                      ResignAdjTracker &resignTracker, int &retflag, int roundId);
 
-    Match startMatch(UciEngine &engine1, UciEngine &engine2, int round, std::string openingFen);
+    Match startMatch(UciEngine &engine1, UciEngine &engine2, int roundId, std::string openingFen);
 
     std::vector<Match> runH2H(CMD::GameManagerOptions localMatchConfig, std::vector<EngineConfiguration> configs,
                               int roundId, std::string fen);

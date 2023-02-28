@@ -45,8 +45,6 @@ class Board
 
     Board &operator=(const Board &) = default;
 
-    ~Board();
-
     Table<Bitboard, N_SQ, N_SQ> SQUARES_BETWEEN_BB;
     Color sideToMove = WHITE;
 

@@ -1,6 +1,6 @@
 CXX 	 := g++
 CXXFLAGS := -O3 -std=c++17 -Wall -Wextra -pedantic -DNDEBUG
-NATIVE 	 := -march=native
+NATIVE 	 := -march=core-avx2
 
 # Detect Windows
 ifeq ($(OS), Windows_NT)
@@ -27,7 +27,7 @@ endif
 
 ifeq ($(build), release)
 	CXXFLAGS :=-O3 -std=c++17 -Wall -Wextra -pedantic -DNDEBUG
-	LDFLAGS = -lpthread -lstdc++ -static -Wl,--no-as-needed
+	LDFLAGS = -pthread -lstdc++ -static -Wl,--no-as-needed
 endif
 
 # Versioning

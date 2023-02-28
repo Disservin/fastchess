@@ -1,6 +1,7 @@
 # FastChess
 
-FastChess is a cli tool for creating tournaments between chess engines.
+FastChess is a cli tool for creating tournaments between chess engines. Written in mostly C++17 and using [doctest](https://github.com/doctest/doctest) as a testing framework. Compilation can be easily done with a recent C++ Compiler and using the Makefile in /src.
+The POSIX implementation was tested with very high concurrency (250) and very short TC (0.2+0.002) and had very little timeout problems, only 10 matches out of 20000 timed out.
 
 ## Example usage
 

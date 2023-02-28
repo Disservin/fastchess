@@ -456,7 +456,7 @@ void Tournament::startTournament(std::vector<EngineConfiguration> configs)
 
             return;
         }
-        std::this_thread::sleep_for(std::chrono::microseconds(500));
+        std::this_thread::sleep_for(std::chrono::microseconds(250));
     }
 
     if (storePGNS)
@@ -473,8 +473,10 @@ void Tournament::startTournament(std::vector<EngineConfiguration> configs)
         }
     }
 
-    while (!pool.stop)
+    while (!pool.stop && roundCount < matchConfig.rounds)
     {
+        // prevent accessive atomic checks
+        std::this_thread::sleep_for(std::chrono::microseconds(250));
     }
 
     printElo();

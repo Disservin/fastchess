@@ -90,7 +90,7 @@ void Tournament::printElo()
        << "Ptnml:   " 
        << std::right << std::setw(7) << "WW" 
        << std::right << std::setw(7) << "WD" 
-       << std::right << std::setw(7) << "WL" 
+       << std::right << std::setw(7) << "DD/WL" 
        << std::right << std::setw(7) << "LD" 
        << std::right << std::setw(7) << "LL" << "\n"
        << "         " 
@@ -388,10 +388,10 @@ std::vector<Match> Tournament::runH2H(CMD::GameManagerOptions localMatchConfig,
     if (localWins == 2)
         pentaWW++;
 
-    if (localWins == 1 && localDraws == 0)
+    if (localWins == 1 && localDraws == 1)
         pentaWD++;
 
-    if (localWins == 1 && localLosses == 1)
+    if ((localWins == 1 && localLosses == 1) || localDraws == 2)
         pentaWL++;
 
     if (localLosses == 1 && localDraws == 1)

@@ -25,7 +25,7 @@ class UciEngine : public Engine
     {
     }
 
-    UciEngine(EngineConfiguration config)
+    UciEngine(const EngineConfiguration &config)
     {
         setConfig(config);
     }

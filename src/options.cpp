@@ -69,7 +69,7 @@ Options::Options(int argc, char const *argv[])
     }
 }
 
-bool Options::isEngineSettableOption(std::string stringFormat) const
+bool Options::isEngineSettableOption(const std::string &stringFormat) const
 {
     if (startsWith(stringFormat, "option."))
         return true;
@@ -124,7 +124,7 @@ void Options::parseEngineParams(int &i, int argc, char const *argv[], EngineConf
     i--;
 }
 
-TimeControl Options::parseTc(const std::string tcString)
+TimeControl Options::parseTc(const std::string &tcString)
 {
     TimeControl tc;
 

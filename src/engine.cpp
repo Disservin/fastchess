@@ -1,7 +1,7 @@
 #include "engine.h"
 #include "types.h"
 
-Engine::Engine(std::string command)
+Engine::Engine(const std::string &command)
 {
     initProcess(command);
 }

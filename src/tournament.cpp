@@ -128,8 +128,8 @@ void Tournament::checkEngineStatus(UciEngine &engine, Match &match, int &retflag
 }
 
 void Tournament::playNextMove(UciEngine &engine, std::string &positionInput, Board &board, TimeControl &timeLeftUs,
-                              TimeControl &timeLeftThem, GameResult &res, Match &match, DrawAdjTracker &drawTracker,
-                              ResignAdjTracker &resignTracker, int &retflag, int roundId)
+                              const TimeControl &timeLeftThem, GameResult &res, Match &match,
+                              DrawAdjTracker &drawTracker, ResignAdjTracker &resignTracker, int &retflag, int roundId)
 {
     std::vector<std::string> output;
     output.reserve(30);
@@ -300,7 +300,8 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int roundId
 }
 
 std::vector<Match> Tournament::runH2H(CMD::GameManagerOptions localMatchConfig,
-                                      std::vector<EngineConfiguration> configs, int roundId, std::string fen)
+                                      const std::vector<EngineConfiguration> &configs, int roundId,
+                                      const std::string &fen)
 {
     // Initialize variables
     std::vector<Match> matches;
@@ -420,7 +421,7 @@ std::vector<Match> Tournament::runH2H(CMD::GameManagerOptions localMatchConfig,
     return matches;
 }
 
-void Tournament::startTournament(std::vector<EngineConfiguration> configs)
+void Tournament::startTournament(const std::vector<EngineConfiguration> &configs)
 {
     if (configs.size() < 2)
     {

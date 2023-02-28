@@ -81,11 +81,12 @@ void Tournament::printElo()
     Elo elo(wins, losses, draws);
 
     std::stringstream ss;
-    ss << "---------------------------\nResult of " << engineNames[0] << " vs " << engineNames[1] << ": " << wins
-       << " - " << losses << " - " << draws << " (" << std::fixed << std::setprecision(2)
-       << (float(wins) + (float(draws) * 0.5)) / totalCount
-       << ")\n"
-       // clang-format off
+    // clang-format off
+           
+    ss << "---------------------------\n" 
+       << "Result of " << engineNames[0] << " vs " << engineNames[1] 
+       << ": " << wins << " - " << losses << " - " << draws 
+       << " (" << std::fixed << std::setprecision(2) << (float(wins) + (float(draws) * 0.5)) / totalCount << ")\n"
        << "Ptnml:   " 
        << std::right << std::setw(7) << "WW" 
        << std::right << std::setw(7) << "WD" 
@@ -99,6 +100,7 @@ void Tournament::printElo()
        << std::right << std::setw(7) << pentaLD 
        << std::right << std::setw(7) << pentaLL << "\n";
     // clang-format on
+
     if (sprt.isValid())
     {
         ss << "LLR: " << sprt.getLLR(wins, draws, losses) << " " << sprt.getBounds() << "\n";
@@ -118,7 +120,7 @@ void Tournament::writeToFile(const std::string &data)
 
 void Tournament::playNextMove(UciEngine &engine, std::string &positionInput, Board &board, TimeControl &timeLeftUs,
                               TimeControl &timeLeftThem, GameResult &res, Match &match, DrawAdjTracker &drawTracker,
-                              ResignAdjTracker &resignTracker, int &retflag)
+                              ResignAdjTracker &resignTracker, int &retflag, int roundId)
 {
     std::vector<std::string> output;
     output.reserve(30);
@@ -126,7 +128,8 @@ void Tournament::playNextMove(UciEngine &engine, std::string &positionInput, Boa
     bool timeout = false;
 
     retflag = 1;
-    // Engine 1's turn
+
+    // engine's turn
     if (!engine.isResponsive())
     {
         std::stringstream ss;
@@ -152,15 +155,15 @@ void Tournament::playNextMove(UciEngine &engine, std::string &positionInput, Boa
     // Timeout!
     if (timeLeftUs.time < 0)
     {
+        retflag = 2;
         res = GameResult(~board.sideToMove);
-        std::stringstream ss;
-        ss << "engine " << engine.getConfig().name << " timed out\n";
-        std::cout << ss.str();
         match.termination = "timeout";
-        {
-            retflag = 2;
-            return;
-        };
+
+        std::stringstream ss;
+        ss << "engine " << engine.getConfig().name << " timed out #" << roundId << "\n";
+        std::cout << ss.str();
+
+        return;
     }
 
     timeLeftUs.time += timeLeftUs.increment;
@@ -175,18 +178,17 @@ void Tournament::playNextMove(UciEngine &engine, std::string &positionInput, Boa
 
     if (!match.legal)
     {
+        retflag = 2;
+        res = GameResult(~board.sideToMove);
         match.termination = "illegal move";
 
-        res = GameResult(~board.sideToMove);
-
         std::stringstream ss;
-        ss << "engine " << engine.getConfig().name << " played an illegal move: " << bestMove << "\n";
+        ss << "engine " << engine.getConfig().name << " played an illegal move: " << bestMove << " #" << roundId
+           << "\n";
+
         std::cout << ss.str();
 
-        {
-            retflag = 2;
-            return;
-        };
+        return;
     }
 
     // Update Trackers
@@ -203,21 +205,19 @@ void Tournament::playNextMove(UciEngine &engine, std::string &positionInput, Boa
 
     if (res != GameResult::NONE)
     {
-        {
-            retflag = 2;
-            return;
-        };
+        retflag = 2;
+        return;
     }
 }
 
-Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, std::string openingFen)
+Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int roundId, std::string openingFen)
 {
-    DrawAdjTracker drawTracker = DrawAdjTracker(matchConfig.draw.score, 0);
-    ResignAdjTracker resignTracker = ResignAdjTracker(matchConfig.resign.score, 0);
-    GameResult res;
-    Match match;
+    GameResult res = GameResult::NONE;
+    ResignAdjTracker resignTracker = {};
+    DrawAdjTracker drawTracker = {};
+    Match match = {};
 
-    Board board;
+    Board board = {};
     board.loadFen(openingFen);
 
     match.whiteEngine = board.sideToMove == WHITE ? engine1.getConfig() : engine2.getConfig();
@@ -242,13 +242,13 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, 
     {
         int retflag;
         playNextMove(engine1, positionInput, board, timeLeft_1, timeLeft_2, res, match, drawTracker, resignTracker,
-                     retflag);
+                     retflag, roundId);
 
         if (retflag == 2)
             break;
 
         playNextMove(engine2, positionInput, board, timeLeft_2, timeLeft_1, res, match, drawTracker, resignTracker,
-                     retflag);
+                     retflag, roundId);
 
         if (retflag == 2)
             break;
@@ -256,7 +256,7 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, 
 
     auto end = std::chrono::high_resolution_clock::now();
 
-    match.round = round;
+    match.round = roundId;
     match.result = res;
     match.endTime = saveTimeHeader ? getDateTime() : "";
     match.duration =
@@ -481,10 +481,13 @@ std::string Tournament::getDateTime(std::string format)
     // Get the current time in UTC
     auto now = std::chrono::system_clock::now();
     auto time_t_now = std::chrono::system_clock::to_time_t(now);
+    struct tm buf;
+
+    auto res = gmtime_s(&buf, &time_t_now);
 
     // Format the time as an ISO 8601 string
     std::stringstream ss;
-    ss << std::put_time(std::gmtime(&time_t_now), format.c_str());
+    ss << std::put_time(&buf, format.c_str());
     return ss.str();
 }
 

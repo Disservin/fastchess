@@ -27,7 +27,7 @@ endif
 
 ifeq ($(build), release)
 	CXXFLAGS :=-O3 -std=c++17 -Wall -Wextra -pedantic -DNDEBUG
-	LDFLAGS = pthread -lstdc++ -static -Wl,--no-as-needed
+	LDFLAGS = -lpthread -lstdc++ -static -Wl,--no-as-needed
 endif
 
 # Versioning

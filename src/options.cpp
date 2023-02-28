@@ -58,12 +58,14 @@ Options::Options(int argc, char const *argv[])
         }
     }
 
-    for (const auto &config : configs)
+    for (auto &config : configs)
     {
         if (config.name == "")
         {
             throw std::runtime_error("Each engine must have a name!");
         }
+
+        config.recover = gameOptions.recover;
     }
 }
 

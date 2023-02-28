@@ -1,3 +1,4 @@
+#include <atomic>
 #include <chrono>
 #include <cmath>
 #include <functional>
@@ -16,7 +17,7 @@ class ThreadPool
         for (size_t i = 0; i < threads; ++i)
             // Each worker thread runs an infinite loop that waits for tasks to be added to the queue
             workers.emplace_back([this] {
-                while (true)
+                while (!this->stop)
                 {
                     std::function<void()> task;
 
@@ -128,6 +129,8 @@ class ThreadPool
     {
         {
             std::unique_lock<std::mutex> lock(queue_mutex);
+            std::queue<std::function<void()>> empty;
+            std::swap(tasks, empty);
             stop = true;
         }
         condition.notify_all();
@@ -150,11 +153,12 @@ class ThreadPool
         kill();
     }
 
+    std::atomic_bool stop = false;
+
   private:
     std::vector<std::thread> workers;
     std::queue<std::function<void()>> tasks;
 
     std::mutex queue_mutex;
     std::condition_variable condition;
-    bool stop;
 };

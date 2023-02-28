@@ -45,12 +45,19 @@ void EngineProcess::initProcess(const std::string &command)
 
 void EngineProcess::closeHandles()
 {
+    try
+    {
+        CloseHandle(pi.hThread);
+        CloseHandle(pi.hProcess);
 
-    CloseHandle(pi.hThread);
-    CloseHandle(pi.hProcess);
-
-    CloseHandle(childStdOut);
-    CloseHandle(childStdIn);
+        CloseHandle(childStdOut);
+        CloseHandle(childStdIn);
+    }
+    catch (const std::exception &)
+    {
+        errCode = 1;
+        errStr = "Error in closing handles.";
+    }
 }
 
 EngineProcess::~EngineProcess()
@@ -91,7 +98,8 @@ std::vector<std::string> EngineProcess::readProcess(std::string_view last_word, 
             the assumption that the engine works rather clean and is able to send the last word.*/
             if (!PeekNamedPipe(childStdOut, NULL, 0, 0, &bytesAvail, nullptr))
             {
-                throw std::runtime_error("Cant peek Pipe");
+                errCode = 1;
+                errStr = "Cant peek pipe.";
             }
 
             if (timeoutThreshold > 0 &&
@@ -112,7 +120,8 @@ std::vector<std::string> EngineProcess::readProcess(std::string_view last_word, 
 
         if (!ReadFile(childStdOut, buffer, sizeof(buffer), &bytesRead, nullptr))
         {
-            throw std::runtime_error("Cant read process correctly");
+            errCode = 1;
+            errStr = "Cant read process correctly.";
         }
 
         // Iterate over each character in the buffer
@@ -147,19 +156,29 @@ std::vector<std::string> EngineProcess::readProcess(std::string_view last_word, 
 void EngineProcess::writeProcess(const std::string &input)
 {
     assert(isInitalized);
-    if (!isAlive())
+
+    try
     {
-        closeHandles();
+        if (!isAlive())
+        {
+            closeHandles();
 
-        std::stringstream ss;
-        ss << "Process is not alive and write occured with message: " << input;
-        throw std::runtime_error(ss.str());
+            std::stringstream ss;
+            ss << "Process is not alive and write occured with message: " << input << "\n";
+            std::cout << ss.str();
+            return;
+        }
+
+        constexpr char endLine = '\n';
+        DWORD bytesWritten;
+        WriteFile(childStdIn, input.c_str(), input.length(), &bytesWritten, nullptr);
+        WriteFile(childStdIn, &endLine, 1, &bytesWritten, nullptr);
     }
-
-    constexpr char endLine = '\n';
-    DWORD bytesWritten;
-    WriteFile(childStdIn, input.c_str(), input.length(), &bytesWritten, nullptr);
-    WriteFile(childStdIn, &endLine, 1, &bytesWritten, nullptr);
+    catch (const std::exception &e)
+    {
+        errCode = 1;
+        errStr = "Error in writing to process.\n" + std::string(e.what());
+    }
 }
 
 bool EngineProcess::isAlive()
@@ -174,15 +193,23 @@ void EngineProcess::killProcess()
 {
     if (isInitalized)
     {
-        DWORD exitCode = 0;
-        GetExitCodeProcess(pi.hProcess, &exitCode);
-        if (exitCode == STILL_ACTIVE)
+        try
         {
-            UINT uExitCode = 0;
-            TerminateProcess(pi.hProcess, uExitCode);
+            DWORD exitCode = 0;
+            GetExitCodeProcess(pi.hProcess, &exitCode);
+            if (exitCode == STILL_ACTIVE)
+            {
+                UINT uExitCode = 0;
+                TerminateProcess(pi.hProcess, uExitCode);
+            }
+            // Clean up the child process resources
+            closeHandles();
         }
-        // Clean up the child process resources
-        closeHandles();
+        catch (const std::exception &e)
+        {
+            errCode = 1;
+            errStr = "Error in writing to process.\n" + std::string(e.what());
+        }
     }
 }
 #else
@@ -262,9 +289,13 @@ void EngineProcess::writeProcess(const std::string &input)
 
     if (!isAlive())
     {
+        errCode = 1;
+        errStr = "Error in writing process.";
+
         std::stringstream ss;
-        ss << "Process is not alive and write occured with message: " << input;
-        throw std::runtime_error(ss.str());
+        ss << "Process is not alive and write occured with message: " << input << "\n";
+        std::cout << ss.str();
+        return;
     }
 
     // Append a newline character to the end of the input string
@@ -276,7 +307,9 @@ void EngineProcess::writeProcess(const std::string &input)
         perror(strerror(errno));
         std::stringstream ss;
         ss << "Process is not alive and write occured with message: " << input;
-        throw std::runtime_error(ss.str());
+        std::cout << ss.str();
+        errCode = 1;
+        errStr = ss.str();
     }
 
     if (write(outPipe[1], &endLine, 1) == -1)
@@ -284,7 +317,9 @@ void EngineProcess::writeProcess(const std::string &input)
         perror(strerror(errno));
         std::stringstream ss;
         ss << "Process is not alive and write occured with message: " << input;
-        throw std::runtime_error(ss.str());
+        std::cout << ss.str();
+        errCode = 1;
+        errStr = ss.str();
     }
 }
 std::vector<std::string> EngineProcess::readProcess(std::string_view last_word, bool &timeout, int64_t timeoutThreshold)
@@ -322,7 +357,8 @@ std::vector<std::string> EngineProcess::readProcess(std::string_view last_word, 
         if (ret == -1)
         {
             perror(strerror(errno));
-            throw std::runtime_error(strerror(errno));
+            errCode = 1;
+            errStr = strerror(errno);
         }
         else if (ret == 0)
         {
@@ -339,7 +375,8 @@ std::vector<std::string> EngineProcess::readProcess(std::string_view last_word, 
             if (bytesRead == -1)
             {
                 perror(strerror(errno));
-                throw std::runtime_error("Error at read");
+                errCode = 1;
+                errStr = strerror(errno);
             }
             // Iterate over each character in the buffer
             for (int i = 0; i < bytesRead; i++)
@@ -379,7 +416,8 @@ bool EngineProcess::isAlive()
     if (r == -1)
     {
         perror(strerror(errno));
-        throw std::runtime_error("isalive");
+        errCode = 1;
+        errStr = strerror(errno);
     }
     else
     {

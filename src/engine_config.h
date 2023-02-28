@@ -50,4 +50,6 @@ struct EngineConfiguration
 
     // Ply limit for the engine
     uint64_t plies = 0;
+
+    bool recover = false;
 };

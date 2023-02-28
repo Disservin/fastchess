@@ -42,6 +42,7 @@ struct Match
     Board board;
     int round = 0;
     bool legal = true;
+    bool needsRestart = false;
 };
 
 struct DrawAdjTracker
@@ -73,19 +74,6 @@ struct ResignAdjTracker
 class Tournament
 {
   public:
-    Tournament() = default;
-    Tournament(bool saveTime) : saveTimeHeader(saveTime){};
-    Tournament(const CMD::GameManagerOptions &mc);
-
-    void loadConfig(const CMD::GameManagerOptions &mc);
-    std::string fetchNextFen();
-    std::vector<std::string> getPGNS() const;
-    void setStorePGN(bool v);
-    void printElo();
-    void writeToFile(const std::string &data);
-
-    void startTournament(std::vector<EngineConfiguration> configs);
-
     template <typename T> static T findElement(const std::vector<std::string> &haystack, std::string_view needle)
     {
         auto index = std::find(haystack.begin(), haystack.end(), needle) - haystack.begin();
@@ -97,6 +85,20 @@ class Tournament
             return haystack[index + 1];
     }
 
+    Tournament() = default;
+    Tournament(bool saveTime) : saveTimeHeader(saveTime){};
+    Tournament(const CMD::GameManagerOptions &mc);
+
+    void loadConfig(const CMD::GameManagerOptions &mc);
+
+    std::vector<std::string> getPGNS() const;
+    void setStorePGN(bool v);
+    void printElo();
+
+    void startTournament(std::vector<EngineConfiguration> configs);
+
+    void stopPool();
+
   private:
     const std::string STARTPOS = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
     const Score MATE_SCORE = 100'000;
@@ -106,6 +108,9 @@ class Tournament
     ThreadPool pool = ThreadPool(1);
 
     SPRT sprt;
+
+    void writeToFile(const std::string &data);
+    std::string fetchNextFen();
 
     void playNextMove(UciEngine &engine, std::string &positionInput, Board &board, TimeControl &timeLeftUs,
                       TimeControl &timeLeftThem, GameResult &res, Match &match, DrawAdjTracker &drawTracker,
@@ -125,6 +130,8 @@ class Tournament
 
     GameResult checkAdj(Match &match, const DrawAdjTracker drawTracker, const ResignAdjTracker resignTracker,
                         const Score score, const Color lastSideThatMoved);
+
+    void checkEngineStatus(UciEngine &engine, Match &match, int &retflag, int roundId);
 
     std::vector<std::string> pgns;
     std::vector<std::string> openingBook;

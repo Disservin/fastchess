@@ -1,15 +1,19 @@
 #include <string>
 
-enum SPRTResult {
-    SPRT_H0, SPRT_H1, SPRT_CONTINUE
+enum SPRTResult
+{
+    SPRT_H0,
+    SPRT_H1,
+    SPRT_CONTINUE
 };
 
-class SPRT {
+class SPRT
+{
   private:
-    double lower = 0;
-    double upper = 0;
-    double s0 = 0;
-    double s1 = 0;
+    double lower = 0.0;
+    double upper = 0.0;
+    double s0 = 0.0;
+    double s1 = 0.0;
 
     bool valid = false;
 

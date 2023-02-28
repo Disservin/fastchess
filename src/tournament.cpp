@@ -116,61 +116,6 @@ void Tournament::writeToFile(const std::string &data)
     file << data << std::endl;
 }
 
-Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, std::string openingFen)
-{
-    DrawAdjTracker drawTracker = DrawAdjTracker(matchConfig.draw.score, 0);
-    ResignAdjTracker resignTracker = ResignAdjTracker(matchConfig.resign.score, 0);
-    GameResult res;
-    Match match;
-
-    Board board;
-    board.loadFen(openingFen);
-
-    match.whiteEngine = board.sideToMove == WHITE ? engine1.getConfig() : engine2.getConfig();
-    match.blackEngine = board.sideToMove != WHITE ? engine1.getConfig() : engine2.getConfig();
-
-    engine1.sendUciNewGame();
-    engine2.sendUciNewGame();
-
-    match.date = saveTimeHeader ? getDateTime("%Y-%m-%d") : "";
-    match.startTime = saveTimeHeader ? getDateTime() : "";
-    match.board = board;
-
-    std::string positionInput =
-        openingFen == STARTPOS ? "position startpos moves" : "position fen " + openingFen + " moves";
-
-    auto timeLeft_1 = engine1.getConfig().tc;
-    auto timeLeft_2 = engine2.getConfig().tc;
-
-    auto start = std::chrono::high_resolution_clock::now();
-
-    while (true)
-    {
-        int retflag;
-        playNextMove(engine1, positionInput, board, timeLeft_1, timeLeft_2, res, match, drawTracker, resignTracker,
-                     retflag);
-
-        if (retflag == 2)
-            break;
-
-        playNextMove(engine2, positionInput, board, timeLeft_2, timeLeft_1, res, match, drawTracker, resignTracker,
-                     retflag);
-
-        if (retflag == 2)
-            break;
-    }
-
-    auto end = std::chrono::high_resolution_clock::now();
-
-    match.round = round;
-    match.result = res;
-    match.endTime = saveTimeHeader ? getDateTime() : "";
-    match.duration =
-        saveTimeHeader ? formatDuration(std::chrono::duration_cast<std::chrono::seconds>(end - start)) : "";
-
-    return match;
-}
-
 void Tournament::playNextMove(UciEngine &engine, std::string &positionInput, Board &board, TimeControl &timeLeftUs,
                               TimeControl &timeLeftThem, GameResult &res, Match &match, DrawAdjTracker &drawTracker,
                               ResignAdjTracker &resignTracker, int &retflag)
@@ -261,6 +206,61 @@ void Tournament::playNextMove(UciEngine &engine, std::string &positionInput, Boa
             return;
         };
     }
+}
+
+Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int round, std::string openingFen)
+{
+    DrawAdjTracker drawTracker = DrawAdjTracker(matchConfig.draw.score, 0);
+    ResignAdjTracker resignTracker = ResignAdjTracker(matchConfig.resign.score, 0);
+    GameResult res;
+    Match match;
+
+    Board board;
+    board.loadFen(openingFen);
+
+    match.whiteEngine = board.sideToMove == WHITE ? engine1.getConfig() : engine2.getConfig();
+    match.blackEngine = board.sideToMove != WHITE ? engine1.getConfig() : engine2.getConfig();
+
+    engine1.sendUciNewGame();
+    engine2.sendUciNewGame();
+
+    match.date = saveTimeHeader ? getDateTime("%Y-%m-%d") : "";
+    match.startTime = saveTimeHeader ? getDateTime() : "";
+    match.board = board;
+
+    std::string positionInput =
+        openingFen == STARTPOS ? "position startpos moves" : "position fen " + openingFen + " moves";
+
+    auto timeLeft_1 = engine1.getConfig().tc;
+    auto timeLeft_2 = engine2.getConfig().tc;
+
+    auto start = std::chrono::high_resolution_clock::now();
+
+    while (true)
+    {
+        int retflag;
+        playNextMove(engine1, positionInput, board, timeLeft_1, timeLeft_2, res, match, drawTracker, resignTracker,
+                     retflag);
+
+        if (retflag == 2)
+            break;
+
+        playNextMove(engine2, positionInput, board, timeLeft_2, timeLeft_1, res, match, drawTracker, resignTracker,
+                     retflag);
+
+        if (retflag == 2)
+            break;
+    }
+
+    auto end = std::chrono::high_resolution_clock::now();
+
+    match.round = round;
+    match.result = res;
+    match.endTime = saveTimeHeader ? getDateTime() : "";
+    match.duration =
+        saveTimeHeader ? formatDuration(std::chrono::duration_cast<std::chrono::seconds>(end - start)) : "";
+
+    return match;
 }
 
 std::vector<Match> Tournament::runH2H(CMD::GameManagerOptions localMatchConfig,

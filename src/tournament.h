@@ -75,18 +75,13 @@ class Tournament
     Tournament(const CMD::GameManagerOptions &mc);
 
     void loadConfig(const CMD::GameManagerOptions &mc);
-    void startTournament(std::vector<EngineConfiguration> configs);
-
-    Match startMatch(UciEngine &engine1, UciEngine &engine2, int round, std::string openingFen);
-    void playNextMove(UciEngine &engine, std::string &positionInput, Board &board, TimeControl &timeLeftUs,
-                      TimeControl &timeLeftThem, GameResult &res, Match &match, DrawAdjTracker &drawTracker,
-                      ResignAdjTracker &resignTracker, int &retflag);
-    std::vector<Match> runH2H(CMD::GameManagerOptions localMatchConfig, std::vector<EngineConfiguration> configs,
-                              int roundId, std::string fen);
-
     std::string fetchNextFen();
-
     std::vector<std::string> getPGNS() const;
+    void setStorePGN(bool v);
+    void printElo();
+    void writeToFile(const std::string &data);
+
+    void startTournament(std::vector<EngineConfiguration> configs);
 
     template <typename T> static T findElement(const std::vector<std::string> &haystack, std::string_view needle)
     {
@@ -99,12 +94,6 @@ class Tournament
             return haystack[index + 1];
     }
 
-    void setStorePGN(bool v);
-
-    void printElo();
-
-    void writeToFile(const std::string &data);
-
   private:
     const std::string STARTPOS = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
     const Score MATE_SCORE = 100'000;
@@ -115,10 +104,22 @@ class Tournament
 
     SPRT sprt;
 
+    void playNextMove(UciEngine &engine, std::string &positionInput, Board &board, TimeControl &timeLeftUs,
+                      TimeControl &timeLeftThem, GameResult &res, Match &match, DrawAdjTracker &drawTracker,
+                      ResignAdjTracker &resignTracker, int &retflag);
+
+    Match startMatch(UciEngine &engine1, UciEngine &engine2, int round, std::string openingFen);
+
+    std::vector<Match> runH2H(CMD::GameManagerOptions localMatchConfig, std::vector<EngineConfiguration> configs,
+                              int roundId, std::string fen);
+
     MoveData parseEngineOutput(const std::vector<std::string> &output, const std::string &move, int64_t measuredTime);
+
     std::string getDateTime(std::string format = "%Y-%m-%dT%H:%M:%S %z");
     std::string formatDuration(std::chrono::seconds duration);
+
     void updateTrackers(DrawAdjTracker &drawTracker, ResignAdjTracker &resignTracker, const Score moveScore);
+
     GameResult checkAdj(Match &match, const DrawAdjTracker drawTracker, const ResignAdjTracker resignTracker,
                         const Score score, const Color lastSideThatMoved);
 

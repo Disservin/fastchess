@@ -55,7 +55,7 @@ PgnBuilder::PgnBuilder(const Match &match, const CMD::GameManagerOptions &gameOp
         std::stringstream nodesString;
         if (gameOptions.pgn.trackNodes)
         {
-            nodesString << "/" << data.nodes;
+            nodesString << " n=" << data.nodes;
         }
 
         if (moveCount % 2 != 0)

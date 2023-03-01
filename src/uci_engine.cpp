@@ -11,7 +11,7 @@ void UciEngine::setConfig(const EngineConfiguration &rhs)
 
 std::string UciEngine::checkErrors(int id)
 {
-    if (getError() != "")
+    if (!getError().empty())
     {
         std::stringstream ss;
         ss << getError() << "\nCant write to engine " << getConfig().name
@@ -54,7 +54,7 @@ std::vector<std::string> UciEngine::readUci()
     return readProcess("uciok", timeout);
 }
 
-std::string UciEngine::buildGoInput(Color stm, const TimeControl &tc, const TimeControl &tc_2)
+std::string UciEngine::buildGoInput(Color stm, const TimeControl &tc, const TimeControl &tc_2) const
 {
     std::stringstream input;
     input << "go";

@@ -19,7 +19,7 @@ class Process
     bool isInitalized = false;
 
     int errCode = 0;
-    std::string errStr = "";
+    std::string errStr;
 
     std::string getError()
     {
@@ -51,11 +51,11 @@ class EngineProcess : public Process
     void killProcess();
     void closeHandles();
 
-    virtual bool isAlive();
+    virtual bool isAlive() override;
 
     virtual std::vector<std::string> readProcess(std::string_view last_word, bool &timeout,
-                                                 int64_t timeoutThreshold = 1000);
-    virtual void writeProcess(const std::string &input);
+                                                 int64_t timeoutThreshold = 1000) override;
+    virtual void writeProcess(const std::string &input) override;
 
   private:
     PROCESS_INFORMATION pi = PROCESS_INFORMATION();
@@ -75,11 +75,11 @@ class EngineProcess : public Process
     void initProcess(const std::string &command);
     void killProcess();
 
-    virtual bool isAlive();
+    virtual bool isAlive() override;
 
     virtual std::vector<std::string> readProcess(std::string_view last_word, bool &timeout,
-                                                 int64_t timeoutThreshold = 1000);
-    virtual void writeProcess(const std::string &input);
+                                                 int64_t timeoutThreshold = 1000) override;
+    virtual void writeProcess(const std::string &input) override;
 
   private:
     pid_t processPid;

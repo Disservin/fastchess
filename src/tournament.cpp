@@ -18,7 +18,7 @@ void Tournament::loadConfig(const CMD::GameManagerOptions &mc)
 {
     matchConfig = mc;
 
-    if (matchConfig.opening.file != "")
+    if (!matchConfig.opening.file.empty())
     {
         std::ifstream openingFile;
         std::string line;
@@ -57,7 +57,7 @@ std::string Tournament::fetchNextFen()
         }
         else if (matchConfig.opening.order == "sequential")
         {
-            assert(startIndex++ % (openingBook.size() - 1) < openingBook.size());
+            assert(startIndex % (openingBook.size() - 1) < openingBook.size());
 
             return openingBook[startIndex++ % (openingBook.size() - 1)];
         }
@@ -82,22 +82,22 @@ void Tournament::printElo()
 
     std::stringstream ss;
     // clang-format off
-           
-    ss << "---------------------------\n" 
-       << "Result of " << engineNames[0] << " vs " << engineNames[1] 
-       << ": " << wins << " - " << losses << " - " << draws 
+
+    ss << "---------------------------\n"
+       << "Result of " << engineNames[0] << " vs " << engineNames[1]
+       << ": " << wins << " - " << losses << " - " << draws
        << " (" << std::fixed << std::setprecision(2) << (float(wins) + (float(draws) * 0.5)) / totalCount << ")\n"
-       << "Ptnml:   " 
-       << std::right << std::setw(7) << "WW" 
-       << std::right << std::setw(7) << "WD" 
-       << std::right << std::setw(7) << "DD/WL" 
-       << std::right << std::setw(7) << "LD" 
+       << "Ptnml:   "
+       << std::right << std::setw(7) << "WW"
+       << std::right << std::setw(7) << "WD"
+       << std::right << std::setw(7) << "DD/WL"
+       << std::right << std::setw(7) << "LD"
        << std::right << std::setw(7) << "LL" << "\n"
-       << "         " 
-       << std::right << std::setw(7) << pentaWW 
-       << std::right << std::setw(7) << pentaWD 
-       << std::right << std::setw(7) << pentaWL 
-       << std::right << std::setw(7) << pentaLD 
+       << "         "
+       << std::right << std::setw(7) << pentaWW
+       << std::right << std::setw(7) << pentaWD
+       << std::right << std::setw(7) << pentaWL
+       << std::right << std::setw(7) << pentaLD
        << std::right << std::setw(7) << pentaLL << "\n";
     // clang-format on
 
@@ -118,9 +118,9 @@ void Tournament::writeToFile(const std::string &data)
     file << data << std::endl;
 }
 
-void Tournament::checkEngineStatus(UciEngine &engine, Match &match, int &retflag, int roundId)
+void Tournament::checkEngineStatus(UciEngine &engine, Match &match, int &retflag, int roundId) const
 {
-    if (engine.checkErrors(roundId) != "")
+    if (!engine.checkErrors(roundId).empty())
     {
         match.needsRestart = matchConfig.recover;
         retflag = 2;
@@ -128,8 +128,8 @@ void Tournament::checkEngineStatus(UciEngine &engine, Match &match, int &retflag
 }
 
 void Tournament::playNextMove(UciEngine &engine, std::string &positionInput, Board &board, TimeControl &timeLeftUs,
-                              TimeControl &timeLeftThem, GameResult &res, Match &match, DrawAdjTracker &drawTracker,
-                              ResignAdjTracker &resignTracker, int &retflag, int roundId)
+                              const TimeControl &timeLeftThem, GameResult &res, Match &match,
+                              DrawAdjTracker &drawTracker, ResignAdjTracker &resignTracker, int &retflag, int roundId)
 {
     std::vector<std::string> output;
     output.reserve(30);
@@ -159,13 +159,13 @@ void Tournament::playNextMove(UciEngine &engine, std::string &positionInput, Boa
     checkEngineStatus(engine, match, retflag, roundId);
 
     // Start measuring time
-    auto t0 = std::chrono::high_resolution_clock::now();
+    const auto t0 = std::chrono::high_resolution_clock::now();
 
     output = engine.readProcess("bestmove", timeout, timeLeftUs.time);
 
-    auto t1 = std::chrono::high_resolution_clock::now();
+    const auto t1 = std::chrono::high_resolution_clock::now();
 
-    if (engine.getError() != "")
+    if (!engine.getError().empty())
     {
         match.needsRestart = matchConfig.recover;
         retflag = 2;
@@ -178,7 +178,7 @@ void Tournament::playNextMove(UciEngine &engine, std::string &positionInput, Boa
     }
 
     // Subtract measured time
-    auto measuredTime = std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count();
+    const auto measuredTime = std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count();
     timeLeftUs.time -= measuredTime;
 
     // Timeout!
@@ -270,7 +270,7 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int roundId
     auto timeLeft_1 = engine1.getConfig().tc;
     auto timeLeft_2 = engine2.getConfig().tc;
 
-    auto start = std::chrono::high_resolution_clock::now();
+    const auto start = std::chrono::high_resolution_clock::now();
 
     while (!pool.stop)
     {
@@ -288,7 +288,7 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int roundId
             break;
     }
 
-    auto end = std::chrono::high_resolution_clock::now();
+    const auto end = std::chrono::high_resolution_clock::now();
 
     match.round = roundId;
     match.result = res;
@@ -300,7 +300,8 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int roundId
 }
 
 std::vector<Match> Tournament::runH2H(CMD::GameManagerOptions localMatchConfig,
-                                      std::vector<EngineConfiguration> configs, int roundId, std::string fen)
+                                      const std::vector<EngineConfiguration> &configs, int roundId,
+                                      const std::string &fen)
 {
     // Initialize variables
     std::vector<Match> matches;
@@ -321,7 +322,7 @@ std::vector<Match> Tournament::runH2H(CMD::GameManagerOptions localMatchConfig,
     engine1.turn = Turn::FIRST;
     engine2.turn = Turn::SECOND;
 
-    int games = localMatchConfig.repeat ? 2 : localMatchConfig.games;
+    const int games = localMatchConfig.repeat ? 2 : localMatchConfig.games;
 
     int localWins = 0;
     int localLosses = 0;
@@ -345,8 +346,10 @@ std::vector<Match> Tournament::runH2H(CMD::GameManagerOptions localMatchConfig,
 
         matches.emplace_back(match);
 
-        std::string positiveEngine = engine1.turn == Turn::FIRST ? engine1.getConfig().name : engine2.getConfig().name;
-        std::string negativeEngine = engine1.turn == Turn::FIRST ? engine2.getConfig().name : engine1.getConfig().name;
+        const std::string positiveEngine =
+            engine1.turn == Turn::FIRST ? engine1.getConfig().name : engine2.getConfig().name;
+        const std::string negativeEngine =
+            engine1.turn == Turn::FIRST ? engine2.getConfig().name : engine1.getConfig().name;
 
         // use a stringstream to build the output to avoid data races with cout <<
         std::stringstream ss;
@@ -379,7 +382,7 @@ std::vector<Match> Tournament::runH2H(CMD::GameManagerOptions localMatchConfig,
         }
         else
         {
-            std::cout << "Couldnt obtain Game Result\n";
+            std::cout << "Couldn't obtain Game Result\n";
         }
 
         totalCount++;
@@ -420,7 +423,7 @@ std::vector<Match> Tournament::runH2H(CMD::GameManagerOptions localMatchConfig,
     return matches;
 }
 
-void Tournament::startTournament(std::vector<EngineConfiguration> configs)
+void Tournament::startTournament(const std::vector<EngineConfiguration> &configs)
 {
     if (configs.size() < 2)
     {
@@ -432,7 +435,7 @@ void Tournament::startTournament(std::vector<EngineConfiguration> configs)
 
     std::vector<std::future<std::vector<Match>>> results;
 
-    std::string filename = (matchConfig.pgn.file == "" ? "fast-chess" : matchConfig.pgn.file) + ".pgn";
+    const std::string filename = (matchConfig.pgn.file.empty() ? "fast-chess" : matchConfig.pgn.file) + ".pgn";
     file.open(filename, std::ios::app);
 
     for (int i = 1; i <= matchConfig.rounds; i++)
@@ -448,7 +451,7 @@ void Tournament::startTournament(std::vector<EngineConfiguration> configs)
 
     while (sprt.isValid() && !pool.stop)
     {
-        double llr = sprt.getLLR(wins, draws, losses);
+        const double llr = sprt.getLLR(wins, draws, losses);
         if (sprt.getResult(llr) != SPRT_CONTINUE)
         {
             pool.kill();
@@ -463,7 +466,7 @@ void Tournament::startTournament(std::vector<EngineConfiguration> configs)
     {
         for (auto &&result : results)
         {
-            auto res = result.get();
+            const auto res = result.get();
 
             for (const Match &match : res)
             {
@@ -490,7 +493,7 @@ void Tournament::stopPool()
 MoveData Tournament::parseEngineOutput(const std::vector<std::string> &output, const std::string &move,
                                        int64_t measuredTime)
 {
-    std::string scoreString = "";
+    std::string scoreString;
     std::string scoreType;
     int score = 0;
     int depth = 0;
@@ -498,7 +501,7 @@ MoveData Tournament::parseEngineOutput(const std::vector<std::string> &output, c
     // extract last info line
     if (output.size() > 1)
     {
-        std::vector<std::string> info = CMD::Options::splitString(output[output.size() - 2], ' ');
+        const std::vector<std::string> info = CMD::Options::splitString(output[output.size() - 2], ' ');
 
         depth = findElement<int>(info, "depth");
         scoreType = findElement<std::string>(info, "score");
@@ -538,8 +541,8 @@ MoveData Tournament::parseEngineOutput(const std::vector<std::string> &output, c
 std::string Tournament::getDateTime(std::string format)
 {
     // Get the current time in UTC
-    auto now = std::chrono::system_clock::now();
-    auto time_t_now = std::chrono::system_clock::to_time_t(now);
+    const auto now = std::chrono::system_clock::now();
+    const auto time_t_now = std::chrono::system_clock::to_time_t(now);
     struct tm buf;
 
 #ifdef _WIN32
@@ -554,7 +557,7 @@ std::string Tournament::getDateTime(std::string format)
     ss << std::put_time(&buf, format.c_str());
     return ss.str();
 #else
-    auto res = gmtime_r(&time_t_now, &buf);
+    const auto res = gmtime_r(&time_t_now, &buf);
 
     // Format the time as an ISO 8601 string
     std::stringstream ss;
@@ -565,11 +568,11 @@ std::string Tournament::getDateTime(std::string format)
 
 std::string Tournament::formatDuration(std::chrono::seconds duration)
 {
-    auto hours = std::chrono::duration_cast<std::chrono::hours>(duration);
+    const auto hours = std::chrono::duration_cast<std::chrono::hours>(duration);
     duration -= hours;
-    auto minutes = std::chrono::duration_cast<std::chrono::minutes>(duration);
+    const auto minutes = std::chrono::duration_cast<std::chrono::minutes>(duration);
     duration -= minutes;
-    auto seconds = duration;
+    const auto seconds = duration;
 
     std::stringstream ss;
     ss << std::setfill('0') << std::setw(2) << hours.count() << ":" << std::setfill('0') << std::setw(2)
@@ -603,7 +606,7 @@ void Tournament::updateTrackers(DrawAdjTracker &drawTracker, ResignAdjTracker &r
 }
 
 GameResult Tournament::checkAdj(Match &match, const DrawAdjTracker drawTracker, const ResignAdjTracker resignTracker,
-                                const Score score, const Color lastSideThatMoved)
+                                const Score score, const Color lastSideThatMoved) const
 
 {
     const int moveNumber = match.moves.size() / 2;

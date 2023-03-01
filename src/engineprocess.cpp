@@ -352,7 +352,7 @@ std::vector<std::string> EngineProcess::readProcess(std::string_view last_word, 
     // Continue reading output lines until the line matches the specified line or a timeout occurs
     while (true)
     {
-        int ret = poll(pollfds, 1, timeoutMillis);
+        const int ret = poll(pollfds, 1, timeoutMillis);
 
         if (ret == -1)
         {
@@ -370,7 +370,7 @@ std::vector<std::string> EngineProcess::readProcess(std::string_view last_word, 
         else if (pollfds[0].revents & POLLIN)
         {
             // input available on the pipe
-            int bytesRead = read(inPipe[0], buffer, sizeof(buffer));
+            const int bytesRead = read(inPipe[0], buffer, sizeof(buffer));
 
             if (bytesRead == -1)
             {
@@ -412,7 +412,7 @@ bool EngineProcess::isAlive()
     assert(isInitalized);
     int status;
 
-    pid_t r = waitpid(processPid, &status, WNOHANG);
+    const pid_t r = waitpid(processPid, &status, WNOHANG);
     if (r == -1)
     {
         perror(strerror(errno));

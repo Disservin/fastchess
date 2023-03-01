@@ -108,6 +108,8 @@ void UciEngine::sendQuit()
 
 void UciEngine::sendSetoption(const std::string &name, const std::string &value)
 {
+    std::cout << "Sending option: "
+              << "setoption name " + name + " value " + value << std::endl;
     writeProcess("setoption name " + name + " value " + value);
 }
 

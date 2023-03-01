@@ -492,18 +492,18 @@ void Tournament::stopPool()
 MoveData Tournament::parseEngineOutput(const Board &board, const std::vector<std::string> &output,
                                        const std::string &move, int64_t measuredTime)
 {
-    std::string scoreString;
-    std::string scoreType;
+    std::string scoreString = "0.0";
+    uint64_t nodes = 0;
     int score = 0;
     int depth = 0;
-    uint64_t nodes = 0;
+
     // extract last info line
     if (output.size() > 1)
     {
         const auto info = CMD::Options::splitString(output[output.size() - 2], ' ');
 
+        std::string scoreType = findElement<std::string>(info, "score");
         depth = findElement<int>(info, "depth");
-        scoreType = findElement<std::string>(info, "score");
         nodes = findElement<uint64_t>(info, "nodes");
 
         if (scoreType == "cp")
@@ -521,17 +521,6 @@ MoveData Tournament::parseEngineOutput(const Board &board, const std::vector<std
             scoreString = (score > 0 ? "+M" : "-M") + std::to_string(std::abs(score));
             score = MATE_SCORE;
         }
-        else
-        {
-            score = 0;
-            scoreString = "0.00";
-        }
-    }
-    else
-    {
-        score = 0;
-        scoreString = "0.00";
-        depth = 0;
     }
 
     // verify pv
@@ -558,7 +547,7 @@ MoveData Tournament::parseEngineOutput(const Board &board, const std::vector<std
         }
     }
 
-    return MoveData(move, scoreString, measuredTime, depth, score);
+    return MoveData(move, scoreString, measuredTime, depth, score, nodes);
 }
 
 std::string Tournament::getDateTime(std::string format)

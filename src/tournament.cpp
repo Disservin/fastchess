@@ -536,8 +536,7 @@ MoveData Tournament::parseEngineOutput(const Board &board, const std::vector<std
         index++;
         for (; index < tokens.size(); index++)
         {
-            Move move = convertUciToMove(tokens[index]);
-            if (!tmp.makeMove(move))
+            if (!tmp.makeMove(convertUciToMove(tokens[index])))
             {
                 std::stringstream ss;
                 ss << "Warning: Illegal pv move " << tokens[index] << ".\n";

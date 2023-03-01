@@ -4,9 +4,9 @@
 
 #include "elo.hpp"
 
-Elo::Elo(int wins, int draws, int losses)
+Elo::Elo(int wins, int losses, int draws)
 {
-    diff = getDiff(wins, draws, losses);
+    diff = getDiff(wins, losses, draws);
     error = getError(wins, losses, draws);
 }
 

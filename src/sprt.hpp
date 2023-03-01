@@ -24,7 +24,7 @@ class SPRT
 
     static double getLL(double elo);
 
-    double getLLR(int w, int d, int l) const;
+    double getLLR(int win, int draw, int loss) const;
 
     SPRTResult getResult(double llr) const;
 

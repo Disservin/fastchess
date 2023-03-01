@@ -1,6 +1,6 @@
 CXX 	 := g++
 CXXFLAGS := -O3 -std=c++17 -Wall -Wextra -pedantic -DNDEBUG
-NATIVE 	 := -march=core-avx2
+NATIVE 	 := -march=native
 
 # Detect Windows
 ifeq ($(OS), Windows_NT)

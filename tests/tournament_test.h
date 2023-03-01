@@ -1,7 +1,5 @@
 #pragma once
 
-#include "doctest/doctest.h"
-
 #include "../src/helper.h"
 #include "../src/options.h"
 #include "../src/tournament.h"

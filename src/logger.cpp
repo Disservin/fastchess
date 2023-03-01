@@ -1,6 +1,6 @@
 #include <sstream>
 
-#include "logger.h"
+#include "logger.hpp"
 
 std::atomic_bool Logger::shouldLog = false;
 std::ofstream Logger::log;

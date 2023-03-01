@@ -3,10 +3,10 @@
 #include <cassert>
 #include <iterator>
 
-#include "attacks.h"
-#include "board.h"
-#include "helper.h"
-#include "types.h"
+#include "attacks.hpp"
+#include "board.hpp"
+#include "helper.hpp"
+#include "types.hpp"
 
 struct Movelist
 {

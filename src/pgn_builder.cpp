@@ -1,7 +1,7 @@
 #include <iomanip> // std::setprecision
 #include <sstream>
 
-#include "pgn_builder.h"
+#include "pgn_builder.hpp"
 
 PgnBuilder::PgnBuilder(const Match &match, const CMD::GameManagerOptions &gameOptions)
 {

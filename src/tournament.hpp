@@ -5,12 +5,12 @@
 #include <utility>
 #include <vector>
 
-#include "chess/board.h"
-#include "engines/engine_config.h"
-#include "engines/uci_engine.h"
-#include "options.h"
-#include "sprt.h"
-#include "threadpool.h"
+#include "chess/board.hpp"
+#include "engines/engine_config.hpp"
+#include "engines/uci_engine.hpp"
+#include "options.hpp"
+#include "sprt.hpp"
+#include "threadpool.hpp"
 
 struct MoveData
 {

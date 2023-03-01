@@ -5,9 +5,9 @@
 #include <stdexcept>
 #include <thread>
 
-#include "../logger.h"
-#include "../options.h"
-#include "engineprocess.h"
+#include "../logger.hpp"
+#include "../options.hpp"
+#include "engineprocess.hpp"
 
 EngineProcess::EngineProcess(const std::string &command)
 {

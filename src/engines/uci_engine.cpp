@@ -1,5 +1,5 @@
-#include "uci_engine.h"
-#include "engine_config.h"
+#include "uci_engine.hpp"
+#include "engine_config.hpp"
 
 #include <sstream>
 #include <stdexcept>

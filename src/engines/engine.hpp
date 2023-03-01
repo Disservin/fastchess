@@ -1,7 +1,7 @@
 #pragma once
 
-#include "engine_config.h"
-#include "engineprocess.h"
+#include "engine_config.hpp"
+#include "engineprocess.hpp"
 
 class Engine : public EngineProcess
 {

@@ -1,8 +1,8 @@
 #include <iostream>
 
-#include "board.h"
-#include "movegen.h"
-#include "perft.h"
+#include "board.hpp"
+#include "movegen.hpp"
+#include "perft.hpp"
 
 uint64_t Perft::perftFunction(Board &b, int depth, int max)
 {

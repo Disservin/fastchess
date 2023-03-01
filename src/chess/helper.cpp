@@ -1,6 +1,6 @@
 #include <cassert>
 
-#include "helper.h"
+#include "helper.hpp"
 
 #if defined(__GNUC__) // GCC, Clang
 

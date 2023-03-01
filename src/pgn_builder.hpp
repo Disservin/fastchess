@@ -1,7 +1,7 @@
 #pragma once
 
-#include "options.h"
-#include "tournament.h"
+#include "options.hpp"
+#include "tournament.hpp"
 
 class PgnBuilder
 {

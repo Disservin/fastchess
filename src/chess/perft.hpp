@@ -1,5 +1,5 @@
-#include "board.h"
-#include "movegen.h"
+#include "board.hpp"
+#include "movegen.hpp"
 
 class Perft
 {

@@ -2,7 +2,7 @@
 #include <iomanip>
 #include <sstream>
 
-#include "elo.h"
+#include "elo.hpp"
 
 Elo::Elo(int wins, int draws, int losses)
 {

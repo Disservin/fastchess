@@ -2,7 +2,7 @@
 
 #include <array>
 
-#include "types.h"
+#include "types.hpp"
 
 Square lsb(Bitboard mask);
 

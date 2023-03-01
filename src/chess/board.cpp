@@ -5,11 +5,11 @@
 #include <stdexcept>
 #include <vector>
 
-#include "../options.h"
-#include "attacks.h"
-#include "board.h"
-#include "movegen.h"
-#include "zobrist.h"
+#include "../options.hpp"
+#include "attacks.hpp"
+#include "board.hpp"
+#include "movegen.hpp"
+#include "zobrist.hpp"
 
 void Board::loadFen(const std::string &fen)
 {

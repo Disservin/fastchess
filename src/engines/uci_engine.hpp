@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../chess/types.h"
-#include "engine.h"
+#include "../chess/types.hpp"
+#include "engine.hpp"
 
 enum class Turn
 {

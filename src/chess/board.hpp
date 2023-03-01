@@ -5,9 +5,9 @@
 #include <string>
 #include <vector>
 
-#include "helper.h"
-#include "move.h"
-#include "types.h"
+#include "helper.hpp"
+#include "move.hpp"
+#include "types.hpp"
 
 enum class GameResult
 {

@@ -4,8 +4,8 @@
 #include <string>
 #include <vector>
 
-#include "engines/engine_config.h"
-#include "logger.h"
+#include "engines/engine_config.hpp"
+#include "logger.hpp"
 
 namespace CMD
 {

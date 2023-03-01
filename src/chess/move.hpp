@@ -2,7 +2,7 @@
 
 #include <iostream>
 
-#include "types.h"
+#include "types.hpp"
 
 struct Move
 {

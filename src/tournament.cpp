@@ -4,10 +4,10 @@
 #include <iostream>
 #include <sstream>
 
-#include "elo.h"
-#include "pgn_builder.h"
-#include "rand.h"
-#include "tournament.h"
+#include "elo.hpp"
+#include "pgn_builder.hpp"
+#include "rand.hpp"
+#include "tournament.hpp"
 
 Tournament::Tournament(const CMD::GameManagerOptions &mc)
 {

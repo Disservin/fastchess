@@ -1,7 +1,7 @@
 #pragma once
 
-#include "sliders.h"
-#include "types.h"
+#include "sliders.hpp"
+#include "types.hpp"
 
 // clang-format off
 

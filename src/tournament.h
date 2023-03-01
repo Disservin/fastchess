@@ -19,11 +19,12 @@ struct MoveData
     int64_t elapsedMillis = 0;
     int depth = 0;
     int score = 0;
-
+    uint64_t nodes = 0;
     MoveData() = default;
 
-    MoveData(std::string _move, std::string _scoreString, int64_t _elapsedMillis, int _depth, int _score)
-        : move(_move), scoreString(std::move(_scoreString)), elapsedMillis(_elapsedMillis), depth(_depth), score(_score)
+    MoveData(std::string _move, std::string _scoreString, int64_t _elapsedMillis, int _depth, int _score, int _nodes)
+        : move(_move), scoreString(std::move(_scoreString)), elapsedMillis(_elapsedMillis), depth(_depth),
+          score(_score), nodes(_nodes)
     {
     }
 };
@@ -86,6 +87,8 @@ class Tournament
             return std::stoi(haystack[index + 1]);
         else if constexpr (std::is_same_v<T, float>)
             return std::stof(haystack[index + 1]);
+        else if constexpr (std::is_same_v<T, uint64_t>)
+            return std::stoull(haystack[index + 1]);
         else
             return haystack[index + 1];
     }

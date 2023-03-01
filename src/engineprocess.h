@@ -86,7 +86,6 @@ class EngineProcess : public Process
 
     virtual std::vector<std::string> readProcess(std::string_view last_word, bool &timeout,
                                                  int64_t timeoutThreshold = 1000) override;
-
     virtual void writeProcess(const std::string &input) override;
 
   private:

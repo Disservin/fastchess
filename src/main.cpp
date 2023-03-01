@@ -62,7 +62,7 @@ int main(int argc, char const *argv[])
 #else
     signal(SIGINT, sigintHandler);
 #endif
-
+    Logging::Log = &Logging::Log->getInstance();
     CMD::Options options = CMD::Options(argc, argv);
 
     for (const auto &config : options.getEngineConfigs())
@@ -99,9 +99,6 @@ int main(int argc, char const *argv[])
     std::cout << "Resign Movecount: " << options.getGameOptions().resign.moveCount << std::endl;
     std::cout << "Resign score: " << options.getGameOptions().resign.score << std::endl;
     std::cout << "Rounds: " << options.getGameOptions().rounds << std::endl;
-
-    Logging::Log = &Logging::Log->getInstance();
-    Logging::Log->openFile("log.txt");
 
     Tour.loadConfig(options.getGameOptions());
     Tour.startTournament(options.getEngineConfigs());

@@ -1,9 +1,11 @@
 #pragma once
 
+#include <atomic>
 #include <fstream>
 #include <mutex>
 #include <string>
 #include <thread>
+
 
 /*
  * Singleton logger class.
@@ -35,4 +37,6 @@ class Logger
 
     // write to file indicating that a read was done
     void readLog(const std::string &msg, std::thread::id thread);
+
+    std::atomic_bool shouldLog = false;
 };

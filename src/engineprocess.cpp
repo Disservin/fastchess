@@ -142,6 +142,7 @@ std::vector<std::string> EngineProcess::readProcess(std::string_view last_word, 
                     {
                         return lines;
                     }
+
                     currentLine = "";
                 }
             }

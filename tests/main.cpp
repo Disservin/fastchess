@@ -12,8 +12,15 @@
 #include "tournament_test.h"
 #include "uci_engine_test.h"
 
+namespace Logging
+{
+Logger *Log;
+} // namespace Logging
+
 int main(int argc, char **argv)
 {
+    Logging::Log = &Logging::Log->getInstance();
+
     doctest::Context ctx;
 
     ctx.setOption("abort-after", 1); // default - stop after 5 failed asserts

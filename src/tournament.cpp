@@ -205,7 +205,7 @@ void Tournament::playNextMove(UciEngine &engine, std::string &positionInput, Boa
 
     // play move on internal board and store it for later pgn creation
     match.legal = board.makeMove(convertUciToMove(bestMove));
-    match.moves.emplace_back(parseEngineOutput(output, bestMove, measuredTime));
+    match.moves.emplace_back(parseEngineOutput(board, output, bestMove, measuredTime));
 
     if (!match.legal)
     {
@@ -489,21 +489,21 @@ void Tournament::stopPool()
     pool.kill();
 }
 
-MoveData Tournament::parseEngineOutput(const std::vector<std::string> &output, const std::string &move,
-                                       int64_t measuredTime)
+MoveData Tournament::parseEngineOutput(const Board &board, const std::vector<std::string> &output,
+                                       const std::string &move, int64_t measuredTime)
 {
-    std::string scoreString;
-    std::string scoreType;
+    std::string scoreString = "0.00";
+    uint64_t nodes = 0;
     int score = 0;
     int depth = 0;
-    uint64_t nodes = 0;
+
     // extract last info line
     if (output.size() > 1)
     {
-        const std::vector<std::string> info = CMD::Options::splitString(output[output.size() - 2], ' ');
+        const auto info = CMD::Options::splitString(output[output.size() - 2], ' ');
 
+        std::string scoreType = findElement<std::string>(info, "score");
         depth = findElement<int>(info, "depth");
-        scoreType = findElement<std::string>(info, "score");
         nodes = findElement<uint64_t>(info, "nodes");
 
         if (scoreType == "cp")
@@ -521,17 +521,30 @@ MoveData Tournament::parseEngineOutput(const std::vector<std::string> &output, c
             scoreString = (score > 0 ? "+M" : "-M") + std::to_string(std::abs(score));
             score = MATE_SCORE;
         }
-        else
-        {
-            score = 0;
-            scoreString = "0.00";
-        }
     }
-    else
+
+    // verify pv
+    for (const auto &info : output)
     {
-        score = 0;
-        scoreString = "0.00";
-        depth = 0;
+        auto tmp = board;
+        const auto tokens = CMD::Options::splitString(info, ' ');
+
+        if (!CMD::Options::contains(tokens, "moves"))
+            continue;
+
+        std::size_t index = std::find(tokens.begin(), tokens.end(), "pv") - tokens.begin();
+        index++;
+        for (; index < tokens.size(); index++)
+        {
+            Move move = convertUciToMove(tokens[index]);
+            if (!tmp.makeMove(move))
+            {
+                std::stringstream ss;
+                ss << "Warning: Illegal pv move " << tokens[index] << ".\n";
+                std::cout << ss.str();
+                break;
+            };
+        }
     }
 
     return MoveData(move, scoreString, measuredTime, depth, score, nodes);

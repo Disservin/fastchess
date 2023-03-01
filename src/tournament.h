@@ -134,7 +134,7 @@ class Tournament
     std::vector<Match> runH2H(CMD::GameManagerOptions localMatchConfig, const std::vector<EngineConfiguration> &configs,
                               int roundId, const std::string &fen);
 
-    MoveData parseEngineOutput(const std::vector<std::string> &output, const std::string &move, int64_t measuredTime);
+    MoveData parseEngineOutput(const Board& board, const std::vector<std::string> &output, const std::string &move, int64_t measuredTime);
 
     std::string getDateTime(std::string format = "%Y-%m-%dT%H:%M:%S %z");
     

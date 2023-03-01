@@ -44,11 +44,15 @@ class EngineProcess : public Process
 {
   public:
     EngineProcess() = default;
+
     EngineProcess(const std::string &command);
+
     ~EngineProcess();
 
     void initProcess(const std::string &command);
+
     void killProcess();
+
     void closeHandles();
 
     virtual bool isAlive() override;
@@ -69,10 +73,13 @@ class EngineProcess : public Process
 {
   public:
     EngineProcess() = default;
+
     EngineProcess(const std::string &command);
+
     ~EngineProcess();
 
     void initProcess(const std::string &command);
+
     void killProcess();
 
     virtual bool isAlive() override;

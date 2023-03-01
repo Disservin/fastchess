@@ -1,7 +1,5 @@
 #pragma once
 
-#include "doctest/doctest.h"
-
 #include "../src/elo.h"
 
 TEST_CASE("Elo calculation")

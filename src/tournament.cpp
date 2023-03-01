@@ -199,6 +199,8 @@ void Tournament::playNextMove(UciEngine &engine, std::string &positionInput, Boa
 
     // find bestmove and add it to the position string
     const auto bestMove = findElement<std::string>(CMD::Options::splitString(output.back(), ' '), "bestmove");
+    if (match.moves.size() == 0)
+        positionInput += " moves";
     positionInput += " " + bestMove;
 
     // play move on internal board and store it for later pgn creation
@@ -264,8 +266,7 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int roundId
     match.startTime = saveTimeHeader ? getDateTime() : "";
     match.board = board;
 
-    std::string positionInput =
-        openingFen == STARTPOS ? "position startpos moves" : "position fen " + openingFen + " moves";
+    std::string positionInput = openingFen == STARTPOS ? "position startpos" : "position fen " + openingFen;
 
     auto timeLeft_1 = engine1.getConfig().tc;
     auto timeLeft_2 = engine2.getConfig().tc;
@@ -274,7 +275,6 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int roundId
 
     while (!pool.stop)
     {
-
         playNextMove(engine1, positionInput, board, timeLeft_1, timeLeft_2, res, match, drawTracker, resignTracker,
                      retflag, roundId);
 
@@ -344,20 +344,13 @@ std::vector<Match> Tournament::runH2H(CMD::GameManagerOptions localMatchConfig,
             continue;
         }
 
+        totalCount++;
         matches.emplace_back(match);
 
         const std::string positiveEngine =
             engine1.turn == Turn::FIRST ? engine1.getConfig().name : engine2.getConfig().name;
         const std::string negativeEngine =
             engine1.turn == Turn::FIRST ? engine2.getConfig().name : engine1.getConfig().name;
-
-        // use a stringstream to build the output to avoid data races with cout <<
-        std::stringstream ss;
-        ss << "Finished game " << i + 1 << "/" << games << " in round " << roundId << "/" << localMatchConfig.rounds
-           << " total played " << totalCount << "/" << localMatchConfig.rounds * games << " " << positiveEngine
-           << " vs " << negativeEngine << ": " << resultToString(match.result) << "\n";
-
-        std::cout << ss.str();
 
         engine1.turn = ~engine1.turn;
         engine2.turn = ~engine2.turn;
@@ -385,7 +378,13 @@ std::vector<Match> Tournament::runH2H(CMD::GameManagerOptions localMatchConfig,
             std::cout << "Couldn't obtain Game Result\n";
         }
 
-        totalCount++;
+        // use a stringstream to build the output to avoid data races with cout <<
+        std::stringstream ss;
+        ss << "Finished game " << i + 1 << "/" << games << " in round " << roundId << "/" << localMatchConfig.rounds
+           << " total played " << totalCount << "/" << localMatchConfig.rounds * games << " " << positiveEngine
+           << " vs " << negativeEngine << ": " << resultToString(match.result) << "\n";
+
+        std::cout << ss.str();
     }
 
     if (localWins == 2)
@@ -497,7 +496,7 @@ MoveData Tournament::parseEngineOutput(const std::vector<std::string> &output, c
     std::string scoreType;
     int score = 0;
     int depth = 0;
-
+    uint64_t nodes = 0;
     // extract last info line
     if (output.size() > 1)
     {
@@ -505,6 +504,7 @@ MoveData Tournament::parseEngineOutput(const std::vector<std::string> &output, c
 
         depth = findElement<int>(info, "depth");
         scoreType = findElement<std::string>(info, "score");
+        nodes = findElement<uint64_t>(info, "nodes");
 
         if (scoreType == "cp")
         {
@@ -534,7 +534,7 @@ MoveData Tournament::parseEngineOutput(const std::vector<std::string> &output, c
         depth = 0;
     }
 
-    return MoveData(move, scoreString, measuredTime, depth, score);
+    return MoveData(move, scoreString, measuredTime, depth, score, nodes);
 }
 
 std::string Tournament::getDateTime(std::string format)

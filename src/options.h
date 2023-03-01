@@ -31,6 +31,7 @@ struct OpeningOptions
 struct PgnOptions
 {
     std::string file;
+    bool trackNodes = false;
 };
 
 struct SprtOptions
@@ -112,11 +113,19 @@ class Options
     template <typename T> void parseOption(int &i, int argc, const char *argv[], T &optionValue);
 
     void parseEachOptions(int &i, int argc, char const *argv[]);
+
     void parseDrawOptions(int &i, int argc, char const *argv[]);
+
     void parseResignOptions(int &i, int argc, char const *argv[]);
+
     void parseOpeningOptions(int &i, int argc, char const *argv[]);
+
+    void parsePgnOptions(int &i, int argc, char const *argv[]);
+
     void parseSprt(int &i, int argc, char const *argv[]);
+
     void parseEngineParams(int &i, int argc, char const *argv[], EngineConfiguration &engineParams);
+
     void printVersion(int &i);
 };
 

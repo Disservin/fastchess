@@ -34,7 +34,7 @@ Options::Options(int argc, char const *argv[])
         else if (arg == "-rounds")
             parseOption(i, argc, argv, gameOptions.rounds);
         else if (arg == "-pgnout")
-            parseOption(i, argc, argv, gameOptions.pgn.file);
+            parsePgnOptions(i, argc, argv);
         else if (arg == "-openings")
             parseOpeningOptions(i, argc, argv);
         else if (arg == "-recover")
@@ -400,6 +400,36 @@ void Options::parseOpeningOptions(int &i, int argc, char const *argv[])
         else
         {
             std::cout << "\nUnrecognized opening option: " << key << " with value " << value << " parsing failed."
+                      << std::endl;
+            return;
+        }
+        i++;
+    }
+    i--;
+}
+
+void Options::parsePgnOptions(int &i, int argc, char const *argv[])
+{
+    i++;
+
+    while (i < argc && argv[i][0] != '-')
+    {
+        std::string param = argv[i];
+        size_t pos = param.find('=');
+        std::string key = param.substr(0, pos);
+        std::string value = param.substr(pos + 1);
+
+        if (key == "file")
+        {
+            gameOptions.pgn.file = value;
+        }
+        else if (key == "tracknodes")
+        {
+            gameOptions.pgn.trackNodes = true;
+        }
+        else
+        {
+            std::cout << "\nUnrecognized pgn option: " << key << " with value " << value << " parsing failed."
                       << std::endl;
             return;
         }

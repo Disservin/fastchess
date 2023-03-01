@@ -4,14 +4,20 @@
 #include <thread>
 
 #include "engine.h"
+#include "logger.h"
 #include "options.h"
 #include "tournament.h"
 #include "uci_engine.h"
 
 namespace
 {
-Tournament tour;
-}
+Tournament Tour;
+} // namespace
+
+namespace Logging
+{
+Logger *Log;
+} // namespace Logging
 
 #ifdef _WIN64
 
@@ -24,8 +30,8 @@ BOOL WINAPI consoleHandler(DWORD signal)
     case CTRL_SHUTDOWN_EVENT:
     case CTRL_C_EVENT:
 
-        tour.printElo();
-        tour.stopPool();
+        Tour.printElo();
+        Tour.stopPool();
 
         return TRUE;
     default:
@@ -38,7 +44,7 @@ BOOL WINAPI consoleHandler(DWORD signal)
 #else
 void sigintHandler(int param)
 {
-    tour.printElo();
+    Tour.printElo();
     exit(param);
 }
 
@@ -94,8 +100,11 @@ int main(int argc, char const *argv[])
     std::cout << "Resign score: " << options.getGameOptions().resign.score << std::endl;
     std::cout << "Rounds: " << options.getGameOptions().rounds << std::endl;
 
-    tour.loadConfig(options.getGameOptions());
-    tour.startTournament(options.getEngineConfigs());
+    Logging::Log = &Logging::Log->getInstance();
+    Logging::Log->openFile("log.txt");
+
+    Tour.loadConfig(options.getGameOptions());
+    Tour.startTournament(options.getEngineConfigs());
 
     return 0;
 }

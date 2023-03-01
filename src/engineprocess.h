@@ -4,6 +4,13 @@
 #include <string>
 #include <vector>
 
+#include "logger.h"
+
+namespace Logging
+{
+extern Logger *Log;
+}
+
 class Process
 {
   public:

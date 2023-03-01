@@ -3,6 +3,7 @@
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
+#include <thread>
 
 #include "engineprocess.h"
 #include "options.h"
@@ -135,6 +136,8 @@ std::vector<std::string> EngineProcess::readProcess(std::string_view last_word, 
                 if (!currentLine.empty())
                 {
                     lines.emplace_back(currentLine);
+                    Logging::Log->readLog(currentLine, std::this_thread::get_id());
+
                     if (currentLine.rfind(last_word, 0) == 0)
                     {
                         return lines;
@@ -168,6 +171,8 @@ void EngineProcess::writeProcess(const std::string &input)
             std::cout << ss.str();
             return;
         }
+
+        Logging::Log->writeLog(input, std::this_thread::get_id());
 
         constexpr char endLine = '\n';
         DWORD bytesWritten;

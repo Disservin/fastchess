@@ -14,7 +14,7 @@
 
 struct MoveData
 {
-    std::string move = {};
+    std::string move;
     std::string scoreString;
     int64_t elapsedMillis = 0;
     int depth = 0;
@@ -95,7 +95,7 @@ class Tournament
     void setStorePGN(bool v);
     void printElo();
 
-    void startTournament(std::vector<EngineConfiguration> configs);
+    void startTournament(const std::vector<EngineConfiguration> &configs);
 
     void stopPool();
 
@@ -113,13 +113,13 @@ class Tournament
     std::string fetchNextFen();
 
     void playNextMove(UciEngine &engine, std::string &positionInput, Board &board, TimeControl &timeLeftUs,
-                      TimeControl &timeLeftThem, GameResult &res, Match &match, DrawAdjTracker &drawTracker,
+                      const TimeControl &timeLeftThem, GameResult &res, Match &match, DrawAdjTracker &drawTracker,
                       ResignAdjTracker &resignTracker, int &retflag, int roundId);
 
     Match startMatch(UciEngine &engine1, UciEngine &engine2, int roundId, std::string openingFen);
 
-    std::vector<Match> runH2H(CMD::GameManagerOptions localMatchConfig, std::vector<EngineConfiguration> configs,
-                              int roundId, std::string fen);
+    std::vector<Match> runH2H(CMD::GameManagerOptions localMatchConfig, const std::vector<EngineConfiguration> &configs,
+                              int roundId, const std::string &fen);
 
     MoveData parseEngineOutput(const std::vector<std::string> &output, const std::string &move, int64_t measuredTime);
 
@@ -129,9 +129,9 @@ class Tournament
     void updateTrackers(DrawAdjTracker &drawTracker, ResignAdjTracker &resignTracker, const Score moveScore);
 
     GameResult checkAdj(Match &match, const DrawAdjTracker drawTracker, const ResignAdjTracker resignTracker,
-                        const Score score, const Color lastSideThatMoved);
+                        const Score score, const Color lastSideThatMoved) const;
 
-    void checkEngineStatus(UciEngine &engine, Match &match, int &retflag, int roundId);
+    void checkEngineStatus(UciEngine &engine, Match &match, int &retflag, int roundId) const;
 
     std::vector<std::string> pgns;
     std::vector<std::string> openingBook;

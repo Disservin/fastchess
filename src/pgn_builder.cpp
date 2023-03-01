@@ -1,13 +1,12 @@
 #include <iomanip> // std::setprecision
 #include <sstream>
 
-
 #include "pgn_builder.h"
 
 PgnBuilder::PgnBuilder(const Match &match, const CMD::GameManagerOptions &gameOptions)
 {
-    std::string result = resultToString(match.result);
-    std::string termination = match.termination;
+    const std::string result = resultToString(match.result);
+    const std::string termination = match.termination;
     std::stringstream ss;
 
     // clang-format off
@@ -23,7 +22,7 @@ PgnBuilder::PgnBuilder(const Match &match, const CMD::GameManagerOptions &gameOp
     ss << "[GameEndTime "   << "\"" << match.endTime            << "\"" << "]" << "\n";
     ss << "[GameStartTime " << "\"" << match.startTime          << "\"" << "]" << "\n";
     ss << "[PlyCount "      << "\"" << match.moves.size()       << "\"" << "]" << "\n";
-    if (termination != "")
+    if (!termination.empty())
         ss << "[Termination " << "\"" << termination << "\"" << "]" << "\n";
     ss << "[TimeControl "   << "\"" << match.whiteEngine.tc     << "\"" << "]"  << "\n\n";
     // clang-format on
@@ -40,7 +39,7 @@ PgnBuilder::PgnBuilder(const Match &match, const CMD::GameManagerOptions &gameOp
     int moveCount = 3;
     for (size_t i = 0; i < match.moves.size(); i++)
     {
-        MoveData data = match.moves[i];
+        const MoveData data = match.moves[i];
         std::stringstream timeString;
 
         if (data.elapsedMillis >= 1000)

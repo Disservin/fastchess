@@ -11,7 +11,7 @@ class Engine : public EngineProcess
   public:
     Engine() = default;
 
-    Engine(std::string command);
+    Engine(const std::string &command);
 
     EngineConfiguration getConfig() const;
 };

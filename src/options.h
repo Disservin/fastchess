@@ -65,14 +65,14 @@ struct GameManagerOptions
     int concurrency = 1;
     int ratinginterval = 10;
     SprtOptions sprt = {};
-    std::string eventName = {};
+    std::string eventName;
     OpeningOptions opening = {};
     PgnOptions pgn = {};
     DrawAdjudication draw = {};
     ResignAdjudication resign = {};
 };
 
-inline std::ostream &operator<<(std::ostream &os, const Parameter param)
+inline std::ostream &operator<<(std::ostream &os, const Parameter &param)
 {
     os << "longName" << param.longName << "shortName" << param.shortName << "default" << param.defaultValue << "min"
        << param.minLimit << "max" << param.maxLimit;
@@ -104,9 +104,9 @@ class Options
     // Holds all the engines with their options
     std::vector<EngineConfiguration> configs;
 
-    bool isEngineSettableOption(std::string stringFormat) const;
+    bool isEngineSettableOption(const std::string &stringFormat) const;
 
-    TimeControl parseTc(const std::string tcString);
+    TimeControl parseTc(const std::string &tcString);
 
     // Generic function to parse option
     template <typename T> void parseOption(int &i, int argc, const char *argv[], T &optionValue);

@@ -10,7 +10,7 @@
 
 namespace
 {
-Tournament *tour;
+Tournament tour;
 }
 
 #ifdef _WIN64
@@ -24,8 +24,8 @@ BOOL WINAPI consoleHandler(DWORD signal)
     case CTRL_SHUTDOWN_EVENT:
     case CTRL_C_EVENT:
 
-        tour->printElo();
-        tour->stopPool();
+        tour.printElo();
+        tour.stopPool();
 
         return TRUE;
     default:
@@ -38,7 +38,7 @@ BOOL WINAPI consoleHandler(DWORD signal)
 #else
 void sigintHandler(int param)
 {
-    tour->printElo();
+    tour.printElo();
     exit(param);
 }
 
@@ -59,14 +59,14 @@ int main(int argc, char const *argv[])
 
     CMD::Options options = CMD::Options(argc, argv);
 
-    for (auto config : options.getEngineConfigs())
+    for (const auto &config : options.getEngineConfigs())
     {
         std::cout << "Name:" << config.name << std::endl;
         std::cout << "Command: " << config.cmd << std::endl;
         std::cout << "TC:" << config.tc.moves << "/" << config.tc.time << "+" << config.tc.increment << std::endl;
         std::cout << "Nodes: " << config.nodes << std::endl;
         std::cout << "Plies: " << config.plies << std::endl;
-        for (auto option : config.options)
+        for (const auto &option : config.options)
         {
             std::cout << "Option name: " << option.first;
             std::cout << " value: " << option.second << std::endl;
@@ -94,12 +94,8 @@ int main(int argc, char const *argv[])
     std::cout << "Resign score: " << options.getGameOptions().resign.score << std::endl;
     std::cout << "Rounds: " << options.getGameOptions().rounds << std::endl;
 
-    tour = new Tournament();
-
-    tour->loadConfig(options.getGameOptions());
-    tour->startTournament(options.getEngineConfigs());
-
-    delete tour;
+    tour.loadConfig(options.getGameOptions());
+    tour.startTournament(options.getEngineConfigs());
 
     return 0;
 }

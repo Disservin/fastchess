@@ -13,7 +13,7 @@
 
 void Board::loadFen(const std::string &fen)
 {
-    for (auto c : {WHITE, BLACK})
+    for (const auto c : {WHITE, BLACK})
     {
         for (PieceType p = PAWN; p < NONETYPE; p++)
         {
@@ -21,7 +21,7 @@ void Board::loadFen(const std::string &fen)
         }
     }
 
-    std::vector<std::string> params = CMD::Options::splitString(fen, ' ');
+    const std::vector<std::string> params = CMD::Options::splitString(fen, ' ');
 
     const std::string position = params[0];
     const std::string move_right = params[1];
@@ -68,9 +68,9 @@ void Board::loadFen(const std::string &fen)
     }
     else
     {
-        char letter = en_passant[0];
-        int file = letter - 96;
-        int rank = en_passant[1] - 48;
+        const char letter = en_passant[0];
+        const int file = letter - 96;
+        const int rank = en_passant[1] - 48;
         enPassantSquare = Square((rank - 1) * 8 + file - 1);
     }
 
@@ -96,10 +96,10 @@ std::string Board::getFen() const
         for (int file = 0; file < 8; file++)
         {
             // Calculate the square index
-            int sq = rank * 8 + file;
+            const int sq = rank * 8 + file;
 
             // Get the piece at the current square
-            Piece piece = pieceAt(Square(sq));
+            const Piece piece = pieceAt(Square(sq));
 
             // If there is a piece at the current square
             if (piece != NONE)
@@ -171,11 +171,11 @@ bool Board::makeMove(Move move)
     if (moves.find(move) == -1)
         return false;
 
-    Square from_sq = move.from_sq;
-    Square to_sq = move.to_sq;
-    Piece p = pieceAt(from_sq);
-    PieceType pt = typeOfPiece(p);
-    Piece capture = pieceAt(move.to_sq);
+    const Square from_sq = move.from_sq;
+    const Square to_sq = move.to_sq;
+    const Piece p = pieceAt(from_sq);
+    const PieceType pt = typeOfPiece(p);
+    const Piece capture = pieceAt(move.to_sq);
 
     assert(from_sq >= 0 && from_sq < 64);
     assert(to_sq >= 0 && to_sq < 64);
@@ -289,20 +289,20 @@ void Board::unmakeMove(Move move)
 
     fullMoveNumber--;
 
-    Square from_sq = move.from_sq;
-    Square to_sq = move.to_sq;
-    Piece capture = restore.capturedPiece;
-    PieceType pt = typeOfPiece(pieceAt(to_sq));
+    const Square from_sq = move.from_sq;
+    const Square to_sq = move.to_sq;
+    const Piece capture = restore.capturedPiece;
+    const PieceType pt = typeOfPiece(pieceAt(to_sq));
 
     sideToMove = ~sideToMove;
 
-    Piece p = make_piece(pt, sideToMove);
+    const Piece p = make_piece(pt, sideToMove);
 
-    bool promotion = move.promotion_piece != NONETYPE;
+    const bool promotion = move.promotion_piece != NONETYPE;
 
     if (pt == KING && std::abs(from_sq - to_sq) == 2)
     {
-        Piece rook = sideToMove == WHITE ? WHITEROOK : BLACKROOK;
+        const Piece rook = sideToMove == WHITE ? WHITEROOK : BLACKROOK;
         const Square rookFromSq = fileRankSquare(to_sq > from_sq ? FILE_H : FILE_A, squareRank(from_sq));
         const Square rookToSq = fileRankSquare(to_sq > from_sq ? FILE_F : FILE_D, squareRank(from_sq));
 
@@ -379,12 +379,12 @@ uint64_t Board::zobristHash() const
     // Piece hashes
     while (wPieces)
     {
-        Square sq = poplsb(wPieces);
+        const Square sq = poplsb(wPieces);
         hash ^= updateKeyPiece(pieceAt(sq), sq);
     }
     while (bPieces)
     {
-        Square sq = poplsb(bPieces);
+        const Square sq = poplsb(bPieces);
         hash ^= updateKeyPiece(pieceAt(sq), sq);
     }
     // Ep hash
@@ -394,9 +394,9 @@ uint64_t Board::zobristHash() const
         ep_hash = updateKeyEnPassant(enPassantSquare);
     }
     // Turn hash
-    uint64_t turn_hash = sideToMove == WHITE ? RANDOM_ARRAY[780] : 0;
+    const uint64_t turn_hash = sideToMove == WHITE ? RANDOM_ARRAY[780] : 0;
     // Castle hash
-    uint64_t cast_hash = updateKeyCastling();
+    const uint64_t cast_hash = updateKeyCastling();
 
     return hash ^ cast_hash ^ turn_hash ^ ep_hash;
 }
@@ -527,7 +527,7 @@ void Board::initializeLookupTables()
 
 bool Board::isSquareAttacked(Color c, Square sq) const
 {
-    Bitboard all = allBB();
+    const Bitboard all = allBB();
 
     if (pieces(PAWN, c) & PawnAttacks(sq, ~c))
         return true;
@@ -686,17 +686,17 @@ std::string uciMove(Move move)
 
 Square extractSquare(std::string_view squareStr)
 {
-    char letter = squareStr[0];
-    int file = letter - 96;
-    int rank = squareStr[1] - 48;
-    int index = (rank - 1) * 8 + file - 1;
+    const char letter = squareStr[0];
+    const int file = letter - 96;
+    const int rank = squareStr[1] - 48;
+    const int index = (rank - 1) * 8 + file - 1;
     return Square(index);
 }
 
 Move convertUciToMove(const std::string &input)
 {
-    Square source = extractSquare(input.substr(0, 2));
-    Square target = extractSquare(input.substr(2, 2));
+    const Square source = extractSquare(input.substr(0, 2));
+    const Square target = extractSquare(input.substr(2, 2));
     switch (input.length())
     {
     case 4:
@@ -714,7 +714,7 @@ std::string MoveToSan(Board &b, Move move)
     static const std::string sanPieceType[] = {"", "N", "B", "R", "Q", "K"};
     static const std::string sanFile[] = {"a", "b", "c", "d", "e", "f", "g", "h"};
 
-    PieceType pt = Board::typeOfPiece(b.pieceAt(move.from_sq));
+    const PieceType pt = Board::typeOfPiece(b.pieceAt(move.from_sq));
 
     assert(b.pieceAt(move.from_sq) != NONE);
 
@@ -726,7 +726,7 @@ std::string MoveToSan(Board &b, Move move)
             return "O-O";
     }
 
-    std::string san = "";
+    std::string san;
     if (pt != PAWN)
         san = sanPieceType[pt];
 
@@ -761,7 +761,7 @@ std::string MoveToSan(Board &b, Move move)
     moves.size = 0;
     Movegen::legalmoves(b, moves);
 
-    bool inCheck = b.isSquareAttacked(~b.sideToMove, lsb(b.pieces<KING>(b.sideToMove)));
+    const bool inCheck = b.isSquareAttacked(~b.sideToMove, lsb(b.pieces<KING>(b.sideToMove)));
 
     b.unmakeMove(move);
 

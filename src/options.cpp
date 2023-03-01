@@ -14,10 +14,10 @@ namespace CMD
 Options::Options(int argc, char const *argv[])
 {
     // Name of the current exec program
-    std::string current_exec_name = argv[0];
+    const std::string current_exec_name = argv[0];
     for (int i = 1; i < argc; i++)
     {
-        std::string arg = argv[i];
+        const std::string arg = argv[i];
         if (arg == "-engine")
         {
             configs.push_back(EngineConfiguration());
@@ -60,7 +60,7 @@ Options::Options(int argc, char const *argv[])
 
     for (auto &config : configs)
     {
-        if (config.name == "")
+        if (config.name.empty())
         {
             throw std::runtime_error("Each engine must have a name!");
         }
@@ -69,7 +69,7 @@ Options::Options(int argc, char const *argv[])
     }
 }
 
-bool Options::isEngineSettableOption(std::string stringFormat) const
+bool Options::isEngineSettableOption(const std::string &stringFormat) const
 {
     if (startsWith(stringFormat, "option."))
         return true;
@@ -82,10 +82,10 @@ void Options::parseEngineParams(int &i, int argc, char const *argv[], EngineConf
     std::vector<std::pair<std::string, std::string>> engine_settable_options;
     while (i < argc && argv[i][0] != '-')
     {
-        std::string param = argv[i];
-        size_t pos = param.find('=');
-        std::string key = param.substr(0, pos);
-        std::string value = param.substr(pos + 1);
+        const std::string param = argv[i];
+        const size_t pos = param.find('=');
+        const std::string key = param.substr(0, pos);
+        const std::string value = param.substr(pos + 1);
         if (key == "cmd")
         {
             engineParams.cmd = value;
@@ -124,24 +124,24 @@ void Options::parseEngineParams(int &i, int argc, char const *argv[], EngineConf
     i--;
 }
 
-TimeControl Options::parseTc(const std::string tcString)
+TimeControl Options::parseTc(const std::string &tcString)
 {
     TimeControl tc;
 
     std::string remainingStringVector = tcString;
-    bool has_moves = contains(tcString, "/");
-    bool has_inc = contains(tcString, "+");
+    const bool has_moves = contains(tcString, "/");
+    const bool has_inc = contains(tcString, "+");
 
     if (has_moves)
     {
-        auto moves = splitString(tcString, '/');
+        const auto moves = splitString(tcString, '/');
         tc.moves = std::stoi(moves[0]);
         remainingStringVector = moves[1];
     }
 
     if (has_inc)
     {
-        auto moves = splitString(remainingStringVector, '+');
+        const auto moves = splitString(remainingStringVector, '+');
         tc.increment = std::stod(moves[1].c_str()) * 1000;
         remainingStringVector = moves[0];
     }
@@ -212,10 +212,10 @@ void Options::parseEachOptions(int &i, int argc, char const *argv[])
     i++;
     while (i < argc && argv[i][0] != '-')
     {
-        std::string param = argv[i];
-        size_t pos = param.find('=');
-        std::string key = param.substr(0, pos);
-        std::string value = param.substr(pos + 1);
+        const std::string param = argv[i];
+        const size_t pos = param.find('=');
+        const std::string key = param.substr(0, pos);
+        const std::string value = param.substr(pos + 1);
 
         for (auto &config : configs)
         {
@@ -267,10 +267,10 @@ void Options::parseSprt(int &i, int argc, char const *argv[])
         // If the user didn't set a game param just use a very big default
         if (gameOptions.rounds == 0)
             gameOptions.rounds = 500000;
-        std::string param = argv[i];
-        size_t pos = param.find('=');
-        std::string key = param.substr(0, pos);
-        std::string value = param.substr(pos + 1);
+        const std::string param = argv[i];
+        const size_t pos = param.find('=');
+        const std::string key = param.substr(0, pos);
+        const std::string value = param.substr(pos + 1);
         if (key == "elo0")
         {
             gameOptions.sprt.elo0 = std::stod(value);
@@ -306,10 +306,10 @@ void Options::parseDrawOptions(int &i, int argc, char const *argv[])
     while (i < argc && argv[i][0] != '-')
     {
         gameOptions.draw.enabled = true;
-        std::string param = argv[i];
-        size_t pos = param.find('=');
-        std::string key = param.substr(0, pos);
-        std::string value = param.substr(pos + 1);
+        const std::string param = argv[i];
+        const size_t pos = param.find('=');
+        const std::string key = param.substr(0, pos);
+        const std::string value = param.substr(pos + 1);
         if (key == "movenumber")
         {
             gameOptions.draw.moveNumber = std::stoi(value);
@@ -341,10 +341,10 @@ void Options::parseResignOptions(int &i, int argc, char const *argv[])
     while (i < argc && argv[i][0] != '-')
     {
         gameOptions.resign.enabled = true;
-        std::string param = argv[i];
-        size_t pos = param.find('=');
-        std::string key = param.substr(0, pos);
-        std::string value = param.substr(pos + 1);
+        const std::string param = argv[i];
+        const size_t pos = param.find('=');
+        const std::string key = param.substr(0, pos);
+        const std::string value = param.substr(pos + 1);
 
         if (key == "movecount")
         {
@@ -372,10 +372,10 @@ void Options::parseOpeningOptions(int &i, int argc, char const *argv[])
 
     while (i < argc && argv[i][0] != '-')
     {
-        std::string param = argv[i];
-        size_t pos = param.find('=');
-        std::string key = param.substr(0, pos);
-        std::string value = param.substr(pos + 1);
+        const std::string param = argv[i];
+        const size_t pos = param.find('=');
+        const std::string key = param.substr(0, pos);
+        const std::string value = param.substr(pos + 1);
 
         if (key == "file")
         {
@@ -420,7 +420,7 @@ GameManagerOptions Options::getGameOptions() const
 
 bool Options::startsWith(std::string_view haystack, std::string_view needle)
 {
-    if (needle == "")
+    if (needle.empty())
         return false;
     return (haystack.rfind(needle, 0) != std::string::npos);
 }

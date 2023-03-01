@@ -16,7 +16,7 @@ uint64_t Perft::perftFunction(Board &b, int depth, int max)
     }
     uint64_t nodesIt = 0;
 
-    for (auto move : moves)
+    for (const auto move : moves)
     {
         b.makeMove(move);
         nodesIt += perftFunction(b, depth - 1, depth);

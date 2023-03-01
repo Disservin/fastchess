@@ -1,7 +1,6 @@
 #include <iomanip> // std::setprecision
 #include <sstream>
 
-
 #include "pgn_builder.h"
 
 PgnBuilder::PgnBuilder(const Match &match, const CMD::GameManagerOptions &gameOptions)
@@ -53,14 +52,20 @@ PgnBuilder::PgnBuilder(const Match &match, const CMD::GameManagerOptions &gameOp
         else
             timeString << "ms";
 
+        std::stringstream nodesString;
+        if (gameOptions.pgn.trackNodes)
+        {
+            nodesString << "/" << data.nodes;
+        }
+
         if (moveCount % 2 != 0)
             ss << moveCount / 2 << "."
                << " " << MoveToSan(b, convertUciToMove(data.move)) << " {" << data.scoreString << "/" << data.depth
-               << " " << timeString.str() << illegalMove.str() << "}";
+               << nodesString.str() << " " << timeString.str() << illegalMove.str() << "}";
         else
         {
             ss << " " << MoveToSan(b, convertUciToMove(data.move)) << " {" << data.scoreString << "/" << data.depth
-               << " " << timeString.str() << illegalMove.str() << "}";
+               << nodesString.str() << " " << timeString.str() << illegalMove.str() << "}";
             if (i != match.moves.size() - 1 && i % 7 == 0)
                 ss << "\n";
             else

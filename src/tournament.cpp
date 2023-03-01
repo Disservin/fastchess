@@ -494,7 +494,7 @@ MoveData Tournament::parseEngineOutput(const std::vector<std::string> &output, c
     std::string scoreType;
     int score = 0;
     int depth = 0;
-
+    uint64_t nodes = 0;
     // extract last info line
     if (output.size() > 1)
     {
@@ -502,6 +502,8 @@ MoveData Tournament::parseEngineOutput(const std::vector<std::string> &output, c
 
         depth = findElement<int>(info, "depth");
         scoreType = findElement<std::string>(info, "score");
+        scoreType = findElement<std::string>(info, "score");
+        nodes = findElement<uint64_t>(info, "nodes");
 
         if (scoreType == "cp")
         {
@@ -531,7 +533,7 @@ MoveData Tournament::parseEngineOutput(const std::vector<std::string> &output, c
         depth = 0;
     }
 
-    return MoveData(move, scoreString, measuredTime, depth, score);
+    return MoveData(move, scoreString, measuredTime, depth, score, nodes);
 }
 
 std::string Tournament::getDateTime(std::string format)

@@ -3,10 +3,10 @@
 #include <iostream>
 #include <thread>
 
-#include "engine.h"
+#include "engines/engine.h"
+#include "engines/uci_engine.h"
 #include "options.h"
 #include "tournament.h"
-#include "uci_engine.h"
 
 namespace
 {

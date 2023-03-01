@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../src/helper.h"
+#include "../src/chess/helper.h"
 #include "../src/options.h"
 #include "../src/tournament.h"
 

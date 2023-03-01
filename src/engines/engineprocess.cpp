@@ -4,9 +4,8 @@
 #include <sstream>
 #include <stdexcept>
 
+#include "../options.h"
 #include "engineprocess.h"
-#include "options.h"
-#include "types.h"
 
 EngineProcess::EngineProcess(const std::string &command)
 {

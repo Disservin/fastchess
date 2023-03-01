@@ -82,22 +82,22 @@ void Tournament::printElo()
 
     std::stringstream ss;
     // clang-format off
-           
-    ss << "---------------------------\n" 
-       << "Result of " << engineNames[0] << " vs " << engineNames[1] 
-       << ": " << wins << " - " << losses << " - " << draws 
+
+    ss << "---------------------------\n"
+       << "Result of " << engineNames[0] << " vs " << engineNames[1]
+       << ": " << wins << " - " << losses << " - " << draws
        << " (" << std::fixed << std::setprecision(2) << (float(wins) + (float(draws) * 0.5)) / totalCount << ")\n"
-       << "Ptnml:   " 
-       << std::right << std::setw(7) << "WW" 
-       << std::right << std::setw(7) << "WD" 
-       << std::right << std::setw(7) << "DD/WL" 
-       << std::right << std::setw(7) << "LD" 
+       << "Ptnml:   "
+       << std::right << std::setw(7) << "WW"
+       << std::right << std::setw(7) << "WD"
+       << std::right << std::setw(7) << "DD/WL"
+       << std::right << std::setw(7) << "LD"
        << std::right << std::setw(7) << "LL" << "\n"
-       << "         " 
-       << std::right << std::setw(7) << pentaWW 
-       << std::right << std::setw(7) << pentaWD 
-       << std::right << std::setw(7) << pentaWL 
-       << std::right << std::setw(7) << pentaLD 
+       << "         "
+       << std::right << std::setw(7) << pentaWW
+       << std::right << std::setw(7) << pentaWD
+       << std::right << std::setw(7) << pentaWL
+       << std::right << std::setw(7) << pentaLD
        << std::right << std::setw(7) << pentaLL << "\n";
     // clang-format on
 

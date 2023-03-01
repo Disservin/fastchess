@@ -7,14 +7,17 @@
 SPRT::SPRT(double alpha, double beta, double elo0, double elo1)
 {
     this->valid = alpha != 0.0 && beta != 0.0 && elo0 < elo1;
-    if (isValid()) {
+    if (isValid())
+    {
         this->lower = std::log(beta / (1 - alpha));
         this->upper = std::log((1 - beta) / alpha);
         this->s0 = getLL(elo0);
         this->s1 = getLL(elo1);
 
         std::cout << "Initialized valid SPRT configuration." << std::endl;
-    } else {
+    }
+    else
+    {
         std::cout << "No valid SPRT configuration was found!" << std::endl;
     }
 }

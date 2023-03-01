@@ -42,25 +42,27 @@ ifneq ($(GIT_DATE), )
 	CXXFLAGS += -DGIT_DATE=\"$(GIT_DATE)\"
 endif
 
-SOURCES := $(wildcard *.cpp ./engines/*.cpp ./chess/*.cpp)
+.PHONY: all clean FORCE
+
+SRCDIRS := ./ ./engines ./chess
+
+SOURCES := $(foreach dir,$(SRCDIRS),$(wildcard $(dir)/*.cpp))
 OBJECTS := $(patsubst %.cpp,%.o,$(SOURCES))
 DEPENDS := $(patsubst %.cpp,%.d,$(SOURCES))
 TARGET  := fast-chess
 
-.PHONY: all clean FORCE
-
 all: $(TARGET)
-clean:
-	@rm -rf *.o $(DEPENDS) *.d
 
-# Linking the executable from the object files
 $(TARGET): $(OBJECTS)
-	$(CXX) -o $(TARGET) $^ $(CXXFLAGS) $(NATIVE) $(FLAGS) -flto $(LDFLAGS)
+	$(CXX) $(CXXFLAGS) $(NATIVE) -flto -MMD -MP -o $@ $^ $(LDFLAGS)
+
+%.o: %.cpp
+	$(CXX) $(CXXFLAGS) $(NATIVE) -flto -MMD -MP -c $< -o $@ $(LDFLAGS)
 
 -include $(DEPENDS)
 
-%.o: %.cpp
-	$(CXX) $(CXXFLAGS) $(NATIVE) -flto -MMD -MP -c -o $@ $< $(LDFLAGS)
+clean:
+	@rm -f $(OBJECTS) $(DEPENDS) $(TARGET)
 
 options.o: FORCE
 FORCE:

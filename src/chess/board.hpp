@@ -52,17 +52,6 @@ class Board
 
     Square enPassantSquare = NO_SQ;
 
-    // Movegen vars
-    Bitboard pinD = {};
-    Bitboard pinHV = {};
-    Bitboard occEnemy = {};
-    Bitboard occUs = {};
-    Bitboard occAll = {};
-    Bitboard seen = {};
-    Bitboard enemyEmptyBB = {};
-    Bitboard checkMask = DEFAULT_CHECKMASK;
-    int doubleCheck = 0;
-
     void loadFen(const std::string &fen);
     std::string getFen() const;
 

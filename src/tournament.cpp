@@ -344,20 +344,13 @@ std::vector<Match> Tournament::runH2H(CMD::GameManagerOptions localMatchConfig,
             continue;
         }
 
+        totalCount++;
         matches.emplace_back(match);
 
         const std::string positiveEngine =
             engine1.turn == Turn::FIRST ? engine1.getConfig().name : engine2.getConfig().name;
         const std::string negativeEngine =
             engine1.turn == Turn::FIRST ? engine2.getConfig().name : engine1.getConfig().name;
-
-        // use a stringstream to build the output to avoid data races with cout <<
-        std::stringstream ss;
-        ss << "Finished game " << i + 1 << "/" << games << " in round " << roundId << "/" << localMatchConfig.rounds
-           << " total played " << totalCount << "/" << localMatchConfig.rounds * games << " " << positiveEngine
-           << " vs " << negativeEngine << ": " << resultToString(match.result) << "\n";
-
-        std::cout << ss.str();
 
         engine1.turn = ~engine1.turn;
         engine2.turn = ~engine2.turn;
@@ -385,7 +378,13 @@ std::vector<Match> Tournament::runH2H(CMD::GameManagerOptions localMatchConfig,
             std::cout << "Couldn't obtain Game Result\n";
         }
 
-        totalCount++;
+        // use a stringstream to build the output to avoid data races with cout <<
+        std::stringstream ss;
+        ss << "Finished game " << i + 1 << "/" << games << " in round " << roundId << "/" << localMatchConfig.rounds
+           << " total played " << totalCount << "/" << localMatchConfig.rounds * games << " " << positiveEngine
+           << " vs " << negativeEngine << ": " << resultToString(match.result) << "\n";
+
+        std::cout << ss.str();
     }
 
     if (localWins == 2)

@@ -136,7 +136,7 @@ std::vector<std::string> EngineProcess::readProcess(std::string_view last_word, 
                 if (!currentLine.empty())
                 {
                     lines.emplace_back(currentLine);
-                    Logging::Log->readLog(currentLine, std::this_thread::get_id());
+                    // Logging::Log->readLog(currentLine, std::this_thread::get_id());
 
                     if (currentLine.rfind(last_word, 0) == 0)
                     {
@@ -173,7 +173,7 @@ void EngineProcess::writeProcess(const std::string &input)
             return;
         }
 
-        Logging::Log->writeLog(input, std::this_thread::get_id());
+        // Logging::Log->writeLog(input, std::this_thread::get_id());
 
         constexpr char endLine = '\n';
         DWORD bytesWritten;

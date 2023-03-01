@@ -38,9 +38,11 @@ class UciEngine : public Engine
     std::string checkErrors(int id = -1);
 
     bool isResponsive(int64_t threshold = PING_TIME);
+
     void sendUciNewGame();
 
     void sendUci();
+
     std::vector<std::string> readUci();
 
     std::string buildGoInput(Color stm, const TimeControl &tc, const TimeControl &tc_2) const;
@@ -48,13 +50,17 @@ class UciEngine : public Engine
     void loadConfig(const EngineConfiguration &config);
 
     void sendQuit();
+
     void sendSetoption(const std::string &name, const std::string &value);
+
     void sendGo(const std::string &limit);
 
     void setConfig(const EngineConfiguration &rhs);
 
     void restartEngine();
+
     void startEngine();
+
     void startEngine(const std::string &cmd);
 
     Turn turn = Turn::FIRST;

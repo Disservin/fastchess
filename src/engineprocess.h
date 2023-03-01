@@ -44,11 +44,15 @@ class EngineProcess : public Process
 {
   public:
     EngineProcess() = default;
+
     EngineProcess(const std::string &command);
+
     ~EngineProcess();
 
     void initProcess(const std::string &command);
+
     void killProcess();
+
     void closeHandles();
 
     virtual bool isAlive() override;
@@ -69,16 +73,20 @@ class EngineProcess : public Process
 {
   public:
     EngineProcess() = default;
+
     EngineProcess(const std::string &command);
+
     ~EngineProcess();
 
     void initProcess(const std::string &command);
+
     void killProcess();
 
     virtual bool isAlive() override;
 
     virtual std::vector<std::string> readProcess(std::string_view last_word, bool &timeout,
                                                  int64_t timeoutThreshold = 1000) override;
+
     virtual void writeProcess(const std::string &input) override;
 
   private:

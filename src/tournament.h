@@ -91,13 +91,17 @@ class Tournament
     }
 
     Tournament() = default;
+
     Tournament(bool saveTime) : saveTimeHeader(saveTime){};
+
     Tournament(const CMD::GameManagerOptions &mc);
 
     void loadConfig(const CMD::GameManagerOptions &mc);
 
     std::vector<std::string> getPGNS() const;
+
     void setStorePGN(bool v);
+    
     void printElo();
 
     void startTournament(const std::vector<EngineConfiguration> &configs);
@@ -115,6 +119,7 @@ class Tournament
     SPRT sprt;
 
     void writeToFile(const std::string &data);
+    
     std::string fetchNextFen();
 
     void playNextMove(UciEngine &engine, std::string &positionInput, Board &board, TimeControl &timeLeftUs,
@@ -129,6 +134,7 @@ class Tournament
     MoveData parseEngineOutput(const std::vector<std::string> &output, const std::string &move, int64_t measuredTime);
 
     std::string getDateTime(std::string format = "%Y-%m-%dT%H:%M:%S %z");
+    
     std::string formatDuration(std::chrono::seconds duration);
 
     void updateTrackers(DrawAdjTracker &drawTracker, ResignAdjTracker &resignTracker, const Score moveScore);

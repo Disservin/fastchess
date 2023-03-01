@@ -502,7 +502,6 @@ MoveData Tournament::parseEngineOutput(const std::vector<std::string> &output, c
 
         depth = findElement<int>(info, "depth");
         scoreType = findElement<std::string>(info, "score");
-        scoreType = findElement<std::string>(info, "score");
         nodes = findElement<uint64_t>(info, "nodes");
 
         if (scoreType == "cp")

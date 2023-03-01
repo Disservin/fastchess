@@ -86,6 +86,7 @@ int main(int argc, char const *argv[])
     std::cout << "Opening Plies: " << options.getGameOptions().opening.plies << std::endl;
     std::cout << "Opening Start: " << options.getGameOptions().opening.start << std::endl;
     std::cout << "PGN File: " << options.getGameOptions().pgn.file << std::endl;
+    std::cout << "TrackNodes enabled: " << options.getGameOptions().pgn.trackNodes << std::endl;
     std::cout << "Ratinginterval: " << options.getGameOptions().ratinginterval << std::endl;
     std::cout << "Recover: " << options.getGameOptions().recover << std::endl;
     std::cout << "Repeat: " << options.getGameOptions().repeat << std::endl;

@@ -7,11 +7,6 @@
 #include "engine_config.h"
 #include "logger.h"
 
-namespace Logging
-{
-extern Logger *Log;
-}
-
 namespace CMD
 {
 

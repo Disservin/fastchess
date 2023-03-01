@@ -14,11 +14,6 @@ namespace
 Tournament Tour;
 } // namespace
 
-namespace Logging
-{
-Logger *Log;
-} // namespace Logging
-
 #ifdef _WIN64
 
 BOOL WINAPI consoleHandler(DWORD signal)
@@ -62,7 +57,6 @@ int main(int argc, char const *argv[])
 #else
     signal(SIGINT, sigintHandler);
 #endif
-    Logging::Log = &Logging::Log->getInstance();
     CMD::Options options = CMD::Options(argc, argv);
 
     for (const auto &config : options.getEngineConfigs())

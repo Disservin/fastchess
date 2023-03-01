@@ -204,8 +204,9 @@ void Options::parseLog(int &i, int argc, const char *argv[])
         const std::string value = param.substr(pos + 1);
         if (key == "file")
         {
-            Logging::Log->openFile(value);
+            Logger::openFile(value);
         }
+        i++;
     }
 }
 

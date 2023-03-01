@@ -2,36 +2,40 @@
 
 #include "logger.h"
 
+std::atomic_bool Logger::shouldLog = false;
+std::ofstream Logger::log;
+std::mutex Logger::logMutex;
+
 void Logger::openFile(const std::string &file)
 {
-    log.open(file, std::ios::app);
-    shouldLog = true;
+    Logger::log.open(file, std::ios::app);
+    Logger::shouldLog = true;
 }
 
 void Logger::writeLog(const std::string &msg, std::thread::id thread)
 {
-    if (shouldLog)
+    if (Logger::shouldLog)
     {
         // Acquire the lock
-        const std::lock_guard<std::mutex> lock(logMutex);
+        const std::lock_guard<std::mutex> lock(Logger::logMutex);
 
         std::stringstream ss;
         ss << "<" << thread << "> <---" << msg << std::endl;
 
-        log << ss.str();
+        Logger::log << ss.str();
     }
 }
 
 void Logger::readLog(const std::string &msg, std::thread::id thread)
 {
-    if (shouldLog)
+    if (Logger::shouldLog)
     {
         // Acquire the lock
-        const std::lock_guard<std::mutex> lock(logMutex);
+        const std::lock_guard<std::mutex> lock(Logger::logMutex);
 
         std::stringstream ss;
         ss << "<" << thread << "> --->" << msg << std::endl;
 
-        log << ss.str();
+        Logger::log << ss.str();
     }
 }

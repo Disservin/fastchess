@@ -5,10 +5,10 @@
 #include <stdexcept>
 #include <vector>
 
+#include "../options.h"
 #include "attacks.h"
 #include "board.h"
 #include "movegen.h"
-#include "options.h"
 #include "zobrist.h"
 
 void Board::loadFen(const std::string &fen)

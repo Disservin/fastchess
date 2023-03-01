@@ -42,7 +42,7 @@ ifneq ($(GIT_DATE), )
 	CXXFLAGS += -DGIT_DATE=\"$(GIT_DATE)\"
 endif
 
-SOURCES := $(wildcard *.cpp)
+SOURCES := $(wildcard *.cpp ./engines/*.cpp ./chess/*.cpp)
 OBJECTS := $(patsubst %.cpp,%.o,$(SOURCES))
 DEPENDS := $(patsubst %.cpp,%.d,$(SOURCES))
 TARGET  := fast-chess

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../src/board.h"
-#include "../src/perft.h"
+#include "../src/chess/board.h"
+#include "../src/chess/perft.h"
 
 TEST_CASE("Testing PERFT Startposition")
 {

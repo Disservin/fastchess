@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../src/board.h"
+#include "../src/chess/board.h"
 
 TEST_CASE("Test Zobrist Hash Startpos")
 {

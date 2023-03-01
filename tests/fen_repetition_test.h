@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../src/board.h"
+#include "../src/chess/board.h"
 #include "../src/options.h"
 
 inline bool testFenRepetition(const std::string &input)

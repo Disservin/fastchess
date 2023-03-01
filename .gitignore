@@ -9,3 +9,4 @@ dummy_engine*
 *.pgn
 *.epd
 src/x64/*
+*.txt

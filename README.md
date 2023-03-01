@@ -31,6 +31,7 @@ Options:
   -ratinginterval N
     print elo estimation every n
   -sprt elo0=ELO0 elo1=ELO1 alpha=ALPHA beta=BETA
+  -log file=NAME
 
 Engine;
   name=NAME

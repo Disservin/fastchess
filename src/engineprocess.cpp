@@ -3,8 +3,10 @@
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
+#include <thread>
 
 #include "engineprocess.h"
+#include "logger.h"
 #include "options.h"
 #include "types.h"
 
@@ -135,10 +137,14 @@ std::vector<std::string> EngineProcess::readProcess(std::string_view last_word, 
                 if (!currentLine.empty())
                 {
                     lines.emplace_back(currentLine);
+
+                    Logger::readLog(currentLine, std::this_thread::get_id());
+
                     if (currentLine.rfind(last_word, 0) == 0)
                     {
                         return lines;
                     }
+
                     currentLine = "";
                 }
             }
@@ -168,6 +174,8 @@ void EngineProcess::writeProcess(const std::string &input)
             std::cout << ss.str();
             return;
         }
+
+        Logger::writeLog(input, std::this_thread::get_id());
 
         constexpr char endLine = '\n';
         DWORD bytesWritten;

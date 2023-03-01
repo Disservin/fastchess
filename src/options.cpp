@@ -51,6 +51,8 @@ Options::Options(int argc, char const *argv[])
             parseOption(i, argc, argv, gameOptions.ratinginterval);
         else if (arg == "-version")
             printVersion(i);
+        else if (arg == "-log")
+            parseLog(i, argc, argv);
         else
         {
             i++;
@@ -189,6 +191,23 @@ void Options::printVersion(int &i)
 
     std::cout << ss.str();
     exit(0);
+}
+
+void Options::parseLog(int &i, int argc, const char *argv[])
+{
+    i++;
+    while (i < argc && argv[i][0] != '-')
+    {
+        const std::string param = argv[i];
+        const size_t pos = param.find('=');
+        const std::string key = param.substr(0, pos);
+        const std::string value = param.substr(pos + 1);
+        if (key == "file")
+        {
+            Logger::openFile(value);
+        }
+        i++;
+    }
 }
 
 template <typename T> void Options::parseOption(int &i, int argc, const char *argv[], T &optionValue)

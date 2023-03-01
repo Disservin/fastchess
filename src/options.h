@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "engine_config.h"
+#include "logger.h"
 
 namespace CMD
 {
@@ -127,6 +128,8 @@ class Options
     void parseEngineParams(int &i, int argc, char const *argv[], EngineConfiguration &engineParams);
 
     void printVersion(int &i);
+
+    void parseLog(int &i, int argc, const char *argv[]);
 };
 
 } // namespace CMD

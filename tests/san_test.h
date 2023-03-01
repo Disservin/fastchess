@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../src/chess/board.h"
+#include "../src/chess/board.hpp"
 
 TEST_CASE("Test ambiguous pawn capture")
 {

@@ -1,8 +1,8 @@
 #pragma once
 
-#include "../src/chess/helper.h"
-#include "../src/options.h"
-#include "../src/tournament.h"
+#include "../src/chess/helper.hpp"
+#include "../src/options.hpp"
+#include "../src/tournament.hpp"
 
 TEST_CASE("Test Tournament")
 {

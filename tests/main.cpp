@@ -1,16 +1,16 @@
 #define DOCTEST_CONFIG_IMPLEMENT
-#include "doctest/doctest.h"
+#include "doctest/doctest.hpp"
 
-#include "elo_test.h"
-#include "engine_test.h"
-#include "fen_repetition_test.h"
-#include "functions_test.h"
-#include "hash_test.h"
-#include "options_test.h"
-#include "perft_test.h"
-#include "san_test.h"
-#include "tournament_test.h"
-#include "uci_engine_test.h"
+#include "elo_test.hpp"
+#include "engine_test.hpp"
+#include "fen_repetition_test.hpp"
+#include "functions_test.hpp"
+#include "hash_test.hpp"
+#include "options_test.hpp"
+#include "perft_test.hpp"
+#include "san_test.hpp"
+#include "tournament_test.hpp"
+#include "uci_engine_test.hpp"
 
 int main(int argc, char **argv)
 {

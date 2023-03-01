@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../src/options.h"
+#include "../src/options.hpp"
 
 #include <cassert>
 

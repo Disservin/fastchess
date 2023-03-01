@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../src/engines/uci_engine.h"
+#include "../src/engines/uci_engine.hpp"
 
 #include <cassert>
 

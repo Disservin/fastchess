@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../src/elo.h"
+#include "../src/elo.hpp"
 
 TEST_CASE("Elo calculation")
 {

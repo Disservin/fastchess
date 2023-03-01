@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../src/chess/helper.h"
-#include "../src/options.h"
+#include "../src/chess/helper.hpp"
+#include "../src/options.hpp"
 
 TEST_CASE("Testing the CMD::Options::startsWith function")
 {

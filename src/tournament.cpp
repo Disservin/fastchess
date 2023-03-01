@@ -199,6 +199,8 @@ void Tournament::playNextMove(UciEngine &engine, std::string &positionInput, Boa
 
     // find bestmove and add it to the position string
     const auto bestMove = findElement<std::string>(CMD::Options::splitString(output.back(), ' '), "bestmove");
+    if (match.moves.size() == 0)
+        positionInput += " moves";
     positionInput += " " + bestMove;
 
     // play move on internal board and store it for later pgn creation
@@ -264,8 +266,7 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int roundId
     match.startTime = saveTimeHeader ? getDateTime() : "";
     match.board = board;
 
-    std::string positionInput =
-        openingFen == STARTPOS ? "position startpos moves" : "position fen " + openingFen + " moves";
+    std::string positionInput = openingFen == STARTPOS ? "position startpos" : "position fen " + openingFen;
 
     auto timeLeft_1 = engine1.getConfig().tc;
     auto timeLeft_2 = engine2.getConfig().tc;
@@ -274,7 +275,6 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int roundId
 
     while (!pool.stop)
     {
-
         playNextMove(engine1, positionInput, board, timeLeft_1, timeLeft_2, res, match, drawTracker, resignTracker,
                      retflag, roundId);
 

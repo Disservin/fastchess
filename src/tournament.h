@@ -72,6 +72,11 @@ struct ResignAdjTracker
     }
 };
 
+/*
+ * This is the main class to start engines matches.
+ * Generally we always swap the engine order, the first engine is always
+ * the the positive engine, meaning all stats should be calculated from that view point.
+ */
 class Tournament
 {
   public:
@@ -89,13 +94,17 @@ class Tournament
     }
 
     Tournament() = default;
+
     Tournament(bool saveTime) : saveTimeHeader(saveTime){};
+
     Tournament(const CMD::GameManagerOptions &mc);
 
     void loadConfig(const CMD::GameManagerOptions &mc);
 
     std::vector<std::string> getPGNS() const;
+
     void setStorePGN(bool v);
+    
     void printElo();
 
     void startTournament(const std::vector<EngineConfiguration> &configs);
@@ -113,6 +122,7 @@ class Tournament
     SPRT sprt;
 
     void writeToFile(const std::string &data);
+    
     std::string fetchNextFen();
 
     void playNextMove(UciEngine &engine, std::string &positionInput, Board &board, TimeControl &timeLeftUs,
@@ -127,6 +137,7 @@ class Tournament
     MoveData parseEngineOutput(const std::vector<std::string> &output, const std::string &move, int64_t measuredTime);
 
     std::string getDateTime(std::string format = "%Y-%m-%dT%H:%M:%S %z");
+    
     std::string formatDuration(std::chrono::seconds duration);
 
     void updateTrackers(DrawAdjTracker &drawTracker, ResignAdjTracker &resignTracker, const Score moveScore);
@@ -138,11 +149,7 @@ class Tournament
 
     std::vector<std::string> pgns;
     std::vector<std::string> openingBook;
-
-    size_t startIndex = 0;
-
-    bool storePGNS = false;
-    bool saveTimeHeader = true;
+    std::vector<std::string> engineNames;
 
     std::mutex fileMutex;
 
@@ -158,7 +165,10 @@ class Tournament
     std::atomic<int> pentaLD = 0;
     std::atomic<int> pentaLL = 0;
 
-    std::vector<std::string> engineNames;
-
     std::ofstream file;
+
+    size_t startIndex = 0;
+
+    bool storePGNS = false;
+    bool saveTimeHeader = true;
 };

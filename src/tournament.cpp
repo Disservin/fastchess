@@ -205,7 +205,7 @@ void Tournament::playNextMove(UciEngine &engine, std::string &positionInput, Boa
 
     // play move on internal board and store it for later pgn creation
     match.legal = board.makeMove(convertUciToMove(bestMove));
-    match.moves.emplace_back(parseEngineOutput(output, bestMove, measuredTime));
+    match.moves.emplace_back(parseEngineOutput(board, output, bestMove, measuredTime));
 
     if (!match.legal)
     {
@@ -489,8 +489,8 @@ void Tournament::stopPool()
     pool.kill();
 }
 
-MoveData Tournament::parseEngineOutput(const std::vector<std::string> &output, const std::string &move,
-                                       int64_t measuredTime)
+MoveData Tournament::parseEngineOutput(const Board &board, const std::vector<std::string> &output,
+                                       const std::string &move, int64_t measuredTime)
 {
     std::string scoreString;
     std::string scoreType;
@@ -500,7 +500,7 @@ MoveData Tournament::parseEngineOutput(const std::vector<std::string> &output, c
     // extract last info line
     if (output.size() > 1)
     {
-        const std::vector<std::string> info = CMD::Options::splitString(output[output.size() - 2], ' ');
+        const auto info = CMD::Options::splitString(output[output.size() - 2], ' ');
 
         depth = findElement<int>(info, "depth");
         scoreType = findElement<std::string>(info, "score");
@@ -534,7 +534,31 @@ MoveData Tournament::parseEngineOutput(const std::vector<std::string> &output, c
         depth = 0;
     }
 
-    return MoveData(move, scoreString, measuredTime, depth, score, nodes);
+    // verify pv
+    for (const auto &info : output)
+    {
+        auto tmp = board;
+        const auto tokens = CMD::Options::splitString(info, ' ');
+
+        if (!CMD::Options::contains(tokens, "moves"))
+            continue;
+
+        std::size_t index = std::find(tokens.begin(), tokens.end(), "pv") - tokens.begin();
+        index++;
+        for (; index < tokens.size(); index++)
+        {
+            Move move = convertUciToMove(tokens[index]);
+            if (!tmp.makeMove(move))
+            {
+                std::stringstream ss;
+                ss << "Warning: Illegal pv move " << tokens[index] << ".\n";
+                std::cout << ss.str();
+                break;
+            };
+        }
+    }
+
+    return MoveData(move, scoreString, measuredTime, depth, score);
 }
 
 std::string Tournament::getDateTime(std::string format)

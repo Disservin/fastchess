@@ -57,7 +57,7 @@ int popcount(Bitboard mask)
 
 Square poplsb(Bitboard &mask)
 {
-    int8_t s = lsb(mask);
+    const int8_t s = lsb(mask);
     mask &= mask - 1; // compiler optimizes this to _blsr_
     return Square(s);
 }

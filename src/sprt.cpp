@@ -32,12 +32,12 @@ double SPRT::getLLR(int win, int draw, int loss) const
     if (win == 0 || draw == 0 || loss == 0 || !valid)
         return 0.0;
 
-    double games = win + draw + loss;
-    double W = double(win) / games, D = double(draw) / games;
-    double a = W + D / 2;
-    double b = W + D / 4;
-    double var = b - std::pow(a, 2);
-    double var_s = var / games;
+    const double games = win + draw + loss;
+    const double W = double(win) / games, D = double(draw) / games;
+    const double a = W + D / 2;
+    const double b = W + D / 4;
+    const double var = b - std::pow(a, 2);
+    const double var_s = var / games;
     return (s1 - s0) * (2 * a - s0 - s1) / var_s / 2.0;
 }
 

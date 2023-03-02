@@ -96,7 +96,10 @@ class Tournament
     }
 
     // For testing purposes
-    Tournament(bool saveTime) : saveTimeHeader(saveTime){};
+    Tournament(bool saveTime) : saveTimeHeader(saveTime)
+    {
+        file.open("fast-chess.pgn", std::ios::app);
+    };
 
     Tournament(const CMD::GameManagerOptions &mc);
 
@@ -120,7 +123,32 @@ class Tournament
 
     ThreadPool pool = ThreadPool(1);
 
-    SPRT sprt;
+    SPRT sprt = {};
+
+    std::vector<std::string> pgns;
+    std::vector<std::string> openingBook;
+    std::vector<std::string> engineNames;
+
+    std::ofstream file;
+    std::mutex fileMutex;
+
+    std::atomic<int> wins = 0;
+    std::atomic<int> draws = 0;
+    std::atomic<int> losses = 0;
+    std::atomic<int> roundCount = 0;
+    std::atomic<int> totalCount = 0;
+
+    std::atomic<int> pentaWW = 0;
+    std::atomic<int> pentaWD = 0;
+    std::atomic<int> pentaWL = 0;
+    std::atomic<int> pentaLD = 0;
+    std::atomic<int> pentaLL = 0;
+
+    size_t startIndex = 0;
+
+    bool storePGNS = false;
+
+    bool saveTimeHeader = true;
 
     void writeToFile(const std::string &data);
 
@@ -140,10 +168,6 @@ class Tournament
     MoveData parseEngineOutput(const Board &board, const std::vector<std::string> &output,
                                const std::string &move, int64_t measuredTime);
 
-    std::string getDateTime(std::string format = "%Y-%m-%dT%H:%M:%S %z");
-
-    std::string formatDuration(std::chrono::seconds duration);
-
     void updateTrackers(DrawAdjTracker &drawTracker, ResignAdjTracker &resignTracker,
                         const Score moveScore, const int moveNumber);
 
@@ -152,29 +176,4 @@ class Tournament
                         const Color lastSideThatMoved) const;
 
     bool checkEngineStatus(UciEngine &engine, Match &match, int roundId) const;
-
-    std::vector<std::string> pgns;
-    std::vector<std::string> openingBook;
-    std::vector<std::string> engineNames;
-
-    std::mutex fileMutex;
-
-    std::atomic<int> wins = 0;
-    std::atomic<int> draws = 0;
-    std::atomic<int> losses = 0;
-    std::atomic<int> roundCount = 0;
-    std::atomic<int> totalCount = 0;
-
-    std::atomic<int> pentaWW = 0;
-    std::atomic<int> pentaWD = 0;
-    std::atomic<int> pentaWL = 0;
-    std::atomic<int> pentaLD = 0;
-    std::atomic<int> pentaLL = 0;
-
-    std::ofstream file;
-
-    size_t startIndex = 0;
-
-    bool storePGNS = false;
-    bool saveTimeHeader = true;
 };

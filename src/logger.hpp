@@ -46,5 +46,9 @@ class Logger
         std::cout << ss.str();
     }
 
+    static std::string getDateTime(std::string format = "%Y-%m-%dT%H:%M:%S %z");
+
+    static std::string formatDuration(std::chrono::seconds duration);
+
     static std::atomic_bool shouldLog;
 };

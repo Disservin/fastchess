@@ -11,6 +11,10 @@
 
 Tournament::Tournament(const CMD::GameManagerOptions &mc)
 {
+    const std::string filename = (mc.pgn.file.empty() ? "fast-chess" : mc.pgn.file) + ".pgn";
+
+    file.open(filename, std::ios::app);
+
     loadConfig(mc);
 }
 
@@ -31,11 +35,6 @@ void Tournament::loadConfig(const CMD::GameManagerOptions &mc)
 
         openingFile.close();
     }
-
-    const std::string filename =
-        (matchConfig.pgn.file.empty() ? "fast-chess" : matchConfig.pgn.file) + ".pgn";
-
-    file.open(filename, std::ios::app);
 
     pool.resize(matchConfig.concurrency);
 
@@ -269,8 +268,8 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int roundId
     engine2.sendUciNewGame();
 
     match.board = board;
-    match.startTime = saveTimeHeader ? getDateTime() : "";
-    match.date = saveTimeHeader ? getDateTime("%Y-%m-%d") : "";
+    match.startTime = saveTimeHeader ? Logger::getDateTime() : "";
+    match.date = saveTimeHeader ? Logger::getDateTime("%Y-%m-%d") : "";
 
     std::string positionInput =
         board.getFen() == STARTPOS ? "position startpos" : "position fen " + board.getFen();
@@ -295,10 +294,10 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int roundId
 
     match.round = roundId;
     match.result = res;
-    match.endTime = saveTimeHeader ? getDateTime() : "";
+    match.endTime = saveTimeHeader ? Logger::getDateTime() : "";
     match.duration =
         saveTimeHeader
-            ? formatDuration(std::chrono::duration_cast<std::chrono::seconds>(end - start))
+            ? Logger::formatDuration(std::chrono::duration_cast<std::chrono::seconds>(end - start))
             : "";
 
     return match;
@@ -532,49 +531,6 @@ MoveData Tournament::parseEngineOutput(const Board &board, const std::vector<std
     }
 
     return MoveData(move, scoreString, measuredTime, depth, score, nodes);
-}
-
-std::string Tournament::getDateTime(std::string format)
-{
-    // Get the current time in UTC
-    const auto now = std::chrono::system_clock::now();
-    const auto time_t_now = std::chrono::system_clock::to_time_t(now);
-    struct tm buf;
-
-#ifdef _WIN32
-    auto res = gmtime_s(&buf, &time_t_now);
-    if (res != 0)
-    {
-        throw std::runtime_error("gmtime_s failed");
-    }
-
-    // Format the time as an ISO 8601 string
-    std::stringstream ss;
-    ss << std::put_time(&buf, format.c_str());
-    return ss.str();
-#else
-    const auto res = gmtime_r(&time_t_now, &buf);
-
-    // Format the time as an ISO 8601 string
-    std::stringstream ss;
-    ss << std::put_time(res, format.c_str());
-    return ss.str();
-#endif
-}
-
-std::string Tournament::formatDuration(std::chrono::seconds duration)
-{
-    const auto hours = std::chrono::duration_cast<std::chrono::hours>(duration);
-    duration -= hours;
-    const auto minutes = std::chrono::duration_cast<std::chrono::minutes>(duration);
-    duration -= minutes;
-    const auto seconds = duration;
-
-    std::stringstream ss;
-    ss << std::setfill('0') << std::setw(2) << hours.count() << ":" << std::setfill('0')
-       << std::setw(2) << minutes.count() << ":" << std::setfill('0') << std::setw(2)
-       << seconds.count();
-    return ss.str();
 }
 
 void Tournament::updateTrackers(DrawAdjTracker &drawTracker, ResignAdjTracker &resignTracker,

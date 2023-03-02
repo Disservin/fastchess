@@ -60,11 +60,11 @@ PgnBuilder::PgnBuilder(const Match &match, const CMD::GameManagerOptions &gameOp
 
         if (moveCount % 2 != 0)
             ss << moveCount / 2 << "."
-               << " " << MoveToSan(b, convertUciToMove(data.move)) << " {" << data.scoreString << "/" << data.depth
+               << " " << MoveToSan(b, convertUciToMove(b, data.move)) << " {" << data.scoreString << "/" << data.depth
                << nodesString.str() << " " << timeString.str() << illegalMove.str() << "}";
         else
         {
-            ss << " " << MoveToSan(b, convertUciToMove(data.move)) << " {" << data.scoreString << "/" << data.depth
+            ss << " " << MoveToSan(b, convertUciToMove(b, data.move)) << " {" << data.scoreString << "/" << data.depth
                << nodesString.str() << " " << timeString.str() << illegalMove.str() << "}";
             if (i != match.moves.size() - 1 && i % 7 == 0)
                 ss << "\n";
@@ -77,7 +77,7 @@ PgnBuilder::PgnBuilder(const Match &match, const CMD::GameManagerOptions &gameOp
             break;
         }
 
-        b.makeMove(convertUciToMove(data.move));
+        b.makeMove(convertUciToMove(b, data.move));
 
         moveCount++;
     }

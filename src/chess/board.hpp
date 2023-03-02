@@ -52,6 +52,8 @@ class Board
 
     Square enPassantSquare = NO_SQ;
 
+    bool chess960 = false;
+
     void loadFen(const std::string &fen);
     std::string getFen() const;
 
@@ -101,7 +103,12 @@ class Board
     static uint8_t anti_diagonalOf(Square sq);
 
     static bool sameColor(int sq1, int sq2);
+
     static Color colorOf(Piece p);
+
+    Color colorOf(Square loc) const;
+
+    static uint8_t squareDistance(Square a, Square b);
 
     friend std::ostream &operator<<(std::ostream &os, const Board &b);
 
@@ -152,7 +159,8 @@ template <PieceType type> Bitboard Board::pieces(Color color) const
 
 std::string uciMove(Move move);
 
-Move convertUciToMove(const std::string &input);
+Move convertUciToMove(const Board &board, const std::string &input);
+
 std::string MoveToSan(Board &b, Move move);
 
 std::string resultToString(GameResult result);

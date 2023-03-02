@@ -204,7 +204,7 @@ void Tournament::playNextMove(UciEngine &engine, std::string &positionInput, Boa
     positionInput += " " + bestMove;
 
     // play move on internal board and store it for later pgn creation
-    match.legal = board.makeMove(convertUciToMove(bestMove));
+    match.legal = board.makeMove(convertUciToMove(board, bestMove));
     match.moves.emplace_back(parseEngineOutput(board, output, bestMove, measuredTime));
 
     if (!match.legal)
@@ -536,7 +536,7 @@ MoveData Tournament::parseEngineOutput(const Board &board, const std::vector<std
         index++;
         for (; index < tokens.size(); index++)
         {
-            if (!tmp.makeMove(convertUciToMove(tokens[index])))
+            if (!tmp.makeMove(convertUciToMove(tmp, tokens[index])))
             {
                 std::stringstream ss;
                 ss << "Warning: Illegal pv move " << tokens[index] << ".\n";

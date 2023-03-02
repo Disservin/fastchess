@@ -174,7 +174,7 @@ bool Board::makeMove(Move move)
     const Square from_sq = move.from_sq;
     const Square to_sq = move.to_sq;
     const Piece p = pieceAt(from_sq);
-    const PieceType pt = typeOfPiece(p);
+    const PieceType pt = move.moving_piece;
     const Piece capture = pieceAt(move.to_sq);
 
     assert(from_sq >= 0 && from_sq < 64);
@@ -198,7 +198,7 @@ bool Board::makeMove(Move move)
     fullMoveNumber++;
 
     const bool ep = to_sq == enPassantSquare;
-    const bool isCastling = pt == KING && std::abs(from_sq - to_sq) == 2;
+    const bool isCastling = pt == KING && typeOfPiece(capture) == ROOK && colorOf(from_sq) == colorOf(to_sq);
 
     if (enPassantSquare != NO_SQ)
         hashKey ^= updateKeyEnPassant(enPassantSquare);
@@ -213,11 +213,20 @@ bool Board::makeMove(Move move)
         if (isCastling)
         {
             const Piece rook = sideToMove == WHITE ? WHITEROOK : BLACKROOK;
-            const Square rookFromSq = fileRankSquare(to_sq > from_sq ? FILE_H : FILE_A, squareRank(from_sq));
-            const Square rookToSq = fileRankSquare(to_sq > from_sq ? FILE_F : FILE_D, squareRank(from_sq));
+            Square rookToSq = fileRankSquare(to_sq > from_sq ? FILE_F : FILE_D, squareRank(from_sq));
+            Square kingToSq = fileRankSquare(to_sq > from_sq ? FILE_G : FILE_C, squareRank(from_sq));
+            removePiece(p, from_sq);
+            removePiece(rook, to_sq);
 
-            removePiece(rook, rookFromSq);
+            placePiece(p, kingToSq);
             placePiece(rook, rookToSq);
+
+            sideToMove = ~sideToMove;
+
+            hashKey ^= updateKeySideToMove();
+            hashKey ^= updateKeyCastling();
+
+            return true;
         }
     }
     else if (pt == ROOK)
@@ -292,7 +301,7 @@ void Board::unmakeMove(Move move)
     const Square from_sq = move.from_sq;
     const Square to_sq = move.to_sq;
     const Piece capture = restore.capturedPiece;
-    const PieceType pt = typeOfPiece(pieceAt(to_sq));
+    const PieceType pt = move.moving_piece;
 
     sideToMove = ~sideToMove;
 
@@ -300,24 +309,25 @@ void Board::unmakeMove(Move move)
 
     const bool promotion = move.promotion_piece != NONETYPE;
 
-    if (pt == KING && std::abs(from_sq - to_sq) == 2)
+    if ((p == WHITEKING && capture == WHITEROOK) || (p == BLACKKING && capture == BLACKROOK))
     {
-        const Piece rook = sideToMove == WHITE ? WHITEROOK : BLACKROOK;
-        const Square rookFromSq = fileRankSquare(to_sq > from_sq ? FILE_H : FILE_A, squareRank(from_sq));
-        const Square rookToSq = fileRankSquare(to_sq > from_sq ? FILE_F : FILE_D, squareRank(from_sq));
+        Square rookToSq = to_sq;
+        Piece rook = sideToMove == WHITE ? WHITEROOK : BLACKROOK;
+        Square rookFromSq = fileRankSquare(to_sq > from_sq ? FILE_F : FILE_D, squareRank(from_sq));
+        Square KingToSq = fileRankSquare(to_sq > from_sq ? FILE_G : FILE_C, squareRank(from_sq));
 
         // We need to remove both pieces first and then place them back.
-        removePiece(p, to_sq);
-        removePiece(rook, rookToSq);
+        removePiece(rook, rookFromSq);
+        removePiece(p, KingToSq);
 
-        placePiece(rook, rookFromSq);
         placePiece(p, from_sq);
+        placePiece(rook, rookToSq);
 
         return;
     }
     else if (promotion)
     {
-        removePiece(p, to_sq);
+        removePiece(pieceAt(to_sq), to_sq);
         placePiece(make_piece(PAWN, sideToMove), from_sq);
         if (capture != NONE)
             placePiece(capture, to_sq);
@@ -595,6 +605,16 @@ Color Board::colorOf(Piece p)
     return Color(p / 6);
 }
 
+Color Board::colorOf(Square loc) const
+{
+    return Color((pieceAt(loc) / 6));
+}
+
+uint8_t Board::squareDistance(Square a, Square b)
+{
+    return std::max(std::abs(squareFile(a) - squareFile(b)), std::abs(squareRank(a) - squareRank(b)));
+}
+
 void Board::placePiece(Piece piece, Square sq)
 {
     hashKey ^= updateKeyPiece(piece, sq);
@@ -672,6 +692,12 @@ std::string uciMove(Move move)
     std::stringstream ss;
 
     // Add the from and to squares to the string stream
+    if (move.moving_piece == KING && Board::squareDistance(move.to_sq, move.from_sq) >= 2)
+    {
+        move.to_sq =
+            Board::fileRankSquare(move.to_sq > move.from_sq ? FILE_G : FILE_C, Board::squareRank(move.from_sq));
+    }
+
     ss << squareToString[move.from_sq];
     ss << squareToString[move.to_sq];
 
@@ -693,19 +719,26 @@ Square extractSquare(std::string_view squareStr)
     return Square(index);
 }
 
-Move convertUciToMove(const std::string &input)
+Move convertUciToMove(const Board &board, const std::string &input)
 {
     const Square source = extractSquare(input.substr(0, 2));
-    const Square target = extractSquare(input.substr(2, 2));
+    Square target = extractSquare(input.substr(2, 2));
+
+    if (!board.chess960 && Board::typeOfPiece(board.pieceAt(source)) == KING &&
+        Board::squareDistance(target, source) == 2)
+    {
+        target = Board::fileRankSquare(target > source ? FILE_H : FILE_A, Board::squareRank(source));
+    }
+
     switch (input.length())
     {
     case 4:
-        return Move(source, target, NONETYPE);
+        return Move(source, target, Board::typeOfPiece(board.pieceAt(source)), NONETYPE);
     case 5:
-        return Move(source, target, charToPieceType[input.at(4)]);
+        return Move(source, target, Board::typeOfPiece(board.pieceAt(source)), charToPieceType[input.at(4)]);
     default:
         throw std::runtime_error("Cant parse move" + input);
-        return Move(NO_SQ, NO_SQ, NONETYPE);
+        return Move(NO_SQ, NO_SQ, NONETYPE, NONETYPE);
     }
 }
 
@@ -714,11 +747,13 @@ std::string MoveToSan(Board &b, Move move)
     static const std::string sanPieceType[] = {"", "N", "B", "R", "Q", "K"};
     static const std::string sanFile[] = {"a", "b", "c", "d", "e", "f", "g", "h"};
 
-    const PieceType pt = Board::typeOfPiece(b.pieceAt(move.from_sq));
+    const PieceType pt = move.moving_piece;
 
     assert(b.pieceAt(move.from_sq) != NONE);
+    assert(pt == Board::typeOfPiece(b.pieceAt(move.from_sq)));
 
-    if (pt == KING && std::abs(move.from_sq - move.to_sq) == 2)
+    if ((Board::make_piece(pt, b.sideToMove) == WHITEKING && b.pieceAt(move.to_sq) == WHITEROOK) ||
+        (Board::make_piece(pt, b.sideToMove) == BLACKKING && b.pieceAt(move.to_sq) == BLACKROOK))
     {
         if (Board::squareFile(move.to_sq) < Board::squareFile(move.from_sq))
             return "O-O-O";

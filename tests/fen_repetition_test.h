@@ -22,7 +22,7 @@ inline bool testFenRepetition(const std::string &input)
         index++;
         for (; index < tokens.size(); index++)
         {
-            Move move = convertUciToMove(tokens[index]);
+            Move move = convertUciToMove(board, tokens[index]);
             board.makeMove(move);
         }
     }

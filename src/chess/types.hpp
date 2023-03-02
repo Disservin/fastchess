@@ -25,11 +25,11 @@ enum Piece
     BLACKBISHOP,
     BLACKROOK,
     BLACKQUEEN,
-    BLACKING,
+    BLACKKING,
     NONE
 };
 
-enum PieceType
+enum PieceType : uint8_t
 {
     PAWN,
     KNIGHT,
@@ -41,7 +41,7 @@ enum PieceType
 };
 
 // clang-format off
-enum Square
+enum Square : uint8_t
 {
 	SQ_A1, SQ_B1, SQ_C1, SQ_D1, SQ_E1, SQ_F1, SQ_G1, SQ_H1,
 	SQ_A2, SQ_B2, SQ_C2, SQ_D2, SQ_E2, SQ_F2, SQ_G2, SQ_H2,
@@ -124,7 +124,7 @@ static std::unordered_map<char, Piece> charToPiece({{'P', WHITEPAWN},
                                                     {'b', BLACKBISHOP},
                                                     {'r', BLACKROOK},
                                                     {'q', BLACKQUEEN},
-                                                    {'k', BLACKING},
+                                                    {'k', BLACKKING},
                                                     {'.', NONE}});
 
 static std::unordered_map<Piece, char> pieceToChar({{WHITEPAWN, 'P'},
@@ -138,7 +138,7 @@ static std::unordered_map<Piece, char> pieceToChar({{WHITEPAWN, 'P'},
                                                     {BLACKBISHOP, 'b'},
                                                     {BLACKROOK, 'r'},
                                                     {BLACKQUEEN, 'q'},
-                                                    {BLACKING, 'k'},
+                                                    {BLACKKING, 'k'},
                                                     {NONE, '.'}});
 
 static std::unordered_map<char, PieceType> charToPieceType(

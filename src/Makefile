@@ -15,12 +15,6 @@ else
 endif
 endif
 
-# Different native flag for macOS
-ifeq ($(uname_S), Darwin)
-	NATIVE = -mcpu=apple-a14	
-	LDFLAGS = 
-endif
-
 ifeq ($(build), debug)
 	CXXFLAGS := -g3 -O3 -std=c++17 -Wall -Wextra -pedantic
 endif
@@ -29,6 +23,12 @@ ifeq ($(build), release)
 	CXXFLAGS := -O3 -std=c++17 -Wall -Wextra -pedantic -DNDEBUG
 	LDFLAGS = -lpthread -static -static-libgcc -static-libstdc++ -Wl,--no-as-needed
 	NATIVE = -march=x86-64
+endif
+
+# Different native flag for macOS
+ifeq ($(uname_S), Darwin)
+	NATIVE = -mcpu=apple-a14	
+	LDFLAGS = -lpthread -static
 endif
 
 # Versioning

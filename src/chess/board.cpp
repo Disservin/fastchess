@@ -174,7 +174,7 @@ bool Board::makeMove(Move move)
     const Square from_sq = move.from_sq;
     const Square to_sq = move.to_sq;
     const Piece p = pieceAt(from_sq);
-    const PieceType pt = move.moving_piece;
+    const PieceType pt = typeOfPiece(p);
     const Piece capture = pieceAt(move.to_sq);
 
     assert(from_sq >= 0 && from_sq < 64);
@@ -289,10 +289,10 @@ void Board::unmakeMove(Move move)
 
     fullMoveNumber--;
 
-    const PieceType pt = move.moving_piece;
-    const Piece capture = restore.capturedPiece;
     const Square from_sq = move.from_sq;
     const Square to_sq = move.to_sq;
+    const Piece capture = restore.capturedPiece;
+    const PieceType pt = typeOfPiece(pieceAt(to_sq));
 
     sideToMove = ~sideToMove;
 

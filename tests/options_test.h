@@ -78,7 +78,7 @@ TEST_CASE("Testing Cli options parsing")
                           "plies=16",
                           "-pgnout",
                           "file=PGNs/Alexandria-EA649FED_vs_Alexandria-27E42728"};
-    CMD::Options options = CMD::Options(14, argv);
+    CMD::Options options = CMD::Options(19, argv);
     auto gameOptions = options.getGameOptions();
 
     // Test proper cli settings

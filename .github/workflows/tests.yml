@@ -7,6 +7,9 @@ on:
     branches: [ "master" ]
 
 jobs:
+  Binaries:
+    if: github.ref == 'refs/heads/master'
+    uses: ./.github/workflows/binaries.yml
   FastChess:
     name: ${{matrix.config.name}}
     runs-on: ${{matrix.config.os}}

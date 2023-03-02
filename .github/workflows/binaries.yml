@@ -67,11 +67,10 @@ jobs:
       # Compiles
       
       - name: Building Fast-Chess
-        if: runner.os != 'Macos'
         run: |
           make -j build=release
           strip ./fast-chess$EXT
-          mv ./fast-chess$EXT ../fast-chess$EXT
+          mv ./fast-chess$OS$EXT ../fast-chess$OS$EXT
 
       - name: Find and remove empty files
         run: rm -rf *.o *.d sha

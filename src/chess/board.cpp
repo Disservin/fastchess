@@ -174,7 +174,7 @@ bool Board::makeMove(Move move)
     const Square from_sq = move.from_sq;
     const Square to_sq = move.to_sq;
     const Piece p = pieceAt(from_sq);
-    const PieceType pt = typeOfPiece(p);
+    const PieceType pt = move.moving_piece;
     const Piece capture = pieceAt(move.to_sq);
 
     assert(from_sq >= 0 && from_sq < 64);
@@ -292,7 +292,7 @@ void Board::unmakeMove(Move move)
     const Square from_sq = move.from_sq;
     const Square to_sq = move.to_sq;
     const Piece capture = restore.capturedPiece;
-    const PieceType pt = typeOfPiece(pieceAt(to_sq));
+    const PieceType pt = move.moving_piece;
 
     sideToMove = ~sideToMove;
 
@@ -317,7 +317,7 @@ void Board::unmakeMove(Move move)
     }
     else if (promotion)
     {
-        removePiece(p, to_sq);
+        removePiece(pieceAt(to_sq), to_sq);
         placePiece(make_piece(PAWN, sideToMove), from_sq);
         if (capture != NONE)
             placePiece(capture, to_sq);

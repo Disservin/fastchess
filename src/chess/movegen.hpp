@@ -516,23 +516,23 @@ template <Color c> Bitboard LegalKingMovesCastling(const Board &board, Square sq
 			if (board.castlingRights & WK
 				&& emptyAndNotAttacked & (1ULL << SQ_F1)
 				&& emptyAndNotAttacked & (1ull << SQ_G1))
-				moves |= (1ULL << SQ_G1);
+				moves |= (1ULL << SQ_H1);
 			if (board.castlingRights & WQ
 				&& emptyAndNotAttacked & (1ULL << SQ_D1)
 				&& emptyAndNotAttacked & (1ull << SQ_C1)
 				&& (1ull << SQ_B1) & ~_occAll)
-				moves |= (1ULL << SQ_C1);
+				moves |= (1ULL << SQ_A1);
 			break;
 		case BLACK:
 			if (board.castlingRights & BK
 				&& emptyAndNotAttacked & (1ULL << SQ_F8)
 				&& emptyAndNotAttacked & (1ull << SQ_G8))
-				moves |= (1ULL << SQ_G8);
+				moves |= (1ULL << SQ_H8);
 			if (board.castlingRights & BQ
 				&& emptyAndNotAttacked & (1ULL << SQ_D8)
 				&& emptyAndNotAttacked & (1ull << SQ_C8)
 				&& (1ull << SQ_B8) & ~_occAll)
-				moves |= (1ULL << SQ_C8);
+				moves |= (1ULL << SQ_A8);
 
 			break;
 		default:

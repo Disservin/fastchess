@@ -25,7 +25,7 @@ enum Piece
     BLACKBISHOP,
     BLACKROOK,
     BLACKQUEEN,
-    BLACKING,
+    BLACKKING,
     NONE
 };
 
@@ -124,7 +124,7 @@ static std::unordered_map<char, Piece> charToPiece({{'P', WHITEPAWN},
                                                     {'b', BLACKBISHOP},
                                                     {'r', BLACKROOK},
                                                     {'q', BLACKQUEEN},
-                                                    {'k', BLACKING},
+                                                    {'k', BLACKKING},
                                                     {'.', NONE}});
 
 static std::unordered_map<Piece, char> pieceToChar({{WHITEPAWN, 'P'},
@@ -138,7 +138,7 @@ static std::unordered_map<Piece, char> pieceToChar({{WHITEPAWN, 'P'},
                                                     {BLACKBISHOP, 'b'},
                                                     {BLACKROOK, 'r'},
                                                     {BLACKQUEEN, 'q'},
-                                                    {BLACKING, 'k'},
+                                                    {BLACKKING, 'k'},
                                                     {NONE, '.'}});
 
 static std::unordered_map<char, PieceType> charToPieceType(

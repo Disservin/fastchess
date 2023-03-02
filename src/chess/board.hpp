@@ -101,7 +101,12 @@ class Board
     static uint8_t anti_diagonalOf(Square sq);
 
     static bool sameColor(int sq1, int sq2);
+
     static Color colorOf(Piece p);
+
+    Color colorOf(Square loc) const;
+
+    static uint8_t squareDistance(Square a, Square b);
 
     friend std::ostream &operator<<(std::ostream &os, const Board &b);
 

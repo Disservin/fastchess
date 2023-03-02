@@ -266,7 +266,7 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int roundId
     match.startTime = saveTimeHeader ? getDateTime() : "";
     match.board = board;
 
-    std::string positionInput = openingFen == STARTPOS ? "position startpos" : "position fen " + openingFen;
+    std::string positionInput = board.getFen() == STARTPOS ? "position startpos" : "position fen " + board.getFen();
 
     auto timeLeft_1 = engine1.getConfig().tc;
     auto timeLeft_2 = engine2.getConfig().tc;

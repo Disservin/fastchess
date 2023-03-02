@@ -96,8 +96,10 @@ template <Color c> Bitboard DoCheckmask(const Board &board, Square sq)
     Bitboard checks = 0ULL;
     const Bitboard pawn_mask = board.pieces<PAWN, ~c>() & PawnAttacks(sq, c);
     const Bitboard knight_mask = board.pieces<KNIGHT, ~c>() & KnightAttacks(sq);
-    const Bitboard bishop_mask = (board.pieces<BISHOP, ~c>() | board.pieces<QUEEN, ~c>()) & BishopAttacks(sq, Occ);
-    const Bitboard rook_mask = (board.pieces<ROOK, ~c>() | board.pieces<QUEEN, ~c>()) & RookAttacks(sq, Occ);
+    const Bitboard bishop_mask =
+        (board.pieces<BISHOP, ~c>() | board.pieces<QUEEN, ~c>()) & BishopAttacks(sq, Occ);
+    const Bitboard rook_mask =
+        (board.pieces<ROOK, ~c>() | board.pieces<QUEEN, ~c>()) & RookAttacks(sq, Occ);
 
     /********************
      * We keep track of the amount of checks, in case there are
@@ -162,7 +164,8 @@ template <Color c> Bitboard DoCheckmask(const Board &board, Square sq)
  *******************/
 template <Color c> Bitboard DoPinMaskRooks(const Board &board, Square sq)
 {
-    Bitboard rook_mask = (board.pieces<ROOK, ~c>() | board.pieces<QUEEN, ~c>()) & RookAttacks(sq, _occEnemy);
+    Bitboard rook_mask =
+        (board.pieces<ROOK, ~c>() | board.pieces<QUEEN, ~c>()) & RookAttacks(sq, _occEnemy);
 
     Bitboard pinHV = 0ULL;
     while (rook_mask)
@@ -177,7 +180,8 @@ template <Color c> Bitboard DoPinMaskRooks(const Board &board, Square sq)
 
 template <Color c> Bitboard DoPinMaskBishops(const Board &board, Square sq)
 {
-    Bitboard bishop_mask = (board.pieces<BISHOP, ~c>() | board.pieces<QUEEN, ~c>()) & BishopAttacks(sq, _occEnemy);
+    Bitboard bishop_mask =
+        (board.pieces<BISHOP, ~c>() | board.pieces<QUEEN, ~c>()) & BishopAttacks(sq, _occEnemy);
 
     Bitboard pinD = 0ULL;
 
@@ -301,8 +305,10 @@ template <Color c> void LegalPawnMovesAll(const Board &board, Movelist &movelist
     const Bitboard unpinnedpawnsLR = pawnsLR & ~_pinD;
     const Bitboard pinnedpawnsLR = pawnsLR & _pinD;
 
-    Bitboard Lpawns = (pawnLeftAttacks<c>(unpinnedpawnsLR)) | (pawnLeftAttacks<c>(pinnedpawnsLR) & _pinD);
-    Bitboard Rpawns = (pawnRightAttacks<c>(unpinnedpawnsLR)) | (pawnRightAttacks<c>(pinnedpawnsLR) & _pinD);
+    Bitboard Lpawns =
+        (pawnLeftAttacks<c>(unpinnedpawnsLR)) | (pawnLeftAttacks<c>(pinnedpawnsLR) & _pinD);
+    Bitboard Rpawns =
+        (pawnRightAttacks<c>(unpinnedpawnsLR)) | (pawnRightAttacks<c>(pinnedpawnsLR) & _pinD);
 
     // Prune moves that dont capture a piece and are not on the checkmask.
     Lpawns &= _occEnemy & _checkMask;
@@ -454,7 +460,8 @@ template <Color c> void LegalPawnMovesAll(const Board &board, Movelist &movelist
              * that would give check if the two pawns were removed.
              * If thats the case then the move is illegal and we can break immediately.
              *******************/
-            if (isPossiblePin && (RookAttacks(kSQ, _occAll & ~connectingPawns) & enemyQueenRook) != 0)
+            if (isPossiblePin &&
+                (RookAttacks(kSQ, _occAll & ~connectingPawns) & enemyQueenRook) != 0)
                 break;
 
             movelist.Add({from, to, PAWN, NONETYPE});

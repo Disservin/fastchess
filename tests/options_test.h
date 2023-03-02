@@ -97,5 +97,6 @@ TEST_CASE("Testing Cli options parsing")
     // CHECK(options.gameOptions.OpeningOptions.order == "random");
     // CHECK(options.gameOptions.OpeningOptions.plies == 16);
     //  Test pgn settings parsing
-    // CHECK(options.gameOptions.PgnOptions.file == "PGNs/Alexandria-EA649FED_vs_Alexandria-27E42728");
+    // CHECK(options.gameOptions.PgnOptions.file ==
+    // "PGNs/Alexandria-EA649FED_vs_Alexandria-27E42728");
 }

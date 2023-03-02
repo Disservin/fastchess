@@ -32,12 +32,14 @@ TEST_CASE("Test Tournament")
 
     tour.startTournament({engine, engine_2});
 
-    std::string pgn =
-        "[Event \"\"]\n[Site \"?\"]\n[Date \"\"]\n[Round \"1\"]\n[White \"engine\"]\n[Black \"engine_2\"]\n[Result "
-        "\"0-1\"]\n[FEN "
-        "\"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1\"]\n[GameDuration \"\"]\n[GameEndTime "
-        "\"\"]\n[GameStartTime \"\"]\n[PlyCount \"4\"]\n[TimeControl \"0\"]\n\n1. f3 {0.00/0 0ms} e5 {0.00/0 0ms} 2. "
-        "g4 {0.00/0 0ms} Qh4# {0.00/0 0ms}  0-1\n";
+    std::string pgn = "[Event \"\"]\n[Site \"?\"]\n[Date \"\"]\n[Round \"1\"]\n[White "
+                      "\"engine\"]\n[Black \"engine_2\"]\n[Result "
+                      "\"0-1\"]\n[FEN "
+                      "\"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 "
+                      "1\"]\n[GameDuration \"\"]\n[GameEndTime "
+                      "\"\"]\n[GameStartTime \"\"]\n[PlyCount \"4\"]\n[TimeControl \"0\"]\n\n1. f3 "
+                      "{0.00/0 0ms} e5 {0.00/0 0ms} 2. "
+                      "g4 {0.00/0 0ms} Qh4# {0.00/0 0ms}  0-1\n";
 
     CHECK(tour.getPGNS()[0] == pgn);
 }

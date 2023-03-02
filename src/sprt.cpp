@@ -57,8 +57,8 @@ SPRTResult SPRT::getResult(double llr) const
 std::string SPRT::getBounds() const
 {
     std::stringstream ss;
-    ss << "[" << std::fixed << std::setprecision(2) << lower << " ; " << std::fixed << std::setprecision(2) << upper
-       << "]";
+    ss << "[" << std::fixed << std::setprecision(2) << lower << " ; " << std::fixed
+       << std::setprecision(2) << upper << "]";
     return ss.str();
 }
 

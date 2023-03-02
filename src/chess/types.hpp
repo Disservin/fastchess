@@ -141,26 +141,34 @@ static std::unordered_map<Piece, char> pieceToChar({{WHITEPAWN, 'P'},
                                                     {BLACKKING, 'k'},
                                                     {NONE, '.'}});
 
-static std::unordered_map<char, PieceType> charToPieceType(
-    {{'n', KNIGHT}, {'b', BISHOP}, {'r', ROOK}, {'q', QUEEN}, {'N', KNIGHT}, {'B', BISHOP}, {'R', ROOK}, {'Q', QUEEN}});
+static std::unordered_map<char, PieceType> charToPieceType({{'n', KNIGHT},
+                                                            {'b', BISHOP},
+                                                            {'r', ROOK},
+                                                            {'q', QUEEN},
+                                                            {'N', KNIGHT},
+                                                            {'B', BISHOP},
+                                                            {'R', ROOK},
+                                                            {'Q', QUEEN}});
 
 static std::unordered_map<PieceType, char> PieceTypeToPromPiece(
     {{KNIGHT, 'n'}, {BISHOP, 'b'}, {ROOK, 'r'}, {QUEEN, 'q'}});
 
-static std::unordered_map<Square, CastlingRight> castlingMapRook({{SQ_A1, WQ}, {SQ_H1, WK}, {SQ_A8, BQ}, {SQ_H8, BK}});
+static std::unordered_map<Square, CastlingRight> castlingMapRook(
+    {{SQ_A1, WQ}, {SQ_H1, WK}, {SQ_A8, BQ}, {SQ_H8, BK}});
 
-static std::unordered_map<char, CastlingRight> readCastleString({{'K', WK}, {'k', BK}, {'Q', WQ}, {'q', BQ}});
+static std::unordered_map<char, CastlingRight> readCastleString(
+    {{'K', WK}, {'k', BK}, {'Q', WQ}, {'q', BQ}});
 
-#define INCR_OP_ON(T)                                                                                                  \
-    constexpr inline T &operator++(T &p)                                                                               \
-    {                                                                                                                  \
-        return p = static_cast<T>(static_cast<int>(p) + 1);                                                            \
-    }                                                                                                                  \
-    constexpr inline T operator++(T &p, int)                                                                           \
-    {                                                                                                                  \
-        auto old = p;                                                                                                  \
-        ++p;                                                                                                           \
-        return old;                                                                                                    \
+#define INCR_OP_ON(T)                                                                              \
+    constexpr inline T &operator++(T &p)                                                           \
+    {                                                                                              \
+        return p = static_cast<T>(static_cast<int>(p) + 1);                                        \
+    }                                                                                              \
+    constexpr inline T operator++(T &p, int)                                                       \
+    {                                                                                              \
+        auto old = p;                                                                              \
+        ++p;                                                                                       \
+        return old;                                                                                \
     }
 
 INCR_OP_ON(Square)
@@ -173,22 +181,22 @@ INCR_OP_ON(Rank)
 
 #undef INCR_OP_ON
 
-#define BASE_OP_ON(N, T)                                                                                               \
-    inline constexpr N operator+(N s, T d)                                                                             \
-    {                                                                                                                  \
-        return N(int(s) + int(d));                                                                                     \
-    }                                                                                                                  \
-    inline constexpr N operator-(N s, T d)                                                                             \
-    {                                                                                                                  \
-        return N(int(s) - int(d));                                                                                     \
-    }                                                                                                                  \
-    inline constexpr N &operator+=(N &s, T d)                                                                          \
-    {                                                                                                                  \
-        return s = s + d;                                                                                              \
-    }                                                                                                                  \
-    inline constexpr N &operator-=(N &s, T d)                                                                          \
-    {                                                                                                                  \
-        return s = s - d;                                                                                              \
+#define BASE_OP_ON(N, T)                                                                           \
+    inline constexpr N operator+(N s, T d)                                                         \
+    {                                                                                              \
+        return N(int(s) + int(d));                                                                 \
+    }                                                                                              \
+    inline constexpr N operator-(N s, T d)                                                         \
+    {                                                                                              \
+        return N(int(s) - int(d));                                                                 \
+    }                                                                                              \
+    inline constexpr N &operator+=(N &s, T d)                                                      \
+    {                                                                                              \
+        return s = s + d;                                                                          \
+    }                                                                                              \
+    inline constexpr N &operator-=(N &s, T d)                                                      \
+    {                                                                                              \
+        return s = s - d;                                                                          \
     }
 
 BASE_OP_ON(Square, Direction)
@@ -211,5 +219,6 @@ static constexpr Bitboard MASK_FILE[8] = {
 };
 
 // rank masks
-static constexpr Bitboard MASK_RANK[8] = {0xff,         0xff00,         0xff0000,         0xff000000,
-                                          0xff00000000, 0xff0000000000, 0xff000000000000, 0xff00000000000000};
+static constexpr Bitboard MASK_RANK[8] = {
+    0xff,         0xff00,         0xff0000,         0xff000000,
+    0xff00000000, 0xff0000000000, 0xff000000000000, 0xff00000000000000};

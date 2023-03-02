@@ -78,7 +78,8 @@ bool Options::isEngineSettableOption(const std::string &stringFormat) const
     return false;
 }
 
-void Options::parseEngineParams(int &i, int argc, char const *argv[], EngineConfiguration &engineParams)
+void Options::parseEngineParams(int &i, int argc, char const *argv[],
+                                EngineConfiguration &engineParams)
 {
     i++;
     std::vector<std::pair<std::string, std::string>> engine_settable_options;
@@ -213,7 +214,8 @@ void Options::parseLog(int &i, int argc, const char *argv[])
     }
 }
 
-template <typename T> void Options::parseOption(int &i, int argc, const char *argv[], T &optionValue)
+template <typename T>
+void Options::parseOption(int &i, int argc, const char *argv[], T &optionValue)
 {
     i++;
     if (i < argc && argv[i][0] != '-')
@@ -271,7 +273,8 @@ void Options::parseEachOptions(int &i, int argc, char const *argv[])
             }
             else
             {
-                std::cout << "\nUnrecognized each option: " << key << " parsing failed." << std::endl;
+                std::cout << "\nUnrecognized each option: " << key << " parsing failed."
+                          << std::endl;
             }
         }
 
@@ -311,8 +314,8 @@ void Options::parseSprt(int &i, int argc, char const *argv[])
         }
         else
         {
-            std::cout << "\nUnrecognized sprt option: " << key << " with value " << value << " parsing failed."
-                      << std::endl;
+            std::cout << "\nUnrecognized sprt option: " << key << " with value " << value
+                      << " parsing failed." << std::endl;
         }
 
         i++;
@@ -346,8 +349,8 @@ void Options::parseDrawOptions(int &i, int argc, char const *argv[])
         }
         else
         {
-            std::cout << "\nUnrecognized draw option: " << key << " with value " << value << " parsing failed."
-                      << std::endl;
+            std::cout << "\nUnrecognized draw option: " << key << " with value " << value
+                      << " parsing failed." << std::endl;
         }
 
         i++;
@@ -378,8 +381,8 @@ void Options::parseResignOptions(int &i, int argc, char const *argv[])
         }
         else
         {
-            std::cout << "\nUnrecognized resign option: " << key << " with value " << value << " parsing failed."
-                      << std::endl;
+            std::cout << "\nUnrecognized resign option: " << key << " with value " << value
+                      << " parsing failed." << std::endl;
         }
 
         i++;
@@ -421,8 +424,8 @@ void Options::parseOpeningOptions(int &i, int argc, char const *argv[])
         }
         else
         {
-            std::cout << "\nUnrecognized opening option: " << key << " with value " << value << " parsing failed."
-                      << std::endl;
+            std::cout << "\nUnrecognized opening option: " << key << " with value " << value
+                      << " parsing failed." << std::endl;
             return;
         }
         i++;
@@ -451,8 +454,8 @@ void Options::parsePgnOptions(int &i, int argc, char const *argv[])
         }
         else
         {
-            std::cout << "\nUnrecognized pgn option: " << key << " with value " << value << " parsing failed."
-                      << std::endl;
+            std::cout << "\nUnrecognized pgn option: " << key << " with value " << value
+                      << " parsing failed." << std::endl;
             return;
         }
         i++;

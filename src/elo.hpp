@@ -14,7 +14,7 @@ class Elo
     double phiInv(double p);
 
     double getDiff(double percentage);
-    
+
     double getDiff(int wins, int losses, int draws);
 
     double getError(int wins, int losses, int draws);

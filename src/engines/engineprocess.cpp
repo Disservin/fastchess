@@ -35,7 +35,8 @@ void EngineProcess::initProcess(const std::string &command)
     SetHandleInformation(childStdInWr, HANDLE_FLAG_INHERIT, 0);
     si.hStdInput = childStdInRd;
 
-    CreateProcessA(nullptr, const_cast<char *>(command.c_str()), nullptr, nullptr, TRUE, 0, nullptr, nullptr, &si, &pi);
+    CreateProcessA(nullptr, const_cast<char *>(command.c_str()), nullptr, nullptr, TRUE, 0, nullptr,
+                   nullptr, &si, &pi);
 
     CloseHandle(childStdOutWr);
     CloseHandle(childStdInRd);
@@ -66,7 +67,8 @@ EngineProcess::~EngineProcess()
     killProcess();
 }
 
-std::vector<std::string> EngineProcess::readProcess(std::string_view last_word, bool &timeout, int64_t timeoutThreshold)
+std::vector<std::string> EngineProcess::readProcess(std::string_view last_word, bool &timeout,
+                                                    int64_t timeoutThreshold)
 {
     assert(isInitalized);
 
@@ -92,20 +94,21 @@ std::vector<std::string> EngineProcess::readProcess(std::string_view last_word, 
         // Check if timeout milliseconds have elapsed
         if (checkTime-- == 0)
         {
-            /* To achieve "non blocking" file reading on windows with anonymous pipes the only solution
-            that I found was using peeknamedpipe however it turns out this function is terribly slow and leads to
-            timeouts for the engines. Checking this only after n runs seems to reduce the impact of this.
-            For high concurrency windows setups timeoutThreshold should probably be 0. Using
-            the assumption that the engine works rather clean and is able to send the last word.*/
+            /* To achieve "non blocking" file reading on windows with anonymous pipes the only
+            solution that I found was using peeknamedpipe however it turns out this function is
+            terribly slow and leads to timeouts for the engines. Checking this only after n runs
+            seems to reduce the impact of this. For high concurrency windows setups timeoutThreshold
+            should probably be 0. Using the assumption that the engine works rather clean and is
+            able to send the last word.*/
             if (!PeekNamedPipe(childStdOut, NULL, 0, 0, &bytesAvail, nullptr))
             {
                 errCode = 1;
                 errStr = "Cant peek pipe.";
             }
 
-            if (timeoutThreshold > 0 &&
-                std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - start)
-                        .count() > timeoutThreshold)
+            if (timeoutThreshold > 0 && std::chrono::duration_cast<std::chrono::milliseconds>(
+                                            std::chrono::high_resolution_clock::now() - start)
+                                                .count() > timeoutThreshold)
             {
                 lines.emplace_back(currentLine);
                 timeout = true;
@@ -128,8 +131,8 @@ std::vector<std::string> EngineProcess::readProcess(std::string_view last_word, 
         // Iterate over each character in the buffer
         for (DWORD i = 0; i < bytesRead; i++)
         {
-            // If we encounter a newline, add the current line to the vector and reset the currentLine
-            // on windows newlines are \r\n
+            // If we encounter a newline, add the current line to the vector and reset the
+            // currentLine on windows newlines are \r\n
             if (buffer[i] == '\n' || buffer[i] == '\r')
             {
                 // dont add empty lines
@@ -329,7 +332,8 @@ void EngineProcess::writeProcess(const std::string &input)
         errStr = ss.str();
     }
 }
-std::vector<std::string> EngineProcess::readProcess(std::string_view last_word, bool &timeout, int64_t timeoutThreshold)
+std::vector<std::string> EngineProcess::readProcess(std::string_view last_word, bool &timeout,
+                                                    int64_t timeoutThreshold)
 {
     assert(isInitalized);
 
@@ -388,7 +392,8 @@ std::vector<std::string> EngineProcess::readProcess(std::string_view last_word, 
             // Iterate over each character in the buffer
             for (int i = 0; i < bytesRead; i++)
             {
-                // If we encounter a newline, add the current line to the vector and reset the currentLine
+                // If we encounter a newline, add the current line to the vector and reset the
+                // currentLine
                 if (buffer[i] == '\n')
                 {
                     // dont add empty lines

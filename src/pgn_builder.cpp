@@ -31,7 +31,8 @@ PgnBuilder::PgnBuilder(const Match &match, const CMD::GameManagerOptions &gameOp
 
     if (!match.legal)
     {
-        illegalMove << ", other side makes an illegal move: " << match.moves[match.moves.size() - 1].move;
+        illegalMove << ", other side makes an illegal move: "
+                    << match.moves[match.moves.size() - 1].move;
     }
 
     Board b = match.board;
@@ -60,12 +61,14 @@ PgnBuilder::PgnBuilder(const Match &match, const CMD::GameManagerOptions &gameOp
 
         if (moveCount % 2 != 0)
             ss << moveCount / 2 << "."
-               << " " << MoveToSan(b, convertUciToMove(b, data.move)) << " {" << data.scoreString << "/" << data.depth
-               << nodesString.str() << " " << timeString.str() << illegalMove.str() << "}";
+               << " " << MoveToSan(b, convertUciToMove(b, data.move)) << " {" << data.scoreString
+               << "/" << data.depth << nodesString.str() << " " << timeString.str()
+               << illegalMove.str() << "}";
         else
         {
-            ss << " " << MoveToSan(b, convertUciToMove(b, data.move)) << " {" << data.scoreString << "/" << data.depth
-               << nodesString.str() << " " << timeString.str() << illegalMove.str() << "}";
+            ss << " " << MoveToSan(b, convertUciToMove(b, data.move)) << " {" << data.scoreString
+               << "/" << data.depth << nodesString.str() << " " << timeString.str()
+               << illegalMove.str() << "}";
             if (i != match.moves.size() - 1 && i % 7 == 0)
                 ss << "\n";
             else

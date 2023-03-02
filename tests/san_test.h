@@ -117,7 +117,7 @@ TEST_CASE("Test King Castling Short move")
     Board b;
     b.loadFen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQK2R w KQkq - 0 17");
 
-    Move m = {SQ_E1, SQ_G1, KING, NONETYPE};
+    Move m = {SQ_E1, SQ_H1, KING, NONETYPE};
 
     CHECK(MoveToSan(b, m) == "O-O");
 }
@@ -127,7 +127,7 @@ TEST_CASE("Test King Castling Short move")
     Board b;
     b.loadFen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/R3K2R w KQkq - 0 1");
 
-    Move m = {SQ_E1, SQ_C1, KING, NONETYPE};
+    Move m = {SQ_E1, SQ_A1, KING, NONETYPE};
 
     CHECK(MoveToSan(b, m) == "O-O-O");
 }

@@ -750,8 +750,8 @@ std::string MoveToSan(Board &b, Move move)
 
     assert(b.pieceAt(move.from_sq) != NONE);
 
-    if ((pt == WHITEKING && b.pieceAt(move.to_sq) == WHITEROOK) ||
-        (pt == BLACKKING && b.pieceAt(move.to_sq) == BLACKROOK))
+    if ((Board::make_piece(pt, b.sideToMove) == WHITEKING && b.pieceAt(move.to_sq) == WHITEROOK) ||
+        (Board::make_piece(pt, b.sideToMove) == BLACKKING && b.pieceAt(move.to_sq) == BLACKROOK))
     {
         if (Board::squareFile(move.to_sq) < Board::squareFile(move.from_sq))
             return "O-O-O";

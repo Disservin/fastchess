@@ -41,9 +41,9 @@ TEST_CASE("Testing Engine options parsing")
     CHECK(config0.tc.increment == 0);
     CHECK(config0.nodes == 0);
     CHECK(config0.plies == 0);
-    CHECK(config0.options.at(0).first == "option.Threads");
+    CHECK(config0.options.at(0).first == "Threads");
     CHECK(config0.options.at(0).second == "1");
-    CHECK(config0.options.at(1).first == "option.Hash");
+    CHECK(config0.options.at(1).first == "Hash");
     CHECK(config0.options.at(1).second == "16");
     CHECK(config1.name == "Alexandria-27E42728");
     CHECK(config1.tc.moves == 40);
@@ -51,9 +51,9 @@ TEST_CASE("Testing Engine options parsing")
     CHECK(config1.tc.increment == 0);
     CHECK(config1.nodes == 0);
     CHECK(config1.plies == 0);
-    CHECK(config1.options.at(0).first == "option.Threads");
+    CHECK(config1.options.at(0).first == "Threads");
     CHECK(config1.options.at(0).second == "1");
-    CHECK(config1.options.at(1).first == "option.Hash");
+    CHECK(config1.options.at(1).first == "Hash");
     CHECK(config1.options.at(1).second == "32");
 }
 

@@ -114,7 +114,10 @@ void Options::parseEngineParams(int &i, int argc, char const *argv[], EngineConf
         }
         else if (isEngineSettableOption(key))
         {
-            engine_settable_options.push_back(std::make_pair(key, value));
+            // Strip option.Name of the option. Part
+            const size_t pos = key.find('.');
+            const std::string strippedKey = key.substr(pos + 1);
+            engine_settable_options.push_back(std::make_pair(strippedKey, value));
         }
         else
         {

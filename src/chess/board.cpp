@@ -749,6 +749,7 @@ std::string MoveToSan(Board &b, Move move)
     const PieceType pt = move.moving_piece;
 
     assert(b.pieceAt(move.from_sq) != NONE);
+    assert(pt == Board::typeOfPiece(b.pieceAt(move.from_sq)));
 
     if ((Board::make_piece(pt, b.sideToMove) == WHITEKING && b.pieceAt(move.to_sq) == WHITEROOK) ||
         (Board::make_piece(pt, b.sideToMove) == BLACKKING && b.pieceAt(move.to_sq) == BLACKROOK))

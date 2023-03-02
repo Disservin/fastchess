@@ -72,12 +72,12 @@ TEST_CASE("Test Knight move")
     CHECK(MoveToSan(b, m) == "Ng5");
 }
 
-TEST_CASE("Test Bishop move")
+TEST_CASE("Test King move")
 {
     Board b;
     b.loadFen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/R3K2R w KQkq - 0 1");
 
-    Move m = {SQ_E1, SQ_F1, BISHOP, NONETYPE};
+    Move m = {SQ_E1, SQ_F1, KING, NONETYPE};
 
     CHECK(MoveToSan(b, m) == "Kf1");
 }

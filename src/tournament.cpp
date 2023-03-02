@@ -81,8 +81,8 @@ void Tournament::printElo()
     Elo elo(wins, losses, draws);
 
     std::stringstream ss;
-    // clang-format off
 
+    // clang-format off
     ss << "---------------------------\n"
        << "Result of " << engineNames[0] << " vs " << engineNames[1]
        << ": " << wins << " - " << losses << " - " << draws
@@ -223,7 +223,7 @@ void Tournament::playNextMove(UciEngine &engine, std::string &positionInput, Boa
     }
 
     // Update Trackers
-    updateTrackers(drawTracker, resignTracker, match.moves.back().score);
+    updateTrackers(drawTracker, resignTracker, match.moves.back().score, match.moves.size());
 
     // Check for game over
     res = board.isGameOver();
@@ -244,8 +244,8 @@ void Tournament::playNextMove(UciEngine &engine, std::string &positionInput, Boa
 Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int roundId, std::string openingFen)
 {
     GameResult res = GameResult::NONE;
-    ResignAdjTracker resignTracker = {};
-    DrawAdjTracker drawTracker = {};
+    ResignAdjTracker resignTracker = ResignAdjTracker(matchConfig.resign.score, 0);
+    DrawAdjTracker drawTracker = DrawAdjTracker(matchConfig.draw.score, 0);
     Match match = {};
 
     Board board = {};
@@ -591,10 +591,11 @@ std::string Tournament::formatDuration(std::chrono::seconds duration)
     return ss.str();
 }
 
-void Tournament::updateTrackers(DrawAdjTracker &drawTracker, ResignAdjTracker &resignTracker, const Score moveScore)
+void Tournament::updateTrackers(DrawAdjTracker &drawTracker, ResignAdjTracker &resignTracker, const Score moveScore,
+                                const int moveNumber)
 {
     // Score is low for draw adj, increase the counter
-    if (abs(moveScore) < drawTracker.drawScore)
+    if (moveNumber >= matchConfig.draw.moveNumber && abs(moveScore) < drawTracker.drawScore)
     {
         drawTracker.moveCount++;
     }
@@ -616,15 +617,12 @@ void Tournament::updateTrackers(DrawAdjTracker &drawTracker, ResignAdjTracker &r
     }
 }
 
-GameResult Tournament::checkAdj(Match &match, const DrawAdjTracker drawTracker, const ResignAdjTracker resignTracker,
+GameResult Tournament::checkAdj(Match &match, const DrawAdjTracker &drawTracker, const ResignAdjTracker &resignTracker,
                                 const Score score, const Color lastSideThatMoved) const
 
 {
-    const int moveNumber = match.moves.size() / 2;
-
     // Check draw adj
-    if (matchConfig.draw.enabled && moveNumber >= matchConfig.draw.moveNumber &&
-        drawTracker.moveCount >= matchConfig.draw.moveCount)
+    if (matchConfig.draw.enabled && drawTracker.moveCount >= matchConfig.draw.moveCount)
     {
         match.termination = "adjudication";
         return GameResult::DRAW;

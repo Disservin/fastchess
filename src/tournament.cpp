@@ -86,7 +86,7 @@ void Tournament::printElo()
     ss << "---------------------------\n"
        << "Result of " << engineNames[0] << " vs " << engineNames[1]
        << ": " << wins << " - " << losses << " - " << draws
-       << " (" << std::fixed << std::setprecision(2) << (float(wins) + (float(draws) * 0.5)) / totalCount << ")\n"
+       << " (" << std::fixed << std::setprecision(2) << (float(wins) + (float(draws) * 0.5)) / (roundCount * 2) << ")\n"
        << "Ptnml:   "
        << std::right << std::setw(7) << "WW"
        << std::right << std::setw(7) << "WD"

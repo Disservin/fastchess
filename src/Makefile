@@ -28,7 +28,7 @@ endif
 # Different native flag for macOS
 ifeq ($(uname_S), Darwin)
 	NATIVE = -mcpu=apple-a14	
-	LDFLAGS = -lpthread -static
+	LDFLAGS =
 endif
 
 # Versioning

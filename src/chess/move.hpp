@@ -6,12 +6,15 @@
 
 struct Move
 {
-    Square from_sq;
-    Square to_sq;
-    PieceType promotion_piece;
+    Square from_sq = NO_SQ;
+    Square to_sq = NO_SQ;
+    PieceType moving_piece = NONETYPE;
+    PieceType promotion_piece = NONETYPE;
 
-    Move(Square from_sq_cp = {}, Square to_sq_cp = {}, PieceType promotion_piece_cp = {})
-        : from_sq(from_sq_cp), to_sq(to_sq_cp), promotion_piece(promotion_piece_cp)
+    Move() = default;
+
+    Move(Square from_sq_cp, Square to_sq_cp, PieceType _moving_piece, PieceType promotion_piece_cp)
+        : from_sq(from_sq_cp), to_sq(to_sq_cp), moving_piece(_moving_piece), promotion_piece(promotion_piece_cp)
     {
     }
 };

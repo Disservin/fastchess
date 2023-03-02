@@ -174,7 +174,7 @@ bool Board::makeMove(Move move)
     const Square from_sq = move.from_sq;
     const Square to_sq = move.to_sq;
     const Piece p = pieceAt(from_sq);
-    const PieceType pt = typeOfPiece(p);
+    const PieceType pt = move.moving_piece;
     const Piece capture = pieceAt(move.to_sq);
 
     assert(from_sq >= 0 && from_sq < 64);
@@ -289,10 +289,10 @@ void Board::unmakeMove(Move move)
 
     fullMoveNumber--;
 
+    const PieceType pt = move.moving_piece;
+    const Piece capture = restore.capturedPiece;
     const Square from_sq = move.from_sq;
     const Square to_sq = move.to_sq;
-    const Piece capture = restore.capturedPiece;
-    const PieceType pt = typeOfPiece(pieceAt(to_sq));
 
     sideToMove = ~sideToMove;
 
@@ -693,19 +693,20 @@ Square extractSquare(std::string_view squareStr)
     return Square(index);
 }
 
-Move convertUciToMove(const std::string &input)
+Move convertUciToMove(const Board &board, const std::string &input)
 {
     const Square source = extractSquare(input.substr(0, 2));
     const Square target = extractSquare(input.substr(2, 2));
+
     switch (input.length())
     {
     case 4:
-        return Move(source, target, NONETYPE);
+        return Move(source, target, Board::typeOfPiece(board.pieceAt(source)), NONETYPE);
     case 5:
-        return Move(source, target, charToPieceType[input.at(4)]);
+        return Move(source, target, Board::typeOfPiece(board.pieceAt(source)), charToPieceType[input.at(4)]);
     default:
         throw std::runtime_error("Cant parse move" + input);
-        return Move(NO_SQ, NO_SQ, NONETYPE);
+        return Move(NO_SQ, NO_SQ, NONETYPE, NONETYPE);
     }
 }
 

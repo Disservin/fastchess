@@ -10,7 +10,7 @@
 
 struct Movelist
 {
-    Move list[MAX_MOVES] = {};
+    Move list[MAX_MOVES];
     uint8_t size = 0;
     typedef Move *iterator;
     typedef const Move *const_iterator;
@@ -338,28 +338,28 @@ template <Color c> void LegalPawnMovesAll(const Board &board, Movelist &movelist
         while (Promote_Move)
         {
             Square to = poplsb(Promote_Move);
-            movelist.Add({to + DOWN, to, QUEEN});
-            movelist.Add({to + DOWN, to, ROOK});
-            movelist.Add({to + DOWN, to, BISHOP});
-            movelist.Add({to + DOWN, to, KNIGHT});
+            movelist.Add({to + DOWN, to, PAWN, QUEEN});
+            movelist.Add({to + DOWN, to, PAWN, ROOK});
+            movelist.Add({to + DOWN, to, PAWN, BISHOP});
+            movelist.Add({to + DOWN, to, PAWN, KNIGHT});
         }
 
         while (Promote_Right)
         {
             Square to = poplsb(Promote_Right);
-            movelist.Add({to + DOWN_LEFT, to, QUEEN});
-            movelist.Add({to + DOWN_LEFT, to, ROOK});
-            movelist.Add({to + DOWN_LEFT, to, BISHOP});
-            movelist.Add({to + DOWN_LEFT, to, KNIGHT});
+            movelist.Add({to + DOWN_LEFT, to, PAWN, QUEEN});
+            movelist.Add({to + DOWN_LEFT, to, PAWN, ROOK});
+            movelist.Add({to + DOWN_LEFT, to, PAWN, BISHOP});
+            movelist.Add({to + DOWN_LEFT, to, PAWN, KNIGHT});
         }
 
         while (Promote_Left)
         {
             Square to = poplsb(Promote_Left);
-            movelist.Add({to + DOWN_RIGHT, to, QUEEN});
-            movelist.Add({to + DOWN_RIGHT, to, ROOK});
-            movelist.Add({to + DOWN_RIGHT, to, BISHOP});
-            movelist.Add({to + DOWN_RIGHT, to, KNIGHT});
+            movelist.Add({to + DOWN_RIGHT, to, PAWN, QUEEN});
+            movelist.Add({to + DOWN_RIGHT, to, PAWN, ROOK});
+            movelist.Add({to + DOWN_RIGHT, to, PAWN, BISHOP});
+            movelist.Add({to + DOWN_RIGHT, to, PAWN, KNIGHT});
         }
     }
 
@@ -374,7 +374,7 @@ template <Color c> void LegalPawnMovesAll(const Board &board, Movelist &movelist
     while (singlePush)
     {
         const Square to = poplsb(singlePush);
-        movelist.Add({to + DOWN, to, NONETYPE});
+        movelist.Add({to + DOWN, to, PAWN, NONETYPE});
     }
 
     /********************
@@ -383,7 +383,7 @@ template <Color c> void LegalPawnMovesAll(const Board &board, Movelist &movelist
     while (doublePush)
     {
         const Square to = poplsb(doublePush);
-        movelist.Add({to + DOWN + DOWN, to, NONETYPE});
+        movelist.Add({to + DOWN + DOWN, to, PAWN, NONETYPE});
     }
 
     /********************
@@ -392,7 +392,7 @@ template <Color c> void LegalPawnMovesAll(const Board &board, Movelist &movelist
     while (Rpawns)
     {
         const Square to = poplsb(Rpawns);
-        movelist.Add({to + DOWN_LEFT, to, NONETYPE});
+        movelist.Add({to + DOWN_LEFT, to, PAWN, NONETYPE});
     }
 
     /********************
@@ -401,7 +401,7 @@ template <Color c> void LegalPawnMovesAll(const Board &board, Movelist &movelist
     while (Lpawns)
     {
         const Square to = poplsb(Lpawns);
-        movelist.Add({to + DOWN_RIGHT, to, NONETYPE});
+        movelist.Add({to + DOWN_RIGHT, to, PAWN, NONETYPE});
     }
 
     /********************
@@ -457,7 +457,7 @@ template <Color c> void LegalPawnMovesAll(const Board &board, Movelist &movelist
             if (isPossiblePin && (RookAttacks(kSQ, _occAll & ~connectingPawns) & enemyQueenRook) != 0)
                 break;
 
-            movelist.Add({from, to, NONETYPE});
+            movelist.Add({from, to, PAWN, NONETYPE});
         }
     }
 }
@@ -578,7 +578,7 @@ template <Color c> void legalmoves(const Board &board, Movelist &movelist)
         while (moves)
         {
             Square to = poplsb(moves);
-            movelist.Add({from, to, NONETYPE});
+            movelist.Add({from, to, KING, NONETYPE});
         }
     }
 
@@ -620,7 +620,7 @@ template <Color c> void legalmoves(const Board &board, Movelist &movelist)
         while (moves)
         {
             const Square to = poplsb(moves);
-            movelist.Add({from, to, NONETYPE});
+            movelist.Add({from, to, KNIGHT, NONETYPE});
         }
     }
 
@@ -631,7 +631,7 @@ template <Color c> void legalmoves(const Board &board, Movelist &movelist)
         while (moves)
         {
             const Square to = poplsb(moves);
-            movelist.Add({from, to, NONETYPE});
+            movelist.Add({from, to, BISHOP, NONETYPE});
         }
     }
 
@@ -642,7 +642,7 @@ template <Color c> void legalmoves(const Board &board, Movelist &movelist)
         while (moves)
         {
             const Square to = poplsb(moves);
-            movelist.Add({from, to, NONETYPE});
+            movelist.Add({from, to, ROOK, NONETYPE});
         }
     }
 
@@ -653,7 +653,7 @@ template <Color c> void legalmoves(const Board &board, Movelist &movelist)
         while (moves)
         {
             const Square to = poplsb(moves);
-            movelist.Add({from, to, NONETYPE});
+            movelist.Add({from, to, QUEEN, NONETYPE});
         }
     }
 }

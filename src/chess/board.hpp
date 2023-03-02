@@ -152,7 +152,8 @@ template <PieceType type> Bitboard Board::pieces(Color color) const
 
 std::string uciMove(Move move);
 
-Move convertUciToMove(const std::string &input);
+Move convertUciToMove(const Board &board, const std::string &input);
+
 std::string MoveToSan(Board &b, Move move);
 
 std::string resultToString(GameResult result);

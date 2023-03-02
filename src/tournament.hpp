@@ -22,9 +22,10 @@ struct MoveData
     uint64_t nodes = 0;
     MoveData() = default;
 
-    MoveData(std::string _move, std::string _scoreString, int64_t _elapsedMillis, int _depth, int _score, int _nodes)
-        : move(_move), scoreString(std::move(_scoreString)), elapsedMillis(_elapsedMillis), depth(_depth),
-          score(_score), nodes(_nodes)
+    MoveData(std::string _move, std::string _scoreString, int64_t _elapsedMillis, int _depth,
+             int _score, int _nodes)
+        : move(_move), scoreString(std::move(_scoreString)), elapsedMillis(_elapsedMillis),
+          depth(_depth), score(_score), nodes(_nodes)
     {
     }
 };
@@ -80,7 +81,8 @@ struct ResignAdjTracker
 class Tournament
 {
   public:
-    template <typename T> static T findElement(const std::vector<std::string> &haystack, std::string_view needle)
+    template <typename T>
+    static T findElement(const std::vector<std::string> &haystack, std::string_view needle)
     {
         auto index = std::find(haystack.begin(), haystack.end(), needle) - haystack.begin();
         if constexpr (std::is_same_v<T, int>)
@@ -93,9 +95,11 @@ class Tournament
             return haystack[index + 1];
     }
 
-    Tournament() = default;
-
-    Tournament(bool saveTime) : saveTimeHeader(saveTime){};
+    // For testing purposes
+    Tournament(bool saveTime) : saveTimeHeader(saveTime)
+    {
+        file.open("fast-chess.pgn", std::ios::app);
+    };
 
     Tournament(const CMD::GameManagerOptions &mc);
 
@@ -119,40 +123,13 @@ class Tournament
 
     ThreadPool pool = ThreadPool(1);
 
-    SPRT sprt;
-
-    void writeToFile(const std::string &data);
-
-    std::string fetchNextFen();
-
-    void playNextMove(UciEngine &engine, std::string &positionInput, Board &board, TimeControl &timeLeftUs,
-                      const TimeControl &timeLeftThem, GameResult &res, Match &match, DrawAdjTracker &drawTracker,
-                      ResignAdjTracker &resignTracker, int &retflag, int roundId);
-
-    Match startMatch(UciEngine &engine1, UciEngine &engine2, int roundId, std::string openingFen);
-
-    std::vector<Match> runH2H(CMD::GameManagerOptions localMatchConfig, const std::vector<EngineConfiguration> &configs,
-                              int roundId, const std::string &fen);
-
-    MoveData parseEngineOutput(const Board &board, const std::vector<std::string> &output, const std::string &move,
-                               int64_t measuredTime);
-
-    std::string getDateTime(std::string format = "%Y-%m-%dT%H:%M:%S %z");
-
-    std::string formatDuration(std::chrono::seconds duration);
-
-    void updateTrackers(DrawAdjTracker &drawTracker, ResignAdjTracker &resignTracker, const Score moveScore,
-                        const int moveNumber);
-
-    GameResult checkAdj(Match &match, const DrawAdjTracker &drawTracker, const ResignAdjTracker &resignTracker,
-                        const Score score, const Color lastSideThatMoved) const;
-
-    void checkEngineStatus(UciEngine &engine, Match &match, int &retflag, int roundId) const;
+    SPRT sprt = {};
 
     std::vector<std::string> pgns;
     std::vector<std::string> openingBook;
     std::vector<std::string> engineNames;
 
+    std::ofstream file;
     std::mutex fileMutex;
 
     std::atomic<int> wins = 0;
@@ -167,10 +144,36 @@ class Tournament
     std::atomic<int> pentaLD = 0;
     std::atomic<int> pentaLL = 0;
 
-    std::ofstream file;
-
     size_t startIndex = 0;
 
     bool storePGNS = false;
+
     bool saveTimeHeader = true;
+
+    void writeToFile(const std::string &data);
+
+    std::string fetchNextFen();
+
+    bool playNextMove(UciEngine &engine, std::string &positionInput, Board &board,
+                      TimeControl &timeLeftUs, const TimeControl &timeLeftThem, GameResult &res,
+                      Match &match, DrawAdjTracker &drawTracker, ResignAdjTracker &resignTracker,
+                      int roundId);
+
+    Match startMatch(UciEngine &engine1, UciEngine &engine2, int roundId, std::string openingFen);
+
+    std::vector<Match> runH2H(CMD::GameManagerOptions localMatchConfig,
+                              const std::vector<EngineConfiguration> &configs, int roundId,
+                              const std::string &fen);
+
+    MoveData parseEngineOutput(const Board &board, const std::vector<std::string> &output,
+                               const std::string &move, int64_t measuredTime);
+
+    void updateTrackers(DrawAdjTracker &drawTracker, ResignAdjTracker &resignTracker,
+                        const Score moveScore, const int moveNumber);
+
+    GameResult checkAdj(Match &match, const DrawAdjTracker &drawTracker,
+                        const ResignAdjTracker &resignTracker, const Score score,
+                        const Color lastSideThatMoved) const;
+
+    bool checkEngineStatus(UciEngine &engine, Match &match, int roundId) const;
 };

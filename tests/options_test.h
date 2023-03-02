@@ -91,7 +91,7 @@ TEST_CASE("Testing Cli options parsing")
     CHECK(gameOptions.sprt.beta == 0.5);
     CHECK(gameOptions.sprt.elo0 == 0);
     CHECK(gameOptions.sprt.elo1 == 5.0);
-    CHECK(gameOptions.pgn.file = "PGNs/Alexandria-EA649FED_vs_Alexandria-27E42728");
+    CHECK(gameOptions.pgn.file == "PGNs/Alexandria-EA649FED_vs_Alexandria-27E42728");
     //  Test opening settings parsing
     // CHECK(options.gameOptions.OpeningOptions.file == "Books/Pohl.epd");
     // CHECK(options.gameOptions.OpeningOptions.format == "epd");

@@ -52,6 +52,8 @@ class Board
 
     Square enPassantSquare = NO_SQ;
 
+    bool chess960 = false;
+
     void loadFen(const std::string &fen);
     std::string getFen() const;
 

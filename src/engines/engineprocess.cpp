@@ -308,6 +308,7 @@ void EngineProcess::writeProcess(const std::string &input)
         return;
     }
 
+std::cout << "writing: " << input << std::endl;
     // Append a newline character to the end of the input string
     constexpr char endLine = '\n';
 
@@ -339,6 +340,8 @@ std::vector<std::string> EngineProcess::readProcess(std::string_view last_word, 
 
     // Disable blocking
     fcntl(inPipe[0], F_SETFL, fcntl(inPipe[0], F_GETFL) | O_NONBLOCK);
+
+    std::cout << "reading" << last_word << std::endl;
 
     std::vector<std::string> lines;
     lines.reserve(30);
@@ -400,6 +403,7 @@ std::vector<std::string> EngineProcess::readProcess(std::string_view last_word, 
                     if (!currentLine.empty())
                     {
                         lines.emplace_back(currentLine);
+                        std::cout << "just read " << currentLine << std::endl;
                         if (currentLine.rfind(last_word, 0) == 0)
                         {
                             return lines;

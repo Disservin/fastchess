@@ -1,11 +1,10 @@
-#include <chrono>
 #include <csignal>
 #include <iostream>
-#include <thread>
 
 #include "engines/uci_engine.hpp"
 #include "options.hpp"
 #include "tournament.hpp"
+#include "yaml.h"
 
 namespace
 {
@@ -55,6 +54,11 @@ int main(int argc, char const *argv[])
 #else
     signal(SIGINT, sigintHandler);
 #endif
+
+    Yaml yaml;
+    yaml.loadFile("test.yml");
+    std::cout << yaml["a"]["b"]["x"]["c"]["d"].getString() << std::endl;
+
     CMD::Options options = CMD::Options(argc, argv);
 
     Tour = new Tournament(options.getGameOptions());

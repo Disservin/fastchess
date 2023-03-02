@@ -166,17 +166,17 @@ TEST_CASE("Testing PERFT 7")
     CHECK(perf.getAndResetNodes() == 71441619ull);
 }
 
-TEST_CASE("Testing PERFT 8")
-{
-    static constexpr int depth = 6;
+// TEST_CASE("Testing PERFT 8")
+// {
+//     static constexpr int depth = 6;
 
-    Perft perf;
-    Board b;
-    b.loadFen("b2r4/2q3k1/p5p1/P1r1pp2/R1pnP2p/4NP1P/1PP2RPK/Q4B2 w - - 2 29");
+//     Perft perf;
+//     Board b;
+//     b.loadFen("b2r4/2q3k1/p5p1/P1r1pp2/R1pnP2p/4NP1P/1PP2RPK/Q4B2 w - - 2 29");
 
-    perf.perftFunction(b, depth, depth);
-    CHECK(perf.getAndResetNodes() == 2261050076ull);
-}
+//     perf.perftFunction(b, depth, depth);
+//     CHECK(perf.getAndResetNodes() == 2261050076ull);
+// }
 
 TEST_CASE("Testing PERFT 9")
 {

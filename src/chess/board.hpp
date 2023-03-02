@@ -37,13 +37,7 @@ class Board
   public:
     Board();
 
-    Board(Board &&) = default;
-
-    Board(const Board &) = default;
-
-    Board &operator=(Board &&) = default;
-
-    Board &operator=(const Board &) = default;
+    Board(const std::string &fen);
 
     Table<Bitboard, N_SQ, N_SQ> SQUARES_BETWEEN_BB;
     Color sideToMove = WHITE;

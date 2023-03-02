@@ -198,7 +198,8 @@ bool Board::makeMove(Move move)
     fullMoveNumber++;
 
     const bool ep = to_sq == enPassantSquare;
-    const bool isCastling = pt == KING && typeOfPiece(capture) == ROOK && colorOf(from_sq) == colorOf(to_sq);
+    const bool isCastling =
+        pt == KING && typeOfPiece(capture) == ROOK && colorOf(from_sq) == colorOf(to_sq);
 
     if (enPassantSquare != NO_SQ)
         hashKey ^= updateKeyEnPassant(enPassantSquare);
@@ -213,8 +214,10 @@ bool Board::makeMove(Move move)
         if (isCastling)
         {
             const Piece rook = sideToMove == WHITE ? WHITEROOK : BLACKROOK;
-            Square rookToSq = fileRankSquare(to_sq > from_sq ? FILE_F : FILE_D, squareRank(from_sq));
-            Square kingToSq = fileRankSquare(to_sq > from_sq ? FILE_G : FILE_C, squareRank(from_sq));
+            Square rookToSq =
+                fileRankSquare(to_sq > from_sq ? FILE_F : FILE_D, squareRank(from_sq));
+            Square kingToSq =
+                fileRankSquare(to_sq > from_sq ? FILE_G : FILE_C, squareRank(from_sq));
             removePiece(p, from_sq);
             removePiece(rook, to_sq);
 
@@ -352,8 +355,8 @@ void Board::unmakeMove(Move move)
 
 Bitboard Board::us(Color c) const
 {
-    return pieceBB[c][PAWN] | pieceBB[c][KNIGHT] | pieceBB[c][BISHOP] | pieceBB[c][ROOK] | pieceBB[c][QUEEN] |
-           pieceBB[c][KING];
+    return pieceBB[c][PAWN] | pieceBB[c][KNIGHT] | pieceBB[c][BISHOP] | pieceBB[c][ROOK] |
+           pieceBB[c][QUEEN] | pieceBB[c][KING];
 }
 
 Bitboard Board::allBB() const
@@ -456,7 +459,8 @@ GameResult Board::isGameOver()
 
     if (halfMoveClock >= 100)
     {
-        if (isSquareAttacked(~sideToMove, lsb(pieces(KING, sideToMove))) && !Movegen::hasLegalMoves(*this))
+        if (isSquareAttacked(~sideToMove, lsb(pieces(KING, sideToMove))) &&
+            !Movegen::hasLegalMoves(*this))
             return GameResult(~sideToMove);
         return GameResult::DRAW;
     }
@@ -529,7 +533,8 @@ void Board::initializeLookupTables()
                 SQUARES_BETWEEN_BB[sq1][sq2] = 0ull;
             else if (squareFile(sq1) == squareFile(sq2) || squareRank(sq1) == squareRank(sq2))
                 SQUARES_BETWEEN_BB[sq1][sq2] = RookAttacks(sq1, sqs) & RookAttacks(sq2, sqs);
-            else if (diagonalOf(sq1) == diagonalOf(sq2) || anti_diagonalOf(sq1) == anti_diagonalOf(sq2))
+            else if (diagonalOf(sq1) == diagonalOf(sq2) ||
+                     anti_diagonalOf(sq1) == anti_diagonalOf(sq2))
                 SQUARES_BETWEEN_BB[sq1][sq2] = BishopAttacks(sq1, sqs) & BishopAttacks(sq2, sqs);
         }
     }
@@ -612,7 +617,8 @@ Color Board::colorOf(Square loc) const
 
 uint8_t Board::squareDistance(Square a, Square b)
 {
-    return std::max(std::abs(squareFile(a) - squareFile(b)), std::abs(squareRank(a) - squareRank(b)));
+    return std::max(std::abs(squareFile(a) - squareFile(b)),
+                    std::abs(squareRank(a) - squareRank(b)));
 }
 
 void Board::placePiece(Piece piece, Square sq)
@@ -654,14 +660,20 @@ Board::Board()
     initializeLookupTables();
 }
 
+Board::Board(const std::string &fen)
+{
+    initializeLookupTables();
+    loadFen(fen);
+}
+
 std::ostream &operator<<(std::ostream &os, const Board &b)
 {
     for (int i = 63; i >= 0; i -= 8)
     {
         os << " " << pieceToChar[b.board[i - 7]] << " " << pieceToChar[b.board[i - 6]] << " "
-           << pieceToChar[b.board[i - 5]] << " " << pieceToChar[b.board[i - 4]] << " " << pieceToChar[b.board[i - 3]]
-           << " " << pieceToChar[b.board[i - 2]] << " " << pieceToChar[b.board[i - 1]] << " " << pieceToChar[b.board[i]]
-           << " \n";
+           << pieceToChar[b.board[i - 5]] << " " << pieceToChar[b.board[i - 4]] << " "
+           << pieceToChar[b.board[i - 3]] << " " << pieceToChar[b.board[i - 2]] << " "
+           << pieceToChar[b.board[i - 1]] << " " << pieceToChar[b.board[i]] << " \n";
     }
     os << "\n\n";
     os << "Side to move: " << static_cast<int>(b.sideToMove) << "\n";
@@ -694,8 +706,8 @@ std::string uciMove(Move move)
     // Add the from and to squares to the string stream
     if (move.moving_piece == KING && Board::squareDistance(move.to_sq, move.from_sq) >= 2)
     {
-        move.to_sq =
-            Board::fileRankSquare(move.to_sq > move.from_sq ? FILE_G : FILE_C, Board::squareRank(move.from_sq));
+        move.to_sq = Board::fileRankSquare(move.to_sq > move.from_sq ? FILE_G : FILE_C,
+                                           Board::squareRank(move.from_sq));
     }
 
     ss << squareToString[move.from_sq];
@@ -727,7 +739,8 @@ Move convertUciToMove(const Board &board, const std::string &input)
     if (!board.chess960 && Board::typeOfPiece(board.pieceAt(source)) == KING &&
         Board::squareDistance(target, source) == 2)
     {
-        target = Board::fileRankSquare(target > source ? FILE_H : FILE_A, Board::squareRank(source));
+        target =
+            Board::fileRankSquare(target > source ? FILE_H : FILE_A, Board::squareRank(source));
     }
 
     switch (input.length())
@@ -735,7 +748,8 @@ Move convertUciToMove(const Board &board, const std::string &input)
     case 4:
         return Move(source, target, Board::typeOfPiece(board.pieceAt(source)), NONETYPE);
     case 5:
-        return Move(source, target, Board::typeOfPiece(board.pieceAt(source)), charToPieceType[input.at(4)]);
+        return Move(source, target, Board::typeOfPiece(board.pieceAt(source)),
+                    charToPieceType[input.at(4)]);
     default:
         throw std::runtime_error("Cant parse move" + input);
         return Move(NO_SQ, NO_SQ, NONETYPE, NONETYPE);
@@ -771,7 +785,8 @@ std::string MoveToSan(Board &b, Move move)
 
     for (const auto &cand : moves)
     {
-        if (pt != PAWN && move != cand && Board::typeOfPiece(b.pieceAt(cand.from_sq)) == pt && move.to_sq == cand.to_sq)
+        if (pt != PAWN && move != cand && Board::typeOfPiece(b.pieceAt(cand.from_sq)) == pt &&
+            move.to_sq == cand.to_sq)
         {
             if (Board::squareFile(move.from_sq) == Board::squareFile(cand.from_sq))
                 san += std::to_string(Board::squareRank(move.from_sq) + 1);

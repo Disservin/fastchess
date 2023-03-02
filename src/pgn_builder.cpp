@@ -17,7 +17,7 @@ PgnBuilder::PgnBuilder(const Match &match, const CMD::GameManagerOptions &gameOp
     ss << "[White "         << "\"" << match.whiteEngine.name   << "\"" << "]" << "\n";
     ss << "[Black "         << "\"" << match.blackEngine.name   << "\"" << "]" << "\n";
     ss << "[Result "        << "\"" << result                   << "\"" << "]" << "\n";
-    ss << "[FEN "           << "\"" << match.board.getFen()     << "\"" << "]" << "\n";
+    ss << "[FEN "           << "\"" << match.fen                << "\"" << "]" << "\n";
     ss << "[GameDuration "  << "\"" << match.duration           << "\"" << "]" << "\n";
     ss << "[GameEndTime "   << "\"" << match.endTime            << "\"" << "]" << "\n";
     ss << "[GameStartTime " << "\"" << match.startTime          << "\"" << "]" << "\n";
@@ -35,7 +35,7 @@ PgnBuilder::PgnBuilder(const Match &match, const CMD::GameManagerOptions &gameOp
                     << match.moves[match.moves.size() - 1].move;
     }
 
-    Board b = match.board;
+    Board b = Board(match.fen);
 
     int moveCount = 3;
     for (size_t i = 0; i < match.moves.size(); i++)

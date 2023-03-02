@@ -2,7 +2,9 @@
 
 #include <atomic>
 #include <fstream>
+#include <iostream>
 #include <mutex>
+#include <sstream>
 #include <string>
 #include <thread>
 
@@ -36,6 +38,13 @@ class Logger
 
     // write to file indicating that a read was done
     static void readLog(const std::string &msg, std::thread::id thread);
+
+    template <typename... Args> static void coutInfo(Args &&...args)
+    {
+        std::stringstream ss;
+        ((ss << " " << std::forward<Args>(args)), ...) << "\n";
+        std::cout << ss.str();
+    }
 
     static std::atomic_bool shouldLog;
 };

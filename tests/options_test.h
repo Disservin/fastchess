@@ -77,8 +77,8 @@ TEST_CASE("Testing Cli options parsing")
                           "order=random",
                           "plies=16",
                           "-pgnout",
-                          "PGNs/Alexandria-EA649FED_vs_Alexandria-27E42728"};
-    CMD::Options options = CMD::Options(14, argv);
+                          "file=PGNs/Alexandria-EA649FED_vs_Alexandria-27E42728"};
+    CMD::Options options = CMD::Options(19, argv);
     auto gameOptions = options.getGameOptions();
 
     // Test proper cli settings
@@ -91,6 +91,7 @@ TEST_CASE("Testing Cli options parsing")
     CHECK(gameOptions.sprt.beta == 0.5);
     CHECK(gameOptions.sprt.elo0 == 0);
     CHECK(gameOptions.sprt.elo1 == 5.0);
+    CHECK(gameOptions.pgn.file == "PGNs/Alexandria-EA649FED_vs_Alexandria-27E42728");
     //  Test opening settings parsing
     // CHECK(options.gameOptions.OpeningOptions.file == "Books/Pohl.epd");
     // CHECK(options.gameOptions.OpeningOptions.format == "epd");

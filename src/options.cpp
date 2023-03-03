@@ -82,7 +82,7 @@ Options::Options(int argc, char const *argv[])
 
 void Options::parseYaml(Yaml &yaml)
 {
-    // TODO parameters repeat/pgn/log/engine config
+    // TODO parameters pgn/log/engine config
 
     gameOptions.eventName = yaml["event"].get<std::string>();
     gameOptions.games = yaml["games"].get<int>();

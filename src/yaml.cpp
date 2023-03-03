@@ -91,26 +91,3 @@ void Yaml::loadFile(const std::string &filename)
     file.close();
 }
 
-bool Yaml::getBool()
-{
-    assert(!value.empty());
-    return value == "true";
-}
-
-int Yaml::getInt()
-{
-    assert(!value.empty());
-    return std::stoi(value);
-}
-
-double Yaml::getDouble()
-{
-    assert(!value.empty());
-    return std::stod(value);
-}
-
-std::string Yaml::getString()
-{
-    assert(!value.empty());
-    return value;
-}

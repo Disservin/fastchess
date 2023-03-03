@@ -1,5 +1,6 @@
 #include <string>
 #include <map>
+#include <cassert>
 #include <iostream>
 #include <utility>
 
@@ -20,13 +21,20 @@ class Yaml {
 
     void loadFile(const std::string &filename);
 
-    bool getBool();
+    template <typename T>
+    T get()
+    {
+        assert(!value.empty());
 
-    int getInt();
-
-    double getDouble();
-
-    std::string getString();
+        if constexpr (std::is_same_v<T, int>)
+            return std::stoi(value);
+        else if constexpr (std::is_same_v<T, float>)
+            return std::stof(value);
+        else if constexpr (std::is_same_v<T, double>)
+            return std::stod(value);
+        else
+            return value;
+    }
 };
 
 const std::string defaultYaml =

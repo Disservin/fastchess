@@ -57,7 +57,7 @@ int main(int argc, char const *argv[])
 
     Yaml yaml;
     yaml.loadFile("test.yml");
-    std::cout << yaml["a"]["b"]["x"]["c"]["d"].getString() << std::endl;
+    std::cout << yaml["a"]["b"]["c"]["d"].get<int>() << std::endl;
 
     CMD::Options options = CMD::Options(argc, argv);
 

@@ -114,7 +114,10 @@ void Tournament::printElo()
     {
         ss << "LLR: " << sprt.getLLR(wins, draws, losses) << " " << sprt.getBounds() << "\n";
     }
-
+    ss << "Games:" << roundCount * 2 << std::setprecision(1)
+       << " W:" << (float(wins) / (roundCount * 2)) * 100 << "% "
+       << "L:" << (float(losses) / (roundCount * 2)) * 100 << "% "
+       << "D:" << (float(draws) / (roundCount * 2)) * 100 << "%\n";
     ss << "Elo difference: " << elo.getElo() << "\n---------------------------\n";
     std::cout << ss.str();
 }

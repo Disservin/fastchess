@@ -6,6 +6,7 @@
 
 #include "engines/engine_config.hpp"
 #include "logger.hpp"
+#include "yaml.h"
 
 namespace CMD
 {

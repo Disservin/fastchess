@@ -1,3 +1,5 @@
+#pragma once
+
 #include <string>
 #include <map>
 #include <cassert>
@@ -32,13 +34,70 @@ class Yaml {
             return std::stof(value);
         else if constexpr (std::is_same_v<T, double>)
             return std::stod(value);
+        else if constexpr (std::is_same_v<T, bool>)
+            return value == "true";
         else
             return value;
     }
 };
 
-const std::string defaultYaml =
-    "aaa: \"#bbb\" # Comment\n"
-    "bbb: ddd\n"
-    "asd: dsa\n"
-    "ccc: true\n";
+const std::string defaultYaml = "# Only the following settings are implemented.\n"
+                                "# Please do not try to change the structure of this file!\n"
+                                "\n"
+                                "# Name of the event\n"
+                                "event: Event\n"
+                                "\n"
+                                "# Total rounds\n"
+                                "# Set to 0 for an infinite tournament\n"
+                                "rounds: 10000\n"
+                                "\n"
+                                "# Games per rounds\n"
+                                "games: 2\n"
+                                "\n"
+                                "# True if the engines able to recover from crashes\n"
+                                "recover: false\n"
+                                "\n"
+                                "# Number of threads\n"
+                                "concurrency: 1\n"
+                                "\n"
+                                "# Number of games between to rating output\n"
+                                "rating-interval: 10\n"
+                                "\n"
+                                "# Opening book\n"
+                                "openings:\n"
+                                "  enabled: false\n"
+                                "\n"
+                                "  # Path to the opening book\n"
+                                "  file: \"openings.epd\"\n"
+                                "\n"
+                                "  # Format of the opening book\n"
+                                "  # Only EPD is supported!\n"
+                                "  format: epd\n"
+                                "\n"
+                                "  # Order on how the openings should be selected\n"
+                                "  # Possible options are sequential and random\n"
+                                "  order: random\n"
+                                "\n"
+                                "  plies: 0\n"
+                                "  start: 0\n"
+                                "\n"
+                                "# Game adjudication\n"
+                                "adjudication:\n"
+                                "  resign:\n"
+                                "    enabled: false\n"
+                                "    movecount: 3\n"
+                                "    score: 1000\n"
+                                "\n"
+                                "  draw:\n"
+                                "    enabled: false\n"
+                                "    movecount: 5\n"
+                                "    movenumber: 40\n"
+                                "    score: 5\n"
+                                "\n"
+                                "# SPRT\n"
+                                "sprt:\n"
+                                "  enabled: false\n"
+                                "  elo0: 0.0\n"
+                                "  elo1: 5.0\n"
+                                "  alpha: 0.05\n"
+                                "  beta: 0.05";

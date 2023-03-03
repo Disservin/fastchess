@@ -55,10 +55,6 @@ int main(int argc, char const *argv[])
     signal(SIGINT, sigintHandler);
 #endif
 
-    Yaml yaml;
-    yaml.loadFile("test.yml");
-    std::cout << yaml["a"]["b"]["c"]["d"].get<int>() << std::endl;
-
     CMD::Options options = CMD::Options(argc, argv);
 
     Tour = new Tournament(options.getGameOptions());

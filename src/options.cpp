@@ -40,7 +40,7 @@ Options::Options(int argc, char const *argv[])
         else if (arg == "-recover")
             gameOptions.recover = true;
         else if (arg == "-repeat")
-            gameOptions.repeat = true;
+            gameOptions.games = 2;
         else if (arg == "-sprt")
             parseSprt(i, argc, argv);
         else if (arg == "-draw")

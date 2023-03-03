@@ -63,7 +63,6 @@ struct GameManagerOptions
     int games = 2;
     int rounds = 0;
     bool recover = false;
-    bool repeat = false;
     int concurrency = 1;
     int ratinginterval = 10;
     SprtOptions sprt = {};
@@ -76,8 +75,8 @@ struct GameManagerOptions
 
 inline std::ostream &operator<<(std::ostream &os, const Parameter &param)
 {
-    os << "longName" << param.longName << "shortName" << param.shortName << "default" << param.defaultValue << "min"
-       << param.minLimit << "max" << param.maxLimit;
+    os << "longName" << param.longName << "shortName" << param.shortName << "default"
+       << param.defaultValue << "min" << param.minLimit << "max" << param.maxLimit;
 
     return os;
 }

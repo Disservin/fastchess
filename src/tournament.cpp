@@ -329,7 +329,7 @@ std::vector<Match> Tournament::runH2H(CMD::GameManagerOptions localMatchConfig,
     engine1.turn = Turn::FIRST;
     engine2.turn = Turn::SECOND;
 
-    const int games = localMatchConfig.repeat ? 2 : localMatchConfig.games;
+    const int games = localMatchConfig.games;
 
     int localWins = 0;
     int localLosses = 0;

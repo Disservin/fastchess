@@ -82,7 +82,6 @@ TEST_CASE("Testing Cli options parsing")
     auto gameOptions = options.getGameOptions();
 
     // Test proper cli settings
-    CHECK(gameOptions.repeat == true);
     CHECK(gameOptions.recover == true);
     CHECK(gameOptions.concurrency == 8);
     CHECK(gameOptions.games == 256);

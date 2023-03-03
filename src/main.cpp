@@ -91,7 +91,6 @@ int main(int argc, char const *argv[])
     std::cout << "TrackNodes enabled: " << options.getGameOptions().pgn.trackNodes << std::endl;
     std::cout << "Ratinginterval: " << options.getGameOptions().ratinginterval << std::endl;
     std::cout << "Recover: " << options.getGameOptions().recover << std::endl;
-    std::cout << "Repeat: " << options.getGameOptions().repeat << std::endl;
     std::cout << "Resign enabled: " << options.getGameOptions().resign.enabled << std::endl;
     std::cout << "Resign Movecount: " << options.getGameOptions().resign.moveCount << std::endl;
     std::cout << "Resign score: " << options.getGameOptions().resign.score << std::endl;

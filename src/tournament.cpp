@@ -198,7 +198,7 @@ bool Tournament::playNextMove(UciEngine &engine, std::string &positionInput, Boa
     timeLeftUs.time -= measuredTime;
 
     // If we are using movetime and we used more than the allowed time
-    (timeLeftUs.fixed_time != 0)
+    if (timeLeftUs.fixed_time != 0)
     {
         if (measuredTime > timeLeftUs.fixed_time)
         {

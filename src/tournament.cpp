@@ -270,7 +270,7 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int roundId
     engine1.sendUciNewGame();
     engine2.sendUciNewGame();
 
-    match.board = board;
+    match.fen = board.getFen();
     match.startTime = saveTimeHeader ? Logger::getDateTime() : "";
     match.date = saveTimeHeader ? Logger::getDateTime("%Y-%m-%d") : "";
 

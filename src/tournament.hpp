@@ -41,7 +41,7 @@ struct Match
     std::string endTime;
     std::string duration;
     std::string date;
-    Board board;
+    std::string fen;
     int round = 0;
     bool legal = true;
     bool needsRestart = false;

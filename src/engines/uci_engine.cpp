@@ -65,33 +65,40 @@ std::string UciEngine::buildGoInput(Color stm, const TimeControl &tc, const Time
     if (config.plies != 0)
         input << " depth " << config.plies;
 
-    if (tc.time != 0)
+    if (tc.fixed_time != 0)
     {
-        if (stm == WHITE)
-        {
-            input << " wtime " << tc.time << " btime " << tc_2.time;
-        }
-        else
-        {
-            input << " wtime " << tc_2.time << " btime " << tc.time;
-        }
+        input << " movetime " << tc.fixed_time;
     }
-
-    if (tc.increment != 0)
+    // We cannot use st and tc together
+    else
     {
-        if (stm == WHITE)
+        if (tc.time != 0)
         {
-            input << " winc " << tc.increment << " binc " << tc_2.increment;
+            if (stm == WHITE)
+            {
+                input << " wtime " << tc.time << " btime " << tc_2.time;
+            }
+            else
+            {
+                input << " wtime " << tc_2.time << " btime " << tc.time;
+            }
         }
-        else
+
+        if (tc.increment != 0)
         {
-            input << " winc " << tc_2.increment << " binc " << tc.increment;
+            if (stm == WHITE)
+            {
+                input << " winc " << tc.increment << " binc " << tc_2.increment;
+            }
+            else
+            {
+                input << " winc " << tc_2.increment << " binc " << tc.increment;
+            }
         }
+
+        if (tc.moves != 0)
+            input << " movestogo " << tc.moves;
     }
-
-    if (tc.moves != 0)
-        input << " movestogo " << tc.moves;
-
     return input.str();
 }
 

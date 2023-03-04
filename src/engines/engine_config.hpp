@@ -10,7 +10,7 @@ struct TimeControl
     int moves = 0;
     int64_t time = 0;
     uint64_t increment = 0;
-    int64_t fixed_time;
+    int64_t fixed_time = 0;
 };
 
 inline std::ostream &operator<<(std::ostream &os, const TimeControl &tc)

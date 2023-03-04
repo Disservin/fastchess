@@ -101,6 +101,10 @@ void Options::parseEngineParams(int &i, int argc, char const *argv[],
         {
             engineParams.tc = parseTc(value);
         }
+        else if (key == "st")
+        {
+            engineParams.tc.fixed_time = std::stod(value) * 1000;
+        }
         else if (key == "nodes")
         {
             engineParams.nodes = std::stoll(value);

@@ -9,6 +9,11 @@ void UciEngine::setConfig(const EngineConfiguration &rhs)
     config = rhs;
 }
 
+EngineConfiguration UciEngine::getConfig() const
+{
+    return config;
+}
+
 std::string UciEngine::checkErrors(int id)
 {
     if (!getError().empty())

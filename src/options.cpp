@@ -5,7 +5,6 @@
 #include <type_traits>
 #include <unordered_map>
 
-#include "engines/engine.hpp"
 #include "options.hpp"
 
 namespace CMD

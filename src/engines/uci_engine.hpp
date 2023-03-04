@@ -1,7 +1,8 @@
 #pragma once
 
 #include "../chess/types.hpp"
-#include "engine.hpp"
+#include "engine_config.hpp"
+#include "engineprocess.hpp"
 
 enum class Turn
 {
@@ -14,15 +15,19 @@ constexpr Turn operator~(Turn t)
     return Turn(static_cast<int>(t) ^ static_cast<int>(Turn::SECOND));
 }
 
-class UciEngine : public Engine
+class UciEngine : public EngineProcess
 {
 
   private:
     static const int64_t PING_TIME = 60000;
+    EngineConfiguration config;
 
   public:
-    UciEngine() : Engine()
+    UciEngine() = default;
+
+    UciEngine(const std::string &command)
     {
+        initProcess(command);
     }
 
     UciEngine(const EngineConfiguration &config)
@@ -34,6 +39,8 @@ class UciEngine : public Engine
     {
         sendQuit();
     }
+
+    EngineConfiguration getConfig() const;
 
     std::string checkErrors(int id = -1);
 

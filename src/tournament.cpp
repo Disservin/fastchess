@@ -196,7 +196,8 @@ bool Tournament::playNextMove(UciEngine &engine, std::string &positionInput, Boa
     const auto measuredTime =
         std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count();
     timeLeftUs.time -= measuredTime;
-    if ((timeLeftUs.fixed_time != 0 && measuredTime > timeLeftUs.fixed_time) || timeLeftUs.time < 0)
+    if ((timeLeftUs.fixed_time != 0 && measuredTime - MOVETIME_LENIENCY > timeLeftUs.fixed_time) ||
+        (timeLeftUs.fixed_time == 0 && timeLeftUs.time < 0))
     {
         res = GameResult(~board.sideToMove);
         match.termination = "timeout";

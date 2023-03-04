@@ -118,7 +118,7 @@ class Tournament
   private:
     const std::string STARTPOS = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
     const Score MATE_SCORE = 100'000;
-
+    const int MOVETIME_LENIENCY = 5;
     CMD::GameManagerOptions matchConfig = {};
 
     ThreadPool pool = ThreadPool(1);

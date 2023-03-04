@@ -201,8 +201,8 @@ bool Tournament::playNextMove(UciEngine &engine, std::string &positionInput, Boa
         res = GameResult(~board.sideToMove);
         match.termination = "timeout";
         Logger::coutInfo("Engine", engine.getConfig().name, "timed out #", roundId);
+        return false;
     }
-    return false;
 
     timeLeftUs.time += timeLeftUs.increment;
 

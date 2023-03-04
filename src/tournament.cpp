@@ -196,31 +196,13 @@ bool Tournament::playNextMove(UciEngine &engine, std::string &positionInput, Boa
     const auto measuredTime =
         std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count();
     timeLeftUs.time -= measuredTime;
-
-    // If we are using movetime and we used more than the allowed time
-    if (timeLeftUs.fixed_time != 0)
+    if ((timeLeftUs.fixed_time != 0 && measuredTime > timeLeftUs.fixed_time) || timeLeftUs.time < 0)
     {
-        if (measuredTime > timeLeftUs.fixed_time)
-        {
-            res = GameResult(~board.sideToMove);
-            match.termination = "timeout";
-            Logger::coutInfo("Engine", engine.getConfig().name, "timed out #", roundId);
-
-            return false;
-        }
+        res = GameResult(~board.sideToMove);
+        match.termination = "timeout";
+        Logger::coutInfo("Engine", engine.getConfig().name, "timed out #", roundId);
     }
-    else
-    // If we went past the limits of whatever standard TC we were using and have no time left
-    {
-        if (timeLeftUs.time < 0)
-        {
-            res = GameResult(~board.sideToMove);
-            match.termination = "timeout";
-            Logger::coutInfo("Engine", engine.getConfig().name, "timed out #", roundId);
-
-            return false;
-        }
-    }
+    return false;
 
     timeLeftUs.time += timeLeftUs.increment;
 

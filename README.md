@@ -17,19 +17,19 @@ Options:
   -draw movenumber=NUMBER movecount=COUNT score=SCORE
   -engine OPTIONS
   -each OPTIONS
-    apply OPTIONS to both engines
+    apply OPTIONS to both engines.
   -event NAME
   -games N
     This should be set to 1 or 2, each round will play n games with, setting this higher than 2 does not really make sense.
   -openings file=NAME format=FORMAT order=ORDER plies=PLIES start=START
-    format can be "epd" and order "sequential" or "random", start specifies the offset
+    format can be "epd" and order "sequential" or "random", start specifies the offset.
   -option.OPTION=VALUE
   -resign movecount=COUNT score=SCORE
   -rounds N
   -repeat
     This has the same effect as -games 2 and is the default.
   -ratinginterval N
-    print elo estimation every n
+    print the current elo estimation every N rounds.
   -sprt elo0=ELO0 elo1=ELO1 alpha=ALPHA beta=BETA
   -log file=NAME
 

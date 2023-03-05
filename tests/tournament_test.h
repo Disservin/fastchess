@@ -32,7 +32,7 @@ TEST_CASE("Test Tournament")
 
     tour.startTournament({engine, engine_2});
 
-    std::string pgn = "[Event \"\"]\n[Site \"?\"]\n[Date \"\"]\n[Round \"1\"]\n[White "
+    std::string pgn = "[Event \"?\"]\n[Site \"?\"]\n[Date \"\"]\n[Round \"1\"]\n[White "
                       "\"engine\"]\n[Black \"engine_2\"]\n[Result "
                       "\"0-1\"]\n[FEN "
                       "\"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 "

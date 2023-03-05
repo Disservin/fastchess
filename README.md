@@ -18,6 +18,7 @@ Options:
   -engine OPTIONS
   -each OPTIONS
     apply OPTIONS to both engines.
+  -site SITE
   -event NAME
   -games N
     This should be set to 1 or 2, each round will play n games with, setting this higher than 2 does not really make sense.
@@ -31,6 +32,7 @@ Options:
   -ratinginterval N
     print the current elo estimation every N rounds.
   -sprt elo0=ELO0 elo1=ELO1 alpha=ALPHA beta=BETA
+  -srand SEED
   -log file=NAME
 
 Engine;

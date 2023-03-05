@@ -28,6 +28,8 @@ Options::Options(int argc, char const *argv[])
             parseOption(i, argc, argv, gameOptions.concurrency);
         else if (arg == "-event")
             parseOption(i, argc, argv, gameOptions.eventName);
+        else if (arg == "-site")
+            parseOption(i, argc, argv, gameOptions.site);
         else if (arg == "-games")
             parseOption(i, argc, argv, gameOptions.games);
         else if (arg == "-rounds")
@@ -48,6 +50,8 @@ Options::Options(int argc, char const *argv[])
             parseResignOptions(i, argc, argv);
         else if (arg == "-ratinginterval")
             parseOption(i, argc, argv, gameOptions.ratinginterval);
+        else if (arg == "-srand")
+            parseOption(i, argc, argv, gameOptions.seed);
         else if (arg == "-version")
             printVersion(i);
         else if (arg == "-log")
@@ -225,6 +229,8 @@ void Options::parseOption(int &i, int argc, const char *argv[], T &optionValue)
     {
         if constexpr (std::is_same_v<T, int>)
             optionValue = std::stoi(argv[i]);
+        else if constexpr (std::is_same_v<T, uint32_t>)
+            optionValue = std::stoul(argv[i]);
         else if constexpr (std::is_same_v<T, float>)
             optionValue = std::stof(argv[i]);
         else if constexpr (std::is_same_v<T, double>)

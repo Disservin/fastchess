@@ -3,6 +3,5 @@
 
 namespace Random
 {
-static std::random_device rd;
-static std::mt19937 generator(rd());
+static std::mt19937 mersenne_rand;
 } // namespace Random

@@ -118,7 +118,6 @@ class Tournament
   private:
     const std::string STARTPOS = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
     const Score MATE_SCORE = 100'000;
-    const int MOVETIME_LENIENCY = 20;
     CMD::GameManagerOptions matchConfig = {};
 
     ThreadPool pool = ThreadPool(1);
@@ -144,7 +143,7 @@ class Tournament
     std::atomic<int> pentaLD = 0;
     std::atomic<int> pentaLL = 0;
 
-    size_t startIndex = 0;
+    size_t fenIndex = 0;
 
     bool storePGNS = false;
 

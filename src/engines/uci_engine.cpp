@@ -77,28 +77,18 @@ std::string UciEngine::buildGoInput(Color stm, const TimeControl &tc, const Time
     // We cannot use st and tc together
     else
     {
+        auto white = stm == WHITE ? tc : tc_2;
+        auto black = stm == WHITE ? tc_2 : tc;
+
         if (tc.time != 0)
         {
-            if (stm == WHITE)
-            {
-                input << " wtime " << tc.time << " btime " << tc_2.time;
-            }
-            else
-            {
-                input << " wtime " << tc_2.time << " btime " << tc.time;
-            }
+
+            input << " wtime " << white.time << " btime " << black.time;
         }
 
         if (tc.increment != 0)
         {
-            if (stm == WHITE)
-            {
-                input << " winc " << tc.increment << " binc " << tc_2.increment;
-            }
-            else
-            {
-                input << " winc " << tc_2.increment << " binc " << tc.increment;
-            }
+            input << " winc " << white.increment << " binc " << black.increment;
         }
 
         if (tc.moves != 0)

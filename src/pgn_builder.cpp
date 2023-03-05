@@ -24,9 +24,12 @@ PgnBuilder::PgnBuilder(const Match &match, const CMD::GameManagerOptions &gameOp
     ss << "[PlyCount "      << "\"" << match.moves.size()       << "\"" << "]" << "\n";
     if (!termination.empty())
         ss << "[Termination " << "\"" << termination << "\"" << "]" << "\n";
-    ss << "[TimeControl "   << "\"" << match.whiteEngine.tc     << "\"" << "]"  << "\n\n";
+    if (match.whiteEngine.tc.fixed_time != 0)  
+        ss << "[TimeControl " << "\"" << match.whiteEngine.tc.fixed_time << "/move" << "\"" << "]" << "\n";
+    else 
+        ss << "[TimeControl " << "\"" << match.whiteEngine.tc << "\"" << "]" << "\n";
     // clang-format on
-
+    ss << "\n";
     std::stringstream illegalMove;
 
     if (!match.legal)

@@ -92,7 +92,7 @@ std::vector<std::string> EngineProcess::readProcess(std::string_view last_word, 
     {
 
         // Check if timeout milliseconds have elapsed
-        if (checkTime-- == 0)
+        if (timeoutThreshold > 0 && checkTime-- == 0)
         {
             /* To achieve "non blocking" file reading on windows with anonymous pipes the only
             solution that I found was using peeknamedpipe however it turns out this function is
@@ -106,9 +106,9 @@ std::vector<std::string> EngineProcess::readProcess(std::string_view last_word, 
                 errStr = "Cant peek pipe.";
             }
 
-            if (timeoutThreshold > 0 && std::chrono::duration_cast<std::chrono::milliseconds>(
-                                            std::chrono::high_resolution_clock::now() - start)
-                                                .count() > timeoutThreshold)
+            if (std::chrono::duration_cast<std::chrono::milliseconds>(
+                    std::chrono::high_resolution_clock::now() - start)
+                    .count() > timeoutThreshold)
             {
                 lines.emplace_back(currentLine);
                 timeout = true;
@@ -119,7 +119,7 @@ std::vector<std::string> EngineProcess::readProcess(std::string_view last_word, 
         }
 
         // no new bytes to read
-        if (timeoutThreshold && bytesAvail == 0)
+        if (timeoutThreshold > 0 && bytesAvail == 0)
             continue;
 
         if (!ReadFile(childStdOut, buffer, sizeof(buffer), &bytesRead, nullptr))

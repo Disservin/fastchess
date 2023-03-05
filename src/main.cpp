@@ -65,6 +65,7 @@ int main(int argc, char const *argv[])
         std::cout << "Command: " << config.cmd << std::endl;
         std::cout << "TC:" << config.tc.moves << "/" << config.tc.time << "+" << config.tc.increment
                   << std::endl;
+        std::cout << "ST:" << config.tc.fixed_time << std::endl;
         std::cout << "Nodes: " << config.nodes << std::endl;
         std::cout << "Plies: " << config.plies << std::endl;
         for (const auto &option : config.options)

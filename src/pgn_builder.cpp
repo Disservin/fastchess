@@ -60,7 +60,11 @@ PgnBuilder::PgnBuilder(const Match &match, const CMD::GameManagerOptions &gameOp
             ss << " " << MoveToSan(b, convertUciToMove(b, data.move)) << " {" << data.scoreString
                << "/" << data.depth << nodesString.str() << " " << timeString.str()
                << illegalMove.str() << "}";
-            if (i != match.moves.size() - 1 && i % 7 == 0)
+
+            if (i == match.moves.size() - 1)
+                break;
+
+            if (i % 7 == 0)
                 ss << "\n";
             else
                 ss << " ";

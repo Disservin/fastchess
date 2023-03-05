@@ -91,7 +91,7 @@ void Tournament::printElo()
 
     // clang-format off
     ss << "---------------------------\n"
-       << "Result of " << engineNames[0] << " vs " << engineNames[1]
+       << "Score of " << engineNames[0] << " vs " << engineNames[1]
        << ": " << wins << " - " << losses << " - " << draws
        << " (" << std::fixed << std::setprecision(2) << (float(wins) + (float(draws) * 0.5)) / (roundCount * this->matchConfig.games) << ")\n"
        << "Ptnml:   "
@@ -100,7 +100,7 @@ void Tournament::printElo()
        << std::right << std::setw(7) << "DD/WL"
        << std::right << std::setw(7) << "LD"
        << std::right << std::setw(7) << "LL" << "\n"
-       << "         "
+       << "distr:  "
        << std::right << std::setw(7) << pentaWW
        << std::right << std::setw(7) << pentaWD
        << std::right << std::setw(7) << pentaWL
@@ -151,7 +151,8 @@ bool Tournament::playNextMove(UciEngine &engine, std::string &positionInput, Boa
     // engine's turn
     if (!engine.isResponsive())
     {
-        Logger::coutInfo("Warning: Engine", engine.getConfig().name, "was not responsive.");
+        Logger::coutInfo("Warning: Engine", engine.getConfig().name,
+                         "disconnects. It was not responsive.");
 
         if (!matchConfig.recover)
         {
@@ -181,7 +182,7 @@ bool Tournament::playNextMove(UciEngine &engine, std::string &positionInput, Boa
     if (!engine.getError().empty())
     {
         match.needsRestart = matchConfig.recover;
-        Logger::coutInfo("Warning: Can't write to engine", engine.getConfig().name, "#", roundId);
+        Logger::coutInfo("Warning: Engine", engine.getConfig().name, "disconnects #", roundId);
 
         if (!matchConfig.recover)
         {
@@ -203,7 +204,7 @@ bool Tournament::playNextMove(UciEngine &engine, std::string &positionInput, Boa
     {
         res = GameResult(~board.sideToMove);
         match.termination = "timeout";
-        Logger::coutInfo("Warning: Engine", engine.getConfig().name, "timed out #", roundId);
+        Logger::coutInfo("Warning: Engine", engine.getConfig().name, "loses on time #", roundId);
         return false;
     }
 
@@ -467,6 +468,7 @@ void Tournament::startTournament(const std::vector<EngineConfiguration> &configs
         std::this_thread::sleep_for(std::chrono::microseconds(250));
     }
 
+    std::cout << "Finished match\n";
     printElo();
 }
 

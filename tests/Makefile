@@ -22,7 +22,7 @@ ifeq ($(uname_S), Darwin)
 	LDFLAGS = 
 endif
 
-ALL_SOURCES = $(wildcard ../src/*.cpp ../src/chess/*.cpp ../src/engines/*.cpp ../src/third_party/*.cpp *.cpp)
+ALL_SOURCES = $(wildcard ../src/*.cpp ../src/chess/*.cpp ../src/engines/*.cpp *.cpp)
 SOURCES = $(filter-out ../src/main.cpp, $(ALL_SOURCES))
 
 TARGET = fast-chess-tests$(SUFFIX)

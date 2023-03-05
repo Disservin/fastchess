@@ -48,7 +48,7 @@ PgnBuilder::PgnBuilder(const Match &match, const CMD::GameManagerOptions &gameOp
         const MoveData data = match.moves[i];
 
         std::stringstream nodesString, timeString;
-        timeString << std::fixed << std::setprecision(2) << data.elapsedMillis / 1000.0 << "s";
+        timeString << std::fixed << std::setprecision(3) << data.elapsedMillis / 1000.0 << "s";
 
         if (gameOptions.pgn.trackNodes)
         {

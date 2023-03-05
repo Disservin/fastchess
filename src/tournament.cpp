@@ -2,17 +2,13 @@
 #include <chrono>
 #include <iomanip>
 #include <iostream>
+#include <random>
 #include <sstream>
 
 #include "elo.hpp"
 #include "pgn_builder.hpp"
 #include "rand.hpp"
 #include "tournament.hpp"
-
-namespace Mersenne
-{
-#include "third_party/mersenne-twister.h"
-}
 
 Tournament::Tournament(const CMD::GameManagerOptions &mc)
 {
@@ -25,7 +21,7 @@ Tournament::Tournament(const CMD::GameManagerOptions &mc)
 
 void Tournament::loadConfig(const CMD::GameManagerOptions &mc)
 {
-    Mersenne::seed(matchConfig.seed);
+    Random::mersenne_rand.seed(matchConfig.seed);
 
     matchConfig = mc;
 
@@ -47,7 +43,7 @@ void Tournament::loadConfig(const CMD::GameManagerOptions &mc)
             // Fisher-Yates / Knuth shuffle
             for (size_t i = 0; i <= openingBook.size() - 2; i++)
             {
-                size_t j = i + (Mersenne::rand_u32() % (openingBook.size() - i));
+                size_t j = i + (Random::mersenne_rand() % (openingBook.size() - i));
                 std::swap(openingBook[i], openingBook[j]);
             }
         }

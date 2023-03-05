@@ -144,7 +144,7 @@ class Tournament
     std::atomic<int> pentaLD = 0;
     std::atomic<int> pentaLL = 0;
 
-    size_t startIndex = 0;
+    size_t fenIndex = 0;
 
     bool storePGNS = false;
 

@@ -60,6 +60,7 @@ struct ResignAdjudication
 
 struct GameManagerOptions
 {
+    uint32_t seed = 951356066;
     int games = 2;
     int rounds = 0;
     bool recover = false;

@@ -45,7 +45,7 @@ endif
 
 .PHONY: all clean FORCE
 
-SRCDIRS := ./ ./engines ./chess
+SRCDIRS := ./ ./engines ./chess ./third_party
 
 SOURCES := $(foreach dir,$(SRCDIRS),$(wildcard $(dir)/*.cpp))
 OBJECTS := $(patsubst %.cpp,%.o,$(SOURCES))

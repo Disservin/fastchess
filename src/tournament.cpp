@@ -7,6 +7,7 @@
 #include "elo.hpp"
 #include "pgn_builder.hpp"
 #include "rand.hpp"
+#include "third_party/mersenne-twister.h"
 #include "tournament.hpp"
 
 Tournament::Tournament(const CMD::GameManagerOptions &mc)
@@ -20,6 +21,8 @@ Tournament::Tournament(const CMD::GameManagerOptions &mc)
 
 void Tournament::loadConfig(const CMD::GameManagerOptions &mc)
 {
+    seed(matchConfig.seed);
+
     matchConfig = mc;
 
     if (!matchConfig.opening.file.empty())
@@ -34,6 +37,16 @@ void Tournament::loadConfig(const CMD::GameManagerOptions &mc)
         }
 
         openingFile.close();
+
+        if (matchConfig.opening.order == "random")
+        {
+            // Fisher-Yates / Knuth shuffle
+            for (size_t i = 0; i <= openingBook.size() - 2; i++)
+            {
+                size_t j = i + (rand_u32() % (openingBook.size() - i));
+                std::swap(openingBook[i], openingBook[j]);
+            }
+        }
     }
 
     pool.resize(matchConfig.concurrency);
@@ -54,22 +67,7 @@ std::string Tournament::fetchNextFen()
     }
     else if (matchConfig.opening.format == "epd")
     {
-        if (matchConfig.opening.order == "random")
-        {
-            std::uniform_int_distribution<uint64_t> maxLines{startIndex % (openingBook.size() - 1),
-                                                             openingBook.size() - 1};
-
-            auto randLine = maxLines(Random::generator);
-            assert(randLine < openingBook.size());
-
-            return openingBook[randLine];
-        }
-        else if (matchConfig.opening.order == "sequential")
-        {
-            assert(startIndex % (openingBook.size() - 1) < openingBook.size());
-
-            return openingBook[startIndex++ % (openingBook.size() - 1)];
-        }
+        return openingBook[(matchConfig.opening.start + fenIndex++) % openingBook.size()];
     }
 
     return STARTPOS;

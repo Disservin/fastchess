@@ -1,6 +1,6 @@
 #pragma once
 
-#include "sliders.hpp"
+#include "../third_party/sliders.hpp"
 #include "types.hpp"
 
 // clang-format off

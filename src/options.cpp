@@ -81,62 +81,6 @@ bool Options::isEngineSettableOption(const std::string &stringFormat) const
     return false;
 }
 
-void Options::parseEngineParams(int &i, int argc, char const *argv[],
-                                EngineConfiguration &engineParams)
-{
-    i++;
-    std::vector<std::pair<std::string, std::string>> engine_settable_options;
-    while (i < argc && argv[i][0] != '-')
-    {
-        const std::string param = argv[i];
-        const size_t pos = param.find('=');
-        const std::string key = param.substr(0, pos);
-        const std::string value = param.substr(pos + 1);
-        if (key == "cmd")
-        {
-            engineParams.cmd = value;
-        }
-        else if (key == "name")
-        {
-            engineParams.name = value;
-        }
-        else if (key == "tc")
-        {
-            engineParams.tc = parseTc(value);
-        }
-        else if (key == "st")
-        {
-            engineParams.tc.fixed_time = std::stod(value) * 1000;
-        }
-        else if (key == "nodes")
-        {
-            engineParams.nodes = std::stoll(value);
-        }
-        else if (key == "plies")
-        {
-            engineParams.plies = std::stoll(value);
-        }
-        else if (key == "dir")
-        {
-            engineParams.dir = value;
-        }
-        else if (isEngineSettableOption(key))
-        {
-            // Strip option.Name of the option. Part
-            const size_t pos = key.find('.');
-            const std::string strippedKey = key.substr(pos + 1);
-            engine_settable_options.push_back(std::make_pair(strippedKey, value));
-        }
-        else
-        {
-            std::cout << "\nUnrecognized engine option: " << key << " parsing failed." << std::endl;
-        }
-        i++;
-    }
-    engineParams.options = engine_settable_options;
-    i--;
-}
-
 TimeControl Options::parseTc(const std::string &tcString)
 {
     TimeControl tc;
@@ -240,6 +184,50 @@ void Options::parseOption(int &i, int argc, const char *argv[], T &optionValue)
     }
 }
 
+void Options::parseEngineKeyValues(EngineConfiguration &engineConfig, const std::string &key,
+                                   const std::string &value)
+{
+    if (key == "cmd")
+    {
+        engineConfig.cmd = value;
+    }
+    else if (key == "name")
+    {
+        engineConfig.name = value;
+    }
+    else if (key == "tc")
+    {
+        engineConfig.tc = parseTc(value);
+    }
+    else if (key == "st")
+    {
+        engineConfig.tc.fixed_time = std::stod(value) * 1000;
+    }
+    else if (key == "nodes")
+    {
+        engineConfig.nodes = std::stoll(value);
+    }
+    else if (key == "plies")
+    {
+        engineConfig.plies = std::stoll(value);
+    }
+    else if (key == "dir")
+    {
+        engineConfig.dir = value;
+    }
+    else if (isEngineSettableOption(key))
+    {
+        // Strip option.Name of the option. Part
+        const size_t pos = key.find('.');
+        const std::string strippedKey = key.substr(pos + 1);
+        engineConfig.options.push_back(std::make_pair(strippedKey, value));
+    }
+    else
+    {
+        std::cout << "\nUnrecognized engine option: " << key << " parsing failed." << std::endl;
+    }
+}
+
 void Options::parseEachOptions(int &i, int argc, char const *argv[])
 {
     i++;
@@ -252,47 +240,26 @@ void Options::parseEachOptions(int &i, int argc, char const *argv[])
 
         for (auto &config : configs)
         {
-            if (key == "cmd")
-            {
-                config.cmd = value;
-            }
-            else if (key == "name")
-            {
-                config.name = value;
-            }
-            else if (key == "tc")
-            {
-                config.tc = parseTc(value);
-            }
-            else if (key == "st")
-            {
-                config.tc.fixed_time = std::stod(value) * 1000;
-            }
-            else if (key == "nodes")
-            {
-                config.nodes = std::stoll(value);
-            }
-            else if (key == "plies")
-            {
-                config.plies = std::stoll(value);
-            }
-            else if (key == "dir")
-            {
-                config.dir = value;
-            }
-            else if (isEngineSettableOption(key))
-            {
-                // Strip option.Name of the option. Part
-                const size_t pos = key.find('.');
-                const std::string strippedKey = key.substr(pos + 1);
-                config.options.push_back(std::make_pair(strippedKey, value));
-            }
-            else
-            {
-                std::cout << "\nUnrecognized engine option: " << key << " parsing failed."
-                          << std::endl;
-            }
+            parseEngineKeyValues(config, key, value);
         }
+
+        i++;
+    }
+    i--;
+}
+
+void Options::parseEngineParams(int &i, int argc, char const *argv[],
+                                EngineConfiguration &engineParams)
+{
+    i++;
+    while (i < argc && argv[i][0] != '-')
+    {
+        const std::string param = argv[i];
+        const size_t pos = param.find('=');
+        const std::string key = param.substr(0, pos);
+        const std::string value = param.substr(pos + 1);
+
+        parseEngineKeyValues(engineParams, key, value);
 
         i++;
     }

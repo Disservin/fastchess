@@ -32,19 +32,19 @@ class Logger
 
     void operator=(Logger const &) = delete;
 
-    static void openFile(const std::string &file);
-
-    static void writeLog(const std::string &msg, std::thread::id thread);
-
-    // write to file indicating that a read was done
-    static void readLog(const std::string &msg, std::thread::id thread);
-
     template <typename... Args> static void coutInfo(Args &&...args)
     {
         std::stringstream ss;
         ((ss << " " << std::forward<Args>(args)), ...) << "\n";
         std::cout << ss.str();
     }
+
+    static void openFile(const std::string &file);
+
+    static void writeLog(const std::string &msg, std::thread::id thread);
+
+    // write to file indicating that a read was done
+    static void readLog(const std::string &msg, std::thread::id thread);
 
     static std::string getDateTime(std::string format = "%Y-%m-%dT%H:%M:%S %z");
 

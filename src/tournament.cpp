@@ -110,7 +110,8 @@ void Tournament::printElo()
 
     if (sprt.isValid())
     {
-        ss << "LLR: " << sprt.getLLR(wins, draws, losses) << " " << sprt.getBounds() << "\n";
+        ss << "LLR: " << sprt.getLLR(wins, draws, losses) << " " << sprt.getBounds() << " "
+           << sprt.getElo() << "\n";
     }
     ss << "Games:" << roundCount * 2 << std::setprecision(1)
        << " W:" << (float(wins) / (roundCount * this->matchConfig.games)) * 100 << "% "

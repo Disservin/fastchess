@@ -14,6 +14,9 @@ SPRT::SPRT(double alpha, double beta, double elo0, double elo1)
         this->s0 = getLL(elo0);
         this->s1 = getLL(elo1);
 
+        this->elo0 = elo0;
+        this->elo1 = elo1;
+
         std::cout << "Initialized valid SPRT configuration." << std::endl;
     }
     else
@@ -57,8 +60,17 @@ SPRTResult SPRT::getResult(double llr) const
 std::string SPRT::getBounds() const
 {
     std::stringstream ss;
-    ss << "[" << std::fixed << std::setprecision(2) << lower << " ; " << std::fixed
-       << std::setprecision(2) << upper << "]";
+    ss << "(" << std::fixed << std::setprecision(2) << lower << ", " << std::fixed
+       << std::setprecision(2) << upper << ")";
+    return ss.str();
+}
+
+std::string SPRT::getElo() const
+{
+    std::stringstream ss;
+    ss << "[" << std::fixed << std::setprecision(2) << elo0 << ", " << std::fixed
+       << std::setprecision(2) << elo1 << "]";
+
     return ss.str();
 }
 

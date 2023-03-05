@@ -17,6 +17,9 @@ class SPRT
 
     bool valid = false;
 
+    double elo0 = 0;
+    double elo1 = 0;
+
   public:
     SPRT(double alpha, double beta, double elo0, double elo1);
 
@@ -29,6 +32,8 @@ class SPRT
     SPRTResult getResult(double llr) const;
 
     std::string getBounds() const;
+
+    std::string getElo() const;
 
     bool isValid() const;
 };

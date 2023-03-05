@@ -3,7 +3,6 @@
 #include <iostream>
 #include <thread>
 
-#include "engines/engine.hpp"
 #include "engines/uci_engine.hpp"
 #include "options.hpp"
 #include "tournament.hpp"

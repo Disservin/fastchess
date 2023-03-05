@@ -2,7 +2,6 @@
 #include "doctest/doctest.hpp"
 
 #include "elo_test.h"
-#include "engine_test.h"
 #include "fen_repetition_test.h"
 #include "functions_test.h"
 #include "hash_test.h"

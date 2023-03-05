@@ -11,9 +11,9 @@ PgnBuilder::PgnBuilder(const Match &match, const CMD::GameManagerOptions &gameOp
 
     // clang-format off
     ss << "[Event "         << "\"" << gameOptions.eventName    << "\"" << "]" << "\n";
-    ss << "[Site "          << "\"?\""                          << "]"  << "\n";
-    ss << "[Date "          << "\"" << match.date               << "\"" << "]"  << "\n";
-    ss << "[Round "         << "\"" << match.round              << "\"" << "]"  << "\n";
+    ss << "[Site "          << "\"" << gameOptions.site         << "\"" << "]" << "\n";
+    ss << "[Date "          << "\"" << match.date               << "\"" << "]" << "\n";
+    ss << "[Round "         << "\"" << match.round              << "\"" << "]" << "\n";
     ss << "[White "         << "\"" << match.whiteEngine.name   << "\"" << "]" << "\n";
     ss << "[Black "         << "\"" << match.blackEngine.name   << "\"" << "]" << "\n";
     ss << "[Result "        << "\"" << result                   << "\"" << "]" << "\n";
@@ -22,8 +22,10 @@ PgnBuilder::PgnBuilder(const Match &match, const CMD::GameManagerOptions &gameOp
     ss << "[GameEndTime "   << "\"" << match.endTime            << "\"" << "]" << "\n";
     ss << "[GameStartTime " << "\"" << match.startTime          << "\"" << "]" << "\n";
     ss << "[PlyCount "      << "\"" << match.moves.size()       << "\"" << "]" << "\n";
+    
     if (!termination.empty())
         ss << "[Termination " << "\"" << termination << "\"" << "]" << "\n";
+
     if (match.whiteEngine.tc.fixed_time != 0)  
         ss << "[TimeControl " << "\"" << match.whiteEngine.tc.fixed_time << "/move" << "\"" << "]" << "\n";
     else 

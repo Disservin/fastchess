@@ -28,6 +28,8 @@ Options::Options(int argc, char const *argv[])
             parseOption(i, argc, argv, gameOptions.concurrency);
         else if (arg == "-event")
             parseOption(i, argc, argv, gameOptions.eventName);
+        else if (arg == "-site")
+            parseOption(i, argc, argv, gameOptions.site);
         else if (arg == "-games")
             parseOption(i, argc, argv, gameOptions.games);
         else if (arg == "-rounds")

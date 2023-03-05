@@ -45,33 +45,46 @@ struct SprtOptions
 
 struct DrawAdjudication
 {
-    bool enabled = false;
     int moveNumber = 0;
     int moveCount = 0;
     int score = 0;
+
+    bool enabled = false;
 };
 
 struct ResignAdjudication
 {
-    bool enabled = false;
     int moveCount = 0;
     int score = 0;
+
+    bool enabled = false;
 };
 
 struct GameManagerOptions
 {
-    uint32_t seed = 951356066;
-    int games = 2;
-    int rounds = 0;
-    bool recover = false;
-    int concurrency = 1;
-    int ratinginterval = 10;
-    SprtOptions sprt = {};
-    std::string eventName;
+    ResignAdjudication resign = {};
+    DrawAdjudication draw = {};
+
     OpeningOptions opening = {};
     PgnOptions pgn = {};
-    DrawAdjudication draw = {};
-    ResignAdjudication resign = {};
+
+    SprtOptions sprt = {};
+
+    std::string eventName;
+    std::string site;
+
+    uint32_t seed = 951356066;
+
+    int ratinginterval = 10;
+
+    int games = 2;
+    int rounds = 0;
+
+    int concurrency = 1;
+
+    int overhead = 0;
+
+    bool recover = false;
 };
 
 inline std::ostream &operator<<(std::ostream &os, const Parameter &param)

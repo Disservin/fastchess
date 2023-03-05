@@ -197,8 +197,9 @@ bool Tournament::playNextMove(UciEngine &engine, std::string &positionInput, Boa
 
     timeLeftUs.time -= measuredTime;
 
-    if ((timeLeftUs.fixed_time != 0 && measuredTime - MOVETIME_LENIENCY > timeLeftUs.fixed_time) ||
-        (timeLeftUs.fixed_time == 0 && timeLeftUs.time < 0))
+    if ((timeLeftUs.fixed_time != 0 &&
+         measuredTime - matchConfig.overhead > timeLeftUs.fixed_time) ||
+        (timeLeftUs.fixed_time == 0 && timeLeftUs.time + matchConfig.overhead < 0))
     {
         res = GameResult(~board.sideToMove);
         match.termination = "timeout";

@@ -175,7 +175,8 @@ bool Tournament::playNextMove(UciEngine &engine, std::string &positionInput, Boa
     // Start measuring time
     const auto t0 = std::chrono::high_resolution_clock::now();
 
-    output = engine.readProcess("bestmove", timeout, timeLeftUs.time);
+    output =
+        engine.readProcess("bestmove", timeout, timeLeftUs.fixed_time != 0 ? 0 : timeLeftUs.time);
 
     const auto t1 = std::chrono::high_resolution_clock::now();
 
@@ -195,7 +196,9 @@ bool Tournament::playNextMove(UciEngine &engine, std::string &positionInput, Boa
     // Subtract measured time
     const auto measuredTime =
         std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count();
+
     timeLeftUs.time -= measuredTime;
+
     if ((timeLeftUs.fixed_time != 0 && measuredTime - MOVETIME_LENIENCY > timeLeftUs.fixed_time) ||
         (timeLeftUs.fixed_time == 0 && timeLeftUs.time < 0))
     {

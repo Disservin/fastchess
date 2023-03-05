@@ -259,6 +259,10 @@ void Options::parseEachOptions(int &i, int argc, char const *argv[])
             {
                 config.tc = parseTc(value);
             }
+            else if (key == "st")
+            {
+                config.tc.fixed_time = std::stod(value) * 1000;
+            }
             else if (key == "nodes")
             {
                 config.nodes = std::stoll(value);
@@ -273,11 +277,14 @@ void Options::parseEachOptions(int &i, int argc, char const *argv[])
             }
             else if (isEngineSettableOption(key))
             {
-                config.options.push_back(std::make_pair(key, value));
+                // Strip option.Name of the option. Part
+                const size_t pos = key.find('.');
+                const std::string strippedKey = key.substr(pos + 1);
+                config.options.push_back(std::make_pair(strippedKey, value));
             }
             else
             {
-                std::cout << "\nUnrecognized each option: " << key << " parsing failed."
+                std::cout << "\nUnrecognized engine option: " << key << " parsing failed."
                           << std::endl;
             }
         }

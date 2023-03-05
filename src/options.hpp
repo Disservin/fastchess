@@ -70,8 +70,8 @@ struct GameManagerOptions
 
     SprtOptions sprt = {};
 
-    std::string eventName;
-    std::string site;
+    std::string eventName = "?";
+    std::string site = "?";
 
     uint32_t seed = 951356066;
 

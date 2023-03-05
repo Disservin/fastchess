@@ -45,11 +45,12 @@ endif
 
 .PHONY: all clean FORCE
 
-SRCDIRS := ./ ./engines ./chess
+SRCDIRS := ./ engines chess
+TMPDIR := ./.tmp
 
 SOURCES := $(foreach dir,$(SRCDIRS),$(wildcard $(dir)/*.cpp))
-OBJECTS := $(patsubst %.cpp,%.o,$(SOURCES))
-DEPENDS := $(patsubst %.cpp,%.d,$(SOURCES))
+OBJECTS := $(patsubst %.cpp,$(TMPDIR)/%.o,$(SOURCES))
+DEPENDS := $(patsubst %.cpp,$(TMPDIR)/%.d,$(SOURCES))
 TARGET  := fast-chess
 
 all: $(TARGET)
@@ -57,13 +58,16 @@ all: $(TARGET)
 $(TARGET): $(OBJECTS)
 	$(CXX) $(CXXFLAGS) $(NATIVE) -flto -MMD -MP -o $@ $^ $(LDFLAGS)
 
-%.o: %.cpp
+$(TMPDIR)/%.o: %.cpp | $(TMPDIR)
 	$(CXX) $(CXXFLAGS) $(NATIVE) -flto -MMD -MP -c $< -o $@ $(LDFLAGS)
+
+$(TMPDIR):
+	mkdir -p $(TMPDIR)/engines $(TMPDIR)/chess
 
 -include $(DEPENDS)
 
 clean:
-	@rm -f $(OBJECTS) $(DEPENDS) $(TARGET)
+	@rm -rf $(OBJECTS) $(DEPENDS) $(TARGET) ./.tmp
 
 options.o: FORCE
 FORCE:

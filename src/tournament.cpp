@@ -151,11 +151,11 @@ bool Tournament::playNextMove(UciEngine &engine, std::string &positionInput, Boa
     // engine's turn
     if (!engine.isResponsive())
     {
-        Logger::coutInfo("Engine", engine.getConfig().name, "was not responsive.");
+        Logger::coutInfo("Warning: Engine", engine.getConfig().name, "was not responsive.");
 
         if (!matchConfig.recover)
         {
-            throw std::runtime_error("Engine not responsive");
+            throw std::runtime_error("Warning: Engine not responsive");
         }
 
         return false;
@@ -181,11 +181,11 @@ bool Tournament::playNextMove(UciEngine &engine, std::string &positionInput, Boa
     if (!engine.getError().empty())
     {
         match.needsRestart = matchConfig.recover;
-        Logger::coutInfo("Can't write to engine", engine.getConfig().name, "#", roundId);
+        Logger::coutInfo("Warning: Can't write to engine", engine.getConfig().name, "#", roundId);
 
         if (!matchConfig.recover)
         {
-            throw std::runtime_error("Can't write to engine.");
+            throw std::runtime_error("Warning: Can't write to engine.");
         }
 
         return false;
@@ -203,7 +203,7 @@ bool Tournament::playNextMove(UciEngine &engine, std::string &positionInput, Boa
     {
         res = GameResult(~board.sideToMove);
         match.termination = "timeout";
-        Logger::coutInfo("Engine", engine.getConfig().name, "timed out #", roundId);
+        Logger::coutInfo("Warning: Engine", engine.getConfig().name, "timed out #", roundId);
         return false;
     }
 
@@ -226,8 +226,8 @@ bool Tournament::playNextMove(UciEngine &engine, std::string &positionInput, Boa
         res = GameResult(~board.sideToMove);
         match.termination = "illegal move";
 
-        Logger::coutInfo("Engine", engine.getConfig().name, "played an illegal move:", bestMove,
-                         "#", roundId);
+        Logger::coutInfo("Warning: Engine", engine.getConfig().name,
+                         "played an illegal move:", bestMove, "#", roundId);
         return false;
     }
 
@@ -419,7 +419,7 @@ void Tournament::startTournament(const std::vector<EngineConfiguration> &configs
 {
     if (configs.size() < 2)
     {
-        throw std::runtime_error("Need at least two engines to start!");
+        throw std::runtime_error("Warning: Need at least two engines to start!");
     }
 
     std::vector<std::future<std::vector<Match>>> results;

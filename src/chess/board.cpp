@@ -751,7 +751,7 @@ Move convertUciToMove(const Board &board, const std::string &input)
         return Move(source, target, Board::typeOfPiece(board.pieceAt(source)),
                     charToPieceType[input.at(4)]);
     default:
-        throw std::runtime_error("Cant parse move" + input);
+        throw std::runtime_error("Warning: Cant parse move" + input);
         return Move(NO_SQ, NO_SQ, NONETYPE, NONETYPE);
     }
 }

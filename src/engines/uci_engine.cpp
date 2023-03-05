@@ -144,7 +144,7 @@ void UciEngine::startEngine()
 
     if (!isResponsive(60000))
     {
-        throw std::runtime_error("Something went wrong when pinging the engine.");
+        throw std::runtime_error("Warning: Something went wrong when pinging the engine.");
     }
 
     for (const auto &option : config.options)
@@ -162,7 +162,7 @@ void UciEngine::startEngine(const std::string &cmd)
 
     if (!isResponsive(60000))
     {
-        throw std::runtime_error("Something went wrong when pinging the engine.");
+        throw std::runtime_error("Warning: Something went wrong when pinging the engine.");
     }
 
     for (const auto &option : config.options)

@@ -57,7 +57,7 @@ class ThreadPool
 
             // don't allow enqueueing after stopping the pool
             if (stop)
-                throw std::runtime_error("enqueue on stopped ThreadPool");
+                throw std::runtime_error("Warning: enqueue on stopped ThreadPool");
 
             // Move the task into the queue as a function object
 
@@ -72,7 +72,7 @@ class ThreadPool
     {
         if (num_threads == 0)
         {
-            throw std::invalid_argument("ThreadPool::resize() - num_threads cannot be 0");
+            throw std::invalid_argument("Warning: ThreadPool::resize() - num_threads cannot be 0");
         }
 
         size_t curr_threads = workers.size();

@@ -67,7 +67,7 @@ Options::Options(int argc, char const *argv[])
     {
         if (config.name.empty())
         {
-            throw std::runtime_error("Each engine must have a name!");
+            throw std::runtime_error("Warning: Each engine must have a name!");
         }
 
         config.recover = gameOptions.recover;

@@ -93,7 +93,7 @@ void Tournament::printElo()
     ss << "--------------------------------------------------------\n"
        << "Score of " << engineNames[0] << " vs " << engineNames[1]
        << ": " << wins << " - " << losses << " - " << draws
-       << " (" << std::fixed << std::setprecision(2) << (float(wins) + (float(draws) * 0.5)) / (roundCount * this->matchConfig.games) << ")\n"
+       << " (" << std::fixed << std::setprecision(2) << (float(wins) + (float(draws) * 0.5)) / (roundCount * matchConfig.games) << ")\n"
        << "Ptnml:   "
        << std::right << std::setw(7) << "WW"
        << std::right << std::setw(7) << "WD"
@@ -113,10 +113,10 @@ void Tournament::printElo()
         ss << "LLR: " << sprt.getLLR(wins, draws, losses) << " " << sprt.getBounds() << " "
            << sprt.getElo() << "\n";
     }
-    ss << "Games:" << roundCount * 2 << std::setprecision(1)
-       << " W:" << (float(wins) / (roundCount * this->matchConfig.games)) * 100 << "% "
-       << "L:" << (float(losses) / (roundCount * this->matchConfig.games)) * 100 << "% "
-       << "D:" << (float(draws) / (roundCount * this->matchConfig.games)) * 100 << "%\n";
+    ss << "Games:" << roundCount * matchConfig.games << std::setprecision(1)
+       << " W:" << (float(wins) / (roundCount * matchConfig.games)) * 100 << "% "
+       << "L:" << (float(losses) / (roundCount * matchConfig.games)) * 100 << "% "
+       << "D:" << (float(draws) / (roundCount * matchConfig.games)) * 100 << "%\n";
     ss << "Elo difference: " << elo.getElo()
        << "\n--------------------------------------------------------\n";
     std::cout << ss.str();

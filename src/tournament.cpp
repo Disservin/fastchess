@@ -116,7 +116,7 @@ void Tournament::printElo()
     ss << "Games:" << roundCount * matchConfig.games << std::setprecision(1)
        << " W:" << (float(wins) / (roundCount * matchConfig.games)) * 100 << "% "
        << "L:" << (float(losses) / (roundCount * matchConfig.games)) * 100 << "% "
-       << "D:" << (float(draws) / (roundCount * matchConfig.games)) * 100 << "%"
+       << "D:" << (float(draws) / (roundCount * matchConfig.games)) * 100 << "% "
        << "TF:" << (float(timeouts) / (roundCount * matchConfig.games)) * 100 << "%\n";
     ss << "Elo difference: " << elo.getElo()
        << "\n--------------------------------------------------------\n";

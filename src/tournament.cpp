@@ -90,7 +90,7 @@ void Tournament::printElo()
     std::stringstream ss;
 
     // clang-format off
-    ss << "---------------------------\n"
+    ss << "--------------------------------------------------------\n"
        << "Score of " << engineNames[0] << " vs " << engineNames[1]
        << ": " << wins << " - " << losses << " - " << draws
        << " (" << std::fixed << std::setprecision(2) << (float(wins) + (float(draws) * 0.5)) / (roundCount * this->matchConfig.games) << ")\n"
@@ -117,7 +117,8 @@ void Tournament::printElo()
        << " W:" << (float(wins) / (roundCount * this->matchConfig.games)) * 100 << "% "
        << "L:" << (float(losses) / (roundCount * this->matchConfig.games)) * 100 << "% "
        << "D:" << (float(draws) / (roundCount * this->matchConfig.games)) * 100 << "%\n";
-    ss << "Elo difference: " << elo.getElo() << "\n---------------------------\n";
+    ss << "Elo difference: " << elo.getElo()
+       << "\n--------------------------------------------------------\n";
     std::cout << ss.str();
 }
 
@@ -441,6 +442,7 @@ void Tournament::startTournament(const std::vector<EngineConfiguration> &configs
         if (sprt.getResult(llr) != SPRT_CONTINUE)
         {
             pool.kill();
+            std::cout << "Finished match\n";
             printElo();
 
             return;

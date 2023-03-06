@@ -116,7 +116,8 @@ void Tournament::printElo()
     ss << "Games:" << roundCount * matchConfig.games << std::setprecision(1)
        << " W:" << (float(wins) / (roundCount * matchConfig.games)) * 100 << "% "
        << "L:" << (float(losses) / (roundCount * matchConfig.games)) * 100 << "% "
-       << "D:" << (float(draws) / (roundCount * matchConfig.games)) * 100 << "%\n";
+       << "D:" << (float(draws) / (roundCount * matchConfig.games)) * 100 << "%"
+       << "TF:" << (float(timeouts) / (roundCount * matchConfig.games)) * 100 << "%\n";
     ss << "Elo difference: " << elo.getElo()
        << "\n--------------------------------------------------------\n";
     std::cout << ss.str();
@@ -206,6 +207,7 @@ bool Tournament::playNextMove(UciEngine &engine, std::string &positionInput, Boa
     {
         res = GameResult(~board.sideToMove);
         match.termination = "timeout";
+        timeouts++;
         Logger::coutInfo("Warning: Engine", engine.getConfig().name, "loses on time #", roundId);
         return false;
     }

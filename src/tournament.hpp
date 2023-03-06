@@ -136,6 +136,7 @@ class Tournament
     std::atomic<int> losses = 0;
     std::atomic<int> roundCount = 0;
     std::atomic<int> totalCount = 0;
+    std::atomic<int> timeouts = 0;
 
     std::atomic<int> pentaWW = 0;
     std::atomic<int> pentaWD = 0;

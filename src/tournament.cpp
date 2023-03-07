@@ -240,19 +240,10 @@ bool Tournament::playNextMove(UciEngine &engine, std::string &positionInput, Boa
     updateTrackers(drawTracker, resignTracker, match.moves.back().score, match.moves.size());
 
     // Check for game over
-    res = board.isGameOver();
-
-    // If game isn't over by other means check adj
-    if (res == GameResult::NONE)
-    {
-        res = checkAdj(match, drawTracker, resignTracker, match.moves.back().score,
-                       ~board.sideToMove);
-    }
-
-    if (res != GameResult::NONE)
-    {
+    if ((res = board.isGameOver()) != GameResult::NONE ||
+        (res = checkAdj(match, drawTracker, resignTracker, match.moves.back().score,
+                        ~board.sideToMove)) != GameResult::NONE)
         return false;
-    }
 
     return true;
 }

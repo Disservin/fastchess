@@ -314,6 +314,7 @@ void EngineProcess::writeProcess(const std::string &input)
 
     // Append a newline character to the end of the input string
     constexpr char endLine = '\n';
+    Logger::coutInfo("writing process", input);
 
     // Write the input and a newline to the output pipe
     if (write(out_pipe_[1], input.c_str(), input.size()) == -1)
@@ -403,6 +404,8 @@ std::vector<std::string> EngineProcess::readProcess(std::string_view last_word, 
                     // dont add empty lines
                     if (!currentLine.empty())
                     {
+                        Logger::coutInfo("reading process", currentLine);
+
                         lines.emplace_back(currentLine);
                         if (currentLine.rfind(last_word, 0) == 0)
                         {

@@ -91,8 +91,8 @@ void Tournament::printElo()
 
     // clang-format off
     ss << "--------------------------------------------------------\n"
-       << "Score of " << engineNames[0] << " vs " << engineNames[1]
-       << ": " << wins << " - " << losses << " - " << draws
+       << "Score of " << engineNames[0] << " vs " << engineNames[1] << " after " << roundCount * matchConfig.games << " games: "
+       << wins << " - " << losses << " - " << draws
        << " (" << std::fixed << std::setprecision(2) << (float(wins) + (float(draws) * 0.5)) / (roundCount * matchConfig.games) << ")\n"
        << "Ptnml:   "
        << std::right << std::setw(7) << "WW"
@@ -100,7 +100,7 @@ void Tournament::printElo()
        << std::right << std::setw(7) << "DD/WL"
        << std::right << std::setw(7) << "LD"
        << std::right << std::setw(7) << "LL" << "\n"
-       << "distr:  "
+       << "Distr:   "
        << std::right << std::setw(7) << pentaWW
        << std::right << std::setw(7) << pentaWD
        << std::right << std::setw(7) << pentaWL
@@ -113,11 +113,11 @@ void Tournament::printElo()
         ss << "LLR: " << sprt.getLLR(wins, draws, losses) << " " << sprt.getBounds() << " "
            << sprt.getElo() << "\n";
     }
-    ss << "Games:" << roundCount * matchConfig.games << std::setprecision(1)
-       << " W:" << (float(wins) / (roundCount * matchConfig.games)) * 100 << "% "
-       << "L:" << (float(losses) / (roundCount * matchConfig.games)) * 100 << "% "
-       << "D:" << (float(draws) / (roundCount * matchConfig.games)) * 100 << "% "
-       << "TF:" << timeouts << "\n";
+    ss << std::setprecision(1) << "Stats:  "
+       << "W: " << (float(wins) / (roundCount * matchConfig.games)) * 100 << "%   "
+       << "L: " << (float(losses) / (roundCount * matchConfig.games)) * 100 << "%   "
+       << "D: " << (float(draws) / (roundCount * matchConfig.games)) * 100 << "%   "
+       << "TF: " << timeouts << "\n";
     ss << "Elo difference: " << elo.getElo()
        << "\n--------------------------------------------------------\n";
     std::cout << ss.str();

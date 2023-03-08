@@ -1,8 +1,8 @@
 #include <sstream>
 #include <stdexcept>
 
+#include "../logger.hpp"
 #include "engine_config.hpp"
-#include "logger.hpp"
 #include "uci_engine.hpp"
 
 void UciEngine::setConfig(const EngineConfiguration &rhs)

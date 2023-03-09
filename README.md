@@ -33,6 +33,9 @@ Options:
     print the current elo estimation every N rounds.
   -sprt elo0=ELO0 elo1=ELO1 alpha=ALPHA beta=BETA
   -srand SEED
+  -pgnout notation=NOTATION file=FILE tracknodes
+    NOTATION defaults to san, alternatively you can choose lan, default file output is
+    fast-chess.pgn, tracknodes adds the node count to the pgn.
   -log file=NAME
 
 Engine;

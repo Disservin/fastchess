@@ -32,6 +32,7 @@ struct OpeningOptions
 struct PgnOptions
 {
     std::string file;
+    std::string notation = "san";
     bool trackNodes = false;
 };
 

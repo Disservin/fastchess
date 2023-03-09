@@ -435,6 +435,10 @@ void Options::parsePgnOptions(int &i, int argc, char const *argv[])
         {
             gameOptions.pgn.trackNodes = true;
         }
+        else if (key == "notation")
+        {
+            gameOptions.pgn.notation = value;
+        }
         else
         {
             std::cout << "\nUnrecognized pgn option: " << key << " with value " << value

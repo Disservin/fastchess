@@ -55,16 +55,18 @@ PgnBuilder::PgnBuilder(const Match &match, const CMD::GameManagerOptions &gameOp
             nodesString << " n=" << data.nodes;
         }
 
+        const std::string move = gameOptions.pgn.notation == "san"
+                                     ? MoveToSan(b, convertUciToMove(b, data.move))
+                                     : MoveToLan(b, convertUciToMove(b, data.move));
+
         if (moveCount % 2 != 0)
             ss << moveCount / 2 << "."
-               << " " << MoveToSan(b, convertUciToMove(b, data.move)) << " {" << data.scoreString
-               << "/" << data.depth << nodesString.str() << " " << timeString.str()
-               << illegalMove.str() << "}";
+               << " " << move << " {" << data.scoreString << "/" << data.depth << nodesString.str()
+               << " " << timeString.str() << illegalMove.str() << "}";
         else
         {
-            ss << " " << MoveToSan(b, convertUciToMove(b, data.move)) << " {" << data.scoreString
-               << "/" << data.depth << nodesString.str() << " " << timeString.str()
-               << illegalMove.str() << "}";
+            ss << " " << move << " {" << data.scoreString << "/" << data.depth << nodesString.str()
+               << " " << timeString.str() << illegalMove.str() << "}";
 
             if (i == match.moves.size() - 1)
                 break;

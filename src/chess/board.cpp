@@ -824,6 +824,61 @@ std::string MoveToSan(Board &b, Move move)
     return san;
 }
 
+std::string MoveToLan(Board &b, Move move)
+{
+    static const std::string lanPieceType[] = {"", "N", "B", "R", "Q", "K"};
+    static const std::string lanFile[] = {"a", "b", "c", "d", "e", "f", "g", "h"};
+
+    const PieceType pt = move.moving_piece;
+
+    assert(b.pieceAt(move.from_sq) != NONE);
+    assert(pt == Board::typeOfPiece(b.pieceAt(move.from_sq)));
+
+    if ((Board::make_piece(pt, b.sideToMove) == WHITEKING && b.pieceAt(move.to_sq) == WHITEROOK) ||
+        (Board::make_piece(pt, b.sideToMove) == BLACKKING && b.pieceAt(move.to_sq) == BLACKROOK))
+    {
+        if (Board::squareFile(move.to_sq) < Board::squareFile(move.from_sq))
+            return "O-O-O";
+        else
+            return "O-O";
+    }
+
+    std::string lan;
+    if (pt != PAWN)
+        lan = lanPieceType[pt];
+
+    // ambiguous move
+    lan += lanFile[Board::squareFile(move.from_sq)];
+    lan += std::to_string(Board::squareRank(move.from_sq) + 1);
+
+    // capture
+    if (b.pieceAt(move.to_sq) != NONE || (pt == PAWN && b.enPassantSquare == move.to_sq))
+        lan += (pt == PAWN ? lanFile[Board::squareFile(move.from_sq)] : "") + "x";
+
+    lan += lanFile[Board::squareFile(move.to_sq)];
+    lan += std::to_string(Board::squareRank(move.to_sq) + 1);
+
+    if (move.promotion_piece != NONETYPE)
+        lan += "=" + lanPieceType[move.promotion_piece];
+
+    b.makeMove(move);
+
+    Movelist moves;
+    Movegen::legalmoves(b, moves);
+
+    const bool inCheck = b.isSquareAttacked(~b.sideToMove, lsb(b.pieces<KING>(b.sideToMove)));
+
+    b.unmakeMove(move);
+
+    if (moves.size == 0 && inCheck)
+        return lan + "#";
+
+    if (inCheck)
+        return lan + "+";
+
+    return lan;
+}
+
 std::string resultToString(GameResult result)
 {
     if (result == GameResult::BLACK_WIN)

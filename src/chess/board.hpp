@@ -156,5 +156,6 @@ std::string uciMove(Move move);
 Move convertUciToMove(const Board &board, const std::string &input);
 
 std::string MoveToSan(Board &b, Move move);
+std::string MoveToLan(Board &b, Move move);
 
 std::string resultToString(GameResult result);

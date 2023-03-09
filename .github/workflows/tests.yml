@@ -52,6 +52,10 @@ jobs:
           msystem: ${{matrix.config.msys_sys}}
           install: mingw-w64-${{matrix.config.msys_env}} make git expect
 
+      - name: g++ Version
+        run: |
+          g++ --version
+
       - name: Building Fast-Chess
         if: runner.os != 'Macos'
         run: |

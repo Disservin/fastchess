@@ -853,7 +853,7 @@ std::string MoveToLan(Board &b, Move move)
 
     // capture
     if (b.pieceAt(move.to_sq) != NONE || (pt == PAWN && b.enPassantSquare == move.to_sq))
-        lan += (pt == PAWN ? lanFile[Board::squareFile(move.from_sq)] : "") + "x";
+        lan += "x";
 
     lan += lanFile[Board::squareFile(move.to_sq)];
     lan += std::to_string(Board::squareRank(move.to_sq) + 1);

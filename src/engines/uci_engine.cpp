@@ -65,7 +65,7 @@ std::vector<std::string> UciEngine::readUci()
     bool timeout = false;
     Logger::coutInfo("read uci");
 
-    return readProcess("uciok", timeout);
+    return readProcess("uciok", timeout, PING_TIME);
 }
 
 std::string UciEngine::buildGoInput(Color stm, const TimeControl &tc, const TimeControl &tc_2) const
@@ -157,10 +157,7 @@ void UciEngine::startEngine(const std::string &cmd)
     Logger::coutInfo("init process:", cmd);
     initProcess(cmd);
 
-    Logger::coutInfo("send uci");
     sendUci();
-
-    Logger::coutInfo("read uci");
     readUci();
 
     if (!isResponsive(60000))

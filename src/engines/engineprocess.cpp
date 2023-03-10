@@ -258,7 +258,7 @@ void EngineProcess::initProcess(const std::string &command)
 
     if (forkPid < 0)
     {
-        perror(strerror(errno));
+        perror("Error: InitProcess");
         exit(1);
     }
 
@@ -281,9 +281,9 @@ void EngineProcess::initProcess(const std::string &command)
 
         // Execute the engine
         if (execl(command.c_str(), command.c_str(), nullptr) == -1)
-            perror(strerror(errno));
+            perror("Error: Execute");
 
-        perror(strerror(errno));
+        perror();
         exit(1);
     }
     else
@@ -319,22 +319,22 @@ void EngineProcess::writeProcess(const std::string &input)
     // Write the input and a newline to the output pipe
     if (write(out_pipe_[1], input.c_str(), input.size()) == -1)
     {
-        perror(strerror(errno));
         std::stringstream ss;
         ss << "Process is not alive and write occured with message: " << input;
         std::cout << ss.str();
-        err_code_ = 1;
-        err_str_ = ss.str();
+        errCode = 1;
+        errStr = ss.str();
+        perror("Error: write: ");
     }
 
     if (write(out_pipe_[1], &endLine, 1) == -1)
     {
-        perror(strerror(errno));
         std::stringstream ss;
         ss << "Process is not alive and write occured with message: " << input;
         std::cout << ss.str();
-        err_code_ = 1;
-        err_str_ = ss.str();
+        errCode = 1;
+        errStr = ss.str();
+        perror("Error: write\n: ");
     }
 }
 std::vector<std::string> EngineProcess::readProcess(std::string_view last_word, bool &timeout,
@@ -372,9 +372,9 @@ std::vector<std::string> EngineProcess::readProcess(std::string_view last_word, 
 
         if (ret == -1)
         {
-            perror(strerror(errno));
-            err_code_ = 1;
-            err_str_ = strerror(errno);
+            errCode = 1;
+            errStr = "Error poll";
+            perror("Error: poll: ");
         }
         else if (ret == 0)
         {
@@ -390,9 +390,9 @@ std::vector<std::string> EngineProcess::readProcess(std::string_view last_word, 
 
             if (bytesRead == -1)
             {
-                perror(strerror(errno));
-                err_code_ = 1;
-                err_str_ = strerror(errno);
+                errCode = 1;
+                errStr = "Error read";
+                perror("Error: read");
             }
             // Iterate over each character in the buffer
             for (int i = 0; i < bytesRead; i++)
@@ -434,9 +434,7 @@ bool EngineProcess::isAlive()
     const pid_t r = waitpid(process_pid_, &status, WNOHANG);
     if (r == -1)
     {
-        perror(strerror(errno));
-        err_code_ = 1;
-        err_str_ = strerror(errno);
+        perror("isAlive Error: ");
         return false;
     }
     else

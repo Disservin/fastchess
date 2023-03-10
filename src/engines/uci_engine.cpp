@@ -154,7 +154,7 @@ void UciEngine::startEngine()
 
 void UciEngine::startEngine(const std::string &cmd)
 {
-    Logger::coutInfo("init process", cmd);
+    Logger::coutInfo("init process:", cmd);
     initProcess(cmd);
 
     Logger::coutInfo("send uci");

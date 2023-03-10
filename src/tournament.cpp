@@ -90,7 +90,7 @@ void Tournament::setStorePGN(bool v)
 void Tournament::printElo()
 {
     Elo elo(wins_, losses_, draws_);
-
+    Elo white_advantage(white_wins_, white_losses_, draws_);
     std::stringstream ss;
 
     // clang-format off
@@ -122,6 +122,7 @@ void Tournament::printElo()
        << "L: " << (float(losses_) / (round_count_ * match_config_.games)) * 100 << "%   "
        << "D: " << (float(draws_) / (round_count_ * match_config_.games)) * 100 << "%   "
        << "TF: " << timeouts_ << "\n";
+    ss << "White advantage: " << white_advantage.getElo() << "\n";
     ss << "Elo difference: " << elo.getElo()
        << "\n--------------------------------------------------------\n";
     std::cout << ss.str();
@@ -334,6 +335,10 @@ std::vector<Match> Tournament::runH2H(CMD::GameManagerOptions localMatchConfig,
     int localLosses = 0;
     int localDraws = 0;
 
+    // Game stats from white pov for white advantage
+    int whiteLocalWins = 0;
+    int whiteLocalLosses = 0;
+
     for (int i = 0; i < games; i++)
     {
         Match match;
@@ -365,11 +370,13 @@ std::vector<Match> Tournament::runH2H(CMD::GameManagerOptions localMatchConfig,
         {
             localWins += match.whiteEngine.name == configs[0].name ? 1 : 0;
             localLosses += match.whiteEngine.name == configs[0].name ? 0 : 1;
+            whiteLocalWins += 1;
         }
         else if (match.result == GameResult::BLACK_WIN)
         {
             localWins += match.blackEngine.name == configs[0].name ? 1 : 0;
             localLosses += match.blackEngine.name == configs[0].name ? 0 : 1;
+            whiteLocalLosses += 1;
         }
         else if (match.result == GameResult::DRAW)
         {
@@ -398,6 +405,9 @@ std::vector<Match> Tournament::runH2H(CMD::GameManagerOptions localMatchConfig,
     wins_ += localWins;
     losses_ += localLosses;
     draws_ += localDraws;
+    // Update white advantage stats
+    white_wins_ += whiteLocalWins;
+    white_losses_ += whiteLocalLosses;
 
     round_count_++;
 

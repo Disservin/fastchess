@@ -283,7 +283,7 @@ void EngineProcess::initProcess(const std::string &command)
         if (execl(command.c_str(), command.c_str(), nullptr) == -1)
             perror("Error: Execute");
 
-        perror();
+        perror("Error: in child");
         exit(1);
     }
     else

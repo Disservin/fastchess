@@ -6,7 +6,7 @@
 
 #include "engines/engine_config.hpp"
 #include "logger.hpp"
-#include "yaml.h"
+#include "yaml.hpp"
 
 namespace CMD
 {
@@ -144,8 +144,20 @@ class Options
 
     void parseEngineKeyValues(EngineConfiguration &engineConfig, const std::string &key,
                               const std::string &value);
+
     void parseEachOptions(int &i, int argc, char const *argv[]);
+
     void parseEngineParams(int &i, int argc, char const *argv[], EngineConfiguration &engineParams);
+
+    void parseYaml(Yaml &yaml);
+
+    void parseYamlSprt(Yaml &yaml);
+
+    void parseYamlOpening(Yaml &yaml);
+
+    void parseYamlDraw(Yaml &yaml);
+
+    void parseYamlResign(Yaml &yaml);
 };
 
 } // namespace CMD

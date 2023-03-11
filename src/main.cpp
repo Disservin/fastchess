@@ -4,7 +4,7 @@
 #include "engines/uci_engine.hpp"
 #include "options.hpp"
 #include "tournament.hpp"
-#include "yaml.h"
+#include "yaml.hpp"
 
 namespace
 {

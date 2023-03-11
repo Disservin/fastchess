@@ -80,59 +80,6 @@ Options::Options(int argc, char const *argv[])
     }
 }
 
-void Options::parseYaml(Yaml &yaml)
-{
-    // TODO parameters pgn/log/engine config
-
-    gameOptions.eventName = yaml["event"].get<std::string>();
-    gameOptions.games = yaml["games"].get<int>();
-    gameOptions.rounds = yaml["rounds"].get<int>();
-    gameOptions.recover = yaml["recover"].get<bool>();
-    gameOptions.concurrency = yaml["concurrency"].get<int>();
-    gameOptions.ratinginterval = yaml["rating-interval"].get<int>();
-
-    parseYamlSprt(yaml);
-    parseYamlOpening(yaml);
-    parseYamlDraw(yaml);
-    parseYamlResign(yaml);
-}
-
-void Options::parseYamlSprt(Yaml &yaml)
-{
-    if (yaml["sprt"]["enabled"].get<bool>()) {
-        gameOptions.sprt.alpha = yaml["sprt"]["alpha"].get<double>();
-        gameOptions.sprt.beta = yaml["sprt"]["beta"].get<double>();
-        gameOptions.sprt.elo0 = yaml["sprt"]["elo0"].get<double>();
-        gameOptions.sprt.elo1 = yaml["sprt"]["elo1"].get<double>();
-    }
-}
-
-void Options::parseYamlOpening(Yaml &yaml)
-{
-    if (yaml["openings"]["enabled"].get<bool>()) {
-        gameOptions.opening.file = yaml["openings"]["file"].get<std::string>();
-        gameOptions.opening.format = yaml["openings"]["format"].get<std::string>();
-        gameOptions.opening.order = yaml["openings"]["order"].get<std::string>();
-        gameOptions.opening.plies = yaml["openings"]["plies"].get<int>();
-        gameOptions.opening.start = yaml["openings"]["start"].get<int>();
-    }
-}
-
-void Options::parseYamlDraw(Yaml &yaml)
-{
-    gameOptions.draw.enabled = yaml["adjudication"]["draw"]["enabled"].get<bool>();
-    gameOptions.draw.moveCount = yaml["adjudication"]["draw"]["movecount"].get<int>();
-    gameOptions.draw.moveNumber = yaml["adjudication"]["draw"]["movenumber"].get<int>();
-    gameOptions.draw.score = yaml["adjudication"]["draw"]["score"].get<int>();
-}
-
-void Options::parseYamlResign(Yaml &yaml)
-{
-    gameOptions.resign.enabled = yaml["adjudication"]["resign"]["enabled"].get<bool>();
-    gameOptions.resign.moveCount = yaml["adjudication"]["resign"]["movecount"].get<int>();
-    gameOptions.resign.score = yaml["adjudication"]["resign"]["score"].get<int>();
-}
-
 bool Options::isEngineSettableOption(const std::string &stringFormat) const
 {
     if (startsWith(stringFormat, "option."))
@@ -548,6 +495,61 @@ std::vector<std::string> Options::splitString(const std::string &string, const c
     }
 
     return seglist;
+}
+
+void Options::parseYaml(Yaml &yaml)
+{
+    // TODO parameters pgn/log/engine config
+
+    gameOptions.eventName = yaml["event"].get<std::string>();
+    gameOptions.games = yaml["games"].get<int>();
+    gameOptions.rounds = yaml["rounds"].get<int>();
+    gameOptions.recover = yaml["recover"].get<bool>();
+    gameOptions.concurrency = yaml["concurrency"].get<int>();
+    gameOptions.ratinginterval = yaml["rating-interval"].get<int>();
+
+    parseYamlSprt(yaml);
+    parseYamlOpening(yaml);
+    parseYamlDraw(yaml);
+    parseYamlResign(yaml);
+}
+
+void Options::parseYamlSprt(Yaml &yaml)
+{
+    if (yaml["sprt"]["enabled"].get<bool>())
+    {
+        gameOptions.sprt.alpha = yaml["sprt"]["alpha"].get<double>();
+        gameOptions.sprt.beta = yaml["sprt"]["beta"].get<double>();
+        gameOptions.sprt.elo0 = yaml["sprt"]["elo0"].get<double>();
+        gameOptions.sprt.elo1 = yaml["sprt"]["elo1"].get<double>();
+    }
+}
+
+void Options::parseYamlOpening(Yaml &yaml)
+{
+    if (yaml["openings"]["enabled"].get<bool>())
+    {
+        gameOptions.opening.file = yaml["openings"]["file"].get<std::string>();
+        gameOptions.opening.format = yaml["openings"]["format"].get<std::string>();
+        gameOptions.opening.order = yaml["openings"]["order"].get<std::string>();
+        gameOptions.opening.plies = yaml["openings"]["plies"].get<int>();
+        gameOptions.opening.start = yaml["openings"]["start"].get<int>();
+    }
+}
+
+void Options::parseYamlDraw(Yaml &yaml)
+{
+    gameOptions.draw.enabled = yaml["adjudication"]["draw"]["enabled"].get<bool>();
+    gameOptions.draw.moveCount = yaml["adjudication"]["draw"]["movecount"].get<int>();
+    gameOptions.draw.moveNumber = yaml["adjudication"]["draw"]["movenumber"].get<int>();
+    gameOptions.draw.score = yaml["adjudication"]["draw"]["score"].get<int>();
+}
+
+void Options::parseYamlResign(Yaml &yaml)
+{
+    gameOptions.resign.enabled = yaml["adjudication"]["resign"]["enabled"].get<bool>();
+    gameOptions.resign.moveCount = yaml["adjudication"]["resign"]["movecount"].get<int>();
+    gameOptions.resign.score = yaml["adjudication"]["resign"]["score"].get<int>();
 }
 
 } // namespace CMD

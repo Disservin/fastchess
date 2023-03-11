@@ -55,9 +55,8 @@ PgnBuilder::PgnBuilder(const Match &match, const CMD::GameManagerOptions &gameOp
             nodesString << " n=" << data.nodes;
         }
 
-        const std::string move = gameOptions.pgn.notation == "san"
-                                     ? MoveToSan(b, convertUciToMove(b, data.move))
-                                     : MoveToLan(b, convertUciToMove(b, data.move));
+        const std::string move =
+            MoveToRep(b, convertUciToMove(b, data.move), gameOptions.pgn.notation != "san");
 
         if (moveCount % 2 != 0)
             ss << moveCount / 2 << "."

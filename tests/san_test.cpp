@@ -9,7 +9,7 @@ TEST_CASE("Test ambiguous pawn capture")
 
     Move m = {SQ_F6, SQ_E5, PAWN, NONETYPE};
 
-    CHECK(MoveToSan(b, m) == "fxe5");
+    CHECK(MoveToRep(b, m) == "fxe5");
 }
 
 TEST_CASE("Test ambiguous pawn ep capture")
@@ -19,7 +19,7 @@ TEST_CASE("Test ambiguous pawn ep capture")
 
     Move m = {SQ_F5, SQ_G6, PAWN, NONETYPE};
 
-    CHECK(MoveToSan(b, m) == "fxg6");
+    CHECK(MoveToRep(b, m) == "fxg6");
 }
 
 TEST_CASE("Test ambiguous knight move")
@@ -29,7 +29,7 @@ TEST_CASE("Test ambiguous knight move")
 
     Move m = {SQ_F3, SQ_G5, KNIGHT, NONETYPE};
 
-    CHECK(MoveToSan(b, m) == "Nfg5");
+    CHECK(MoveToRep(b, m) == "Nfg5");
 }
 
 TEST_CASE("Test ambiguous rook move with check")
@@ -39,7 +39,7 @@ TEST_CASE("Test ambiguous rook move with check")
 
     Move m = {SQ_C2, SQ_E2, ROOK, NONETYPE};
 
-    CHECK(MoveToSan(b, m) == "Rce2+");
+    CHECK(MoveToRep(b, m) == "Rce2+");
 }
 
 TEST_CASE("Test ambiguous rook move with checkmate")
@@ -49,7 +49,7 @@ TEST_CASE("Test ambiguous rook move with checkmate")
 
     Move m = {SQ_D1, SQ_H1, ROOK, NONETYPE};
 
-    CHECK(MoveToSan(b, m) == "Rh1#");
+    CHECK(MoveToRep(b, m) == "Rh1#");
 }
 
 TEST_CASE("Test Pawn move")
@@ -59,7 +59,7 @@ TEST_CASE("Test Pawn move")
 
     Move m = {SQ_E2, SQ_E4, PAWN, NONETYPE};
 
-    CHECK(MoveToSan(b, m) == "e4");
+    CHECK(MoveToRep(b, m) == "e4");
 }
 
 TEST_CASE("Test Knight move")
@@ -69,7 +69,7 @@ TEST_CASE("Test Knight move")
 
     Move m = {SQ_F3, SQ_G5, KNIGHT, NONETYPE};
 
-    CHECK(MoveToSan(b, m) == "Ng5");
+    CHECK(MoveToRep(b, m) == "Ng5");
 }
 
 TEST_CASE("Test King move")
@@ -79,7 +79,7 @@ TEST_CASE("Test King move")
 
     Move m = {SQ_E1, SQ_F1, KING, NONETYPE};
 
-    CHECK(MoveToSan(b, m) == "Kf1");
+    CHECK(MoveToRep(b, m) == "Kf1");
 }
 
 TEST_CASE("Test Rook move")
@@ -89,7 +89,7 @@ TEST_CASE("Test Rook move")
 
     Move m = {SQ_F1, SQ_F7, ROOK, NONETYPE};
 
-    CHECK(MoveToSan(b, m) == "Rxf7");
+    CHECK(MoveToRep(b, m) == "Rxf7");
 }
 
 TEST_CASE("Test Queen move")
@@ -99,7 +99,7 @@ TEST_CASE("Test Queen move")
 
     Move m = {SQ_F1, SQ_F7, QUEEN, NONETYPE};
 
-    CHECK(MoveToSan(b, m) == "Qxf7+");
+    CHECK(MoveToRep(b, m) == "Qxf7+");
 }
 
 TEST_CASE("Test King move")
@@ -109,7 +109,7 @@ TEST_CASE("Test King move")
 
     Move m = {SQ_E1, SQ_F1, KING, NONETYPE};
 
-    CHECK(MoveToSan(b, m) == "Kf1");
+    CHECK(MoveToRep(b, m) == "Kf1");
 }
 
 TEST_CASE("Test King Castling Short move")
@@ -119,7 +119,7 @@ TEST_CASE("Test King Castling Short move")
 
     Move m = {SQ_E1, SQ_H1, KING, NONETYPE};
 
-    CHECK(MoveToSan(b, m) == "O-O");
+    CHECK(MoveToRep(b, m) == "O-O");
 }
 
 TEST_CASE("Test King Castling Short move")
@@ -129,7 +129,7 @@ TEST_CASE("Test King Castling Short move")
 
     Move m = {SQ_E1, SQ_A1, KING, NONETYPE};
 
-    CHECK(MoveToSan(b, m) == "O-O-O");
+    CHECK(MoveToRep(b, m) == "O-O-O");
 }
 
 TEST_CASE("Test Pawn Promotion")
@@ -139,7 +139,7 @@ TEST_CASE("Test Pawn Promotion")
 
     Move m = {SQ_F7, SQ_F8, PAWN, QUEEN};
 
-    CHECK(MoveToSan(b, m) == "f8=Q+");
+    CHECK(MoveToRep(b, m) == "f8=Q+");
 }
 
 TEST_CASE("Test Pawn Promotion")
@@ -149,5 +149,5 @@ TEST_CASE("Test Pawn Promotion")
 
     Move m = {SQ_F7, SQ_G8, PAWN, QUEEN};
 
-    CHECK(MoveToSan(b, m) == "fxg8=Q+");
+    CHECK(MoveToRep(b, m) == "fxg8=Q+");
 }

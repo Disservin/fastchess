@@ -62,6 +62,19 @@ struct ResignAdjudication
     bool enabled = false;
 };
 
+struct SavedData
+{
+    int wins = 0;
+    int draws = 0;
+    int losses = 0;
+
+    int pentaWW = 0;
+    int pentaWD = 0;
+    int pentaWL = 0;
+    int pentaLD = 0;
+    int pentaLL = 0;
+};
+
 struct GameManagerOptions
 {
     ResignAdjudication resign = {};
@@ -71,6 +84,8 @@ struct GameManagerOptions
     PgnOptions pgn = {};
 
     SprtOptions sprt = {};
+
+    SavedData save = {};
 
     std::string eventName = "?";
     std::string site = "?";

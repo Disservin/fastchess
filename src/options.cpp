@@ -508,6 +508,15 @@ void Options::parseYaml(Yaml &yaml)
     gameOptions.concurrency = yaml["concurrency"].get<int>();
     gameOptions.ratinginterval = yaml["rating-interval"].get<int>();
 
+    gameOptions.save.wins = yaml["save"]["wins"].get<int>();
+    gameOptions.save.draws = yaml["save"]["draws"].get<int>();
+    gameOptions.save.losses = yaml["save"]["losses"].get<int>();
+    gameOptions.save.pentaWW = yaml["save"]["pentaWW"].get<int>();
+    gameOptions.save.pentaWD = yaml["save"]["pentaWD"].get<int>();
+    gameOptions.save.pentaWL = yaml["save"]["pentaWL"].get<int>();
+    gameOptions.save.pentaLD = yaml["save"]["pentaLD"].get<int>();
+    gameOptions.save.pentaLL = yaml["save"]["pentaLL"].get<int>();
+
     parseYamlSprt(yaml);
     parseYamlOpening(yaml);
     parseYamlDraw(yaml);

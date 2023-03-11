@@ -53,6 +53,15 @@ void Tournament::loadConfig(const CMD::GameManagerOptions &mc)
 
     sprt = SPRT(matchConfig.sprt.alpha, matchConfig.sprt.beta, matchConfig.sprt.elo0,
                 matchConfig.sprt.elo1);
+
+    wins = matchConfig.save.wins;
+    draws = matchConfig.save.draws;
+    losses = matchConfig.save.losses;
+    pentaWW = matchConfig.save.pentaWW;
+    pentaWD = matchConfig.save.pentaWD;
+    pentaWL = matchConfig.save.pentaWL;
+    pentaLD = matchConfig.save.pentaLD;
+    pentaLL = matchConfig.save.pentaLL;
 }
 
 std::string Tournament::fetchNextFen()

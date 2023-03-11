@@ -1,0 +1,75 @@
+# Command line arguments have a higher priority.
+# Please do not try to change the structure of this file!
+
+# Name of the event
+event: Event
+
+# Total rounds
+# Set to 0 for an infinite tournament
+rounds: 10000
+
+# Games per rounds
+games: 2
+
+# True if the engines are able to recover from crashes
+recover: false
+
+# Number of threads
+concurrency: 1
+
+# Number of games between elo estimations
+rating-interval: 10
+
+# Opening book
+openings:
+  enabled: false
+
+  # Path to the opening book
+  file: openings.epd
+
+  # Format of the opening book
+  # Only EPD is supported!
+  format: epd
+
+  # Order on how the openings should be selected
+  # Possible options are sequential and random
+  order: random
+
+  # Specifies the offset
+  start: 0
+
+  plies: 0
+
+# Game adjudication
+adjudication:
+
+  # Resign if movecount consecutive moves are played with score
+  resign:
+    enabled: false
+    movecount: 3
+    score: 1000
+
+  # Draw if movecount consecutive moves are played with absolute scores less than score.
+  draw:
+    enabled: false
+    movecount: 5
+    movenumber: 40
+    score: 5
+
+# SPRT
+sprt:
+  enabled: false
+  elo0: 0.0
+  elo1: 5.0
+  alpha: 0.05
+  beta: 0.05
+
+save:
+  wins: 0
+  draws: 0
+  losses: 0
+  pentaWW: 0
+  pentaWD: 0
+  pentaWL: 0
+  pentaLD: 0
+  pentaLL: 0

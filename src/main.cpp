@@ -12,6 +12,7 @@ using namespace fast_chess;
 namespace
 {
 Tournament *Tour;
+CMD::Options *Options;
 } // namespace
 
 #ifdef _WIN64
@@ -28,6 +29,8 @@ BOOL WINAPI consoleHandler(DWORD signal)
         Tour->printElo();
         Tour->stopPool();
 
+        Options->saveJson(Tour->getStats());
+
         return TRUE;
     default:
         break;
@@ -40,6 +43,9 @@ BOOL WINAPI consoleHandler(DWORD signal)
 void sigintHandler(int param)
 {
     Tour->printElo();
+    Tour->stopPool();
+    Options->saveJson(Tour->getStats());
+
     exit(param);
 }
 
@@ -57,11 +63,11 @@ int main(int argc, char const *argv[])
 #else
     signal(SIGINT, sigintHandler);
 #endif
-    CMD::Options options = CMD::Options(argc, argv);
+    Options = new CMD::Options(argc, argv);
 
-    Tour = new Tournament(options.getGameOptions());
+    Tour = new Tournament(Options->getGameOptions());
 
-    for (const auto &config : options.getEngineConfigs())
+    for (const auto &config : Options->getEngineConfigs())
     {
         std::cout << "Name:" << config.name << std::endl;
         std::cout << "Command: " << config.cmd << std::endl;
@@ -77,31 +83,35 @@ int main(int argc, char const *argv[])
         }
     }
 
-    std::cout << "Concurrency: " << options.getGameOptions().concurrency << std::endl;
-    std::cout << "Draw enabled: " << options.getGameOptions().draw.enabled << std::endl;
-    std::cout << "Draw movecount: " << options.getGameOptions().draw.move_count << std::endl;
-    std::cout << "Draw movenumber: " << options.getGameOptions().draw.moveNumber << std::endl;
-    std::cout << "Draw score: " << options.getGameOptions().draw.score << std::endl;
-    std::cout << "Eventname: " << options.getGameOptions().event_name << std::endl;
-    std::cout << "Games: " << options.getGameOptions().games << std::endl;
-    std::cout << "Opening File: " << options.getGameOptions().opening.file << std::endl;
-    std::cout << "Opening Format: " << options.getGameOptions().opening.format << std::endl;
-    std::cout << "Opening Order: " << options.getGameOptions().opening.order << std::endl;
-    std::cout << "Opening Plies: " << options.getGameOptions().opening.plies << std::endl;
-    std::cout << "Opening Start: " << options.getGameOptions().opening.start << std::endl;
-    std::cout << "PGN File: " << options.getGameOptions().pgn.file << std::endl;
-    std::cout << "TrackNodes enabled: " << options.getGameOptions().pgn.track_nodes << std::endl;
-    std::cout << "Ratinginterval: " << options.getGameOptions().ratinginterval << std::endl;
-    std::cout << "Recover: " << options.getGameOptions().recover << std::endl;
-    std::cout << "Resign enabled: " << options.getGameOptions().resign.enabled << std::endl;
-    std::cout << "Resign Movecount: " << options.getGameOptions().resign.move_count << std::endl;
-    std::cout << "Resign score: " << options.getGameOptions().resign.score << std::endl;
-    std::cout << "Rounds: " << options.getGameOptions().rounds << std::endl;
+    std::cout << "Concurrency: " << Options->getGameOptions().concurrency << std::endl;
+    std::cout << "Draw enabled: " << Options->getGameOptions().draw.enabled << std::endl;
+    std::cout << "Draw movecount: " << Options->getGameOptions().draw.move_count << std::endl;
+    std::cout << "Draw movenumber: " << Options->getGameOptions().draw.move_number << std::endl;
+    std::cout << "Draw score: " << Options->getGameOptions().draw.score << std::endl;
+    std::cout << "Eventname: " << Options->getGameOptions().event_name << std::endl;
+    std::cout << "Games: " << Options->getGameOptions().games << std::endl;
+    std::cout << "Opening File: " << Options->getGameOptions().opening.file << std::endl;
+    std::cout << "Opening Format: " << Options->getGameOptions().opening.format << std::endl;
+    std::cout << "Opening Order: " << Options->getGameOptions().opening.order << std::endl;
+    std::cout << "Opening Plies: " << Options->getGameOptions().opening.plies << std::endl;
+    std::cout << "Opening Start: " << Options->getGameOptions().opening.start << std::endl;
+    std::cout << "PGN File: " << Options->getGameOptions().pgn.file << std::endl;
+    std::cout << "TrackNodes enabled: " << Options->getGameOptions().pgn.track_nodes << std::endl;
+    std::cout << "Ratinginterval: " << Options->getGameOptions().ratinginterval << std::endl;
+    std::cout << "Recover: " << Options->getGameOptions().recover << std::endl;
+    std::cout << "Resign enabled: " << Options->getGameOptions().resign.enabled << std::endl;
+    std::cout << "Resign Movecount: " << Options->getGameOptions().resign.move_count << std::endl;
+    std::cout << "Resign score: " << Options->getGameOptions().resign.score << std::endl;
+    std::cout << "Rounds: " << Options->getGameOptions().rounds << std::endl;
 
-    Tour->loadConfig(options.getGameOptions());
-    Tour->startTournament(options.getEngineConfigs());
+    Tour->setStats(Options->getStats());
+    Tour->loadConfig(Options->getGameOptions());
+    Tour->startTournament(Options->getEngineConfigs());
+
+    Options->saveJson(Tour->getStats());
 
     delete Tour;
+    delete Options;
 
     return 0;
 }

@@ -6,6 +6,7 @@
 
 #include "engines/engine_config.hpp"
 #include "logger.hpp"
+#include "tournament_data.hpp"
 
 namespace fast_chess
 {
@@ -49,7 +50,7 @@ struct SprtOptions
 
 struct DrawAdjudication
 {
-    int moveNumber = 0;
+    int move_number = 0;
     int move_count = 0;
     int score = 0;
 
@@ -102,6 +103,8 @@ inline std::ostream &operator<<(std::ostream &os, const Parameter &param)
 class Options
 {
   public:
+    Options() = default;
+
     Options(int argc, char const *argv[]);
 
     std::vector<EngineConfiguration> getEngineConfigs() const;
@@ -116,7 +119,14 @@ class Options
 
     static std::vector<std::string> splitString(const std::string &string, const char &delimiter);
 
+    void saveJson(const Stats &stats);
+    void loadJson(const std::string &filename);
+
+    Stats getStats();
+
   private:
+    Stats stats_;
+
     // Holds all the relevant settings for the handling of the games
     GameManagerOptions game_options_;
 
@@ -146,7 +156,9 @@ class Options
 
     void parseEngineKeyValues(EngineConfiguration &engineConfig, const std::string &key,
                               const std::string &value);
+
     void parseEachOptions(int &i, int argc, char const *argv[]);
+
     void parseEngineParams(int &i, int argc, char const *argv[], EngineConfiguration &engineParams);
 };
 

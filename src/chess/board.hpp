@@ -12,14 +12,6 @@
 namespace fast_chess
 {
 
-enum class GameResult
-{
-    WHITE_WIN,
-    BLACK_WIN,
-    DRAW,
-    NONE
-};
-
 struct State
 {
     Square enpassant{};

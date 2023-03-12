@@ -116,6 +116,14 @@ enum Direction : int8_t
     SOUTH_EAST = -7
 };
 
+enum class GameResult
+{
+    WHITE_WIN,
+    BLACK_WIN,
+    DRAW,
+    NONE
+};
+
 static std::unordered_map<char, Piece> charToPiece({{'P', WHITEPAWN},
                                                     {'N', WHITEKNIGHT},
                                                     {'B', WHITEBISHOP},

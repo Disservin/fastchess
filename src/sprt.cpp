@@ -21,11 +21,11 @@ SPRT::SPRT(double alpha, double beta, double elo0, double elo1)
         this->elo0_ = elo0;
         this->elo1_ = elo1;
 
-        std::cout << "Initialized valid_ SPRT configuration." << std::endl;
+        std::cout << "Initialized valid SPRT configuration." << std::endl;
     }
-    else
+    else if (!(alpha == 0.0 && beta == 0.0 && elo0 == 0.0 && elo1 == 0.0))
     {
-        std::cout << "No valid_ SPRT configuration was found!" << std::endl;
+        std::cout << "No valid SPRT configuration was found!" << std::endl;
     }
 }
 

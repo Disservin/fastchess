@@ -432,6 +432,8 @@ void Tournament::startTournament(const std::vector<EngineConfiguration> &configs
         throw std::runtime_error("Warning: Need at least two engines to start!");
     }
 
+    Logger::coutInfo("Starting tournament...");
+
     std::vector<std::future<std::vector<Match>>> results;
 
     for (int i = 1; i <= match_config_.rounds; i++)

@@ -95,7 +95,7 @@ class Tournament
 
     ThreadPool pool_ = ThreadPool(1);
 
-    SPRT sprt_ = {};
+    SPRT sprt_ = SPRT();
 
     std::vector<std::string> pgns_;
     std::vector<std::string> opening_book_;

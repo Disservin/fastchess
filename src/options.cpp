@@ -22,29 +22,29 @@ Options::Options(int argc, char const *argv[])
         const std::string arg = argv[i];
         if (arg == "-engine")
         {
-            configs.push_back(EngineConfiguration());
-            parseEngineParams(i, argc, argv, configs.back());
+            configs_.push_back(EngineConfiguration());
+            parseEngineParams(i, argc, argv, configs_.back());
         }
         else if (arg == "-each")
             parseEachOptions(i, argc, argv);
         else if (arg == "-concurrency")
-            parseOption(i, argc, argv, gameOptions.concurrency);
+            parseOption(i, argc, argv, game_options_.concurrency);
         else if (arg == "-event")
-            parseOption(i, argc, argv, gameOptions.eventName);
+            parseOption(i, argc, argv, game_options_.event_name);
         else if (arg == "-site")
-            parseOption(i, argc, argv, gameOptions.site);
+            parseOption(i, argc, argv, game_options_.site);
         else if (arg == "-games")
-            parseOption(i, argc, argv, gameOptions.games);
+            parseOption(i, argc, argv, game_options_.games);
         else if (arg == "-rounds")
-            parseOption(i, argc, argv, gameOptions.rounds);
+            parseOption(i, argc, argv, game_options_.rounds);
         else if (arg == "-pgnout")
             parsePgnOptions(i, argc, argv);
         else if (arg == "-openings")
             parseOpeningOptions(i, argc, argv);
         else if (arg == "-recover")
-            gameOptions.recover = true;
+            game_options_.recover = true;
         else if (arg == "-repeat")
-            gameOptions.games = 2;
+            game_options_.games = 2;
         else if (arg == "-sprt")
             parseSprt(i, argc, argv);
         else if (arg == "-draw")
@@ -52,9 +52,9 @@ Options::Options(int argc, char const *argv[])
         else if (arg == "-resign")
             parseResignOptions(i, argc, argv);
         else if (arg == "-ratinginterval")
-            parseOption(i, argc, argv, gameOptions.ratinginterval);
+            parseOption(i, argc, argv, game_options_.ratinginterval);
         else if (arg == "-srand")
-            parseOption(i, argc, argv, gameOptions.seed);
+            parseOption(i, argc, argv, game_options_.seed);
         else if (arg == "-version")
             printVersion(i);
         else if (arg == "-log")
@@ -66,14 +66,14 @@ Options::Options(int argc, char const *argv[])
         }
     }
 
-    for (auto &config : configs)
+    for (auto &config : configs_)
     {
         if (config.name.empty())
         {
             throw std::runtime_error("Warning: Each engine must have a name!");
         }
 
-        config.recover = gameOptions.recover;
+        config.recover = game_options_.recover;
     }
 }
 
@@ -241,7 +241,7 @@ void Options::parseEachOptions(int &i, int argc, char const *argv[])
         const std::string key = param.substr(0, pos);
         const std::string value = param.substr(pos + 1);
 
-        for (auto &config : configs)
+        for (auto &config : configs_)
         {
             parseEngineKeyValues(config, key, value);
         }
@@ -276,27 +276,27 @@ void Options::parseSprt(int &i, int argc, char const *argv[])
     while (i < argc && argv[i][0] != '-')
     {
         // If the user didn't set a game param just use a very big default
-        if (gameOptions.rounds == 0)
-            gameOptions.rounds = 500000;
+        if (game_options_.rounds == 0)
+            game_options_.rounds = 500000;
         const std::string param = argv[i];
         const size_t pos = param.find('=');
         const std::string key = param.substr(0, pos);
         const std::string value = param.substr(pos + 1);
         if (key == "elo0")
         {
-            gameOptions.sprt.elo0 = std::stod(value);
+            game_options_.sprt.elo0 = std::stod(value);
         }
         else if (key == "elo1")
         {
-            gameOptions.sprt.elo1 = std::stod(value);
+            game_options_.sprt.elo1 = std::stod(value);
         }
         else if (key == "alpha")
         {
-            gameOptions.sprt.alpha = std::stod(value);
+            game_options_.sprt.alpha = std::stod(value);
         }
         else if (key == "beta")
         {
-            gameOptions.sprt.beta = std::stod(value);
+            game_options_.sprt.beta = std::stod(value);
         }
         else
         {
@@ -316,22 +316,22 @@ void Options::parseDrawOptions(int &i, int argc, char const *argv[])
 
     while (i < argc && argv[i][0] != '-')
     {
-        gameOptions.draw.enabled = true;
+        game_options_.draw.enabled = true;
         const std::string param = argv[i];
         const size_t pos = param.find('=');
         const std::string key = param.substr(0, pos);
         const std::string value = param.substr(pos + 1);
         if (key == "movenumber")
         {
-            gameOptions.draw.moveNumber = std::stoi(value);
+            game_options_.draw.moveNumber = std::stoi(value);
         }
         else if (key == "movecount")
         {
-            gameOptions.draw.moveCount = std::stoi(value);
+            game_options_.draw.move_count = std::stoi(value);
         }
         else if (key == "score")
         {
-            gameOptions.draw.score = std::stoi(value);
+            game_options_.draw.score = std::stoi(value);
         }
         else
         {
@@ -351,7 +351,7 @@ void Options::parseResignOptions(int &i, int argc, char const *argv[])
 
     while (i < argc && argv[i][0] != '-')
     {
-        gameOptions.resign.enabled = true;
+        game_options_.resign.enabled = true;
         const std::string param = argv[i];
         const size_t pos = param.find('=');
         const std::string key = param.substr(0, pos);
@@ -359,11 +359,11 @@ void Options::parseResignOptions(int &i, int argc, char const *argv[])
 
         if (key == "movecount")
         {
-            gameOptions.resign.moveCount = std::stoi(value);
+            game_options_.resign.move_count = std::stoi(value);
         }
         else if (key == "score")
         {
-            gameOptions.resign.score = std::stoi(value);
+            game_options_.resign.score = std::stoi(value);
         }
         else
         {
@@ -390,23 +390,23 @@ void Options::parseOpeningOptions(int &i, int argc, char const *argv[])
 
         if (key == "file")
         {
-            gameOptions.opening.file = value;
+            game_options_.opening.file = value;
         }
         else if (key == "format")
         {
-            gameOptions.opening.format = value;
+            game_options_.opening.format = value;
         }
         else if (key == "order")
         {
-            gameOptions.opening.order = value;
+            game_options_.opening.order = value;
         }
         else if (key == "plies")
         {
-            gameOptions.opening.plies = std::stoi(value);
+            game_options_.opening.plies = std::stoi(value);
         }
         else if (key == "start")
         {
-            gameOptions.opening.start = std::stoi(value);
+            game_options_.opening.start = std::stoi(value);
         }
         else
         {
@@ -432,15 +432,15 @@ void Options::parsePgnOptions(int &i, int argc, char const *argv[])
 
         if (key == "file")
         {
-            gameOptions.pgn.file = value;
+            game_options_.pgn.file = value;
         }
         else if (key == "tracknodes")
         {
-            gameOptions.pgn.trackNodes = true;
+            game_options_.pgn.track_nodes = true;
         }
         else if (key == "notation")
         {
-            gameOptions.pgn.notation = value;
+            game_options_.pgn.notation = value;
         }
         else
         {
@@ -455,12 +455,12 @@ void Options::parsePgnOptions(int &i, int argc, char const *argv[])
 
 std::vector<EngineConfiguration> Options::getEngineConfigs() const
 {
-    return configs;
+    return configs_;
 }
 
 GameManagerOptions Options::getGameOptions() const
 {
-    return gameOptions;
+    return game_options_;
 }
 
 bool Options::startsWith(std::string_view haystack, std::string_view needle)

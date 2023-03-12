@@ -6,15 +6,15 @@
 namespace fast_chess
 {
 
-PgnBuilder::PgnBuilder(const Match &match, const CMD::GameManagerOptions &gameOptions)
+PgnBuilder::PgnBuilder(const Match &match, const CMD::GameManagerOptions &game_options_)
 {
     const std::string result = resultToString(match.result);
     const std::string termination = match.termination;
     std::stringstream ss;
 
     // clang-format off
-    ss << "[Event "         << "\"" << gameOptions.eventName    << "\"" << "]" << "\n";
-    ss << "[Site "          << "\"" << gameOptions.site         << "\"" << "]" << "\n";
+    ss << "[Event "         << "\"" << game_options_.event_name    << "\"" << "]" << "\n";
+    ss << "[Site "          << "\"" << game_options_.site         << "\"" << "]" << "\n";
     ss << "[Date "          << "\"" << match.date               << "\"" << "]" << "\n";
     ss << "[Round "         << "\"" << match.round              << "\"" << "]" << "\n";
     ss << "[White "         << "\"" << match.whiteEngine.name   << "\"" << "]" << "\n";
@@ -45,7 +45,7 @@ PgnBuilder::PgnBuilder(const Match &match, const CMD::GameManagerOptions &gameOp
 
     Board b = Board(match.fen);
 
-    int moveCount = 3;
+    int move_count = 3;
     for (size_t i = 0; i < match.moves.size(); i++)
     {
         const MoveData data = match.moves[i];
@@ -53,16 +53,16 @@ PgnBuilder::PgnBuilder(const Match &match, const CMD::GameManagerOptions &gameOp
         std::stringstream nodesString, timeString;
         timeString << std::fixed << std::setprecision(3) << data.elapsedMillis / 1000.0 << "s";
 
-        if (gameOptions.pgn.trackNodes)
+        if (game_options_.pgn.track_nodes)
         {
             nodesString << " n=" << data.nodes;
         }
 
         const std::string move =
-            MoveToRep(b, convertUciToMove(b, data.move), gameOptions.pgn.notation != "san");
+            MoveToRep(b, convertUciToMove(b, data.move), game_options_.pgn.notation != "san");
 
-        if (moveCount % 2 != 0)
-            ss << moveCount / 2 << "."
+        if (move_count % 2 != 0)
+            ss << move_count / 2 << "."
                << " " << move << " {" << data.scoreString << "/" << data.depth << nodesString.str()
                << " " << timeString.str() << illegalMove.str() << "}";
         else
@@ -86,17 +86,17 @@ PgnBuilder::PgnBuilder(const Match &match, const CMD::GameManagerOptions &gameOp
 
         b.makeMove(convertUciToMove(b, data.move));
 
-        moveCount++;
+        move_count++;
     }
 
     ss << " " << result << "\n";
 
-    pgn = ss.str();
+    pgn_ = ss.str();
 }
 
 std::string PgnBuilder::getPGN() const
 {
-    return pgn;
+    return pgn_;
 }
 
 } // namespace fast_chess

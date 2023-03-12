@@ -24,22 +24,22 @@ class Process
     // Returns true if the engine process is alive
     virtual bool isAlive() = 0;
 
-    bool isInitalized = false;
+    bool is_initalized_ = false;
 
-    int errCode = 0;
-    std::string errStr;
+    int err_code_ = 0;
+    std::string err_str_;
 
     std::string getError()
     {
-        if (errCode != 0)
-            return errStr + ": " + std::to_string(errCode) + "\n";
+        if (err_code_ != 0)
+            return err_str_ + ": " + std::to_string(err_code_) + "\n";
         return "";
     }
 
     void resetError()
     {
-        errCode = 0;
-        errStr = "";
+        err_code_ = 0;
+        err_str_ = "";
     }
 };
 
@@ -67,9 +67,9 @@ class EngineProcess : public Process
     virtual void writeProcess(const std::string &input) override;
 
   private:
-    PROCESS_INFORMATION pi = PROCESS_INFORMATION();
-    HANDLE childStdOut;
-    HANDLE childStdIn;
+    PROCESS_INFORMATION pi_ = PROCESS_INFORMATION();
+    HANDLE child_std_out_;
+    HANDLE child_std_in_;
 };
 
 #else
@@ -94,8 +94,8 @@ class EngineProcess : public Process
     virtual void writeProcess(const std::string &input) override;
 
   private:
-    pid_t processPid;
-    int inPipe[2], outPipe[2];
+    pid_t process_pid_;
+    int in_pipe_[2], out_pipe_[2];
 };
 
 #endif

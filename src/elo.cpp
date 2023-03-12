@@ -9,8 +9,8 @@ namespace fast_chess
 
 Elo::Elo(int wins, int losses, int draws)
 {
-    diff = getDiff(wins, losses, draws);
-    error = getError(wins, losses, draws);
+    diff_ = getDiff(wins, losses, draws);
+    error_ = getError(wins, losses, draws);
 }
 
 double Elo::getDiff(double percentage)
@@ -69,9 +69,9 @@ std::string Elo::getElo() const
 {
     std::stringstream ss;
 
-    ss << std::fixed << std::setprecision(2) << diff;
+    ss << std::fixed << std::setprecision(2) << diff_;
     ss << " +/- ";
-    ss << std::fixed << std::setprecision(2) << error;
+    ss << std::fixed << std::setprecision(2) << error_;
     return ss.str();
 }
 

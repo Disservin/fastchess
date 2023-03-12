@@ -10,22 +10,22 @@ namespace fast_chess
 
 SPRT::SPRT(double alpha, double beta, double elo0, double elo1)
 {
-    this->valid = alpha != 0.0 && beta != 0.0 && elo0 < elo1;
+    this->valid_ = alpha != 0.0 && beta != 0.0 && elo0 < elo1;
     if (isValid())
     {
-        this->lower = std::log(beta / (1 - alpha));
-        this->upper = std::log((1 - beta) / alpha);
-        this->s0 = getLL(elo0);
-        this->s1 = getLL(elo1);
+        this->lower_ = std::log(beta / (1 - alpha));
+        this->upper_ = std::log((1 - beta) / alpha);
+        this->s0_ = getLL(elo0);
+        this->s1_ = getLL(elo1);
 
-        this->elo0 = elo0;
-        this->elo1 = elo1;
+        this->elo0_ = elo0;
+        this->elo1_ = elo1;
 
-        std::cout << "Initialized valid SPRT configuration." << std::endl;
+        std::cout << "Initialized valid_ SPRT configuration." << std::endl;
     }
     else
     {
-        std::cout << "No valid SPRT configuration was found!" << std::endl;
+        std::cout << "No valid_ SPRT configuration was found!" << std::endl;
     }
 }
 
@@ -36,7 +36,7 @@ double SPRT::getLL(double elo)
 
 double SPRT::getLLR(int win, int draw, int loss) const
 {
-    if (win == 0 || draw == 0 || loss == 0 || !valid)
+    if (win == 0 || draw == 0 || loss == 0 || !valid_)
         return 0.0;
 
     const double games = win + draw + loss;
@@ -45,17 +45,17 @@ double SPRT::getLLR(int win, int draw, int loss) const
     const double b = W + D / 4;
     const double var = b - std::pow(a, 2);
     const double var_s = var / games;
-    return (s1 - s0) * (2 * a - s0 - s1) / var_s / 2.0;
+    return (s1_ - s0_) * (2 * a - s0_ - s1_) / var_s / 2.0;
 }
 
 SPRTResult SPRT::getResult(double llr) const
 {
-    if (!valid)
+    if (!valid_)
         return SPRT_CONTINUE;
 
-    if (llr > upper)
+    if (llr > upper_)
         return SPRT_H0;
-    else if (llr < lower)
+    else if (llr < lower_)
         return SPRT_H1;
     else
         return SPRT_CONTINUE;
@@ -64,23 +64,23 @@ SPRTResult SPRT::getResult(double llr) const
 std::string SPRT::getBounds() const
 {
     std::stringstream ss;
-    ss << "(" << std::fixed << std::setprecision(2) << lower << ", " << std::fixed
-       << std::setprecision(2) << upper << ")";
+    ss << "(" << std::fixed << std::setprecision(2) << lower_ << ", " << std::fixed
+       << std::setprecision(2) << upper_ << ")";
     return ss.str();
 }
 
 std::string SPRT::getElo() const
 {
     std::stringstream ss;
-    ss << "[" << std::fixed << std::setprecision(2) << elo0 << ", " << std::fixed
-       << std::setprecision(2) << elo1 << "]";
+    ss << "[" << std::fixed << std::setprecision(2) << elo0_ << ", " << std::fixed
+       << std::setprecision(2) << elo1_ << "]";
 
     return ss.str();
 }
 
 bool SPRT::isValid() const
 {
-    return valid;
+    return valid_;
 }
 
 } // namespace fast_chess

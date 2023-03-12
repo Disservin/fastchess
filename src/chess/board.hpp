@@ -27,9 +27,9 @@ struct State
     uint8_t halfMove{};
     Piece capturedPiece = NONE;
 
-    State(Square enpassantCopy = {}, uint8_t castlingRightsCopy = {}, uint8_t halfMoveCopy = {},
+    State(Square enpassantCopy = {}, uint8_t castling_rightsCopy = {}, uint8_t halfMoveCopy = {},
           Piece capturedPieceCopy = NONE)
-        : enPassant(enpassantCopy), castling(castlingRightsCopy), halfMove(halfMoveCopy),
+        : enPassant(enpassantCopy), castling(castling_rightsCopy), halfMove(halfMoveCopy),
           capturedPiece(capturedPieceCopy)
     {
     }
@@ -42,14 +42,14 @@ class Board
 
     Board(const std::string &fen);
 
-    Table<Bitboard, N_SQ, N_SQ> SQUARES_BETWEEN_BB;
-    Color sideToMove = WHITE;
+    Table<Bitboard, N_SQ, N_SQ> squares_between_bb_;
+    Color side_to_move_ = WHITE;
 
-    uint8_t castlingRights = 15;
+    uint8_t castling_rights_ = 15;
 
-    Square enPassantSquare = NO_SQ;
+    Square enpassant_square_ = NO_SQ;
 
-    bool chess960 = false;
+    bool chess960_ = false;
 
     void loadFen(const std::string &fen);
     std::string getFen() const;
@@ -110,19 +110,19 @@ class Board
     friend std::ostream &operator<<(std::ostream &os, const Board &b);
 
   private:
-    Table<Piece, N_SQ> board = {};
-    Table<Bitboard, 2, 6> pieceBB = {};
-    std::vector<State> prevBoards;
-    std::vector<uint64_t> hashHistory;
+    Table<Piece, N_SQ> board_ = {};
+    Table<Bitboard, 2, 6> pieceBB_ = {};
+    std::vector<State> prev_boards_;
+    std::vector<uint64_t> hash_history_;
 
-    int halfMoveClock;
-    int fullMoveNumber;
+    int half_move_clock_;
+    int full_move_number_;
 
-    uint64_t hashKey = 0;
+    uint64_t hash_key_ = 0;
 
-    void removeCastlingRightsAll(Color c);
+    void removecastling_rightsAll(Color c);
 
-    void removeCastlingRightsRook(Square sq);
+    void removecastling_rightsRook(Square sq);
 
     void initializeLookupTables();
 
@@ -136,22 +136,22 @@ class Board
 
     uint64_t updateKeyCastling() const;
 
-    uint64_t updateKeySideToMove() const;
+    uint64_t updateKeyside_to_move() const;
 };
 
 template <PieceType type, Color color> Bitboard Board::pieces() const
 {
-    return pieceBB[color][type];
+    return pieceBB_[color][type];
 }
 
 template <Color color> Bitboard Board::pieces(PieceType type) const
 {
-    return pieceBB[color][type];
+    return pieceBB_[color][type];
 }
 
 template <PieceType type> Bitboard Board::pieces(Color color) const
 {
-    return pieceBB[color][type];
+    return pieceBB_[color][type];
 }
 
 std::string uciMove(Move move);

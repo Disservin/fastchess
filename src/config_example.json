@@ -1,15 +1,15 @@
 {
     "event": "?",
-    "rounds": 1000,
+    "rounds": 100,
     "games": 2,
     "recover": true,
     "concurrency": 28,
     "rating-interval": 10,
     "engines": [
         {
-            "name": "blackcore",
+            "name": "smallbrain",
             "dir": "",
-            "cmd": "BlackCore-v6-0.exe",
+            "cmd": "smallbrain_dev.exe",
             "tc": {
                 "time": 4000,
                 "fixed_time": 0,
@@ -61,16 +61,16 @@
         "beta": 0.0
     },
     "stats": {
-        "wins": 16,
-        "draws": 40,
-        "losses": 54,
+        "wins": 0,
+        "draws": 0,
+        "losses": 0,
         "pentaWW": 0,
-        "pentaWD": 4,
-        "pentaWL": 19,
-        "pentaLD": 22,
-        "pentaLL": 10,
-        "roundcount": 55,
-        "totalcount": 135,
+        "pentaWD": 0,
+        "pentaWL": 0,
+        "pentaLD": 0,
+        "pentaLL": 0,
+        "roundcount": 0,
+        "totalcount": 0,
         "timeouts": 0
     }
 }

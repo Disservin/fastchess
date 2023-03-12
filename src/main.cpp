@@ -7,8 +7,7 @@
 #include "options.hpp"
 #include "tournament.hpp"
 
-namespace fast_chess
-{
+using namespace fast_chess;
 
 namespace
 {
@@ -106,5 +105,3 @@ int main(int argc, char const *argv[])
 
     return 0;
 }
-
-} // namespace fast_chess

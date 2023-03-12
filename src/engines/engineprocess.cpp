@@ -228,13 +228,14 @@ void EngineProcess::killProcess()
 }
 #else
 
-#include <fcntl.h>
-#include <poll.h>
+#include <errno.h>
+#include <fcntl.h> // fcntl
+#include <poll.h>  // poll
 #include <signal.h>
 #include <string.h>
-#include <sys/types.h>
+#include <sys/types.h> // pid_t
 #include <sys/wait.h>
-#include <unistd.h>
+#include <unistd.h> // _exit, fork
 
 void EngineProcess::initProcess(const std::string &command)
 {
@@ -280,11 +281,10 @@ void EngineProcess::initProcess(const std::string &command)
             perror("Failed to close inpipe");
 
         // Execute the engine
-        if (execl(command.c_str(), command.c_str(), nullptr) == -1)
-            perror(strerror(errno));
+        if (execl(command.c_str(), command.c_str(), (char *)NULL) == -1)
+            perror("Error: Execute");
 
-        perror(strerror(errno));
-        exit(1);
+        _exit(0); /* Note that we do not use exit() */
     }
     else
     {
@@ -457,7 +457,7 @@ void EngineProcess::killProcess()
         if (r == 0)
         {
             kill(process_pid_, SIGKILL);
-            wait(nullptr);
+            wait(NULL);
         }
     }
 }

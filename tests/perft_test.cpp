@@ -3,6 +3,8 @@
 #include "../src/chess/board.hpp"
 #include "../src/chess/perft.hpp"
 
+using namespace fast_chess;
+
 TEST_CASE("Testing PERFT Startposition")
 {
     Perft perf;

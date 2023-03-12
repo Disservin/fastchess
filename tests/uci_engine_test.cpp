@@ -4,6 +4,8 @@
 
 #include <cassert>
 
+using namespace fast_chess;
+
 TEST_CASE("Testing the EngineProcess class")
 {
     UciEngine uci_engine;

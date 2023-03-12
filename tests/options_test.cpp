@@ -4,6 +4,8 @@
 
 #include <cassert>
 
+using namespace fast_chess;
+
 TEST_CASE("Testing Engine options parsing")
 {
     const char *argv[] = {"fast-chess.exe",

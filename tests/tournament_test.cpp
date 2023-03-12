@@ -4,6 +4,8 @@
 #include "../src/options.hpp"
 #include "../src/tournament.hpp"
 
+using namespace fast_chess;
+
 TEST_CASE("Test Tournament")
 {
     CMD::GameManagerOptions mang = CMD::GameManagerOptions();

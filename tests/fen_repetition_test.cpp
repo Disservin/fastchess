@@ -1,7 +1,9 @@
-#pragma once
+#include "doctest/doctest.hpp"
 
 #include "../src/chess/board.hpp"
 #include "../src/options.hpp"
+
+#include <algorithm>
 
 inline bool testFenRepetition(const std::string &input)
 {

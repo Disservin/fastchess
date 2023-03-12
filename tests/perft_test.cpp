@@ -1,4 +1,4 @@
-#pragma once
+#include "doctest/doctest.hpp"
 
 #include "../src/chess/board.hpp"
 #include "../src/chess/perft.hpp"

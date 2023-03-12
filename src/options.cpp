@@ -566,13 +566,13 @@ void Options::saveJson(const Stats &stats)
     jsonfile["stats"]["wins"] = stats.wins;
     jsonfile["stats"]["draws"] = stats.draws;
     jsonfile["stats"]["losses"] = stats.losses;
-    jsonfile["stats"]["pentaWW"] = stats.pentaWW;
-    jsonfile["stats"]["pentaWD"] = stats.pentaWD;
-    jsonfile["stats"]["pentaWL"] = stats.pentaWL;
-    jsonfile["stats"]["pentaLD"] = stats.pentaLD;
-    jsonfile["stats"]["pentaLL"] = stats.pentaLL;
-    jsonfile["stats"]["roundcount"] = stats.roundCount;
-    jsonfile["stats"]["totalcount"] = stats.totalCount;
+    jsonfile["stats"]["pentaWW"] = stats.penta_WW;
+    jsonfile["stats"]["pentaWD"] = stats.penta_WD;
+    jsonfile["stats"]["pentaWL"] = stats.penta_WL;
+    jsonfile["stats"]["pentaLD"] = stats.penta_LD;
+    jsonfile["stats"]["pentaLL"] = stats.penta_LL;
+    jsonfile["stats"]["roundcount"] = stats.round_count;
+    jsonfile["stats"]["totalcount"] = stats.total_count;
     jsonfile["stats"]["timeouts"] = stats.timeouts;
 
     std::ofstream file("config.json");
@@ -633,7 +633,7 @@ void Options::loadJson(const std::string &filename)
     game_options_.sprt.alpha = jsonfile["sprt"]["alpha"];
     game_options_.sprt.beta = jsonfile["sprt"]["beta"];
 
-    stats = Stats(
+    stats_ = Stats(
         jsonfile["stats"]["wins"], jsonfile["stats"]["draws"], jsonfile["stats"]["losses"],
         jsonfile["stats"]["pentaWW"], jsonfile["stats"]["pentaWD"], jsonfile["stats"]["pentaWL"],
         jsonfile["stats"]["pentaLD"], jsonfile["stats"]["pentaLL"], jsonfile["stats"]["roundcount"],
@@ -642,7 +642,7 @@ void Options::loadJson(const std::string &filename)
 
 Stats Options::getStats()
 {
-    return stats;
+    return stats_;
 }
 
 } // namespace CMD

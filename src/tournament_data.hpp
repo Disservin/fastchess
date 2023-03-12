@@ -6,19 +6,22 @@
 #include "chess/types.hpp"
 #include "engines/engine_config.hpp"
 
+namespace fast_chess
+{
+
 struct MoveData
 {
     std::string move;
-    std::string scoreString;
-    int64_t elapsedMillis = 0;
+    std::string score_string;
+    int64_t elapsed_millis = 0;
     int depth = 0;
     int score = 0;
     uint64_t nodes = 0;
     MoveData() = default;
 
-    MoveData(std::string _move, std::string _scoreString, int64_t _elapsedMillis, int _depth,
+    MoveData(std::string _move, std::string _score_string, int64_t _elapsed_millis, int _depth,
              int _score, int _nodes)
-        : move(_move), scoreString(std::move(_scoreString)), elapsedMillis(_elapsedMillis),
+        : move(_move), score_string(std::move(_score_string)), elapsed_millis(_elapsed_millis),
           depth(_depth), score(_score), nodes(_nodes)
     {
     }
@@ -27,43 +30,43 @@ struct MoveData
 struct Match
 {
     std::vector<MoveData> moves;
-    EngineConfiguration whiteEngine;
-    EngineConfiguration blackEngine;
+    EngineConfiguration white_engine;
+    EngineConfiguration black_engine;
     GameResult result;
     std::string termination;
-    std::string startTime;
-    std::string endTime;
+    std::string start_time;
+    std::string end_time;
     std::string duration;
     std::string date;
     std::string fen;
     int round = 0;
     bool legal = true;
-    bool needsRestart = false;
+    bool needs_restart = false;
 };
 
 struct DrawAdjTracker
 {
-    Score drawScore = 0;
-    int moveCount = 0;
+    Score draw_score = 0;
+    int move_count = 0;
 
     DrawAdjTracker() = default;
-    DrawAdjTracker(Score drawScore, int moveCount)
+    DrawAdjTracker(Score draw_score, int move_count)
     {
-        this->drawScore = drawScore;
-        this->moveCount = moveCount;
+        this->draw_score = draw_score;
+        this->move_count = move_count;
     }
 };
 
 struct ResignAdjTracker
 {
-    int moveCount = 0;
-    Score resignScore = 0;
+    int move_count = 0;
+    Score resign_score = 0;
 
     ResignAdjTracker() = default;
-    ResignAdjTracker(Score resignScore, int moveCount)
+    ResignAdjTracker(Score resign_score, int move_count)
     {
-        this->resignScore = resignScore;
-        this->moveCount = moveCount;
+        this->resign_score = resign_score;
+        this->move_count = move_count;
     }
 };
 
@@ -73,21 +76,23 @@ struct Stats
     int draws = 0;
     int losses = 0;
 
-    int pentaWW = 0;
-    int pentaWD = 0;
-    int pentaWL = 0;
-    int pentaLD = 0;
-    int pentaLL = 0;
+    int penta_WW = 0;
+    int penta_WD = 0;
+    int penta_WL = 0;
+    int penta_LD = 0;
+    int penta_LL = 0;
 
-    int roundCount = 0;
-    int totalCount = 0;
+    int round_count = 0;
+    int total_count = 0;
     int timeouts = 0;
 
     Stats() = default;
 
-    Stats(int _wins, int _draws, int _losses, int _pentaWW, int _pentaWD, int _pentaWL,
-          int _pentaLD, int _pentaLL, int _roundCount, int _totalCount, int _timeouts)
-        : wins(_wins), draws(_draws), losses(_losses), pentaWW(_pentaWW), pentaWD(_pentaWD),
-          pentaWL(_pentaWL), pentaLD(_pentaLD), pentaLL(_pentaLL), roundCount(_roundCount),
-          totalCount(_totalCount), timeouts(_timeouts){};
+    Stats(int _wins, int _draws, int _losses, int _penta_WW, int _penta_WD, int _penta_WL,
+          int _penta_LD, int _penta_LL, int _round_count, int _total_count, int _timeouts)
+        : wins(_wins), draws(_draws), losses(_losses), penta_WW(_penta_WW), penta_WD(_penta_WD),
+          penta_WL(_penta_WL), penta_LD(_penta_LD), penta_LL(_penta_LL), round_count(_round_count),
+          total_count(_total_count), timeouts(_timeouts){};
 };
+
+} // namespace fast_chess

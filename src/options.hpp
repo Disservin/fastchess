@@ -125,7 +125,7 @@ class Options
     Stats getStats();
 
   private:
-    Stats stats;
+    Stats stats_;
 
     // Holds all the relevant settings for the handling of the games
     GameManagerOptions game_options_;

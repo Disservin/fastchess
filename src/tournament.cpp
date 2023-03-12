@@ -139,7 +139,7 @@ bool Tournament::checkEngineStatus(UciEngine &engine, Match &match, int roundId)
 {
     if (!engine.checkErrors(roundId).empty())
     {
-        match.needsRestart = match_config_.recover;
+        match.needs_restart = match_config_.recover;
         return false;
     }
     return true;
@@ -188,7 +188,7 @@ bool Tournament::playNextMove(UciEngine &engine, std::string &positionInput, Boa
 
     if (!engine.getError().empty())
     {
-        match.needsRestart = match_config_.recover;
+        match.needs_restart = match_config_.recover;
         Logger::coutInfo("Warning: Engine", engine.getConfig().name, "disconnects #", roundId);
 
         if (!match_config_.recover)
@@ -263,14 +263,14 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int roundId
     Board board = {};
     board.loadFen(openingFen);
 
-    match.whiteEngine = board.side_to_move_ == WHITE ? engine1.getConfig() : engine2.getConfig();
-    match.blackEngine = board.side_to_move_ != WHITE ? engine1.getConfig() : engine2.getConfig();
+    match.white_engine = board.side_to_move_ == WHITE ? engine1.getConfig() : engine2.getConfig();
+    match.black_engine = board.side_to_move_ != WHITE ? engine1.getConfig() : engine2.getConfig();
 
     engine1.sendUciNewGame();
     engine2.sendUciNewGame();
 
     match.fen = board.getFen();
-    match.startTime = save_time_header_ ? Logger::getDateTime() : "";
+    match.start_time = save_time_header_ ? Logger::getDateTime() : "";
     match.date = save_time_header_ ? Logger::getDateTime("%Y-%m-%d") : "";
 
     std::string positionInput =
@@ -296,7 +296,7 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int roundId
 
     match.round = roundId;
     match.result = res;
-    match.endTime = save_time_header_ ? Logger::getDateTime() : "";
+    match.end_time = save_time_header_ ? Logger::getDateTime() : "";
     match.duration =
         save_time_header_
             ? Logger::formatDuration(std::chrono::duration_cast<std::chrono::seconds>(end - start))
@@ -342,7 +342,7 @@ std::vector<Match> Tournament::runH2H(CMD::GameManagerOptions localMatchConfig,
         else
             match = startMatch(engine2, engine1, roundId, fen);
 
-        if (match.needsRestart)
+        if (match.needs_restart)
         {
             i--;
             engine1.restartEngine();
@@ -363,13 +363,13 @@ std::vector<Match> Tournament::runH2H(CMD::GameManagerOptions localMatchConfig,
 
         if (match.result == GameResult::WHITE_WIN)
         {
-            localWins += match.whiteEngine.name == configs[0].name ? 1 : 0;
-            localLosses += match.whiteEngine.name == configs[0].name ? 0 : 1;
+            localWins += match.white_engine.name == configs[0].name ? 1 : 0;
+            localLosses += match.white_engine.name == configs[0].name ? 0 : 1;
         }
         else if (match.result == GameResult::BLACK_WIN)
         {
-            localWins += match.blackEngine.name == configs[0].name ? 1 : 0;
-            localLosses += match.blackEngine.name == configs[0].name ? 0 : 1;
+            localWins += match.black_engine.name == configs[0].name ? 1 : 0;
+            localLosses += match.black_engine.name == configs[0].name ? 0 : 1;
         }
         else if (match.result == GameResult::DRAW)
         {
@@ -479,31 +479,31 @@ void Tournament::stopPool()
 
 Stats Tournament::getStats()
 {
-    return Stats(wins, draws, losses, pentaWW, pentaWD, pentaWL, pentaLD, pentaLL, roundCount,
-                 totalCount, timeouts);
+    return Stats(wins_, draws_, losses_, penta_WW_, penta_WD_, penta_WL_, penta_LD_, penta_LL_,
+                 round_count_, total_count_, timeouts_);
 }
 
 void Tournament::setStats(const Stats &stats)
 {
-    wins = stats.wins;
-    losses = stats.losses;
-    draws = stats.draws;
+    wins_ = stats.wins;
+    losses_ = stats.losses;
+    draws_ = stats.draws;
 
-    pentaWW = stats.pentaWW;
-    pentaWD = stats.pentaWD;
-    pentaWL = stats.pentaWL;
-    pentaLD = stats.pentaLD;
-    pentaLL = stats.pentaLL;
+    penta_WW_ = stats.penta_WW;
+    penta_WD_ = stats.penta_WD;
+    penta_WL_ = stats.penta_WL;
+    penta_LD_ = stats.penta_LD;
+    penta_LL_ = stats.penta_LL;
 
-    roundCount = stats.roundCount;
-    totalCount = stats.totalCount;
-    timeouts = stats.timeouts;
+    round_count_ = stats.round_count;
+    total_count_ = stats.total_count;
+    timeouts_ = stats.timeouts;
 }
 
 MoveData Tournament::parseEngineOutput(const Board &board, const std::vector<std::string> &output,
                                        const std::string &move, int64_t measuredTime)
 {
-    std::string scoreString = "0.00";
+    std::string score_string = "0.00";
     uint64_t nodes = 0;
     int score = 0;
     int depth = 0;
@@ -524,12 +524,12 @@ MoveData Tournament::parseEngineOutput(const Board &board, const std::vector<std
             std::stringstream ss;
             ss << (score >= 0 ? '+' : '-');
             ss << std::fixed << std::setprecision(2) << (float(std::abs(score)) / 100);
-            scoreString = ss.str();
+            score_string = ss.str();
         }
         else if (scoreType == "mate")
         {
             score = findElement<int>(info, "mate");
-            scoreString = (score > 0 ? "+M" : "-M") + std::to_string(std::abs(score));
+            score_string = (score > 0 ? "+M" : "-M") + std::to_string(std::abs(score));
             score = mate_score_;
         }
     }
@@ -557,14 +557,14 @@ MoveData Tournament::parseEngineOutput(const Board &board, const std::vector<std
         }
     }
 
-    return MoveData(move, scoreString, measuredTime, depth, score, nodes);
+    return MoveData(move, score_string, measuredTime, depth, score, nodes);
 }
 
 void Tournament::updateTrackers(DrawAdjTracker &drawTracker, ResignAdjTracker &resignTracker,
                                 const Score moveScore, const int move_number)
 {
     // Score is low for draw adj, increase the counter
-    if (move_number >= match_config_.draw.move_number && abs(moveScore) < drawTracker.drawScore)
+    if (move_number >= match_config_.draw.move_number && abs(moveScore) < drawTracker.draw_score)
     {
         drawTracker.move_count++;
     }
@@ -578,7 +578,7 @@ void Tournament::updateTrackers(DrawAdjTracker &drawTracker, ResignAdjTracker &r
     // Score is low for resign adj, increase the counter (this purposely makes
     // it possible that a move can work for both draw and resign adj for
     // whatever reason that might be the case)
-    if (abs(moveScore) > resignTracker.resignScore)
+    if (abs(moveScore) > resignTracker.resign_score)
     {
         resignTracker.move_count++;
     }
@@ -608,8 +608,8 @@ GameResult Tournament::checkAdj(Match &match, const DrawAdjTracker &drawTracker,
 
         // We have the Score for the last side that moved, if it's bad that side
         // is the resigning one so give the other side the win.
-        return score < resignTracker.resignScore ? GameResult(~lastSideThatMoved)
-                                                 : GameResult(lastSideThatMoved);
+        return score < resignTracker.resign_score ? GameResult(~lastSideThatMoved)
+                                                  : GameResult(lastSideThatMoved);
     }
 
     return GameResult::NONE;

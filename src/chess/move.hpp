@@ -4,6 +4,9 @@
 
 #include "types.hpp"
 
+namespace fast_chess
+{
+
 struct Move
 {
     Square from_sq = NO_SQ;
@@ -37,3 +40,5 @@ inline bool operator!=(const Move &lhs, const Move &rhs)
 {
     return !(lhs == rhs);
 }
+
+} // namespace fast_chess

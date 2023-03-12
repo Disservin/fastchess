@@ -7,6 +7,9 @@
 #include "engines/engine_config.hpp"
 #include "logger.hpp"
 
+namespace fast_chess
+{
+
 namespace CMD
 {
 
@@ -148,3 +151,5 @@ class Options
 };
 
 } // namespace CMD
+
+} // namespace fast_chess

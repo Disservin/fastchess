@@ -4,6 +4,14 @@
 #include <string>
 #include <vector>
 
+#ifdef _WIN64
+#include <iostream>
+#include <windows.h>
+#endif
+
+namespace fast_chess
+{
+
 class Process
 {
   public:
@@ -36,9 +44,6 @@ class Process
 };
 
 #ifdef _WIN64
-
-#include <iostream>
-#include <windows.h>
 
 class EngineProcess : public Process
 {
@@ -94,3 +99,5 @@ class EngineProcess : public Process
 };
 
 #endif
+
+} // namespace fast_chess

@@ -9,6 +9,9 @@
 #include "move.hpp"
 #include "types.hpp"
 
+namespace fast_chess
+{
+
 enum class GameResult
 {
     WHITE_WIN,
@@ -158,3 +161,5 @@ Move convertUciToMove(const Board &board, const std::string &input);
 std::string MoveToRep(Board &b, Move move, bool isLan = false);
 
 std::string resultToString(GameResult result);
+
+} // namespace fast_chess

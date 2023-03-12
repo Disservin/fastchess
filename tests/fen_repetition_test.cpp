@@ -5,6 +5,8 @@
 
 #include <algorithm>
 
+using namespace fast_chess;
+
 inline bool testFenRepetition(const std::string &input)
 {
     Board board;

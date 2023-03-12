@@ -1,3 +1,5 @@
+#include "engineprocess.hpp"
+
 #include <cassert>
 #include <chrono>
 #include <iostream>
@@ -7,7 +9,9 @@
 
 #include "../logger.hpp"
 #include "../options.hpp"
-#include "engineprocess.hpp"
+
+namespace fast_chess
+{
 
 EngineProcess::EngineProcess(const std::string &command)
 {
@@ -459,3 +463,4 @@ void EngineProcess::killProcess()
 }
 
 #endif
+} // namespace fast_chess

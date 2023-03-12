@@ -2,6 +2,8 @@
 
 #include "../src/chess/board.hpp"
 
+using namespace fast_chess;
+
 TEST_CASE("Test Zobrist Hash Startpos")
 {
     Board b;

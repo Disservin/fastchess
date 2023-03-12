@@ -1,4 +1,9 @@
+#pragma once
+
 #include <string>
+
+namespace fast_chess
+{
 
 enum SPRTResult
 {
@@ -37,3 +42,5 @@ class SPRT
 
     bool isValid() const;
 };
+
+} // namespace fast_chess

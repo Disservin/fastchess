@@ -1,7 +1,10 @@
+#include "logger.hpp"
+
 #include <iomanip>
 #include <sstream>
 
-#include "logger.hpp"
+namespace fast_chess
+{
 
 std::atomic_bool Logger::shouldLog = false;
 std::ofstream Logger::log;
@@ -85,3 +88,4 @@ std::string Logger::formatDuration(std::chrono::seconds duration)
        << seconds.count();
     return ss.str();
 }
+} // namespace fast_chess

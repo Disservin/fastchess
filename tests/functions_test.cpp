@@ -3,6 +3,8 @@
 #include "../src/chess/helper.hpp"
 #include "../src/options.hpp"
 
+using namespace fast_chess;
+
 TEST_CASE("Testing the CMD::Options::startsWith function")
 {
     CHECK(CMD::Options::startsWith("-engine", "-"));

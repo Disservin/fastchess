@@ -1,8 +1,11 @@
+#include "elo.hpp"
+
 #include <cmath>
 #include <iomanip>
 #include <sstream>
 
-#include "elo.hpp"
+namespace fast_chess
+{
 
 Elo::Elo(int wins, int losses, int draws)
 {
@@ -71,3 +74,5 @@ std::string Elo::getElo() const
     ss << std::fixed << std::setprecision(2) << error;
     return ss.str();
 }
+
+} // namespace fast_chess

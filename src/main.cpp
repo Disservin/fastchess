@@ -7,6 +7,8 @@
 #include "options.hpp"
 #include "tournament.hpp"
 
+using namespace fast_chess;
+
 namespace
 {
 Tournament *Tour;

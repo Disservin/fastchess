@@ -9,6 +9,9 @@
 #include <type_traits>
 #include <vector>
 
+namespace fast_chess
+{
+
 class ThreadPool
 {
   public:
@@ -166,3 +169,5 @@ class ThreadPool
     std::mutex queue_mutex;
     std::condition_variable condition;
 };
+
+} // namespace fast_chess

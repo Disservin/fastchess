@@ -3,6 +3,9 @@
 #include "../third_party/sliders.hpp"
 #include "types.hpp"
 
+namespace fast_chess
+{
+
 // clang-format off
 
 static constexpr Bitboard KNIGHT_ATTACKS_TABLE[64] = {
@@ -106,4 +109,6 @@ constexpr Bitboard QueenAttacks(uint8_t sq, Bitboard occupied)
 constexpr Bitboard KingAttacks(uint8_t sq)
 {
 	return KING_ATTACKS_TABLE[sq];
+}
+
 }

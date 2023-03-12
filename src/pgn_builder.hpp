@@ -3,6 +3,9 @@
 #include "options.hpp"
 #include "tournament.hpp"
 
+namespace fast_chess
+{
+
 class PgnBuilder
 {
   private:
@@ -13,3 +16,5 @@ class PgnBuilder
 
     std::string getPGN() const;
 };
+
+} // namespace fast_chess

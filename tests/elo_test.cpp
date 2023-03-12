@@ -2,6 +2,8 @@
 
 #include "../src/elo.hpp"
 
+using namespace fast_chess;
+
 TEST_CASE("Elo calculation")
 {
     Elo elo(0, 36, 14);

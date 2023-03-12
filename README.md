@@ -37,6 +37,12 @@ Options:
     NOTATION defaults to san, alternatively you can choose lan, default file output is
     fast-chess.pgn, tracknodes adds the node count to the pgn.
   -log file=NAME
+  -config file=NAME discard=true
+    After a ctrl c event or finishing all games the current config is automatically saved.
+    You can restart fast-chess using this argument. This can be used to conveniently load
+    engine configurations or/and to resume from a previous stop. In case you want to discard
+    the saved game results you can specify `discard`. Note: This must be specified after and
+    only after file.
 
 Engine;
   name=NAME

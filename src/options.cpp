@@ -62,7 +62,7 @@ Options::Options(int argc, char const *argv[])
         else if (arg == "-log")
             parseLog(i, argc, argv);
         else if (arg == "-config")
-            loadJson(argv[++i]);
+            parseJsonName(i, argc, argv);
         else
         {
             i++;
@@ -167,6 +167,27 @@ void Options::parseLog(int &i, int argc, const char *argv[])
         if (key == "file")
         {
             Logger::openFile(value);
+        }
+        i++;
+    }
+}
+
+void Options::parseJsonName(int &i, int argc, const char *argv[])
+{
+    i++;
+    while (i < argc && argv[i][0] != '-')
+    {
+        const std::string param = argv[i];
+        const size_t pos = param.find('=');
+        const std::string key = param.substr(0, pos);
+        const std::string value = param.substr(pos + 1);
+        if (key == "file")
+        {
+            loadJson(value);
+        }
+        if (key == "discard" && value == "true")
+        {
+            stats_ = Stats();
         }
         i++;
     }

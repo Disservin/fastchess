@@ -144,6 +144,8 @@ class Options
 
     void parseLog(int &i, int argc, const char *argv[]);
 
+    void parseJsonName(int &i, int argc, const char *argv[]);
+
     void parseEngineKeyValues(EngineConfiguration &engineConfig, const std::string &key,
                               const std::string &value);
 

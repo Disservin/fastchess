@@ -322,8 +322,8 @@ void EngineProcess::writeProcess(const std::string &input)
         std::stringstream ss;
         ss << "Process is not alive and write occured with message: " << input;
         std::cout << ss.str();
-        errCode = 1;
-        errStr = ss.str();
+        err_code_ = 1;
+        err_str_ = ss.str();
         perror("Error: write: ");
     }
 
@@ -332,8 +332,8 @@ void EngineProcess::writeProcess(const std::string &input)
         std::stringstream ss;
         ss << "Process is not alive and write occured with message: " << input;
         std::cout << ss.str();
-        errCode = 1;
-        errStr = ss.str();
+        err_code_ = 1;
+        err_str_ = ss.str();
         perror("Error: write\n: ");
     }
 }
@@ -372,8 +372,8 @@ std::vector<std::string> EngineProcess::readProcess(std::string_view last_word, 
 
         if (ret == -1)
         {
-            errCode = 1;
-            errStr = "Error poll";
+            err_code_ = 1;
+            err_str_ = "Error poll";
             perror("Error: poll: ");
         }
         else if (ret == 0)
@@ -390,8 +390,8 @@ std::vector<std::string> EngineProcess::readProcess(std::string_view last_word, 
 
             if (bytesRead == -1)
             {
-                errCode = 1;
-                errStr = "Error read";
+                err_code_ = 1;
+                err_str_ = "Error read";
                 perror("Error: read");
             }
             // Iterate over each character in the buffer

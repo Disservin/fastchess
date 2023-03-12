@@ -65,7 +65,7 @@ std::vector<std::string> UciEngine::readUci()
     bool timeout = false;
     Logger::coutInfo("read uci");
 
-    return readProcess("uciok", timeout, PING_TIME);
+    return readProcess("uciok", timeout, ping_time_);
 }
 
 std::string UciEngine::buildGoInput(Color stm, const TimeControl &tc, const TimeControl &tc_2) const

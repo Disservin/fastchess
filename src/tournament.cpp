@@ -331,13 +331,13 @@ std::vector<Match> Tournament::runH2H(CMD::GameManagerOptions localMatchConfig,
 
     const int games = localMatchConfig.games;
 
-    int localWins = 0;
-    int localLosses = 0;
-    int localDraws = 0;
+    int local_wins = 0;
+    int local_losses = 0;
+    int local_draws = 0;
 
     // Game stats from white pov for white advantage
-    int whiteLocalWins = 0;
-    int whiteLocalLosses = 0;
+    int white_local_wins = 0;
+    int white_local_losses = 0;
 
     for (int i = 0; i < games; i++)
     {
@@ -358,9 +358,9 @@ std::vector<Match> Tournament::runH2H(CMD::GameManagerOptions localMatchConfig,
         total_count_++;
         matches.emplace_back(match);
 
-        const std::string positiveEngine =
+        const std::string positive_engine =
             engine1.turn == Turn::FIRST ? engine1.getConfig().name : engine2.getConfig().name;
-        const std::string negativeEngine =
+        const std::string negative_engine =
             engine1.turn == Turn::FIRST ? engine2.getConfig().name : engine1.getConfig().name;
 
         engine1.turn = ~engine1.turn;
@@ -368,19 +368,19 @@ std::vector<Match> Tournament::runH2H(CMD::GameManagerOptions localMatchConfig,
 
         if (match.result == GameResult::WHITE_WIN)
         {
-            localWins += match.whiteEngine.name == configs[0].name ? 1 : 0;
-            localLosses += match.whiteEngine.name == configs[0].name ? 0 : 1;
-            whiteLocalWins += 1;
+            local_wins += match.whiteEngine.name == configs[0].name ? 1 : 0;
+            local_losses += match.whiteEngine.name == configs[0].name ? 0 : 1;
+            white_local_wins += 1;
         }
         else if (match.result == GameResult::BLACK_WIN)
         {
-            localWins += match.blackEngine.name == configs[0].name ? 1 : 0;
-            localLosses += match.blackEngine.name == configs[0].name ? 0 : 1;
-            whiteLocalLosses += 1;
+            local_wins += match.blackEngine.name == configs[0].name ? 1 : 0;
+            local_losses += match.blackEngine.name == configs[0].name ? 0 : 1;
+            white_local_losses += 1;
         }
         else if (match.result == GameResult::DRAW)
         {
-            localDraws++;
+            local_draws++;
         }
         else
         {
@@ -390,24 +390,24 @@ std::vector<Match> Tournament::runH2H(CMD::GameManagerOptions localMatchConfig,
         std::stringstream ss;
         ss << "Finished game " << i + 1 << "/" << games << " in round " << roundId << "/"
            << localMatchConfig.rounds << " total played " << total_count_ << "/"
-           << localMatchConfig.rounds * games << " " << positiveEngine << " vs " << negativeEngine
+           << localMatchConfig.rounds * games << " " << positive_engine << " vs " << negative_engine
            << ": " << resultToString(match.result) << "\n";
 
         std::cout << ss.str();
     }
 
-    penta_WW_ += localWins == 2 ? 1 : 0;
-    penta_WD_ += localWins == 1 && localDraws == 1 ? 1 : 0;
-    penta_WL_ += (localWins == 1 && localLosses == 1) || localDraws == 2 ? 1 : 0;
-    penta_LD_ += localLosses == 1 && localDraws == 1 ? 1 : 0;
-    penta_LL_ += localLosses == 2 ? 1 : 0;
+    penta_WW_ += local_wins == 2 ? 1 : 0;
+    penta_WD_ += local_wins == 1 && local_draws == 1 ? 1 : 0;
+    penta_WL_ += (local_wins == 1 && local_losses == 1) || local_draws == 2 ? 1 : 0;
+    penta_LD_ += local_losses == 1 && local_draws == 1 ? 1 : 0;
+    penta_LL_ += local_losses == 2 ? 1 : 0;
 
-    wins_ += localWins;
-    losses_ += localLosses;
-    draws_ += localDraws;
+    wins_ += local_wins;
+    losses_ += local_losses;
+    draws_ += local_draws;
     // Update white advantage stats
-    white_wins_ += whiteLocalWins;
-    white_losses_ += whiteLocalLosses;
+    white_wins_ += white_local_wins;
+    white_losses_ += white_local_losses;
 
     round_count_++;
 

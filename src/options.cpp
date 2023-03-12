@@ -7,16 +7,18 @@
 #include <type_traits>
 #include <unordered_map>
 
+#include "third_party/json.hpp"
+
 namespace fast_chess
 {
 
 namespace CMD
 {
 
+using json = nlohmann::json;
+
 Options::Options(int argc, char const *argv[])
 {
-    // Name of the current exec program
-    const std::string current_exec_name = argv[0];
     for (int i = 1; i < argc; i++)
     {
         const std::string arg = argv[i];
@@ -59,6 +61,8 @@ Options::Options(int argc, char const *argv[])
             printVersion(i);
         else if (arg == "-log")
             parseLog(i, argc, argv);
+        else if (arg == "-config")
+            loadJson(argv[++i]);
         else
         {
             i++;
@@ -323,7 +327,7 @@ void Options::parseDrawOptions(int &i, int argc, char const *argv[])
         const std::string value = param.substr(pos + 1);
         if (key == "movenumber")
         {
-            game_options_.draw.moveNumber = std::stoi(value);
+            game_options_.draw.move_number = std::stoi(value);
         }
         else if (key == "movecount")
         {
@@ -492,6 +496,153 @@ std::vector<std::string> Options::splitString(const std::string &string, const c
     }
 
     return seglist;
+}
+
+void Options::saveJson(const Stats &stats)
+{
+    nlohmann::ordered_json jsonfile;
+
+    jsonfile["event"] = gameOptions.eventName;
+
+    jsonfile["rounds"] = gameOptions.rounds;
+
+    jsonfile["games"] = gameOptions.games;
+
+    jsonfile["recover"] = gameOptions.recover;
+
+    jsonfile["concurrency"] = gameOptions.concurrency;
+
+    jsonfile["rating-interval"] = gameOptions.ratinginterval;
+
+    nlohmann::ordered_json objects = nlohmann::ordered_json::array();
+
+    for (const auto &engine : configs)
+    {
+        nlohmann::ordered_json object;
+        object["name"] = engine.name;
+        object["dir"] = engine.dir;
+        object["cmd"] = engine.cmd;
+        // jsonfile["args"] = engine.args;
+
+        for (const auto &option : engine.options)
+        {
+            object["options"]["name"] = option.first;
+            object["options"]["value"] = option.second;
+        }
+
+        object["tc"]["time"] = engine.tc.time;
+        object["tc"]["fixed_time"] = engine.tc.fixed_time;
+        object["tc"]["increment"] = engine.tc.increment;
+        object["tc"]["moves"] = engine.tc.moves;
+
+        object["nodes"] = engine.nodes;
+        object["plies"] = engine.plies;
+        object["recover"] = engine.recover;
+
+        objects.push_back(object);
+    }
+
+    jsonfile["engines"] = objects;
+
+    jsonfile["opening"]["file"] = gameOptions.opening.file;
+    jsonfile["opening"]["format"] = gameOptions.opening.format;
+    jsonfile["opening"]["order"] = gameOptions.opening.order;
+    jsonfile["opening"]["start"] = gameOptions.opening.start;
+
+    jsonfile["adjudication"]["resign"]["enabled"] = gameOptions.resign.enabled;
+    jsonfile["adjudication"]["resign"]["movecount"] = gameOptions.resign.moveCount;
+    jsonfile["adjudication"]["resign"]["score"] = gameOptions.resign.score;
+
+    jsonfile["adjudication"]["draw"]["enabled"] = gameOptions.draw.enabled;
+    jsonfile["adjudication"]["draw"]["movecount"] = gameOptions.draw.moveCount;
+    jsonfile["adjudication"]["draw"]["movenumber"] = gameOptions.draw.move_number;
+    jsonfile["adjudication"]["draw"]["score"] = gameOptions.draw.score;
+
+    jsonfile["sprt"]["elo0"] = gameOptions.sprt.elo0;
+    jsonfile["sprt"]["elo1"] = gameOptions.sprt.elo1;
+    jsonfile["sprt"]["alpha"] = gameOptions.sprt.alpha;
+    jsonfile["sprt"]["beta"] = gameOptions.sprt.beta;
+
+    jsonfile["stats"]["wins"] = stats.wins;
+    jsonfile["stats"]["draws"] = stats.draws;
+    jsonfile["stats"]["losses"] = stats.losses;
+    jsonfile["stats"]["pentaWW"] = stats.pentaWW;
+    jsonfile["stats"]["pentaWD"] = stats.pentaWD;
+    jsonfile["stats"]["pentaWL"] = stats.pentaWL;
+    jsonfile["stats"]["pentaLD"] = stats.pentaLD;
+    jsonfile["stats"]["pentaLL"] = stats.pentaLL;
+    jsonfile["stats"]["roundcount"] = stats.roundCount;
+    jsonfile["stats"]["totalcount"] = stats.totalCount;
+    jsonfile["stats"]["timeouts"] = stats.timeouts;
+
+    std::ofstream file("config.json");
+    file << std::setw(4) << jsonfile << std::endl;
+}
+
+void Options::loadJson(const std::string &filename)
+{
+    std::cout << "Loading config file: " << filename << std::endl;
+    std::ifstream f(filename);
+    json jsonfile = json::parse(f);
+
+    gameOptions.eventName = jsonfile["event"];
+    gameOptions.rounds = jsonfile["rounds"];
+    gameOptions.games = jsonfile["games"];
+    gameOptions.recover = jsonfile["recover"];
+    gameOptions.concurrency = jsonfile["concurrency"];
+    gameOptions.ratinginterval = jsonfile["rating-interval"];
+
+    configs.clear();
+
+    for (auto engine : jsonfile["engines"])
+    {
+        EngineConfiguration ec;
+
+        ec.name = engine["name"];
+        ec.dir = engine["dir"];
+        ec.cmd = engine["cmd"];
+
+        ec.tc.time = engine["tc"]["time"];
+        ec.tc.fixed_time = engine["tc"]["fixed_time"];
+        ec.tc.increment = engine["tc"]["increment"];
+        ec.tc.moves = engine["tc"]["moves"];
+
+        ec.nodes = engine["nodes"];
+        ec.plies = engine["plies"];
+        ec.recover = engine["recover"];
+
+        configs.push_back(ec);
+    }
+
+    gameOptions.opening.file = jsonfile["opening"]["file"];
+    gameOptions.opening.format = jsonfile["opening"]["format"];
+    gameOptions.opening.order = jsonfile["opening"]["order"];
+    gameOptions.opening.start = jsonfile["opening"]["start"];
+
+    gameOptions.resign.enabled = jsonfile["adjudication"]["resign"]["enabled"];
+    gameOptions.resign.moveCount = jsonfile["adjudication"]["resign"]["movecount"];
+    gameOptions.resign.score = jsonfile["adjudication"]["resign"]["score"];
+
+    gameOptions.draw.enabled = jsonfile["adjudication"]["draw"]["enabled"];
+    gameOptions.draw.moveCount = jsonfile["adjudication"]["draw"]["movecount"];
+    gameOptions.draw.move_number = jsonfile["adjudication"]["draw"]["movenumber"];
+    gameOptions.draw.score = jsonfile["adjudication"]["draw"]["score"];
+
+    gameOptions.sprt.elo0 = jsonfile["sprt"]["elo0"];
+    gameOptions.sprt.elo1 = jsonfile["sprt"]["elo1"];
+    gameOptions.sprt.alpha = jsonfile["sprt"]["alpha"];
+    gameOptions.sprt.beta = jsonfile["sprt"]["beta"];
+
+    stats = Stats(
+        jsonfile["stats"]["wins"], jsonfile["stats"]["draws"], jsonfile["stats"]["losses"],
+        jsonfile["stats"]["pentaWW"], jsonfile["stats"]["pentaWD"], jsonfile["stats"]["pentaWL"],
+        jsonfile["stats"]["pentaLD"], jsonfile["stats"]["pentaLL"], jsonfile["stats"]["roundcount"],
+        jsonfile["stats"]["totalcount"], jsonfile["stats"]["timeouts"]);
+}
+
+Stats Options::getStats()
+{
+    return stats;
 }
 
 } // namespace CMD

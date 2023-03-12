@@ -11,70 +11,10 @@
 #include "options.hpp"
 #include "sprt.hpp"
 #include "threadpool.hpp"
+#include "tournament_data.hpp"
 
 namespace fast_chess
 {
-
-struct MoveData
-{
-    std::string move;
-    std::string scoreString;
-    int64_t elapsedMillis = 0;
-    int depth = 0;
-    int score = 0;
-    uint64_t nodes = 0;
-    MoveData() = default;
-
-    MoveData(std::string _move, std::string _scoreString, int64_t _elapsedMillis, int _depth,
-             int _score, int _nodes)
-        : move(_move), scoreString(std::move(_scoreString)), elapsedMillis(_elapsedMillis),
-          depth(_depth), score(_score), nodes(_nodes)
-    {
-    }
-};
-
-struct Match
-{
-    std::vector<MoveData> moves;
-    EngineConfiguration whiteEngine;
-    EngineConfiguration blackEngine;
-    GameResult result;
-    std::string termination;
-    std::string startTime;
-    std::string endTime;
-    std::string duration;
-    std::string date;
-    std::string fen;
-    int round = 0;
-    bool legal = true;
-    bool needsRestart = false;
-};
-
-struct DrawAdjTracker
-{
-    Score drawScore = 0;
-    int move_count = 0;
-
-    DrawAdjTracker() = default;
-    DrawAdjTracker(Score drawScore, int move_count)
-    {
-        this->drawScore = drawScore;
-        this->move_count = move_count;
-    }
-};
-
-struct ResignAdjTracker
-{
-    int move_count = 0;
-    Score resignScore = 0;
-
-    ResignAdjTracker() = default;
-    ResignAdjTracker(Score resignScore, int move_count)
-    {
-        this->resignScore = resignScore;
-        this->move_count = move_count;
-    }
-};
 
 /*
  * This is the main class to start engines matches.
@@ -117,6 +57,10 @@ class Tournament
     void startTournament(const std::vector<EngineConfiguration> &configs);
 
     void stopPool();
+
+    Stats getStats();
+
+    void setStats(const Stats &stats);
 
   private:
     const std::string startpos_ = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
@@ -172,7 +116,7 @@ class Tournament
                                const std::string &move, int64_t measuredTime);
 
     void updateTrackers(DrawAdjTracker &drawTracker, ResignAdjTracker &resignTracker,
-                        const Score moveScore, const int moveNumber);
+                        const Score moveScore, const int move_number);
 
     GameResult checkAdj(Match &match, const DrawAdjTracker &drawTracker,
                         const ResignAdjTracker &resignTracker, const Score score,

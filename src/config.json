@@ -1,0 +1,76 @@
+{
+    "event": "?",
+    "rounds": 1000,
+    "games": 2,
+    "recover": true,
+    "concurrency": 28,
+    "rating-interval": 10,
+    "engines": [
+        {
+            "name": "blackcore",
+            "dir": "",
+            "cmd": "BlackCore-v6-0.exe",
+            "tc": {
+                "time": 4000,
+                "fixed_time": 0,
+                "increment": 40,
+                "moves": 0
+            },
+            "nodes": 0,
+            "plies": 0,
+            "recover": true
+        },
+        {
+            "name": "smallbrain_dev",
+            "dir": "",
+            "cmd": "smallbrain_dev.exe",
+            "tc": {
+                "time": 4000,
+                "fixed_time": 0,
+                "increment": 40,
+                "moves": 0
+            },
+            "nodes": 0,
+            "plies": 0,
+            "recover": true
+        }
+    ],
+    "opening": {
+        "file": "UHO_XXL_+0.90_+1.19.epd",
+        "format": "epd",
+        "order": "random",
+        "start": 0
+    },
+    "adjudication": {
+        "resign": {
+            "enabled": false,
+            "movecount": 0,
+            "score": 0
+        },
+        "draw": {
+            "enabled": true,
+            "movecount": 8,
+            "movenumber": 20,
+            "score": 10
+        }
+    },
+    "sprt": {
+        "elo0": 0.0,
+        "elo1": 0.0,
+        "alpha": 0.0,
+        "beta": 0.0
+    },
+    "stats": {
+        "wins": 16,
+        "draws": 40,
+        "losses": 54,
+        "pentaWW": 0,
+        "pentaWD": 4,
+        "pentaWL": 19,
+        "pentaLD": 22,
+        "pentaLL": 10,
+        "roundcount": 55,
+        "totalcount": 135,
+        "timeouts": 0
+    }
+}

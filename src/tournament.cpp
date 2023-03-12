@@ -477,6 +477,29 @@ void Tournament::stopPool()
     pool_.kill();
 }
 
+Stats Tournament::getStats()
+{
+    return Stats(wins, draws, losses, pentaWW, pentaWD, pentaWL, pentaLD, pentaLL, roundCount,
+                 totalCount, timeouts);
+}
+
+void Tournament::setStats(const Stats &stats)
+{
+    wins = stats.wins;
+    losses = stats.losses;
+    draws = stats.draws;
+
+    pentaWW = stats.pentaWW;
+    pentaWD = stats.pentaWD;
+    pentaWL = stats.pentaWL;
+    pentaLD = stats.pentaLD;
+    pentaLL = stats.pentaLL;
+
+    roundCount = stats.roundCount;
+    totalCount = stats.totalCount;
+    timeouts = stats.timeouts;
+}
+
 MoveData Tournament::parseEngineOutput(const Board &board, const std::vector<std::string> &output,
                                        const std::string &move, int64_t measuredTime)
 {
@@ -538,10 +561,10 @@ MoveData Tournament::parseEngineOutput(const Board &board, const std::vector<std
 }
 
 void Tournament::updateTrackers(DrawAdjTracker &drawTracker, ResignAdjTracker &resignTracker,
-                                const Score moveScore, const int moveNumber)
+                                const Score moveScore, const int move_number)
 {
     // Score is low for draw adj, increase the counter
-    if (moveNumber >= match_config_.draw.moveNumber && abs(moveScore) < drawTracker.drawScore)
+    if (move_number >= match_config_.draw.move_number && abs(moveScore) < drawTracker.drawScore)
     {
         drawTracker.move_count++;
     }

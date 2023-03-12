@@ -8,13 +8,13 @@ namespace fast_chess
 
 class PgnBuilder
 {
-  private:
-    std::string pgn_;
-
   public:
     PgnBuilder(const Match &match, const CMD::GameManagerOptions &game_options_);
 
     std::string getPGN() const;
+
+  private:
+    std::string pgn_;
 };
 
 } // namespace fast_chess

@@ -20,15 +20,10 @@ constexpr Turn operator~(Turn t)
 
 class UciEngine : public EngineProcess
 {
-
-  private:
-    static const int64_t ping_time_ = 60000;
-    EngineConfiguration config_;
-
   public:
     UciEngine() = default;
 
-    UciEngine(const std::string &command)
+    explicit UciEngine(const std::string &command)
     {
         initProcess(command);
     }
@@ -73,6 +68,11 @@ class UciEngine : public EngineProcess
 
     void startEngine(const std::string &cmd);
 
+    static const int64_t ping_time_ = 60000;
+
     Turn turn = Turn::FIRST;
+
+  private:
+    EngineConfiguration config_;
 };
 } // namespace fast_chess

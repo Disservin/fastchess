@@ -14,33 +14,30 @@ enum SPRTResult
 
 class SPRT
 {
+  public:
+    SPRT() = default;
+
+    SPRT(double alpha, double beta, double elo0, double elo1);
+
+    bool isValid() const;
+
+    static double getLL(double elo);
+    double getLLR(int win, int draw, int loss) const;
+
+    SPRTResult getResult(double llr) const;
+    std::string getBounds() const;
+    std::string getElo() const;
+
   private:
     double lower_ = 0.0;
     double upper_ = 0.0;
     double s0_ = 0.0;
     double s1_ = 0.0;
 
-    bool valid_ = false;
-
     double elo0_ = 0;
     double elo1_ = 0;
 
-  public:
-    SPRT(double alpha, double beta, double elo0, double elo1);
-
-    SPRT() = default;
-
-    static double getLL(double elo);
-
-    double getLLR(int win, int draw, int loss) const;
-
-    SPRTResult getResult(double llr) const;
-
-    std::string getBounds() const;
-
-    std::string getElo() const;
-
-    bool isValid() const;
+    bool valid_ = false;
 };
 
 } // namespace fast_chess

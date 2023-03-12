@@ -32,46 +32,36 @@ class Board
   public:
     Board();
 
-    Board(const std::string &fen);
-
-    Table<Bitboard, N_SQ, N_SQ> squares_between_bb_;
-    Color side_to_move_ = WHITE;
-
-    uint8_t castling_rights_ = 15;
-
-    Square enpassant_square_ = NO_SQ;
-
-    bool chess960_ = false;
+    explicit Board(const std::string &fen);
 
     void loadFen(const std::string &fen);
     std::string getFen() const;
 
     bool makeMove(Move move);
-
     void unmakeMove(Move move);
 
     Bitboard us(Color c) const;
-
     Bitboard allBB() const;
 
     Square KingSQ(Color c) const;
 
     template <PieceType type, Color color> Bitboard pieces() const;
-
     template <Color color> Bitboard pieces(PieceType type) const;
-
     template <PieceType type> Bitboard pieces(Color color) const;
-
     Bitboard pieces(PieceType type, Color color) const;
 
     Piece pieceAt(Square square) const;
 
     uint64_t getHash() const;
-
     uint64_t zobristHash() const;
 
-    bool isRepetition() const;
+    Color getSideToMove() const;
+    Square getEnpassantSquare() const;
+    uint8_t getCastlingRights() const;
+    Bitboard getSquaresBetweenBB(int sq_1, int sq_2) const;
 
+    bool isChess960() const;
+    bool isRepetition() const;
     GameResult isGameOver();
 
     Bitboard attacksByPiece(PieceType pt, Square sq, Color c, Bitboard occ) const;
@@ -94,7 +84,6 @@ class Board
     static bool sameColor(int sq1, int sq2);
 
     static Color colorOf(Piece p);
-
     Color colorOf(Square loc) const;
 
     static uint8_t squareDistance(Square a, Square b);
@@ -102,8 +91,23 @@ class Board
     friend std::ostream &operator<<(std::ostream &os, const Board &b);
 
   private:
+    void initializeLookupTables();
+
+    void placePiece(Piece piece, Square sq);
+    void removePiece(Piece piece, Square sq);
+
+    void removecastling_rightsAll(Color c);
+    void removecastling_rightsRook(Square sq);
+
+    uint64_t updateKeyPiece(Piece piece, Square sq) const;
+    uint64_t updateKeyEnPassant(Square sq) const;
+    uint64_t updateKeyCastling() const;
+    uint64_t updateKeyside_to_move() const;
+
     Table<Piece, N_SQ> board_ = {};
     Table<Bitboard, 2, 6> pieceBB_ = {};
+    Table<Bitboard, N_SQ, N_SQ> squares_between_bb_;
+
     std::vector<State> prev_boards_;
     std::vector<uint64_t> hash_history_;
 
@@ -112,23 +116,13 @@ class Board
 
     uint64_t hash_key_ = 0;
 
-    void removecastling_rightsAll(Color c);
+    Square enpassant_square_ = NO_SQ;
 
-    void removecastling_rightsRook(Square sq);
+    uint8_t castling_rights_ = 15;
 
-    void initializeLookupTables();
+    Color side_to_move_ = WHITE;
 
-    void placePiece(Piece piece, Square sq);
-
-    void removePiece(Piece piece, Square sq);
-
-    uint64_t updateKeyPiece(Piece piece, Square sq) const;
-
-    uint64_t updateKeyEnPassant(Square sq) const;
-
-    uint64_t updateKeyCastling() const;
-
-    uint64_t updateKeyside_to_move() const;
+    bool chess960_ = false;
 };
 
 template <PieceType type, Color color> Bitboard Board::pieces() const

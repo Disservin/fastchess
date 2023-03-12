@@ -498,7 +498,7 @@ std::vector<std::string> Options::splitString(const std::string &string, const c
     return seglist;
 }
 
-void Options::saveJson(const Stats &stats)
+void Options::saveJson(const Stats &stats) const
 {
     nlohmann::ordered_json jsonfile;
 
@@ -640,7 +640,7 @@ void Options::loadJson(const std::string &filename)
         jsonfile["stats"]["totalcount"], jsonfile["stats"]["timeouts"]);
 }
 
-Stats Options::getStats()
+Stats Options::getStats() const
 {
     return stats_;
 }

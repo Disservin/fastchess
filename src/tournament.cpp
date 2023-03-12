@@ -87,7 +87,7 @@ void Tournament::setStorePGN(bool v)
     store_pgns_ = v;
 }
 
-void Tournament::printElo()
+void Tournament::printElo() const
 {
     Elo elo(wins_, losses_, draws_);
     Elo white_advantage(white_wins_, white_losses_, draws_);
@@ -175,7 +175,7 @@ bool Tournament::playNextMove(UciEngine &engine, std::string &positionInput, Boa
     if (!checkEngineStatus(engine, match, roundId))
         return false;
 
-    engine.writeProcess(engine.buildGoInput(board.side_to_move_, timeLeftUs, timeLeftThem));
+    engine.writeProcess(engine.buildGoInput(board.getSideToMove(), timeLeftUs, timeLeftThem));
     if (!checkEngineStatus(engine, match, roundId))
         return false;
 
@@ -210,7 +210,7 @@ bool Tournament::playNextMove(UciEngine &engine, std::string &positionInput, Boa
          measuredTime - match_config_.overhead > timeLeftUs.fixed_time) ||
         (timeLeftUs.fixed_time == 0 && timeLeftUs.time + match_config_.overhead < 0))
     {
-        res = GameResult(~board.side_to_move_);
+        res = GameResult(~board.getSideToMove());
         match.termination = "timeout";
         timeouts_++;
         Logger::coutInfo("Warning: Engine", engine.getConfig().name, "loses on time #", roundId);
@@ -233,7 +233,7 @@ bool Tournament::playNextMove(UciEngine &engine, std::string &positionInput, Boa
 
     if (!match.legal)
     {
-        res = GameResult(~board.side_to_move_);
+        res = GameResult(~board.getSideToMove());
         match.termination = "illegal move";
 
         Logger::coutInfo("Warning: Engine", engine.getConfig().name,
@@ -247,7 +247,7 @@ bool Tournament::playNextMove(UciEngine &engine, std::string &positionInput, Boa
     // Check for game over
     if ((res = board.isGameOver()) != GameResult::NONE ||
         (res = checkAdj(match, drawTracker, resignTracker, match.moves.back().score,
-                        ~board.side_to_move_)) != GameResult::NONE)
+                        ~board.getSideToMove())) != GameResult::NONE)
         return false;
 
     return true;
@@ -264,8 +264,8 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int roundId
     Board board = {};
     board.loadFen(openingFen);
 
-    match.white_engine = board.side_to_move_ == WHITE ? engine1.getConfig() : engine2.getConfig();
-    match.black_engine = board.side_to_move_ != WHITE ? engine1.getConfig() : engine2.getConfig();
+    match.white_engine = board.getSideToMove() == WHITE ? engine1.getConfig() : engine2.getConfig();
+    match.black_engine = board.getSideToMove() != WHITE ? engine1.getConfig() : engine2.getConfig();
 
     engine1.sendUciNewGame();
     engine2.sendUciNewGame();
@@ -487,7 +487,7 @@ void Tournament::stopPool()
     pool_.kill();
 }
 
-Stats Tournament::getStats()
+Stats Tournament::getStats() const
 {
     return Stats(wins_, draws_, losses_, penta_WW_, penta_WD_, penta_WL_, penta_LD_, penta_LL_,
                  round_count_, total_count_, timeouts_);
@@ -511,7 +511,7 @@ void Tournament::setStats(const Stats &stats)
 }
 
 MoveData Tournament::parseEngineOutput(const Board &board, const std::vector<std::string> &output,
-                                       const std::string &move, int64_t measuredTime)
+                                       const std::string &move, int64_t measuredTime) const
 {
     std::string score_string = "0.00";
     uint64_t nodes = 0;
@@ -571,7 +571,7 @@ MoveData Tournament::parseEngineOutput(const Board &board, const std::vector<std
 }
 
 void Tournament::updateTrackers(DrawAdjTracker &drawTracker, ResignAdjTracker &resignTracker,
-                                const Score moveScore, const int move_number)
+                                const Score moveScore, const int move_number) const
 {
     // Score is low for draw adj, increase the counter
     if (move_number >= match_config_.draw.move_number && abs(moveScore) < drawTracker.draw_score)

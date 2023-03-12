@@ -24,6 +24,14 @@ namespace fast_chess
 class Tournament
 {
   public:
+    // For testing purposes
+    explicit Tournament(bool saveTime) : save_time_header_(saveTime)
+    {
+        file_.open("fast-chess.pgn", std::ios::app);
+    };
+
+    explicit Tournament(const CMD::GameManagerOptions &mc);
+
     template <typename T>
     static T findElement(const std::vector<std::string> &haystack, std::string_view needle)
     {
@@ -38,33 +46,51 @@ class Tournament
             return haystack[index + 1];
     }
 
-    // For testing purposes
-    Tournament(bool saveTime) : save_time_header_(saveTime)
-    {
-        file_.open("fast-chess.pgn", std::ios::app);
-    };
-
-    Tournament(const CMD::GameManagerOptions &mc);
-
     void loadConfig(const CMD::GameManagerOptions &mc);
 
-    std::vector<std::string> getPGNS() const;
+    Stats getStats() const;
+    void setStats(const Stats &stats);
 
+    std::vector<std::string> getPGNS() const;
     void setStorePGN(bool v);
 
-    void printElo();
+    void printElo() const;
 
     void startTournament(const std::vector<EngineConfiguration> &configs);
 
     void stopPool();
 
-    Stats getStats();
-
-    void setStats(const Stats &stats);
+    const std::string startpos_ = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+    static const Score mate_score_ = 100'000;
 
   private:
-    const std::string startpos_ = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-    const Score mate_score_ = 100'000;
+    std::string fetchNextFen();
+
+    void writeToFile(const std::string &data);
+
+    MoveData parseEngineOutput(const Board &board, const std::vector<std::string> &output,
+                               const std::string &move, int64_t measuredTime) const;
+
+    bool checkEngineStatus(UciEngine &engine, Match &match, int roundId) const;
+
+    void updateTrackers(DrawAdjTracker &drawTracker, ResignAdjTracker &resignTracker,
+                        const Score moveScore, const int move_number) const;
+
+    GameResult checkAdj(Match &match, const DrawAdjTracker &drawTracker,
+                        const ResignAdjTracker &resignTracker, const Score score,
+                        const Color lastSideThatMoved) const;
+
+    bool playNextMove(UciEngine &engine, std::string &positionInput, Board &board,
+                      TimeControl &timeLeftUs, const TimeControl &timeLeftThem, GameResult &res,
+                      Match &match, DrawAdjTracker &drawTracker, ResignAdjTracker &resignTracker,
+                      int roundId);
+
+    Match startMatch(UciEngine &engine1, UciEngine &engine2, int roundId, std::string openingFen);
+
+    std::vector<Match> runH2H(CMD::GameManagerOptions localMatchConfig,
+                              const std::vector<EngineConfiguration> &configs, int roundId,
+                              const std::string &fen);
+
     CMD::GameManagerOptions match_config_ = {};
 
     ThreadPool pool_ = ThreadPool(1);
@@ -100,33 +126,6 @@ class Tournament
     bool store_pgns_ = false;
 
     bool save_time_header_ = true;
-
-    void writeToFile(const std::string &data);
-
-    std::string fetchNextFen();
-
-    bool playNextMove(UciEngine &engine, std::string &positionInput, Board &board,
-                      TimeControl &timeLeftUs, const TimeControl &timeLeftThem, GameResult &res,
-                      Match &match, DrawAdjTracker &drawTracker, ResignAdjTracker &resignTracker,
-                      int roundId);
-
-    Match startMatch(UciEngine &engine1, UciEngine &engine2, int roundId, std::string openingFen);
-
-    std::vector<Match> runH2H(CMD::GameManagerOptions localMatchConfig,
-                              const std::vector<EngineConfiguration> &configs, int roundId,
-                              const std::string &fen);
-
-    MoveData parseEngineOutput(const Board &board, const std::vector<std::string> &output,
-                               const std::string &move, int64_t measuredTime);
-
-    void updateTrackers(DrawAdjTracker &drawTracker, ResignAdjTracker &resignTracker,
-                        const Score moveScore, const int move_number);
-
-    GameResult checkAdj(Match &match, const DrawAdjTracker &drawTracker,
-                        const ResignAdjTracker &resignTracker, const Score score,
-                        const Color lastSideThatMoved) const;
-
-    bool checkEngineStatus(UciEngine &engine, Match &match, int roundId) const;
 };
 
 } // namespace fast_chess

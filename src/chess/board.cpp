@@ -411,6 +411,31 @@ uint64_t Board::zobristHash() const
     return hash ^ cast_hash ^ turn_hash ^ ep_hash;
 }
 
+Color Board::getSideToMove() const
+{
+    return side_to_move_;
+}
+
+Square Board::getEnpassantSquare() const
+{
+    return enpassant_square_;
+}
+
+uint8_t Board::getCastlingRights() const
+{
+    return castling_rights_;
+}
+
+Bitboard Board::getSquaresBetweenBB(int sq_1, int sq_2) const
+{
+    return squares_between_bb_[sq_1][sq_2];
+}
+
+bool Board::isChess960() const
+{
+    return chess960_;
+}
+
 bool Board::isRepetition() const
 {
     uint8_t c = 0;
@@ -733,7 +758,7 @@ Move convertUciToMove(const Board &board, const std::string &input)
     const Square source = extractSquare(input.substr(0, 2));
     Square target = extractSquare(input.substr(2, 2));
 
-    if (!board.chess960_ && Board::typeOfPiece(board.pieceAt(source)) == KING &&
+    if (!board.isChess960() && Board::typeOfPiece(board.pieceAt(source)) == KING &&
         Board::squareDistance(target, source) == 2)
     {
         target =
@@ -763,9 +788,10 @@ std::string MoveToRep(Board &b, Move move, bool isLan)
     assert(b.pieceAt(move.from_sq) != NONE);
     assert(pt == Board::typeOfPiece(b.pieceAt(move.from_sq)));
 
-    if ((Board::make_piece(pt, b.side_to_move_) == WHITEKING &&
+    if ((Board::make_piece(pt, b.getSideToMove()) == WHITEKING &&
          b.pieceAt(move.to_sq) == WHITEROOK) ||
-        (Board::make_piece(pt, b.side_to_move_) == BLACKKING && b.pieceAt(move.to_sq) == BLACKROOK))
+        (Board::make_piece(pt, b.getSideToMove()) == BLACKKING &&
+         b.pieceAt(move.to_sq) == BLACKROOK))
     {
         if (Board::squareFile(move.to_sq) < Board::squareFile(move.from_sq))
             return "O-O-O";
@@ -786,7 +812,7 @@ std::string MoveToRep(Board &b, Move move, bool isLan)
         rep += std::to_string(Board::squareRank(move.from_sq) + 1);
 
         // capture
-        if (b.pieceAt(move.to_sq) != NONE || (pt == PAWN && b.enpassant_square_ == move.to_sq))
+        if (b.pieceAt(move.to_sq) != NONE || (pt == PAWN && b.getEnpassantSquare() == move.to_sq))
             rep += "x";
     }
     else
@@ -808,7 +834,7 @@ std::string MoveToRep(Board &b, Move move, bool isLan)
         }
 
         // capture
-        if (b.pieceAt(move.to_sq) != NONE || (pt == PAWN && b.enpassant_square_ == move.to_sq))
+        if (b.pieceAt(move.to_sq) != NONE || (pt == PAWN && b.getEnpassantSquare() == move.to_sq))
             rep += (pt == PAWN ? repFile[Board::squareFile(move.from_sq)] : "") + "x";
     }
 
@@ -823,7 +849,8 @@ std::string MoveToRep(Board &b, Move move, bool isLan)
     moves.size = 0;
     Movegen::legalmoves(b, moves);
 
-    const bool inCheck = b.isSquareAttacked(~b.side_to_move_, lsb(b.pieces<KING>(b.side_to_move_)));
+    const bool inCheck =
+        b.isSquareAttacked(~b.getSideToMove(), lsb(b.pieces<KING>(b.getSideToMove())));
 
     b.unmakeMove(move);
 

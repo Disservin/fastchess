@@ -16,14 +16,6 @@ namespace fast_chess
  */
 class Logger
 {
-  private:
-    Logger()
-    {
-    }
-
-    static std::ofstream log_;
-    static std::mutex log_mutex_;
-
   public:
     static Logger &getInstance()
     {
@@ -31,6 +23,7 @@ class Logger
 
         return instance;
     }
+
     Logger(Logger const &) = delete;
 
     void operator=(Logger const &) = delete;
@@ -54,6 +47,14 @@ class Logger
     static std::string formatDuration(std::chrono::seconds duration);
 
     static std::atomic_bool should_log_;
+
+  private:
+    Logger()
+    {
+    }
+
+    static std::ofstream log_;
+    static std::mutex log_mutex_;
 };
 
 } // namespace fast_chess

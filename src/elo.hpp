@@ -4,24 +4,24 @@ namespace fast_chess
 {
 class Elo
 {
-  private:
-    double diff_;
-    double error_;
-
   public:
     Elo(int wins, int losses, int draws);
 
-    double inverseError(double x);
+    double inverseError(double x) const;
 
-    double phiInv(double p);
+    double phiInv(double p) const;
 
-    double getDiff(double percentage);
+    double getDiff(double percentage) const;
 
-    double getDiff(int wins, int losses, int draws);
+    double getDiff(int wins, int losses, int draws) const;
 
-    double getError(int wins, int losses, int draws);
+    double getError(int wins, int losses, int draws) const;
 
     std::string getElo() const;
+
+  private:
+    double diff_;
+    double error_;
 };
 
 } // namespace fast_chess

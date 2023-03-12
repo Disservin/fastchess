@@ -107,10 +107,6 @@ class Options
 
     Options(int argc, char const *argv[]);
 
-    std::vector<EngineConfiguration> getEngineConfigs() const;
-
-    GameManagerOptions getGameOptions() const;
-
     static bool startsWith(std::string_view haystack, std::string_view needle);
 
     static bool contains(std::string_view haystack, std::string_view needle);
@@ -119,20 +115,14 @@ class Options
 
     static std::vector<std::string> splitString(const std::string &string, const char &delimiter);
 
-    void saveJson(const Stats &stats);
+    void saveJson(const Stats &stats) const;
     void loadJson(const std::string &filename);
 
-    Stats getStats();
+    std::vector<EngineConfiguration> getEngineConfigs() const;
+    GameManagerOptions getGameOptions() const;
+    Stats getStats() const;
 
   private:
-    Stats stats_;
-
-    // Holds all the relevant settings for the handling of the games
-    GameManagerOptions game_options_;
-
-    // Holds all the engines with their options
-    std::vector<EngineConfiguration> configs_;
-
     bool isEngineSettableOption(const std::string &stringFormat) const;
 
     TimeControl parseTc(const std::string &tcString);
@@ -160,6 +150,14 @@ class Options
     void parseEachOptions(int &i, int argc, char const *argv[]);
 
     void parseEngineParams(int &i, int argc, char const *argv[], EngineConfiguration &engineParams);
+
+    Stats stats_;
+
+    // Holds all the relevant settings for the handling of the games
+    GameManagerOptions game_options_;
+
+    // Holds all the engines with their options
+    std::vector<EngineConfiguration> configs_;
 };
 
 } // namespace CMD

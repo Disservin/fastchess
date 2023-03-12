@@ -125,7 +125,7 @@ template <Color c> Bitboard DoCheckmask(const Board &board, Square sq)
         const int8_t index = lsb(bishop_mask);
 
         // Now we add the path!
-        checks |= board.squares_between_bb_[sq][index] | (1ULL << index);
+        checks |= board.getSquaresBetweenBB(sq, index) | (1ULL << index);
         _doubleCheck++;
     }
     if (rook_mask)
@@ -145,7 +145,7 @@ template <Color c> Bitboard DoCheckmask(const Board &board, Square sq)
         const int8_t index = lsb(rook_mask);
 
         // Now we add the path!
-        checks |= board.squares_between_bb_[sq][index] | (1ULL << index);
+        checks |= board.getSquaresBetweenBB(sq, index) | (1ULL << index);
         _doubleCheck++;
     }
 
@@ -174,7 +174,7 @@ template <Color c> Bitboard DoPinMaskRooks(const Board &board, Square sq)
     while (rook_mask)
     {
         const Square index = poplsb(rook_mask);
-        const Bitboard possible_pin = (board.squares_between_bb_[sq][index] | (1ULL << index));
+        const Bitboard possible_pin = (board.getSquaresBetweenBB(sq, index) | (1ULL << index));
         if (popcount(possible_pin & _occ_us) == 1)
             pinHV |= possible_pin;
     }
@@ -191,7 +191,7 @@ template <Color c> Bitboard DoPinMaskBishops(const Board &board, Square sq)
     while (bishop_mask)
     {
         const Square index = poplsb(bishop_mask);
-        const Bitboard possible_pin = (board.squares_between_bb_[sq][index] | (1ULL << index));
+        const Bitboard possible_pin = (board.getSquaresBetweenBB(sq, index) | (1ULL << index));
         if (popcount(possible_pin & _occ_us) == 1)
             pinD |= possible_pin;
     }
@@ -416,9 +416,9 @@ template <Color c> void LegalPawnMovesAll(const Board &board, Movelist &movelist
     /********************
      * Add en passant captures.
      *******************/
-    if (board.enpassant_square_ != NO_SQ)
+    if (board.getEnpassantSquare() != NO_SQ)
     {
-        const Square ep = board.enpassant_square_;
+        const Square ep = board.getEnpassantSquare();
         const Square epPawn = ep + DOWN;
 
         const Bitboard epMask = (1ull << epPawn) | (1ull << ep);
@@ -523,22 +523,22 @@ template <Color c> Bitboard LegalKingMovesCastling(const Board &board, Square sq
 		switch (c)
 		{
 		case WHITE:
-			if (board.castling_rights_ & WK
+			if (board.getCastlingRights() & WK
 				&& emptyAndNotAttacked & (1ULL << SQ_F1)
 				&& emptyAndNotAttacked & (1ull << SQ_G1))
 				moves |= (1ULL << SQ_H1);
-			if (board.castling_rights_ & WQ
+			if (board.getCastlingRights() & WQ
 				&& emptyAndNotAttacked & (1ULL << SQ_D1)
 				&& emptyAndNotAttacked & (1ull << SQ_C1)
 				&& (1ull << SQ_B1) & ~_occ_all)
 				moves |= (1ULL << SQ_A1);
 			break;
 		case BLACK:
-			if (board.castling_rights_ & BK
+			if (board.getCastlingRights() & BK
 				&& emptyAndNotAttacked & (1ULL << SQ_F8)
 				&& emptyAndNotAttacked & (1ull << SQ_G8))
 				moves |= (1ULL << SQ_H8);
-			if (board.castling_rights_ & BQ
+			if (board.getCastlingRights() & BQ
 				&& emptyAndNotAttacked & (1ULL << SQ_D8)
 				&& emptyAndNotAttacked & (1ull << SQ_C8)
 				&& (1ull << SQ_B8) & ~_occ_all)
@@ -580,7 +580,7 @@ template <Color c> void legalmoves(const Board &board, Movelist &movelist)
         const Square from = board.KingSQ(c);
         Bitboard moves;
 
-        if (!board.castling_rights_ || _checkMask != DEFAULT_CHECKMASK)
+        if (!board.getCastlingRights() || _checkMask != DEFAULT_CHECKMASK)
             moves = LegalKingMoves(from);
         else
             moves = LegalKingMovesCastling<c>(board, from);
@@ -695,7 +695,7 @@ template <Color c> bool hasLegalMoves(const Board &board, Movelist &movelist)
         Square from = board.KingSQ(c);
         Bitboard moves;
 
-        if (!board.castling_rights_ || _checkMask != DEFAULT_CHECKMASK)
+        if (!board.getCastlingRights() || _checkMask != DEFAULT_CHECKMASK)
             moves = LegalKingMoves(from);
         else
             moves = LegalKingMovesCastling<c>(board, from);
@@ -787,7 +787,7 @@ template <Color c> bool hasLegalMoves(const Board &board, Movelist &movelist)
 inline bool hasLegalMoves(const Board &board)
 {
     Movelist moves;
-    if (board.side_to_move_ == WHITE)
+    if (board.getSideToMove() == WHITE)
         return hasLegalMoves<WHITE>(board, moves);
     else
         return hasLegalMoves<BLACK>(board, moves);
@@ -799,7 +799,7 @@ inline bool hasLegalMoves(const Board &board)
  *******************/
 inline void legalmoves(const Board &board, Movelist &movelist)
 {
-    if (board.side_to_move_ == WHITE)
+    if (board.getSideToMove() == WHITE)
         legalmoves<WHITE>(board, movelist);
     else
         legalmoves<BLACK>(board, movelist);

@@ -10,3 +10,4 @@ dummy_engine*
 *.epd
 src/x64/*
 *.txt
+*.json

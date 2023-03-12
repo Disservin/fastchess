@@ -280,8 +280,8 @@ void EngineProcess::initProcess(const std::string &command)
             perror("Failed to close inpipe");
 
         // Execute the engine
-        if (execl(command.c_str(), command.c_str(), nullptr) == -1)
-            perror(strerror(errno));
+        if (execl(command.c_str(), command.c_str(), (char *)NULL) == -1)
+            perror("Error: Execute");
 
         perror(strerror(errno));
         exit(1);
@@ -457,7 +457,7 @@ void EngineProcess::killProcess()
         if (r == 0)
         {
             kill(process_pid_, SIGKILL);
-            wait(nullptr);
+            wait(NULL);
         }
     }
 }

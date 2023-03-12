@@ -91,6 +91,10 @@ class Tournament
     std::atomic<int> penta_LD_ = 0;
     std::atomic<int> penta_LL_ = 0;
 
+    // Stats from "White" pov for white advantage
+    std::atomic<int> white_wins_ = 0;
+    std::atomic<int> white_losses_ = 0;
+
     size_t fen_index_ = 0;
 
     bool store_pgns_ = false;

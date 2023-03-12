@@ -1,5 +1,7 @@
 #include <string>
 
+namespace fast_chess
+{
 class Elo
 {
   private:
@@ -21,3 +23,5 @@ class Elo
 
     std::string getElo() const;
 };
+
+} // namespace fast_chess

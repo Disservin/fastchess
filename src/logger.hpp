@@ -8,6 +8,9 @@
 #include <string>
 #include <thread>
 
+namespace fast_chess
+{
+
 /*
  * Singleton logger class.
  */
@@ -52,3 +55,5 @@ class Logger
 
     static std::atomic_bool shouldLog;
 };
+
+} // namespace fast_chess

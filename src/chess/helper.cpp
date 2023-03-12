@@ -2,6 +2,9 @@
 
 #include "helper.hpp"
 
+namespace fast_chess
+{
+
 #if defined(__GNUC__) // GCC, Clang
 
 Square lsb(Bitboard b)
@@ -61,3 +64,5 @@ Square poplsb(Bitboard &mask)
     mask &= mask - 1; // compiler optimizes this to _blsr_
     return Square(s);
 }
+
+} // namespace fast_chess

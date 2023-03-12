@@ -12,6 +12,9 @@
 #include "sprt.hpp"
 #include "threadpool.hpp"
 
+namespace fast_chess
+{
+
 struct MoveData
 {
     std::string move;
@@ -177,3 +180,5 @@ class Tournament
 
     bool checkEngineStatus(UciEngine &engine, Match &match, int roundId) const;
 };
+
+} // namespace fast_chess

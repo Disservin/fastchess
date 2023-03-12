@@ -5,6 +5,9 @@
 #include <tuple>
 #include <vector>
 
+namespace fast_chess
+{
+
 struct TimeControl
 {
     int moves = 0;
@@ -54,3 +57,5 @@ struct EngineConfiguration
 
     bool recover = false;
 };
+
+} // namespace fast_chess

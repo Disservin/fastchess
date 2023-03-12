@@ -4,6 +4,9 @@
 #include <string>
 #include <vector>
 
+namespace fast_chess
+{
+
 class Process
 {
   public:
@@ -94,3 +97,5 @@ class EngineProcess : public Process
 };
 
 #endif
+
+} // namespace fast_chess

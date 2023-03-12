@@ -4,6 +4,9 @@
 #include <string>
 #include <unordered_map>
 
+namespace fast_chess
+{
+
 using Bitboard = uint64_t;
 
 using Score = int32_t;
@@ -222,3 +225,5 @@ static constexpr Bitboard MASK_FILE[8] = {
 static constexpr Bitboard MASK_RANK[8] = {
     0xff,         0xff00,         0xff0000,         0xff000000,
     0xff00000000, 0xff0000000000, 0xff000000000000, 0xff00000000000000};
+
+} // namespace fast_chess

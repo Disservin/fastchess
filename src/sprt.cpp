@@ -1,8 +1,12 @@
 #include "sprt.hpp"
+
 #include <cmath>
 #include <iomanip>
 #include <iostream>
 #include <sstream>
+
+namespace fast_chess
+{
 
 SPRT::SPRT(double alpha, double beta, double elo0, double elo1)
 {
@@ -78,3 +82,5 @@ bool SPRT::isValid() const
 {
     return valid;
 }
+
+} // namespace fast_chess

@@ -8,6 +8,9 @@
 #include "helper.hpp"
 #include "types.hpp"
 
+namespace fast_chess
+{
+
 struct Movelist
 {
     Move list[MAX_MOVES];
@@ -803,3 +806,5 @@ inline void legalmoves(const Board &board, Movelist &movelist)
 }
 
 } // namespace Movegen
+
+} // namespace fast_chess

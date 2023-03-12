@@ -4,6 +4,9 @@
 
 #include "types.hpp"
 
+namespace fast_chess
+{
+
 Square lsb(Bitboard mask);
 
 Square msb(Bitboard mask);
@@ -65,3 +68,5 @@ template <typename T, size_t N> struct Table<T, N>
         data.fill({value});
     }
 };
+
+} // namespace fast_chess

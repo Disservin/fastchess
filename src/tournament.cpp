@@ -1,3 +1,5 @@
+#include "tournament.hpp"
+
 #include <cassert>
 #include <chrono>
 #include <iomanip>
@@ -8,7 +10,9 @@
 #include "elo.hpp"
 #include "pgn_builder.hpp"
 #include "rand.hpp"
-#include "tournament.hpp"
+
+namespace fast_chess
+{
 
 Tournament::Tournament(const CMD::GameManagerOptions &mc)
 {
@@ -587,3 +591,5 @@ GameResult Tournament::checkAdj(Match &match, const DrawAdjTracker &drawTracker,
 
     return GameResult::NONE;
 }
+
+} // namespace fast_chess

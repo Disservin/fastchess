@@ -1,9 +1,12 @@
+#include "perft.hpp"
+
 #include <iostream>
 
 #include "board.hpp"
 #include "movegen.hpp"
-#include "perft.hpp"
 
+namespace fast_chess
+{
 uint64_t Perft::perftFunction(Board &b, int depth, int max)
 {
     Movelist moves;
@@ -40,3 +43,4 @@ uint64_t Perft::getAndResetNodes()
     nodes = 0;
     return tmp;
 }
+} // namespace fast_chess

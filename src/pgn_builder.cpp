@@ -1,7 +1,10 @@
+#include "pgn_builder.hpp"
+
 #include <iomanip> // std::setprecision
 #include <sstream>
 
-#include "pgn_builder.hpp"
+namespace fast_chess
+{
 
 PgnBuilder::PgnBuilder(const Match &match, const CMD::GameManagerOptions &gameOptions)
 {
@@ -95,3 +98,5 @@ std::string PgnBuilder::getPGN() const
 {
     return pgn;
 }
+
+} // namespace fast_chess

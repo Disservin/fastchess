@@ -1,3 +1,5 @@
+#include "board.hpp"
+
 #include <algorithm>
 #include <bitset>
 #include <iostream>
@@ -7,10 +9,11 @@
 
 #include "../options.hpp"
 #include "attacks.hpp"
-#include "board.hpp"
 #include "movegen.hpp"
 #include "zobrist.hpp"
 
+namespace fast_chess
+{
 void Board::loadFen(const std::string &fen)
 {
     for (const auto c : {WHITE, BLACK})
@@ -857,3 +860,5 @@ std::string resultToString(GameResult result)
         return "*";
     }
 }
+
+} // namespace fast_chess

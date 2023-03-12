@@ -4,6 +4,9 @@
 #include "engine_config.hpp"
 #include "engineprocess.hpp"
 
+namespace fast_chess
+{
+
 enum class Turn
 {
     FIRST,
@@ -72,3 +75,4 @@ class UciEngine : public EngineProcess
 
     Turn turn = Turn::FIRST;
 };
+} // namespace fast_chess

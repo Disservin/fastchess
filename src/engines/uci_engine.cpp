@@ -1,8 +1,12 @@
 #include "uci_engine.hpp"
-#include "engine_config.hpp"
 
 #include <sstream>
 #include <stdexcept>
+
+#include "engine_config.hpp"
+
+namespace fast_chess
+{
 
 void UciEngine::setConfig(const EngineConfiguration &rhs)
 {
@@ -160,3 +164,5 @@ void UciEngine::startEngine(const std::string &cmd)
         sendSetoption(option.first, option.second);
     }
 }
+
+} // namespace fast_chess

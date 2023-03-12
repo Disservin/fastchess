@@ -1,3 +1,5 @@
+#include "options.hpp"
+
 #include <algorithm>
 #include <limits>
 #include <map>
@@ -5,7 +7,8 @@
 #include <type_traits>
 #include <unordered_map>
 
-#include "options.hpp"
+namespace fast_chess
+{
 
 namespace CMD
 {
@@ -492,3 +495,5 @@ std::vector<std::string> Options::splitString(const std::string &string, const c
 }
 
 } // namespace CMD
+
+} // namespace fast_chess

@@ -1,6 +1,8 @@
 #include "board.hpp"
 #include "movegen.hpp"
 
+namespace fast_chess
+{
 class Perft
 {
   private:
@@ -13,3 +15,5 @@ class Perft
 
     uint64_t getAndResetNodes();
 };
+
+} // namespace fast_chess

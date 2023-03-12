@@ -368,14 +368,14 @@ std::vector<Match> Tournament::runH2H(CMD::GameManagerOptions localMatchConfig,
 
         if (match.result == GameResult::WHITE_WIN)
         {
-            local_wins += match.whiteEngine.name == configs[0].name ? 1 : 0;
-            local_losses += match.whiteEngine.name == configs[0].name ? 0 : 1;
+            local_wins += match.white_engine.name == configs[0].name ? 1 : 0;
+            local_losses += match.white_engine.name == configs[0].name ? 0 : 1;
             white_local_wins += 1;
         }
         else if (match.result == GameResult::BLACK_WIN)
         {
-            local_wins += match.blackEngine.name == configs[0].name ? 1 : 0;
-            local_losses += match.blackEngine.name == configs[0].name ? 0 : 1;
+            local_wins += match.black_engine.name == configs[0].name ? 1 : 0;
+            local_losses += match.black_engine.name == configs[0].name ? 0 : 1;
             white_local_losses += 1;
         }
         else if (match.result == GameResult::DRAW)

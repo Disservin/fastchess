@@ -502,21 +502,21 @@ void Options::saveJson(const Stats &stats)
 {
     nlohmann::ordered_json jsonfile;
 
-    jsonfile["event"] = gameOptions.eventName;
+    jsonfile["event"] = game_options_.event_name;
 
-    jsonfile["rounds"] = gameOptions.rounds;
+    jsonfile["rounds"] = game_options_.rounds;
 
-    jsonfile["games"] = gameOptions.games;
+    jsonfile["games"] = game_options_.games;
 
-    jsonfile["recover"] = gameOptions.recover;
+    jsonfile["recover"] = game_options_.recover;
 
-    jsonfile["concurrency"] = gameOptions.concurrency;
+    jsonfile["concurrency"] = game_options_.concurrency;
 
-    jsonfile["rating-interval"] = gameOptions.ratinginterval;
+    jsonfile["rating-interval"] = game_options_.ratinginterval;
 
     nlohmann::ordered_json objects = nlohmann::ordered_json::array();
 
-    for (const auto &engine : configs)
+    for (const auto &engine : configs_)
     {
         nlohmann::ordered_json object;
         object["name"] = engine.name;
@@ -544,24 +544,24 @@ void Options::saveJson(const Stats &stats)
 
     jsonfile["engines"] = objects;
 
-    jsonfile["opening"]["file"] = gameOptions.opening.file;
-    jsonfile["opening"]["format"] = gameOptions.opening.format;
-    jsonfile["opening"]["order"] = gameOptions.opening.order;
-    jsonfile["opening"]["start"] = gameOptions.opening.start;
+    jsonfile["opening"]["file"] = game_options_.opening.file;
+    jsonfile["opening"]["format"] = game_options_.opening.format;
+    jsonfile["opening"]["order"] = game_options_.opening.order;
+    jsonfile["opening"]["start"] = game_options_.opening.start;
 
-    jsonfile["adjudication"]["resign"]["enabled"] = gameOptions.resign.enabled;
-    jsonfile["adjudication"]["resign"]["movecount"] = gameOptions.resign.moveCount;
-    jsonfile["adjudication"]["resign"]["score"] = gameOptions.resign.score;
+    jsonfile["adjudication"]["resign"]["enabled"] = game_options_.resign.enabled;
+    jsonfile["adjudication"]["resign"]["movecount"] = game_options_.resign.move_count;
+    jsonfile["adjudication"]["resign"]["score"] = game_options_.resign.score;
 
-    jsonfile["adjudication"]["draw"]["enabled"] = gameOptions.draw.enabled;
-    jsonfile["adjudication"]["draw"]["movecount"] = gameOptions.draw.moveCount;
-    jsonfile["adjudication"]["draw"]["movenumber"] = gameOptions.draw.move_number;
-    jsonfile["adjudication"]["draw"]["score"] = gameOptions.draw.score;
+    jsonfile["adjudication"]["draw"]["enabled"] = game_options_.draw.enabled;
+    jsonfile["adjudication"]["draw"]["movecount"] = game_options_.draw.move_count;
+    jsonfile["adjudication"]["draw"]["movenumber"] = game_options_.draw.move_number;
+    jsonfile["adjudication"]["draw"]["score"] = game_options_.draw.score;
 
-    jsonfile["sprt"]["elo0"] = gameOptions.sprt.elo0;
-    jsonfile["sprt"]["elo1"] = gameOptions.sprt.elo1;
-    jsonfile["sprt"]["alpha"] = gameOptions.sprt.alpha;
-    jsonfile["sprt"]["beta"] = gameOptions.sprt.beta;
+    jsonfile["sprt"]["elo0"] = game_options_.sprt.elo0;
+    jsonfile["sprt"]["elo1"] = game_options_.sprt.elo1;
+    jsonfile["sprt"]["alpha"] = game_options_.sprt.alpha;
+    jsonfile["sprt"]["beta"] = game_options_.sprt.beta;
 
     jsonfile["stats"]["wins"] = stats.wins;
     jsonfile["stats"]["draws"] = stats.draws;
@@ -585,14 +585,14 @@ void Options::loadJson(const std::string &filename)
     std::ifstream f(filename);
     json jsonfile = json::parse(f);
 
-    gameOptions.eventName = jsonfile["event"];
-    gameOptions.rounds = jsonfile["rounds"];
-    gameOptions.games = jsonfile["games"];
-    gameOptions.recover = jsonfile["recover"];
-    gameOptions.concurrency = jsonfile["concurrency"];
-    gameOptions.ratinginterval = jsonfile["rating-interval"];
+    game_options_.event_name = jsonfile["event"];
+    game_options_.rounds = jsonfile["rounds"];
+    game_options_.games = jsonfile["games"];
+    game_options_.recover = jsonfile["recover"];
+    game_options_.concurrency = jsonfile["concurrency"];
+    game_options_.ratinginterval = jsonfile["rating-interval"];
 
-    configs.clear();
+    configs_.clear();
 
     for (auto engine : jsonfile["engines"])
     {
@@ -611,27 +611,27 @@ void Options::loadJson(const std::string &filename)
         ec.plies = engine["plies"];
         ec.recover = engine["recover"];
 
-        configs.push_back(ec);
+        configs_.push_back(ec);
     }
 
-    gameOptions.opening.file = jsonfile["opening"]["file"];
-    gameOptions.opening.format = jsonfile["opening"]["format"];
-    gameOptions.opening.order = jsonfile["opening"]["order"];
-    gameOptions.opening.start = jsonfile["opening"]["start"];
+    game_options_.opening.file = jsonfile["opening"]["file"];
+    game_options_.opening.format = jsonfile["opening"]["format"];
+    game_options_.opening.order = jsonfile["opening"]["order"];
+    game_options_.opening.start = jsonfile["opening"]["start"];
 
-    gameOptions.resign.enabled = jsonfile["adjudication"]["resign"]["enabled"];
-    gameOptions.resign.moveCount = jsonfile["adjudication"]["resign"]["movecount"];
-    gameOptions.resign.score = jsonfile["adjudication"]["resign"]["score"];
+    game_options_.resign.enabled = jsonfile["adjudication"]["resign"]["enabled"];
+    game_options_.resign.move_count = jsonfile["adjudication"]["resign"]["movecount"];
+    game_options_.resign.score = jsonfile["adjudication"]["resign"]["score"];
 
-    gameOptions.draw.enabled = jsonfile["adjudication"]["draw"]["enabled"];
-    gameOptions.draw.moveCount = jsonfile["adjudication"]["draw"]["movecount"];
-    gameOptions.draw.move_number = jsonfile["adjudication"]["draw"]["movenumber"];
-    gameOptions.draw.score = jsonfile["adjudication"]["draw"]["score"];
+    game_options_.draw.enabled = jsonfile["adjudication"]["draw"]["enabled"];
+    game_options_.draw.move_count = jsonfile["adjudication"]["draw"]["movecount"];
+    game_options_.draw.move_number = jsonfile["adjudication"]["draw"]["movenumber"];
+    game_options_.draw.score = jsonfile["adjudication"]["draw"]["score"];
 
-    gameOptions.sprt.elo0 = jsonfile["sprt"]["elo0"];
-    gameOptions.sprt.elo1 = jsonfile["sprt"]["elo1"];
-    gameOptions.sprt.alpha = jsonfile["sprt"]["alpha"];
-    gameOptions.sprt.beta = jsonfile["sprt"]["beta"];
+    game_options_.sprt.elo0 = jsonfile["sprt"]["elo0"];
+    game_options_.sprt.elo1 = jsonfile["sprt"]["elo1"];
+    game_options_.sprt.alpha = jsonfile["sprt"]["alpha"];
+    game_options_.sprt.beta = jsonfile["sprt"]["beta"];
 
     stats = Stats(
         jsonfile["stats"]["wins"], jsonfile["stats"]["draws"], jsonfile["stats"]["losses"],

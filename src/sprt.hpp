@@ -15,15 +15,15 @@ enum SPRTResult
 class SPRT
 {
   private:
-    double lower = 0.0;
-    double upper = 0.0;
-    double s0 = 0.0;
-    double s1 = 0.0;
+    double lower_ = 0.0;
+    double upper_ = 0.0;
+    double s0_ = 0.0;
+    double s1_ = 0.0;
 
-    bool valid = false;
+    bool valid_ = false;
 
-    double elo0 = 0;
-    double elo1 = 0;
+    double elo0_ = 0;
+    double elo1_ = 0;
 
   public:
     SPRT(double alpha, double beta, double elo0, double elo1);

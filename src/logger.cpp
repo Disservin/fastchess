@@ -6,43 +6,43 @@
 namespace fast_chess
 {
 
-std::atomic_bool Logger::shouldLog = false;
-std::ofstream Logger::log;
-std::mutex Logger::logMutex;
+std::atomic_bool Logger::should_log_ = false;
+std::ofstream Logger::log_;
+std::mutex Logger::log_mutex_;
 
 void Logger::openFile(const std::string &file)
 {
-    Logger::log.open(file, std::ios::app);
-    Logger::shouldLog = true;
+    Logger::log_.open(file, std::ios::app);
+    Logger::should_log_ = true;
 }
 
 void Logger::writeLog(const std::string &msg, std::thread::id thread)
 {
-    if (Logger::shouldLog)
+    if (Logger::should_log_)
     {
         // Acquire the lock
-        const std::lock_guard<std::mutex> lock(Logger::logMutex);
+        const std::lock_guard<std::mutex> lock(Logger::log_mutex_);
 
         std::stringstream ss;
         ss << "[" << getDateTime("%H:%M:%S") << "]"
            << "<" << thread << "> <---" << msg << std::endl;
 
-        Logger::log << ss.str();
+        Logger::log_ << ss.str();
     }
 }
 
 void Logger::readLog(const std::string &msg, std::thread::id thread)
 {
-    if (Logger::shouldLog)
+    if (Logger::should_log_)
     {
         // Acquire the lock
-        const std::lock_guard<std::mutex> lock(Logger::logMutex);
+        const std::lock_guard<std::mutex> lock(Logger::log_mutex_);
 
         std::stringstream ss;
         ss << "[" << getDateTime("%H:%M:%S") << "]"
            << "<" << thread << "> --->" << msg << std::endl;
 
-        Logger::log << ss.str();
+        Logger::log_ << ss.str();
     }
 }
 

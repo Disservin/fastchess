@@ -22,7 +22,7 @@ EngineProcess::EngineProcess(const std::string &command)
 
 void EngineProcess::initProcess(const std::string &command)
 {
-    isInitalized = true;
+    is_initalized_ = true;
     STARTUPINFOA si = STARTUPINFOA();
     si.dwFlags = STARTF_USESTDHANDLES;
 
@@ -40,29 +40,29 @@ void EngineProcess::initProcess(const std::string &command)
     si.hStdInput = childStdInRd;
 
     CreateProcessA(nullptr, const_cast<char *>(command.c_str()), nullptr, nullptr, TRUE, 0, nullptr,
-                   nullptr, &si, &pi);
+                   nullptr, &si, &pi_);
 
     CloseHandle(childStdOutWr);
     CloseHandle(childStdInRd);
 
-    childStdOut = childStdOutRd;
-    childStdIn = childStdInWr;
+    child_std_out_ = childStdOutRd;
+    child_std_in_ = childStdInWr;
 }
 
 void EngineProcess::closeHandles()
 {
     try
     {
-        CloseHandle(pi.hThread);
-        CloseHandle(pi.hProcess);
+        CloseHandle(pi_.hThread);
+        CloseHandle(pi_.hProcess);
 
-        CloseHandle(childStdOut);
-        CloseHandle(childStdIn);
+        CloseHandle(child_std_out_);
+        CloseHandle(child_std_in_);
     }
     catch (const std::exception &)
     {
-        errCode = 1;
-        errStr = "Error in closing handles.";
+        err_code_ = 1;
+        err_str_ = "Error in closing handles.";
     }
 }
 
@@ -74,7 +74,7 @@ EngineProcess::~EngineProcess()
 std::vector<std::string> EngineProcess::readProcess(std::string_view last_word, bool &timeout,
                                                     int64_t timeoutThreshold)
 {
-    assert(isInitalized);
+    assert(is_initalized_);
 
     std::vector<std::string> lines;
     lines.reserve(30);
@@ -104,10 +104,10 @@ std::vector<std::string> EngineProcess::readProcess(std::string_view last_word, 
             seems to reduce the impact of this. For high concurrency windows setups timeoutThreshold
             should probably be 0. Using the assumption that the engine works rather clean and is
             able to send the last word.*/
-            if (!PeekNamedPipe(childStdOut, NULL, 0, 0, &bytesAvail, nullptr))
+            if (!PeekNamedPipe(child_std_out_, NULL, 0, 0, &bytesAvail, nullptr))
             {
-                errCode = 1;
-                errStr = "Cant peek pipe.";
+                err_code_ = 1;
+                err_str_ = "Cant peek pipe.";
             }
 
             if (std::chrono::duration_cast<std::chrono::milliseconds>(
@@ -126,10 +126,10 @@ std::vector<std::string> EngineProcess::readProcess(std::string_view last_word, 
         if (timeoutThreshold > 0 && bytesAvail == 0)
             continue;
 
-        if (!ReadFile(childStdOut, buffer, sizeof(buffer), &bytesRead, nullptr))
+        if (!ReadFile(child_std_out_, buffer, sizeof(buffer), &bytesRead, nullptr))
         {
-            errCode = 1;
-            errStr = "Cant read process correctly.";
+            err_code_ = 1;
+            err_str_ = "Cant read process correctly.";
         }
 
         // Iterate over each character in the buffer
@@ -167,7 +167,7 @@ std::vector<std::string> EngineProcess::readProcess(std::string_view last_word, 
 
 void EngineProcess::writeProcess(const std::string &input)
 {
-    assert(isInitalized);
+    assert(is_initalized_);
 
     try
     {
@@ -185,44 +185,44 @@ void EngineProcess::writeProcess(const std::string &input)
 
         constexpr char endLine = '\n';
         DWORD bytesWritten;
-        WriteFile(childStdIn, input.c_str(), input.length(), &bytesWritten, nullptr);
-        WriteFile(childStdIn, &endLine, 1, &bytesWritten, nullptr);
+        WriteFile(child_std_in_, input.c_str(), input.length(), &bytesWritten, nullptr);
+        WriteFile(child_std_in_, &endLine, 1, &bytesWritten, nullptr);
     }
     catch (const std::exception &e)
     {
-        errCode = 1;
-        errStr = "Error in writing to process.\n" + std::string(e.what());
+        err_code_ = 1;
+        err_str_ = "Error in writing to process.\n" + std::string(e.what());
     }
 }
 
 bool EngineProcess::isAlive()
 {
-    assert(isInitalized);
+    assert(is_initalized_);
     DWORD exitCode = 0;
-    GetExitCodeProcess(pi.hProcess, &exitCode);
+    GetExitCodeProcess(pi_.hProcess, &exitCode);
     return exitCode == STILL_ACTIVE;
 }
 
 void EngineProcess::killProcess()
 {
-    if (isInitalized)
+    if (is_initalized_)
     {
         try
         {
             DWORD exitCode = 0;
-            GetExitCodeProcess(pi.hProcess, &exitCode);
+            GetExitCodeProcess(pi_.hProcess, &exitCode);
             if (exitCode == STILL_ACTIVE)
             {
                 UINT uExitCode = 0;
-                TerminateProcess(pi.hProcess, uExitCode);
+                TerminateProcess(pi_.hProcess, uExitCode);
             }
             // Clean up the child process resources
             closeHandles();
         }
         catch (const std::exception &e)
         {
-            errCode = 1;
-            errStr = "Error in writing to process.\n" + std::string(e.what());
+            err_code_ = 1;
+            err_str_ = "Error in writing to process.\n" + std::string(e.what());
         }
     }
 }
@@ -238,16 +238,16 @@ void EngineProcess::killProcess()
 
 void EngineProcess::initProcess(const std::string &command)
 {
-    isInitalized = true;
+    is_initalized_ = true;
     // Create input pipe
-    if (pipe(inPipe) == -1)
+    if (pipe(in_pipe_) == -1)
     {
         perror("Failed to create input pipe");
         exit(1);
     }
 
     // Create output pipe
-    if (pipe(outPipe) == -1)
+    if (pipe(out_pipe_) == -1)
     {
         perror("Failed to create output pipe");
         exit(1);
@@ -266,17 +266,17 @@ void EngineProcess::initProcess(const std::string &command)
     if (forkPid == 0)
     {
         // Redirect the child's standard input to the read end of the output pipe
-        if (dup2(outPipe[0], 0) == -1)
+        if (dup2(out_pipe_[0], 0) == -1)
             perror("Failed to duplicate outpipe");
 
-        if (close(outPipe[0]) == -1)
+        if (close(out_pipe_[0]) == -1)
             perror("Failed to close outpipe");
 
         // Redirect the child's standard output to the write end of the input pipe
-        if (dup2(inPipe[1], 1) == -1)
+        if (dup2(in_pipe_[1], 1) == -1)
             perror("Failed to duplicate inpipe");
 
-        if (close(inPipe[1]) == -1)
+        if (close(in_pipe_[1]) == -1)
             perror("Failed to close inpipe");
 
         // Execute the engine
@@ -288,7 +288,7 @@ void EngineProcess::initProcess(const std::string &command)
     }
     else
     {
-        processPid = forkPid;
+        process_pid_ = forkPid;
     }
 }
 
@@ -299,12 +299,12 @@ EngineProcess::~EngineProcess()
 
 void EngineProcess::writeProcess(const std::string &input)
 {
-    assert(isInitalized);
+    assert(is_initalized_);
 
     if (!isAlive())
     {
-        errCode = 1;
-        errStr = "Error in writing process.";
+        err_code_ = 1;
+        err_str_ = "Error in writing process.";
 
         std::stringstream ss;
         ss << "Process is not alive and write occured with message: " << input << "\n";
@@ -316,33 +316,33 @@ void EngineProcess::writeProcess(const std::string &input)
     constexpr char endLine = '\n';
 
     // Write the input and a newline to the output pipe
-    if (write(outPipe[1], input.c_str(), input.size()) == -1)
+    if (write(out_pipe_[1], input.c_str(), input.size()) == -1)
     {
         perror(strerror(errno));
         std::stringstream ss;
         ss << "Process is not alive and write occured with message: " << input;
         std::cout << ss.str();
-        errCode = 1;
-        errStr = ss.str();
+        err_code_ = 1;
+        err_str_ = ss.str();
     }
 
-    if (write(outPipe[1], &endLine, 1) == -1)
+    if (write(out_pipe_[1], &endLine, 1) == -1)
     {
         perror(strerror(errno));
         std::stringstream ss;
         ss << "Process is not alive and write occured with message: " << input;
         std::cout << ss.str();
-        errCode = 1;
-        errStr = ss.str();
+        err_code_ = 1;
+        err_str_ = ss.str();
     }
 }
 std::vector<std::string> EngineProcess::readProcess(std::string_view last_word, bool &timeout,
                                                     int64_t timeoutThreshold)
 {
-    assert(isInitalized);
+    assert(is_initalized_);
 
     // Disable blocking
-    fcntl(inPipe[0], F_SETFL, fcntl(inPipe[0], F_GETFL) | O_NONBLOCK);
+    fcntl(in_pipe_[0], F_SETFL, fcntl(in_pipe_[0], F_GETFL) | O_NONBLOCK);
 
     std::vector<std::string> lines;
     lines.reserve(30);
@@ -354,7 +354,7 @@ std::vector<std::string> EngineProcess::readProcess(std::string_view last_word, 
     timeout = false;
 
     struct pollfd pollfds[1];
-    pollfds[0].fd = inPipe[0];
+    pollfds[0].fd = in_pipe_[0];
     pollfds[0].events = POLLIN;
 
     // Set up the timeout for poll
@@ -372,8 +372,8 @@ std::vector<std::string> EngineProcess::readProcess(std::string_view last_word, 
         if (ret == -1)
         {
             perror(strerror(errno));
-            errCode = 1;
-            errStr = strerror(errno);
+            err_code_ = 1;
+            err_str_ = strerror(errno);
         }
         else if (ret == 0)
         {
@@ -385,13 +385,13 @@ std::vector<std::string> EngineProcess::readProcess(std::string_view last_word, 
         else if (pollfds[0].revents & POLLIN)
         {
             // input available on the pipe
-            const int bytesRead = read(inPipe[0], buffer, sizeof(buffer));
+            const int bytesRead = read(in_pipe_[0], buffer, sizeof(buffer));
 
             if (bytesRead == -1)
             {
                 perror(strerror(errno));
-                errCode = 1;
-                errStr = strerror(errno);
+                err_code_ = 1;
+                err_str_ = strerror(errno);
             }
             // Iterate over each character in the buffer
             for (int i = 0; i < bytesRead; i++)
@@ -425,15 +425,15 @@ std::vector<std::string> EngineProcess::readProcess(std::string_view last_word, 
 
 bool EngineProcess::isAlive()
 {
-    assert(isInitalized);
+    assert(is_initalized_);
     int status;
 
-    const pid_t r = waitpid(processPid, &status, WNOHANG);
+    const pid_t r = waitpid(process_pid_, &status, WNOHANG);
     if (r == -1)
     {
         perror(strerror(errno));
-        errCode = 1;
-        errStr = strerror(errno);
+        err_code_ = 1;
+        err_str_ = strerror(errno);
         return false;
     }
     else
@@ -444,19 +444,19 @@ bool EngineProcess::isAlive()
 
 void EngineProcess::killProcess()
 {
-    if (isInitalized)
+    if (is_initalized_)
     {
-        close(inPipe[0]);
-        close(inPipe[1]);
-        close(outPipe[0]);
-        close(outPipe[1]);
+        close(in_pipe_[0]);
+        close(in_pipe_[1]);
+        close(out_pipe_[0]);
+        close(out_pipe_[1]);
 
         int status;
-        pid_t r = waitpid(processPid, &status, WNOHANG);
+        pid_t r = waitpid(process_pid_, &status, WNOHANG);
 
         if (r == 0)
         {
-            kill(processPid, SIGKILL);
+            kill(process_pid_, SIGKILL);
             wait(nullptr);
         }
     }

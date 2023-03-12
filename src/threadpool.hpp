@@ -15,26 +15,26 @@ namespace fast_chess
 class ThreadPool
 {
   public:
-    ThreadPool(size_t threads) : stop(false)
+    ThreadPool(size_t threads) : stop_(false)
     {
         for (size_t i = 0; i < threads; ++i)
-            // Each worker thread runs an infinite loop that waits for tasks to be added to the
+            // Each worker thread runs an infinite loop that waits for tasks_ to be added to the
             // queue
-            workers.emplace_back([this] {
-                while (!this->stop)
+            workers_.emplace_back([this] {
+                while (!this->stop_)
                 {
                     std::function<void()> task;
 
                     // Acquire a lock on the queue mutex and wait for a task to be added to the
                     // queue
                     {
-                        std::unique_lock<std::mutex> lock(this->queue_mutex);
-                        this->condition.wait(lock,
-                                             [this] { return this->stop || !this->tasks.empty(); });
-                        if (this->stop && this->tasks.empty())
+                        std::unique_lock<std::mutex> lock(this->queue_mutex_);
+                        this->condition_.wait(
+                            lock, [this] { return this->stop_ || !this->tasks_.empty(); });
+                        if (this->stop_ && this->tasks_.empty())
                             return;
-                        task = std::move(this->tasks.front());
-                        this->tasks.pop();
+                        task = std::move(this->tasks_.front());
+                        this->tasks_.pop();
                     }
 
                     task();
@@ -56,18 +56,18 @@ class ThreadPool
         std::future<return_type> res = task->get_future();
         {
             // Acquire a lock on the queue mutex and add the task to the queue
-            std::unique_lock<std::mutex> lock(queue_mutex);
+            std::unique_lock<std::mutex> lock(queue_mutex_);
 
             // don't allow enqueueing after stopping the pool
-            if (stop)
+            if (stop_)
                 throw std::runtime_error("Warning: enqueue on stopped ThreadPool");
 
             // Move the task into the queue as a function object
 
-            tasks.emplace([task]() { (*task)(); });
+            tasks_.emplace([task]() { (*task)(); });
         }
         // Notify one worker thread that a new task is available
-        condition.notify_one();
+        condition_.notify_one();
         return res;
     }
 
@@ -78,24 +78,24 @@ class ThreadPool
             throw std::invalid_argument("Warning: ThreadPool::resize() - num_threads cannot be 0");
         }
 
-        size_t curr_threads = workers.size();
+        size_t curr_threads = workers_.size();
         if (num_threads > curr_threads)
         {
             // Add new threads
             for (size_t i = 0; i < num_threads - curr_threads; ++i)
             {
-                workers.emplace_back([this] {
+                workers_.emplace_back([this] {
                     while (true)
                     {
                         std::function<void()> task;
 
                         {
-                            std::unique_lock<std::mutex> lock(queue_mutex);
-                            condition.wait(lock, [this] { return stop || !tasks.empty(); });
-                            if (stop && tasks.empty())
+                            std::unique_lock<std::mutex> lock(queue_mutex_);
+                            condition_.wait(lock, [this] { return stop_ || !tasks_.empty(); });
+                            if (stop_ && tasks_.empty())
                                 return;
-                            task = std::move(tasks.front());
-                            tasks.pop();
+                            task = std::move(tasks_.front());
+                            tasks_.pop();
                         }
 
                         task();
@@ -105,26 +105,26 @@ class ThreadPool
         }
         else if (num_threads < curr_threads)
         {
-            // Signal workers to exit and join them
+            // Signal workers_ to exit and join them
             {
-                std::unique_lock<std::mutex> lock(queue_mutex);
-                stop = true;
+                std::unique_lock<std::mutex> lock(queue_mutex_);
+                stop_ = true;
             }
-            condition.notify_all();
-            for (auto &worker : workers)
+            condition_.notify_all();
+            for (auto &worker : workers_)
                 worker.join();
-            workers.resize(num_threads);
-            stop = false;
+            workers_.resize(num_threads);
+            stop_ = false;
             for (size_t i = curr_threads; i < num_threads; ++i)
             {
-                workers.emplace_back([this] {
+                workers_.emplace_back([this] {
                     while (true)
                     {
                         std::function<void()> task;
 
                         {
-                            std::unique_lock<std::mutex> lock(queue_mutex);
-                            condition.wait(lock, [this] { return stop || !tasks.empty(); });
+                            std::unique_lock<std::mutex> lock(queue_mutex_);
+                            condition_.wait(lock, [this] { return stop_ || !tasks_.empty(); });
                         }
                     }
                 });
@@ -135,13 +135,13 @@ class ThreadPool
     void kill()
     {
         {
-            std::unique_lock<std::mutex> lock(queue_mutex);
+            std::unique_lock<std::mutex> lock(queue_mutex_);
             std::queue<std::function<void()>> empty;
-            std::swap(tasks, empty);
-            stop = true;
+            std::swap(tasks_, empty);
+            stop_ = true;
         }
-        condition.notify_all();
-        for (auto &worker : workers)
+        condition_.notify_all();
+        for (auto &worker : workers_)
         {
             if (worker.joinable())
             {
@@ -152,7 +152,7 @@ class ThreadPool
                 worker.detach();
             }
         }
-        workers.clear();
+        workers_.clear();
     }
 
     ~ThreadPool()
@@ -160,14 +160,14 @@ class ThreadPool
         kill();
     }
 
-    std::atomic_bool stop = false;
+    std::atomic_bool stop_ = false;
 
   private:
-    std::vector<std::thread> workers;
-    std::queue<std::function<void()>> tasks;
+    std::vector<std::thread> workers_;
+    std::queue<std::function<void()>> tasks_;
 
-    std::mutex queue_mutex;
-    std::condition_variable condition;
+    std::mutex queue_mutex_;
+    std::condition_variable condition_;
 };
 
 } // namespace fast_chess

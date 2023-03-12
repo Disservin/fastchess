@@ -17,30 +17,30 @@ uint64_t Perft::perftFunction(Board &b, int depth, int max)
     {
         return moves.size;
     }
-    uint64_t nodesIt = 0;
+    uint64_t nodes_c = 0;
 
     for (const auto move : moves)
     {
         b.makeMove(move);
-        nodesIt += perftFunction(b, depth - 1, depth);
+        nodes_c += perftFunction(b, depth - 1, depth);
         b.unmakeMove(move);
         if (depth == max)
         {
-            nodes += nodesIt;
-            if (print)
-                std::cout << uciMove(move) << " " << nodesIt << std::endl;
-            nodesIt = 0;
+            nodes_ += nodes_c;
+            if (print_)
+                std::cout << uciMove(move) << " " << nodes_c << std::endl;
+            nodes_c = 0;
         }
     }
-    if (depth == max && print)
+    if (depth == max && print_)
         std::cout << "\n" << std::endl;
-    return nodesIt;
+    return nodes_c;
 }
 
 uint64_t Perft::getAndResetNodes()
 {
-    auto tmp = nodes;
-    nodes = 0;
+    auto tmp = nodes_;
+    nodes_ = 0;
     return tmp;
 }
 } // namespace fast_chess

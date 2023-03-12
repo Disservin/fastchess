@@ -18,86 +18,86 @@ Tournament::Tournament(const CMD::GameManagerOptions &mc)
 {
     const std::string filename = (mc.pgn.file.empty() ? "fast-chess" : mc.pgn.file) + ".pgn";
 
-    file.open(filename, std::ios::app);
+    file_.open(filename, std::ios::app);
 
     loadConfig(mc);
 }
 
 void Tournament::loadConfig(const CMD::GameManagerOptions &mc)
 {
-    Random::mersenne_rand.seed(matchConfig.seed);
+    Random::mersenne_rand.seed(match_config_.seed);
 
-    matchConfig = mc;
+    match_config_ = mc;
 
-    if (!matchConfig.opening.file.empty())
+    if (!match_config_.opening.file.empty())
     {
         std::ifstream openingFile;
         std::string line;
-        openingFile.open(matchConfig.opening.file);
+        openingFile.open(match_config_.opening.file);
 
         while (std::getline(openingFile, line))
         {
-            openingBook.emplace_back(line);
+            opening_book_.emplace_back(line);
         }
 
         openingFile.close();
 
-        if (matchConfig.opening.order == "random")
+        if (match_config_.opening.order == "random")
         {
             // Fisher-Yates / Knuth shuffle
-            for (size_t i = 0; i <= openingBook.size() - 2; i++)
+            for (size_t i = 0; i <= opening_book_.size() - 2; i++)
             {
-                size_t j = i + (Random::mersenne_rand() % (openingBook.size() - i));
-                std::swap(openingBook[i], openingBook[j]);
+                size_t j = i + (Random::mersenne_rand() % (opening_book_.size() - i));
+                std::swap(opening_book_[i], opening_book_[j]);
             }
         }
     }
 
-    pool.resize(matchConfig.concurrency);
+    pool_.resize(match_config_.concurrency);
 
-    sprt = SPRT(matchConfig.sprt.alpha, matchConfig.sprt.beta, matchConfig.sprt.elo0,
-                matchConfig.sprt.elo1);
+    sprt_ = SPRT(match_config_.sprt.alpha, match_config_.sprt.beta, match_config_.sprt.elo0,
+                 match_config_.sprt.elo1);
 }
 
 std::string Tournament::fetchNextFen()
 {
-    if (openingBook.size() == 0)
+    if (opening_book_.size() == 0)
     {
-        return STARTPOS;
+        return startpos_;
     }
-    else if (matchConfig.opening.format == "pgn")
+    else if (match_config_.opening.format == "pgn")
     {
         // todo: implementation
     }
-    else if (matchConfig.opening.format == "epd")
+    else if (match_config_.opening.format == "epd")
     {
-        return openingBook[(matchConfig.opening.start + fenIndex++) % openingBook.size()];
+        return opening_book_[(match_config_.opening.start + fen_index_++) % opening_book_.size()];
     }
 
-    return STARTPOS;
+    return startpos_;
 }
 
 std::vector<std::string> Tournament::getPGNS() const
 {
-    return pgns;
+    return pgns_;
 }
 
 void Tournament::setStorePGN(bool v)
 {
-    storePGNS = v;
+    store_pgns_ = v;
 }
 
 void Tournament::printElo()
 {
-    Elo elo(wins, losses, draws);
+    Elo elo(wins_, losses_, draws_);
 
     std::stringstream ss;
 
     // clang-format off
     ss << "--------------------------------------------------------\n"
-       << "Score of " << engineNames[0] << " vs " << engineNames[1] << " after " << roundCount * matchConfig.games << " games: "
-       << wins << " - " << losses << " - " << draws
-       << " (" << std::fixed << std::setprecision(2) << (float(wins) + (float(draws) * 0.5)) / (roundCount * matchConfig.games) << ")\n"
+       << "Score of " << engine_names_[0] << " vs " << engine_names_[1] << " after " << round_count_ * match_config_.games << " games: "
+       << wins_ << " - " << losses_ << " - " << draws_
+       << " (" << std::fixed << std::setprecision(2) << (float(wins_) + (float(draws_) * 0.5)) / (round_count_ * match_config_.games) << ")\n"
        << "Ptnml:   "
        << std::right << std::setw(7) << "WW"
        << std::right << std::setw(7) << "WD"
@@ -105,23 +105,23 @@ void Tournament::printElo()
        << std::right << std::setw(7) << "LD"
        << std::right << std::setw(7) << "LL" << "\n"
        << "Distr:   "
-       << std::right << std::setw(7) << pentaWW
-       << std::right << std::setw(7) << pentaWD
-       << std::right << std::setw(7) << pentaWL
-       << std::right << std::setw(7) << pentaLD
-       << std::right << std::setw(7) << pentaLL << "\n";
+       << std::right << std::setw(7) << penta_WW_
+       << std::right << std::setw(7) << penta_WD_
+       << std::right << std::setw(7) << penta_WL_
+       << std::right << std::setw(7) << penta_LD_
+       << std::right << std::setw(7) << penta_LL_ << "\n";
     // clang-format on
 
-    if (sprt.isValid())
+    if (sprt_.isValid())
     {
-        ss << "LLR: " << sprt.getLLR(wins, draws, losses) << " " << sprt.getBounds() << " "
-           << sprt.getElo() << "\n";
+        ss << "LLR: " << sprt_.getLLR(wins_, draws_, losses_) << " " << sprt_.getBounds() << " "
+           << sprt_.getElo() << "\n";
     }
     ss << std::setprecision(1) << "Stats:  "
-       << "W: " << (float(wins) / (roundCount * matchConfig.games)) * 100 << "%   "
-       << "L: " << (float(losses) / (roundCount * matchConfig.games)) * 100 << "%   "
-       << "D: " << (float(draws) / (roundCount * matchConfig.games)) * 100 << "%   "
-       << "TF: " << timeouts << "\n";
+       << "W: " << (float(wins_) / (round_count_ * match_config_.games)) * 100 << "%   "
+       << "L: " << (float(losses_) / (round_count_ * match_config_.games)) * 100 << "%   "
+       << "D: " << (float(draws_) / (round_count_ * match_config_.games)) * 100 << "%   "
+       << "TF: " << timeouts_ << "\n";
     ss << "Elo difference: " << elo.getElo()
        << "\n--------------------------------------------------------\n";
     std::cout << ss.str();
@@ -130,16 +130,16 @@ void Tournament::printElo()
 void Tournament::writeToFile(const std::string &data)
 {
     // Acquire the lock
-    const std::lock_guard<std::mutex> lock(fileMutex);
+    const std::lock_guard<std::mutex> lock(file_mutex_);
 
-    file << data << std::endl;
+    file_ << data << std::endl;
 }
 
 bool Tournament::checkEngineStatus(UciEngine &engine, Match &match, int roundId) const
 {
     if (!engine.checkErrors(roundId).empty())
     {
-        match.needsRestart = matchConfig.recover;
+        match.needsRestart = match_config_.recover;
         return false;
     }
     return true;
@@ -161,7 +161,7 @@ bool Tournament::playNextMove(UciEngine &engine, std::string &positionInput, Boa
         Logger::coutInfo("Warning: Engine", engine.getConfig().name,
                          "disconnects. It was not responsive.");
 
-        if (!matchConfig.recover)
+        if (!match_config_.recover)
         {
             throw std::runtime_error("Warning: Engine not responsive");
         }
@@ -174,7 +174,7 @@ bool Tournament::playNextMove(UciEngine &engine, std::string &positionInput, Boa
     if (!checkEngineStatus(engine, match, roundId))
         return false;
 
-    engine.writeProcess(engine.buildGoInput(board.sideToMove, timeLeftUs, timeLeftThem));
+    engine.writeProcess(engine.buildGoInput(board.side_to_move_, timeLeftUs, timeLeftThem));
     if (!checkEngineStatus(engine, match, roundId))
         return false;
 
@@ -188,10 +188,10 @@ bool Tournament::playNextMove(UciEngine &engine, std::string &positionInput, Boa
 
     if (!engine.getError().empty())
     {
-        match.needsRestart = matchConfig.recover;
+        match.needsRestart = match_config_.recover;
         Logger::coutInfo("Warning: Engine", engine.getConfig().name, "disconnects #", roundId);
 
-        if (!matchConfig.recover)
+        if (!match_config_.recover)
         {
             throw std::runtime_error("Warning: Can't write to engine.");
         }
@@ -206,12 +206,12 @@ bool Tournament::playNextMove(UciEngine &engine, std::string &positionInput, Boa
     timeLeftUs.time -= measuredTime;
 
     if ((timeLeftUs.fixed_time != 0 &&
-         measuredTime - matchConfig.overhead > timeLeftUs.fixed_time) ||
-        (timeLeftUs.fixed_time == 0 && timeLeftUs.time + matchConfig.overhead < 0))
+         measuredTime - match_config_.overhead > timeLeftUs.fixed_time) ||
+        (timeLeftUs.fixed_time == 0 && timeLeftUs.time + match_config_.overhead < 0))
     {
-        res = GameResult(~board.sideToMove);
+        res = GameResult(~board.side_to_move_);
         match.termination = "timeout";
-        timeouts++;
+        timeouts_++;
         Logger::coutInfo("Warning: Engine", engine.getConfig().name, "loses on time #", roundId);
         return false;
     }
@@ -232,7 +232,7 @@ bool Tournament::playNextMove(UciEngine &engine, std::string &positionInput, Boa
 
     if (!match.legal)
     {
-        res = GameResult(~board.sideToMove);
+        res = GameResult(~board.side_to_move_);
         match.termination = "illegal move";
 
         Logger::coutInfo("Warning: Engine", engine.getConfig().name,
@@ -246,7 +246,7 @@ bool Tournament::playNextMove(UciEngine &engine, std::string &positionInput, Boa
     // Check for game over
     if ((res = board.isGameOver()) != GameResult::NONE ||
         (res = checkAdj(match, drawTracker, resignTracker, match.moves.back().score,
-                        ~board.sideToMove)) != GameResult::NONE)
+                        ~board.side_to_move_)) != GameResult::NONE)
         return false;
 
     return true;
@@ -255,33 +255,33 @@ bool Tournament::playNextMove(UciEngine &engine, std::string &positionInput, Boa
 Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int roundId,
                              std::string openingFen)
 {
-    ResignAdjTracker resignTracker = ResignAdjTracker(matchConfig.resign.score, 0);
-    DrawAdjTracker drawTracker = DrawAdjTracker(matchConfig.draw.score, 0);
+    ResignAdjTracker resignTracker = ResignAdjTracker(match_config_.resign.score, 0);
+    DrawAdjTracker drawTracker = DrawAdjTracker(match_config_.draw.score, 0);
     GameResult res = GameResult::NONE;
     Match match = {};
 
     Board board = {};
     board.loadFen(openingFen);
 
-    match.whiteEngine = board.sideToMove == WHITE ? engine1.getConfig() : engine2.getConfig();
-    match.blackEngine = board.sideToMove != WHITE ? engine1.getConfig() : engine2.getConfig();
+    match.whiteEngine = board.side_to_move_ == WHITE ? engine1.getConfig() : engine2.getConfig();
+    match.blackEngine = board.side_to_move_ != WHITE ? engine1.getConfig() : engine2.getConfig();
 
     engine1.sendUciNewGame();
     engine2.sendUciNewGame();
 
     match.fen = board.getFen();
-    match.startTime = saveTimeHeader ? Logger::getDateTime() : "";
-    match.date = saveTimeHeader ? Logger::getDateTime("%Y-%m-%d") : "";
+    match.startTime = save_time_header_ ? Logger::getDateTime() : "";
+    match.date = save_time_header_ ? Logger::getDateTime("%Y-%m-%d") : "";
 
     std::string positionInput =
-        board.getFen() == STARTPOS ? "position startpos" : "position fen " + board.getFen();
+        board.getFen() == startpos_ ? "position startpos" : "position fen " + board.getFen();
 
     auto timeLeft_1 = engine1.getConfig().tc;
     auto timeLeft_2 = engine2.getConfig().tc;
 
     const auto start = std::chrono::high_resolution_clock::now();
 
-    while (!pool.stop)
+    while (!pool_.stop_)
     {
         if (!playNextMove(engine1, positionInput, board, timeLeft_1, timeLeft_2, res, match,
                           drawTracker, resignTracker, roundId))
@@ -296,9 +296,9 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int roundId
 
     match.round = roundId;
     match.result = res;
-    match.endTime = saveTimeHeader ? Logger::getDateTime() : "";
+    match.endTime = save_time_header_ ? Logger::getDateTime() : "";
     match.duration =
-        saveTimeHeader
+        save_time_header_
             ? Logger::formatDuration(std::chrono::duration_cast<std::chrono::seconds>(end - start))
             : "";
 
@@ -350,7 +350,7 @@ std::vector<Match> Tournament::runH2H(CMD::GameManagerOptions localMatchConfig,
             continue;
         }
 
-        totalCount++;
+        total_count_++;
         matches.emplace_back(match);
 
         const std::string positiveEngine =
@@ -382,32 +382,32 @@ std::vector<Match> Tournament::runH2H(CMD::GameManagerOptions localMatchConfig,
 
         std::stringstream ss;
         ss << "Finished game " << i + 1 << "/" << games << " in round " << roundId << "/"
-           << localMatchConfig.rounds << " total played " << totalCount << "/"
+           << localMatchConfig.rounds << " total played " << total_count_ << "/"
            << localMatchConfig.rounds * games << " " << positiveEngine << " vs " << negativeEngine
            << ": " << resultToString(match.result) << "\n";
 
         std::cout << ss.str();
     }
 
-    pentaWW += localWins == 2 ? 1 : 0;
-    pentaWD += localWins == 1 && localDraws == 1 ? 1 : 0;
-    pentaWL += (localWins == 1 && localLosses == 1) || localDraws == 2 ? 1 : 0;
-    pentaLD += localLosses == 1 && localDraws == 1 ? 1 : 0;
-    pentaLL += localLosses == 2 ? 1 : 0;
+    penta_WW_ += localWins == 2 ? 1 : 0;
+    penta_WD_ += localWins == 1 && localDraws == 1 ? 1 : 0;
+    penta_WL_ += (localWins == 1 && localLosses == 1) || localDraws == 2 ? 1 : 0;
+    penta_LD_ += localLosses == 1 && localDraws == 1 ? 1 : 0;
+    penta_LL_ += localLosses == 2 ? 1 : 0;
 
-    wins += localWins;
-    losses += localLosses;
-    draws += localDraws;
+    wins_ += localWins;
+    losses_ += localLosses;
+    draws_ += localDraws;
 
-    roundCount++;
+    round_count_++;
 
-    if (roundCount % localMatchConfig.ratinginterval == 0)
+    if (round_count_ % localMatchConfig.ratinginterval == 0)
         printElo();
 
     // Write matches to file
     for (const auto &match : matches)
     {
-        PgnBuilder pgn(match, matchConfig);
+        PgnBuilder pgn(match, match_config_);
 
         writeToFile(pgn.getPGN());
     }
@@ -424,21 +424,21 @@ void Tournament::startTournament(const std::vector<EngineConfiguration> &configs
 
     std::vector<std::future<std::vector<Match>>> results;
 
-    for (int i = 1; i <= matchConfig.rounds; i++)
+    for (int i = 1; i <= match_config_.rounds; i++)
     {
-        results.emplace_back(pool.enqueue(
-            std::bind(&Tournament::runH2H, this, matchConfig, configs, i, fetchNextFen())));
+        results.emplace_back(pool_.enqueue(
+            std::bind(&Tournament::runH2H, this, match_config_, configs, i, fetchNextFen())));
     }
 
-    engineNames.push_back(configs[0].name);
-    engineNames.push_back(configs[1].name);
+    engine_names_.push_back(configs[0].name);
+    engine_names_.push_back(configs[1].name);
 
-    while (sprt.isValid() && !pool.stop)
+    while (sprt_.isValid() && !pool_.stop_)
     {
-        const double llr = sprt.getLLR(wins, draws, losses);
-        if (sprt.getResult(llr) != SPRT_CONTINUE)
+        const double llr = sprt_.getLLR(wins_, draws_, losses_);
+        if (sprt_.getResult(llr) != SPRT_CONTINUE)
         {
-            pool.kill();
+            pool_.kill();
             std::cout << "Finished match\n";
             printElo();
 
@@ -448,7 +448,7 @@ void Tournament::startTournament(const std::vector<EngineConfiguration> &configs
         std::this_thread::sleep_for(std::chrono::microseconds(250));
     }
 
-    if (storePGNS)
+    if (store_pgns_)
     {
         for (auto &&result : results)
         {
@@ -456,13 +456,13 @@ void Tournament::startTournament(const std::vector<EngineConfiguration> &configs
 
             for (const Match &match : res)
             {
-                PgnBuilder pgn(match, matchConfig);
-                pgns.emplace_back(pgn.getPGN());
+                PgnBuilder pgn(match, match_config_);
+                pgns_.emplace_back(pgn.getPGN());
             }
         }
     }
 
-    while (!pool.stop && roundCount < matchConfig.rounds)
+    while (!pool_.stop_ && round_count_ < match_config_.rounds)
     {
         // prevent accessive atomic checks
         std::this_thread::sleep_for(std::chrono::microseconds(250));
@@ -474,7 +474,7 @@ void Tournament::startTournament(const std::vector<EngineConfiguration> &configs
 
 void Tournament::stopPool()
 {
-    pool.kill();
+    pool_.kill();
 }
 
 MoveData Tournament::parseEngineOutput(const Board &board, const std::vector<std::string> &output,
@@ -507,7 +507,7 @@ MoveData Tournament::parseEngineOutput(const Board &board, const std::vector<std
         {
             score = findElement<int>(info, "mate");
             scoreString = (score > 0 ? "+M" : "-M") + std::to_string(std::abs(score));
-            score = MATE_SCORE;
+            score = mate_score_;
         }
     }
 
@@ -541,15 +541,15 @@ void Tournament::updateTrackers(DrawAdjTracker &drawTracker, ResignAdjTracker &r
                                 const Score moveScore, const int moveNumber)
 {
     // Score is low for draw adj, increase the counter
-    if (moveNumber >= matchConfig.draw.moveNumber && abs(moveScore) < drawTracker.drawScore)
+    if (moveNumber >= match_config_.draw.moveNumber && abs(moveScore) < drawTracker.drawScore)
     {
-        drawTracker.moveCount++;
+        drawTracker.move_count++;
     }
     // Score wasn't low enough for draw adj, since we care about consecutive
     // moves we have to reset the counter
     else
     {
-        drawTracker.moveCount = 0;
+        drawTracker.move_count = 0;
     }
 
     // Score is low for resign adj, increase the counter (this purposely makes
@@ -557,11 +557,11 @@ void Tournament::updateTrackers(DrawAdjTracker &drawTracker, ResignAdjTracker &r
     // whatever reason that might be the case)
     if (abs(moveScore) > resignTracker.resignScore)
     {
-        resignTracker.moveCount++;
+        resignTracker.move_count++;
     }
     else
     {
-        resignTracker.moveCount = 0;
+        resignTracker.move_count = 0;
     }
 }
 
@@ -571,15 +571,15 @@ GameResult Tournament::checkAdj(Match &match, const DrawAdjTracker &drawTracker,
 
 {
     // Check draw adj
-    if (matchConfig.draw.enabled && drawTracker.moveCount >= matchConfig.draw.moveCount)
+    if (match_config_.draw.enabled && drawTracker.move_count >= match_config_.draw.move_count)
     {
         match.termination = "adjudication";
         return GameResult::DRAW;
     }
 
     // Check Resign adj
-    if (matchConfig.resign.enabled && resignTracker.moveCount >= matchConfig.resign.moveCount &&
-        score != MATE_SCORE)
+    if (match_config_.resign.enabled &&
+        resignTracker.move_count >= match_config_.resign.move_count && score != mate_score_)
     {
         match.termination = "adjudication";
 

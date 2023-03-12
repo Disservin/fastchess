@@ -15,11 +15,11 @@ namespace CMD
 
 struct Parameter
 {
-    std::string longName;
-    std::string shortName;
-    std::string defaultValue;
-    std::string minLimit;
-    std::string maxLimit;
+    std::string long_name;
+    std::string short_name;
+    std::string default_value;
+    std::string min_limit;
+    std::string max_limit;
 };
 
 struct OpeningOptions
@@ -36,7 +36,7 @@ struct PgnOptions
 {
     std::string file;
     std::string notation = "san";
-    bool trackNodes = false;
+    bool track_nodes = false;
 };
 
 struct SprtOptions
@@ -50,7 +50,7 @@ struct SprtOptions
 struct DrawAdjudication
 {
     int moveNumber = 0;
-    int moveCount = 0;
+    int move_count = 0;
     int score = 0;
 
     bool enabled = false;
@@ -58,7 +58,7 @@ struct DrawAdjudication
 
 struct ResignAdjudication
 {
-    int moveCount = 0;
+    int move_count = 0;
     int score = 0;
 
     bool enabled = false;
@@ -74,7 +74,7 @@ struct GameManagerOptions
 
     SprtOptions sprt = {};
 
-    std::string eventName = "?";
+    std::string event_name = "?";
     std::string site = "?";
 
     uint32_t seed = 951356066;
@@ -93,8 +93,8 @@ struct GameManagerOptions
 
 inline std::ostream &operator<<(std::ostream &os, const Parameter &param)
 {
-    os << "longName" << param.longName << "shortName" << param.shortName << "default"
-       << param.defaultValue << "min" << param.minLimit << "max" << param.maxLimit;
+    os << "long_name" << param.long_name << "short_name" << param.short_name << "default"
+       << param.default_value << "min" << param.min_limit << "max" << param.max_limit;
 
     return os;
 }
@@ -118,10 +118,10 @@ class Options
 
   private:
     // Holds all the relevant settings for the handling of the games
-    GameManagerOptions gameOptions;
+    GameManagerOptions game_options_;
 
     // Holds all the engines with their options
-    std::vector<EngineConfiguration> configs;
+    std::vector<EngineConfiguration> configs_;
 
     bool isEngineSettableOption(const std::string &stringFormat) const;
 

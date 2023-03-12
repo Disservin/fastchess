@@ -5,8 +5,8 @@ namespace fast_chess
 class Elo
 {
   private:
-    double diff;
-    double error;
+    double diff_;
+    double error_;
 
   public:
     Elo(int wins, int losses, int draws);

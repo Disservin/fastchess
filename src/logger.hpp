@@ -21,8 +21,8 @@ class Logger
     {
     }
 
-    static std::ofstream log;
-    static std::mutex logMutex;
+    static std::ofstream log_;
+    static std::mutex log_mutex_;
 
   public:
     static Logger &getInstance()
@@ -53,7 +53,7 @@ class Logger
 
     static std::string formatDuration(std::chrono::seconds duration);
 
-    static std::atomic_bool shouldLog;
+    static std::atomic_bool should_log_;
 };
 
 } // namespace fast_chess

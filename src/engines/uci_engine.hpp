@@ -22,8 +22,8 @@ class UciEngine : public EngineProcess
 {
 
   private:
-    static const int64_t PING_TIME = 60000;
-    EngineConfiguration config;
+    static const int64_t ping_time_ = 60000;
+    EngineConfiguration config_;
 
   public:
     UciEngine() = default;
@@ -47,7 +47,7 @@ class UciEngine : public EngineProcess
 
     std::string checkErrors(int id = -1);
 
-    bool isResponsive(int64_t threshold = PING_TIME);
+    bool isResponsive(int64_t threshold = ping_time_);
 
     void sendUciNewGame();
 

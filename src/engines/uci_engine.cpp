@@ -10,12 +10,12 @@ namespace fast_chess
 
 void UciEngine::setConfig(const EngineConfiguration &rhs)
 {
-    config = rhs;
+    config_ = rhs;
 }
 
 EngineConfiguration UciEngine::getConfig() const
 {
-    return config;
+    return config_;
 }
 
 std::string UciEngine::checkErrors(int id)
@@ -68,11 +68,11 @@ std::string UciEngine::buildGoInput(Color stm, const TimeControl &tc, const Time
     std::stringstream input;
     input << "go";
 
-    if (config.nodes != 0)
-        input << " nodes " << config.nodes;
+    if (config_.nodes != 0)
+        input << " nodes " << config_.nodes;
 
-    if (config.plies != 0)
-        input << " depth " << config.plies;
+    if (config_.plies != 0)
+        input << " depth " << config_.plies;
 
     if (tc.fixed_time != 0)
     {
@@ -103,7 +103,7 @@ std::string UciEngine::buildGoInput(Color stm, const TimeControl &tc, const Time
 
 void UciEngine::loadConfig(const EngineConfiguration &config)
 {
-    this->config = config;
+    this->config_ = config;
 }
 
 void UciEngine::sendQuit()
@@ -126,12 +126,12 @@ void UciEngine::restartEngine()
 {
     resetError();
     killProcess();
-    initProcess(config.cmd);
+    initProcess(config_.cmd);
 }
 
 void UciEngine::startEngine()
 {
-    initProcess(config.cmd);
+    initProcess(config_.cmd);
 
     sendUci();
     readUci();
@@ -141,7 +141,7 @@ void UciEngine::startEngine()
         throw std::runtime_error("Warning: Something went wrong when pinging the engine.");
     }
 
-    for (const auto &option : config.options)
+    for (const auto &option : config_.options)
     {
         sendSetoption(option.first, option.second);
     }
@@ -159,7 +159,7 @@ void UciEngine::startEngine(const std::string &cmd)
         throw std::runtime_error("Warning: Something went wrong when pinging the engine.");
     }
 
-    for (const auto &option : config.options)
+    for (const auto &option : config_.options)
     {
         sendSetoption(option.first, option.second);
     }

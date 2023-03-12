@@ -292,7 +292,7 @@ void Board::unmakeMove(Move move)
     hash_key_ = hash_history_.back();
     hash_history_.pop_back();
 
-    enpassant_square_ = restore.enPassant;
+    enpassant_square_ = restore.enpassant;
     castling_rights_ = restore.castling;
     half_move_clock_ = restore.halfMove;
 
@@ -300,7 +300,7 @@ void Board::unmakeMove(Move move)
 
     const Square from_sq = move.from_sq;
     const Square to_sq = move.to_sq;
-    const Piece capture = restore.capturedPiece;
+    const Piece capture = restore.captured_piece;
     const PieceType pt = move.moving_piece;
 
     side_to_move_ = ~side_to_move_;

@@ -22,15 +22,15 @@ enum class GameResult
 
 struct State
 {
-    Square enPassant{};
+    Square enpassant{};
     uint8_t castling{};
     uint8_t halfMove{};
-    Piece capturedPiece = NONE;
+    Piece captured_piece = NONE;
 
-    State(Square enpassantCopy = {}, uint8_t castling_rightsCopy = {}, uint8_t halfMoveCopy = {},
-          Piece capturedPieceCopy = NONE)
-        : enPassant(enpassantCopy), castling(castling_rightsCopy), halfMove(halfMoveCopy),
-          capturedPiece(capturedPieceCopy)
+    State(Square _enpassant = {}, uint8_t _castling = {}, uint8_t _halfMove = {},
+          Piece _captured_piece = NONE)
+        : enpassant(_enpassant), castling(_castling), halfMove(_halfMove),
+          captured_piece(_captured_piece)
     {
     }
 };

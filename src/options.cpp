@@ -187,6 +187,7 @@ void Options::parseJsonName(int &i, int argc, const char *argv[])
         }
         if (key == "discard" && value == "true")
         {
+            std::cout << "Discarded previous results.\n";
             stats_ = Stats();
         }
         i++;

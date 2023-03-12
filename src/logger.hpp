@@ -31,7 +31,7 @@ class Logger
     template <typename... Args> static void coutInfo(Args &&...args)
     {
         std::stringstream ss;
-        ((ss << " " << std::forward<Args>(args)), ...) << "\n";
+        ((ss << std::forward<Args>(args) << " "), ...) << "\n";
         std::cout << ss.str();
     }
 

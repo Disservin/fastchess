@@ -67,16 +67,6 @@ struct Movelist
 namespace Movegen
 {
 
-static thread_local Bitboard _pinD = {};
-static thread_local Bitboard _pinHV = {};
-static thread_local Bitboard _occ_enemy = {};
-static thread_local Bitboard _occ_us = {};
-static thread_local Bitboard _occ_all = {};
-static thread_local Bitboard _seen = {};
-static thread_local Bitboard _enemy_emptyBB = {};
-static thread_local Bitboard _checkMask = DEFAULT_CHECKMASK;
-static thread_local int _doubleCheck = 0;
-
 template <Color c> Bitboard pawnLeftAttacks(const Bitboard pawns)
 {
     return c == WHITE ? (pawns << 7) & ~MASK_FILE[FILE_H] : (pawns >> 7) & ~MASK_FILE[FILE_A];
@@ -93,7 +83,8 @@ template <Color c> Bitboard pawnRightAttacks(const Bitboard pawns)
  * Knight and pawns get themselves added to the checkmask, otherwise the path is added.
  * When there is no check at all all bits are set (DEFAULT_CHECKMASK)
  *******************/
-template <Color c> Bitboard DoCheckmask(const Board &board, Square sq)
+template <Color c>
+Bitboard DoCheckmask(const Board &board, Square sq, Bitboard _occ_all, int &_doubleCheck)
 {
     const Bitboard occ = _occ_all;
     Bitboard checks = 0ULL;
@@ -165,7 +156,8 @@ template <Color c> Bitboard DoCheckmask(const Board &board, Square sq)
  * the possible pinner. We do this by simply using the popcount
  * of our pieces that lay on the pin mask, if it is only 1 piece then that piece is pinned.
  *******************/
-template <Color c> Bitboard DoPinMaskRooks(const Board &board, Square sq)
+template <Color c>
+Bitboard DoPinMaskRooks(const Board &board, Square sq, Bitboard _occ_enemy, Bitboard _occ_us)
 {
     Bitboard rook_mask =
         (board.pieces<ROOK, ~c>() | board.pieces<QUEEN, ~c>()) & RookAttacks(sq, _occ_enemy);
@@ -181,7 +173,8 @@ template <Color c> Bitboard DoPinMaskRooks(const Board &board, Square sq)
     return pinHV;
 }
 
-template <Color c> Bitboard DoPinMaskBishops(const Board &board, Square sq)
+template <Color c>
+Bitboard DoPinMaskBishops(const Board &board, Square sq, Bitboard _occ_enemy, Bitboard _occ_us)
 {
     Bitboard bishop_mask =
         (board.pieces<BISHOP, ~c>() | board.pieces<QUEEN, ~c>()) & BishopAttacks(sq, _occ_enemy);
@@ -204,7 +197,7 @@ template <Color c> Bitboard DoPinMaskBishops(const Board &board, Square sq)
  * We keep track of all attacked squares by the enemy
  * this is used for king move generation.
  *******************/
-template <Color c> Bitboard seenSquares(const Board &board)
+template <Color c> Bitboard seenSquares(const Board &board, Bitboard _occ_all)
 {
     const Square k_sq = board.KingSQ(~c);
 
@@ -244,23 +237,6 @@ template <Color c> Bitboard seenSquares(const Board &board)
     return seen;
 }
 
-/********************
- * Creates the pinmask and checkmask
- * setup important variables that we use for move generation.
- *******************/
-template <Color c> void init(const Board &board, Square sq)
-{
-    _occ_us = board.us(c);
-    _occ_enemy = board.us(~c);
-    _occ_all = _occ_us | _occ_enemy;
-    _enemy_emptyBB = ~_occ_us;
-
-    _seen = seenSquares<~c>(board);
-    _checkMask = DoCheckmask<c>(board, sq);
-    _pinHV = DoPinMaskRooks<c>(board, sq);
-    _pinD = DoPinMaskBishops<c>(board, sq);
-}
-
 /// @brief shift a mask in a direction
 /// @tparam direction
 /// @param b
@@ -290,7 +266,9 @@ template <Direction direction> constexpr Bitboard shift(const Bitboard b)
     return 0;
 }
 
-template <Color c> void LegalPawnMovesAll(const Board &board, Movelist &movelist)
+template <Color c>
+void LegalPawnMovesAll(const Board &board, Movelist &movelist, Bitboard _pinD, Bitboard _pinHV,
+                       Bitboard _occ_enemy, Bitboard _occ_all, Bitboard _checkMask)
 {
     const Bitboard pawns_mask = board.pieces<PAWN, c>();
 
@@ -477,7 +455,8 @@ inline Bitboard LegalKnightMoves(Square sq, Bitboard movable_square)
     return KnightAttacks(sq) & movable_square;
 }
 
-inline Bitboard LegalBishopMoves(Square sq, Bitboard movable_square)
+inline Bitboard LegalBishopMoves(Square sq, Bitboard movable_square, Bitboard _pinD,
+                                 Bitboard _occ_all)
 {
     // The Bishop is pinned diagonally thus can only move diagonally.
     if (_pinD & (1ULL << sq))
@@ -485,7 +464,8 @@ inline Bitboard LegalBishopMoves(Square sq, Bitboard movable_square)
     return BishopAttacks(sq, _occ_all) & movable_square;
 }
 
-inline Bitboard LegalRookMoves(Square sq, Bitboard movable_square)
+inline Bitboard LegalRookMoves(Square sq, Bitboard movable_square, Bitboard _pinHV,
+                               Bitboard _occ_all)
 {
     // The Rook is pinned horizontally thus can only move horizontally.
     if (_pinHV & (1ULL << sq))
@@ -493,7 +473,8 @@ inline Bitboard LegalRookMoves(Square sq, Bitboard movable_square)
     return RookAttacks(sq, _occ_all) & movable_square;
 }
 
-inline Bitboard LegalQueenMoves(Square sq, Bitboard movable_square)
+inline Bitboard LegalQueenMoves(Square sq, Bitboard movable_square, Bitboard _pinD, Bitboard _pinHV,
+                                Bitboard _occ_all)
 {
     Bitboard moves = 0ULL;
     if (_pinD & (1ULL << sq))
@@ -509,12 +490,14 @@ inline Bitboard LegalQueenMoves(Square sq, Bitboard movable_square)
     return moves;
 }
 
-inline Bitboard LegalKingMoves(Square sq)
+inline Bitboard LegalKingMoves(Square sq, Bitboard _seen, Bitboard _enemy_emptyBB)
 {
     return KingAttacks(sq) & _enemy_emptyBB & ~_seen;
 }
 
-template <Color c> Bitboard LegalKingMovesCastling(const Board &board, Square sq)
+template <Color c>
+Bitboard LegalKingMovesCastling(const Board &board, Square sq, Bitboard _occ_all, Bitboard _seen,
+                                Bitboard _enemy_emptyBB)
 {
     Bitboard moves = KingAttacks(sq) & _enemy_emptyBB & ~_seen;
     const Bitboard emptyAndNotAttacked = ~_seen & ~_occ_all;
@@ -561,8 +544,19 @@ template <Color c> void legalmoves(const Board &board, Movelist &movelist)
      * be 0! This is done on purpose since it enables
      * you to append new move types to any movelist.
      *******************/
+    auto king_sq = board.KingSQ(c);
 
-    init<c>(board, board.KingSQ(c));
+    int _doubleCheck = 0;
+
+    Bitboard _occ_us = board.us(c);
+    Bitboard _occ_enemy = board.us(~c);
+    Bitboard _occ_all = _occ_us | _occ_enemy;
+    Bitboard _enemy_emptyBB = ~_occ_us;
+
+    Bitboard _seen = seenSquares<~c>(board, _occ_all);
+    Bitboard _checkMask = DoCheckmask<c>(board, king_sq, _occ_all, _doubleCheck);
+    Bitboard _pinHV = DoPinMaskRooks<c>(board, king_sq, _occ_enemy, _occ_us);
+    Bitboard _pinD = DoPinMaskBishops<c>(board, king_sq, _occ_enemy, _occ_us);
 
     assert(_doubleCheck <= 2);
 
@@ -576,20 +570,17 @@ template <Color c> void legalmoves(const Board &board, Movelist &movelist)
      *******************/
     movable_square &= _enemy_emptyBB;
 
+    Bitboard moves;
+
+    if (!board.getCastlingRights() || _checkMask != DEFAULT_CHECKMASK)
+        moves = LegalKingMoves(king_sq, _seen, _enemy_emptyBB);
+    else
+        moves = LegalKingMovesCastling<c>(board, king_sq, _occ_all, _seen, _enemy_emptyBB);
+
+    while (moves)
     {
-        const Square from = board.KingSQ(c);
-        Bitboard moves;
-
-        if (!board.getCastlingRights() || _checkMask != DEFAULT_CHECKMASK)
-            moves = LegalKingMoves(from);
-        else
-            moves = LegalKingMovesCastling<c>(board, from);
-
-        while (moves)
-        {
-            Square to = poplsb(moves);
-            movelist.Add({from, to, KING, NONETYPE});
-        }
+        Square to = poplsb(moves);
+        movelist.Add({king_sq, to, KING, NONETYPE});
     }
 
     /********************
@@ -621,12 +612,12 @@ template <Color c> void legalmoves(const Board &board, Movelist &movelist)
     /********************
      * Add the moves to the movelist.
      *******************/
-    LegalPawnMovesAll<c>(board, movelist);
+    LegalPawnMovesAll<c>(board, movelist, _pinD, _pinHV, _occ_enemy, _occ_all, _checkMask);
 
     while (knights_mask)
     {
         const Square from = poplsb(knights_mask);
-        Bitboard moves = LegalKnightMoves(from, movable_square);
+        moves = LegalKnightMoves(from, movable_square);
         while (moves)
         {
             const Square to = poplsb(moves);
@@ -637,7 +628,7 @@ template <Color c> void legalmoves(const Board &board, Movelist &movelist)
     while (bishops_mask)
     {
         const Square from = poplsb(bishops_mask);
-        Bitboard moves = LegalBishopMoves(from, movable_square);
+        moves = LegalBishopMoves(from, movable_square, _pinD, _occ_all);
         while (moves)
         {
             const Square to = poplsb(moves);
@@ -648,7 +639,7 @@ template <Color c> void legalmoves(const Board &board, Movelist &movelist)
     while (rooks_mask)
     {
         const Square from = poplsb(rooks_mask);
-        Bitboard moves = LegalRookMoves(from, movable_square);
+        moves = LegalRookMoves(from, movable_square, _pinHV, _occ_all);
         while (moves)
         {
             const Square to = poplsb(moves);
@@ -659,7 +650,7 @@ template <Color c> void legalmoves(const Board &board, Movelist &movelist)
     while (queens_mask)
     {
         const Square from = poplsb(queens_mask);
-        Bitboard moves = LegalQueenMoves(from, movable_square);
+        moves = LegalQueenMoves(from, movable_square, _pinD, _pinHV, _occ_all);
         while (moves)
         {
             const Square to = poplsb(moves);
@@ -676,8 +667,19 @@ template <Color c> bool hasLegalMoves(const Board &board, Movelist &movelist)
      * be 0! This is done on purpose since it enables
      * you to append new move types to any movelist.
      *******************/
+    auto king_sq = board.KingSQ(c);
 
-    init<c>(board, board.KingSQ(c));
+    int _doubleCheck = 0;
+
+    Bitboard _occ_us = board.us(c);
+    Bitboard _occ_enemy = board.us(~c);
+    Bitboard _occ_all = _occ_us | _occ_enemy;
+    Bitboard _enemy_emptyBB = ~_occ_us;
+
+    Bitboard _seen = seenSquares<~c>(board, _occ_all);
+    Bitboard _checkMask = DoCheckmask<c>(board, king_sq, _occ_all, _doubleCheck);
+    Bitboard _pinHV = DoPinMaskRooks<c>(board, king_sq, _occ_enemy, _occ_us);
+    Bitboard _pinD = DoPinMaskBishops<c>(board, king_sq, _occ_enemy, _occ_us);
 
     assert(_doubleCheck <= 2);
 
@@ -691,20 +693,15 @@ template <Color c> bool hasLegalMoves(const Board &board, Movelist &movelist)
      *******************/
     movable_square &= _enemy_emptyBB;
 
-    {
-        Square from = board.KingSQ(c);
-        Bitboard moves;
+    Bitboard moves;
 
-        if (!board.getCastlingRights() || _checkMask != DEFAULT_CHECKMASK)
-            moves = LegalKingMoves(from);
-        else
-            moves = LegalKingMovesCastling<c>(board, from);
+    if (!board.getCastlingRights() || _checkMask != DEFAULT_CHECKMASK)
+        moves = LegalKingMoves(king_sq, _seen, _enemy_emptyBB);
+    else
+        moves = LegalKingMovesCastling<c>(board, king_sq, _occ_all, _seen, _enemy_emptyBB);
 
-        while (moves)
-        {
-            return true;
-        }
-    }
+    if (moves)
+        return true;
 
     /********************
      * Early return for double check as described earlier
@@ -735,17 +732,13 @@ template <Color c> bool hasLegalMoves(const Board &board, Movelist &movelist)
     /********************
      * Add the moves to the movelist.
      *******************/
-    const auto size = movelist.size;
-    LegalPawnMovesAll<c>(board, movelist);
-
-    if (movelist.size != size)
-        return true;
+    LegalPawnMovesAll<c>(board, movelist, _pinD, _pinHV, _occ_enemy, _occ_all, _checkMask);
 
     while (knights_mask)
     {
         const Square from = poplsb(knights_mask);
-        Bitboard moves = LegalKnightMoves(from, movable_square);
-        while (moves)
+        moves = LegalKnightMoves(from, movable_square);
+        if (moves)
         {
             return true;
         }
@@ -754,8 +747,8 @@ template <Color c> bool hasLegalMoves(const Board &board, Movelist &movelist)
     while (bishops_mask)
     {
         const Square from = poplsb(bishops_mask);
-        Bitboard moves = LegalBishopMoves(from, movable_square);
-        while (moves)
+        moves = LegalBishopMoves(from, movable_square, _pinD, _occ_all);
+        if (moves)
         {
             return true;
         }
@@ -764,8 +757,8 @@ template <Color c> bool hasLegalMoves(const Board &board, Movelist &movelist)
     while (rooks_mask)
     {
         const Square from = poplsb(rooks_mask);
-        Bitboard moves = LegalRookMoves(from, movable_square);
-        while (moves)
+        moves = LegalRookMoves(from, movable_square, _pinHV, _occ_all);
+        if (moves)
         {
             return true;
         }
@@ -774,8 +767,8 @@ template <Color c> bool hasLegalMoves(const Board &board, Movelist &movelist)
     while (queens_mask)
     {
         const Square from = poplsb(queens_mask);
-        Bitboard moves = LegalQueenMoves(from, movable_square);
-        while (moves)
+        moves = LegalQueenMoves(from, movable_square, _pinD, _pinHV, _occ_all);
+        if (moves)
         {
             return true;
         }

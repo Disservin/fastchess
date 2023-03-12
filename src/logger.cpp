@@ -25,7 +25,7 @@ void Logger::writeLog(const std::string &msg, std::thread::id thread)
 
         std::stringstream ss;
         ss << "[" << getDateTime("%H:%M:%S") << "]"
-           << "<" << thread << "> <---" << msg << std::endl;
+           << " <" << std::setw(3) << thread << "> <---" << msg << std::endl;
 
         Logger::log_ << ss.str();
     }
@@ -40,7 +40,7 @@ void Logger::readLog(const std::string &msg, std::thread::id thread)
 
         std::stringstream ss;
         ss << "[" << getDateTime("%H:%M:%S") << "]"
-           << "<" << thread << "> --->" << msg << std::endl;
+           << " <" << std::setw(3) << thread << "> --->" << msg << std::endl;
 
         Logger::log_ << ss.str();
     }

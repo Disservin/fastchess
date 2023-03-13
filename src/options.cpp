@@ -168,6 +168,10 @@ void Options::parseLog(int &i, int argc, const char *argv[])
         {
             Logger::openFile(value);
         }
+        else
+        {
+            std::cout << "\nUnrecognized log option: " << key << " parsing failed." << std::endl;
+        }
         i++;
     }
 }
@@ -185,10 +189,14 @@ void Options::parseJsonName(int &i, int argc, const char *argv[])
         {
             loadJson(value);
         }
-        if (key == "discard" && value == "true")
+        else if (key == "discard" && value == "true")
         {
             std::cout << "Discarded previous results.\n";
             stats_ = Stats();
+        }
+        else
+        {
+            std::cout << "\nUnrecognized config option: " << key << " parsing failed." << std::endl;
         }
         i++;
     }

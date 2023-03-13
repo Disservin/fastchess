@@ -125,10 +125,10 @@ class Options
   private:
     bool isEngineSettableOption(const std::string &stringFormat) const;
 
-    TimeControl parseTc(const std::string &tcString);
+    TimeControl parseTc(const std::string &tcString) const;
 
     void parseEngineKeyValues(EngineConfiguration &engineConfig, const std::string &key,
-                              const std::string &value);
+                              const std::string &value) const;
 
     // Generic function to parse a standalone value after a dash command.
     template <typename T> void parseValue(int &i, int argc, const char *argv[], T &optionValue)
@@ -155,7 +155,10 @@ class Options
     void parseDashOptions(int &i, int argc, char const *argv[],
                           std::function<void(std::string, std::string)> func);
 
-    void printVersion(int &i);
+    void printVersion(int &i) const;
+
+    void coutMissingCommand(std::string_view name, std::string_view key,
+                            std::string_view value) const;
 
     Stats stats_;
 

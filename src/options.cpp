@@ -43,8 +43,7 @@ Options::Options(int argc, char const *argv[])
                 else if (key == "notation")
                     game_options_.pgn.notation = value;
                 else
-                    std::cout << "\nUnrecognized pgn option: " << key << " with value " << value
-                              << " parsing failed." << std::endl;
+                    coutMissingCommand("pgnout", key, value);
             });
         else if (arg == "-openings")
             parseDashOptions(i, argc, argv, [&](std::string key, std::string value) {
@@ -59,8 +58,7 @@ Options::Options(int argc, char const *argv[])
                 else if (key == "start")
                     game_options_.opening.start = std::stoi(value);
                 else
-                    std::cout << "\nUnrecognized opening option: " << key << " with value " << value
-                              << " parsing failed." << std::endl;
+                    coutMissingCommand("openings", key, value);
             });
         else if (arg == "-sprt")
             parseDashOptions(i, argc, argv, [&](std::string key, std::string value) {
@@ -76,8 +74,7 @@ Options::Options(int argc, char const *argv[])
                 else if (key == "beta")
                     game_options_.sprt.beta = std::stod(value);
                 else
-                    std::cout << "\nUnrecognized sprt option: " << key << " with value " << value
-                              << " parsing failed." << std::endl;
+                    coutMissingCommand("sprt", key, value);
             });
         else if (arg == "-draw")
             parseDashOptions(i, argc, argv, [&](std::string key, std::string value) {
@@ -90,8 +87,7 @@ Options::Options(int argc, char const *argv[])
                 else if (key == "score")
                     game_options_.draw.score = std::stoi(value);
                 else
-                    std::cout << "\nUnrecognized draw option: " << key << " with value " << value
-                              << " parsing failed." << std::endl;
+                    coutMissingCommand("draw", key, value);
             });
         else if (arg == "-resign")
             parseDashOptions(i, argc, argv, [&](std::string key, std::string value) {
@@ -102,16 +98,14 @@ Options::Options(int argc, char const *argv[])
                 else if (key == "score")
                     game_options_.resign.score = std::stoi(value);
                 else
-                    std::cout << "\nUnrecognized resign option: " << key << " with value " << value
-                              << " parsing failed." << std::endl;
+                    coutMissingCommand("resign", key, value);
             });
         else if (arg == "-log")
             parseDashOptions(i, argc, argv, [&](std::string key, std::string value) {
                 if (key == "file")
                     Logger::openFile(value);
                 else
-                    std::cout << "\nUnrecognized log option: " << key << " parsing failed."
-                              << std::endl;
+                    coutMissingCommand("log", key, value);
             });
         else if (arg == "-config")
             parseDashOptions(i, argc, argv, [&](std::string key, std::string value) {
@@ -123,8 +117,7 @@ Options::Options(int argc, char const *argv[])
                     stats_ = Stats();
                 }
                 else
-                    std::cout << "\nUnrecognized config option: " << key << " parsing failed."
-                              << std::endl;
+                    coutMissingCommand("config", key, value);
             });
         else if (arg == "-concurrency")
             parseValue(i, argc, argv, game_options_.concurrency);
@@ -159,7 +152,7 @@ Options::Options(int argc, char const *argv[])
     }
 }
 
-TimeControl Options::parseTc(const std::string &tcString)
+TimeControl Options::parseTc(const std::string &tcString) const
 {
     TimeControl tc;
 
@@ -187,29 +180,22 @@ TimeControl Options::parseTc(const std::string &tcString)
 }
 
 void Options::parseEngineKeyValues(EngineConfiguration &engineConfig, const std::string &key,
-                                   const std::string &value)
+                                   const std::string &value) const
 {
     if (key == "cmd")
         engineConfig.cmd = value;
-
     else if (key == "name")
         engineConfig.name = value;
-
     else if (key == "tc")
         engineConfig.tc = parseTc(value);
-
     else if (key == "st")
         engineConfig.tc.fixed_time = std::stod(value) * 1000;
-
     else if (key == "nodes")
         engineConfig.nodes = std::stoll(value);
-
     else if (key == "plies")
         engineConfig.plies = std::stoll(value);
-
     else if (key == "dir")
         engineConfig.dir = value;
-
     else if (isEngineSettableOption(key))
     {
         // Strip option.Name of the option. Part
@@ -218,8 +204,7 @@ void Options::parseEngineKeyValues(EngineConfiguration &engineConfig, const std:
         engineConfig.options.push_back(std::make_pair(strippedKey, value));
     }
     else
-
-        std::cout << "\nUnrecognized engine option: " << key << " parsing failed." << std::endl;
+        coutMissingCommand("engine", key, value);
 }
 
 void Options::parseDashOptions(int &i, int argc, char const *argv[],
@@ -260,7 +245,6 @@ std::vector<std::string> Options::splitString(const std::string &string, const c
     std::vector<std::string> seglist;
 
     while (std::getline(string_stream, segment, delimiter))
-
         seglist.emplace_back(segment);
 
     return seglist;
@@ -428,7 +412,7 @@ bool Options::isEngineSettableOption(const std::string &stringFormat) const
     return startsWith(stringFormat, "option.");
 }
 
-void Options::printVersion(int &i)
+void Options::printVersion(int &i) const
 {
     i++;
     std::unordered_map<std::string, std::string> months({{"Jan", "01"},
@@ -466,6 +450,13 @@ void Options::printVersion(int &i)
 
     std::cout << ss.str();
     exit(0);
+}
+
+void Options::coutMissingCommand(std::string_view name, std::string_view key,
+                                 std::string_view value) const
+{
+    std::cout << "\nUnrecognized " << name << " option: " << key << " with value " << value
+              << " parsing failed." << std::endl;
 }
 
 } // namespace CMD

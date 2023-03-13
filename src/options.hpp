@@ -1,5 +1,6 @@
 #pragma once
 
+#include <functional>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -110,7 +111,6 @@ class Options
     static bool startsWith(std::string_view haystack, std::string_view needle);
 
     static bool contains(std::string_view haystack, std::string_view needle);
-
     static bool contains(const std::vector<std::string> &haystack, std::string_view needle);
 
     static std::vector<std::string> splitString(const std::string &string, const char &delimiter);
@@ -127,31 +127,35 @@ class Options
 
     TimeControl parseTc(const std::string &tcString);
 
-    // Generic function to parse option
-    template <typename T> void parseOption(int &i, int argc, const char *argv[], T &optionValue);
-
-    void parseDrawOptions(int &i, int argc, char const *argv[]);
-
-    void parseResignOptions(int &i, int argc, char const *argv[]);
-
-    void parseOpeningOptions(int &i, int argc, char const *argv[]);
-
-    void parsePgnOptions(int &i, int argc, char const *argv[]);
-
-    void parseSprt(int &i, int argc, char const *argv[]);
-
-    void printVersion(int &i);
-
-    void parseLog(int &i, int argc, const char *argv[]);
-
-    void parseJsonName(int &i, int argc, const char *argv[]);
-
     void parseEngineKeyValues(EngineConfiguration &engineConfig, const std::string &key,
                               const std::string &value);
 
-    void parseEachOptions(int &i, int argc, char const *argv[]);
+    // Generic function to parse a standalone value after a dash command.
+    template <typename T> void parseValue(int &i, int argc, const char *argv[], T &optionValue)
+    {
+        i++;
+        if (i < argc && argv[i][0] != '-')
+        {
+            if constexpr (std::is_same_v<T, int>)
+                optionValue = std::stoi(argv[i]);
+            else if constexpr (std::is_same_v<T, uint32_t>)
+                optionValue = std::stoul(argv[i]);
+            else if constexpr (std::is_same_v<T, float>)
+                optionValue = std::stof(argv[i]);
+            else if constexpr (std::is_same_v<T, double>)
+                optionValue = std::stod(argv[i]);
+            else if constexpr (std::is_same_v<T, bool>)
+                optionValue = std::string(argv[i]) == "true";
+            else
+                optionValue = argv[i];
+        }
+    }
 
-    void parseEngineParams(int &i, int argc, char const *argv[], EngineConfiguration &engineParams);
+    // parse multiple keys with values after a dash command
+    void parseDashOptions(int &i, int argc, char const *argv[],
+                          std::function<void(std::string, std::string)> func);
+
+    void printVersion(int &i);
 
     Stats stats_;
 

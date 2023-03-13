@@ -88,7 +88,7 @@ class Tournament
     Match startMatch(UciEngine &engine1, UciEngine &engine2, int roundId, std::string openingFen);
 
     std::vector<Match> runH2H(CMD::GameManagerOptions localMatchConfig,
-                              const std::vector<EngineConfiguration> &configs, int roundId,
+                              const std::vector<EngineConfiguration> &configs,
                               const std::string &fen);
 
     CMD::GameManagerOptions match_config_ = {};

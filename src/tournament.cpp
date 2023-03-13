@@ -307,7 +307,7 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int roundId
 }
 
 std::vector<Match> Tournament::runH2H(CMD::GameManagerOptions localMatchConfig,
-                                      const std::vector<EngineConfiguration> &configs, int roundId,
+                                      const std::vector<EngineConfiguration> &configs,
                                       const std::string &fen)
 {
     // Initialize variables
@@ -322,8 +322,8 @@ std::vector<Match> Tournament::runH2H(CMD::GameManagerOptions localMatchConfig,
     engine2.resetError();
     engine2.startEngine();
 
-    engine1.checkErrors(roundId);
-    engine2.checkErrors(roundId);
+    engine1.checkErrors(round_count_ + 1);
+    engine2.checkErrors(round_count_ + 1);
 
     // engine1 always starts first
     engine1.turn = Turn::FIRST;
@@ -343,9 +343,9 @@ std::vector<Match> Tournament::runH2H(CMD::GameManagerOptions localMatchConfig,
     {
         Match match;
         if (engine1.turn == Turn::FIRST)
-            match = startMatch(engine1, engine2, roundId, fen);
+            match = startMatch(engine1, engine2, round_count_ + 1, fen);
         else
-            match = startMatch(engine2, engine1, roundId, fen);
+            match = startMatch(engine2, engine1, round_count_ + 1, fen);
 
         if (match.needs_restart)
         {
@@ -388,7 +388,7 @@ std::vector<Match> Tournament::runH2H(CMD::GameManagerOptions localMatchConfig,
         }
 
         std::stringstream ss;
-        ss << "Finished game " << i + 1 << "/" << games << " in round " << roundId << "/"
+        ss << "Finished game " << i + 1 << "/" << games << " in round " << round_count_ + 1 << "/"
            << localMatchConfig.rounds << " total played " << total_count_ << "/"
            << localMatchConfig.rounds * games << " " << positive_engine << " vs " << negative_engine
            << ": " << resultToString(match.result) << "\n";
@@ -439,7 +439,7 @@ void Tournament::startTournament(const std::vector<EngineConfiguration> &configs
     for (int i = 1; i <= match_config_.rounds; i++)
     {
         results.emplace_back(pool_.enqueue(
-            std::bind(&Tournament::runH2H, this, match_config_, configs, i, fetchNextFen())));
+            std::bind(&Tournament::runH2H, this, match_config_, configs, fetchNextFen())));
     }
 
     engine_names_.push_back(configs[0].name);

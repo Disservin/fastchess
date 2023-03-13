@@ -25,67 +25,138 @@ Options::Options(int argc, char const *argv[])
         if (arg == "-engine")
         {
             configs_.push_back(EngineConfiguration());
-            parseEngineParams(i, argc, argv, configs_.back());
+            parseDashOptions(i, argc, argv, [&](std::string key, std::string value) {
+                parseEngineKeyValues(configs_.back(), key, value);
+            });
         }
         else if (arg == "-each")
-            parseEachOptions(i, argc, argv);
-        else if (arg == "-concurrency")
-            parseOption(i, argc, argv, game_options_.concurrency);
-        else if (arg == "-event")
-            parseOption(i, argc, argv, game_options_.event_name);
-        else if (arg == "-site")
-            parseOption(i, argc, argv, game_options_.site);
-        else if (arg == "-games")
-            parseOption(i, argc, argv, game_options_.games);
-        else if (arg == "-rounds")
-            parseOption(i, argc, argv, game_options_.rounds);
+            parseDashOptions(i, argc, argv, [&](std::string key, std::string value) {
+                for (auto &config : configs_)
+                    parseEngineKeyValues(config, key, value);
+            });
         else if (arg == "-pgnout")
-            parsePgnOptions(i, argc, argv);
+            parseDashOptions(i, argc, argv, [&](std::string key, std::string value) {
+                if (key == "file")
+                    game_options_.pgn.file = value;
+                else if (key == "tracknodes")
+                    game_options_.pgn.track_nodes = true;
+                else if (key == "notation")
+                    game_options_.pgn.notation = value;
+                else
+                    std::cout << "\nUnrecognized pgn option: " << key << " with value " << value
+                              << " parsing failed." << std::endl;
+            });
         else if (arg == "-openings")
-            parseOpeningOptions(i, argc, argv);
+            parseDashOptions(i, argc, argv, [&](std::string key, std::string value) {
+                if (key == "file")
+                    game_options_.opening.file = value;
+                else if (key == "format")
+                    game_options_.opening.format = value;
+                else if (key == "order")
+                    game_options_.opening.order = value;
+                else if (key == "plies")
+                    game_options_.opening.plies = std::stoi(value);
+                else if (key == "start")
+                    game_options_.opening.start = std::stoi(value);
+                else
+                    std::cout << "\nUnrecognized opening option: " << key << " with value " << value
+                              << " parsing failed." << std::endl;
+            });
+        else if (arg == "-sprt")
+            parseDashOptions(i, argc, argv, [&](std::string key, std::string value) {
+                if (game_options_.rounds == 0)
+                    game_options_.rounds = 500000;
+
+                if (key == "elo0")
+                    game_options_.sprt.elo0 = std::stod(value);
+                else if (key == "elo1")
+                    game_options_.sprt.elo1 = std::stod(value);
+                else if (key == "alpha")
+                    game_options_.sprt.alpha = std::stod(value);
+                else if (key == "beta")
+                    game_options_.sprt.beta = std::stod(value);
+                else
+                    std::cout << "\nUnrecognized sprt option: " << key << " with value " << value
+                              << " parsing failed." << std::endl;
+            });
+        else if (arg == "-draw")
+            parseDashOptions(i, argc, argv, [&](std::string key, std::string value) {
+                game_options_.draw.enabled = true;
+
+                if (key == "movenumber")
+                    game_options_.draw.move_number = std::stoi(value);
+                else if (key == "movecount")
+                    game_options_.draw.move_count = std::stoi(value);
+                else if (key == "score")
+                    game_options_.draw.score = std::stoi(value);
+                else
+                    std::cout << "\nUnrecognized draw option: " << key << " with value " << value
+                              << " parsing failed." << std::endl;
+            });
+        else if (arg == "-resign")
+            parseDashOptions(i, argc, argv, [&](std::string key, std::string value) {
+                game_options_.resign.enabled = true;
+
+                if (key == "movecount")
+                    game_options_.resign.move_count = std::stoi(value);
+                else if (key == "score")
+                    game_options_.resign.score = std::stoi(value);
+                else
+                    std::cout << "\nUnrecognized resign option: " << key << " with value " << value
+                              << " parsing failed." << std::endl;
+            });
+        else if (arg == "-log")
+            parseDashOptions(i, argc, argv, [&](std::string key, std::string value) {
+                if (key == "file")
+                    Logger::openFile(value);
+                else
+                    std::cout << "\nUnrecognized log option: " << key << " parsing failed."
+                              << std::endl;
+            });
+        else if (arg == "-config")
+            parseDashOptions(i, argc, argv, [&](std::string key, std::string value) {
+                if (key == "file")
+                    loadJson(value);
+                else if (key == "discard" && value == "true")
+                {
+                    std::cout << "Discarded previous results.\n";
+                    stats_ = Stats();
+                }
+                else
+                    std::cout << "\nUnrecognized config option: " << key << " parsing failed."
+                              << std::endl;
+            });
+        else if (arg == "-concurrency")
+            parseValue(i, argc, argv, game_options_.concurrency);
+        else if (arg == "-event")
+            parseValue(i, argc, argv, game_options_.event_name);
+        else if (arg == "-site")
+            parseValue(i, argc, argv, game_options_.site);
+        else if (arg == "-games")
+            parseValue(i, argc, argv, game_options_.games);
+        else if (arg == "-rounds")
+            parseValue(i, argc, argv, game_options_.rounds);
+        else if (arg == "-ratinginterval")
+            parseValue(i, argc, argv, game_options_.ratinginterval);
+        else if (arg == "-srand")
+            parseValue(i, argc, argv, game_options_.seed);
+        else if (arg == "-version")
+            printVersion(i);
         else if (arg == "-recover")
             game_options_.recover = true;
         else if (arg == "-repeat")
             game_options_.games = 2;
-        else if (arg == "-sprt")
-            parseSprt(i, argc, argv);
-        else if (arg == "-draw")
-            parseDrawOptions(i, argc, argv);
-        else if (arg == "-resign")
-            parseResignOptions(i, argc, argv);
-        else if (arg == "-ratinginterval")
-            parseOption(i, argc, argv, game_options_.ratinginterval);
-        else if (arg == "-srand")
-            parseOption(i, argc, argv, game_options_.seed);
-        else if (arg == "-version")
-            printVersion(i);
-        else if (arg == "-log")
-            parseLog(i, argc, argv);
-        else if (arg == "-config")
-            parseJsonName(i, argc, argv);
         else
-        {
-            i++;
             std::cout << "\nDash command: " << arg << " doesnt exist!" << std::endl;
-        }
     }
 
     for (auto &config : configs_)
     {
         if (config.name.empty())
-        {
             throw std::runtime_error("Warning: Each engine must have a name!");
-        }
 
         config.recover = game_options_.recover;
     }
-}
-
-bool Options::isEngineSettableOption(const std::string &stringFormat) const
-{
-    if (startsWith(stringFormat, "option."))
-        return true;
-    return false;
 }
 
 TimeControl Options::parseTc(const std::string &tcString)
@@ -115,139 +186,30 @@ TimeControl Options::parseTc(const std::string &tcString)
     return tc;
 }
 
-void Options::printVersion(int &i)
-{
-    i++;
-    std::unordered_map<std::string, std::string> months({{"Jan", "01"},
-                                                         {"Feb", "02"},
-                                                         {"Mar", "03"},
-                                                         {"Apr", "04"},
-                                                         {"May", "05"},
-                                                         {"Jun", "06"},
-                                                         {"Jul", "07"},
-                                                         {"Aug", "08"},
-                                                         {"Sep", "09"},
-                                                         {"Oct", "10"},
-                                                         {"Nov", "11"},
-                                                         {"Dec", "12"}});
-
-    std::string month, day, year;
-    std::stringstream ss, date(__DATE__); // {month} {date} {year}
-
-    ss << "fast-chess ";
-#ifdef GIT_DATE
-    ss << GIT_DATE;
-#else
-
-    date >> month >> day >> year;
-    if (day.length() == 1)
-        day = "0" + day;
-    ss << year.substr(2) << months[month] << day;
-#endif
-
-#ifdef GIT_SHA
-    ss << "-" << GIT_SHA;
-#endif
-
-    ss << "\n";
-
-    std::cout << ss.str();
-    exit(0);
-}
-
-void Options::parseLog(int &i, int argc, const char *argv[])
-{
-    while (i + 1 < argc && argv[i + 1][0] != '-' && i++)
-    {
-        const std::string param = argv[i];
-        const size_t pos = param.find('=');
-        const std::string key = param.substr(0, pos);
-        const std::string value = param.substr(pos + 1);
-        if (key == "file")
-        {
-            Logger::openFile(value);
-        }
-        else
-        {
-            std::cout << "\nUnrecognized log option: " << key << " parsing failed." << std::endl;
-        }
-    }
-}
-
-void Options::parseJsonName(int &i, int argc, const char *argv[])
-{
-    while (i + 1 < argc && argv[i + 1][0] != '-' && i++)
-    {
-        const std::string param = argv[i];
-        const size_t pos = param.find('=');
-        const std::string key = param.substr(0, pos);
-        const std::string value = param.substr(pos + 1);
-        if (key == "file")
-        {
-            loadJson(value);
-        }
-        else if (key == "discard" && value == "true")
-        {
-            std::cout << "Discarded previous results.\n";
-            stats_ = Stats();
-        }
-        else
-        {
-            std::cout << "\nUnrecognized config option: " << key << " parsing failed." << std::endl;
-        }
-    }
-}
-
-template <typename T>
-void Options::parseOption(int &i, int argc, const char *argv[], T &optionValue)
-{
-    i++;
-    if (i < argc && argv[i][0] != '-')
-    {
-        if constexpr (std::is_same_v<T, int>)
-            optionValue = std::stoi(argv[i]);
-        else if constexpr (std::is_same_v<T, uint32_t>)
-            optionValue = std::stoul(argv[i]);
-        else if constexpr (std::is_same_v<T, float>)
-            optionValue = std::stof(argv[i]);
-        else if constexpr (std::is_same_v<T, double>)
-            optionValue = std::stod(argv[i]);
-        else
-            optionValue = argv[i];
-    }
-}
-
 void Options::parseEngineKeyValues(EngineConfiguration &engineConfig, const std::string &key,
                                    const std::string &value)
 {
     if (key == "cmd")
-    {
         engineConfig.cmd = value;
-    }
+
     else if (key == "name")
-    {
         engineConfig.name = value;
-    }
+
     else if (key == "tc")
-    {
         engineConfig.tc = parseTc(value);
-    }
+
     else if (key == "st")
-    {
         engineConfig.tc.fixed_time = std::stod(value) * 1000;
-    }
+
     else if (key == "nodes")
-    {
         engineConfig.nodes = std::stoll(value);
-    }
+
     else if (key == "plies")
-    {
         engineConfig.plies = std::stoll(value);
-    }
+
     else if (key == "dir")
-    {
         engineConfig.dir = value;
-    }
+
     else if (isEngineSettableOption(key))
     {
         // Strip option.Name of the option. Part
@@ -256,170 +218,12 @@ void Options::parseEngineKeyValues(EngineConfiguration &engineConfig, const std:
         engineConfig.options.push_back(std::make_pair(strippedKey, value));
     }
     else
-    {
+
         std::cout << "\nUnrecognized engine option: " << key << " parsing failed." << std::endl;
-    }
 }
 
-void Options::parseEachOptions(int &i, int argc, char const *argv[])
-{
-    while (i + 1 < argc && argv[i + 1][0] != '-' && i++)
-    {
-        const std::string param = argv[i];
-        const size_t pos = param.find('=');
-        const std::string key = param.substr(0, pos);
-        const std::string value = param.substr(pos + 1);
-
-        for (auto &config : configs_)
-        {
-            parseEngineKeyValues(config, key, value);
-        }
-    }
-}
-
-void Options::parseEngineParams(int &i, int argc, char const *argv[],
-                                EngineConfiguration &engineParams)
-{
-    while (i + 1 < argc && argv[i + 1][0] != '-' && i++)
-    {
-        const std::string param = argv[i];
-        const size_t pos = param.find('=');
-        const std::string key = param.substr(0, pos);
-        const std::string value = param.substr(pos + 1);
-
-        parseEngineKeyValues(engineParams, key, value);
-    }
-}
-
-void Options::parseSprt(int &i, int argc, char const *argv[])
-{
-    while (i + 1 < argc && argv[i + 1][0] != '-' && i++)
-    {
-        // If the user didn't set a game param just use a very big default
-        if (game_options_.rounds == 0)
-            game_options_.rounds = 500000;
-        const std::string param = argv[i];
-        const size_t pos = param.find('=');
-        const std::string key = param.substr(0, pos);
-        const std::string value = param.substr(pos + 1);
-        if (key == "elo0")
-        {
-            game_options_.sprt.elo0 = std::stod(value);
-        }
-        else if (key == "elo1")
-        {
-            game_options_.sprt.elo1 = std::stod(value);
-        }
-        else if (key == "alpha")
-        {
-            game_options_.sprt.alpha = std::stod(value);
-        }
-        else if (key == "beta")
-        {
-            game_options_.sprt.beta = std::stod(value);
-        }
-        else
-        {
-            std::cout << "\nUnrecognized sprt option: " << key << " with value " << value
-                      << " parsing failed." << std::endl;
-        }
-    }
-}
-
-void Options::parseDrawOptions(int &i, int argc, char const *argv[])
-{
-    while (i + 1 < argc && argv[i + 1][0] != '-' && i++)
-    {
-        game_options_.draw.enabled = true;
-        const std::string param = argv[i];
-        const size_t pos = param.find('=');
-        const std::string key = param.substr(0, pos);
-        const std::string value = param.substr(pos + 1);
-        if (key == "movenumber")
-        {
-            game_options_.draw.move_number = std::stoi(value);
-        }
-        else if (key == "movecount")
-        {
-            game_options_.draw.move_count = std::stoi(value);
-        }
-        else if (key == "score")
-        {
-            game_options_.draw.score = std::stoi(value);
-        }
-        else
-        {
-            std::cout << "\nUnrecognized draw option: " << key << " with value " << value
-                      << " parsing failed." << std::endl;
-        }
-    }
-}
-
-void Options::parseResignOptions(int &i, int argc, char const *argv[])
-{
-    while (i + 1 < argc && argv[i + 1][0] != '-' && i++)
-    {
-        game_options_.resign.enabled = true;
-        const std::string param = argv[i];
-        const size_t pos = param.find('=');
-        const std::string key = param.substr(0, pos);
-        const std::string value = param.substr(pos + 1);
-
-        if (key == "movecount")
-        {
-            game_options_.resign.move_count = std::stoi(value);
-        }
-        else if (key == "score")
-        {
-            game_options_.resign.score = std::stoi(value);
-        }
-        else
-        {
-            std::cout << "\nUnrecognized resign option: " << key << " with value " << value
-                      << " parsing failed." << std::endl;
-        }
-    }
-}
-
-void Options::parseOpeningOptions(int &i, int argc, char const *argv[])
-{
-    while (i + 1 < argc && argv[i + 1][0] != '-' && i++)
-    {
-        const std::string param = argv[i];
-        const size_t pos = param.find('=');
-        const std::string key = param.substr(0, pos);
-        const std::string value = param.substr(pos + 1);
-
-        if (key == "file")
-        {
-            game_options_.opening.file = value;
-        }
-        else if (key == "format")
-        {
-            game_options_.opening.format = value;
-        }
-        else if (key == "order")
-        {
-            game_options_.opening.order = value;
-        }
-        else if (key == "plies")
-        {
-            game_options_.opening.plies = std::stoi(value);
-        }
-        else if (key == "start")
-        {
-            game_options_.opening.start = std::stoi(value);
-        }
-        else
-        {
-            std::cout << "\nUnrecognized opening option: " << key << " with value " << value
-                      << " parsing failed." << std::endl;
-            return;
-        }
-    }
-}
-
-void Options::parsePgnOptions(int &i, int argc, char const *argv[])
+void Options::parseDashOptions(int &i, int argc, char const *argv[],
+                               std::function<void(std::string, std::string)> func)
 {
     while (i + 1 < argc && argv[i + 1][0] != '-' && i++)
     {
@@ -428,35 +232,8 @@ void Options::parsePgnOptions(int &i, int argc, char const *argv[])
         std::string key = param.substr(0, pos);
         std::string value = param.substr(pos + 1);
 
-        if (key == "file")
-        {
-            game_options_.pgn.file = value;
-        }
-        else if (key == "tracknodes")
-        {
-            game_options_.pgn.track_nodes = true;
-        }
-        else if (key == "notation")
-        {
-            game_options_.pgn.notation = value;
-        }
-        else
-        {
-            std::cout << "\nUnrecognized pgn option: " << key << " with value " << value
-                      << " parsing failed." << std::endl;
-            return;
-        }
+        func(key, value);
     }
-}
-
-std::vector<EngineConfiguration> Options::getEngineConfigs() const
-{
-    return configs_;
-}
-
-GameManagerOptions Options::getGameOptions() const
-{
-    return game_options_;
 }
 
 bool Options::startsWith(std::string_view haystack, std::string_view needle)
@@ -483,9 +260,8 @@ std::vector<std::string> Options::splitString(const std::string &string, const c
     std::vector<std::string> seglist;
 
     while (std::getline(string_stream, segment, delimiter))
-    {
+
         seglist.emplace_back(segment);
-    }
 
     return seglist;
 }
@@ -632,9 +408,64 @@ void Options::loadJson(const std::string &filename)
         jsonfile["stats"]["totalcount"], jsonfile["stats"]["timeouts"]);
 }
 
+std::vector<EngineConfiguration> Options::getEngineConfigs() const
+{
+    return configs_;
+}
+
+GameManagerOptions Options::getGameOptions() const
+{
+    return game_options_;
+}
+
 Stats Options::getStats() const
 {
     return stats_;
+}
+
+bool Options::isEngineSettableOption(const std::string &stringFormat) const
+{
+    return startsWith(stringFormat, "option.");
+}
+
+void Options::printVersion(int &i)
+{
+    i++;
+    std::unordered_map<std::string, std::string> months({{"Jan", "01"},
+                                                         {"Feb", "02"},
+                                                         {"Mar", "03"},
+                                                         {"Apr", "04"},
+                                                         {"May", "05"},
+                                                         {"Jun", "06"},
+                                                         {"Jul", "07"},
+                                                         {"Aug", "08"},
+                                                         {"Sep", "09"},
+                                                         {"Oct", "10"},
+                                                         {"Nov", "11"},
+                                                         {"Dec", "12"}});
+
+    std::string month, day, year;
+    std::stringstream ss, date(__DATE__); // {month} {date} {year}
+
+    ss << "fast-chess ";
+#ifdef GIT_DATE
+    ss << GIT_DATE;
+#else
+
+    date >> month >> day >> year;
+    if (day.length() == 1)
+        day = "0" + day;
+    ss << year.substr(2) << months[month] << day;
+#endif
+
+#ifdef GIT_SHA
+    ss << "-" << GIT_SHA;
+#endif
+
+    ss << "\n";
+
+    std::cout << ss.str();
+    exit(0);
 }
 
 } // namespace CMD

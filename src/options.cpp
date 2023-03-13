@@ -157,8 +157,7 @@ void Options::printVersion(int &i)
 
 void Options::parseLog(int &i, int argc, const char *argv[])
 {
-    i++;
-    while (i < argc && argv[i][0] != '-')
+    while (i + 1 < argc && argv[i + 1][0] != '-' && i++)
     {
         const std::string param = argv[i];
         const size_t pos = param.find('=');
@@ -172,14 +171,12 @@ void Options::parseLog(int &i, int argc, const char *argv[])
         {
             std::cout << "\nUnrecognized log option: " << key << " parsing failed." << std::endl;
         }
-        i++;
     }
 }
 
 void Options::parseJsonName(int &i, int argc, const char *argv[])
 {
-    i++;
-    while (i < argc && argv[i][0] != '-')
+    while (i + 1 < argc && argv[i + 1][0] != '-' && i++)
     {
         const std::string param = argv[i];
         const size_t pos = param.find('=');
@@ -198,7 +195,6 @@ void Options::parseJsonName(int &i, int argc, const char *argv[])
         {
             std::cout << "\nUnrecognized config option: " << key << " parsing failed." << std::endl;
         }
-        i++;
     }
 }
 
@@ -267,8 +263,7 @@ void Options::parseEngineKeyValues(EngineConfiguration &engineConfig, const std:
 
 void Options::parseEachOptions(int &i, int argc, char const *argv[])
 {
-    i++;
-    while (i < argc && argv[i][0] != '-')
+    while (i + 1 < argc && argv[i + 1][0] != '-' && i++)
     {
         const std::string param = argv[i];
         const size_t pos = param.find('=');
@@ -279,17 +274,13 @@ void Options::parseEachOptions(int &i, int argc, char const *argv[])
         {
             parseEngineKeyValues(config, key, value);
         }
-
-        i++;
     }
-    i--;
 }
 
 void Options::parseEngineParams(int &i, int argc, char const *argv[],
                                 EngineConfiguration &engineParams)
 {
-    i++;
-    while (i < argc && argv[i][0] != '-')
+    while (i + 1 < argc && argv[i + 1][0] != '-' && i++)
     {
         const std::string param = argv[i];
         const size_t pos = param.find('=');
@@ -297,17 +288,12 @@ void Options::parseEngineParams(int &i, int argc, char const *argv[],
         const std::string value = param.substr(pos + 1);
 
         parseEngineKeyValues(engineParams, key, value);
-
-        i++;
     }
-    i--;
 }
 
 void Options::parseSprt(int &i, int argc, char const *argv[])
 {
-    i++;
-
-    while (i < argc && argv[i][0] != '-')
+    while (i + 1 < argc && argv[i + 1][0] != '-' && i++)
     {
         // If the user didn't set a game param just use a very big default
         if (game_options_.rounds == 0)
@@ -337,18 +323,12 @@ void Options::parseSprt(int &i, int argc, char const *argv[])
             std::cout << "\nUnrecognized sprt option: " << key << " with value " << value
                       << " parsing failed." << std::endl;
         }
-
-        i++;
     }
-
-    i--;
 }
 
 void Options::parseDrawOptions(int &i, int argc, char const *argv[])
 {
-    i++;
-
-    while (i < argc && argv[i][0] != '-')
+    while (i + 1 < argc && argv[i + 1][0] != '-' && i++)
     {
         game_options_.draw.enabled = true;
         const std::string param = argv[i];
@@ -372,18 +352,12 @@ void Options::parseDrawOptions(int &i, int argc, char const *argv[])
             std::cout << "\nUnrecognized draw option: " << key << " with value " << value
                       << " parsing failed." << std::endl;
         }
-
-        i++;
     }
-
-    i--;
 }
 
 void Options::parseResignOptions(int &i, int argc, char const *argv[])
 {
-    i++;
-
-    while (i < argc && argv[i][0] != '-')
+    while (i + 1 < argc && argv[i + 1][0] != '-' && i++)
     {
         game_options_.resign.enabled = true;
         const std::string param = argv[i];
@@ -404,18 +378,12 @@ void Options::parseResignOptions(int &i, int argc, char const *argv[])
             std::cout << "\nUnrecognized resign option: " << key << " with value " << value
                       << " parsing failed." << std::endl;
         }
-
-        i++;
     }
-
-    i--;
 }
 
 void Options::parseOpeningOptions(int &i, int argc, char const *argv[])
 {
-    i++;
-
-    while (i < argc && argv[i][0] != '-')
+    while (i + 1 < argc && argv[i + 1][0] != '-' && i++)
     {
         const std::string param = argv[i];
         const size_t pos = param.find('=');
@@ -448,16 +416,12 @@ void Options::parseOpeningOptions(int &i, int argc, char const *argv[])
                       << " parsing failed." << std::endl;
             return;
         }
-        i++;
     }
-    i--;
 }
 
 void Options::parsePgnOptions(int &i, int argc, char const *argv[])
 {
-    i++;
-
-    while (i < argc && argv[i][0] != '-')
+    while (i + 1 < argc && argv[i + 1][0] != '-' && i++)
     {
         std::string param = argv[i];
         size_t pos = param.find('=');
@@ -482,9 +446,7 @@ void Options::parsePgnOptions(int &i, int argc, char const *argv[])
                       << " parsing failed." << std::endl;
             return;
         }
-        i++;
     }
-    i--;
 }
 
 std::vector<EngineConfiguration> Options::getEngineConfigs() const

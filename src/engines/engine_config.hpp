@@ -5,8 +5,18 @@
 #include <tuple>
 #include <vector>
 
+#include "../third_party/json.hpp"
+
 namespace fast_chess
 {
+
+/*
+Modified version of the NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE macro in nlohmann's json lib.
+ordered_json type conversion is not yet supported, though we only have to change the type.
+*/
+#define NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(Type, ...)  \
+    inline void to_json(nlohmann::ordered_json& nlohmann_json_j, const Type& nlohmann_json_t) { NLOHMANN_JSON_EXPAND(NLOHMANN_JSON_PASTE(NLOHMANN_JSON_TO, __VA_ARGS__)) } \
+    inline void from_json(const nlohmann::ordered_json& nlohmann_json_j, Type& nlohmann_json_t) { NLOHMANN_JSON_EXPAND(NLOHMANN_JSON_PASTE(NLOHMANN_JSON_FROM, __VA_ARGS__)) }
 
 struct TimeControl
 {
@@ -15,6 +25,8 @@ struct TimeControl
     uint64_t increment = 0;
     int64_t fixed_time = 0;
 };
+
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(TimeControl, moves, time, increment, fixed_time);
 
 inline std::ostream &operator<<(std::ostream &os, const TimeControl &tc)
 {
@@ -57,5 +69,8 @@ struct EngineConfiguration
 
     bool recover = false;
 };
+
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(EngineConfiguration, name, dir, cmd, args, options, tc, nodes,
+                                   plies, recover);
 
 } // namespace fast_chess

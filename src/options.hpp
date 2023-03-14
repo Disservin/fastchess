@@ -15,15 +15,6 @@ namespace fast_chess
 namespace CMD
 {
 
-struct Parameter
-{
-    std::string long_name;
-    std::string short_name;
-    std::string default_value;
-    std::string min_limit;
-    std::string max_limit;
-};
-
 struct OpeningOptions
 {
     std::string file;
@@ -33,6 +24,7 @@ struct OpeningOptions
     int plies = 0;
     int start = 0;
 };
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(OpeningOptions, file, format, order, plies, start);
 
 struct PgnOptions
 {
@@ -40,6 +32,7 @@ struct PgnOptions
     std::string notation = "san";
     bool track_nodes = false;
 };
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(PgnOptions, file, notation, track_nodes);
 
 struct SprtOptions
 {
@@ -48,6 +41,7 @@ struct SprtOptions
     double elo0 = 0.0;
     double elo1 = 0.0;
 };
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(SprtOptions, alpha, beta, elo0, elo1);
 
 struct DrawAdjudication
 {
@@ -57,6 +51,8 @@ struct DrawAdjudication
 
     bool enabled = false;
 };
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(DrawAdjudication, move_number, move_count, score,
+                                                enabled);
 
 struct ResignAdjudication
 {
@@ -65,6 +61,7 @@ struct ResignAdjudication
 
     bool enabled = false;
 };
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(ResignAdjudication, move_count, score, enabled);
 
 struct GameManagerOptions
 {
@@ -92,14 +89,10 @@ struct GameManagerOptions
 
     bool recover = false;
 };
-
-inline std::ostream &operator<<(std::ostream &os, const Parameter &param)
-{
-    os << "long_name" << param.long_name << "short_name" << param.short_name << "default"
-       << param.default_value << "min" << param.min_limit << "max" << param.max_limit;
-
-    return os;
-}
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(GameManagerOptions, event_name, site, seed,
+                                                ratinginterval, games, rounds, concurrency,
+                                                overhead, recover, resign, draw, opening, pgn,
+                                                sprt);
 
 class Options
 {

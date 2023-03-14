@@ -1,6 +1,6 @@
 CXX      = g++
 CXXFLAGS = -O3 -std=c++17 -g3
-NATIVE   = -march=native
+NATIVE   = -march=x86-64
 SUFFIX   = .exe
 
 # Detect Windows

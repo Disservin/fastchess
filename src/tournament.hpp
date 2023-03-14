@@ -3,6 +3,7 @@
 #include <atomic>
 #include <fstream>
 #include <optional>
+#include <string_view>
 #include <utility>
 #include <vector>
 
@@ -25,12 +26,6 @@ namespace fast_chess
 class Tournament
 {
   public:
-    // For testing purposes
-    explicit Tournament(bool saveTime) : save_time_header_(saveTime)
-    {
-        file_.open("fast-chess.pgn", std::ios::app);
-    };
-
     explicit Tournament(const CMD::GameManagerOptions &mc);
 
     template <typename T>

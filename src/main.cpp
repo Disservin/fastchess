@@ -53,7 +53,7 @@ void sigintHandler(int param)
 
 int main(int argc, char const *argv[])
 {
-#ifdef _WIN64
+#ifdef _WIN32
     if (!SetConsoleCtrlHandler(consoleHandler, TRUE))
     {
         std::cout << "\nERROR: Could not set control handler\n";

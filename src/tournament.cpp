@@ -85,6 +85,7 @@ std::vector<std::string> Tournament::getPGNS() const
 void Tournament::setStorePGN(bool v)
 {
     store_pgns_ = v;
+    save_time_header_ = !v;
 }
 
 void Tournament::printElo() const
@@ -206,9 +207,10 @@ bool Tournament::playNextMove(UciEngine &engine, std::string &positionInput, Boa
 
     timeLeftUs.time -= measuredTime;
 
-    if ((timeLeftUs.fixed_time != 0 &&
-         measuredTime - match_config_.overhead > timeLeftUs.fixed_time) ||
-        (timeLeftUs.fixed_time == 0 && timeLeftUs.time + match_config_.overhead < 0))
+    if (engine.getConfig().plies != 0 && engine.getConfig().nodes != 0 &&
+        ((timeLeftUs.fixed_time != 0 &&
+          measuredTime - match_config_.overhead > timeLeftUs.fixed_time) ||
+         (timeLeftUs.fixed_time == 0 && timeLeftUs.time + match_config_.overhead < 0)))
     {
         res = GameResult(~board.getSideToMove());
         match.termination = "timeout";
@@ -261,21 +263,23 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int roundId
     GameResult res = GameResult::NONE;
     Match match = {};
 
-    Board board = {};
-    board.loadFen(openingFen);
+    auto board = std::make_unique<Board>();
+    board->loadFen(openingFen);
 
-    match.white_engine = board.getSideToMove() == WHITE ? engine1.getConfig() : engine2.getConfig();
-    match.black_engine = board.getSideToMove() != WHITE ? engine1.getConfig() : engine2.getConfig();
+    match.white_engine =
+        board->getSideToMove() == WHITE ? engine1.getConfig() : engine2.getConfig();
+    match.black_engine =
+        board->getSideToMove() != WHITE ? engine1.getConfig() : engine2.getConfig();
 
     engine1.sendUciNewGame();
     engine2.sendUciNewGame();
 
-    match.fen = board.getFen();
+    match.fen = board->getFen();
     match.start_time = save_time_header_ ? Logger::getDateTime() : "";
     match.date = save_time_header_ ? Logger::getDateTime("%Y-%m-%d") : "";
 
     std::string positionInput =
-        board.getFen() == startpos_ ? "position startpos" : "position fen " + board.getFen();
+        board->getFen() == startpos_ ? "position startpos" : "position fen " + board->getFen();
 
     auto timeLeft_1 = engine1.getConfig().tc;
     auto timeLeft_2 = engine2.getConfig().tc;
@@ -284,11 +288,11 @@ Match Tournament::startMatch(UciEngine &engine1, UciEngine &engine2, int roundId
 
     while (!pool_.stop_)
     {
-        if (!playNextMove(engine1, positionInput, board, timeLeft_1, timeLeft_2, res, match,
+        if (!playNextMove(engine1, positionInput, *board, timeLeft_1, timeLeft_2, res, match,
                           drawTracker, resignTracker, roundId))
             break;
 
-        if (!playNextMove(engine2, positionInput, board, timeLeft_2, timeLeft_1, res, match,
+        if (!playNextMove(engine2, positionInput, *board, timeLeft_2, timeLeft_1, res, match,
                           drawTracker, resignTracker, roundId))
             break;
     }

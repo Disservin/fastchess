@@ -16,10 +16,11 @@ int main()
     std::vector<std::string> moves = {"f2f3", "e7e5", "g2g4", "d8h4"};
     int moveIndex = 0;
 
+    string cmd;
     while (true)
     {
-        string cmd;
-        getline(cin, cmd);
+        if (!getline(cin, cmd) && cin.eof())
+            cmd = "quit";
 
         if (cmd == "quit")
         {
@@ -90,7 +91,7 @@ int main()
         }
         else if (contains(cmd, "go"))
         {
-            std::cout << "bestmove " << moves[moveIndex] << std::endl;
+            cout << "bestmove " << moves[moveIndex] << endl;
         }
     }
 

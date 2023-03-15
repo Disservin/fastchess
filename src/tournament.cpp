@@ -339,13 +339,16 @@ std::vector<Match> Tournament::runH2H(CMD::GameManagerOptions localMatchConfig,
     int white_local_wins = 0;
     int white_local_losses = 0;
 
+    // We need to keep a copy so we don't use the wrong value
+    int round_copy = ++round_count_;
+
     for (int i = 0; i < games; i++)
     {
         Match match;
         if (engine1.turn == Turn::FIRST)
-            match = startMatch(engine1, engine2, round_count_ + 1, fen);
+            match = startMatch(engine1, engine2, round_copy, fen);
         else
-            match = startMatch(engine2, engine1, round_count_ + 1, fen);
+            match = startMatch(engine2, engine1, round_copy, fen);
 
         if (match.needs_restart)
         {
@@ -388,7 +391,7 @@ std::vector<Match> Tournament::runH2H(CMD::GameManagerOptions localMatchConfig,
         }
 
         std::stringstream ss;
-        ss << "Finished game " << i + 1 << "/" << games << " in round " << round_count_ + 1 << "/"
+        ss << "Finished game " << i + 1 << "/" << games << " in round " << round_copy << "/"
            << localMatchConfig.rounds << " total played " << total_count_ << "/"
            << localMatchConfig.rounds * games << " " << positive_engine << " vs " << negative_engine
            << ": " << resultToString(match.result) << "\n";
@@ -408,8 +411,6 @@ std::vector<Match> Tournament::runH2H(CMD::GameManagerOptions localMatchConfig,
     // Update white advantage stats
     white_wins_ += white_local_wins;
     white_losses_ += white_local_losses;
-
-    round_count_++;
 
     if (round_count_ % localMatchConfig.ratinginterval == 0)
         printElo();

@@ -19,7 +19,7 @@ namespace fast_chess
 /*
  * This is the main class to start engines matches.
  * Generally we always swap the engine order, the first engine is always
- * the the positive engine, meaning all stats should be calculated from that view point.
+ * the positive engine, meaning all stats should be calculated from that view point.
  */
 class Tournament
 {

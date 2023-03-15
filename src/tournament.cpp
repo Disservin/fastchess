@@ -221,7 +221,7 @@ bool Tournament::playNextMove(UciEngine &engine, std::string &positionInput, Boa
 
     // find bestmove and add it to the position string
     const auto bestMove =
-        findElement<std::string>(CMD::Options::splitString(output.back(), ' '), "bestmove");
+        findElement<std::string>(CMD::Options::splitString(output.back(), ' '), "bestmove").value();
 
     if (match.moves.size() == 0)
         positionInput += " moves";
@@ -525,14 +525,14 @@ MoveData Tournament::parseEngineOutput(const Board &board, const std::vector<std
     if (output.size() > 1)
     {
         const auto info = CMD::Options::splitString(output[output.size() - 2], ' ');
-
-        std::string scoreType = findElement<std::string>(info, "score");
-        depth = findElement<int>(info, "depth");
-        nodes = findElement<uint64_t>(info, "nodes");
+        // Missing elements default to 0
+        std::string scoreType = findElement<std::string>(info, "score").value_or("cp");
+        depth = findElement<int>(info, "depth").value_or(0);
+        nodes = findElement<uint64_t>(info, "nodes").value_or(0);
 
         if (scoreType == "cp")
         {
-            score = findElement<int>(info, "cp");
+            score = findElement<int>(info, "cp").value_or(0);
 
             std::stringstream ss;
             ss << (score >= 0 ? '+' : '-');
@@ -541,7 +541,7 @@ MoveData Tournament::parseEngineOutput(const Board &board, const std::vector<std
         }
         else if (scoreType == "mate")
         {
-            score = findElement<int>(info, "mate");
+            score = findElement<int>(info, "mate").value_or(0);
             score_string = (score > 0 ? "+M" : "-M") + std::to_string(std::abs(score));
             score = mate_score_;
         }

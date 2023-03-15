@@ -2,6 +2,7 @@
 
 #include <atomic>
 #include <fstream>
+#include <optional>
 #include <utility>
 #include <vector>
 
@@ -33,9 +34,13 @@ class Tournament
     explicit Tournament(const CMD::GameManagerOptions &mc);
 
     template <typename T>
-    static T findElement(const std::vector<std::string> &haystack, std::string_view needle)
+    static std::optional<T> findElement(const std::vector<std::string> &haystack,
+                                        std::string_view needle)
     {
-        auto index = std::find(haystack.begin(), haystack.end(), needle) - haystack.begin();
+        auto position = std::find(haystack.begin(), haystack.end(), needle);
+        auto index = position - haystack.begin();
+        if (position == haystack.end())
+            return std::nullopt;
         if constexpr (std::is_same_v<T, int>)
             return std::stoi(haystack[index + 1]);
         else if constexpr (std::is_same_v<T, float>)

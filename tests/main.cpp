@@ -1,7 +1,7 @@
 #define DOCTEST_CONFIG_IMPLEMENT
 #include "doctest/doctest.hpp"
 
-int main(int argc, char **argv)
+int main(int argc, char const *argv[])
 {
     doctest::Context ctx;
 

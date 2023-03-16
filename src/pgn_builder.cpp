@@ -6,7 +6,8 @@
 namespace fast_chess
 {
 
-PgnBuilder::PgnBuilder(const Match &match, const CMD::GameManagerOptions &game_options_)
+PgnBuilder::PgnBuilder(const Match &match, const CMD::GameManagerOptions &game_options_,
+                       const bool saveTime)
 {
     const std::string result = resultToString(match.result);
     const std::string termination = match.termination;
@@ -51,7 +52,11 @@ PgnBuilder::PgnBuilder(const Match &match, const CMD::GameManagerOptions &game_o
         const MoveData data = match.moves[i];
 
         std::stringstream nodesString, timeString;
-        timeString << std::fixed << std::setprecision(3) << data.elapsed_millis / 1000.0 << "s";
+
+        if (saveTime)
+        {
+            timeString << std::fixed << std::setprecision(3) << data.elapsed_millis / 1000.0 << "s";
+        }
 
         if (game_options_.pgn.track_nodes)
         {

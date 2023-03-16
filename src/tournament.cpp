@@ -85,6 +85,7 @@ std::vector<std::string> Tournament::getPGNS() const
 void Tournament::setStorePGN(bool v)
 {
     store_pgns_ = v;
+    save_time_header_ = !v;
 }
 
 void Tournament::printElo() const

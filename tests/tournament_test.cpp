@@ -8,31 +8,34 @@ using namespace fast_chess;
 
 TEST_CASE("Test Tournament")
 {
-    CMD::GameManagerOptions mang = CMD::GameManagerOptions();
-    mang.games = 1;
-    mang.rounds = 2;
-    EngineConfiguration engine;
-    EngineConfiguration engine_2;
-
-    engine.plies = 1;
-    engine_2.plies = 1;
-
-    engine.name = "engine";
-    engine_2.name = "engine_2";
-
 #ifdef _WIN64
-    engine.cmd = "./data/engine/dummy_engine.exe";
-    engine_2.cmd = "./data/engine/dummy_engine.exe";
+    auto path = "cmd=./data/engine/dummy_engine.exe";
 #else
-    engine.cmd = "./data/engine/dummy_engine";
-    engine_2.cmd = "./data/engine/dummy_engine";
+    auto path = "cmd=./data/engine/dummy_engine";
 #endif
 
-    Tournament tour(false);
-    tour.setStorePGN(true);
-    tour.loadConfig(mang);
+    const char *argv[] = {"./fast-chess",
+                          "-engine",
+                          "name=engine",
+                          path,
+                          "-engine",
+                          "name=engine_2",
+                          path,
+                          "-each",
+                          "plies=1",
+                          "-rounds",
+                          "1",
+                          "-games",
+                          "1",
+                          "-concurrency",
+                          "1"};
 
-    tour.startTournament({engine, engine_2});
+    CMD::Options options = CMD::Options(15, argv);
+
+    Tournament tour(options.getGameOptions());
+
+    tour.setStorePGN(true);
+    tour.startTournament(options.getEngineConfigs());
 
     std::string pgn = "[Event \"?\"]\n[Site \"?\"]\n[Date \"\"]\n[Round \"1\"]\n[White "
                       "\"engine\"]\n[Black \"engine_2\"]\n[Result "

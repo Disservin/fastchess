@@ -26,7 +26,7 @@ class ThreadPool
     {
         for (size_t i = 0; i < num_threads; ++i)
             workers_.emplace_back([this] {
-                while (true)
+                while (!this->stop_)
                 {
                     std::function<void()> task;
                     {

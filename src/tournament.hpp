@@ -20,7 +20,7 @@ namespace fast_chess
 /*
  * This is the main class to start engines matches.
  * Generally we always swap the engine order, the first engine is always
- * the the positive engine, meaning all stats should be calculated from that view point.
+ * the positive engine, meaning all stats should be calculated from that view point.
  */
 class Tournament
 {
@@ -109,22 +109,22 @@ class Tournament
     std::ofstream file_;
     std::mutex file_mutex_;
 
-    std::atomic<int> wins_ = 0;
-    std::atomic<int> draws_ = 0;
-    std::atomic<int> losses_ = 0;
-    std::atomic<int> round_count_ = 0;
-    std::atomic<int> total_count_ = 0;
-    std::atomic<int> timeouts_ = 0;
+    std::atomic_int wins_ = 0;
+    std::atomic_int draws_ = 0;
+    std::atomic_int losses_ = 0;
+    std::atomic_int round_count_ = 0;
+    std::atomic_int total_count_ = 0;
+    std::atomic_int timeouts_ = 0;
 
-    std::atomic<int> penta_WW_ = 0;
-    std::atomic<int> penta_WD_ = 0;
-    std::atomic<int> penta_WL_ = 0;
-    std::atomic<int> penta_LD_ = 0;
-    std::atomic<int> penta_LL_ = 0;
+    std::atomic_int penta_WW_ = 0;
+    std::atomic_int penta_WD_ = 0;
+    std::atomic_int penta_WL_ = 0;
+    std::atomic_int penta_LD_ = 0;
+    std::atomic_int penta_LL_ = 0;
 
     // Stats from "White" pov for white advantage
-    std::atomic<int> white_wins_ = 0;
-    std::atomic<int> white_losses_ = 0;
+    std::atomic_int white_wins_ = 0;
+    std::atomic_int white_losses_ = 0;
 
     size_t fen_index_ = 0;
 

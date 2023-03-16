@@ -7,13 +7,13 @@ class Elo
   public:
     Elo(int wins, int losses, int draws);
 
-    double inverseError(double x) const;
+    static double inverseError(double x);
 
-    double phiInv(double p) const;
+    static double phiInv(double p);
 
-    double getDiff(double percentage) const;
+    static double getDiff(double percentage);
 
-    double getDiff(int wins, int losses, int draws) const;
+    static double getDiff(int wins, int losses, int draws);
 
     double getError(int wins, int losses, int draws) const;
 

@@ -13,12 +13,12 @@ Elo::Elo(int wins, int losses, int draws)
     error_ = getError(wins, losses, draws);
 }
 
-double Elo::getDiff(double percentage) const
+double Elo::getDiff(double percentage)
 {
     return -400.0 * std::log10(1.0 / percentage - 1.0);
 }
 
-double Elo::inverseError(double x) const
+double Elo::inverseError(double x)
 {
     constexpr double pi = 3.1415926535897;
 
@@ -33,7 +33,7 @@ double Elo::inverseError(double x) const
     return ret;
 }
 
-double Elo::phiInv(double p) const
+double Elo::phiInv(double p)
 {
     return std::sqrt(2.0) * inverseError(2.0 * p - 1.0);
 }
@@ -56,7 +56,7 @@ double Elo::getError(int wins, int losses, int draws) const
     return (getDiff(devMax) - getDiff(devMin)) / 2.0;
 }
 
-double Elo::getDiff(int wins, int losses, int draws) const
+double Elo::getDiff(int wins, int losses, int draws)
 {
     const double n = wins + losses + draws;
     const double score = wins + draws / 2.0;

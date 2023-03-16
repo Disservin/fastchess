@@ -40,8 +40,8 @@ TEST_CASE("Test Tournament")
                       "\"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 "
                       "1\"]\n[GameDuration \"\"]\n[GameEndTime "
                       "\"\"]\n[GameStartTime \"\"]\n[PlyCount \"4\"]\n[TimeControl \"0\"]\n\n1. f3 "
-                      "{0.00/0 0.000s} e5 {0.00/0 0.000s} 2. "
-                      "g4 {0.00/0 0.000s} Qh4# {0.00/0 0.000s} 0-1\n";
+                      "{0.00/0 } e5 {0.00/0 } 2. "
+                      "g4 {0.00/0 } Qh4# {0.00/0 } 0-1\n";
 
     CHECK(tour.getPGNS()[0] == pgn);
 }

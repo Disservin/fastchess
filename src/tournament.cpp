@@ -418,7 +418,7 @@ std::vector<Match> Tournament::runH2H(CMD::GameManagerOptions localMatchConfig,
     // Write matches to file
     for (const auto &match : matches)
     {
-        PgnBuilder pgn(match, match_config_);
+        PgnBuilder pgn(match, match_config_, save_time_header_);
 
         writeToFile(pgn.getPGN());
     }
@@ -469,7 +469,7 @@ void Tournament::startTournament(const std::vector<EngineConfiguration> &configs
 
             for (const Match &match : res)
             {
-                PgnBuilder pgn(match, match_config_);
+                PgnBuilder pgn(match, match_config_, save_time_header_);
                 pgns_.emplace_back(pgn.getPGN());
             }
         }

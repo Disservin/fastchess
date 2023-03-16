@@ -3,6 +3,8 @@
 #include "../src/engines/uci_engine.hpp"
 
 #include <cassert>
+#include <chrono>
+#include <thread>
 
 using namespace fast_chess;
 
@@ -67,6 +69,8 @@ TEST_CASE("Testing the EngineProcess class with lower level class functions")
     uci_engine.writeProcess("sleep");
     auto sleeper = uci_engine.readProcess("done", timeout, 100);
     CHECK(timeout == true);
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
     uci_engine.writeProcess("sleep");
     auto sleeper2 = uci_engine.readProcess("done", timeout, 5000);

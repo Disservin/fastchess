@@ -32,7 +32,7 @@ struct Match
     std::vector<MoveData> moves;
     EngineConfiguration white_engine;
     EngineConfiguration black_engine;
-    GameResult result;
+    GameResult result = GameResult::NONE;
     std::string termination;
     std::string start_time;
     std::string end_time;
@@ -94,8 +94,8 @@ struct Stats
           penta_WL(_penta_WL), penta_LD(_penta_LD), penta_LL(_penta_LL), round_count(_round_count),
           total_count(_total_count), timeouts(_timeouts){};
 };
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(Stats, wins, draws, losses, penta_WW, penta_WD, penta_WL,
-                                                penta_LD, penta_LL, round_count, total_count,
-                                                timeouts);
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(Stats, wins, draws, losses, penta_WW, penta_WD,
+                                                penta_WL, penta_LD, penta_LL, round_count,
+                                                total_count, timeouts);
 
 } // namespace fast_chess

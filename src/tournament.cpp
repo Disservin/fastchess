@@ -85,6 +85,7 @@ std::vector<std::string> Tournament::getPGNS() const
 void Tournament::setStorePGN(bool v)
 {
     store_pgns_ = v;
+    save_time_header_ = !v;
 }
 
 void Tournament::printElo() const
@@ -418,7 +419,7 @@ std::vector<Match> Tournament::runH2H(CMD::GameManagerOptions localMatchConfig,
     // Write matches to file
     for (const auto &match : matches)
     {
-        PgnBuilder pgn(match, match_config_);
+        PgnBuilder pgn(match, match_config_, save_time_header_);
 
         writeToFile(pgn.getPGN());
     }
@@ -461,24 +462,18 @@ void Tournament::startTournament(const std::vector<EngineConfiguration> &configs
         std::this_thread::sleep_for(std::chrono::microseconds(250));
     }
 
-    if (store_pgns_)
+    for (auto &&result : results)
     {
-        for (auto &&result : results)
-        {
-            const auto res = result.get();
+        const auto res = result.get();
 
+        if (store_pgns_)
+        {
             for (const Match &match : res)
             {
-                PgnBuilder pgn(match, match_config_);
+                PgnBuilder pgn(match, match_config_, save_time_header_);
                 pgns_.emplace_back(pgn.getPGN());
             }
         }
-    }
-
-    while (!pool_.stop_ && round_count_ < match_config_.rounds)
-    {
-        // prevent accessive atomic checks
-        std::this_thread::sleep_for(std::chrono::microseconds(250));
     }
 
     std::cout << "Finished match\n";

@@ -31,8 +31,10 @@ struct PgnOptions
     std::string file;
     std::string notation = "san";
     bool track_nodes = false;
+    bool track_seldepth = false;
 };
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(PgnOptions, file, notation, track_nodes);
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(PgnOptions, file, notation, track_nodes,
+                                                track_seldepth);
 
 struct SprtOptions
 {

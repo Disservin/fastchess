@@ -51,7 +51,7 @@ PgnBuilder::PgnBuilder(const Match &match, const CMD::GameManagerOptions &game_o
     {
         const MoveData data = match.moves[i];
 
-        std::stringstream nodesString, timeString;
+        std::stringstream nodesString, seldepthString, timeString;
 
         if (saveTime)
         {
@@ -63,17 +63,22 @@ PgnBuilder::PgnBuilder(const Match &match, const CMD::GameManagerOptions &game_o
             nodesString << " n=" << data.nodes;
         }
 
+        if (game_options_.pgn.track_seldepth)
+        {
+            seldepthString << " sd=" << data.seldepth;
+        }
+
         const std::string move =
             MoveToRep(b, convertUciToMove(b, data.move), game_options_.pgn.notation != "san");
 
         if (move_count % 2 != 0)
             ss << move_count / 2 << "."
                << " " << move << " {" << data.score_string << "/" << data.depth << nodesString.str()
-               << " " << timeString.str() << illegalMove.str() << "}";
+               << seldepthString.str() << " " << timeString.str() << illegalMove.str() << "}";
         else
         {
             ss << " " << move << " {" << data.score_string << "/" << data.depth << nodesString.str()
-               << " " << timeString.str() << illegalMove.str() << "}";
+               << seldepthString.str() << " " << timeString.str() << illegalMove.str() << "}";
 
             if (i == match.moves.size() - 1)
                 break;

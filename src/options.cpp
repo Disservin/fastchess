@@ -40,6 +40,8 @@ Options::Options(int argc, char const *argv[])
                     game_options_.pgn.file = value;
                 else if (key == "tracknodes")
                     game_options_.pgn.track_nodes = true;
+                else if (key == "trackseldepth")
+                    game_options_.pgn.track_seldepth = true;
                 else if (key == "notation")
                     game_options_.pgn.notation = value;
                 else

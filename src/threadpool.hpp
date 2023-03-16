@@ -33,7 +33,7 @@ class ThreadPool
                         std::unique_lock<std::mutex> lock(this->queue_mutex_);
                         this->condition_.wait(
                             lock, [this] { return this->stop_ || !this->tasks_.empty(); });
-                        if (this->stop_)
+                        if (this->stop_ && this->tasks_.empty())
                             return;
                         task = std::move(this->tasks_.front());
                         this->tasks_.pop();
@@ -65,6 +65,11 @@ class ThreadPool
 
     void resize(size_t num_threads)
     {
+        if (num_threads == 0)
+        {
+            throw std::invalid_argument("Warning: ThreadPool::resize() - num_threads cannot be 0");
+        }
+
         {
             std::unique_lock<std::mutex> lock(queue_mutex_);
             stop_ = true;
@@ -73,6 +78,8 @@ class ThreadPool
         for (auto &worker : workers_)
             worker.join();
         workers_.clear();
+        workers_.resize(num_threads);
+
         for (size_t i = 0; i < num_threads; ++i)
             workers_.emplace_back([this] {
                 while (!this->stop_)
@@ -101,7 +108,13 @@ class ThreadPool
         }
         condition_.notify_all();
         for (auto &worker : workers_)
-            worker.join();
+        {
+            if (worker.joinable())
+            {
+                worker.join();
+            }
+        }
+
         workers_.clear();
     }
 

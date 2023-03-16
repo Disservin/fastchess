@@ -43,6 +43,7 @@ jobs:
 
     defaults:
       run:
+        working-directory: tests
         shell: ${{ matrix.config.shell }}
     steps:
       - uses: actions/checkout@v3
@@ -70,7 +71,6 @@ jobs:
       - name: Running fsanitize=address unit
         if: runner.os != 'Windows'
         run: |
-          cd tests
           make clean
           make -j san=asan CXX=g++
           ./fast-chess-tests* -tce="*PERFT*"
@@ -86,7 +86,6 @@ jobs:
       - name: Running fsanitize=undefined unit tests with clang++
         if: runner.os != 'Windows'
         run: |
-          cd tests
           make clean
           make -j san=undefined CXX=clang++
           ./fast-chess-tests* -tce="*PERFT*"
@@ -94,7 +93,6 @@ jobs:
       - name: Running fsanitize=address unit tests with clang++
         if: runner.os != 'Windows'
         run: |
-          cd tests
           make clean
           make -j san=asan CXX=clang++
           ./fast-chess-tests*
@@ -102,7 +100,6 @@ jobs:
       - name: Running Tests
         if: runner.os == 'Windows'
         run: |
-          cd tests
           g++ --version
           make -j
           ./fast-chess-tests*
@@ -110,7 +107,6 @@ jobs:
       - name: Valgrind
         if: runner.os == 'Linux'
         run: |
-          cd tests
           make clean
           make -j CXX=g++
           valgrind --error-exitcode=1 --errors-for-leak-kinds=all --leak-check=full ./fast-chess-tests* -tce="*PERFT*"

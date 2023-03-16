@@ -515,6 +515,7 @@ MoveData Tournament::parseEngineOutput(const Board &board, const std::vector<std
     uint64_t nodes = 0;
     int score = 0;
     int depth = 0;
+    int selDepth = 0;
 
     // extract last info line
     if (output.size() > 1)
@@ -523,6 +524,7 @@ MoveData Tournament::parseEngineOutput(const Board &board, const std::vector<std
         // Missing elements default to 0
         std::string scoreType = findElement<std::string>(info, "score").value_or("cp");
         depth = findElement<int>(info, "depth").value_or(0);
+        selDepth = findElement<int>(info, "seldepth").value_or(0);
         nodes = findElement<uint64_t>(info, "nodes").value_or(0);
 
         if (scoreType == "cp")
@@ -565,7 +567,7 @@ MoveData Tournament::parseEngineOutput(const Board &board, const std::vector<std
         }
     }
 
-    return MoveData(move, score_string, measuredTime, depth, score, nodes);
+    return MoveData(move, score_string, measuredTime, depth, selDepth, score, nodes);
 }
 
 void Tournament::updateTrackers(DrawAdjTracker &drawTracker, ResignAdjTracker &resignTracker,

@@ -15,14 +15,15 @@ struct MoveData
     std::string score_string;
     int64_t elapsed_millis = 0;
     int depth = 0;
+    int seldepth = 0;
     int score = 0;
     uint64_t nodes = 0;
     MoveData() = default;
 
     MoveData(std::string _move, std::string _score_string, int64_t _elapsed_millis, int _depth,
-             int _score, int _nodes)
+             int _seldepth, int _score, int _nodes)
         : move(_move), score_string(std::move(_score_string)), elapsed_millis(_elapsed_millis),
-          depth(_depth), score(_score), nodes(_nodes)
+          depth(_depth), seldepth(_seldepth), score(_score), nodes(_nodes)
     {
     }
 };

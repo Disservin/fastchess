@@ -66,9 +66,10 @@ class ThreadPool
     void resize(size_t num_threads)
     {
         if (num_threads == 0)
-        {
             throw std::invalid_argument("Warning: ThreadPool::resize() - num_threads cannot be 0");
-        }
+
+        if (num_threads == workers_.size())
+            return;
 
         {
             std::unique_lock<std::mutex> lock(queue_mutex_);

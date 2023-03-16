@@ -1,4 +1,4 @@
-name: Run tests
+name: FastChess
 
 on:
   push:
@@ -16,29 +16,14 @@ jobs:
     strategy:
       matrix:
         config:
-          - {
-              name: "Ubuntu 20.04 GCC",
-              os: ubuntu-20.04,
-              compiler: g++,
-              comp: gcc,
-              shell: "bash {0}",
-            }
-          - {
-              name: "MacOS 12 Apple Clang",
-              os: macos-12,
-              compiler: clang++,
-              comp: clang,
-              shell: "bash {0}",
-            }
+          - { name: "Ubuntu 20.04", os: ubuntu-20.04, shell: "bash {0}" }
+          - { name: "MacOS 12 Apple Clang", os: macos-12, shell: "bash {0}" }
           - {
               name: "Windows 2022 GCC",
               os: windows-2022,
-              compiler: g++,
-              comp: MINGW,
               msys_sys: "mingw64",
               msys_env: "x86_64-gcc",
               shell: "msys2 {0}",
-              ext: .exe,
             }
 
     defaults:
@@ -51,10 +36,9 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt install expect valgrind
-          sudo apt-get install clang-12
-          sudo apt install llvm
+          sudo apt install valgrind
           clang++ --version
+          g++ --version
 
       - name: Install windows make
         if: runner.os == 'Windows'
@@ -68,35 +52,6 @@ jobs:
         run: |
           clang++ --version
 
-      - name: Running fsanitize=address unit
-        if: runner.os != 'Windows'
-        run: |
-          make clean
-          make -j san=asan CXX=g++
-          ./fast-chess-tests* -tce="*PERFT*"
-
-      # - name: Running fsanitize=memory unit tests
-      #   if: runner.os != 'Windows' && runner.os != 'Macos'
-      #   run: |
-      #     cd tests
-      #     make clean
-      #     make -j san=memory CXX=clang++
-      #     ./fast-chess-tests* -tce="*PERFT*"
-
-      - name: Running fsanitize=undefined unit tests with clang++
-        if: runner.os != 'Windows'
-        run: |
-          make clean
-          make -j san=undefined CXX=clang++
-          ./fast-chess-tests* -tce="*PERFT*"
-
-      - name: Running fsanitize=address unit tests with clang++
-        if: runner.os != 'Windows'
-        run: |
-          make clean
-          make -j san=asan CXX=clang++
-          ./fast-chess-tests*
-
       - name: Running Tests
         if: runner.os == 'Windows'
         run: |
@@ -104,9 +59,26 @@ jobs:
           make -j
           ./fast-chess-tests*
 
+      - name: Running fsanitize=address unit
+        if: runner.os != 'Windows'
+        run: |
+          make -j san=asan
+          ./fast-chess-tests* -tce="*PERFT*"
+
+      - name: Running fsanitize=undefined unit tests with clang++
+        if: runner.os != 'Windows'
+        run: |
+          make -j san=undefined CXX=clang++
+          ./fast-chess-tests* -tce="*PERFT*"
+
+      - name: Running fsanitize=address unit tests with clang++
+        if: runner.os != 'Windows'
+        run: |
+          make -j san=asan CXX=clang++
+          ./fast-chess-tests*
+
       - name: Valgrind
         if: runner.os == 'Linux'
         run: |
-          make clean
           make -j CXX=g++
           valgrind --error-exitcode=1 --errors-for-leak-kinds=all --leak-check=full ./fast-chess-tests* -tce="*PERFT*"

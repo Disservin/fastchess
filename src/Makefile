@@ -4,16 +4,21 @@ NATIVE 	 := -march=native
 
 # Detect Windows
 ifeq ($(OS), Windows_NT)
-	uname_S  := Windows
+	UNAME_S  := Windows
+	TMPDIR   := .tmp
+	TMPLOC   = .tmp\engines .\.tmp\chess
+	MKDIR_P  = cmd //C md
+	RM_F 	 = cmd //C del //Q //F
+    RM_RF 	 = cmd //C rmdir //Q //S
 else
-ifeq ($(COMP), MINGW)
-	uname_S  := Windows
-else
-	LDFLAGS := -pthread
-	SUFFIX  :=
-	uname_S := $(shell uname -s)
+	UNAME_S  := $(shell uname -s)
+	TMPDIR   := .tmp
+	TMPLOC   = $(TMPDIR)/engines $(TMPDIR)/chess
+	MKDIR_P  = mkdir -p
+	RM_F	 = rm -f
+	RM_RF	 = rm -rf
 endif
-endif
+
 
 ifeq ($(build), debug)
 	CXXFLAGS := -g3 -O3 -std=c++17 -Wall -Wextra -pedantic
@@ -46,7 +51,6 @@ endif
 .PHONY: all clean FORCE
 
 SRCDIRS := ./ engines chess
-TMPDIR := ./.tmp
 
 SOURCES := $(foreach dir,$(SRCDIRS),$(wildcard $(dir)/*.cpp))
 OBJECTS := $(patsubst %.cpp,$(TMPDIR)/%.o,$(SOURCES))
@@ -62,12 +66,12 @@ $(TMPDIR)/%.o: %.cpp | $(TMPDIR)
 	$(CXX) $(CXXFLAGS) $(NATIVE) -flto -MMD -MP -c $< -o $@ $(LDFLAGS)
 
 $(TMPDIR):
-	mkdir -p $(TMPDIR)/engines $(TMPDIR)/chess
+	@$(MKDIR_P) $(TMPLOC)
 
 -include $(DEPENDS)
 
 clean:
-	@rm -rf $(OBJECTS) $(DEPENDS) $(TARGET) ./.tmp
+	@$(RM_RF) $(TMPDIR)
 
 options.o: FORCE
 FORCE:

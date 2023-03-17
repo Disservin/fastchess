@@ -45,10 +45,10 @@ Fast-Chess supports a many other command-line options:
 ```
 Options:
   -config file=NAME discard=true
-    After a ctrl c event or finishing all games the current config is automatically saved.
+    After a CTRL+C event or finishing all games the current config is automatically saved.
     You can restart fast-chess using this argument. This can be used to conveniently load
     engine configurations or/and to resume from a previous stop. In case you want to discard
-    the saved game results you can specify `discard`. Note: This must be specified after and
+    the saved game results you can specify `discard`. Note that this must be specified after and
     only after file.
   -concurrency N
   -draw movenumber=NUMBER movecount=COUNT score=SCORE
@@ -60,7 +60,8 @@ Options:
   -games N
     This should be set to 1 or 2, each round will play n games with, setting this higher than 2 does not really make sense.
   -openings file=NAME format=FORMAT order=ORDER plies=PLIES start=START
-    format can be "epd" and order "sequential" or "random", start specifies the offset.
+    FORMAT can be "epd" and order "sequential" or "random", start specifies the offset.
+    If plies is set to zero, as it is by default, the entire opening line will be used.
   -option.OPTION=VALUE
   -resign movecount=COUNT score=SCORE
   -rounds N
@@ -70,9 +71,9 @@ Options:
     print the current elo estimation every N rounds.
   -sprt elo0=ELO0 elo1=ELO1 alpha=ALPHA beta=BETA
   -srand SEED
-  -pgnout notation=NOTATION file=FILE tracknodes
+  -pgnout notation=NOTATION file=FILE tracknodes trackseldepth
     NOTATION defaults to san, alternatively you can choose lan, default file output is
-    fast-chess.pgn, tracknodes adds the node count to the pgn.
+    fast-chess.pgn, tracknodes adds the node count to the pgn and trackseldepth adds the seldepth.
   -log file=NAME
 
 Engine;
@@ -80,6 +81,7 @@ Engine;
   cmd=COMMAND
   plies=N
   tc=TC
+    TC uses the same format as Cute-Chess. For example 10+0.1 would be 10 seconds with 100 millisecond increments.
   
 ```
 

@@ -9,9 +9,9 @@ using namespace fast_chess;
 TEST_CASE("Test Tournament")
 {
 #ifdef _WIN64
-    auto path = "cmd=./data/engine/dummy_engine.exe";
+    auto path = "cmd=./tests/data/engine/dummy_engine.exe";
 #else
-    auto path = "cmd=./data/engine/dummy_engine";
+    auto path = "cmd=./tests/data/engine/dummy_engine";
 #endif
 
     const char *argv[] = {"./fast-chess",

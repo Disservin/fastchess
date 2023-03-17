@@ -12,9 +12,9 @@ TEST_CASE("Testing the EngineProcess class")
 {
     UciEngine uci_engine;
 #ifdef _WIN64
-    uci_engine.startEngine("./data/engine/dummy_engine.exe");
+    uci_engine.startEngine("./tests/data/engine/dummy_engine.exe");
 #else
-    uci_engine.startEngine("./data/engine/dummy_engine");
+    uci_engine.startEngine("./tests/data/engine/dummy_engine");
 #endif
 
     uci_engine.sendUci();
@@ -45,9 +45,9 @@ TEST_CASE("Testing the EngineProcess class with lower level class functions")
 {
     UciEngine uci_engine;
 #ifdef _WIN64
-    uci_engine.startEngine("./data/engine/dummy_engine.exe");
+    uci_engine.startEngine("./tests/data/engine/dummy_engine.exe");
 #else
-    uci_engine.startEngine("./data/engine/dummy_engine");
+    uci_engine.startEngine("./tests/data/engine/dummy_engine");
 #endif
 
     bool timeout = false;

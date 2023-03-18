@@ -97,6 +97,6 @@ struct Stats
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(Stats, wins, draws, losses, penta_WW, penta_WD,
                                                 penta_WL, penta_LD, penta_LL, round_count,
-                                                total_count, timeouts);
+                                                total_count, timeouts)
 
 } // namespace fast_chess

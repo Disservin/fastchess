@@ -1,7 +1,7 @@
 #include "doctest/doctest.hpp"
 
-#include "../src/chess/board.hpp"
-#include "../src/options.hpp"
+#include "chess/board.hpp"
+#include "options.hpp"
 
 #include <algorithm>
 

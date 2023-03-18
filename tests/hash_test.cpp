@@ -1,6 +1,6 @@
 #include "doctest/doctest.hpp"
 
-#include "../src/chess/board.hpp"
+#include "chess/board.hpp"
 
 using namespace fast_chess;
 

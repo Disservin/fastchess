@@ -1,7 +1,6 @@
 #pragma once
 
 #include "options.hpp"
-#include "tournament.hpp"
 
 namespace fast_chess
 {

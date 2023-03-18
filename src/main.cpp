@@ -4,8 +4,8 @@
 #include <thread>
 
 #include "engines/uci_engine.hpp"
+#include "matchmaking/tournament.hpp"
 #include "options.hpp"
-#include "tournament.hpp"
 
 using namespace fast_chess;
 

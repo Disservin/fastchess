@@ -1,6 +1,6 @@
 #include <cassert>
 
-#include "helper.hpp"
+#include "chess/helper.hpp"
 
 namespace fast_chess
 {

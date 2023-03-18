@@ -1,4 +1,4 @@
-#include "board.hpp"
+#include "chess/board.hpp"
 
 #include <algorithm>
 #include <bitset>
@@ -7,10 +7,10 @@
 #include <stdexcept>
 #include <vector>
 
-#include "../options.hpp"
-#include "attacks.hpp"
-#include "movegen.hpp"
-#include "zobrist.hpp"
+#include "chess/attacks.hpp"
+#include "chess/movegen.hpp"
+#include "chess/zobrist.hpp"
+#include "options.hpp"
 
 namespace fast_chess
 {

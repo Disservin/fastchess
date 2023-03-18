@@ -3,10 +3,10 @@
 #include <cassert>
 #include <iterator>
 
-#include "attacks.hpp"
-#include "board.hpp"
-#include "helper.hpp"
-#include "types.hpp"
+#include "chess/attacks.hpp"
+#include "chess/board.hpp"
+#include "chess/helper.hpp"
+#include "chess/types.hpp"
 
 namespace fast_chess
 {

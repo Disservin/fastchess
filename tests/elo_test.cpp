@@ -1,6 +1,6 @@
 #include "doctest/doctest.hpp"
 
-#include "../src/elo.hpp"
+#include "elo.hpp"
 
 using namespace fast_chess;
 

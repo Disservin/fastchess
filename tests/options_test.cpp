@@ -1,6 +1,6 @@
 #include "doctest/doctest.hpp"
 
-#include "../src/options.hpp"
+#include "options.hpp"
 
 #include <cassert>
 

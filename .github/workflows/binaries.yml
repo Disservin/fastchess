@@ -70,7 +70,7 @@ jobs:
           make -j build=release
           strip ./fast-chess$EXT
           mv fast-chess$EXT fast-chess-$OS$EXT
-          ./fast-chess-tests* -version
+          ./fast-chess* -version
 
       - name: Find and remove empty files
         run: rm -rf *.o *.d sha

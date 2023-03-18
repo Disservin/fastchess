@@ -71,13 +71,10 @@ class ThreadPool
         if (num_threads == workers_.size())
             return;
 
-        {
-            std::unique_lock<std::mutex> lock(queue_mutex_);
-            stop_ = true;
-        }
-        condition_.notify_all();
-        for (auto &worker : workers_)
-            worker.join();
+        kill();
+
+        stop_ = false;
+
         workers_.clear();
         workers_.resize(num_threads);
 
@@ -90,7 +87,7 @@ class ThreadPool
                         std::unique_lock<std::mutex> lock(this->queue_mutex_);
                         this->condition_.wait(
                             lock, [this] { return this->stop_ || !this->tasks_.empty(); });
-                        if (this->stop_)
+                        if (this->stop_ && this->tasks_.empty())
                             return;
                         task = std::move(this->tasks_.front());
                         this->tasks_.pop();
@@ -98,7 +95,6 @@ class ThreadPool
                     task();
                 }
             });
-        stop_ = false;
     }
 
     void kill()

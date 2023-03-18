@@ -13,7 +13,7 @@ The POSIX implementation has been extensively tested for high concurrency (250) 
 Building Fast-Chess from source is simple and straightforward. Just follow these steps:
 
 1. Clone the repository `git clone https://github.com/Disservin/fast-chess.git`
-2. Navigate to the src directory `cd fast-chess/src`
+2. Navigate to the fast-chess directory `cd fast-chess`
 3. Build the executable `make -j`
 
 ### Download the latest release

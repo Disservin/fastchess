@@ -22,16 +22,6 @@ else
 endif
 endif
 
-ifeq ($(build), debug)
-	CXXFLAGS := -g3 -O3 -std=c++17 -Wall -Wextra -pedantic
-endif
-
-ifeq ($(build), release)
-	CXXFLAGS := -O3 -std=c++17 -Wall -Wextra -pedantic -DNDEBUG
-	LDFLAGS = -lpthread -static -static-libgcc -static-libstdc++ -Wl,--no-as-needed
-	NATIVE = -march=x86-64
-endif
-
 # Different native flag for macOS
 ifeq ($(uname_S), Darwin)
 	NATIVE =	
@@ -52,6 +42,16 @@ else
 	OBJECTS   := $(patsubst %.cpp,$(BUILDDIR)/%.o,$(SRC_FILES))
 	DEPENDS   := $(patsubst %.cpp,$(BUILDDIR)/%.d,$(SRC_FILES))
 	TARGET    := fast-chess
+endif
+
+ifeq ($(build), debug)
+	CXXFLAGS := -g3 -O3  $(INCLUDES) -std=c++17 -Wall -Wextra -pedantic
+endif
+
+ifeq ($(build), release)
+	CXXFLAGS := -O3 -std=c++17  $(INCLUDES) -Wall -Wextra -pedantic -DNDEBUG
+	LDFLAGS  := -lpthread -static -static-libgcc -static-libstdc++ -Wl,--no-as-needed
+	NATIVE   := -march=x86-64
 endif
 
 ifeq ($(san), asan)

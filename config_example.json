@@ -1,0 +1,88 @@
+{
+    "event_name": "?",
+    "site": "?",
+    "seed": 951356066,
+    "ratinginterval": 10,
+    "games": 1,
+    "rounds": 1,
+    "concurrency": 1,
+    "overhead": 0,
+    "recover": false,
+    "resign": {
+        "move_count": 0,
+        "score": 0,
+        "enabled": false
+    },
+    "draw": {
+        "move_number": 0,
+        "move_count": 0,
+        "score": 0,
+        "enabled": false
+    },
+    "opening": {
+        "file": "",
+        "format": "",
+        "order": "",
+        "plies": 0,
+        "start": 0
+    },
+    "pgn": {
+        "file": "",
+        "notation": "san",
+        "track_nodes": false,
+        "track_seldepth": false
+    },
+    "sprt": {
+        "alpha": 0.0,
+        "beta": 0.0,
+        "elo0": 0.0,
+        "elo1": 0.0
+    },
+    "engines": [
+        {
+            "name": "1",
+            "dir": "",
+            "cmd": "./tests/data/engine/dummy_engine.exe",
+            "args": "",
+            "options": [],
+            "tc": {
+                "moves": 0,
+                "time": 0,
+                "increment": 0,
+                "fixed_time": 0
+            },
+            "nodes": 0,
+            "plies": 1,
+            "recover": false
+        },
+        {
+            "name": "2",
+            "dir": "",
+            "cmd": "./tests/data/engine/dummy_engine.exe",
+            "args": "",
+            "options": [],
+            "tc": {
+                "moves": 0,
+                "time": 0,
+                "increment": 0,
+                "fixed_time": 0
+            },
+            "nodes": 0,
+            "plies": 1,
+            "recover": false
+        }
+    ],
+    "stats": {
+        "wins": 0,
+        "draws": 0,
+        "losses": 1,
+        "penta_WW": 0,
+        "penta_WD": 0,
+        "penta_WL": 0,
+        "penta_LD": 0,
+        "penta_LL": 0,
+        "round_count": 1,
+        "total_count": 1,
+        "timeouts": 0
+    }
+}

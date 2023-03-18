@@ -22,12 +22,6 @@ else
 endif
 endif
 
-# Different native flag for macOS
-ifeq ($(uname_S), Darwin)
-	NATIVE =	
-	LDFLAGS =
-endif
-
 ifeq ($(MAKECMDGOALS),tests)
 	CXXFLAGS  := -O2 -std=c++17 $(INCLUDES) -g3 -fno-omit-frame-pointer -Wall -Wextra
 	TEST_SR   := $(wildcard *.cpp) $(wildcard */*.cpp) $(wildcard */*/*.cpp)
@@ -52,6 +46,12 @@ ifeq ($(build), release)
 	CXXFLAGS := -O3 -std=c++17  $(INCLUDES) -Wall -Wextra -pedantic -DNDEBUG
 	LDFLAGS  := -lpthread -static -static-libgcc -static-libstdc++ -Wl,--no-as-needed
 	NATIVE   := -march=x86-64
+endif
+
+# Different native flag for macOS
+ifeq ($(uname_S), Darwin)
+	NATIVE =	
+	LDFLAGS =
 endif
 
 ifeq ($(san), asan)

@@ -28,7 +28,7 @@ struct MoveData
     }
 };
 
-struct Match
+struct MatchInfo
 {
     std::vector<MoveData> moves;
     EngineConfiguration white_engine;

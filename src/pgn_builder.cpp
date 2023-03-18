@@ -8,7 +8,7 @@
 namespace fast_chess
 {
 
-PgnBuilder::PgnBuilder(const Match &match, const CMD::GameManagerOptions &game_options_,
+PgnBuilder::PgnBuilder(const MatchInfo &match, const CMD::GameManagerOptions &game_options_,
                        const bool saveTime)
 {
     const std::string result = resultToString(match.result);

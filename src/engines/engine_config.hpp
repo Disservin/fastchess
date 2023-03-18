@@ -32,7 +32,7 @@ struct TimeControl
     int64_t fixed_time = 0;
 };
 
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(TimeControl, moves, time, increment, fixed_time);
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(TimeControl, moves, time, increment, fixed_time)
 
 inline std::ostream &operator<<(std::ostream &os, const TimeControl &tc)
 {
@@ -77,6 +77,6 @@ struct EngineConfiguration
 };
 
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(EngineConfiguration, name, dir, cmd, args, options,
-                                                tc, nodes, plies, recover);
+                                                tc, nodes, plies, recover)
 
 } // namespace fast_chess

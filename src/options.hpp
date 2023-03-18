@@ -7,7 +7,7 @@
 
 #include "engines/engine_config.hpp"
 #include "logger.hpp"
-#include "matchmaking/tournament_data.hpp"
+#include "matchmaking/matchmaking_data.hpp"
 
 namespace fast_chess
 {
@@ -24,7 +24,7 @@ struct OpeningOptions
     int plies = 0;
     int start = 0;
 };
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(OpeningOptions, file, format, order, plies, start);
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(OpeningOptions, file, format, order, plies, start)
 
 struct PgnOptions
 {
@@ -34,7 +34,7 @@ struct PgnOptions
     bool track_seldepth = false;
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(PgnOptions, file, notation, track_nodes,
-                                                track_seldepth);
+                                                track_seldepth)
 
 struct SprtOptions
 {
@@ -43,7 +43,7 @@ struct SprtOptions
     double elo0 = 0.0;
     double elo1 = 0.0;
 };
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(SprtOptions, alpha, beta, elo0, elo1);
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(SprtOptions, alpha, beta, elo0, elo1)
 
 struct DrawAdjudication
 {
@@ -54,7 +54,7 @@ struct DrawAdjudication
     bool enabled = false;
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(DrawAdjudication, move_number, move_count, score,
-                                                enabled);
+                                                enabled)
 
 struct ResignAdjudication
 {
@@ -63,7 +63,7 @@ struct ResignAdjudication
 
     bool enabled = false;
 };
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(ResignAdjudication, move_count, score, enabled);
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(ResignAdjudication, move_count, score, enabled)
 
 struct GameManagerOptions
 {
@@ -93,8 +93,7 @@ struct GameManagerOptions
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(GameManagerOptions, event_name, site, seed,
                                                 ratinginterval, games, rounds, concurrency,
-                                                overhead, recover, resign, draw, opening, pgn,
-                                                sprt);
+                                                overhead, recover, resign, draw, opening, pgn, sprt)
 
 class Options
 {

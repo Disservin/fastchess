@@ -9,8 +9,8 @@
 #include "chess/board.hpp"
 #include "engines/engine_config.hpp"
 #include "engines/uci_engine.hpp"
+#include "matchmaking/matchmaking_data.hpp"
 #include "matchmaking/threadpool.hpp"
-#include "matchmaking/tournament_data.hpp"
 #include "options.hpp"
 #include "sprt.hpp"
 
@@ -32,24 +32,6 @@ class Tournament
     };
 
     explicit Tournament(const CMD::GameManagerOptions &mc);
-
-    template <typename T>
-    static std::optional<T> findElement(const std::vector<std::string> &haystack,
-                                        std::string_view needle)
-    {
-        auto position = std::find(haystack.begin(), haystack.end(), needle);
-        auto index = position - haystack.begin();
-        if (position == haystack.end())
-            return std::nullopt;
-        if constexpr (std::is_same_v<T, int>)
-            return std::stoi(haystack[index + 1]);
-        else if constexpr (std::is_same_v<T, float>)
-            return std::stof(haystack[index + 1]);
-        else if constexpr (std::is_same_v<T, uint64_t>)
-            return std::stoull(haystack[index + 1]);
-        else
-            return haystack[index + 1];
-    }
 
     void loadConfig(const CMD::GameManagerOptions &mc);
 
@@ -76,25 +58,18 @@ class Tournament
     MoveData parseEngineOutput(const Board &board, const std::vector<std::string> &output,
                                const std::string &move, int64_t measuredTime) const;
 
-    bool checkEngineStatus(UciEngine &engine, Match &match, int roundId) const;
+    bool checkEngineStatus(UciEngine &engine, MatchInfo &match, int roundId) const;
 
     void updateTrackers(DrawAdjTracker &drawTracker, ResignAdjTracker &resignTracker,
                         const Score moveScore, const int move_number) const;
 
-    GameResult checkAdj(Match &match, const DrawAdjTracker &drawTracker,
+    GameResult checkAdj(MatchInfo &match, const DrawAdjTracker &drawTracker,
                         const ResignAdjTracker &resignTracker, const Score score,
                         const Color lastSideThatMoved) const;
 
-    bool playNextMove(UciEngine &engine, std::string &positionInput, Board &board,
-                      TimeControl &timeLeftUs, const TimeControl &timeLeftThem, GameResult &res,
-                      Match &match, DrawAdjTracker &drawTracker, ResignAdjTracker &resignTracker,
-                      int roundId);
-
-    Match startMatch(UciEngine &engine1, UciEngine &engine2, int roundId, std::string openingFen);
-
-    std::vector<Match> runH2H(CMD::GameManagerOptions localMatchConfig,
-                              const std::vector<EngineConfiguration> &configs,
-                              const std::string &fen);
+    std::vector<MatchInfo> runH2H(CMD::GameManagerOptions localMatchConfig,
+                                  const std::vector<EngineConfiguration> &configs,
+                                  const std::string &fen);
 
     CMD::GameManagerOptions match_config_ = {};
 

@@ -8,7 +8,7 @@ namespace fast_chess
 class PgnBuilder
 {
   public:
-    PgnBuilder(const Match &match, const CMD::GameManagerOptions &game_options_,
+    PgnBuilder(const MatchInfo &match, const CMD::GameManagerOptions &game_options_,
                const bool saveTime);
 
     std::string getPGN() const;

@@ -1,5 +1,5 @@
-#include "board.hpp"
-#include "movegen.hpp"
+#include "chess/board.hpp"
+#include "chess/movegen.hpp"
 
 namespace fast_chess
 {

@@ -3,6 +3,8 @@
 #include <iomanip> // std::setprecision
 #include <sstream>
 
+#include "chess/board.hpp"
+
 namespace fast_chess
 {
 

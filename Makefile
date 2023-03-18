@@ -36,13 +36,14 @@ ifeq ($(uname_S), Darwin)
 endif
 
 ifeq ($(MAKECMDGOALS),tests)
-	CXXFLAGS  := -O2 -std=c++17 -g3 -fno-omit-frame-pointer -Wall -Wextra
+	CXXFLAGS  := -O2 -std=c++17 $(INCLUDES) -g3 -fno-omit-frame-pointer -Wall -Wextra
 	TEST_SR   := $(wildcard *.cpp) $(wildcard */*.cpp) $(wildcard */*/*.cpp)
 	SRC_FILES := $(filter-out src/main.cpp, $(TEST_SR))
 	OBJECTS   := $(patsubst %.cpp,$(BUILDDIR)/%.o,$(SRC_FILES))
 	DEPENDS   := $(patsubst %.cpp,$(BUILDDIR)/%.d,$(SRC_FILES))
 	TARGET    := fast-chess-tests
 else
+	CXXFLAGS  += $(INCLUDES)
 	NATIVE 	  := -march=native
 	SRC_FILES := $(wildcard src/*.cpp) $(wildcard src/*/*.cpp)
 	OBJECTS   := $(patsubst %.cpp,$(BUILDDIR)/%.o,$(SRC_FILES))
@@ -88,7 +89,7 @@ $(BUILDDIR)/%.o: %.cpp | $(BUILDDIR)
 	$(CXX) $(CXXFLAGS) $(NATIVE) -MMD -MP -c $< -o $@ $(LDFLAGS)
 
 $(BUILDDIR):
-	mkdir -p $(BUILDDIR)/src/engines $(BUILDDIR)/src/chess $(BUILDDIR)/tests
+	mkdir -p $(BUILDDIR)/src/engines $(BUILDDIR)/src/chess $(BUILDDIR)/tests $(BUILDDIR)/src/matchmaking
 
 clean:
 	rm -rf $(BUILDDIR)

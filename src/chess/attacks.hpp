@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../third_party/sliders.hpp"
-#include "types.hpp"
+#include "chess/types.hpp"
+#include "third_party/sliders.hpp"
 
 namespace fast_chess
 {

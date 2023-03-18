@@ -1,9 +1,9 @@
-#include "uci_engine.hpp"
+#include "engines/uci_engine.hpp"
 
 #include <sstream>
 #include <stdexcept>
 
-#include "engine_config.hpp"
+#include "engines/engine_config.hpp"
 
 namespace fast_chess
 {

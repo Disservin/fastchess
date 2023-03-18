@@ -1,4 +1,4 @@
-#include "engineprocess.hpp"
+#include "engines/engineprocess.hpp"
 
 #include <cassert>
 #include <chrono>
@@ -7,8 +7,8 @@
 #include <stdexcept>
 #include <thread>
 
-#include "../logger.hpp"
-#include "../options.hpp"
+#include "logger.hpp"
+#include "options.hpp"
 
 namespace fast_chess
 {

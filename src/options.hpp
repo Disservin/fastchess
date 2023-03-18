@@ -7,7 +7,7 @@
 
 #include "engines/engine_config.hpp"
 #include "logger.hpp"
-#include "tournament_data.hpp"
+#include "matchmaking/tournament_data.hpp"
 
 namespace fast_chess
 {

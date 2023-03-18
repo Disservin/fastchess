@@ -1,6 +1,6 @@
 #include "doctest/doctest.hpp"
 
-#include "../src/engines/uci_engine.hpp"
+#include "engines/uci_engine.hpp"
 
 #include <cassert>
 #include <chrono>

@@ -1,7 +1,7 @@
 #include "doctest/doctest.hpp"
 
-#include "../src/chess/board.hpp"
-#include "../src/chess/perft.hpp"
+#include "chess/board.hpp"
+#include "chess/perft.hpp"
 
 using namespace fast_chess;
 

@@ -1,7 +1,7 @@
 #include "doctest/doctest.hpp"
 
-#include "../src/chess/helper.hpp"
-#include "../src/options.hpp"
+#include "chess/helper.hpp"
+#include "options.hpp"
 
 using namespace fast_chess;
 

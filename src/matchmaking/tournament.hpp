@@ -9,10 +9,10 @@
 #include "chess/board.hpp"
 #include "engines/engine_config.hpp"
 #include "engines/uci_engine.hpp"
+#include "matchmaking/threadpool.hpp"
+#include "matchmaking/tournament_data.hpp"
 #include "options.hpp"
 #include "sprt.hpp"
-#include "threadpool.hpp"
-#include "tournament_data.hpp"
 
 namespace fast_chess
 {

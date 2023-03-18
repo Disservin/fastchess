@@ -5,9 +5,9 @@
 #include <string>
 #include <vector>
 
-#include "helper.hpp"
-#include "move.hpp"
-#include "types.hpp"
+#include "chess/helper.hpp"
+#include "chess/move.hpp"
+#include "chess/types.hpp"
 
 namespace fast_chess
 {

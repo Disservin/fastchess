@@ -1,8 +1,8 @@
 #include "doctest/doctest.hpp"
 
-#include "../src/chess/helper.hpp"
-#include "../src/options.hpp"
-#include "../src/tournament.hpp"
+#include "chess/helper.hpp"
+#include "matchmaking/tournament.hpp"
+#include "options.hpp"
 
 using namespace fast_chess;
 

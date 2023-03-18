@@ -3,30 +3,31 @@
 namespace fast_chess
 {
 
+// Constructor for the Match class, which sets up a game between two chess engines
 Match::Match(CMD::GameManagerOptions match_config, const EngineConfiguration &engine1_config,
              const EngineConfiguration &engine2_config, bool save_time_header)
 {
+    // Store the game configurations and save_time_header flag in member variables
     match_config_ = match_config;
+    save_time_header_ = save_time_header;
 
-    engine1_.loadConfig(engine1_config);
-    engine1_.resetError();
-    engine1_.startEngine();
+    // Initialize the engines and set their turns
+    initializeEngine(engine1_, engine1_config, Turn::FIRST);
+    initializeEngine(engine2_, engine2_config, Turn::SECOND);
 
-    engine2_.loadConfig(engine2_config);
-    engine2_.resetError();
-    engine2_.startEngine();
-
-    engine1_.checkErrors();
-    engine2_.checkErrors();
-
-    // engine1_ always starts first
-    engine1_.turn = Turn::FIRST;
-    engine2_.turn = Turn::SECOND;
-
+    // Initialize trackers for resign and draw offers
     resignTracker_ = ResignAdjTracker(match_config_.resign.score, 0);
     drawTracker_ = DrawAdjTracker(match_config_.draw.score, 0);
+}
 
-    save_time_header_ = save_time_header;
+// Private helper function to initialize a chess engine and set its turn
+void Match::initializeEngine(UciEngine &engine, const EngineConfiguration &config, Turn turn)
+{
+    engine.loadConfig(config);
+    engine.resetError();
+    engine.startEngine();
+    engine.checkErrors();
+    engine.turn = turn;
 }
 
 MatchInfo Match::startMatch(int roundId, std::string openingFen)
@@ -35,6 +36,7 @@ MatchInfo Match::startMatch(int roundId, std::string openingFen)
 
     board_.loadFen(openingFen);
 
+    // Determine which engine is playing as white and which is playing as black
     mi_.white_engine =
         board_.getSideToMove() == WHITE ? engine1_.getConfig() : engine2_.getConfig();
     mi_.black_engine =
@@ -50,11 +52,13 @@ MatchInfo Match::startMatch(int roundId, std::string openingFen)
     std::string positionInput =
         board_.getFen() == startpos_ ? "position startpos" : "position fen " + board_.getFen();
 
+    // Set up initial time left for each engine
     auto timeLeft_1 = engine1_.getConfig().tc;
     auto timeLeft_2 = engine2_.getConfig().tc;
 
     const auto start = std::chrono::high_resolution_clock::now();
 
+    // Alternate turns between the two engines until the game is over
     while (true)
     {
         if (!playNextMove(engine1_, positionInput, timeLeft_1, timeLeft_2))
@@ -66,6 +70,7 @@ MatchInfo Match::startMatch(int roundId, std::string openingFen)
 
     const auto end = std::chrono::high_resolution_clock::now();
 
+    // Record match duration and end time
     mi_.round = roundId_;
     mi_.end_time = save_time_header_ ? Logger::getDateTime() : "";
     mi_.duration =
@@ -85,38 +90,39 @@ MoveData Match::parseEngineOutput(const std::vector<std::string> &output, const 
     int depth = 0;
     int selDepth = 0;
 
+    if (output.size() <= 1)
+        return MoveData(move, score_string, measuredTime, depth, selDepth, score, nodes);
+
     // extract last info line
-    if (output.size() > 1)
+    const auto info = CMD::splitString(output[output.size() - 2], ' ');
+
+    // Missing elements default to 0
+    std::string scoreType = CMD::findElement<std::string>(info, "score").value_or("cp");
+    depth = CMD::findElement<int>(info, "depth").value_or(0);
+    selDepth = CMD::findElement<int>(info, "seldepth").value_or(0);
+    nodes = CMD::findElement<uint64_t>(info, "nodes").value_or(0);
+
+    if (scoreType == "cp")
     {
-        const auto info = CMD::splitString(output[output.size() - 2], ' ');
-        // Missing elements default to 0
-        std::string scoreType = CMD::findElement<std::string>(info, "score").value_or("cp");
-        depth = CMD::findElement<int>(info, "depth").value_or(0);
-        selDepth = CMD::findElement<int>(info, "seldepth").value_or(0);
-        nodes = CMD::findElement<uint64_t>(info, "nodes").value_or(0);
+        score = CMD::findElement<int>(info, "cp").value_or(0);
 
-        if (scoreType == "cp")
-        {
-            score = CMD::findElement<int>(info, "cp").value_or(0);
-
-            std::stringstream ss;
-            ss << (score >= 0 ? '+' : '-');
-            ss << std::fixed << std::setprecision(2) << (float(std::abs(score)) / 100);
-            score_string = ss.str();
-        }
-        else if (scoreType == "mate")
-        {
-            score = CMD::findElement<int>(info, "mate").value_or(0);
-            score_string = (score > 0 ? "+M" : "-M") + std::to_string(std::abs(score));
-            score = mate_score_;
-        }
+        std::stringstream ss;
+        ss << (score >= 0 ? '+' : '-');
+        ss << std::fixed << std::setprecision(2) << (float(std::abs(score)) / 100);
+        score_string = ss.str();
+    }
+    else if (scoreType == "mate")
+    {
+        score = CMD::findElement<int>(info, "mate").value_or(0);
+        score_string = (score > 0 ? "+M" : "-M") + std::to_string(std::abs(score));
+        score = mate_score_;
     }
 
     // verify pv
     for (const auto &info : output)
     {
-        auto tmp = board_;
         const auto tokens = CMD::splitString(info, ' ');
+        auto tmp = board_;
 
         if (!CMD::contains(tokens, "moves"))
             continue;
@@ -142,27 +148,18 @@ void Match::updateTrackers(const Score moveScore, const int move_number)
 {
     // Score is low for draw adj, increase the counter
     if (move_number >= match_config_.draw.move_number && abs(moveScore) < drawTracker_.draw_score)
-    {
         drawTracker_.move_count++;
-    }
     // Score wasn't low enough for draw adj, since we care about consecutive
     // moves we have to reset the counter
     else
-    {
         drawTracker_.move_count = 0;
-    }
-
     // Score is low for resign adj, increase the counter (this purposely makes
     // it possible that a move can work for both draw and resign adj for
     // whatever reason that might be the case)
     if (abs(moveScore) > resignTracker_.resign_score)
-    {
         resignTracker_.move_count++;
-    }
     else
-    {
         resignTracker_.move_count = 0;
-    }
 }
 
 GameResult Match::checkAdj(const Score score, const Color lastSideThatMoved)

@@ -6,13 +6,16 @@ BUILDDIR = build
 
 # Detect Windows
 ifeq ($(OS), Windows_NT)
+	MKDIR    := mkdir
 	uname_S  := Windows
 	SUFFIX   := .exe
 else
 ifeq ($(COMP), MINGW)
+	MKDIR    := mkdir
 	uname_S  := Windows
 	SUFFIX   := .exe
 else
+	MKDIR   := mkdir -p
 	LDFLAGS := -pthread
 	uname_S := $(shell uname -s)
 	SUFFIX  :=
@@ -89,7 +92,7 @@ $(BUILDDIR)/%.o: %.cpp | $(BUILDDIR)
 	$(CXX) $(CXXFLAGS) $(NATIVE) -MMD -MP -c $< -o $@ $(LDFLAGS)
 
 $(BUILDDIR):
-	mkdir -p $(BUILDDIR)/src/engines $(BUILDDIR)/src/chess $(BUILDDIR)/tests $(BUILDDIR)/src/matchmaking
+	$(MKDIR) "$(BUILDDIR)" "$(BUILDDIR)/src" "$(BUILDDIR)/src/engines" "$(BUILDDIR)/src/chess" "$(BUILDDIR)/tests" "$(BUILDDIR)/src/matchmaking"
 
 clean:
 	rm -rf $(BUILDDIR)

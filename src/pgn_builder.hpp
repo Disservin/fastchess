@@ -1,5 +1,6 @@
 #pragma once
 
+#include "matchmaking/match.hpp"
 #include "options.hpp"
 
 namespace fast_chess

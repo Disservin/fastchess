@@ -1,7 +1,5 @@
 #pragma once
 
-#include <optional>
-
 #include "chess/board.hpp"
 #include "engines/engine_config.hpp"
 #include "engines/uci_engine.hpp"
@@ -9,6 +7,23 @@
 
 namespace fast_chess
 {
+
+struct MatchInfo
+{
+    std::vector<MoveData> moves;
+    EngineConfiguration white_engine;
+    EngineConfiguration black_engine;
+    GameResult result = GameResult::NONE;
+    std::string termination;
+    std::string start_time;
+    std::string end_time;
+    std::string duration;
+    std::string date;
+    std::string fen;
+    int round = 0;
+    bool legal = true;
+    bool needs_restart = false;
+};
 
 class Match
 {
@@ -20,23 +35,6 @@ class Match
           const EngineConfiguration &engine2_config, bool save_time_header);
 
     MatchInfo startMatch(int roundId, std::string openingFen);
-
-    template <typename T>
-    std::optional<T> findElement(const std::vector<std::string> &haystack, std::string_view needle)
-    {
-        auto position = std::find(haystack.begin(), haystack.end(), needle);
-        auto index = position - haystack.begin();
-        if (position == haystack.end())
-            return std::nullopt;
-        if constexpr (std::is_same_v<T, int>)
-            return std::stoi(haystack[index + 1]);
-        else if constexpr (std::is_same_v<T, float>)
-            return std::stof(haystack[index + 1]);
-        else if constexpr (std::is_same_v<T, uint64_t>)
-            return std::stoull(haystack[index + 1]);
-        else
-            return haystack[index + 1];
-    }
 
   private:
     const std::string startpos_ = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";

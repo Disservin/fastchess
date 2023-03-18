@@ -88,16 +88,16 @@ MoveData Match::parseEngineOutput(const std::vector<std::string> &output, const 
     // extract last info line
     if (output.size() > 1)
     {
-        const auto info = CMD::Options::splitString(output[output.size() - 2], ' ');
+        const auto info = CMD::splitString(output[output.size() - 2], ' ');
         // Missing elements default to 0
-        std::string scoreType = findElement<std::string>(info, "score").value_or("cp");
-        depth = findElement<int>(info, "depth").value_or(0);
-        selDepth = findElement<int>(info, "seldepth").value_or(0);
-        nodes = findElement<uint64_t>(info, "nodes").value_or(0);
+        std::string scoreType = CMD::findElement<std::string>(info, "score").value_or("cp");
+        depth = CMD::findElement<int>(info, "depth").value_or(0);
+        selDepth = CMD::findElement<int>(info, "seldepth").value_or(0);
+        nodes = CMD::findElement<uint64_t>(info, "nodes").value_or(0);
 
         if (scoreType == "cp")
         {
-            score = findElement<int>(info, "cp").value_or(0);
+            score = CMD::findElement<int>(info, "cp").value_or(0);
 
             std::stringstream ss;
             ss << (score >= 0 ? '+' : '-');
@@ -106,7 +106,7 @@ MoveData Match::parseEngineOutput(const std::vector<std::string> &output, const 
         }
         else if (scoreType == "mate")
         {
-            score = findElement<int>(info, "mate").value_or(0);
+            score = CMD::findElement<int>(info, "mate").value_or(0);
             score_string = (score > 0 ? "+M" : "-M") + std::to_string(std::abs(score));
             score = mate_score_;
         }
@@ -116,9 +116,9 @@ MoveData Match::parseEngineOutput(const std::vector<std::string> &output, const 
     for (const auto &info : output)
     {
         auto tmp = board_;
-        const auto tokens = CMD::Options::splitString(info, ' ');
+        const auto tokens = CMD::splitString(info, ' ');
 
-        if (!CMD::Options::contains(tokens, "moves"))
+        if (!CMD::contains(tokens, "moves"))
             continue;
 
         std::size_t index = std::find(tokens.begin(), tokens.end(), "pv") - tokens.begin();
@@ -273,7 +273,7 @@ bool Match::playNextMove(UciEngine &engine, std::string &positionInput, TimeCont
 
     // find bestmove and add it to the position string
     const auto bestMove =
-        findElement<std::string>(CMD::Options::splitString(output.back(), ' '), "bestmove").value();
+        CMD::findElement<std::string>(CMD::splitString(output.back(), ' '), "bestmove").value();
 
     if (mi_.moves.size() == 0)
         positionInput += " moves";

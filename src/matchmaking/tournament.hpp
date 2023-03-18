@@ -2,13 +2,13 @@
 
 #include <atomic>
 #include <fstream>
-#include <optional>
 #include <utility>
 #include <vector>
 
 #include "chess/board.hpp"
 #include "engines/engine_config.hpp"
 #include "engines/uci_engine.hpp"
+#include "matchmaking/match.hpp"
 #include "matchmaking/matchmaking_data.hpp"
 #include "matchmaking/threadpool.hpp"
 #include "options.hpp"
@@ -54,18 +54,6 @@ class Tournament
     std::string fetchNextFen();
 
     void writeToFile(const std::string &data);
-
-    MoveData parseEngineOutput(const Board &board, const std::vector<std::string> &output,
-                               const std::string &move, int64_t measuredTime) const;
-
-    bool checkEngineStatus(UciEngine &engine, MatchInfo &match, int roundId) const;
-
-    void updateTrackers(DrawAdjTracker &drawTracker, ResignAdjTracker &resignTracker,
-                        const Score moveScore, const int move_number) const;
-
-    GameResult checkAdj(MatchInfo &match, const DrawAdjTracker &drawTracker,
-                        const ResignAdjTracker &resignTracker, const Score score,
-                        const Color lastSideThatMoved) const;
 
     std::vector<MatchInfo> runH2H(CMD::GameManagerOptions localMatchConfig,
                                   const std::vector<EngineConfiguration> &configs,

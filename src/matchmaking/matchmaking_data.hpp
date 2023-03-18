@@ -28,23 +28,6 @@ struct MoveData
     }
 };
 
-struct MatchInfo
-{
-    std::vector<MoveData> moves;
-    EngineConfiguration white_engine;
-    EngineConfiguration black_engine;
-    GameResult result = GameResult::NONE;
-    std::string termination;
-    std::string start_time;
-    std::string end_time;
-    std::string duration;
-    std::string date;
-    std::string fen;
-    int round = 0;
-    bool legal = true;
-    bool needs_restart = false;
-};
-
 struct DrawAdjTracker
 {
     Score draw_score = 0;

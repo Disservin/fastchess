@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../chess/types.hpp"
+#include "chess/types.hpp"
 #include "engine_config.hpp"
 #include "engineprocess.hpp"
 

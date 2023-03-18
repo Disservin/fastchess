@@ -2,6 +2,7 @@
 
 #include <functional>
 #include <iostream>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -102,13 +103,6 @@ class Options
 
     Options(int argc, char const *argv[]);
 
-    static bool startsWith(std::string_view haystack, std::string_view needle);
-
-    static bool contains(std::string_view haystack, std::string_view needle);
-    static bool contains(const std::vector<std::string> &haystack, std::string_view needle);
-
-    static std::vector<std::string> splitString(const std::string &string, const char &delimiter);
-
     void saveJson(const Stats &stats) const;
     void loadJson(const std::string &filename);
 
@@ -162,6 +156,30 @@ class Options
     // Holds all the engines with their options
     std::vector<EngineConfiguration> configs_;
 };
+
+bool startsWith(std::string_view haystack, std::string_view needle);
+
+bool contains(std::string_view haystack, std::string_view needle);
+bool contains(const std::vector<std::string> &haystack, std::string_view needle);
+
+std::vector<std::string> splitString(const std::string &string, const char &delimiter);
+
+template <typename T>
+std::optional<T> findElement(const std::vector<std::string> &haystack, std::string_view needle)
+{
+    auto position = std::find(haystack.begin(), haystack.end(), needle);
+    auto index = position - haystack.begin();
+    if (position == haystack.end())
+        return std::nullopt;
+    if constexpr (std::is_same_v<T, int>)
+        return std::stoi(haystack[index + 1]);
+    else if constexpr (std::is_same_v<T, float>)
+        return std::stof(haystack[index + 1]);
+    else if constexpr (std::is_same_v<T, uint64_t>)
+        return std::stoull(haystack[index + 1]);
+    else
+        return haystack[index + 1];
+}
 
 } // namespace CMD
 

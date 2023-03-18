@@ -11,9 +11,9 @@ inline bool testFenRepetition(const std::string &input)
 {
     Board board;
 
-    std::vector<std::string> tokens = CMD::Options::splitString(input, ' ');
+    std::vector<std::string> tokens = CMD::splitString(input, ' ');
 
-    bool hasMoves = CMD::Options::contains(tokens, "moves");
+    bool hasMoves = CMD::contains(tokens, "moves");
 
     if (tokens[1] == "fen")
         board.loadFen(input.substr(input.find("fen") + 4));

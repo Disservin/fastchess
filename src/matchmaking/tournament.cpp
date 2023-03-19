@@ -119,6 +119,18 @@ void Tournament::startTournament(const std::vector<EngineConfiguration> &engine_
         throw std::runtime_error("Warning: Need at least two engines to start!");
     }
 
+    for (size_t i = 0; i < engine_configs.size(); i++)
+    {
+        for (size_t j = 0; j < i; j++)
+        {
+            if (engine_configs[i].name == engine_configs[j].name)
+            {
+                throw std::runtime_error("Engine with the same are not allowed!: " +
+                                         engine_configs[i].name);
+            }
+        }
+    }
+
     Logger::coutInfo("Starting tournament...");
 
     std::vector<std::future<bool>> results;

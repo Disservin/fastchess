@@ -2,7 +2,7 @@ CXX = g++
 CXXFLAGS = -O3 -std=c++17 -Wall -Wextra -DNDEBUG
 INCLUDES = -Isrc
 DEPFLAGS = -MMD -MP
-BUILDDIR = build
+TMPDIR = tmp
 
 # Detect Windows
 ifeq ($(OS), Windows_NT)
@@ -26,15 +26,15 @@ ifeq ($(MAKECMDGOALS),tests)
 	CXXFLAGS  := -O2 -std=c++17 $(INCLUDES) -g3 -fno-omit-frame-pointer -Wall -Wextra
 	TEST_SR   := $(wildcard *.cpp) $(wildcard */*.cpp) $(wildcard */*/*.cpp)
 	SRC_FILES := $(filter-out src/main.cpp, $(TEST_SR))
-	OBJECTS   := $(patsubst %.cpp,$(BUILDDIR)/%.o,$(SRC_FILES))
-	DEPENDS   := $(patsubst %.cpp,$(BUILDDIR)/%.d,$(SRC_FILES))
+	OBJECTS   := $(patsubst %.cpp,$(TMPDIR)/%.o,$(SRC_FILES))
+	DEPENDS   := $(patsubst %.cpp,$(TMPDIR)/%.d,$(SRC_FILES))
 	TARGET    := fast-chess-tests
 else
 	CXXFLAGS  += $(INCLUDES)
 	NATIVE 	  := -march=native
 	SRC_FILES := $(wildcard src/*.cpp) $(wildcard src/*/*.cpp)
-	OBJECTS   := $(patsubst %.cpp,$(BUILDDIR)/%.o,$(SRC_FILES))
-	DEPENDS   := $(patsubst %.cpp,$(BUILDDIR)/%.d,$(SRC_FILES))
+	OBJECTS   := $(patsubst %.cpp,$(TMPDIR)/%.o,$(SRC_FILES))
+	DEPENDS   := $(patsubst %.cpp,$(TMPDIR)/%.d,$(SRC_FILES))
 	TARGET    := fast-chess
 endif
 
@@ -88,16 +88,16 @@ tests: $(TARGET)
 $(TARGET): $(OBJECTS)
 	$(CXX) $(CXXFLAGS) $(NATIVE) -MMD -MP -o $@ $^ $(LDFLAGS)
 
-$(BUILDDIR)/%.o: %.cpp | $(BUILDDIR)
+$(TMPDIR)/%.o: %.cpp | $(TMPDIR)
 	$(CXX) $(CXXFLAGS) $(NATIVE) -MMD -MP -c $< -o $@ $(LDFLAGS)
 
-$(BUILDDIR):
-	$(MKDIR) "$(BUILDDIR)" "$(BUILDDIR)/src" "$(BUILDDIR)/src/engines" "$(BUILDDIR)/src/chess" "$(BUILDDIR)/tests" "$(BUILDDIR)/src/matchmaking"
+$(TMPDIR):
+	$(MKDIR) "$(TMPDIR)" "$(TMPDIR)/src" "$(TMPDIR)/src/engines" "$(TMPDIR)/src/chess" "$(TMPDIR)/tests" "$(TMPDIR)/src/matchmaking"
 
 clean:
-	rm -rf $(BUILDDIR)
+	rm -rf $(TMPDIR)
 
 -include $(DEPENDS)
 
-build/src/options.o: FORCE
+tmp/src/options.o: FORCE
 FORCE:

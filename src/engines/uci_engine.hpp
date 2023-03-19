@@ -28,11 +28,6 @@ class UciEngine : public EngineProcess
         initProcess(command);
     }
 
-    UciEngine(const EngineConfiguration &config)
-    {
-        setConfig(config);
-    }
-
     ~UciEngine()
     {
         sendQuit();
@@ -59,8 +54,6 @@ class UciEngine : public EngineProcess
     void sendSetoption(const std::string &name, const std::string &value);
 
     void sendGo(const std::string &limit);
-
-    void setConfig(const EngineConfiguration &rhs);
 
     void restartEngine();
 

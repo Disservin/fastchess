@@ -8,11 +8,6 @@
 namespace fast_chess
 {
 
-void UciEngine::setConfig(const EngineConfiguration &rhs)
-{
-    config_ = rhs;
-}
-
 EngineConfiguration UciEngine::getConfig() const
 {
     return config_;

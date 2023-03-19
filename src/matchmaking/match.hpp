@@ -40,6 +40,8 @@ class Match
     const std::string startpos_ = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
     const Score mate_score_ = 100'000;
 
+    void initializeEngine(UciEngine &engine, const EngineConfiguration &config, Turn turn);
+
     MoveData parseEngineOutput(const std::vector<std::string> &output, const std::string &move,
                                int64_t measuredTime);
 

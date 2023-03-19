@@ -112,11 +112,6 @@ void UciEngine::sendSetoption(const std::string &name, const std::string &value)
     writeProcess("setoption name " + name + " value " + value);
 }
 
-void UciEngine::sendGo(const std::string &limit)
-{
-    writeProcess("go " + limit);
-}
-
 void UciEngine::restartEngine()
 {
     resetError();

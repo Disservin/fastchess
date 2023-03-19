@@ -43,9 +43,9 @@ void Tournament::loadConfig(const CMD::GameManagerOptions &game_config)
         if (game_config_.opening.order == "random")
         {
             // Fisher-Yates / Knuth shuffle
-            for (size_t i = 0; i <= opening_book_.size() - 2; i++)
+            for (std::size_t i = 0; i <= opening_book_.size() - 2; i++)
             {
-                size_t j = i + (Random::mersenne_rand() % (opening_book_.size() - i));
+                std::size_t j = i + (Random::mersenne_rand() % (opening_book_.size() - i));
                 std::swap(opening_book_[i], opening_book_[j]);
             }
         }
@@ -124,9 +124,9 @@ void Tournament::startTournament(const std::vector<EngineConfiguration> &engine_
     std::vector<std::future<bool>> results;
 
     // Round robin
-    for (size_t i = 0; i < engine_configs.size(); i++)
+    for (std::size_t i = 0; i < engine_configs.size(); i++)
     {
-        for (size_t j = i + 1; j < engine_configs.size(); j++)
+        for (std::size_t j = i + 1; j < engine_configs.size(); j++)
         {
             for (int n = 1; n <= game_config_.rounds; n++)
             {

@@ -201,7 +201,7 @@ void Options::parseEngineKeyValues(EngineConfiguration &engineConfig, const std:
     else if (isEngineSettableOption(key))
     {
         // Strip option.Name of the option. Part
-        const size_t pos = key.find('.');
+        const std::size_t pos = key.find('.');
         const std::string strippedKey = key.substr(pos + 1);
         engineConfig.options.push_back(std::make_pair(strippedKey, value));
     }
@@ -215,7 +215,7 @@ void Options::parseDashOptions(int &i, int argc, char const *argv[],
     while (i + 1 < argc && argv[i + 1][0] != '-' && i++)
     {
         std::string param = argv[i];
-        size_t pos = param.find('=');
+        std::size_t pos = param.find('=');
         std::string key = param.substr(0, pos);
         std::string value = param.substr(pos + 1);
 

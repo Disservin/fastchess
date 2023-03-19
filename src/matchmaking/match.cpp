@@ -138,7 +138,7 @@ MoveData Match::parseEngineOutput(const std::vector<std::string> &output, const 
         if (!CMD::contains(tokens, "moves"))
             continue;
 
-        size_t index = std::find(tokens.begin(), tokens.end(), "pv") - tokens.begin();
+        std::size_t index = std::find(tokens.begin(), tokens.end(), "pv") - tokens.begin();
         index++;
         for (; index < tokens.size(); index++)
         {

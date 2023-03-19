@@ -63,7 +63,7 @@ PgnBuilder::PgnBuilder(const MatchData &match, const CMD::GameManagerOptions &ga
     Board b = Board(match.fen);
 
     int move_count = 3;
-    for (size_t i = 0; i < match.moves.size(); i++)
+    for (std::size_t i = 0; i < match.moves.size(); i++)
     {
         const MoveData data = match.moves[i];
 

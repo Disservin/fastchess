@@ -61,7 +61,7 @@ void Board::loadFen(const std::string &fen)
 
     castling_rights_ = 0;
 
-    for (size_t i = 0; i < castling.size(); i++)
+    for (std::size_t i = 0; i < castling.size(); i++)
     {
         if (readCastleString.find(castling[i]) != readCastleString.end())
             castling_rights_ |= readCastleString[castling[i]];

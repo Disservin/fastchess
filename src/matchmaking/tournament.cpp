@@ -192,6 +192,8 @@ bool Tournament::launchMatch(const std::pair<EngineConfiguration, EngineConfigur
 
     for (int i = 0; i < game_config_.games; i++)
     {
+        total_count_++;
+
         Match match = Match(game_config_, config_copy.first, config_copy.second);
         match.playMatch(fen);
 
@@ -216,10 +218,9 @@ bool Tournament::launchMatch(const std::pair<EngineConfiguration, EngineConfigur
 
         std::stringstream ss;
         ss << "Finished game " << i + 1 << "/" << game_config_.games << " in round " << round_count_
-           << "/" << game_config_.rounds << " total played " << total_count_ << "/"
-           << game_config_.rounds * game_config_.games << " " << match_data.players.first.name
-           << " vs " << match_data.players.second.name << ": " << resultToString(match_data)
-           << "\n";
+           << "/" << game_config_.rounds << " total played " << total_count_ << "/" << total_count_
+           << " " << match_data.players.first.config.name << " vs "
+           << match_data.players.second.config.name << ": " << resultToString(match_data) << "\n";
 
         std::cout << ss.str();
 
@@ -227,6 +228,8 @@ bool Tournament::launchMatch(const std::pair<EngineConfiguration, EngineConfigur
         std::swap(config_copy.first, config_copy.second);
 
         updateStats(configs.first.name, configs.second.name, stats);
+
+        printElo(configs.first.name, configs.second.name);
     }
 
     for (const auto &played_matches : matches)

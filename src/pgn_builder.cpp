@@ -33,8 +33,8 @@ PgnBuilder::PgnBuilder(const MatchData &match, const CMD::GameManagerOptions &ga
     ss << "[Site "          << "\"" << game_options_.site       << "\"" << "]" << "\n";
     ss << "[Date "          << "\"" << match.date               << "\"" << "]" << "\n";
     ss << "[Round "         << "\"" << match.round              << "\"" << "]" << "\n";
-    ss << "[White "         << "\"" << white_player.name        << "\"" << "]" << "\n";
-    ss << "[Black "         << "\"" << black_player.name        << "\"" << "]" << "\n";
+    ss << "[White "         << "\"" << white_player.config.name << "\"" << "]" << "\n";
+    ss << "[Black "         << "\"" << black_player.config.name << "\"" << "]" << "\n";
     ss << "[Result "        << "\"" << result                   << "\"" << "]" << "\n";
     ss << "[FEN "           << "\"" << match.fen                << "\"" << "]" << "\n";
     ss << "[GameDuration "  << "\"" << match.duration           << "\"" << "]" << "\n";

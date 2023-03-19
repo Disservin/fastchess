@@ -8,7 +8,6 @@ namespace fast_chess
 struct PlayerInfo
 {
     std::string termination;
-    std::string name;
     GameResult score = GameResult::NONE;
     Color color = NO_COLOR;
     EngineConfiguration config;
@@ -16,7 +15,7 @@ struct PlayerInfo
 
 inline bool operator==(const PlayerInfo &lhs, const EngineConfiguration &rhs)
 {
-    return lhs.name == rhs.name;
+    return lhs.config.name == rhs.name;
 }
 
 inline bool operator!=(const PlayerInfo &lhs, const EngineConfiguration &rhs)

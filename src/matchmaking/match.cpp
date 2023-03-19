@@ -4,21 +4,21 @@
 namespace fast_chess
 {
 
-fast_chess::Match::Match(CMD::GameManagerOptions game_config,
-                         const EngineConfiguration &engine1_config,
-                         const EngineConfiguration &engine2_config)
+Match::Match(CMD::GameManagerOptions game_config, const EngineConfiguration &engine1_config,
+             const EngineConfiguration &engine2_config)
+    : player_1_(Participant(engine1_config)), player_2_(Participant(engine2_config))
 {
     this->game_config_ = game_config;
-
-    player_1_ = Participant(engine1_config);
 }
 
 void Match::playMatch(const std::string &openingFen)
 {
     board_.loadFen(openingFen);
 
-    player_1_.engine_.sendUciNewGame();
-    player_2_.engine_.sendUciNewGame();
+    std::cout << "start match" << std::endl;
+
+    player_1_.sendUciNewGame();
+    player_2_.sendUciNewGame();
 
     match_data_.fen = board_.getFen();
     match_data_.date = Logger::getDateTime();
@@ -27,13 +27,20 @@ void Match::playMatch(const std::string &openingFen)
     std::string position_input =
         board_.getFen() == startpos_ ? "position startpos" : "position fen " + board_.getFen();
 
-    auto our_time = player_1_.engine_.getConfig().tc;
-    auto their_time = player_2_.engine_.getConfig().tc;
+    auto first_player_time = player_1_.getConfig().tc;
+    auto second_player_time = player_2_.getConfig().tc;
 
     const auto start_time = std::chrono::high_resolution_clock::now();
 
     while (true)
     {
+        if (!playNextMove(player_1_, player_1_, position_input, first_player_time,
+                          second_player_time))
+            break;
+
+        if (!playNextMove(player_2_, player_1_, position_input, second_player_time,
+                          first_player_time))
+            break;
     }
 
     const auto end_time = std::chrono::high_resolution_clock::now();
@@ -44,23 +51,24 @@ void Match::playMatch(const std::string &openingFen)
         std::chrono::duration_cast<std::chrono::seconds>(end_time - start_time));
 }
 
-MatchData Match::getMatchData() const
+MatchData Match::getMatchData()
 {
+    match_data_.players = std::make_pair(player_1_.info_, player_2_.info_);
     return match_data_;
 }
 
-bool Match::tellEngine(UciEngine &engine, const std::string &input)
+bool Match::tellEngine(Participant &player, const std::string &input)
 {
-    engine.writeProcess(input);
-    if (!hasErrors(engine))
+    player.writeProcess(input);
+    if (!hasErrors(player))
         return false;
 
     return true;
 }
 
-bool Match::hasErrors(UciEngine &engine)
+bool Match::hasErrors(Participant &player)
 {
-    if (!engine.checkErrors().empty())
+    if (!player.checkErrors().empty())
     {
         match_data_.needs_restart = game_config_.recover;
         return false;
@@ -69,12 +77,12 @@ bool Match::hasErrors(UciEngine &engine)
     return true;
 }
 
-bool Match::isResponsive(UciEngine &engine)
+bool Match::isResponsive(Participant &player)
 {
     // engine's turn
-    if (!engine.isResponsive())
+    if (!player.isResponsive())
     {
-        Logger::coutInfo("Warning: Engine", engine.getConfig().name,
+        Logger::coutInfo("Warning: Engine", player.getConfig().name,
                          "disconnects. It was not responsive.");
 
         if (!game_config_.recover)
@@ -90,10 +98,64 @@ bool Match::isResponsive(UciEngine &engine)
 MoveData Match::parseEngineOutput(const std::vector<std::string> &output, const std::string &move,
                                   int64_t measured_time)
 {
-    return MoveData();
+    auto move_data = MoveData(move, "0.00", measured_time, 0, 0, 0, 0);
+
+    if (output.size() <= 1)
+        return move_data;
+
+    // extract last info line
+    const auto info = CMD::splitString(output[output.size() - 2], ' ');
+
+    // Missing elements default to 0
+    std::string scoreType = CMD::findElement<std::string>(info, "score").value_or("cp");
+    move_data.depth = CMD::findElement<int>(info, "depth").value_or(0);
+    move_data.seldepth = CMD::findElement<int>(info, "seldepth").value_or(0);
+    move_data.nodes = CMD::findElement<uint64_t>(info, "nodes").value_or(0);
+
+    if (scoreType == "cp")
+    {
+        move_data.score = CMD::findElement<int>(info, "cp").value_or(0);
+
+        std::stringstream ss;
+        ss << (move_data.score >= 0 ? '+' : '-');
+        ss << std::fixed << std::setprecision(2) << (float(std::abs(move_data.score)) / 100);
+        move_data.score_string = ss.str();
+    }
+    else if (scoreType == "mate")
+    {
+        move_data.score = CMD::findElement<int>(info, "mate").value_or(0);
+        move_data.score_string =
+            (move_data.score > 0 ? "+M" : "-M") + std::to_string(std::abs(move_data.score));
+        move_data.score = mate_score_;
+    }
+
+    // verify pv
+    for (const auto &info : output)
+    {
+        const auto tokens = CMD::splitString(info, ' ');
+        auto tmp = board_;
+
+        if (!CMD::contains(tokens, "moves"))
+            continue;
+
+        size_t index = std::find(tokens.begin(), tokens.end(), "pv") - tokens.begin();
+        index++;
+        for (; index < tokens.size(); index++)
+        {
+            if (!tmp.makeMove(convertUciToMove(tmp, tokens[index])))
+            {
+                std::stringstream ss;
+                ss << "Warning: Illegal pv move " << tokens[index] << ".\n";
+                std::cout << ss.str();
+                break;
+            };
+        }
+    }
+
+    return move_data;
 }
 
-bool Match::playNextMove(Participant &player, std::string &position_input,
+bool Match::playNextMove(Participant &player, Participant &enemy, std::string &position_input,
                          TimeControl &time_left_us, const TimeControl &time_left_them)
 {
     std::vector<std::string> output;
@@ -103,32 +165,32 @@ bool Match::playNextMove(Participant &player, std::string &position_input,
 
     bool timeout = false;
 
-    if (!isResponsive(player.engine_))
+    if (!isResponsive(player))
         return false;
 
     // inform the engine about the new position
-    if (!tellEngine(player.engine_, position_input))
+    if (!tellEngine(player, position_input))
         return false;
 
     // Send go command
-    if (!tellEngine(player.engine_, (player.engine_.buildGoInput(board_.getSideToMove(),
-                                                                 time_left_us, time_left_them))))
+    if (!tellEngine(player,
+                    (player.buildGoInput(board_.getSideToMove(), time_left_us, time_left_them))))
         return false;
 
     // Start measuring time
     const auto t0 = std::chrono::high_resolution_clock::now();
 
-    output = player.engine_.readProcess("bestmove", timeout, timeout_threshold);
+    output = player.readProcess("bestmove", timeout, timeout_threshold);
 
     // End of search time
     const auto t1 = std::chrono::high_resolution_clock::now();
 
     // An error has occured, thus abort match. Throw error if engine recovery is
     // turned off.
-    if (!player.engine_.getError().empty())
+    if (!player.getError().empty())
     {
         match_data_.needs_restart = game_config_.recover;
-        Logger::coutInfo("Warning: Engine", player.engine_.getConfig().name, "disconnects #");
+        Logger::coutInfo("Warning: Engine", player.getConfig().name, "disconnects #");
         if (!game_config_.recover)
             throw std::runtime_error("Warning: Can't write to engine.");
 
@@ -145,11 +207,11 @@ bool Match::playNextMove(Participant &player, std::string &position_input,
          measuredTime - game_config_.overhead > time_left_us.fixed_time) ||
         (time_left_us.fixed_time == 0 && time_left_us.time + game_config_.overhead < 0))
     {
-        player.getInfo().result = "0-1";
-        player.getInfo().score = GameResult::LOSE;
+        player.info_.score = GameResult::LOSE;
+        enemy.info_.score = GameResult::WIN;
 
         match_data_.termination = "timeout";
-        Logger::coutInfo("Warning: Engine", player.engine_.getConfig().name, "loses on time #");
+        Logger::coutInfo("Warning: Engine", player.getConfig().name, "loses on time #");
         return false;
     }
 
@@ -173,20 +235,37 @@ bool Match::playNextMove(Participant &player, std::string &position_input,
     if (!match_data_.legal)
     {
         // The move was not legal
-        player.getInfo().result = "0-1";
-        player.getInfo().score = GameResult::LOSE;
+        player.info_.score = GameResult::LOSE;
+        enemy.info_.score = GameResult::WIN;
 
         match_data_.termination = "illegal move";
 
-        Logger::coutInfo("Warning: Engine", player.engine_.getConfig().name,
+        Logger::coutInfo("Warning: Engine", player.getConfig().name,
                          "played an illegal move:", bestMove, "#");
         return false;
     }
 
     // Check for game over
-    player.getInfo().score = board_.isGameOver();
-    if (player.getInfo().score != GameResult::NONE)
+    auto res = board_.isGameOver();
+    std::stringstream ss;
+    ss << board_;
+
+    Logger::writeLog(ss.str(), std::this_thread::get_id());
+    if (res == GameResult::LOSE)
+    {
+        player.info_.score = ~res;
+        // enemy lost
+        enemy.info_.score = res;
+
         return false;
+    }
+    else if (res == GameResult::DRAW)
+    {
+        player.info_.score = GameResult::DRAW;
+        enemy.info_.score = GameResult::DRAW;
+
+        return false;
+    }
 
     return true;
 }

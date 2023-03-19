@@ -9,25 +9,26 @@ struct PlayerInfo
 {
     std::string termination;
     std::string name;
-    std::string result;
     GameResult score = GameResult::NONE;
     Color color = NO_COLOR;
+    EngineConfiguration config;
 };
 
-class Participant
+inline bool operator==(const PlayerInfo &lhs, const EngineConfiguration &rhs)
+{
+    return lhs.name == rhs.name;
+}
+
+inline bool operator!=(const PlayerInfo &lhs, const EngineConfiguration &rhs)
+{
+    return !(lhs == rhs);
+}
+
+class Participant : public UciEngine
 {
   public:
-    Participant() = default;
     explicit Participant(const EngineConfiguration &config);
 
-    PlayerInfo &getInfo()
-    {
-        return info_;
-    }
-
-    UciEngine engine_;
-
-  private:
     PlayerInfo info_;
 };
 

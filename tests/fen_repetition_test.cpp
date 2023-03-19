@@ -22,7 +22,7 @@ inline bool testFenRepetition(const std::string &input)
 
     if (hasMoves)
     {
-        std::size_t index = std::find(tokens.begin(), tokens.end(), "moves") - tokens.begin();
+        size_t index = std::find(tokens.begin(), tokens.end(), "moves") - tokens.begin();
         index++;
         for (; index < tokens.size(); index++)
         {

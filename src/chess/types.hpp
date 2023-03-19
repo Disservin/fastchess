@@ -124,6 +124,18 @@ enum class GameResult
     NONE
 };
 
+constexpr GameResult operator~(GameResult gm)
+{
+    if (gm == GameResult::WIN)
+        return GameResult::LOSE;
+    else if (gm == GameResult::LOSE)
+        return GameResult::WIN;
+    else if (gm == GameResult::DRAW)
+        return GameResult::DRAW;
+    else
+        return GameResult::NONE;
+}
+
 static std::unordered_map<char, Piece> charToPiece({{'P', WHITEPAWN},
                                                     {'N', WHITEKNIGHT},
                                                     {'B', WHITEBISHOP},

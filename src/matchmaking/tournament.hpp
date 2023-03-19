@@ -43,16 +43,19 @@ class Tournament
 {
 
   public:
-    explicit Tournament(const CMD::GameManagerOptions &game_options)
+    explicit Tournament(bool savetime)
     {
-        file_.open("fast-chess.pgn", std::ios::app);
+        if (savetime)
+            file_.open("fast-chess.pgn", std::ios::app);
     };
 
-    void loadConfig(const CMD::GameManagerOptions &mc);
+    explicit Tournament(const CMD::GameManagerOptions &game_config);
+
+    void loadConfig(const CMD::GameManagerOptions &game_config);
 
     void stop();
 
-    void printElo();
+    void printElo(const std::string &first, const std::string &second);
 
     void startTournament(const std::vector<EngineConfiguration> &engine_configs);
 
@@ -68,15 +71,15 @@ class Tournament
 
     void updateStats(const std::string &us, const std::string &them, const Stats &stats);
 
-    void launchMatch(CMD::GameManagerOptions localMatchConfig,
-                     const std::vector<EngineConfiguration> &configs, const std::string &fen);
+    bool launchMatch(const std::pair<EngineConfiguration, EngineConfiguration> &configs,
+                     const std::string &fen);
 
     const std::string startpos_ = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
     std::mutex results_mutex_;
     std::map<std::string, std::map<std::string, Stats>> results_;
 
-    CMD::GameManagerOptions match_config_ = {};
+    CMD::GameManagerOptions game_config_ = {};
 
     ThreadPool pool_ = ThreadPool(1);
 
@@ -88,7 +91,10 @@ class Tournament
     std::mutex file_mutex_;
 
     uint64_t fen_index_ = 0;
-    /* data */
+
+    std::atomic_int round_count_ = 0;
+    std::atomic_int total_count_ = 0;
+    std::atomic_int timeouts_ = 0;
 };
 
 } // namespace fast_chess

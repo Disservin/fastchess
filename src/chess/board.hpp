@@ -8,6 +8,7 @@
 #include "chess/helper.hpp"
 #include "chess/move.hpp"
 #include "chess/types.hpp"
+#include "matchmaking/match_data.hpp"
 
 namespace fast_chess
 {
@@ -62,6 +63,9 @@ class Board
 
     bool isChess960() const;
     bool isRepetition() const;
+
+    /// @brief
+    /// @return GameResult::DRAW or GameResult::LOSE or GameResult::NONE
     GameResult isGameOver();
 
     Bitboard attacksByPiece(PieceType pt, Square sq, Color c, Bitboard occ) const;
@@ -146,6 +150,6 @@ Move convertUciToMove(const Board &board, const std::string &input);
 
 std::string MoveToRep(Board &b, Move move, bool isLan = false);
 
-std::string resultToString(GameResult result);
+std::string resultToString(const MatchData &match);
 
 } // namespace fast_chess

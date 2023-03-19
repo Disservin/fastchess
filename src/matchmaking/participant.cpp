@@ -6,10 +6,12 @@ namespace fast_chess
 
 Participant::Participant(const EngineConfiguration &config)
 {
-    engine_.loadConfig(config);
-    engine_.resetError();
-    engine_.startEngine();
-    engine_.checkErrors();
+    loadConfig(config);
+    resetError();
+    startEngine(config.cmd);
+    checkErrors();
+
+    info_.config = config;
 }
 
 } // namespace fast_chess

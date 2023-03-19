@@ -26,7 +26,7 @@ BOOL WINAPI consoleHandler(DWORD signal)
     case CTRL_SHUTDOWN_EVENT:
     case CTRL_C_EVENT:
 
-        Tour->printElo();
+        // Tour->printElo();
         Tour->stop();
 
         // Options->saveJson(Tour->getStats());
@@ -42,7 +42,7 @@ BOOL WINAPI consoleHandler(DWORD signal)
 #else
 void sigintHandler(int param)
 {
-    Tour->printElo();
+    // Tour->printElo();
     Tour->stop();
     Options->saveJson(Tour->getStats());
 

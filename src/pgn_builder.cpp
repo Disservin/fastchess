@@ -8,107 +8,117 @@
 namespace fast_chess
 {
 
-// PgnBuilder::PgnBuilder(const MatchInfo &match, const CMD::GameManagerOptions &game_options_,
-//                        const bool saveTime)
-// {
-//     const std::string result = resultToString(match.result);
-//     const std::string termination = match.termination;
-//     std::stringstream ss;
+PgnBuilder::PgnBuilder(const MatchData &match, const CMD::GameManagerOptions &game_options_,
+                       const bool saveTime)
+{
+    const std::string result = resultToString(match);
+    const std::string termination = match.termination;
+    std::stringstream ss;
 
-//     // clang-format off
-//     ss << "[Event "         << "\"" << game_options_.event_name    << "\"" << "]" << "\n";
-//     ss << "[Site "          << "\"" << game_options_.site         << "\"" << "]" << "\n";
-//     ss << "[Date "          << "\"" << match.date               << "\"" << "]" << "\n";
-//     ss << "[Round "         << "\"" << match.round              << "\"" << "]" << "\n";
-//     ss << "[White "         << "\"" << match.white_engine.name   << "\"" << "]" << "\n";
-//     ss << "[Black "         << "\"" << match.black_engine.name   << "\"" << "]" << "\n";
-//     ss << "[Result "        << "\"" << result                   << "\"" << "]" << "\n";
-//     ss << "[FEN "           << "\"" << match.fen                << "\"" << "]" << "\n";
-//     ss << "[GameDuration "  << "\"" << match.duration           << "\"" << "]" << "\n";
-//     ss << "[GameEndTime "   << "\"" << match.end_time            << "\"" << "]" << "\n";
-//     ss << "[GameStartTime " << "\"" << match.start_time          << "\"" << "]" << "\n";
-//     ss << "[PlyCount "      << "\"" << match.moves.size()       << "\"" << "]" << "\n";
+    PlayerInfo white_player, black_player;
 
-//     if (!termination.empty())
-//         ss << "[Termination " << "\"" << termination << "\"" << "]" << "\n";
+    if (match.players.first.color == WHITE)
+    {
+        white_player = match.players.first;
+        black_player = match.players.second;
+    }
+    else
+    {
+        white_player = match.players.second;
+        black_player = match.players.first;
+    }
 
-//     if (match.white_engine.tc.fixed_time != 0)
-//         ss << "[TimeControl " << "\"" << match.white_engine.tc.fixed_time << "/move" << "\"" <<
-//         "]" << "\n";
-//     else
-//         ss << "[TimeControl " << "\"" << match.white_engine.tc << "\"" << "]" << "\n";
-//     // clang-format on
-//     ss << "\n";
-//     std::stringstream illegalMove;
+    // clang-format off
+    ss << "[Event "         << "\"" << game_options_.event_name << "\"" << "]" << "\n";
+    ss << "[Site "          << "\"" << game_options_.site       << "\"" << "]" << "\n";
+    ss << "[Date "          << "\"" << match.date               << "\"" << "]" << "\n";
+    ss << "[Round "         << "\"" << match.round              << "\"" << "]" << "\n";
+    ss << "[White "         << "\"" << white_player.name        << "\"" << "]" << "\n";
+    ss << "[Black "         << "\"" << black_player.name        << "\"" << "]" << "\n";
+    ss << "[Result "        << "\"" << result                   << "\"" << "]" << "\n";
+    ss << "[FEN "           << "\"" << match.fen                << "\"" << "]" << "\n";
+    ss << "[GameDuration "  << "\"" << match.duration           << "\"" << "]" << "\n";
+    ss << "[GameEndTime "   << "\"" << match.end_time           << "\"" << "]" << "\n";
+    ss << "[GameStartTime " << "\"" << match.start_time         << "\"" << "]" << "\n";
+    ss << "[PlyCount "      << "\"" << match.moves.size()       << "\"" << "]" << "\n";
 
-//     if (!match.legal)
-//     {
-//         illegalMove << ", other side makes an illegal move: "
-//                     << match.moves[match.moves.size() - 1].move;
-//     }
+    if (!termination.empty())
+        ss << "[Termination " << "\"" << termination << "\"" << "]" << "\n";
 
-//     Board b = Board(match.fen);
+    if (white_player.config.tc.fixed_time != 0)
+        ss << "[TimeControl " << "\"" << white_player.config.tc.fixed_time << "/move" << "\"" <<
+        "]" << "\n";
+    else
+        ss << "[TimeControl " << "\"" << white_player.config.tc << "\"" << "]" << "\n";
+    // clang-format on
+    ss << "\n";
+    std::stringstream illegalMove;
 
-//     int move_count = 3;
-//     for (size_t i = 0; i < match.moves.size(); i++)
-//     {
-//         const MoveData data = match.moves[i];
+    if (!match.legal)
+    {
+        illegalMove << ", other side makes an illegal move: "
+                    << match.moves[match.moves.size() - 1].move;
+    }
 
-//         std::stringstream nodesString, seldepthString, timeString;
+    Board b = Board(match.fen);
 
-//         if (saveTime)
-//         {
-//             timeString << std::fixed << std::setprecision(3) << data.elapsed_millis / 1000.0 <<
-//             "s";
-//         }
+    int move_count = 3;
+    for (size_t i = 0; i < match.moves.size(); i++)
+    {
+        const MoveData data = match.moves[i];
 
-//         if (game_options_.pgn.track_nodes)
-//         {
-//             nodesString << " n=" << data.nodes;
-//         }
+        std::stringstream nodesString, seldepthString, timeString;
 
-//         if (game_options_.pgn.track_seldepth)
-//         {
-//             seldepthString << " sd=" << data.seldepth;
-//         }
+        if (saveTime)
+        {
+            timeString << std::fixed << std::setprecision(3) << data.elapsed_millis / 1000.0 << "s";
+        }
 
-//         const std::string move =
-//             MoveToRep(b, convertUciToMove(b, data.move), game_options_.pgn.notation != "san");
+        if (game_options_.pgn.track_nodes)
+        {
+            nodesString << " n=" << data.nodes;
+        }
 
-//         if (move_count % 2 != 0)
-//             ss << move_count / 2 << "."
-//                << " " << move << " {" << data.score_string << "/" << data.depth <<
-//                nodesString.str()
-//                << seldepthString.str() << " " << timeString.str() << illegalMove.str() << "}";
-//         else
-//         {
-//             ss << " " << move << " {" << data.score_string << "/" << data.depth <<
-//             nodesString.str()
-//                << seldepthString.str() << " " << timeString.str() << illegalMove.str() << "}";
+        if (game_options_.pgn.track_seldepth)
+        {
+            seldepthString << " sd=" << data.seldepth;
+        }
 
-//             if (i == match.moves.size() - 1)
-//                 break;
+        const std::string move =
+            MoveToRep(b, convertUciToMove(b, data.move), game_options_.pgn.notation != "san");
 
-//             if (i % 7 == 0)
-//                 ss << "\n";
-//             else
-//                 ss << " ";
-//         };
+        if (move_count % 2 != 0)
+            ss << move_count / 2 << "."
+               << " " << move << " {" << data.score_string << "/" << data.depth << nodesString.str()
+               << seldepthString.str() << " " << timeString.str() << illegalMove.str() << "}";
+        else
+        {
+            ss << " " << move << " {" << data.score_string << "/" << data.depth << nodesString.str()
+               << seldepthString.str() << " " << timeString.str() << illegalMove.str() << "}";
 
-//         if (!match.legal && i == match.moves.size() - 2)
-//         {
-//             break;
-//         }
+            if (i == match.moves.size() - 1)
+                break;
 
-//         b.makeMove(convertUciToMove(b, data.move));
+            if (i % 7 == 0)
+                ss << "\n";
+            else
+                ss << " ";
+        };
 
-//         move_count++;
-//     }
+        if (!match.legal && i == match.moves.size() - 2)
+        {
+            break;
+        }
 
-//     ss << " " << result << "\n";
+        b.makeMove(convertUciToMove(b, data.move));
 
-//     pgn_ = ss.str();
-// }
+        move_count++;
+    }
+
+    ss << " " << result << "\n";
+
+    pgn_ = ss.str();
+}
 
 std::string PgnBuilder::getPGN() const
 {

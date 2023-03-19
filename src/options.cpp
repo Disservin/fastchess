@@ -142,7 +142,7 @@ Options::Options(int argc, char const *argv[])
         else if (arg == "-repeat")
             game_options_.games = 2;
         else
-            std::cout << "\nDash command: " << arg << " doesnt exist!" << std::endl;
+            throw std::runtime_error("Dash command: " + arg + " doesnt exist!");
     }
 
     for (auto &config : configs_)

@@ -143,6 +143,9 @@ void Tournament::startTournament(const std::vector<EngineConfiguration> &engine_
     {
         bool res = result.get();
     }
+
+    if (engine_configs.size() == 2)
+        printElo(engine_configs[0].name, engine_configs[1].name);
 }
 
 std::string Tournament::fetchNextFen()
@@ -201,14 +204,26 @@ bool Tournament::launchMatch(const std::pair<EngineConfiguration, EngineConfigur
 
         if (match_data.players.first.score == GameResult::WIN)
         {
-            stats.wins += match_data.players.first == configs.first;
-            stats.losses += match_data.players.first != configs.first;
+            if (match_data.players.first == configs.first)
+            {
+                stats.wins++;
+            }
+            else
+            {
+                stats.losses++;
+            }
         }
 
         if (match_data.players.first.score == GameResult::LOSE)
         {
-            stats.wins += match_data.players.first != configs.first;
-            stats.losses += match_data.players.first == configs.first;
+            if (match_data.players.first == configs.first)
+            {
+                stats.losses++;
+            }
+            else
+            {
+                stats.wins++;
+            }
         }
 
         if (match_data.players.first.score == GameResult::DRAW)
@@ -227,10 +242,10 @@ bool Tournament::launchMatch(const std::pair<EngineConfiguration, EngineConfigur
         matches.push_back(match_data);
         std::swap(config_copy.first, config_copy.second);
 
-        updateStats(configs.first.name, configs.second.name, stats);
-
         printElo(configs.first.name, configs.second.name);
     }
+
+    updateStats(configs.first.name, configs.second.name, stats);
 
     for (const auto &played_matches : matches)
     {

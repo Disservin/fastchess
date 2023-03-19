@@ -34,7 +34,7 @@ void Match::playMatch(const std::string &openingFen)
 
     while (true)
     {
-        if (!playNextMove(player_1_, player_1_, position_input, first_player_time,
+        if (!playNextMove(player_1_, player_2_, position_input, first_player_time,
                           second_player_time))
             break;
 
@@ -248,7 +248,7 @@ bool Match::playNextMove(Participant &player, Participant &enemy, std::string &p
     // Check for game over
     auto res = board_.isGameOver();
     std::stringstream ss;
-    ss << board_;
+    ss << "\n" << board_;
 
     Logger::writeLog(ss.str(), std::this_thread::get_id());
     if (res == GameResult::LOSE)

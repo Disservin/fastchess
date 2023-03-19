@@ -1,6 +1,5 @@
 #pragma once
 
-#include "matchmaking/match.hpp"
 #include "options.hpp"
 
 namespace fast_chess
@@ -9,8 +8,8 @@ namespace fast_chess
 class PgnBuilder
 {
   public:
-    PgnBuilder(const MatchInfo &match, const CMD::GameManagerOptions &game_options_,
-               const bool saveTime);
+    // PgnBuilder(const MatchInfo &match, const CMD::GameManagerOptions &game_options_,
+    //            const bool saveTime);
 
     std::string getPGN() const;
 

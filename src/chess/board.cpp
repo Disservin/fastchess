@@ -483,7 +483,7 @@ GameResult Board::isGameOver()
     {
         if (isSquareAttacked(~side_to_move_, lsb(pieces(KING, side_to_move_))) &&
             !Movegen::hasLegalMoves(*this))
-            return GameResult(~side_to_move_);
+            return GameResult::LOSE;
         return GameResult::DRAW;
     }
 
@@ -513,7 +513,7 @@ GameResult Board::isGameOver()
     if (!Movegen::hasLegalMoves(*this))
     {
         if (isSquareAttacked(~side_to_move_, lsb(pieces(KING, side_to_move_))))
-            return GameResult(~side_to_move_);
+            return GameResult::LOSE;
         return GameResult::DRAW;
     }
 
@@ -865,22 +865,6 @@ std::string MoveToRep(Board &b, Move move, bool isLan)
 
 std::string resultToString(GameResult result)
 {
-    if (result == GameResult::BLACK_WIN)
-    {
-        return "0-1";
-    }
-    else if (result == GameResult::WHITE_WIN)
-    {
-        return "1-0";
-    }
-    else if (result == GameResult::DRAW)
-    {
-        return "1/2-1/2";
-    }
-    else
-    {
-        return "*";
-    }
 }
 
 } // namespace fast_chess

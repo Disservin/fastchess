@@ -1,19 +1,39 @@
 #pragma once
 
+#include <string>
+#include <tuple>
+#include <vector>
+
 #include "chess/board.hpp"
-#include "engines/engine_config.hpp"
-#include "engines/uci_engine.hpp"
 #include "options.hpp"
+#include "participant.hpp"
 
 namespace fast_chess
 {
 
-struct MatchInfo
+struct MoveData
+{
+    std::string move;
+    std::string score_string;
+    int64_t elapsed_millis = 0;
+    uint64_t nodes = 0;
+    int seldepth = 0;
+    int depth = 0;
+    int score = 0;
+
+    MoveData() = default;
+    MoveData(std::string _move, std::string _score_string, int64_t _elapsed_millis, int _depth,
+             int _seldepth, int _score, int _nodes)
+        : move(_move), score_string(std::move(_score_string)), elapsed_millis(_elapsed_millis),
+          depth(_depth), seldepth(_seldepth), score(_score), nodes(_nodes)
+    {
+    }
+};
+
+struct MatchData
 {
     std::vector<MoveData> moves;
-    EngineConfiguration white_engine;
-    EngineConfiguration black_engine;
-    GameResult result = GameResult::NONE;
+    std::pair<PlayerInfo, PlayerInfo> players;
     std::string termination;
     std::string start_time;
     std::string end_time;
@@ -27,47 +47,47 @@ struct MatchInfo
 
 class Match
 {
-
   public:
     Match() = default;
+    Match(CMD::GameManagerOptions game_config, const EngineConfiguration &engine1_config,
+          const EngineConfiguration &engine2_config);
 
-    Match(CMD::GameManagerOptions match_config, const EngineConfiguration &engine1_config,
-          const EngineConfiguration &engine2_config, bool save_time_header);
+    void playMatch(const std::string &openingFen);
 
-    MatchInfo startMatch(int roundId, std::string openingFen);
+    MatchData getMatchData() const;
 
   private:
-    const std::string startpos_ = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-    const Score mate_score_ = 100'000;
+    /// @brief
+    /// @param engine
+    /// @param input
+    /// @return true if tell was succesful
+    bool tellEngine(UciEngine &engine, const std::string &input);
 
-    void initializeEngine(UciEngine &engine, const EngineConfiguration &config, Turn turn);
+    bool hasErrors(UciEngine &engine);
+    bool isResponsive(UciEngine &engine);
 
     MoveData parseEngineOutput(const std::vector<std::string> &output, const std::string &move,
-                               int64_t measuredTime);
+                               int64_t measured_time);
 
-    void updateTrackers(const Score moveScore, const int move_number);
+    /// @brief
+    /// @param player
+    /// @param position_input
+    /// @param time_left_us
+    /// @param time_left_them
+    /// @return false if move was illegal
+    bool playNextMove(Participant &player, std::string &position_input, TimeControl &time_left_us,
+                      const TimeControl &time_left_them);
 
-    GameResult checkAdj(const Score score, const Color lastSideThatMoved);
+    const std::string startpos_ = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
-    bool checkEngineStatus(UciEngine &engine);
+    CMD::GameManagerOptions game_config_;
 
-    bool playNextMove(UciEngine &engine, std::string &positionInput, TimeControl &timeLeftUs,
-                      const TimeControl &timeLeftThem);
-
-    CMD::GameManagerOptions match_config_;
-    ResignAdjTracker resignTracker_;
-    DrawAdjTracker drawTracker_;
-
-    UciEngine engine1_;
-    UciEngine engine2_;
-
-    MatchInfo mi_;
+    Participant player_1_;
+    Participant player_2_;
 
     Board board_;
 
-    int roundId_ = 0;
-
-    bool save_time_header_ = false;
+    MatchData match_data_;
 };
 
 } // namespace fast_chess

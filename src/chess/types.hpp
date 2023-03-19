@@ -118,8 +118,8 @@ enum Direction : int8_t
 
 enum class GameResult
 {
-    WHITE_WIN,
-    BLACK_WIN,
+    WIN,
+    LOSE,
     DRAW,
     NONE
 };

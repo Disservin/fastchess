@@ -15,8 +15,6 @@ void Match::playMatch(const std::string &openingFen)
 {
     board_.loadFen(openingFen);
 
-    std::cout << "start match" << std::endl;
-
     player_1_.sendUciNewGame();
     player_2_.sendUciNewGame();
 

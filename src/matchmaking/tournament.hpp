@@ -39,6 +39,22 @@ struct Stats
     }
 };
 
+constexpr Stats operator~(const Stats &rhs)
+{
+    Stats stats;
+    stats.wins = rhs.losses;
+    stats.losses = rhs.wins;
+    stats.draws = rhs.draws;
+
+    stats.penta_WW = rhs.penta_LL;
+    stats.penta_WD = rhs.penta_LD;
+    stats.penta_WL = rhs.penta_WL;
+    stats.penta_LD = rhs.penta_WD;
+    stats.penta_LL = rhs.penta_WW;
+
+    return stats;
+}
+
 class Tournament
 {
 
@@ -86,7 +102,7 @@ class Tournament
     /// @param fen
     /// @return
     bool launchMatch(const std::pair<EngineConfiguration, EngineConfiguration> &configs,
-                     const std::string &fen);
+                     const std::string &fen, int round_id);
 
     const std::string startpos_ = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
@@ -111,7 +127,7 @@ class Tournament
     uint64_t fen_index_ = 0;
 
     // General stuff
-    std::atomic_int round_count_ = 0;
+    std::atomic_int match_count_ = 0;
     std::atomic_int total_count_ = 0;
     std::atomic_int timeouts_ = 0;
 };

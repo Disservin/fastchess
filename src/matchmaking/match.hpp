@@ -12,6 +12,30 @@
 namespace fast_chess
 {
 
+struct DrawAdjTracker
+{
+    Score draw_score = 0;
+    int move_count = 0;
+
+    DrawAdjTracker(Score draw_score, int move_count)
+    {
+        this->draw_score = draw_score;
+        this->move_count = move_count;
+    }
+};
+
+struct ResignAdjTracker
+{
+    int move_count = 0;
+    Score resign_score = 0;
+
+    ResignAdjTracker(Score resign_score, int move_count)
+    {
+        this->resign_score = resign_score;
+        this->move_count = move_count;
+    }
+};
+
 class Match
 {
   public:
@@ -25,6 +49,10 @@ class Match
     MatchData getMatchData();
 
   private:
+    void updateTrackers(const Score moveScore, const int move_number);
+
+    GameResult checkAdj(const Score score);
+
     /// @brief
     /// @param player
     /// @param input
@@ -59,6 +87,9 @@ class Match
     const Score mate_score_ = 100'000;
 
     CMD::GameManagerOptions game_config_;
+
+    ResignAdjTracker resignTracker_;
+    DrawAdjTracker drawTracker_;
 
     Participant player_1_;
     Participant player_2_;

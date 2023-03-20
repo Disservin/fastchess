@@ -6,7 +6,9 @@ namespace fast_chess
 
 Match::Match(CMD::GameManagerOptions game_config, const EngineConfiguration &engine1_config,
              const EngineConfiguration &engine2_config)
-    : player_1_(Participant(engine1_config)), player_2_(Participant(engine2_config))
+    : player_1_(Participant(engine1_config)), player_2_(Participant(engine2_config)),
+      drawTracker_(DrawAdjTracker(game_config.draw.score, 0)),
+      resignTracker_(ResignAdjTracker(game_config.resign.score, 0))
 {
     this->game_config_ = game_config;
 }
@@ -60,6 +62,48 @@ MatchData Match::getMatchData()
 {
     match_data_.players = std::make_pair(player_1_.info_, player_2_.info_);
     return match_data_;
+}
+
+void Match::updateTrackers(const Score moveScore, const int move_number)
+{
+    // Score is low for draw adj, increase the counter
+    if (move_number >= game_config_.draw.move_number && abs(moveScore) < drawTracker_.draw_score)
+        drawTracker_.move_count++;
+    // Score wasn't low enough for draw adj, since we care about consecutive
+    // moves we have to reset the counter
+    else
+        drawTracker_.move_count = 0;
+    // Score is low for resign adj, increase the counter (this purposely makes
+    // it possible that a move can work for both draw and resign adj for
+    // whatever reason that might be the case)
+    if (abs(moveScore) > resignTracker_.resign_score)
+        resignTracker_.move_count++;
+    else
+        resignTracker_.move_count = 0;
+}
+
+GameResult Match::checkAdj(const Score score)
+
+{
+    // Check draw adj
+    if (game_config_.draw.enabled && drawTracker_.move_count >= game_config_.draw.move_count)
+    {
+        match_data_.termination = "adjudication";
+        return GameResult::DRAW;
+    }
+
+    // Check Resign adj
+    if (game_config_.resign.enabled &&
+        resignTracker_.move_count >= game_config_.resign.move_count && score != mate_score_)
+    {
+        match_data_.termination = "adjudication";
+
+        // We have the Score for the last side that moved, if it's bad that side
+        // is the resigning one.
+        return score < resignTracker_.resign_score ? GameResult::LOSE : GameResult::WIN;
+    }
+
+    return GameResult::NONE;
 }
 
 bool Match::tellEngine(Participant &player, const std::string &input)
@@ -252,10 +296,7 @@ bool Match::playNextMove(Participant &player, Participant &enemy, std::string &p
 
     // Check for game over
     auto res = board_.isGameOver();
-    std::stringstream ss;
-    ss << "\n" << board_;
 
-    Logger::writeLog(ss.str(), std::this_thread::get_id());
     if (res == GameResult::LOSE)
     {
         player.info_.score = ~res;
@@ -270,6 +311,20 @@ bool Match::playNextMove(Participant &player, Participant &enemy, std::string &p
         enemy.info_.score = GameResult::DRAW;
 
         return false;
+    }
+
+    updateTrackers(match_data_.moves.back().score, match_data_.moves.size());
+    res = checkAdj(match_data_.moves.back().score);
+
+    if (res == GameResult::DRAW)
+    {
+        player.info_.score = GameResult::DRAW;
+        enemy.info_.score = GameResult::DRAW;
+    }
+    else if (res != GameResult::NONE)
+    {
+        player.info_.score = res;
+        enemy.info_.score = ~res;
     }
 
     return true;

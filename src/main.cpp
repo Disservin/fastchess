@@ -44,7 +44,7 @@ void sigintHandler(int param)
 {
     // Tour->printElo();
     Tour->stop();
-    Options->saveJson(Tour->getStats());
+    Options->saveJson(Tour->getResults());
 
     exit(param);
 }

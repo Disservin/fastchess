@@ -159,11 +159,14 @@ void Tournament::startTournament(const std::vector<EngineConfiguration> &engine_
         game_config_.games = 1;
     }
 
+    // Round robin
     for (std::size_t i = 0; i < engine_configs.size(); i++)
     {
         for (std::size_t j = i + 1; j < engine_configs.size(); j++)
         {
-            // initialize results entry
+            // Initialize results entry, if we there isnt already a valid stats entry in the results
+            // map we must create one so that we properly report the score from engine_configs[i]
+            // perspective!
             if (results_.find(engine_configs[i].name) == results_.end() &&
                 results_[engine_configs[i].name].find(engine_configs[j].name) ==
                     results_[engine_configs[i].name].end())
@@ -177,6 +180,8 @@ void Tournament::startTournament(const std::vector<EngineConfiguration> &engine_
                 results.emplace_back(pool_.enqueue(std::bind(
                     &Tournament::launchMatch, this,
                     std::make_pair(engine_configs[i], engine_configs[j]), fetchNextFen(), n)));
+
+                // We need to play reverse games but shall not collect penta stats.
                 if (!game_config_.reportPenta && reverse)
                 {
                     results.emplace_back(pool_.enqueue(std::bind(

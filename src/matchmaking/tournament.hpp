@@ -35,6 +35,8 @@ class Tournament
 
     void startTournament(const std::vector<EngineConfiguration> &engine_configs);
 
+    /// @brief Used to load results from json file.
+    /// @param results
     void setResults(const std::map<std::string, std::map<std::string, Stats>> &results)
     {
         results_ = results;
@@ -48,8 +50,13 @@ class Tournament
     }
 
   private:
+    /// @brief fetches the next fen from a sequential read opening book or from a randomized opening
+    /// book order
+    /// @return
     std::string fetchNextFen();
 
+    /// @brief pgn writer
+    /// @param data
     void writeToFile(const std::string &data);
 
     /// @brief MT safe result updating

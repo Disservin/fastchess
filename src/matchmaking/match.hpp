@@ -15,10 +15,11 @@ namespace fast_chess
 class Match
 {
   public:
-    Match() = default;
     Match(CMD::GameManagerOptions game_config, const EngineConfiguration &engine1_config,
           const EngineConfiguration &engine2_config);
 
+    /// @brief plays a match between the previously loaded engines
+    /// @param openingFen
     void playMatch(const std::string &openingFen);
 
     MatchData getMatchData();
@@ -30,18 +31,27 @@ class Match
     /// @return true if tell was succesful
     bool tellEngine(Participant &player, const std::string &input);
 
+    /// @brief check if the engine encountered any lower level errors
+    /// @param player
+    /// @return
     bool hasErrors(Participant &player);
+
     bool isResponsive(Participant &player);
 
+    /// @brief Extracts information from the engines reported info string
+    /// @param output
+    /// @param move
+    /// @param measured_time
+    /// @return
     MoveData parseEngineOutput(const std::vector<std::string> &output, const std::string &move,
                                int64_t measured_time);
 
-    /// @brief
+    /// @brief Plays the next move and checks for game over and legalitly
     /// @param player
     /// @param position_input
     /// @param time_left_us
     /// @param time_left_them
-    /// @return false if move was illegal
+    /// @return false if game has ended
     bool playNextMove(Participant &player, Participant &enemy, std::string &position_input,
                       TimeControl &time_left_us, const TimeControl &time_left_them);
 

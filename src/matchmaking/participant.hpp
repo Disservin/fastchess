@@ -26,7 +26,15 @@ inline bool operator!=(const PlayerInfo &lhs, const EngineConfiguration &rhs)
 class Participant : public UciEngine
 {
   public:
-    explicit Participant(const EngineConfiguration &config);
+    explicit Participant(const EngineConfiguration &config)
+    {
+        loadConfig(config);
+        resetError();
+        startEngine(config.cmd);
+        checkErrors();
+
+        info_.config = config;
+    }
 
     PlayerInfo info_;
 };

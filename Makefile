@@ -23,7 +23,7 @@ endif
 endif
 
 ifeq ($(MAKECMDGOALS),tests)
-	CXXFLAGS  := -O2 -std=c++17 $(INCLUDES) -g3 -fno-omit-frame-pointer -Wall -Wextra
+	CXXFLAGS  := -O2 -std=c++17 $(INCLUDES) -g3 -fno-omit-frame-pointer -Wall -Wextra -DTESTS
 	TEST_SR   := $(wildcard *.cpp) $(wildcard */*.cpp) $(wildcard */*/*.cpp)
 	SRC_FILES := $(filter-out src/main.cpp, $(TEST_SR))
 	OBJECTS   := $(patsubst %.cpp,$(TMPDIR)/%.o,$(SRC_FILES))
@@ -99,5 +99,15 @@ clean:
 
 -include $(DEPENDS)
 
+
 tmp/src/options.o: FORCE
 FORCE:
+
+# Force recompile for tests
+ifeq ($(MAKECMDGOALS),tests)
+tmp/src/matchmaking/tournament.o: FORCE
+FORCE:
+
+tmp/src/matchmaking/match.o: FORCE
+FORCE:
+endif

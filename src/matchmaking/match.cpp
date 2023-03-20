@@ -18,17 +18,22 @@ void Match::playMatch(const std::string &openingFen)
     player_1_.sendUciNewGame();
     player_2_.sendUciNewGame();
 
-    match_data_.fen = board_.getFen();
-    match_data_.date = Logger::getDateTime();
-    match_data_.date = Logger::getDateTime("%Y-%m-%d");
-
     std::string position_input =
         board_.getFen() == startpos_ ? "position startpos" : "position fen " + board_.getFen();
+
+    player_1_.info_.color = board_.getSideToMove();
+    player_2_.info_.color = ~board_.getSideToMove();
 
     auto first_player_time = player_1_.getConfig().tc;
     auto second_player_time = player_2_.getConfig().tc;
 
+    match_data_.fen = board_.getFen();
+
+#ifndef TESTS
+    match_data_.start_time = Logger::getDateTime();
+    match_data_.date = Logger::getDateTime("%Y-%m-%d");
     const auto start_time = std::chrono::high_resolution_clock::now();
+#endif // TESTS
 
     while (true)
     {
@@ -41,12 +46,14 @@ void Match::playMatch(const std::string &openingFen)
             break;
     }
 
+// match_data_.round = roundId_;
+#ifndef TESTS
     const auto end_time = std::chrono::high_resolution_clock::now();
 
-    // match_data_.round = roundId_;
     match_data_.end_time = Logger::getDateTime();
     match_data_.duration = Logger::formatDuration(
         std::chrono::duration_cast<std::chrono::seconds>(end_time - start_time));
+#endif
 }
 
 MatchData Match::getMatchData()

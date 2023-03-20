@@ -49,6 +49,13 @@ class Tournament
         return results_;
     }
 
+#ifdef TESTS
+    std::vector<std::string> getPgns() const
+    {
+        return pgns_;
+    }
+
+#endif
   private:
     /// @brief fetches the next fen from a sequential read opening book or from a randomized opening
     /// book order
@@ -98,6 +105,8 @@ class Tournament
     std::atomic_int match_count_ = 0;
     std::atomic_int total_count_ = 0;
     std::atomic_int timeouts_ = 0;
+
+    std::vector<std::string> pgns_;
 };
 
 } // namespace fast_chess

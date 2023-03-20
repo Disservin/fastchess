@@ -259,6 +259,7 @@ bool Tournament::launchMatch(const std::pair<EngineConfiguration, EngineConfigur
         match.playMatch(fen);
 
         MatchData match_data = match.getMatchData();
+        match_data.round = round_id;
 
         if (match_data.players.first.score == GameResult::WIN)
         {
@@ -315,6 +316,11 @@ bool Tournament::launchMatch(const std::pair<EngineConfiguration, EngineConfigur
     for (const auto &played_matches : matches)
     {
         PgnBuilder pgn(played_matches, game_config_, true);
+
+// not thread safe and is only used for unit tests.
+#ifdef TESTS
+        pgns_.push_back(pgn.getPGN());
+#endif // TESTS
 
         writeToFile(pgn.getPGN());
     }

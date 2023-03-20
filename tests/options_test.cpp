@@ -31,9 +31,13 @@ TEST_SUITE("Option Parsing Tests")
                               "format=epd",
                               "order=random",
                               "plies=16",
+                              "-rounds",
+                              "50",
+                              "-games",
+                              "2",
                               "-pgnout",
                               "file=PGNs/Alexandria-EA649FED_vs_Alexandria-27E42728"};
-        CMD::Options options = CMD::Options(22, argv);
+        CMD::Options options = CMD::Options(26, argv);
 
         auto configs = options.getEngineConfigs();
 
@@ -62,15 +66,17 @@ TEST_SUITE("Option Parsing Tests")
         CHECK(config1.options.at(1).second == "32");
     }
 
-    TEST_CASE("Testing Cli options parsing")
+    TEST_CASE("Testing Cli Options Parsing")
     {
         const char *argv[] = {"fast-chess.exe",
                               "-repeat",
                               "-recover",
                               "-concurrency",
                               "8",
-                              "-games",
+                              "-rounds",
                               "256",
+                              "-games",
+                              "2",
                               "-sprt",
                               "alpha=0.5",
                               "beta=0.5",
@@ -83,26 +89,24 @@ TEST_SUITE("Option Parsing Tests")
                               "plies=16",
                               "-pgnout",
                               "file=PGNs/Alexandria-EA649FED_vs_Alexandria-27E42728"};
-        CMD::Options options = CMD::Options(19, argv);
+        CMD::Options options = CMD::Options(21, argv);
         auto gameOptions = options.getGameOptions();
 
         // Test proper cli settings
         CHECK(gameOptions.recover == true);
         CHECK(gameOptions.concurrency == 8);
-        CHECK(gameOptions.games == 256);
+        CHECK(gameOptions.games == 2);
+        CHECK(gameOptions.rounds == 256);
         // Test Sprt options parsing
         CHECK(gameOptions.sprt.alpha == 0.5);
         CHECK(gameOptions.sprt.beta == 0.5);
         CHECK(gameOptions.sprt.elo0 == 0);
         CHECK(gameOptions.sprt.elo1 == 5.0);
         CHECK(gameOptions.pgn.file == "PGNs/Alexandria-EA649FED_vs_Alexandria-27E42728");
-        //  Test opening settings parsing
-        // CHECK(options.gameOptions.OpeningOptions.file == "Books/Pohl.epd");
-        // CHECK(options.gameOptions.OpeningOptions.format == "epd");
-        // CHECK(options.gameOptions.OpeningOptions.order == "random");
-        // CHECK(options.gameOptions.OpeningOptions.plies == 16);
-        //  Test pgn settings parsing
-        // CHECK(options.gameOptions.PgnOptions.file ==
-        // "PGNs/Alexandria-EA649FED_vs_Alexandria-27E42728");
+        // Test opening settings parsing
+        CHECK(gameOptions.opening.file == "Books/Pohl.epd");
+        CHECK(gameOptions.opening.format == "epd");
+        CHECK(gameOptions.opening.order == "random");
+        CHECK(gameOptions.opening.plies == 16);
     }
 }

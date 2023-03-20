@@ -40,7 +40,7 @@ and may even have the opposite effect.
 
 ## Command line options
 
-Fast-Chess supports a many other command-line options:
+Fast-Chess supports many other command-line options:
 
 ```
 Options:

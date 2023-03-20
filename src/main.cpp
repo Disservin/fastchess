@@ -29,7 +29,7 @@ BOOL WINAPI consoleHandler(DWORD signal)
         // Tour->printElo();
         Tour->stop();
 
-        // Options->saveJson(Tour->getStats());
+        Options->saveJson(Tour->getResults());
 
         return TRUE;
     default:
@@ -68,11 +68,11 @@ int main(int argc, char const *argv[])
         Options = new CMD::Options(argc, argv);
         Tour = new Tournament(Options->getGameOptions());
 
-        // Tour->setStats(Options->getStats());
+        Tour->setResults(Options->getStats());
 
         Tour->startTournament(Options->getEngineConfigs());
 
-        // Options->saveJson(Tour->getStats());
+        Options->saveJson(Tour->getResults());
     }
     catch (const std::runtime_error &e)
     {

@@ -5,55 +5,11 @@
 #include <string>
 
 #include "matchmaking/threadpool.hpp"
+#include "matchmaking/tournament_data.hpp"
 #include "options.hpp"
 #include "sprt.hpp"
-
 namespace fast_chess
 {
-
-struct Stats
-{
-    int wins = 0;
-    int losses = 0;
-    int draws = 0;
-
-    int penta_WW = 0;
-    int penta_WD = 0;
-    int penta_WL = 0;
-    int penta_LD = 0;
-    int penta_LL = 0;
-
-    Stats &operator+=(const Stats &rhs)
-    {
-
-        this->wins += rhs.wins;
-        this->losses += rhs.losses;
-        this->draws += rhs.draws;
-
-        this->penta_WW += rhs.penta_WW;
-        this->penta_WD += rhs.penta_WD;
-        this->penta_WL += rhs.penta_WL;
-        this->penta_LD += rhs.penta_LD;
-        this->penta_LL += rhs.penta_LL;
-        return *this;
-    }
-};
-
-constexpr Stats operator~(const Stats &rhs)
-{
-    Stats stats;
-    stats.wins = rhs.losses;
-    stats.losses = rhs.wins;
-    stats.draws = rhs.draws;
-
-    stats.penta_WW = rhs.penta_LL;
-    stats.penta_WD = rhs.penta_LD;
-    stats.penta_WL = rhs.penta_WL;
-    stats.penta_LD = rhs.penta_WD;
-    stats.penta_LL = rhs.penta_WW;
-
-    return stats;
-}
 
 class Tournament
 {
@@ -78,6 +34,11 @@ class Tournament
     void printElo(const std::string &first, const std::string &second);
 
     void startTournament(const std::vector<EngineConfiguration> &engine_configs);
+
+    void setResults(const std::map<std::string, std::map<std::string, Stats>> &results)
+    {
+        results_ = results;
+    }
 
     /// @brief accessed by [engine name][engine name]
     /// @return

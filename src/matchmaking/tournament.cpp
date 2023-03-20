@@ -164,8 +164,13 @@ void Tournament::startTournament(const std::vector<EngineConfiguration> &engine_
         for (std::size_t j = i + 1; j < engine_configs.size(); j++)
         {
             // initialize results entry
-            Stats stats;
-            results_[engine_configs[i].name][engine_configs[j].name] = stats;
+            if (results_.find(engine_configs[i].name) == results_.end() &&
+                results_[engine_configs[i].name].find(engine_configs[j].name) ==
+                    results_[engine_configs[i].name].end())
+            {
+                Stats stats;
+                results_[engine_configs[i].name][engine_configs[j].name] = stats;
+            }
 
             for (int n = 1; n <= game_config_.rounds; n++)
             {

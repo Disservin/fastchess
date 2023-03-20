@@ -86,13 +86,13 @@ class Match
     const std::string startpos_ = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
     const Score mate_score_ = 100'000;
 
-    CMD::GameManagerOptions game_config_;
-
-    ResignAdjTracker resignTracker_;
-    DrawAdjTracker drawTracker_;
-
     Participant player_1_;
     Participant player_2_;
+
+    DrawAdjTracker drawTracker_;
+    ResignAdjTracker resignTracker_;
+
+    CMD::GameManagerOptions game_config_;
 
     Board board_;
 

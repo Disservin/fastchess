@@ -85,7 +85,7 @@ void Tournament::printElo(const std::string &first, const std::string &second)
        << "Score of " << first << " vs " <<second << " after " << games << " games: "
        << stats.wins << " - " << stats.losses << " - " << stats.draws;
 
-    if (game_config_.reportPenta)
+    if (game_config_.report_penta)
     {
        ss
        << " (" << std::fixed << std::setprecision(2) << (float(stats.wins) + (float(stats.draws) * 0.5)) / games << ")\n"
@@ -154,7 +154,7 @@ void Tournament::startTournament(const std::vector<EngineConfiguration> &engine_
                    game_config_.games;
 
     bool reverse = game_config_.games == 2;
-    if (!game_config_.reportPenta)
+    if (!game_config_.report_penta)
     {
         game_config_.games = 1;
     }
@@ -182,7 +182,7 @@ void Tournament::startTournament(const std::vector<EngineConfiguration> &engine_
                     std::make_pair(engine_configs[i], engine_configs[j]), fetchNextFen(), n)));
 
                 // We need to play reverse games but shall not collect penta stats.
-                if (!game_config_.reportPenta && reverse)
+                if (!game_config_.report_penta && reverse)
                 {
                     results.emplace_back(pool_.enqueue(std::bind(
                         &Tournament::launchMatch, this,

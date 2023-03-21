@@ -23,11 +23,6 @@ class UciEngine : public EngineProcess
   public:
     UciEngine() = default;
 
-    explicit UciEngine(const std::string &command)
-    {
-        initProcess(command);
-    }
-
     ~UciEngine()
     {
         sendQuit();

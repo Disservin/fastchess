@@ -49,9 +49,6 @@ class EngineProcess : public Process
 {
   public:
     EngineProcess() = default;
-
-    EngineProcess(const std::string &command);
-
     ~EngineProcess();
 
     void initProcess(const std::string &command);
@@ -78,9 +75,6 @@ class EngineProcess : public Process
 {
   public:
     EngineProcess() = default;
-
-    EngineProcess(const std::string &command);
-
     ~EngineProcess();
 
     void initProcess(const std::string &command);

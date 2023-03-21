@@ -125,7 +125,7 @@ Options::Options(int argc, char const *argv[])
             parseDashOptions(i, argc, argv, [&](std::string key, std::string value) {
                 if (key == "penta")
                 {
-                    game_options_.reportPenta = value == "true";
+                    game_options_.report_penta = value == "true";
                 }
                 else
                     coutMissingCommand("report", key, value);

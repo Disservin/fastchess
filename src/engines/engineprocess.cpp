@@ -13,11 +13,6 @@
 namespace fast_chess
 {
 
-EngineProcess::EngineProcess(const std::string &command)
-{
-    initProcess(command);
-}
-
 #ifdef _WIN64
 
 void EngineProcess::initProcess(const std::string &command)

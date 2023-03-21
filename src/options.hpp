@@ -92,11 +92,12 @@ struct GameManagerOptions
 
     bool recover = false;
 
-    bool reportPenta = true;
+    bool report_penta = true;
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(GameManagerOptions, event_name, site, seed,
                                                 ratinginterval, games, rounds, concurrency,
-                                                overhead, recover, resign, draw, opening, pgn, sprt)
+                                                overhead, recover, report_penta, resign, draw,
+                                                opening, pgn, sprt)
 
 class Options
 {

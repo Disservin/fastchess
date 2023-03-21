@@ -299,25 +299,17 @@ bool Tournament::launchMatch(const std::pair<EngineConfiguration, EngineConfigur
         if (match_data.players.first.score == GameResult::WIN)
         {
             if (match_data.players.first == configs.first)
-            {
                 stats.wins++;
-            }
             else
-            {
                 stats.losses++;
-            }
         }
 
         if (match_data.players.first.score == GameResult::LOSE)
         {
             if (match_data.players.first == configs.first)
-            {
                 stats.losses++;
-            }
             else
-            {
                 stats.wins++;
-            }
         }
 
         if (match_data.players.first.score == GameResult::DRAW)

@@ -11,8 +11,8 @@ using namespace fast_chess;
 
 namespace
 {
-Tournament *Tour;
-CMD::Options *Options;
+std::unique_ptr<Tournament> Tour;
+std::unique_ptr<CMD::Options> Options;
 } // namespace
 
 #ifdef _WIN64
@@ -26,7 +26,6 @@ BOOL WINAPI consoleHandler(DWORD signal)
     case CTRL_SHUTDOWN_EVENT:
     case CTRL_C_EVENT:
 
-        // Tour->printElo();
         std::cout << "Saved results" << std::endl;
         Options->saveJson(Tour->getResults());
 
@@ -43,7 +42,6 @@ BOOL WINAPI consoleHandler(DWORD signal)
 #else
 void sigintHandler(int param)
 {
-    // Tour->printElo();
     Options->saveJson(Tour->getResults());
     Tour->stop();
 
@@ -66,8 +64,8 @@ int main(int argc, char const *argv[])
 #endif
     try
     {
-        Options = new CMD::Options(argc, argv);
-        Tour = new Tournament(Options->getGameOptions());
+        Options = std::make_unique<CMD::Options>(argc, argv);
+        Tour = std::make_unique<Tournament>(Options->getGameOptions());
 
         Tour->setResults(Options->getStats());
 
@@ -78,16 +76,8 @@ int main(int argc, char const *argv[])
     }
     catch (const std::runtime_error &e)
     {
-        delete Tour;
-        delete Options;
-
         throw e;
-
-        exit(1);
     }
-
-    delete Tour;
-    delete Options;
 
     return 0;
 }

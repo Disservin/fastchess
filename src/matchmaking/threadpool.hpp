@@ -120,9 +120,10 @@ class ThreadPool
         kill();
     }
 
-    bool getStop()
+    std::size_t queueSize()
     {
-        return stop_;
+        std::unique_lock<std::mutex> lock(this->queue_mutex_);
+        return tasks_.size();
     }
 
   private:

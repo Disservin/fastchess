@@ -201,7 +201,7 @@ void Tournament::startTournament(const std::vector<EngineConfiguration> &engine_
         }
     }
 
-    while (engine_configs.size() == 2 && sprt_.isValid() && !pool_.getStop())
+    while (engine_configs.size() == 2 && sprt_.isValid() && !pool_.queueSize())
     {
         Stats stats = getResults(engine_configs[0].name, engine_configs[1].name);
         const double llr = sprt_.getLLR(stats.wins, stats.draws, stats.losses);
@@ -217,9 +217,10 @@ void Tournament::startTournament(const std::vector<EngineConfiguration> &engine_
         std::this_thread::sleep_for(std::chrono::microseconds(250));
     }
 
-    while (!pool_.getStop())
+    for (auto &&result : results)
     {
-        std::this_thread::sleep_for(std::chrono::microseconds(250));
+        if (!result.get())
+            throw std::runtime_error("Unknown error during match playing.");
     }
 
     std::cout << "Finished match\n";

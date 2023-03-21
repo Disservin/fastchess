@@ -8,11 +8,6 @@
 namespace fast_chess
 {
 
-void UciEngine::setConfig(const EngineConfiguration &rhs)
-{
-    config_ = rhs;
-}
-
 EngineConfiguration UciEngine::getConfig() const
 {
     return config_;
@@ -115,11 +110,6 @@ void UciEngine::sendQuit()
 void UciEngine::sendSetoption(const std::string &name, const std::string &value)
 {
     writeProcess("setoption name " + name + " value " + value);
-}
-
-void UciEngine::sendGo(const std::string &limit)
-{
-    writeProcess("go " + limit);
 }
 
 void UciEngine::restartEngine()

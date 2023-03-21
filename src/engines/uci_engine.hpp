@@ -23,16 +23,6 @@ class UciEngine : public EngineProcess
   public:
     UciEngine() = default;
 
-    explicit UciEngine(const std::string &command)
-    {
-        initProcess(command);
-    }
-
-    UciEngine(const EngineConfiguration &config)
-    {
-        setConfig(config);
-    }
-
     ~UciEngine()
     {
         sendQuit();
@@ -40,6 +30,9 @@ class UciEngine : public EngineProcess
 
     EngineConfiguration getConfig() const;
 
+    /// @brief
+    /// @param id
+    /// @return empty string if there are no errors
     std::string checkErrors(int id = -1);
 
     bool isResponsive(int64_t threshold = ping_time_);
@@ -50,17 +43,11 @@ class UciEngine : public EngineProcess
 
     std::vector<std::string> readUci();
 
-    std::string buildGoInput(Color stm, const TimeControl &tc, const TimeControl &tc_2) const;
-
     void loadConfig(const EngineConfiguration &config);
 
     void sendQuit();
 
-    void sendSetoption(const std::string &name, const std::string &value);
-
-    void sendGo(const std::string &limit);
-
-    void setConfig(const EngineConfiguration &rhs);
+    std::string buildGoInput(Color stm, const TimeControl &tc, const TimeControl &tc_2) const;
 
     void restartEngine();
 
@@ -74,5 +61,7 @@ class UciEngine : public EngineProcess
 
   private:
     EngineConfiguration config_;
+
+    void sendSetoption(const std::string &name, const std::string &value);
 };
 } // namespace fast_chess

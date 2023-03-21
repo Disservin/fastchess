@@ -1,3 +1,5 @@
+#define NOMINMAX
+
 #include "chess/board.hpp"
 
 #include <algorithm>
@@ -59,7 +61,7 @@ void Board::loadFen(const std::string &fen)
 
     castling_rights_ = 0;
 
-    for (size_t i = 0; i < castling.size(); i++)
+    for (std::size_t i = 0; i < castling.size(); i++)
     {
         if (readCastleString.find(castling[i]) != readCastleString.end())
             castling_rights_ |= readCastleString[castling[i]];
@@ -478,12 +480,11 @@ Bitboard Board::attacksByPiece(PieceType pt, Square sq, Color c, Bitboard occ) c
 
 GameResult Board::isGameOver()
 {
-
     if (half_move_clock_ >= 100)
     {
         if (isSquareAttacked(~side_to_move_, lsb(pieces(KING, side_to_move_))) &&
             !Movegen::hasLegalMoves(*this))
-            return GameResult(~side_to_move_);
+            return GameResult::LOSE;
         return GameResult::DRAW;
     }
 
@@ -513,7 +514,7 @@ GameResult Board::isGameOver()
     if (!Movegen::hasLegalMoves(*this))
     {
         if (isSquareAttacked(~side_to_move_, lsb(pieces(KING, side_to_move_))))
-            return GameResult(~side_to_move_);
+            return GameResult::LOSE;
         return GameResult::DRAW;
     }
 
@@ -863,24 +864,16 @@ std::string MoveToRep(Board &b, Move move, bool isLan)
     return rep;
 }
 
-std::string resultToString(GameResult result)
+std::string resultToString(const MatchData &match)
 {
-    if (result == GameResult::BLACK_WIN)
-    {
-        return "0-1";
-    }
-    else if (result == GameResult::WHITE_WIN)
-    {
+    if (match.players.first.score == GameResult::WIN)
         return "1-0";
-    }
-    else if (result == GameResult::DRAW)
-    {
+    else if (match.players.first.score == GameResult::LOSE)
+        return "0-1";
+    else if (match.players.first.score == GameResult::DRAW)
         return "1/2-1/2";
-    }
     else
-    {
         return "*";
-    }
 }
 
 } // namespace fast_chess

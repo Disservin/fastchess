@@ -5,17 +5,20 @@
 
 using namespace fast_chess;
 
-TEST_CASE("Testing the CMD::startsWith function")
+TEST_SUITE("Standalone Function Tests")
 {
-    CHECK(CMD::startsWith("-engine", "-"));
-    CHECK(CMD::startsWith("-engine", "") == false);
-    CHECK(CMD::startsWith("-engine", "/-") == false);
-    CHECK(CMD::startsWith("-engine", "e") == false);
-}
+    TEST_CASE("Testing the CMD::startsWith function")
+    {
+        CHECK(CMD::startsWith("-engine", "-"));
+        CHECK(CMD::startsWith("-engine", "") == false);
+        CHECK(CMD::startsWith("-engine", "/-") == false);
+        CHECK(CMD::startsWith("-engine", "e") == false);
+    }
 
-TEST_CASE("Testing the CMD::contains function")
-{
-    CHECK(CMD::contains("-engine", "-"));
-    CHECK(CMD::contains("-engine", "e"));
-    CHECK(CMD::contains("info string depth 10", "depth"));
+    TEST_CASE("Testing the CMD::contains function")
+    {
+        CHECK(CMD::contains("-engine", "-"));
+        CHECK(CMD::contains("-engine", "e"));
+        CHECK(CMD::contains("info string depth 10", "depth"));
+    }
 }

@@ -22,9 +22,9 @@ namespace fast_chess
 class ThreadPool
 {
   public:
-    ThreadPool(size_t num_threads) : stop_(false)
+    ThreadPool(std::size_t num_threads) : stop_(false)
     {
-        for (size_t i = 0; i < num_threads; ++i)
+        for (std::size_t i = 0; i < num_threads; ++i)
             workers_.emplace_back([this] {
                 while (!this->stop_)
                 {
@@ -63,7 +63,7 @@ class ThreadPool
         return res;
     }
 
-    void resize(size_t num_threads)
+    void resize(std::size_t num_threads)
     {
         if (num_threads == 0)
             throw std::invalid_argument("Warning: ThreadPool::resize() - num_threads cannot be 0");
@@ -78,7 +78,7 @@ class ThreadPool
         workers_.clear();
         workers_.resize(num_threads);
 
-        for (size_t i = 0; i < num_threads; ++i)
+        for (std::size_t i = 0; i < num_threads; ++i)
             workers_.emplace_back([this] {
                 while (!this->stop_)
                 {
@@ -120,13 +120,24 @@ class ThreadPool
         kill();
     }
 
-    bool stop_;
+    std::size_t queueSize()
+    {
+        std::unique_lock<std::mutex> lock(this->queue_mutex_);
+        return tasks_.size();
+    }
+
+    bool getStop()
+    {
+        return stop_;
+    }
 
   private:
     std::vector<std::thread> workers_;
     std::queue<std::function<void()>> tasks_;
     std::mutex queue_mutex_;
     std::condition_variable condition_;
+
+    std::atomic_bool stop_;
 };
 
 } // namespace fast_chess

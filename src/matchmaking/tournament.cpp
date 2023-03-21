@@ -1,38 +1,37 @@
 #include "matchmaking/tournament.hpp"
 
-#include <cassert>
-#include <chrono>
-#include <iomanip>
-#include <iostream>
-#include <sstream>
+#include <vector>
 
 #include "elo.hpp"
+#include "matchmaking/match.hpp"
 #include "pgn_builder.hpp"
 #include "rand.hpp"
+#include "tournament.hpp"
 
 namespace fast_chess
 {
 
-Tournament::Tournament(const CMD::GameManagerOptions &mc)
+Tournament::Tournament(const CMD::GameManagerOptions &game_config)
 {
-    const std::string filename = (mc.pgn.file.empty() ? "fast-chess" : mc.pgn.file) + ".pgn";
+    const std::string filename =
+        (game_config.pgn.file.empty() ? "fast-chess" : game_config.pgn.file) + ".pgn";
 
     file_.open(filename, std::ios::app);
 
-    loadConfig(mc);
+    loadConfig(game_config);
 }
 
-void Tournament::loadConfig(const CMD::GameManagerOptions &mc)
+void Tournament::loadConfig(const CMD::GameManagerOptions &game_config)
 {
-    Random::mersenne_rand.seed(match_config_.seed);
+    game_config_ = game_config;
 
-    match_config_ = mc;
+    Random::mersenne_rand.seed(game_config_.seed);
 
-    if (!match_config_.opening.file.empty())
+    if (!game_config_.opening.file.empty())
     {
         std::ifstream openingFile;
         std::string line;
-        openingFile.open(match_config_.opening.file);
+        openingFile.open(game_config_.opening.file);
 
         while (std::getline(openingFile, line))
         {
@@ -41,21 +40,200 @@ void Tournament::loadConfig(const CMD::GameManagerOptions &mc)
 
         openingFile.close();
 
-        if (match_config_.opening.order == "random")
+        if (game_config_.opening.order == "random")
         {
             // Fisher-Yates / Knuth shuffle
-            for (size_t i = 0; i <= opening_book_.size() - 2; i++)
+            for (std::size_t i = 0; i <= opening_book_.size() - 2; i++)
             {
-                size_t j = i + (Random::mersenne_rand() % (opening_book_.size() - i));
+                std::size_t j = i + (Random::mersenne_rand() % (opening_book_.size() - i));
                 std::swap(opening_book_[i], opening_book_[j]);
             }
         }
     }
 
-    pool_.resize(match_config_.concurrency);
+    pool_.resize(game_config_.concurrency);
 
-    sprt_ = SPRT(match_config_.sprt.alpha, match_config_.sprt.beta, match_config_.sprt.elo0,
-                 match_config_.sprt.elo1);
+    sprt_ = SPRT(game_config_.sprt.alpha, game_config_.sprt.beta, game_config_.sprt.elo0,
+                 game_config_.sprt.elo1);
+}
+
+void Tournament::stop()
+{
+    pool_.kill();
+}
+
+void Tournament::printElo(const std::string &first, const std::string &second)
+{
+    if (engine_count != 2)
+        return;
+
+    Stats stats;
+    {
+        const std::unique_lock<std::mutex> lock(results_mutex_);
+
+        if (results_.find(first) != results_.end())
+            stats = results_[first][second];
+        else
+            stats = results_[second][first];
+    }
+
+    Elo elo(stats.wins, stats.losses, stats.draws);
+    // Elo white_advantage(white_stats.wins, white_stats.losses, stats.draws);
+    std::stringstream ss;
+
+    int64_t games = stats.sum();
+
+    // clang-format off
+    ss << "--------------------------------------------------------\n"
+       << "Score of " << first << " vs " <<second << " after " << games << " games: "
+       << stats.wins << " - " << stats.losses << " - " << stats.draws;
+
+    if (game_config_.report_penta)
+    {
+       ss
+       << " (" << std::fixed << std::setprecision(2) << (float(stats.wins) + (float(stats.draws) * 0.5)) / games << ")\n"
+       << "Ptnml:   "
+       << std::right << std::setw(7) << "WW"
+       << std::right << std::setw(7) << "WD"
+       << std::right << std::setw(7) << "DD/WL"
+       << std::right << std::setw(7) << "LD"
+       << std::right << std::setw(7) << "LL" << "\n"
+       << "Distr:   "
+       << std::right << std::setw(7) << stats.penta_WW
+       << std::right << std::setw(7) << stats.penta_WD
+       << std::right << std::setw(7) << stats.penta_WL
+       << std::right << std::setw(7) << stats.penta_LD
+       << std::right << std::setw(7) << stats.penta_LL << "\n";
+    }
+    else
+    {
+        ss << "\n";
+    }
+    // clang-format on
+
+    ss << std::fixed;
+
+    if (sprt_.isValid())
+    {
+        ss << "LLR: " << sprt_.getLLR(stats.wins, stats.draws, stats.losses) << " "
+           << sprt_.getBounds() << " " << sprt_.getElo() << "\n";
+    }
+    ss << std::setprecision(1) << "Stats:  "
+       << "W: " << (float(stats.wins) / games) * 100 << "%   "
+       << "L: " << (float(stats.losses) / games) * 100 << "%   "
+       << "D: " << (float(stats.draws) / games) * 100 << "%   "
+       << "TF: " << timeouts_ << "\n";
+    // ss << "White advantage: " << white_advantage.getElo() << "\n";
+    ss << "Elo difference: " << elo.getElo()
+       << "\n--------------------------------------------------------\n";
+    std::cout << ss.str();
+}
+
+void Tournament::startTournament(const std::vector<EngineConfiguration> &engine_configs)
+{
+    engine_count = engine_configs.size();
+
+    if (engine_configs.size() < 2)
+    {
+        throw std::runtime_error("Warning: Need at least two engines to start!");
+    }
+
+    for (size_t i = 0; i < engine_configs.size(); i++)
+    {
+        for (size_t j = 0; j < i; j++)
+        {
+            if (engine_configs[i].name == engine_configs[j].name)
+            {
+                throw std::runtime_error("Engine with the same are not allowed!: " +
+                                         engine_configs[i].name);
+            }
+        }
+    }
+
+    Logger::coutInfo("Starting tournament...");
+
+    std::vector<std::future<bool>> results;
+
+    // Round robin
+    total_count_ = (engine_configs.size() * (engine_configs.size() - 1) / 2) * game_config_.rounds *
+                   game_config_.games;
+
+    bool reverse = game_config_.games == 2;
+    if (!game_config_.report_penta)
+    {
+        game_config_.games = 1;
+    }
+
+    // Round robin
+    for (std::size_t i = 0; i < engine_configs.size(); i++)
+    {
+        for (std::size_t j = i + 1; j < engine_configs.size(); j++)
+        {
+            // Initialize results entry, if we there isnt already a valid stats entry in the results
+            // map we must create one so that we properly report the score from engine_configs[i]
+            // perspective!
+            if (results_.find(engine_configs[i].name) == results_.end() &&
+                results_[engine_configs[i].name].find(engine_configs[j].name) ==
+                    results_[engine_configs[i].name].end())
+            {
+                Stats stats;
+                results_[engine_configs[i].name][engine_configs[j].name] = stats;
+            }
+
+            // add json loaded games to current match count
+            auto sum = results_[engine_configs[i].name][engine_configs[j].name].sum();
+            match_count_ += sum;
+
+            for (int n = 1 + sum / game_config_.games; n <= game_config_.rounds; n++)
+            {
+                results.emplace_back(pool_.enqueue(std::bind(
+                    &Tournament::launchMatch, this,
+                    std::make_pair(engine_configs[i], engine_configs[j]), fetchNextFen(), n)));
+
+                // We need to play reverse games but shall not collect penta stats.
+                if (!game_config_.report_penta && reverse)
+                {
+                    results.emplace_back(pool_.enqueue(std::bind(
+                        &Tournament::launchMatch, this,
+                        std::make_pair(engine_configs[j], engine_configs[i]), fetchNextFen(), n)));
+                }
+            }
+        }
+    }
+
+    while (engine_configs.size() == 2 && sprt_.isValid() && match_count_ < total_count_ &&
+           !pool_.getStop())
+    {
+        Stats stats = getResults(engine_configs[0].name, engine_configs[1].name);
+        const double llr = sprt_.getLLR(stats.wins, stats.draws, stats.losses);
+        if (sprt_.getResult(llr) != SPRT_CONTINUE)
+        {
+            pool_.kill();
+            std::cout << "Finished match\n";
+            printElo(engine_configs[0].name, engine_configs[1].name);
+
+            return;
+        }
+
+        std::this_thread::sleep_for(std::chrono::microseconds(250));
+    }
+
+    for (auto &&result : results)
+    {
+        if (!result.get())
+            throw std::runtime_error("Unknown error during match playing.");
+    }
+
+    std::cout << "Finished match\n";
+
+    if (engine_configs.size() == 2)
+        printElo(engine_configs[0].name, engine_configs[1].name);
+}
+
+Stats Tournament::getResults(const std::string &engine1, const std::string &engine2)
+{
+    const std::unique_lock<std::mutex> lock(results_mutex_);
+    return results_[engine1][engine2];
 }
 
 std::string Tournament::fetchNextFen()
@@ -64,68 +242,16 @@ std::string Tournament::fetchNextFen()
     {
         return startpos_;
     }
-    else if (match_config_.opening.format == "pgn")
+    else if (game_config_.opening.format == "pgn")
     {
         // todo: implementation
     }
-    else if (match_config_.opening.format == "epd")
+    else if (game_config_.opening.format == "epd")
     {
-        return opening_book_[(match_config_.opening.start + fen_index_++) % opening_book_.size()];
+        return opening_book_[(game_config_.opening.start + fen_index_++) % opening_book_.size()];
     }
 
     return startpos_;
-}
-
-std::vector<std::string> Tournament::getPGNS() const
-{
-    return pgns_;
-}
-
-void Tournament::setStorePGN(bool v)
-{
-    store_pgns_ = v;
-    save_time_header_ = !v;
-}
-
-void Tournament::printElo() const
-{
-    Elo elo(wins_, losses_, draws_);
-    Elo white_advantage(white_wins_, white_losses_, draws_);
-    std::stringstream ss;
-
-    // clang-format off
-    ss << "--------------------------------------------------------\n"
-       << "Score of " << engine_names_[0] << " vs " << engine_names_[1] << " after " << round_count_ * match_config_.games << " games: "
-       << wins_ << " - " << losses_ << " - " << draws_
-       << " (" << std::fixed << std::setprecision(2) << (float(wins_) + (float(draws_) * 0.5)) / (round_count_ * match_config_.games) << ")\n"
-       << "Ptnml:   "
-       << std::right << std::setw(7) << "WW"
-       << std::right << std::setw(7) << "WD"
-       << std::right << std::setw(7) << "DD/WL"
-       << std::right << std::setw(7) << "LD"
-       << std::right << std::setw(7) << "LL" << "\n"
-       << "Distr:   "
-       << std::right << std::setw(7) << penta_WW_
-       << std::right << std::setw(7) << penta_WD_
-       << std::right << std::setw(7) << penta_WL_
-       << std::right << std::setw(7) << penta_LD_
-       << std::right << std::setw(7) << penta_LL_ << "\n";
-    // clang-format on
-
-    if (sprt_.isValid())
-    {
-        ss << "LLR: " << sprt_.getLLR(wins_, draws_, losses_) << " " << sprt_.getBounds() << " "
-           << sprt_.getElo() << "\n";
-    }
-    ss << std::setprecision(1) << "Stats:  "
-       << "W: " << (float(wins_) / (round_count_ * match_config_.games)) * 100 << "%   "
-       << "L: " << (float(losses_) / (round_count_ * match_config_.games)) * 100 << "%   "
-       << "D: " << (float(draws_) / (round_count_ * match_config_.games)) * 100 << "%   "
-       << "TF: " << timeouts_ << "\n";
-    ss << "White advantage: " << white_advantage.getElo() << "\n";
-    ss << "Elo difference: " << elo.getElo()
-       << "\n--------------------------------------------------------\n";
-    std::cout << ss.str();
 }
 
 void Tournament::writeToFile(const std::string &data)
@@ -136,189 +262,108 @@ void Tournament::writeToFile(const std::string &data)
     file_ << data << std::endl;
 }
 
-std::vector<MatchInfo> Tournament::runH2H(CMD::GameManagerOptions localMatchConfig,
-                                          const std::vector<EngineConfiguration> &configs,
-                                          const std::string &fen)
+void fast_chess::Tournament::updateStats(const std::string &us, const std::string &them,
+                                         const Stats &stats)
 {
-    // Initialize variables
-    std::vector<MatchInfo> matches;
+    const std::unique_lock<std::mutex> lock(results_mutex_);
 
-    const int games = localMatchConfig.games;
+    if (results_.find(us) != results_.end())
+        results_[us][them] += stats;
+    else if (results_.find(them) != results_.end())
+        // store engine2 vs engine1 to the engine1 vs engine2 entry.
+        // For this we need to invert the scores
+        results_[them][us] += ~stats;
+    else
+        results_[us][them] += stats;
+}
 
-    int local_wins = 0;
-    int local_losses = 0;
-    int local_draws = 0;
+bool Tournament::launchMatch(const std::pair<EngineConfiguration, EngineConfiguration> &configs,
+                             const std::string &fen, int round_id)
+{
+    std::vector<MatchData> matches;
 
-    // Game stats from white pov for white advantage
-    int white_local_wins = 0;
-    int white_local_losses = 0;
+    std::string result = "*";
 
-    // We need to keep a copy so we don't use the wrong value
-    int round_copy = ++round_count_;
+    Stats stats;
 
-    for (int i = 0; i < games; i++)
+    auto config_copy = configs;
+
+    for (int i = 0; i < game_config_.games; i++)
     {
-        auto conf1 = i == 0 ? configs[0] : configs[1];
-        auto conf2 = i != 0 ? configs[0] : configs[1];
+        Match match = Match(game_config_, config_copy.first, config_copy.second);
+        match.playMatch(fen);
 
-        MatchInfo match_result;
-        Match m = Match(match_config_, conf1, conf2, save_time_header_);
+        MatchData match_data = match.getMatchData();
+        match_data.round = round_id;
 
-        match_result = m.startMatch(round_copy, fen);
-
-        if (match_result.needs_restart)
+        if (match_data.players.first.score == GameResult::WIN)
         {
-            i--;
-            continue;
+            if (match_data.players.first == configs.first)
+            {
+                stats.wins++;
+            }
+            else
+            {
+                stats.losses++;
+            }
         }
 
-        total_count_++;
-        matches.emplace_back(match_result);
-
-        const std::string positive_engine = i == 0 ? configs[0].name : configs[1].name;
-        const std::string negative_engine = i == 1 ? configs[0].name : configs[1].name;
-
-        if (match_result.result == GameResult::WHITE_WIN)
+        if (match_data.players.first.score == GameResult::LOSE)
         {
-            local_wins += match_result.white_engine.name == configs[0].name ? 1 : 0;
-            local_losses += match_result.white_engine.name == configs[0].name ? 0 : 1;
-            white_local_wins += 1;
-        }
-        else if (match_result.result == GameResult::BLACK_WIN)
-        {
-            local_wins += match_result.black_engine.name == configs[0].name ? 1 : 0;
-            local_losses += match_result.black_engine.name == configs[0].name ? 0 : 1;
-            white_local_losses += 1;
-        }
-        else if (match_result.result == GameResult::DRAW)
-        {
-            local_draws++;
-        }
-        else
-        {
-            std::cout << "Couldn't obtain Game Result\n";
+            if (match_data.players.first == configs.first)
+            {
+                stats.losses++;
+            }
+            else
+            {
+                stats.wins++;
+            }
         }
 
-        if (match_result.termination == "timeout")
-        {
+        if (match_data.players.first.score == GameResult::DRAW)
+            stats.draws++;
+
+        if (match_data.termination == "timeout")
             timeouts_++;
-        }
+
+        match_count_++;
 
         std::stringstream ss;
-        ss << "Finished game " << i + 1 << "/" << games << " in round " << round_copy << "/"
-           << localMatchConfig.rounds << " total played " << total_count_ << "/"
-           << localMatchConfig.rounds * games << " " << positive_engine << " vs " << negative_engine
-           << ": " << resultToString(match_result.result) << "\n";
+        ss << "Finished game " << i + 1 << "/" << game_config_.games << " in round " << round_id
+           << "/" << game_config_.rounds << " total played " << match_count_ << "/" << total_count_
+           << " " << match_data.players.first.config.name << " vs "
+           << match_data.players.second.config.name << ": " << resultToString(match_data) << "\n";
 
         std::cout << ss.str();
+
+        matches.push_back(match_data);
+        std::swap(config_copy.first, config_copy.second);
     }
 
-    penta_WW_ += local_wins == 2 ? 1 : 0;
-    penta_WD_ += local_wins == 1 && local_draws == 1 ? 1 : 0;
-    penta_WL_ += (local_wins == 1 && local_losses == 1) || local_draws == 2 ? 1 : 0;
-    penta_LD_ += local_losses == 1 && local_draws == 1 ? 1 : 0;
-    penta_LL_ += local_losses == 2 ? 1 : 0;
+    if (match_count_ % game_config_.ratinginterval == 0)
+        printElo(configs.first.name, configs.second.name);
 
-    wins_ += local_wins;
-    losses_ += local_losses;
-    draws_ += local_draws;
-    // Update white advantage stats
-    white_wins_ += white_local_wins;
-    white_losses_ += white_local_losses;
+    stats.penta_WW += stats.wins == 2 ? 1 : 0;
+    stats.penta_WD += stats.wins == 1 && stats.draws == 1 ? 1 : 0;
+    stats.penta_WL += (stats.wins == 1 && stats.losses == 1) || stats.draws == 2 ? 1 : 0;
+    stats.penta_LD += stats.losses == 1 && stats.draws == 1 ? 1 : 0;
+    stats.penta_LL += stats.losses == 2 ? 1 : 0;
 
-    if (round_count_ % localMatchConfig.ratinginterval == 0)
-        printElo();
+    updateStats(configs.first.name, configs.second.name, stats);
 
-    // Write matches to file
     for (const auto &played_matches : matches)
     {
-        PgnBuilder pgn(played_matches, match_config_, save_time_header_);
+        PgnBuilder pgn(played_matches, game_config_, true);
+
+// not thread safe and is only used for unit tests.
+#ifdef TESTS
+        pgns_.push_back(pgn.getPGN());
+#endif // TESTS
 
         writeToFile(pgn.getPGN());
     }
 
-    return matches;
-}
-
-void Tournament::startTournament(const std::vector<EngineConfiguration> &configs)
-{
-    if (configs.size() < 2)
-    {
-        throw std::runtime_error("Warning: Need at least two engines to start!");
-    }
-
-    Logger::coutInfo("Starting tournament...");
-
-    std::vector<std::future<std::vector<MatchInfo>>> results;
-
-    for (int i = 1; i <= match_config_.rounds; i++)
-    {
-        results.emplace_back(pool_.enqueue(
-            std::bind(&Tournament::runH2H, this, match_config_, configs, fetchNextFen())));
-    }
-
-    engine_names_.push_back(configs[0].name);
-    engine_names_.push_back(configs[1].name);
-
-    while (sprt_.isValid() && !pool_.stop_)
-    {
-        const double llr = sprt_.getLLR(wins_, draws_, losses_);
-        if (sprt_.getResult(llr) != SPRT_CONTINUE)
-        {
-            pool_.kill();
-            std::cout << "Finished match\n";
-            printElo();
-
-            return;
-        }
-
-        std::this_thread::sleep_for(std::chrono::microseconds(250));
-    }
-
-    for (auto &&result : results)
-    {
-        const auto res = result.get();
-
-        if (store_pgns_)
-        {
-            for (const MatchInfo &match : res)
-            {
-                PgnBuilder pgn(match, match_config_, save_time_header_);
-                pgns_.emplace_back(pgn.getPGN());
-            }
-        }
-    }
-
-    std::cout << "Finished match\n";
-    printElo();
-}
-
-void Tournament::stopPool()
-{
-    pool_.kill();
-}
-
-Stats Tournament::getStats() const
-{
-    return Stats(wins_, draws_, losses_, penta_WW_, penta_WD_, penta_WL_, penta_LD_, penta_LL_,
-                 round_count_, total_count_, timeouts_);
-}
-
-void Tournament::setStats(const Stats &stats)
-{
-    wins_ = stats.wins;
-    losses_ = stats.losses;
-    draws_ = stats.draws;
-
-    penta_WW_ = stats.penta_WW;
-    penta_WD_ = stats.penta_WD;
-    penta_WL_ = stats.penta_WL;
-    penta_LD_ = stats.penta_LD;
-    penta_LL_ = stats.penta_LL;
-
-    round_count_ = stats.round_count;
-    total_count_ = stats.total_count;
-    timeouts_ = stats.timeouts;
+    return true;
 }
 
 } // namespace fast_chess

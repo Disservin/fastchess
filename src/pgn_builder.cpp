@@ -8,34 +8,48 @@
 namespace fast_chess
 {
 
-PgnBuilder::PgnBuilder(const MatchInfo &match, const CMD::GameManagerOptions &game_options_,
+PgnBuilder::PgnBuilder(const MatchData &match, const CMD::GameManagerOptions &game_options_,
                        const bool saveTime)
 {
-    const std::string result = resultToString(match.result);
+    const std::string result = resultToString(match);
     const std::string termination = match.termination;
     std::stringstream ss;
 
+    PlayerInfo white_player, black_player;
+
+    if (match.players.first.color == WHITE)
+    {
+        white_player = match.players.first;
+        black_player = match.players.second;
+    }
+    else
+    {
+        white_player = match.players.second;
+        black_player = match.players.first;
+    }
+
     // clang-format off
-    ss << "[Event "         << "\"" << game_options_.event_name    << "\"" << "]" << "\n";
-    ss << "[Site "          << "\"" << game_options_.site         << "\"" << "]" << "\n";
+    ss << "[Event "         << "\"" << game_options_.event_name << "\"" << "]" << "\n";
+    ss << "[Site "          << "\"" << game_options_.site       << "\"" << "]" << "\n";
     ss << "[Date "          << "\"" << match.date               << "\"" << "]" << "\n";
     ss << "[Round "         << "\"" << match.round              << "\"" << "]" << "\n";
-    ss << "[White "         << "\"" << match.white_engine.name   << "\"" << "]" << "\n";
-    ss << "[Black "         << "\"" << match.black_engine.name   << "\"" << "]" << "\n";
+    ss << "[White "         << "\"" << white_player.config.name << "\"" << "]" << "\n";
+    ss << "[Black "         << "\"" << black_player.config.name << "\"" << "]" << "\n";
     ss << "[Result "        << "\"" << result                   << "\"" << "]" << "\n";
     ss << "[FEN "           << "\"" << match.fen                << "\"" << "]" << "\n";
     ss << "[GameDuration "  << "\"" << match.duration           << "\"" << "]" << "\n";
-    ss << "[GameEndTime "   << "\"" << match.end_time            << "\"" << "]" << "\n";
-    ss << "[GameStartTime " << "\"" << match.start_time          << "\"" << "]" << "\n";
+    ss << "[GameEndTime "   << "\"" << match.end_time           << "\"" << "]" << "\n";
+    ss << "[GameStartTime " << "\"" << match.start_time         << "\"" << "]" << "\n";
     ss << "[PlyCount "      << "\"" << match.moves.size()       << "\"" << "]" << "\n";
-    
+
     if (!termination.empty())
         ss << "[Termination " << "\"" << termination << "\"" << "]" << "\n";
 
-    if (match.white_engine.tc.fixed_time != 0)  
-        ss << "[TimeControl " << "\"" << match.white_engine.tc.fixed_time << "/move" << "\"" << "]" << "\n";
-    else 
-        ss << "[TimeControl " << "\"" << match.white_engine.tc << "\"" << "]" << "\n";
+    if (white_player.config.tc.fixed_time != 0)
+        ss << "[TimeControl " << "\"" << white_player.config.tc.fixed_time << "/move" << "\"" <<
+        "]" << "\n";
+    else
+        ss << "[TimeControl " << "\"" << white_player.config.tc << "\"" << "]" << "\n";
     // clang-format on
     ss << "\n";
     std::stringstream illegalMove;
@@ -49,7 +63,7 @@ PgnBuilder::PgnBuilder(const MatchInfo &match, const CMD::GameManagerOptions &ga
     Board b = Board(match.fen);
 
     int move_count = 3;
-    for (size_t i = 0; i < match.moves.size(); i++)
+    for (std::size_t i = 0; i < match.moves.size(); i++)
     {
         const MoveData data = match.moves[i];
 

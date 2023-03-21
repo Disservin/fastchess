@@ -116,10 +116,19 @@ Options::Options(int argc, char const *argv[])
                 else if (key == "discard" && value == "true")
                 {
                     std::cout << "Discarded previous results.\n";
-                    stats_ = Stats();
+                    stats_.clear();
                 }
                 else
                     coutMissingCommand("config", key, value);
+            });
+        else if (arg == "-report")
+            parseDashOptions(i, argc, argv, [&](std::string key, std::string value) {
+                if (key == "penta")
+                {
+                    game_options_.report_penta = value == "true";
+                }
+                else
+                    coutMissingCommand("report", key, value);
             });
         else if (arg == "-concurrency")
             parseValue(i, argc, argv, game_options_.concurrency);
@@ -201,7 +210,7 @@ void Options::parseEngineKeyValues(EngineConfiguration &engineConfig, const std:
     else if (isEngineSettableOption(key))
     {
         // Strip option.Name of the option. Part
-        const size_t pos = key.find('.');
+        const std::size_t pos = key.find('.');
         const std::string strippedKey = key.substr(pos + 1);
         engineConfig.options.push_back(std::make_pair(strippedKey, value));
     }
@@ -215,7 +224,7 @@ void Options::parseDashOptions(int &i, int argc, char const *argv[],
     while (i + 1 < argc && argv[i + 1][0] != '-' && i++)
     {
         std::string param = argv[i];
-        size_t pos = param.find('=');
+        std::size_t pos = param.find('=');
         std::string key = param.substr(0, pos);
         std::string value = param.substr(pos + 1);
 
@@ -223,7 +232,7 @@ void Options::parseDashOptions(int &i, int argc, char const *argv[],
     }
 }
 
-void Options::saveJson(const Stats &stats) const
+void Options::saveJson(const std::map<std::string, std::map<std::string, Stats>> &stats) const
 {
     nlohmann::ordered_json jsonfile = game_options_;
     jsonfile["engines"] = configs_;
@@ -240,7 +249,7 @@ void Options::loadJson(const std::string &filename)
     json jsonfile = json::parse(f);
 
     game_options_ = jsonfile.get<GameManagerOptions>();
-    stats_ = jsonfile["stats"].get<Stats>();
+    stats_ = jsonfile["stats"].get<std::map<std::string, std::map<std::string, Stats>>>();
 
     for (auto engine : jsonfile["engines"])
     {
@@ -260,7 +269,7 @@ GameManagerOptions Options::getGameOptions() const
     return game_options_;
 }
 
-Stats Options::getStats() const
+std::map<std::string, std::map<std::string, Stats>> Options::getStats() const
 {
     return stats_;
 }

@@ -19,7 +19,7 @@ Square poplsb(Bitboard &mask);
 /// @tparam T
 /// @tparam N
 /// @tparam ...Dims
-template <typename T, size_t N, size_t... Dims> struct Table
+template <typename T, std::size_t N, std::size_t... Dims> struct Table
 {
     std::array<Table<T, Dims...>, N> data;
 
@@ -28,12 +28,12 @@ template <typename T, size_t N, size_t... Dims> struct Table
         data.fill({});
     }
 
-    Table<T, Dims...> &operator[](size_t index)
+    Table<T, Dims...> &operator[](std::size_t index)
     {
         return data[index];
     }
 
-    const Table<T, Dims...> &operator[](size_t index) const
+    const Table<T, Dims...> &operator[](std::size_t index) const
     {
         return data[index];
     }
@@ -44,7 +44,7 @@ template <typename T, size_t N, size_t... Dims> struct Table
     }
 };
 
-template <typename T, size_t N> struct Table<T, N>
+template <typename T, std::size_t N> struct Table<T, N>
 {
     std::array<T, N> data;
 
@@ -53,12 +53,12 @@ template <typename T, size_t N> struct Table<T, N>
         data.fill({});
     }
 
-    T &operator[](size_t index)
+    T &operator[](std::size_t index)
     {
         return data[index];
     }
 
-    const T &operator[](size_t index) const
+    const T &operator[](std::size_t index) const
     {
         return data[index];
     }

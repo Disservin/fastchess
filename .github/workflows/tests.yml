@@ -64,14 +64,14 @@ jobs:
         run: |
           make clean
           make -j tests san=asan
-          ./fast-chess-tests* -tce="*PERFT*"
+          ./fast-chess-tests* -tse="*PERFT*"
 
       - name: Running fsanitize=undefined unit tests with clang++
         if: runner.os != 'Windows'
         run: |
           make clean
           make -j tests san=undefined CXX=clang++
-          ./fast-chess-tests* -tce="*PERFT*"
+          ./fast-chess-tests* -tse="*PERFT*"
 
       - name: Running fsanitize=address unit tests with clang++
         if: runner.os != 'Windows'
@@ -85,4 +85,4 @@ jobs:
         run: |
           make clean
           make -j tests CXX=g++
-          valgrind --error-exitcode=1 --errors-for-leak-kinds=all --leak-check=full ./fast-chess-tests* -tce="*PERFT*"
+          valgrind --error-exitcode=1 --errors-for-leak-kinds=all --leak-check=full ./fast-chess-tests* -tse="*PERFT*"

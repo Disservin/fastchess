@@ -8,7 +8,7 @@
 
 #include "engines/engine_config.hpp"
 #include "logger.hpp"
-#include "matchmaking/matchmaking_data.hpp"
+#include "matchmaking/tournament_data.hpp"
 
 namespace fast_chess
 {
@@ -91,10 +91,13 @@ struct GameManagerOptions
     int overhead = 0;
 
     bool recover = false;
+
+    bool report_penta = true;
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(GameManagerOptions, event_name, site, seed,
                                                 ratinginterval, games, rounds, concurrency,
-                                                overhead, recover, resign, draw, opening, pgn, sprt)
+                                                overhead, recover, report_penta, resign, draw,
+                                                opening, pgn, sprt)
 
 class Options
 {
@@ -103,12 +106,12 @@ class Options
 
     Options(int argc, char const *argv[]);
 
-    void saveJson(const Stats &stats) const;
+    void saveJson(const std::map<std::string, std::map<std::string, Stats>> &stats) const;
     void loadJson(const std::string &filename);
 
     std::vector<EngineConfiguration> getEngineConfigs() const;
     GameManagerOptions getGameOptions() const;
-    Stats getStats() const;
+    std::map<std::string, std::map<std::string, Stats>> getStats() const;
 
   private:
     bool isEngineSettableOption(const std::string &stringFormat) const;
@@ -148,7 +151,7 @@ class Options
     void coutMissingCommand(std::string_view name, std::string_view key,
                             std::string_view value) const;
 
-    Stats stats_;
+    std::map<std::string, std::map<std::string, Stats>> stats_;
 
     // Holds all the relevant settings for the handling of the games
     GameManagerOptions game_options_;

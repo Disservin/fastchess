@@ -13,11 +13,6 @@
 namespace fast_chess
 {
 
-EngineProcess::EngineProcess(const std::string &command)
-{
-    initProcess(command);
-}
-
 #ifdef _WIN64
 
 void EngineProcess::initProcess(const std::string &command)
@@ -171,6 +166,8 @@ void EngineProcess::writeProcess(const std::string &input)
 
     try
     {
+        Logger::writeLog(input, std::this_thread::get_id());
+
         if (!isAlive())
         {
             closeHandles();
@@ -180,8 +177,6 @@ void EngineProcess::writeProcess(const std::string &input)
             std::cout << ss.str();
             return;
         }
-
-        Logger::writeLog(input, std::this_thread::get_id());
 
         constexpr char endLine = '\n';
         DWORD bytesWritten;
@@ -301,6 +296,8 @@ void EngineProcess::writeProcess(const std::string &input)
 {
     assert(is_initalized_);
 
+    Logger::writeLog(input, std::this_thread::get_id());
+
     if (!isAlive())
     {
         err_code_ = 1;
@@ -403,6 +400,8 @@ std::vector<std::string> EngineProcess::readProcess(std::string_view last_word, 
                     // dont add empty lines
                     if (!currentLine.empty())
                     {
+                        Logger::readLog(currentLine, std::this_thread::get_id());
+
                         lines.emplace_back(currentLine);
                         if (currentLine.rfind(last_word, 0) == 0)
                         {

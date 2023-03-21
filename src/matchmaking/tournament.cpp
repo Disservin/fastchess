@@ -201,7 +201,8 @@ void Tournament::startTournament(const std::vector<EngineConfiguration> &engine_
         }
     }
 
-    while (engine_configs.size() == 2 && sprt_.isValid() && !pool_.queueSize())
+    while (engine_configs.size() == 2 && sprt_.isValid() && match_count_ < total_count_ &&
+           !pool_.getStop())
     {
         Stats stats = getResults(engine_configs[0].name, engine_configs[1].name);
         const double llr = sprt_.getLLR(stats.wins, stats.draws, stats.losses);

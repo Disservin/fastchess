@@ -126,13 +126,18 @@ class ThreadPool
         return tasks_.size();
     }
 
+    bool getStop()
+    {
+        return stop_;
+    }
+
   private:
     std::vector<std::thread> workers_;
     std::queue<std::function<void()>> tasks_;
     std::mutex queue_mutex_;
     std::condition_variable condition_;
 
-    bool stop_;
+    std::atomic_bool stop_;
 };
 
 } // namespace fast_chess

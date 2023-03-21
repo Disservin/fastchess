@@ -64,6 +64,9 @@ void Tournament::stop()
 
 void Tournament::printElo(const std::string &first, const std::string &second)
 {
+    if (engine_count != 2)
+        return;
+
     Stats stats;
     {
         const std::unique_lock<std::mutex> lock(results_mutex_);
@@ -78,7 +81,7 @@ void Tournament::printElo(const std::string &first, const std::string &second)
     // Elo white_advantage(white_stats.wins, white_stats.losses, stats.draws);
     std::stringstream ss;
 
-    int64_t games = match_count_;
+    int64_t games = stats.sum();
 
     // clang-format off
     ss << "--------------------------------------------------------\n"
@@ -128,6 +131,8 @@ void Tournament::printElo(const std::string &first, const std::string &second)
 
 void Tournament::startTournament(const std::vector<EngineConfiguration> &engine_configs)
 {
+    engine_count = engine_configs.size();
+
     if (engine_configs.size() < 2)
     {
         throw std::runtime_error("Warning: Need at least two engines to start!");

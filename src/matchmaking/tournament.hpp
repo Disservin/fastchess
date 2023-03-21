@@ -15,12 +15,6 @@ class Tournament
 {
 
   public:
-    explicit Tournament(bool savetime)
-    {
-        if (savetime)
-            file_.open("fast-chess.pgn", std::ios::app);
-    };
-
     explicit Tournament(const CMD::GameManagerOptions &game_config);
 
     void loadConfig(const CMD::GameManagerOptions &game_config);
@@ -90,6 +84,9 @@ class Tournament
     ThreadPool pool_ = ThreadPool(1);
 
     SPRT sprt_ = SPRT();
+
+    /// @brief how many engines are playing
+    int engine_count = 0;
 
     /// @brief tracks the engine results
     std::map<std::string, std::map<std::string, Stats>> results_;

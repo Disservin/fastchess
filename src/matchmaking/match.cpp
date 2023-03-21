@@ -15,13 +15,12 @@ Match::Match(const CMD::GameManagerOptions &game_config, const EngineConfigurati
 
 void Match::playMatch(const std::string &openingFen)
 {
+    board_.loadFen(openingFen);
     auto first_player_time = player_1_.getConfig().tc;
     auto second_player_time = player_2_.getConfig().tc;
 
     std::string position_input =
         board_.getFen() == startpos_ ? "position startpos" : "position fen " + board_.getFen();
-
-    board_.loadFen(openingFen);
 
     player_1_.sendUciNewGame();
     player_2_.sendUciNewGame();

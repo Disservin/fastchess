@@ -319,11 +319,13 @@ bool Match::playNextMove(Participant &player, Participant &enemy, std::string &p
     {
         player.info_.score = GameResult::DRAW;
         enemy.info_.score = GameResult::DRAW;
+        return false;
     }
     else if (res != GameResult::NONE)
     {
         player.info_.score = res;
         enemy.info_.score = ~res;
+        return false;
     }
 
     return true;

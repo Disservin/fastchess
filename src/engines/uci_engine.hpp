@@ -57,8 +57,6 @@ class UciEngine : public EngineProcess
 
     static const int64_t ping_time_ = 60000;
 
-    Turn turn = Turn::FIRST;
-
   private:
     EngineConfiguration config_;
 

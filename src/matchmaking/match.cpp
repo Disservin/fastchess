@@ -15,19 +15,19 @@ Match::Match(const CMD::GameManagerOptions &game_config, const EngineConfigurati
 
 void Match::playMatch(const std::string &openingFen)
 {
+    auto first_player_time = player_1_.getConfig().tc;
+    auto second_player_time = player_2_.getConfig().tc;
+
+    std::string position_input =
+        board_.getFen() == startpos_ ? "position startpos" : "position fen " + board_.getFen();
+
     board_.loadFen(openingFen);
 
     player_1_.sendUciNewGame();
     player_2_.sendUciNewGame();
 
-    std::string position_input =
-        board_.getFen() == startpos_ ? "position startpos" : "position fen " + board_.getFen();
-
     player_1_.info_.color = board_.getSideToMove();
     player_2_.info_.color = ~board_.getSideToMove();
-
-    auto first_player_time = player_1_.getConfig().tc;
-    auto second_player_time = player_2_.getConfig().tc;
 
     match_data_.fen = board_.getFen();
 
@@ -37,18 +37,27 @@ void Match::playMatch(const std::string &openingFen)
     const auto start_time = std::chrono::high_resolution_clock::now();
 #endif // TESTS
 
-    while (true)
+    try
     {
-        if (!playNextMove(player_1_, player_2_, position_input, first_player_time,
-                          second_player_time))
-            break;
+        while (true)
+        {
+            if (!playNextMove(player_1_, player_2_, position_input, first_player_time,
+                              second_player_time))
+                break;
 
-        if (!playNextMove(player_2_, player_1_, position_input, second_player_time,
-                          first_player_time))
-            break;
+            if (!playNextMove(player_2_, player_1_, position_input, second_player_time,
+                              first_player_time))
+                break;
+        }
+    }
+    catch (const std::exception &e)
+    {
+        if (game_config_.recover)
+            match_data_.needs_restart = true;
+        else
+            throw e;
     }
 
-// match_data_.round = roundId_;
 #ifndef TESTS
     const auto end_time = std::chrono::high_resolution_clock::now();
 
@@ -58,10 +67,118 @@ void Match::playMatch(const std::string &openingFen)
 #endif
 }
 
-MatchData Match::getMatchData()
+bool Match::playNextMove(Participant &player, Participant &enemy, std::string &position_input,
+                         TimeControl &time_left_us, const TimeControl &time_left_them)
 {
-    match_data_.players = std::make_pair(player_1_.info_, player_2_.info_);
-    return match_data_;
+    std::vector<std::string> output;
+    output.reserve(30);
+
+    const int64_t timeout_threshold = time_left_us.fixed_time != 0 ? 0 : time_left_us.time;
+
+    bool timeout = false;
+
+    isResponsive(player);
+
+    // inform the engine about the new position
+    player.writeProcess(position_input);
+
+    // Send go command
+    player.writeProcess(player.buildGoInput(board_.getSideToMove(), time_left_us, time_left_them));
+
+    // Start measuring time
+    const auto t0 = std::chrono::high_resolution_clock::now();
+
+    output = player.readProcess("bestmove", timeout, timeout_threshold);
+
+    // End of search time
+    const auto t1 = std::chrono::high_resolution_clock::now();
+
+    // An error has occured, thus abort match.
+    if (!player.getError().empty())
+    {
+        Logger::coutInfo("Warning: Engine", player.getConfig().name, "disconnects #");
+        throw std::runtime_error("Warning: Can't read engine.");
+    }
+
+    // Subtract measured time from engine time
+    const auto measured_time =
+        std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count();
+
+    time_left_us.time -= measured_time;
+
+    if ((time_left_us.fixed_time != 0 &&
+         measured_time - game_config_.overhead > time_left_us.fixed_time) ||
+        (time_left_us.fixed_time == 0 && time_left_us.time + game_config_.overhead < 0))
+    {
+        player.info_.score = GameResult::LOSE;
+        enemy.info_.score = GameResult::WIN;
+
+        match_data_.termination = "timeout";
+        Logger::coutInfo("Warning: Engine", player.getConfig().name, "loses on time #");
+        return false;
+    }
+
+    // Now we add increment!
+    time_left_us.time += time_left_us.increment;
+
+    // find bestmove and add it to the position string
+    const auto bestMove =
+        CMD::findElement<std::string>(CMD::splitString(output.back(), ' '), "bestmove").value();
+
+    // is this the first move? If so we need to insert "moves".
+    if (match_data_.moves.size() == 0)
+        position_input += " moves";
+
+    position_input += " " + bestMove;
+
+    // play move on internal board_ and store it for later pgn creation
+    match_data_.legal = board_.makeMove(convertUciToMove(board_, bestMove));
+    match_data_.moves.emplace_back(parseEngineOutput(output, bestMove, measured_time));
+
+    if (!match_data_.legal)
+    {
+        // The move was not legal
+        player.info_.score = GameResult::LOSE;
+        enemy.info_.score = GameResult::WIN;
+
+        match_data_.termination = "illegal move";
+
+        Logger::coutInfo("Warning: Engine", player.getConfig().name,
+                         "played an illegal move:", bestMove, "#");
+        return false;
+    }
+
+    // Check for game over
+    updateTrackers(match_data_.moves.back().score, match_data_.moves.size());
+    auto res = board_.isGameOver();
+    auto resAdj = checkAdj(match_data_.moves.back().score);
+
+    if (res == GameResult::LOSE)
+    {
+        player.info_.score = ~res;
+        // enemy lost
+        enemy.info_.score = res;
+
+        return false;
+    }
+
+    if (res == GameResult::DRAW || resAdj == GameResult::DRAW)
+    {
+        player.info_.score = GameResult::DRAW;
+        enemy.info_.score = GameResult::DRAW;
+
+        return false;
+    }
+
+    if (resAdj != GameResult::NONE)
+    {
+        player.info_.score = res;
+        enemy.info_.score = ~res;
+
+        return false;
+    }
+
+    return true;
 }
 
 void Match::updateTrackers(const Score moveScore, const int move_number)
@@ -104,44 +221,6 @@ GameResult Match::checkAdj(const Score score)
     }
 
     return GameResult::NONE;
-}
-
-bool Match::tellEngine(Participant &player, const std::string &input)
-{
-    player.writeProcess(input);
-    if (!hasErrors(player))
-        return false;
-
-    return true;
-}
-
-bool Match::hasErrors(Participant &player)
-{
-    if (!player.checkErrors().empty())
-    {
-        match_data_.needs_restart = game_config_.recover;
-        return false;
-    }
-
-    return true;
-}
-
-bool Match::isResponsive(Participant &player)
-{
-    // engine's turn
-    if (!player.isResponsive())
-    {
-        Logger::coutInfo("Warning: Engine", player.getConfig().name,
-                         "disconnects. It was not responsive.");
-
-        if (!game_config_.recover)
-        {
-            throw std::runtime_error("Warning: Engine not responsive");
-        }
-
-        return false;
-    }
-    return true;
 }
 
 MoveData Match::parseEngineOutput(const std::vector<std::string> &output, const std::string &move,
@@ -203,132 +282,22 @@ MoveData Match::parseEngineOutput(const std::vector<std::string> &output, const 
     return move_data;
 }
 
-bool Match::playNextMove(Participant &player, Participant &enemy, std::string &position_input,
-                         TimeControl &time_left_us, const TimeControl &time_left_them)
+void Match::isResponsive(Participant &player)
 {
-    std::vector<std::string> output;
-    output.reserve(30);
-
-    const int64_t timeout_threshold = time_left_us.fixed_time != 0 ? 0 : time_left_us.time;
-
-    bool timeout = false;
-
-    if (!isResponsive(player))
-        return false;
-
-    // inform the engine about the new position
-    if (!tellEngine(player, position_input))
-        return false;
-
-    // Send go command
-    if (!tellEngine(player,
-                    (player.buildGoInput(board_.getSideToMove(), time_left_us, time_left_them))))
-        return false;
-
-    // Start measuring time
-    const auto t0 = std::chrono::high_resolution_clock::now();
-
-    output = player.readProcess("bestmove", timeout, timeout_threshold);
-
-    // End of search time
-    const auto t1 = std::chrono::high_resolution_clock::now();
-
-    // An error has occured, thus abort match. Throw error if engine recovery is
-    // turned off.
-    if (!player.getError().empty())
+    // engine's turn
+    if (!player.isResponsive())
     {
-        match_data_.needs_restart = game_config_.recover;
-        Logger::coutInfo("Warning: Engine", player.getConfig().name, "disconnects #");
-        if (!game_config_.recover)
-            throw std::runtime_error("Warning: Can't write to engine.");
-
-        return false;
-    }
-
-    // Subtract measured time from engine time
-    const auto measured_time =
-        std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count();
-
-    time_left_us.time -= measured_time;
-
-    if ((time_left_us.fixed_time != 0 &&
-         measured_time - game_config_.overhead > time_left_us.fixed_time) ||
-        (time_left_us.fixed_time == 0 && time_left_us.time + game_config_.overhead < 0))
-    {
-        player.info_.score = GameResult::LOSE;
-        enemy.info_.score = GameResult::WIN;
-
-        match_data_.termination = "timeout";
-        Logger::coutInfo("Warning: Engine", player.getConfig().name, "loses on time #");
-        return false;
-    }
-
-    // Now we add increment!
-    time_left_us.time += time_left_us.increment;
-
-    // find bestmove and add it to the position string
-    const auto bestMove =
-        CMD::findElement<std::string>(CMD::splitString(output.back(), ' '), "bestmove").value();
-
-    // is this the first move? If so we need to insert "moves".
-    if (match_data_.moves.size() == 0)
-        position_input += " moves";
-
-    position_input += " " + bestMove;
-
-    // play move on internal board_ and store it for later pgn creation
-    match_data_.legal = board_.makeMove(convertUciToMove(board_, bestMove));
-    match_data_.moves.emplace_back(parseEngineOutput(output, bestMove, measured_time));
-
-    if (!match_data_.legal)
-    {
-        // The move was not legal
-        player.info_.score = GameResult::LOSE;
-        enemy.info_.score = GameResult::WIN;
-
-        match_data_.termination = "illegal move";
-
         Logger::coutInfo("Warning: Engine", player.getConfig().name,
-                         "played an illegal move:", bestMove, "#");
-        return false;
+                         "disconnects. It was not responsive.");
+
+        throw std::runtime_error("Warning: Engine not responsive");
     }
+}
 
-    // Check for game over
-    auto res = board_.isGameOver();
-
-    if (res == GameResult::LOSE)
-    {
-        player.info_.score = ~res;
-        // enemy lost
-        enemy.info_.score = res;
-
-        return false;
-    }
-    else if (res == GameResult::DRAW)
-    {
-        player.info_.score = GameResult::DRAW;
-        enemy.info_.score = GameResult::DRAW;
-
-        return false;
-    }
-
-    updateTrackers(match_data_.moves.back().score, match_data_.moves.size());
-    res = checkAdj(match_data_.moves.back().score);
-
-    if (res == GameResult::DRAW)
-    {
-        player.info_.score = GameResult::DRAW;
-        enemy.info_.score = GameResult::DRAW;
-        return false;
-    }
-    else if (res != GameResult::NONE)
-    {
-        player.info_.score = res;
-        enemy.info_.score = ~res;
-        return false;
-    }
-
-    return true;
+MatchData Match::getMatchData()
+{
+    match_data_.players = std::make_pair(player_1_.info_, player_2_.info_);
+    return match_data_;
 }
 
 } // namespace fast_chess

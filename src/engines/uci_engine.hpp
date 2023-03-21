@@ -51,8 +51,6 @@ class UciEngine : public EngineProcess
 
     void restartEngine();
 
-    void startEngine();
-
     void startEngine(const std::string &cmd);
 
     static const int64_t ping_time_ = 60000;

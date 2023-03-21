@@ -119,24 +119,6 @@ void UciEngine::restartEngine()
     initProcess(config_.cmd);
 }
 
-void UciEngine::startEngine()
-{
-    initProcess(config_.cmd);
-
-    sendUci();
-    readUci();
-
-    if (!isResponsive(60000))
-    {
-        throw std::runtime_error("Warning: Something went wrong when pinging the engine.");
-    }
-
-    for (const auto &option : config_.options)
-    {
-        sendSetoption(option.first, option.second);
-    }
-}
-
 void UciEngine::startEngine(const std::string &cmd)
 {
     initProcess(cmd);

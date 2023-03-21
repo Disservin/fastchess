@@ -201,7 +201,7 @@ void Tournament::startTournament(const std::vector<EngineConfiguration> &engine_
         }
     }
 
-    while (engine_configs.size() == 2 && sprt_.isValid() && !pool_.stop_)
+    while (engine_configs.size() == 2 && sprt_.isValid() && !pool_.getStop())
     {
         Stats stats = getResults(engine_configs[0].name, engine_configs[1].name);
         const double llr = sprt_.getLLR(stats.wins, stats.draws, stats.losses);
@@ -217,9 +217,9 @@ void Tournament::startTournament(const std::vector<EngineConfiguration> &engine_
         std::this_thread::sleep_for(std::chrono::microseconds(250));
     }
 
-    for (auto &&result : results)
+    while (!pool_.getStop())
     {
-        bool res = result.get();
+        std::this_thread::sleep_for(std::chrono::microseconds(250));
     }
 
     std::cout << "Finished match\n";
@@ -319,9 +319,10 @@ bool Tournament::launchMatch(const std::pair<EngineConfiguration, EngineConfigur
         }
 
         if (match_data.players.first.score == GameResult::DRAW)
-        {
             stats.draws++;
-        }
+
+        if (match_data.termination == "timeout")
+            timeouts_++;
 
         match_count_++;
 

@@ -42,7 +42,7 @@ class Tournament
         results_ = results;
     }
 
-    /// @brief accessed by [engine name][engine name]
+    /// @brief non MT access
     /// @return
     std::map<std::string, std::map<std::string, Stats>> getResults() const
     {
@@ -57,6 +57,10 @@ class Tournament
 
 #endif
   private:
+    /// @brief MT access by [engine name][engine name]
+    /// @return
+    Stats getResults(const std::string &engine1, const std::string &engine2);
+
     /// @brief fetches the next fen from a sequential read opening book or from a randomized opening
     /// book order
     /// @return

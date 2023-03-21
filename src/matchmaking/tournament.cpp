@@ -175,6 +175,7 @@ void Tournament::startTournament(const std::vector<EngineConfiguration> &engine_
                 results_[engine_configs[i].name][engine_configs[j].name] = stats;
             }
 
+            // add json loaded games to current match count
             auto sum = results_[engine_configs[i].name][engine_configs[j].name].sum();
             match_count_ += sum;
 
@@ -195,6 +196,22 @@ void Tournament::startTournament(const std::vector<EngineConfiguration> &engine_
         }
     }
 
+    while (engine_configs.size() == 2 && sprt_.isValid() && !pool_.stop_)
+    {
+        Stats stats = getResults(engine_configs[0].name, engine_configs[1].name);
+        const double llr = sprt_.getLLR(stats.wins, stats.draws, stats.losses);
+        if (sprt_.getResult(llr) != SPRT_CONTINUE)
+        {
+            pool_.kill();
+            std::cout << "Finished match\n";
+            printElo(engine_configs[0].name, engine_configs[1].name);
+
+            return;
+        }
+
+        std::this_thread::sleep_for(std::chrono::microseconds(250));
+    }
+
     for (auto &&result : results)
     {
         bool res = result.get();
@@ -202,6 +219,12 @@ void Tournament::startTournament(const std::vector<EngineConfiguration> &engine_
 
     if (engine_configs.size() == 2)
         printElo(engine_configs[0].name, engine_configs[1].name);
+}
+
+Stats Tournament::getResults(const std::string &engine1, const std::string &engine2)
+{
+    const std::unique_lock<std::mutex> lock(results_mutex_);
+    return results_[engine1][engine2];
 }
 
 std::string Tournament::fetchNextFen()

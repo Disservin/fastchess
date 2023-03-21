@@ -7,6 +7,7 @@
 #include <thread>
 
 using namespace fast_chess;
+
 TEST_SUITE("Uci Engine Communication Tests")
 {
 

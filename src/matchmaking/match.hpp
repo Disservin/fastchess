@@ -39,7 +39,7 @@ struct ResignAdjTracker
 class Match
 {
   public:
-    Match(CMD::GameManagerOptions game_config, const EngineConfiguration &engine1_config,
+    Match(const CMD::GameManagerOptions &game_config, const EngineConfiguration &engine1_config,
           const EngineConfiguration &engine2_config);
 
     /// @brief plays a match between the previously loaded engines

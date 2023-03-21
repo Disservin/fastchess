@@ -4,7 +4,7 @@
 namespace fast_chess
 {
 
-Match::Match(CMD::GameManagerOptions game_config, const EngineConfiguration &engine1_config,
+Match::Match(const CMD::GameManagerOptions &game_config, const EngineConfiguration &engine1_config,
              const EngineConfiguration &engine2_config)
     : player_1_(Participant(engine1_config)), player_2_(Participant(engine2_config)),
       drawTracker_(DrawAdjTracker(game_config.draw.score, 0)),
@@ -182,19 +182,18 @@ MoveData Match::parseEngineOutput(const std::vector<std::string> &output, const 
     for (const auto &info : output)
     {
         const auto tokens = CMD::splitString(info, ' ');
-        auto tmp = board_;
 
         if (!CMD::contains(tokens, "moves"))
             continue;
 
-        std::size_t index = std::find(tokens.begin(), tokens.end(), "pv") - tokens.begin();
-        index++;
-        for (; index < tokens.size(); index++)
+        auto tmp = board_;
+        auto it = std::find(tokens.begin(), tokens.end(), "pv");
+        while (++it != tokens.end())
         {
-            if (!tmp.makeMove(convertUciToMove(tmp, tokens[index])))
+            if (!tmp.makeMove(convertUciToMove(tmp, *it)))
             {
                 std::stringstream ss;
-                ss << "Warning: Illegal pv move " << tokens[index] << ".\n";
+                ss << "Warning: Illegal pv move " << *it << ".\n";
                 std::cout << ss.str();
                 break;
             };
@@ -247,13 +246,13 @@ bool Match::playNextMove(Participant &player, Participant &enemy, std::string &p
     }
 
     // Subtract measured time from engine time
-    const auto measuredTime =
+    const auto measured_time =
         std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count();
 
-    time_left_us.time -= measuredTime;
+    time_left_us.time -= measured_time;
 
     if ((time_left_us.fixed_time != 0 &&
-         measuredTime - game_config_.overhead > time_left_us.fixed_time) ||
+         measured_time - game_config_.overhead > time_left_us.fixed_time) ||
         (time_left_us.fixed_time == 0 && time_left_us.time + game_config_.overhead < 0))
     {
         player.info_.score = GameResult::LOSE;
@@ -279,7 +278,7 @@ bool Match::playNextMove(Participant &player, Participant &enemy, std::string &p
 
     // play move on internal board_ and store it for later pgn creation
     match_data_.legal = board_.makeMove(convertUciToMove(board_, bestMove));
-    match_data_.moves.emplace_back(parseEngineOutput(output, bestMove, measuredTime));
+    match_data_.moves.emplace_back(parseEngineOutput(output, bestMove, measured_time));
 
     if (!match_data_.legal)
     {
@@ -329,4 +328,5 @@ bool Match::playNextMove(Participant &player, Participant &enemy, std::string &p
 
     return true;
 }
+
 } // namespace fast_chess

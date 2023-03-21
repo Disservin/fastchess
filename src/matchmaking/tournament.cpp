@@ -217,6 +217,8 @@ void Tournament::startTournament(const std::vector<EngineConfiguration> &engine_
         bool res = result.get();
     }
 
+    std::cout << "Finished match\n";
+
     if (engine_configs.size() == 2)
         printElo(engine_configs[0].name, engine_configs[1].name);
 }

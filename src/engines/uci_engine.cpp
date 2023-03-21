@@ -133,7 +133,6 @@ void UciEngine::startEngine()
 
     for (const auto &option : config_.options)
     {
-        std::cout << "Sending option: " << option.first << " " << option.second << std::endl;
         sendSetoption(option.first, option.second);
     }
 }

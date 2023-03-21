@@ -116,7 +116,7 @@ Options::Options(int argc, char const *argv[])
                 else if (key == "discard" && value == "true")
                 {
                     std::cout << "Discarded previous results.\n";
-                    // stats_ = Stats();
+                    stats_.clear();
                 }
                 else
                     coutMissingCommand("config", key, value);

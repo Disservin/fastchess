@@ -29,6 +29,11 @@ struct Stats
         this->penta_LL += rhs.penta_LL;
         return *this;
     }
+
+    int sum() const
+    {
+        return wins + losses + draws;
+    }
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(Stats, wins, losses, draws, penta_WW, penta_WD,
                                                 penta_WL, penta_LD, penta_LL)

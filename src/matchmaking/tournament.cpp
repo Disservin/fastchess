@@ -175,7 +175,10 @@ void Tournament::startTournament(const std::vector<EngineConfiguration> &engine_
                 results_[engine_configs[i].name][engine_configs[j].name] = stats;
             }
 
-            for (int n = 1; n <= game_config_.rounds; n++)
+            auto sum = results_[engine_configs[i].name][engine_configs[j].name].sum();
+            match_count_ += sum;
+
+            for (int n = 1 + sum / game_config_.games; n <= game_config_.rounds; n++)
             {
                 results.emplace_back(pool_.enqueue(std::bind(
                     &Tournament::launchMatch, this,
@@ -304,6 +307,9 @@ bool Tournament::launchMatch(const std::pair<EngineConfiguration, EngineConfigur
         std::swap(config_copy.first, config_copy.second);
     }
 
+    if (match_count_ % game_config_.ratinginterval == 0)
+        printElo(configs.first.name, configs.second.name);
+
     stats.penta_WW += stats.wins == 2 ? 1 : 0;
     stats.penta_WD += stats.wins == 1 && stats.draws == 1 ? 1 : 0;
     stats.penta_WL += (stats.wins == 1 && stats.losses == 1) || stats.draws == 2 ? 1 : 0;
@@ -311,7 +317,6 @@ bool Tournament::launchMatch(const std::pair<EngineConfiguration, EngineConfigur
     stats.penta_LL += stats.losses == 2 ? 1 : 0;
 
     updateStats(configs.first.name, configs.second.name, stats);
-    printElo(configs.first.name, configs.second.name);
 
     for (const auto &played_matches : matches)
     {

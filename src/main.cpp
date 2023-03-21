@@ -27,9 +27,10 @@ BOOL WINAPI consoleHandler(DWORD signal)
     case CTRL_C_EVENT:
 
         // Tour->printElo();
-        Tour->stop();
-
+        std::cout << "Saved results" << std::endl;
         Options->saveJson(Tour->getResults());
+
+        Tour->stop();
 
         return TRUE;
     default:
@@ -43,8 +44,8 @@ BOOL WINAPI consoleHandler(DWORD signal)
 void sigintHandler(int param)
 {
     // Tour->printElo();
-    Tour->stop();
     Options->saveJson(Tour->getResults());
+    Tour->stop();
 
     exit(param);
 }
@@ -72,6 +73,7 @@ int main(int argc, char const *argv[])
 
         Tour->startTournament(Options->getEngineConfigs());
 
+        std::cout << "Saved results" << std::endl;
         Options->saveJson(Tour->getResults());
     }
     catch (const std::runtime_error &e)

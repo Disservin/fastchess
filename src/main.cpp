@@ -74,7 +74,7 @@ int main(int argc, char const *argv[])
         std::cout << "Saved results" << std::endl;
         Options->saveJson(Tour->getResults());
     }
-    catch (const std::runtime_error &e)
+    catch (const std::exception &e)
     {
         throw e;
     }

@@ -299,25 +299,17 @@ bool Tournament::launchMatch(const std::pair<EngineConfiguration, EngineConfigur
         if (match_data.players.first.score == GameResult::WIN)
         {
             if (match_data.players.first == configs.first)
-            {
                 stats.wins++;
-            }
             else
-            {
                 stats.losses++;
-            }
         }
 
         if (match_data.players.first.score == GameResult::LOSE)
         {
             if (match_data.players.first == configs.first)
-            {
                 stats.losses++;
-            }
             else
-            {
                 stats.wins++;
-            }
         }
 
         if (match_data.players.first.score == GameResult::DRAW)
@@ -343,11 +335,11 @@ bool Tournament::launchMatch(const std::pair<EngineConfiguration, EngineConfigur
     if (match_count_ % game_config_.ratinginterval == 0)
         printElo(configs.first.name, configs.second.name);
 
-    stats.penta_WW += stats.wins == 2 ? 1 : 0;
-    stats.penta_WD += stats.wins == 1 && stats.draws == 1 ? 1 : 0;
-    stats.penta_WL += (stats.wins == 1 && stats.losses == 1) || stats.draws == 2 ? 1 : 0;
-    stats.penta_LD += stats.losses == 1 && stats.draws == 1 ? 1 : 0;
-    stats.penta_LL += stats.losses == 2 ? 1 : 0;
+    stats.penta_WW += stats.wins == 2;
+    stats.penta_WD += stats.wins == 1 && stats.draws == 1;
+    stats.penta_WL += (stats.wins == 1 && stats.losses == 1) || stats.draws == 2;
+    stats.penta_LD += stats.losses == 1 && stats.draws == 1;
+    stats.penta_LL += stats.losses == 2;
 
     updateStats(configs.first.name, configs.second.name, stats);
 

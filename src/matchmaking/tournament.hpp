@@ -4,6 +4,8 @@
 #include <mutex>
 #include <string>
 
+#include "engines/uci_engine.hpp"
+#include "matchmaking/cache.hpp"
 #include "matchmaking/output/output_factory.hpp"
 #include "matchmaking/threadpool.hpp"
 #include "matchmaking/tournament_data.hpp"
@@ -91,6 +93,7 @@ class Tournament {
     CMD::GameManagerOptions game_config_ = {};
 
     ThreadPool pool_ = ThreadPool(1);
+    ThreadCache<UciEngine> cache_;
 
     SPRT sprt_ = SPRT();
 

@@ -234,7 +234,11 @@ bool Tournament::launchMatch(const std::pair<EngineConfiguration, EngineConfigur
     for (int i = 0; i < game_config_.games; i++) {
         output_->startMatch(config_copy.first, config_copy.second, round_id, total_count_);
 
-        Match match = Match(game_config_, config_copy.first, config_copy.second);
+        cache_.save(config_copy.first.name, config_copy.first);
+        cache_.save(config_copy.second.name, config_copy.second);
+
+        Match match = Match(game_config_, cache_.get(config_copy.first.name),
+                            cache_.get(config_copy.second.name));
         match.playMatch(fen);
 
         MatchData match_data = match.getMatchData();

@@ -19,15 +19,13 @@ inline bool operator!=(const PlayerInfo &lhs, const EngineConfiguration &rhs) {
     return !(lhs == rhs);
 }
 
-class Participant : public UciEngine {
+class Participant {
    public:
-    explicit Participant(const EngineConfiguration &config) {
-        loadConfig(config);
-        startEngine(config.cmd);
-
-        info_.config = config;
+    explicit Participant(UciEngine *config) : engine_(config) {
+        info_.config = config->getConfig();
     }
 
+    UciEngine *engine_ = nullptr;
     PlayerInfo info_;
 };
 

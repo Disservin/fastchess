@@ -14,7 +14,11 @@ constexpr Turn operator~(Turn t) {
 
 class UciEngine : private EngineProcess {
    public:
-    UciEngine() = default;
+    explicit UciEngine(const EngineConfiguration &config) {
+        loadConfig(config);
+        startEngine(config.cmd);
+    }
+
     ~UciEngine() { sendQuit(); }
 
     std::vector<std::string> readUci();

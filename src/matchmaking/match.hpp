@@ -31,10 +31,11 @@ struct ResignAdjTracker {
     }
 };
 
-class Match {
-   public:
-    Match(const CMD::GameManagerOptions &game_config, const EngineConfiguration &engine1_config,
-          const EngineConfiguration &engine2_config);
+class Match
+{
+  public:
+    Match(const CMD::GameManagerOptions &game_config, UciEngine &engine1_config,
+          UciEngine &engine2_config);
 
     /// @brief plays a match between the previously loaded engines
     /// @param openingFen
@@ -70,8 +71,8 @@ class Match {
 
     const Score mate_score_ = 100'000;
 
-    Participant player_1_;
-    Participant player_2_;
+    Participant *player_1_;
+    Participant *player_2_;
 
     DrawAdjTracker drawTracker_;
     ResignAdjTracker resignTracker_;

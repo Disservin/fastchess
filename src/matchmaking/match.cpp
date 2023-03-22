@@ -4,10 +4,10 @@
 
 namespace fast_chess {
 
-Match::Match(const CMD::GameManagerOptions &game_config, const EngineConfiguration &engine1_config,
-             const EngineConfiguration &engine2_config)
-    : player_1_(Participant(engine1_config)),
-      player_2_(Participant(engine2_config)),
+Match::Match(const CMD::GameManagerOptions &game_config, UciEngine &engine1_config,
+             UciEngine &engine2_config)
+    : player_1_(new Participant(&engine1_config)),
+      player_2_(new Participant(&engine2_config)),
       drawTracker_(DrawAdjTracker(game_config.draw.score, 0)),
       resignTracker_(ResignAdjTracker(game_config.resign.score, 0)) {
     this->game_config_ = game_config;
@@ -15,17 +15,17 @@ Match::Match(const CMD::GameManagerOptions &game_config, const EngineConfigurati
 
 void Match::playMatch(const std::string &openingFen) {
     board_.loadFen(openingFen);
-    auto first_player_time = player_1_.getConfig().tc;
-    auto second_player_time = player_2_.getConfig().tc;
+    auto first_player_time = player_1_->engine_->getConfig().tc;
+    auto second_player_time = player_2_->engine_->getConfig().tc;
 
     std::string position_input =
         board_.getFen() == STARTPOS ? "position startpos" : "position fen " + board_.getFen();
 
-    player_1_.sendUciNewGame();
-    player_2_.sendUciNewGame();
+    player_1_->engine_->sendUciNewGame();
+    player_2_->engine_->sendUciNewGame();
 
-    player_1_.info_.color = board_.getSideToMove();
-    player_2_.info_.color = ~board_.getSideToMove();
+    player_1_->info_.color = board_.getSideToMove();
+    player_2_->info_.color = ~board_.getSideToMove();
 
     match_data_.fen = board_.getFen();
 
@@ -37,11 +37,11 @@ void Match::playMatch(const std::string &openingFen) {
 
     try {
         while (true) {
-            if (!playNextMove(player_1_, player_2_, position_input, first_player_time,
+            if (!playNextMove(*player_1_, *player_2_, position_input, first_player_time,
                               second_player_time))
                 break;
 
-            if (!playNextMove(player_2_, player_1_, position_input, second_player_time,
+            if (!playNextMove(*player_2_, *player_1_, position_input, second_player_time,
                               first_player_time))
                 break;
         }
@@ -73,15 +73,16 @@ bool Match::playNextMove(Participant &player, Participant &enemy, std::string &p
     isResponsive(player);
 
     // inform the engine about the new position
-    player.writeEngine(position_input);
+    player.engine_->writeEngine(position_input);
 
     // Send go command
-    player.writeEngine(player.buildGoInput(board_.getSideToMove(), time_left_us, time_left_them));
+    player.engine_->writeEngine(
+        player.engine_->buildGoInput(board_.getSideToMove(), time_left_us, time_left_them));
 
     // Start measuring time
     const auto t0 = std::chrono::high_resolution_clock::now();
 
-    output = player.readEngine("bestmove", timeout, timeout_threshold);
+    output = player.engine_->readEngine("bestmove", timeout, timeout_threshold);
 
     // End of search time
     const auto t1 = std::chrono::high_resolution_clock::now();
@@ -97,7 +98,7 @@ bool Match::playNextMove(Participant &player, Participant &enemy, std::string &p
         enemy.info_.score = GameResult::WIN;
 
         match_data_.termination = "timeout";
-        Logger::coutInfo("Warning: Engine", player.getConfig().name, "loses on time #");
+        Logger::coutInfo("Warning: Engine", player.engine_->getConfig().name, "loses on time #");
         return false;
     }
 
@@ -124,7 +125,7 @@ bool Match::playNextMove(Participant &player, Participant &enemy, std::string &p
 
         match_data_.termination = "illegal move";
 
-        Logger::coutInfo("Warning: Engine", player.getConfig().name,
+        Logger::coutInfo("Warning: Engine", player.engine_->getConfig().name,
                          "played an illegal move:", bestMove, "#");
         return false;
     }
@@ -260,8 +261,8 @@ MoveData Match::parseEngineOutput(const std::vector<std::string> &output, const 
 
 void Match::isResponsive(Participant &player) {
     // engine's turn
-    if (!player.isResponsive()) {
-        Logger::coutInfo("Warning: Engine", player.getConfig().name,
+    if (!player.engine_->isResponsive()) {
+        Logger::coutInfo("Warning: Engine", player.engine_->getConfig().name,
                          "disconnects. It was not responsive.");
 
         throw std::runtime_error("Warning: Engine not responsive");
@@ -269,7 +270,7 @@ void Match::isResponsive(Participant &player) {
 }
 
 MatchData Match::getMatchData() {
-    match_data_.players = std::make_pair(player_1_.info_, player_2_.info_);
+    match_data_.players = std::make_pair(player_1_->info_, player_2_->info_);
     return match_data_;
 }
 

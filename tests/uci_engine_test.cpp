@@ -10,12 +10,16 @@ using namespace fast_chess;
 
 TEST_SUITE("Uci Engine Communication Tests") {
     TEST_CASE("Testing the EngineProcess class") {
-        UciEngine uci_engine;
+        EngineConfiguration ec;
+        ec.name = "dummy_engine_1";
+
 #ifdef _WIN64
-        uci_engine.startEngine("./tests/data/engine/dummy_engine.exe");
+        ec.cmd = "./tests/data/engine/dummy_engine.exe";
 #else
-        uci_engine.startEngine("./tests/data/engine/dummy_engine");
+        ec.cmd = "./tests/data/engine/dummy_engine";
 #endif
+
+        UciEngine uci_engine = UciEngine(ec);
 
         uci_engine.sendUci();
         auto uciOutput = uci_engine.readUci();
@@ -42,12 +46,16 @@ TEST_SUITE("Uci Engine Communication Tests") {
     }
 
     TEST_CASE("Testing the EngineProcess class with lower level class functions") {
-        UciEngine uci_engine;
+        EngineConfiguration ec;
+        ec.name = "dummy_engine_1";
+
 #ifdef _WIN64
-        uci_engine.startEngine("./tests/data/engine/dummy_engine.exe");
+        ec.cmd = "./tests/data/engine/dummy_engine.exe";
 #else
-        uci_engine.startEngine("./tests/data/engine/dummy_engine");
+        ec.cmd = "./tests/data/engine/dummy_engine";
 #endif
+
+        UciEngine uci_engine = UciEngine(ec);
 
         bool timeout = false;
         uci_engine.writeEngine("uci");

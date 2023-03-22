@@ -37,6 +37,12 @@ class Match
     Match(const CMD::GameManagerOptions &game_config, UciEngine &engine1_config,
           UciEngine &engine2_config);
 
+    ~Match()
+    {
+        delete player_1_;
+        delete player_2_;
+    }
+
     /// @brief plays a match between the previously loaded engines
     /// @param openingFen
     void playMatch(const std::string &openingFen);

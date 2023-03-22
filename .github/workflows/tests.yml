@@ -31,6 +31,7 @@ jobs:
         shell: ${{ matrix.config.shell }}
     steps:
       - name: configure Pagefile
+        if: runner.os == 'Windows'
         uses: al-cheb/configure-pagefile-action@v1.2
         with:
           minimum-size: 16GB

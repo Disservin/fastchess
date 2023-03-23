@@ -172,6 +172,8 @@ void Tournament::validateConfig(const std::vector<EngineConfiguration> &configs)
 
     if (game_config_.games > 2)
         throw std::runtime_error("Exceeded -game limit! Must be smaller than 2");
+
+    engine_count = configs.size();
 }
 
 void Tournament::createRoundRobin(const std::vector<EngineConfiguration> &engine_configs,

@@ -117,80 +117,15 @@ void Tournament::printElo(const std::string &first, const std::string &second) {
 }
 
 void Tournament::startTournament(const std::vector<EngineConfiguration> &engine_configs) {
-    engine_count = engine_configs.size();
-
-    if (engine_configs.size() < 2) {
-        throw std::runtime_error("Warning: Need at least two engines to start!");
-    }
-
-    for (size_t i = 0; i < engine_configs.size(); i++) {
-        for (size_t j = 0; j < i; j++) {
-            if (engine_configs[i].name == engine_configs[j].name) {
-                throw std::runtime_error("Engine with the same are not allowed!: " +
-                                         engine_configs[i].name);
-            }
-        }
-    }
+    validateConfig(engine_configs);
 
     Logger::coutInfo("Starting tournament...");
 
     std::vector<std::future<bool>> results;
 
-    // Round robin
-    total_count_ = (engine_configs.size() * (engine_configs.size() - 1) / 2) * game_config_.rounds *
-                   game_config_.games;
+    createRoundRobin(engine_configs, results);
 
-    bool reverse = game_config_.games == 2;
-    if (!game_config_.report_penta) {
-        game_config_.games = 1;
-    }
-
-    // Round robin
-    for (std::size_t i = 0; i < engine_configs.size(); i++) {
-        for (std::size_t j = i + 1; j < engine_configs.size(); j++) {
-            // Initialize results entry, if we there isnt already a valid stats entry in the results
-            // map we must create one so that we properly report the score from engine_configs[i]
-            // perspective!
-            if (results_.find(engine_configs[i].name) == results_.end() &&
-                results_[engine_configs[i].name].find(engine_configs[j].name) ==
-                    results_[engine_configs[i].name].end()) {
-                Stats stats;
-                results_[engine_configs[i].name][engine_configs[j].name] = stats;
-            }
-
-            // add json loaded games to current match count
-            auto sum = results_[engine_configs[i].name][engine_configs[j].name].sum();
-            match_count_ += sum;
-
-            for (int n = 1 + sum / game_config_.games; n <= game_config_.rounds; n++) {
-                results.emplace_back(pool_.enqueue(std::bind(
-                    &Tournament::launchMatch, this,
-                    std::make_pair(engine_configs[i], engine_configs[j]), fetchNextFen(), n)));
-
-                // We need to play reverse games but shall not collect penta stats.
-                if (!game_config_.report_penta && reverse) {
-                    results.emplace_back(pool_.enqueue(std::bind(
-                        &Tournament::launchMatch, this,
-                        std::make_pair(engine_configs[j], engine_configs[i]), fetchNextFen(), n)));
-                }
-            }
-        }
-    }
-
-    while (engine_configs.size() == 2 && sprt_.isValid() && match_count_ < total_count_ &&
-           !pool_.getStop()) {
-        Stats stats = getResults(engine_configs[0].name, engine_configs[1].name);
-        const double llr = sprt_.getLLR(stats.wins, stats.draws, stats.losses);
-        if (sprt_.getResult(llr) != SPRT_CONTINUE) {
-            pool_.kill();
-            std::cout << "Finished match\n";
-            printElo(engine_configs[0].name, engine_configs[1].name);
-
-            return;
-        }
-
-        std::this_thread::sleep_for(std::chrono::microseconds(250));
-    }
+    if (runSprt(engine_configs)) return;
 
     for (auto &&result : results) {
         if (!result.get()) throw std::runtime_error("Unknown error during match playing.");
@@ -199,6 +134,87 @@ void Tournament::startTournament(const std::vector<EngineConfiguration> &engine_
     std::cout << "Finished match\n";
 
     if (engine_configs.size() == 2) printElo(engine_configs[0].name, engine_configs[1].name);
+}
+
+bool Tournament::runSprt(const std::vector<EngineConfiguration> &engine_configs) {
+    while (engine_configs.size() == 2 && sprt_.isValid() && match_count_ < total_count_ &&
+           !pool_.getStop()) {
+        Stats stats = getResults(engine_configs[0].name, engine_configs[1].name);
+
+        const double llr = sprt_.getLLR(stats.wins, stats.draws, stats.losses);
+
+        if (sprt_.getResult(llr) != SPRT_CONTINUE) {
+            pool_.kill();
+            std::cout << "Finished match\n";
+            printElo(engine_configs[0].name, engine_configs[1].name);
+
+            return true;
+        }
+
+        std::this_thread::sleep_for(std::chrono::microseconds(250));
+    }
+    return false;
+}
+
+void Tournament::validateConfig(const std::vector<EngineConfiguration> &configs) {
+    if (configs.size() < 2) {
+        throw std::runtime_error("Warning: Need at least two engines to start!");
+    }
+
+    for (size_t i = 0; i < configs.size(); i++) {
+        for (size_t j = 0; j < i; j++) {
+            if (configs[i].name == configs[j].name) {
+                throw std::runtime_error("Engine with the same are not allowed!: " +
+                                         configs[i].name);
+            }
+        }
+    }
+
+    if (game_config_.games > 2)
+        throw std::runtime_error("Exceeded -game limit! Must be smaller than 2");
+}
+
+void Tournament::createRoundRobin(const std::vector<EngineConfiguration> &engine_configs,
+                                  std::vector<std::future<bool>> &results) {
+    bool reverse = game_config_.games == 2;
+    if (!game_config_.report_penta) {
+        game_config_.games = 1;
+    }
+
+    // Round robin
+    total_count_ = (engine_configs.size() * (engine_configs.size() - 1) / 2) * game_config_.rounds *
+                   game_config_.games;
+
+    // Round robin
+    for (std::size_t i = 0; i < engine_configs.size(); i++) {
+        for (std::size_t j = i + 1; j < engine_configs.size(); j++) {
+            // Initialize results entry, if we there isnt already a valid stats entry in the results
+            // map we must create one so that we properly report the score from engine_configs[i]
+            // perspective!
+            auto player1 = engine_configs[i];
+            auto player2 = engine_configs[j];
+            auto &stats_map = results_[player1.name];
+            if (stats_map.find(player2.name) == stats_map.end()) {
+                stats_map.emplace(player2.name, Stats{});
+            }
+
+            // add json loaded games to current match count
+            auto sum = results_[player1.name][player2.name].sum();
+            match_count_ += sum;
+
+            for (int n = 1 + sum / game_config_.games; n <= game_config_.rounds; n++) {
+                auto fen = fetchNextFen();
+                results.emplace_back(pool_.enqueue(std::bind(
+                    &Tournament::launchMatch, this, std::make_pair(player1, player2), fen, n)));
+
+                // We need to play reverse games but shall not collect penta stats.
+                if (!game_config_.report_penta && reverse) {
+                    results.emplace_back(pool_.enqueue(std::bind(
+                        &Tournament::launchMatch, this, std::make_pair(player2, player1), fen, n)));
+                }
+            }
+        }
+    }
 }
 
 Stats Tournament::getResults(const std::string &engine1, const std::string &engine2) {

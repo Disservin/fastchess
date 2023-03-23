@@ -115,10 +115,10 @@ class Board {
     std::vector<State> prev_boards_;
     std::vector<uint64_t> hash_history_;
 
+    uint64_t hash_key_ = 0;
+
     int half_move_clock_;
     int full_move_number_;
-
-    uint64_t hash_key_ = 0;
 
     Square enpassant_square_ = NO_SQ;
 

@@ -8,13 +8,10 @@
 #include "matchmaking/tournament_data.hpp"
 #include "options.hpp"
 #include "sprt.hpp"
-namespace fast_chess
-{
+namespace fast_chess {
 
-class Tournament
-{
-
-  public:
+class Tournament {
+   public:
     explicit Tournament(const CMD::GameManagerOptions &game_config);
 
     void loadConfig(const CMD::GameManagerOptions &game_config);
@@ -31,26 +28,26 @@ class Tournament
 
     /// @brief Used to load results from json file.
     /// @param results
-    void setResults(const std::map<std::string, std::map<std::string, Stats>> &results)
-    {
+    void setResults(const std::map<std::string, std::map<std::string, Stats>> &results) {
         results_ = results;
     }
 
     /// @brief non MT access
     /// @return
-    std::map<std::string, std::map<std::string, Stats>> getResults() const
-    {
-        return results_;
-    }
+    std::map<std::string, std::map<std::string, Stats>> getResults() const { return results_; }
 
 #ifdef TESTS
-    std::vector<std::string> getPgns() const
-    {
-        return pgns_;
-    }
+    std::vector<std::string> getPgns() const { return pgns_; }
 
 #endif
-  private:
+   private:
+    bool runSprt(const std::vector<EngineConfiguration> &engine_configs);
+
+    void validateConfig(const std::vector<EngineConfiguration> &configs);
+
+    void createRoundRobin(const std::vector<EngineConfiguration> &engine_configs,
+                          std::vector<std::future<bool>> &results);
+
     /// @brief MT access by [engine name][engine name]
     /// @return
     Stats getResults(const std::string &engine1, const std::string &engine2);
@@ -110,4 +107,4 @@ class Tournament
     std::vector<std::string> pgns_;
 };
 
-} // namespace fast_chess
+}  // namespace fast_chess

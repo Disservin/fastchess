@@ -43,6 +43,8 @@ class Match {
     MatchData getMatchData();
 
    private:
+    bool playerTimedOut(const int64_t measured_time, const TimeControl &time_left_them);
+
     /// @brief Plays the next move and checks for game over and legalitly
     /// @param player
     /// @param position_input

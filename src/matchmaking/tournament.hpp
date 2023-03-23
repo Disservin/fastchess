@@ -102,6 +102,8 @@ class Tournament {
 
     // General stuff
     std::atomic_int match_count_ = 0;
+    std::atomic_int round_count_ = 0;
+
     std::atomic_int total_count_ = 0;
     std::atomic_int timeouts_ = 0;
 

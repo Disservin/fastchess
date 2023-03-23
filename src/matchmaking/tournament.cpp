@@ -271,6 +271,12 @@ bool Tournament::launchMatch(const std::pair<EngineConfiguration, EngineConfigur
 
         MatchData match_data = match.getMatchData();
         match_data.round = round_id;
+        matches.push_back(match_data);
+
+        if (match_data.needs_restart && game_config_.recover) {
+            i--;
+            continue;
+        }
 
         if (match_data.players.first.score == GameResult::WIN) {
             if (match_data.players.first == configs.first)
@@ -292,6 +298,8 @@ bool Tournament::launchMatch(const std::pair<EngineConfiguration, EngineConfigur
 
         match_count_++;
 
+        std::swap(config_copy.first, config_copy.second);
+
         std::stringstream ss;
         ss << "Finished game " << i + 1 << "/" << game_config_.games << " in round " << round_id
            << "/" << game_config_.rounds << " total played " << match_count_ << "/" << total_count_
@@ -299,12 +307,11 @@ bool Tournament::launchMatch(const std::pair<EngineConfiguration, EngineConfigur
            << match_data.players.second.config.name << ": " << resultToString(match_data) << "\n";
 
         std::cout << ss.str();
-
-        matches.push_back(match_data);
-        std::swap(config_copy.first, config_copy.second);
     }
 
-    if (match_count_ % game_config_.ratinginterval == 0)
+    round_count_++;
+
+    if ((game_config_.games == 2 ? round_count_ : match_count_) % game_config_.ratinginterval == 0)
         printElo(configs.first.name, configs.second.name);
 
     stats.penta_WW += stats.wins == 2;

@@ -93,14 +93,12 @@ bool Match::playNextMove(Participant &player, Participant &enemy, std::string &p
     }
 
     // Subtract measured time from engine time
-    const auto measured_time =
+    const int64_t measured_time =
         std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count();
 
     time_left_us.time -= measured_time;
 
-    if ((time_left_us.fixed_time != 0 &&
-         measured_time - game_config_.overhead > time_left_us.fixed_time) ||
-        (time_left_us.fixed_time == 0 && time_left_us.time + game_config_.overhead < 0)) {
+    if (playerTimedOut(measured_time, time_left_us)) {
         player.info_.score = GameResult::LOSE;
         enemy.info_.score = GameResult::WIN;
 
@@ -125,8 +123,8 @@ bool Match::playNextMove(Participant &player, Participant &enemy, std::string &p
     match_data_.legal = board_.makeMove(convertUciToMove(board_, bestMove));
     match_data_.moves.emplace_back(parseEngineOutput(output, bestMove, measured_time));
 
+    // Check if the player played an illegal move
     if (!match_data_.legal) {
-        // The move was not legal
         player.info_.score = GameResult::LOSE;
         enemy.info_.score = GameResult::WIN;
 
@@ -142,22 +140,26 @@ bool Match::playNextMove(Participant &player, Participant &enemy, std::string &p
     auto res = board_.isGameOver();
     auto resAdj = checkAdj(match_data_.moves.back().score);
 
+    // check for win or loss
     if (res == GameResult::LOSE) {
         player.info_.score = ~res;
-        // enemy lost
         enemy.info_.score = res;
+
+        return false;
+    } else if (res == GameResult::WIN) {
+        player.info_.score = res;
+        enemy.info_.score = ~res;
 
         return false;
     }
 
+    // check for draw or adjourned
     if (res == GameResult::DRAW || resAdj == GameResult::DRAW) {
         player.info_.score = GameResult::DRAW;
         enemy.info_.score = GameResult::DRAW;
 
         return false;
-    }
-
-    if (resAdj != GameResult::NONE) {
+    } else if (resAdj != GameResult::NONE) {
         player.info_.score = res;
         enemy.info_.score = ~res;
 
@@ -233,6 +235,8 @@ MoveData Match::parseEngineOutput(const std::vector<std::string> &output, const 
         move_data.score_string =
             (move_data.score > 0 ? "+M" : "-M") + std::to_string(std::abs(move_data.score));
         move_data.score = mate_score_;
+    } else {
+        move_data.score_string = "ERR";
     }
 
     // verify pv
@@ -271,4 +275,9 @@ MatchData Match::getMatchData() {
     return match_data_;
 }
 
+bool Match::playerTimedOut(int64_t measured_time, const TimeControl &time_left_us) {
+    return (time_left_us.fixed_time != 0 &&
+            measured_time - game_config_.overhead > time_left_us.fixed_time) ||
+           (time_left_us.fixed_time == 0 && time_left_us.time + game_config_.overhead < 0);
+}
 }  // namespace fast_chess

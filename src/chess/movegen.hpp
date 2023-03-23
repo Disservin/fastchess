@@ -66,7 +66,7 @@ Bitboard pawnRightAttacks(const Bitboard pawns) {
  When there is no check at all all bits are set (DEFAULT_CHECKMASK)
 */
 template <Color c>
-Bitboard DoCheckmask(const Board &board, Square sq, Bitboard _occ_all, int &_doubleCheck) {
+Bitboard doCheckmask(const Board &board, Square sq, Bitboard _occ_all, int &_doubleCheck) {
     const Bitboard occ = _occ_all;
     Bitboard checks = 0ULL;
     const Bitboard pawn_mask = board.pieces<PAWN, ~c>() & PawnAttacks(sq, c);
@@ -132,7 +132,7 @@ Bitboard DoCheckmask(const Board &board, Square sq, Bitboard _occ_all, int &_dou
  of our pieces that lay on the pin mask, if it is only 1 piece then that piece is pinned.
 */
 template <Color c>
-Bitboard DoPinMaskRooks(const Board &board, Square sq, Bitboard _occ_enemy, Bitboard _occ_us) {
+Bitboard doPinMaskRooks(const Board &board, Square sq, Bitboard _occ_enemy, Bitboard _occ_us) {
     Bitboard rook_mask =
         (board.pieces<ROOK, ~c>() | board.pieces<QUEEN, ~c>()) & RookAttacks(sq, _occ_enemy);
 
@@ -146,7 +146,7 @@ Bitboard DoPinMaskRooks(const Board &board, Square sq, Bitboard _occ_enemy, Bitb
 }
 
 template <Color c>
-Bitboard DoPinMaskBishops(const Board &board, Square sq, Bitboard _occ_enemy, Bitboard _occ_us) {
+Bitboard doPinMaskBishops(const Board &board, Square sq, Bitboard _occ_enemy, Bitboard _occ_us) {
     Bitboard bishop_mask =
         (board.pieces<BISHOP, ~c>() | board.pieces<QUEEN, ~c>()) & BishopAttacks(sq, _occ_enemy);
 
@@ -232,7 +232,7 @@ constexpr Bitboard shift(const Bitboard b) {
 }
 
 template <Color c>
-void LegalPawnMovesAll(const Board &board, Movelist &movelist, Bitboard _pinD, Bitboard _pinHV,
+void legalPawnMovesAll(const Board &board, Movelist &movelist, Bitboard _pinD, Bitboard _pinHV,
                        Bitboard _occ_enemy, Bitboard _occ_all, Bitboard _checkMask) {
     const Bitboard pawns_mask = board.pieces<PAWN, c>();
 
@@ -391,25 +391,25 @@ void LegalPawnMovesAll(const Board &board, Movelist &movelist, Bitboard _pinD, B
     }
 }
 
-inline Bitboard LegalKnightMoves(Square sq, Bitboard movable_square) {
+inline Bitboard legalKnightMoves(Square sq, Bitboard movable_square) {
     return KnightAttacks(sq) & movable_square;
 }
 
-inline Bitboard LegalBishopMoves(Square sq, Bitboard movable_square, Bitboard _pinD,
+inline Bitboard legalBishopMoves(Square sq, Bitboard movable_square, Bitboard _pinD,
                                  Bitboard _occ_all) {
     // The Bishop is pinned diagonally thus can only move diagonally.
     if (_pinD & (1ULL << sq)) return BishopAttacks(sq, _occ_all) & movable_square & _pinD;
     return BishopAttacks(sq, _occ_all) & movable_square;
 }
 
-inline Bitboard LegalRookMoves(Square sq, Bitboard movable_square, Bitboard _pinHV,
+inline Bitboard legalRookMoves(Square sq, Bitboard movable_square, Bitboard _pinHV,
                                Bitboard _occ_all) {
     // The Rook is pinned horizontally thus can only move horizontally.
     if (_pinHV & (1ULL << sq)) return RookAttacks(sq, _occ_all) & movable_square & _pinHV;
     return RookAttacks(sq, _occ_all) & movable_square;
 }
 
-inline Bitboard LegalQueenMoves(Square sq, Bitboard movable_square, Bitboard _pinD, Bitboard _pinHV,
+inline Bitboard legalQueenMoves(Square sq, Bitboard movable_square, Bitboard _pinD, Bitboard _pinHV,
                                 Bitboard _occ_all) {
     Bitboard moves = 0ULL;
     if (_pinD & (1ULL << sq))
@@ -424,12 +424,12 @@ inline Bitboard LegalQueenMoves(Square sq, Bitboard movable_square, Bitboard _pi
     return moves;
 }
 
-inline Bitboard LegalKingMoves(Square sq, Bitboard _seen, Bitboard _enemy_emptyBB) {
+inline Bitboard legalKingMoves(Square sq, Bitboard _seen, Bitboard _enemy_emptyBB) {
     return KingAttacks(sq) & _enemy_emptyBB & ~_seen;
 }
 
 template <Color c>
-Bitboard LegalKingMovesCastling(const Board &board, Square sq, Bitboard _occ_all, Bitboard _seen,
+Bitboard legalKingMovesCastling(const Board &board, Square sq, Bitboard _occ_all, Bitboard _seen,
                                 Bitboard _enemy_emptyBB) {
     Bitboard moves = KingAttacks(sq) & _enemy_emptyBB & ~_seen;
     const Bitboard emptyAndNotAttacked = ~_seen & ~_occ_all;
@@ -486,9 +486,9 @@ void legalmoves(const Board &board, Movelist &movelist) {
     Bitboard _enemy_emptyBB = ~_occ_us;
 
     Bitboard _seen = seenSquares<~c>(board, _occ_all);
-    Bitboard _checkMask = DoCheckmask<c>(board, king_sq, _occ_all, _doubleCheck);
-    Bitboard _pinHV = DoPinMaskRooks<c>(board, king_sq, _occ_enemy, _occ_us);
-    Bitboard _pinD = DoPinMaskBishops<c>(board, king_sq, _occ_enemy, _occ_us);
+    Bitboard _checkMask = doCheckmask<c>(board, king_sq, _occ_all, _doubleCheck);
+    Bitboard _pinHV = doPinMaskRooks<c>(board, king_sq, _occ_enemy, _occ_us);
+    Bitboard _pinD = doPinMaskBishops<c>(board, king_sq, _occ_enemy, _occ_us);
 
     assert(_doubleCheck <= 2);
 
@@ -501,9 +501,9 @@ void legalmoves(const Board &board, Movelist &movelist) {
     Bitboard moves;
 
     if (!board.getCastlingRights() || _checkMask != DEFAULT_CHECKMASK)
-        moves = LegalKingMoves(king_sq, _seen, _enemy_emptyBB);
+        moves = legalKingMoves(king_sq, _seen, _enemy_emptyBB);
     else
-        moves = LegalKingMovesCastling<c>(board, king_sq, _occ_all, _seen, _enemy_emptyBB);
+        moves = legalKingMovesCastling<c>(board, king_sq, _occ_all, _seen, _enemy_emptyBB);
 
     while (moves) {
         Square to = poplsb(moves);
@@ -526,11 +526,11 @@ void legalmoves(const Board &board, Movelist &movelist) {
     Bitboard queens_mask = board.pieces<QUEEN, c>() & ~(_pinD & _pinHV);
 
     // Add the moves to the movelist.
-    LegalPawnMovesAll<c>(board, movelist, _pinD, _pinHV, _occ_enemy, _occ_all, _checkMask);
+    legalPawnMovesAll<c>(board, movelist, _pinD, _pinHV, _occ_enemy, _occ_all, _checkMask);
 
     while (knights_mask) {
         const Square from = poplsb(knights_mask);
-        moves = LegalKnightMoves(from, movable_square);
+        moves = legalKnightMoves(from, movable_square);
         while (moves) {
             const Square to = poplsb(moves);
             movelist.Add({from, to, KNIGHT, NONETYPE});
@@ -539,7 +539,7 @@ void legalmoves(const Board &board, Movelist &movelist) {
 
     while (bishops_mask) {
         const Square from = poplsb(bishops_mask);
-        moves = LegalBishopMoves(from, movable_square, _pinD, _occ_all);
+        moves = legalBishopMoves(from, movable_square, _pinD, _occ_all);
         while (moves) {
             const Square to = poplsb(moves);
             movelist.Add({from, to, BISHOP, NONETYPE});
@@ -548,7 +548,7 @@ void legalmoves(const Board &board, Movelist &movelist) {
 
     while (rooks_mask) {
         const Square from = poplsb(rooks_mask);
-        moves = LegalRookMoves(from, movable_square, _pinHV, _occ_all);
+        moves = legalRookMoves(from, movable_square, _pinHV, _occ_all);
         while (moves) {
             const Square to = poplsb(moves);
             movelist.Add({from, to, ROOK, NONETYPE});
@@ -557,7 +557,7 @@ void legalmoves(const Board &board, Movelist &movelist) {
 
     while (queens_mask) {
         const Square from = poplsb(queens_mask);
-        moves = LegalQueenMoves(from, movable_square, _pinD, _pinHV, _occ_all);
+        moves = legalQueenMoves(from, movable_square, _pinD, _pinHV, _occ_all);
         while (moves) {
             const Square to = poplsb(moves);
             movelist.Add({from, to, QUEEN, NONETYPE});
@@ -583,9 +583,9 @@ bool hasLegalMoves(const Board &board, Movelist &movelist) {
     Bitboard _enemy_emptyBB = ~_occ_us;
 
     Bitboard _seen = seenSquares<~c>(board, _occ_all);
-    Bitboard _checkMask = DoCheckmask<c>(board, king_sq, _occ_all, _doubleCheck);
-    Bitboard _pinHV = DoPinMaskRooks<c>(board, king_sq, _occ_enemy, _occ_us);
-    Bitboard _pinD = DoPinMaskBishops<c>(board, king_sq, _occ_enemy, _occ_us);
+    Bitboard _checkMask = doCheckmask<c>(board, king_sq, _occ_all, _doubleCheck);
+    Bitboard _pinHV = doPinMaskRooks<c>(board, king_sq, _occ_enemy, _occ_us);
+    Bitboard _pinD = doPinMaskBishops<c>(board, king_sq, _occ_enemy, _occ_us);
 
     assert(_doubleCheck <= 2);
 
@@ -598,9 +598,9 @@ bool hasLegalMoves(const Board &board, Movelist &movelist) {
     Bitboard moves;
 
     if (!board.getCastlingRights() || _checkMask != DEFAULT_CHECKMASK)
-        moves = LegalKingMoves(king_sq, _seen, _enemy_emptyBB);
+        moves = legalKingMoves(king_sq, _seen, _enemy_emptyBB);
     else
-        moves = LegalKingMovesCastling<c>(board, king_sq, _occ_all, _seen, _enemy_emptyBB);
+        moves = legalKingMovesCastling<c>(board, king_sq, _occ_all, _seen, _enemy_emptyBB);
 
     if (moves) return true;
 
@@ -620,11 +620,11 @@ bool hasLegalMoves(const Board &board, Movelist &movelist) {
     Bitboard queens_mask = board.pieces<QUEEN, c>() & ~(_pinD & _pinHV);
 
     // Add the moves to the movelist.
-    LegalPawnMovesAll<c>(board, movelist, _pinD, _pinHV, _occ_enemy, _occ_all, _checkMask);
+    legalPawnMovesAll<c>(board, movelist, _pinD, _pinHV, _occ_enemy, _occ_all, _checkMask);
 
     while (knights_mask) {
         const Square from = poplsb(knights_mask);
-        moves = LegalKnightMoves(from, movable_square);
+        moves = legalKnightMoves(from, movable_square);
         if (moves) {
             return true;
         }
@@ -632,7 +632,7 @@ bool hasLegalMoves(const Board &board, Movelist &movelist) {
 
     while (bishops_mask) {
         const Square from = poplsb(bishops_mask);
-        moves = LegalBishopMoves(from, movable_square, _pinD, _occ_all);
+        moves = legalBishopMoves(from, movable_square, _pinD, _occ_all);
         if (moves) {
             return true;
         }
@@ -640,7 +640,7 @@ bool hasLegalMoves(const Board &board, Movelist &movelist) {
 
     while (rooks_mask) {
         const Square from = poplsb(rooks_mask);
-        moves = LegalRookMoves(from, movable_square, _pinHV, _occ_all);
+        moves = legalRookMoves(from, movable_square, _pinHV, _occ_all);
         if (moves) {
             return true;
         }
@@ -648,7 +648,7 @@ bool hasLegalMoves(const Board &board, Movelist &movelist) {
 
     while (queens_mask) {
         const Square from = poplsb(queens_mask);
-        moves = LegalQueenMoves(from, movable_square, _pinD, _pinHV, _occ_all);
+        moves = legalQueenMoves(from, movable_square, _pinD, _pinHV, _occ_all);
         if (moves) {
             return true;
         }

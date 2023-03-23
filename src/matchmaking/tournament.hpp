@@ -22,7 +22,7 @@ class Tournament {
     /// @brief
     /// @param first engine name
     /// @param second engine name
-    void printElo(const std::string &first, const std::string &second);
+    void printElo(std::string first, std::string second);
 
     void startTournament(const std::vector<EngineConfiguration> &engine_configs);
 

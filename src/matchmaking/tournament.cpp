@@ -11,6 +11,7 @@
 namespace fast_chess {
 
 Tournament::Tournament(const CMD::GameManagerOptions &game_config) {
+    // Open the pgn file
     const std::string filename =
         (game_config.pgn.file.empty() ? "fast-chess" : game_config.pgn.file) + ".pgn";
 
@@ -20,10 +21,12 @@ Tournament::Tournament(const CMD::GameManagerOptions &game_config) {
 }
 
 void Tournament::loadConfig(const CMD::GameManagerOptions &game_config) {
-    game_config_ = game_config;
+    this->game_config_ = game_config;
 
+    // Set the seed for the random number generator
     Random::mersenne_rand.seed(game_config_.seed);
 
+    // Read the opening book from file
     if (!game_config_.opening.file.empty()) {
         std::ifstream openingFile;
         std::string line;
@@ -44,8 +47,10 @@ void Tournament::loadConfig(const CMD::GameManagerOptions &game_config) {
         }
     }
 
+    // Initialize the thread pool
     pool_.resize(game_config_.concurrency);
 
+    // Initialize the SPRT test
     sprt_ = SPRT(game_config_.sprt.alpha, game_config_.sprt.beta, game_config_.sprt.elo0,
                  game_config_.sprt.elo1);
 }
@@ -105,6 +110,7 @@ void Tournament::printElo(const std::string &first, const std::string &second) {
         ss << "LLR: " << sprt_.getLLR(stats.wins, stats.draws, stats.losses) << " "
            << sprt_.getBounds() << " " << sprt_.getElo() << "\n";
     }
+
     ss << std::setprecision(1) << "Stats:  "
        << "W: " << (float(stats.wins) / games) * 100 << "%   "
        << "L: " << (float(stats.losses) / games) * 100 << "%   "
@@ -275,27 +281,26 @@ bool Tournament::launchMatch(const std::pair<EngineConfiguration, EngineConfigur
         match_data.round = round_id;
         matches.push_back(match_data);
 
+        // If the match needs to be restarted, decrement the match count and restart the match.
         if (match_data.needs_restart && game_config_.recover) {
             i--;
             continue;
         }
 
         if (match_data.players.first.score == GameResult::WIN) {
-            if (match_data.players.first == configs.first)
-                stats.wins++;
-            else
-                stats.losses++;
+            stats.wins += match_data.players.first == configs.first;
+            stats.losses += match_data.players.first != configs.first;
         }
 
         if (match_data.players.first.score == GameResult::LOSE) {
-            if (match_data.players.first == configs.first)
-                stats.losses++;
-            else
-                stats.wins++;
+            stats.wins += match_data.players.first != configs.first;
+            stats.losses += match_data.players.first == configs.first;
         }
 
+        // If the game was a draw, increment the draw count.
         if (match_data.players.first.score == GameResult::DRAW) stats.draws++;
 
+        // If the game timed out, increment the timeout count.
         if (match_data.termination == "timeout") timeouts_++;
 
         match_count_++;
@@ -303,10 +308,27 @@ bool Tournament::launchMatch(const std::pair<EngineConfiguration, EngineConfigur
         std::swap(config_copy.first, config_copy.second);
 
         std::stringstream ss;
-        ss << "Finished game " << i + 1 << "/" << game_config_.games << " in round " << round_id
-           << "/" << game_config_.rounds << " total played " << match_count_ << "/" << total_count_
-           << " " << match_data.players.first.config.name << " vs "
-           << match_data.players.second.config.name << ": " << resultToString(match_data) << "\n";
+        // clang-format off
+        ss << "Finished game " 
+           << i + 1 
+           << "/" 
+           << game_config_.games 
+           << " in round " 
+           << round_id 
+           << "/" 
+           << game_config_.rounds 
+           << " total played " 
+           << match_count_ 
+           << "/" 
+           << total_count_
+           << " " 
+           << match_data.players.first.config.name 
+           << " vs "
+           << match_data.players.second.config.name 
+           << ": " 
+           << resultToString(match_data) 
+           << "\n";
+        // clang-format on
 
         std::cout << ss.str();
     }

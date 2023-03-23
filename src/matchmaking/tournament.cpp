@@ -279,13 +279,14 @@ bool Tournament::launchMatch(const std::pair<EngineConfiguration, EngineConfigur
 
         MatchData match_data = match.getMatchData();
         match_data.round = round_id;
-        matches.push_back(match_data);
 
         // If the match needs to be restarted, decrement the match count and restart the match.
         if (match_data.needs_restart && game_config_.recover) {
             i--;
             continue;
         }
+
+        matches.push_back(match_data);
 
         if (match_data.players.first.score == GameResult::WIN) {
             stats.wins += match_data.players.first == configs.first;

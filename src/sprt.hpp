@@ -2,19 +2,12 @@
 
 #include <string>
 
-namespace fast_chess
-{
+namespace fast_chess {
 
-enum SPRTResult
-{
-    SPRT_H0,
-    SPRT_H1,
-    SPRT_CONTINUE
-};
+enum SPRTResult { SPRT_H0, SPRT_H1, SPRT_CONTINUE };
 
-class SPRT
-{
-  public:
+class SPRT {
+   public:
     SPRT() = default;
 
     SPRT(double alpha, double beta, double elo0, double elo1);
@@ -28,7 +21,7 @@ class SPRT
     std::string getBounds() const;
     std::string getElo() const;
 
-  private:
+   private:
     double lower_ = 0.0;
     double upper_ = 0.0;
     double s0_ = 0.0;
@@ -40,4 +33,4 @@ class SPRT
     bool valid_ = false;
 };
 
-} // namespace fast_chess
+}  // namespace fast_chess

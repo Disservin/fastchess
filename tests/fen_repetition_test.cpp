@@ -1,14 +1,12 @@
-#include "doctest/doctest.hpp"
+#include <algorithm>
 
 #include "chess/board.hpp"
+#include "doctest/doctest.hpp"
 #include "options.hpp"
-
-#include <algorithm>
 
 using namespace fast_chess;
 
-inline bool testFenRepetition(const std::string &input)
-{
+inline bool testFenRepetition(const std::string &input) {
     Board board;
 
     std::vector<std::string> tokens = CMD::splitString(input, ' ');
@@ -20,12 +18,10 @@ inline bool testFenRepetition(const std::string &input)
     else
         board.loadFen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
 
-    if (hasMoves)
-    {
+    if (hasMoves) {
         std::size_t index = std::find(tokens.begin(), tokens.end(), "moves") - tokens.begin();
         index++;
-        for (; index < tokens.size(); index++)
-        {
+        for (; index < tokens.size(); index++) {
             Move move = convertUciToMove(board, tokens[index]);
             board.makeMove(move);
         }
@@ -34,10 +30,8 @@ inline bool testFenRepetition(const std::string &input)
     return board.isRepetition();
 }
 
-TEST_SUITE("Repetition Tests")
-{
-    TEST_CASE("Test First Repetition")
-    {
+TEST_SUITE("Repetition Tests") {
+    TEST_CASE("Test First Repetition") {
         std::string input =
             "position fen r2qk2r/pp3pp1/2nbpn1p/8/6b1/2NP1N2/PPP1BPPP/R1BQ1RK1 w kq - "
             "0 1 moves h2h3 g4f5 d3d4 e8g8 e2d3 "
@@ -48,8 +42,7 @@ TEST_SUITE("Repetition Tests")
         CHECK(testFenRepetition(input));
     }
 
-    TEST_CASE("Test Second Repetition")
-    {
+    TEST_CASE("Test Second Repetition") {
         std::string input =
             "position fen 6Q1/1p1k3p/3b2p1/p6r/3P1PR1/1PR2NK1/P3q2P/4r3 b - - 14 37 "
             "moves e1f1 f3e5 d6e5 g8f7 d7d8 "
@@ -58,8 +51,7 @@ TEST_SUITE("Repetition Tests")
         CHECK(testFenRepetition(input));
     }
 
-    TEST_CASE("Test Third Repetition")
-    {
+    TEST_CASE("Test Third Repetition") {
         std::string input =
             "position fen rn2k1nr/pp2bppp/2p5/q3p3/2B5/P1N2b1P/1PPP1PP1/R1BQ1RK1 w kq - 0 1 moves "
             "d1f3 "
@@ -69,8 +61,7 @@ TEST_SUITE("Repetition Tests")
         CHECK(testFenRepetition(input));
     }
 
-    TEST_CASE("Test Fourth Repetition")
-    {
+    TEST_CASE("Test Fourth Repetition") {
         std::string input =
             "position fen rnbqk2r/1pp2ppp/p2bpn2/8/2NP1B2/3B1N2/PPP2PPP/R2QK2R w KQkq "
             "- 0 1 moves c4d6 c7d6 c2c4 e8g8 "

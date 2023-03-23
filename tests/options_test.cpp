@@ -1,16 +1,13 @@
-#include "doctest/doctest.hpp"
-
 #include "options.hpp"
 
 #include <cassert>
 
+#include "doctest/doctest.hpp"
+
 using namespace fast_chess;
 
-TEST_SUITE("Option Parsing Tests")
-{
-
-    TEST_CASE("Testing Engine options parsing")
-    {
+TEST_SUITE("Option Parsing Tests") {
+    TEST_CASE("Testing Engine options parsing") {
         const char *argv[] = {"fast-chess.exe",
                               "-engine",
                               "dir=Engines/",
@@ -66,8 +63,7 @@ TEST_SUITE("Option Parsing Tests")
         CHECK(config1.options.at(1).second == "32");
     }
 
-    TEST_CASE("Testing Cli Options Parsing")
-    {
+    TEST_CASE("Testing Cli Options Parsing") {
         const char *argv[] = {"fast-chess.exe",
                               "-repeat",
                               "-recover",

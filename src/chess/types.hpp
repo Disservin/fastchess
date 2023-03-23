@@ -4,8 +4,7 @@
 #include <string>
 #include <unordered_map>
 
-namespace fast_chess
-{
+namespace fast_chess {
 
 using Bitboard = uint64_t;
 
@@ -15,8 +14,7 @@ static constexpr int N_SQ = 64;
 static constexpr int MAX_MOVES = 128;
 static constexpr Bitboard DEFAULT_CHECKMASK = 18446744073709551615ULL;
 
-enum Piece
-{
+enum Piece {
     WHITEPAWN,
     WHITEKNIGHT,
     WHITEBISHOP,
@@ -32,16 +30,7 @@ enum Piece
     NONE
 };
 
-enum PieceType : uint8_t
-{
-    PAWN,
-    KNIGHT,
-    BISHOP,
-    ROOK,
-    QUEEN,
-    KING,
-    NONETYPE
-};
+enum PieceType : uint8_t { PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING, NONETYPE };
 
 // clang-format off
 enum Square : uint8_t
@@ -59,53 +48,17 @@ enum Square : uint8_t
 
 // clang-format on
 
-enum Rank
-{
-    RANK_1,
-    RANK_2,
-    RANK_3,
-    RANK_4,
-    RANK_5,
-    RANK_6,
-    RANK_7,
-    RANK_8
-};
+enum Rank { RANK_1, RANK_2, RANK_3, RANK_4, RANK_5, RANK_6, RANK_7, RANK_8 };
 
-enum File
-{
-    NO_FILE = -1,
-    FILE_A,
-    FILE_B,
-    FILE_C,
-    FILE_D,
-    FILE_E,
-    FILE_F,
-    FILE_G,
-    FILE_H
-};
+enum File { NO_FILE = -1, FILE_A, FILE_B, FILE_C, FILE_D, FILE_E, FILE_F, FILE_G, FILE_H };
 
-enum CastlingRight : uint8_t
-{
-    WK = 1,
-    WQ = 2,
-    BK = 4,
-    BQ = 8
-};
+enum CastlingRight : uint8_t { WK = 1, WQ = 2, BK = 4, BQ = 8 };
 
-enum Color : uint8_t
-{
-    WHITE,
-    BLACK,
-    NO_COLOR
-};
+enum Color : uint8_t { WHITE, BLACK, NO_COLOR };
 
-constexpr Color operator~(Color C)
-{
-    return Color(C ^ BLACK);
-}
+constexpr Color operator~(Color C) { return Color(C ^ BLACK); }
 
-enum Direction : int8_t
-{
+enum Direction : int8_t {
     NORTH = 8,
     WEST = -1,
     SOUTH = -8,
@@ -116,16 +69,9 @@ enum Direction : int8_t
     SOUTH_EAST = -7
 };
 
-enum class GameResult
-{
-    WIN,
-    LOSE,
-    DRAW,
-    NONE
-};
+enum class GameResult { WIN, LOSE, DRAW, NONE };
 
-constexpr GameResult operator~(GameResult gm)
-{
+constexpr GameResult operator~(GameResult gm) {
     if (gm == GameResult::WIN)
         return GameResult::LOSE;
     else if (gm == GameResult::LOSE)
@@ -182,16 +128,12 @@ static std::unordered_map<Square, CastlingRight> castlingMapRook(
 static std::unordered_map<char, CastlingRight> readCastleString(
     {{'K', WK}, {'k', BK}, {'Q', WQ}, {'q', BQ}});
 
-#define INCR_OP_ON(T)                                                                              \
-    constexpr inline T &operator++(T &p)                                                           \
-    {                                                                                              \
-        return p = static_cast<T>(static_cast<int>(p) + 1);                                        \
-    }                                                                                              \
-    constexpr inline T operator++(T &p, int)                                                       \
-    {                                                                                              \
-        auto old = p;                                                                              \
-        ++p;                                                                                       \
-        return old;                                                                                \
+#define INCR_OP_ON(T)                                                                            \
+    constexpr inline T &operator++(T &p) { return p = static_cast<T>(static_cast<int>(p) + 1); } \
+    constexpr inline T operator++(T &p, int) {                                                   \
+        auto old = p;                                                                            \
+        ++p;                                                                                     \
+        return old;                                                                              \
     }
 
 INCR_OP_ON(Square)
@@ -204,23 +146,11 @@ INCR_OP_ON(Rank)
 
 #undef INCR_OP_ON
 
-#define BASE_OP_ON(N, T)                                                                           \
-    inline constexpr N operator+(N s, T d)                                                         \
-    {                                                                                              \
-        return N(int(s) + int(d));                                                                 \
-    }                                                                                              \
-    inline constexpr N operator-(N s, T d)                                                         \
-    {                                                                                              \
-        return N(int(s) - int(d));                                                                 \
-    }                                                                                              \
-    inline constexpr N &operator+=(N &s, T d)                                                      \
-    {                                                                                              \
-        return s = s + d;                                                                          \
-    }                                                                                              \
-    inline constexpr N &operator-=(N &s, T d)                                                      \
-    {                                                                                              \
-        return s = s - d;                                                                          \
-    }
+#define BASE_OP_ON(N, T)                                                  \
+    inline constexpr N operator+(N s, T d) { return N(int(s) + int(d)); } \
+    inline constexpr N operator-(N s, T d) { return N(int(s) - int(d)); } \
+    inline constexpr N &operator+=(N &s, T d) { return s = s + d; }       \
+    inline constexpr N &operator-=(N &s, T d) { return s = s - d; }
 
 BASE_OP_ON(Square, Direction)
 
@@ -246,4 +176,4 @@ static constexpr Bitboard MASK_RANK[8] = {
     0xff,         0xff00,         0xff0000,         0xff000000,
     0xff00000000, 0xff0000000000, 0xff000000000000, 0xff00000000000000};
 
-} // namespace fast_chess
+}  // namespace fast_chess

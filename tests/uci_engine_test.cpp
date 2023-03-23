@@ -1,18 +1,15 @@
-#include "doctest/doctest.hpp"
-
 #include "engines/uci_engine.hpp"
 
 #include <cassert>
 #include <chrono>
 #include <thread>
 
+#include "doctest/doctest.hpp"
+
 using namespace fast_chess;
 
-TEST_SUITE("Uci Engine Communication Tests")
-{
-
-    TEST_CASE("Testing the EngineProcess class")
-    {
+TEST_SUITE("Uci Engine Communication Tests") {
+    TEST_CASE("Testing the EngineProcess class") {
         UciEngine uci_engine;
 #ifdef _WIN64
         uci_engine.startEngine("./tests/data/engine/dummy_engine.exe");
@@ -44,8 +41,7 @@ TEST_SUITE("Uci Engine Communication Tests")
         uci_engine.writeProcess("quit");
     }
 
-    TEST_CASE("Testing the EngineProcess class with lower level class functions")
-    {
+    TEST_CASE("Testing the EngineProcess class with lower level class functions") {
         UciEngine uci_engine;
 #ifdef _WIN64
         uci_engine.startEngine("./tests/data/engine/dummy_engine.exe");

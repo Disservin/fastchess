@@ -1,20 +1,19 @@
 #include "matchmaking/match.hpp"
+
 #include "match.hpp"
 
-namespace fast_chess
-{
+namespace fast_chess {
 
 Match::Match(const CMD::GameManagerOptions &game_config, const EngineConfiguration &engine1_config,
              const EngineConfiguration &engine2_config)
-    : player_1_(Participant(engine1_config)), player_2_(Participant(engine2_config)),
+    : player_1_(Participant(engine1_config)),
+      player_2_(Participant(engine2_config)),
       drawTracker_(DrawAdjTracker(game_config.draw.score, 0)),
-      resignTracker_(ResignAdjTracker(game_config.resign.score, 0))
-{
+      resignTracker_(ResignAdjTracker(game_config.resign.score, 0)) {
     this->game_config_ = game_config;
 }
 
-void Match::playMatch(const std::string &openingFen)
-{
+void Match::playMatch(const std::string &openingFen) {
     board_.loadFen(openingFen);
     auto first_player_time = player_1_.getConfig().tc;
     auto second_player_time = player_2_.getConfig().tc;
@@ -34,12 +33,10 @@ void Match::playMatch(const std::string &openingFen)
     match_data_.start_time = Logger::getDateTime();
     match_data_.date = Logger::getDateTime("%Y-%m-%d");
     const auto start_time = std::chrono::high_resolution_clock::now();
-#endif // TESTS
+#endif  // TESTS
 
-    try
-    {
-        while (true)
-        {
+    try {
+        while (true) {
             if (!playNextMove(player_1_, player_2_, position_input, first_player_time,
                               second_player_time))
                 break;
@@ -48,9 +45,7 @@ void Match::playMatch(const std::string &openingFen)
                               first_player_time))
                 break;
         }
-    }
-    catch (const std::exception &e)
-    {
+    } catch (const std::exception &e) {
         if (game_config_.recover)
             match_data_.needs_restart = true;
         else
@@ -67,8 +62,7 @@ void Match::playMatch(const std::string &openingFen)
 }
 
 bool Match::playNextMove(Participant &player, Participant &enemy, std::string &position_input,
-                         TimeControl &time_left_us, const TimeControl &time_left_them)
-{
+                         TimeControl &time_left_us, const TimeControl &time_left_them) {
     std::vector<std::string> output;
     output.reserve(30);
 
@@ -93,8 +87,7 @@ bool Match::playNextMove(Participant &player, Participant &enemy, std::string &p
     const auto t1 = std::chrono::high_resolution_clock::now();
 
     // An error has occured, thus abort match.
-    if (!player.getError().empty())
-    {
+    if (!player.getError().empty()) {
         Logger::coutInfo("Warning: Engine", player.getConfig().name, "disconnects #");
         throw std::runtime_error("Warning: Can't read engine.");
     }
@@ -107,8 +100,7 @@ bool Match::playNextMove(Participant &player, Participant &enemy, std::string &p
 
     if ((time_left_us.fixed_time != 0 &&
          measured_time - game_config_.overhead > time_left_us.fixed_time) ||
-        (time_left_us.fixed_time == 0 && time_left_us.time + game_config_.overhead < 0))
-    {
+        (time_left_us.fixed_time == 0 && time_left_us.time + game_config_.overhead < 0)) {
         player.info_.score = GameResult::LOSE;
         enemy.info_.score = GameResult::WIN;
 
@@ -125,8 +117,7 @@ bool Match::playNextMove(Participant &player, Participant &enemy, std::string &p
         CMD::findElement<std::string>(CMD::splitString(output.back(), ' '), "bestmove").value();
 
     // is this the first move? If so we need to insert "moves".
-    if (match_data_.moves.size() == 0)
-        position_input += " moves";
+    if (match_data_.moves.size() == 0) position_input += " moves";
 
     position_input += " " + bestMove;
 
@@ -134,8 +125,7 @@ bool Match::playNextMove(Participant &player, Participant &enemy, std::string &p
     match_data_.legal = board_.makeMove(convertUciToMove(board_, bestMove));
     match_data_.moves.emplace_back(parseEngineOutput(output, bestMove, measured_time));
 
-    if (!match_data_.legal)
-    {
+    if (!match_data_.legal) {
         // The move was not legal
         player.info_.score = GameResult::LOSE;
         enemy.info_.score = GameResult::WIN;
@@ -152,8 +142,7 @@ bool Match::playNextMove(Participant &player, Participant &enemy, std::string &p
     auto res = board_.isGameOver();
     auto resAdj = checkAdj(match_data_.moves.back().score);
 
-    if (res == GameResult::LOSE)
-    {
+    if (res == GameResult::LOSE) {
         player.info_.score = ~res;
         // enemy lost
         enemy.info_.score = res;
@@ -161,16 +150,14 @@ bool Match::playNextMove(Participant &player, Participant &enemy, std::string &p
         return false;
     }
 
-    if (res == GameResult::DRAW || resAdj == GameResult::DRAW)
-    {
+    if (res == GameResult::DRAW || resAdj == GameResult::DRAW) {
         player.info_.score = GameResult::DRAW;
         enemy.info_.score = GameResult::DRAW;
 
         return false;
     }
 
-    if (resAdj != GameResult::NONE)
-    {
+    if (resAdj != GameResult::NONE) {
         player.info_.score = res;
         enemy.info_.score = ~res;
 
@@ -180,8 +167,7 @@ bool Match::playNextMove(Participant &player, Participant &enemy, std::string &p
     return true;
 }
 
-void Match::updateTrackers(const Score moveScore, const int move_number)
-{
+void Match::updateTrackers(const Score moveScore, const int move_number) {
     // Score is low for draw adj, increase the counter
     if (move_number >= game_config_.draw.move_number && abs(moveScore) < drawTracker_.draw_score)
         drawTracker_.move_count++;
@@ -202,16 +188,14 @@ GameResult Match::checkAdj(const Score score)
 
 {
     // Check draw adj
-    if (game_config_.draw.enabled && drawTracker_.move_count >= game_config_.draw.move_count)
-    {
+    if (game_config_.draw.enabled && drawTracker_.move_count >= game_config_.draw.move_count) {
         match_data_.termination = "adjudication";
         return GameResult::DRAW;
     }
 
     // Check Resign adj
     if (game_config_.resign.enabled &&
-        resignTracker_.move_count >= game_config_.resign.move_count && score != mate_score_)
-    {
+        resignTracker_.move_count >= game_config_.resign.move_count && score != mate_score_) {
         match_data_.termination = "adjudication";
 
         // We have the Score for the last side that moved, if it's bad that side
@@ -223,12 +207,10 @@ GameResult Match::checkAdj(const Score score)
 }
 
 MoveData Match::parseEngineOutput(const std::vector<std::string> &output, const std::string &move,
-                                  int64_t measured_time)
-{
+                                  int64_t measured_time) {
     auto move_data = MoveData(move, "0.00", measured_time, 0, 0, 0, 0);
 
-    if (output.size() <= 1)
-        return move_data;
+    if (output.size() <= 1) return move_data;
 
     // extract last info line
     const auto info = CMD::splitString(output[output.size() - 2], ' ');
@@ -239,17 +221,14 @@ MoveData Match::parseEngineOutput(const std::vector<std::string> &output, const 
     move_data.seldepth = CMD::findElement<int>(info, "seldepth").value_or(0);
     move_data.nodes = CMD::findElement<uint64_t>(info, "nodes").value_or(0);
 
-    if (scoreType == "cp")
-    {
+    if (scoreType == "cp") {
         move_data.score = CMD::findElement<int>(info, "cp").value_or(0);
 
         std::stringstream ss;
         ss << (move_data.score >= 0 ? '+' : '-');
         ss << std::fixed << std::setprecision(2) << (float(std::abs(move_data.score)) / 100);
         move_data.score_string = ss.str();
-    }
-    else if (scoreType == "mate")
-    {
+    } else if (scoreType == "mate") {
         move_data.score = CMD::findElement<int>(info, "mate").value_or(0);
         move_data.score_string =
             (move_data.score > 0 ? "+M" : "-M") + std::to_string(std::abs(move_data.score));
@@ -257,19 +236,15 @@ MoveData Match::parseEngineOutput(const std::vector<std::string> &output, const 
     }
 
     // verify pv
-    for (const auto &info : output)
-    {
+    for (const auto &info : output) {
         const auto tokens = CMD::splitString(info, ' ');
 
-        if (!CMD::contains(tokens, "moves"))
-            continue;
+        if (!CMD::contains(tokens, "moves")) continue;
 
         auto tmp = board_;
         auto it = std::find(tokens.begin(), tokens.end(), "pv");
-        while (++it != tokens.end())
-        {
-            if (!tmp.makeMove(convertUciToMove(tmp, *it)))
-            {
+        while (++it != tokens.end()) {
+            if (!tmp.makeMove(convertUciToMove(tmp, *it))) {
                 std::stringstream ss;
                 ss << "Warning: Illegal pv move " << *it << ".\n";
                 std::cout << ss.str();
@@ -281,11 +256,9 @@ MoveData Match::parseEngineOutput(const std::vector<std::string> &output, const 
     return move_data;
 }
 
-void Match::isResponsive(Participant &player)
-{
+void Match::isResponsive(Participant &player) {
     // engine's turn
-    if (!player.isResponsive())
-    {
+    if (!player.isResponsive()) {
         Logger::coutInfo("Warning: Engine", player.getConfig().name,
                          "disconnects. It was not responsive.");
 
@@ -293,10 +266,9 @@ void Match::isResponsive(Participant &player)
     }
 }
 
-MatchData Match::getMatchData()
-{
+MatchData Match::getMatchData() {
     match_data_.players = std::make_pair(player_1_.info_, player_2_.info_);
     return match_data_;
 }
 
-} // namespace fast_chess
+}  // namespace fast_chess

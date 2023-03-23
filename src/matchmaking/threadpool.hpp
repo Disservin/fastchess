@@ -9,8 +9,7 @@
 #include <type_traits>
 #include <vector>
 
-namespace fast_chess
-{
+namespace fast_chess {
 
 #include <functional>
 #include <future>
@@ -19,22 +18,18 @@ namespace fast_chess
 #include <thread>
 #include <vector>
 
-class ThreadPool
-{
-  public:
-    ThreadPool(std::size_t num_threads) : stop_(false)
-    {
+class ThreadPool {
+   public:
+    ThreadPool(std::size_t num_threads) : stop_(false) {
         for (std::size_t i = 0; i < num_threads; ++i)
             workers_.emplace_back([this] {
-                while (!this->stop_)
-                {
+                while (!this->stop_) {
                     std::function<void()> task;
                     {
                         std::unique_lock<std::mutex> lock(this->queue_mutex_);
                         this->condition_.wait(
                             lock, [this] { return this->stop_ || !this->tasks_.empty(); });
-                        if (this->stop_ && this->tasks_.empty())
-                            return;
+                        if (this->stop_ && this->tasks_.empty()) return;
                         task = std::move(this->tasks_.front());
                         this->tasks_.pop();
                     }
@@ -45,8 +40,7 @@ class ThreadPool
 
     template <class F, class... Args>
     auto enqueue(F &&f, Args &&...args)
-        -> std::future<typename std::invoke_result<F, Args...>::type>
-    {
+        -> std::future<typename std::invoke_result<F, Args...>::type> {
         using return_type = typename std::invoke_result<F, Args...>::type;
 
         auto task = std::make_shared<std::packaged_task<return_type()>>(
@@ -55,21 +49,18 @@ class ThreadPool
         std::future<return_type> res = task->get_future();
         {
             std::unique_lock<std::mutex> lock(queue_mutex_);
-            if (stop_)
-                throw std::runtime_error("Warning: enqueue on stopped ThreadPool");
+            if (stop_) throw std::runtime_error("Warning: enqueue on stopped ThreadPool");
             tasks_.emplace([task]() { (*task)(); });
         }
         condition_.notify_one();
         return res;
     }
 
-    void resize(std::size_t num_threads)
-    {
+    void resize(std::size_t num_threads) {
         if (num_threads == 0)
             throw std::invalid_argument("Warning: ThreadPool::resize() - num_threads cannot be 0");
 
-        if (num_threads == workers_.size())
-            return;
+        if (num_threads == workers_.size()) return;
 
         kill();
 
@@ -80,15 +71,13 @@ class ThreadPool
 
         for (std::size_t i = 0; i < num_threads; ++i)
             workers_.emplace_back([this] {
-                while (!this->stop_)
-                {
+                while (!this->stop_) {
                     std::function<void()> task;
                     {
                         std::unique_lock<std::mutex> lock(this->queue_mutex_);
                         this->condition_.wait(
                             lock, [this] { return this->stop_ || !this->tasks_.empty(); });
-                        if (this->stop_ && this->tasks_.empty())
-                            return;
+                        if (this->stop_ && this->tasks_.empty()) return;
                         task = std::move(this->tasks_.front());
                         this->tasks_.pop();
                     }
@@ -97,17 +86,14 @@ class ThreadPool
             });
     }
 
-    void kill()
-    {
+    void kill() {
         {
             std::unique_lock<std::mutex> lock(queue_mutex_);
             stop_ = true;
         }
         condition_.notify_all();
-        for (auto &worker : workers_)
-        {
-            if (worker.joinable())
-            {
+        for (auto &worker : workers_) {
+            if (worker.joinable()) {
                 worker.join();
             }
         }
@@ -115,23 +101,16 @@ class ThreadPool
         workers_.clear();
     }
 
-    ~ThreadPool()
-    {
-        kill();
-    }
+    ~ThreadPool() { kill(); }
 
-    std::size_t queueSize()
-    {
+    std::size_t queueSize() {
         std::unique_lock<std::mutex> lock(this->queue_mutex_);
         return tasks_.size();
     }
 
-    bool getStop()
-    {
-        return stop_;
-    }
+    bool getStop() { return stop_; }
 
-  private:
+   private:
     std::vector<std::thread> workers_;
     std::queue<std::function<void()>> tasks_;
     std::mutex queue_mutex_;
@@ -140,4 +119,4 @@ class ThreadPool
     std::atomic_bool stop_;
 };
 
-} // namespace fast_chess
+}  // namespace fast_chess

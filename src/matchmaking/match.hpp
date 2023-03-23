@@ -9,36 +9,30 @@
 #include "matchmaking/participant.hpp"
 #include "options.hpp"
 
-namespace fast_chess
-{
+namespace fast_chess {
 
-struct DrawAdjTracker
-{
+struct DrawAdjTracker {
     Score draw_score = 0;
     int move_count = 0;
 
-    DrawAdjTracker(Score draw_score, int move_count)
-    {
+    DrawAdjTracker(Score draw_score, int move_count) {
         this->draw_score = draw_score;
         this->move_count = move_count;
     }
 };
 
-struct ResignAdjTracker
-{
+struct ResignAdjTracker {
     int move_count = 0;
     Score resign_score = 0;
 
-    ResignAdjTracker(Score resign_score, int move_count)
-    {
+    ResignAdjTracker(Score resign_score, int move_count) {
         this->resign_score = resign_score;
         this->move_count = move_count;
     }
 };
 
-class Match
-{
-  public:
+class Match {
+   public:
     Match(const CMD::GameManagerOptions &game_config, const EngineConfiguration &engine1_config,
           const EngineConfiguration &engine2_config);
 
@@ -48,7 +42,7 @@ class Match
 
     MatchData getMatchData();
 
-  private:
+   private:
     /// @brief Plays the next move and checks for game over and legalitly
     /// @param player
     /// @param position_input
@@ -88,4 +82,4 @@ class Match
     MatchData match_data_;
 };
 
-} // namespace fast_chess
+}  // namespace fast_chess

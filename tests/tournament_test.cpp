@@ -1,15 +1,13 @@
-#include "doctest/doctest.hpp"
+#include "matchmaking/tournament.hpp"
 
 #include "chess/helper.hpp"
-#include "matchmaking/tournament.hpp"
+#include "doctest/doctest.hpp"
 #include "options.hpp"
 
 using namespace fast_chess;
 
-TEST_SUITE("Tournament Tests")
-{
-    TEST_CASE("Test Tournament")
-    {
+TEST_SUITE("Tournament Tests") {
+    TEST_CASE("Test Tournament") {
 #ifdef _WIN64
         auto path = "cmd=./tests/data/engine/dummy_engine.exe";
 #else
@@ -50,6 +48,6 @@ TEST_SUITE("Tournament Tests")
 
 #ifdef TESTS
         CHECK(tour.getPgns()[0] == pgn);
-#endif // TESTS
+#endif  // TESTS
     }
 }

@@ -1,10 +1,8 @@
 #include <string>
 
-namespace fast_chess
-{
-class Elo
-{
-  public:
+namespace fast_chess {
+class Elo {
+   public:
     Elo(int wins, int losses, int draws);
 
     static double inverseError(double x);
@@ -19,9 +17,9 @@ class Elo
 
     std::string getElo() const;
 
-  private:
+   private:
     double diff_;
     double error_;
 };
 
-} // namespace fast_chess
+}  // namespace fast_chess

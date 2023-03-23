@@ -4,22 +4,16 @@
 #include <iomanip>
 #include <sstream>
 
-namespace fast_chess
-{
+namespace fast_chess {
 
-Elo::Elo(int wins, int losses, int draws)
-{
+Elo::Elo(int wins, int losses, int draws) {
     diff_ = getDiff(wins, losses, draws);
     error_ = getError(wins, losses, draws);
 }
 
-double Elo::getDiff(double percentage)
-{
-    return -400.0 * std::log10(1.0 / percentage - 1.0);
-}
+double Elo::getDiff(double percentage) { return -400.0 * std::log10(1.0 / percentage - 1.0); }
 
-double Elo::inverseError(double x)
-{
+double Elo::inverseError(double x) {
     constexpr double pi = 3.1415926535897;
 
     const double a = 8.0 * (pi - 3.0) / (3.0 * pi * (4.0 - pi));
@@ -28,18 +22,13 @@ double Elo::inverseError(double x)
 
     const double ret = std::sqrt(std::sqrt(z * z - y / a) - z);
 
-    if (x < 0.0)
-        return -ret;
+    if (x < 0.0) return -ret;
     return ret;
 }
 
-double Elo::phiInv(double p)
-{
-    return std::sqrt(2.0) * inverseError(2.0 * p - 1.0);
-}
+double Elo::phiInv(double p) { return std::sqrt(2.0) * inverseError(2.0 * p - 1.0); }
 
-double Elo::getError(int wins, int losses, int draws) const
-{
+double Elo::getError(int wins, int losses, int draws) const {
     const double n = wins + losses + draws;
     const double w = wins / n;
     const double l = losses / n;
@@ -56,8 +45,7 @@ double Elo::getError(int wins, int losses, int draws) const
     return (getDiff(devMax) - getDiff(devMin)) / 2.0;
 }
 
-double Elo::getDiff(int wins, int losses, int draws)
-{
+double Elo::getDiff(int wins, int losses, int draws) {
     const double n = wins + losses + draws;
     const double score = wins + draws / 2.0;
     const double percentage = (score / n);
@@ -65,8 +53,7 @@ double Elo::getDiff(int wins, int losses, int draws)
     return -400.0 * std::log10(1.0 / percentage - 1.0);
 }
 
-std::string Elo::getElo() const
-{
+std::string Elo::getElo() const {
     std::stringstream ss;
 
     ss << std::fixed << std::setprecision(2) << diff_;
@@ -75,4 +62,4 @@ std::string Elo::getElo() const
     return ss.str();
 }
 
-} // namespace fast_chess
+}  // namespace fast_chess

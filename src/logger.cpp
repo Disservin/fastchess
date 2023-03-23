@@ -3,23 +3,19 @@
 #include <iomanip>
 #include <sstream>
 
-namespace fast_chess
-{
+namespace fast_chess {
 
 std::atomic_bool Logger::should_log_ = false;
 std::ofstream Logger::log_;
 std::mutex Logger::log_mutex_;
 
-void Logger::openFile(const std::string &file)
-{
+void Logger::openFile(const std::string &file) {
     Logger::log_.open(file, std::ios::app);
     Logger::should_log_ = true;
 }
 
-void Logger::writeLog(const std::string &msg, std::thread::id thread)
-{
-    if (Logger::should_log_)
-    {
+void Logger::writeLog(const std::string &msg, std::thread::id thread) {
+    if (Logger::should_log_) {
         // Acquire the lock
         const std::lock_guard<std::mutex> lock(Logger::log_mutex_);
 
@@ -31,10 +27,8 @@ void Logger::writeLog(const std::string &msg, std::thread::id thread)
     }
 }
 
-void Logger::readLog(const std::string &msg, std::thread::id thread)
-{
-    if (Logger::should_log_)
-    {
+void Logger::readLog(const std::string &msg, std::thread::id thread) {
+    if (Logger::should_log_) {
         // Acquire the lock
         const std::lock_guard<std::mutex> lock(Logger::log_mutex_);
 
@@ -46,8 +40,7 @@ void Logger::readLog(const std::string &msg, std::thread::id thread)
     }
 }
 
-std::string Logger::getDateTime(std::string format)
-{
+std::string Logger::getDateTime(std::string format) {
     // Get the current time in UTC
     const auto now = std::chrono::system_clock::now();
     const auto time_t_now = std::chrono::system_clock::to_time_t(now);
@@ -55,8 +48,7 @@ std::string Logger::getDateTime(std::string format)
 
 #ifdef _WIN32
     auto res = gmtime_s(&buf, &time_t_now);
-    if (res != 0)
-    {
+    if (res != 0) {
         throw std::runtime_error("Warning: gmtime_s failed");
     }
 
@@ -74,8 +66,7 @@ std::string Logger::getDateTime(std::string format)
 #endif
 }
 
-std::string Logger::formatDuration(std::chrono::seconds duration)
-{
+std::string Logger::formatDuration(std::chrono::seconds duration) {
     const auto hours = std::chrono::duration_cast<std::chrono::hours>(duration);
     duration -= hours;
     const auto minutes = std::chrono::duration_cast<std::chrono::minutes>(duration);
@@ -88,4 +79,4 @@ std::string Logger::formatDuration(std::chrono::seconds duration)
        << seconds.count();
     return ss.str();
 }
-} // namespace fast_chess
+}  // namespace fast_chess

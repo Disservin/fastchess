@@ -2,32 +2,26 @@
 
 #include "engines/uci_engine.hpp"
 
-namespace fast_chess
-{
+namespace fast_chess {
 
-struct PlayerInfo
-{
+struct PlayerInfo {
     std::string termination;
     GameResult score = GameResult::NONE;
     Color color = NO_COLOR;
     EngineConfiguration config;
 };
 
-inline bool operator==(const PlayerInfo &lhs, const EngineConfiguration &rhs)
-{
+inline bool operator==(const PlayerInfo &lhs, const EngineConfiguration &rhs) {
     return lhs.config.name == rhs.name;
 }
 
-inline bool operator!=(const PlayerInfo &lhs, const EngineConfiguration &rhs)
-{
+inline bool operator!=(const PlayerInfo &lhs, const EngineConfiguration &rhs) {
     return !(lhs == rhs);
 }
 
-class Participant : public UciEngine
-{
-  public:
-    explicit Participant(const EngineConfiguration &config)
-    {
+class Participant : public UciEngine {
+   public:
+    explicit Participant(const EngineConfiguration &config) {
         loadConfig(config);
         resetError();
         startEngine(config.cmd);
@@ -39,4 +33,4 @@ class Participant : public UciEngine
     PlayerInfo info_;
 };
 
-} // namespace fast_chess
+}  // namespace fast_chess

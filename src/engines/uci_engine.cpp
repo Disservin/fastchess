@@ -5,24 +5,17 @@
 
 #include "engines/engine_config.hpp"
 
-namespace fast_chess
-{
+namespace fast_chess {
 
-EngineConfiguration UciEngine::getConfig() const
-{
-    return config_;
-}
+EngineConfiguration UciEngine::getConfig() const { return config_; }
 
-std::string UciEngine::checkErrors(int id)
-{
-    if (!getError().empty())
-    {
+std::string UciEngine::checkErrors(int id) {
+    if (!getError().empty()) {
         std::stringstream ss;
         ss << getError() << "\nCant write to engine " << getConfig().name
            << (id != -1 ? ("# " + std::to_string(id)) : "");
 
-        if (!getConfig().recover)
-        {
+        if (!getConfig().recover) {
             throw std::runtime_error(ss.str());
         }
         return ss.str();
@@ -30,10 +23,8 @@ std::string UciEngine::checkErrors(int id)
     return "";
 }
 
-bool UciEngine::isResponsive(int64_t threshold)
-{
-    if (!isAlive())
-        return false;
+bool UciEngine::isResponsive(int64_t threshold) {
+    if (!isAlive()) return false;
 
     bool timeout = false;
     writeProcess("isready");
@@ -41,100 +32,78 @@ bool UciEngine::isResponsive(int64_t threshold)
     return !timeout;
 }
 
-void UciEngine::sendUciNewGame()
-{
+void UciEngine::sendUciNewGame() {
     writeProcess("ucinewgame");
     isResponsive(60000);
 }
 
-void UciEngine::sendUci()
-{
-    writeProcess("uci");
-}
+void UciEngine::sendUci() { writeProcess("uci"); }
 
-std::vector<std::string> UciEngine::readUci()
-{
+std::vector<std::string> UciEngine::readUci() {
     bool timeout = false;
     return readProcess("uciok", timeout);
 }
 
-std::string UciEngine::buildGoInput(Color stm, const TimeControl &tc, const TimeControl &tc_2) const
-{
+std::string UciEngine::buildGoInput(Color stm, const TimeControl &tc,
+                                    const TimeControl &tc_2) const {
     std::stringstream input;
     input << "go";
 
-    if (config_.nodes != 0)
-        input << " nodes " << config_.nodes;
+    if (config_.nodes != 0) input << " nodes " << config_.nodes;
 
-    if (config_.plies != 0)
-        input << " depth " << config_.plies;
+    if (config_.plies != 0) input << " depth " << config_.plies;
 
-    if (tc.fixed_time != 0)
-    {
+    if (tc.fixed_time != 0) {
         input << " movetime " << tc.fixed_time;
     }
     // We cannot use st and tc together
-    else
-    {
+    else {
         auto white = stm == WHITE ? tc : tc_2;
         auto black = stm == WHITE ? tc_2 : tc;
 
-        if (tc.time != 0)
-        {
-
+        if (tc.time != 0) {
             input << " wtime " << white.time << " btime " << black.time;
         }
 
-        if (tc.increment != 0)
-        {
+        if (tc.increment != 0) {
             input << " winc " << white.increment << " binc " << black.increment;
         }
 
-        if (tc.moves != 0)
-            input << " movestogo " << tc.moves;
+        if (tc.moves != 0) input << " movestogo " << tc.moves;
     }
     return input.str();
 }
 
-void UciEngine::loadConfig(const EngineConfiguration &config)
-{
-    this->config_ = config;
-}
+void UciEngine::loadConfig(const EngineConfiguration &config) { this->config_ = config; }
 
-void UciEngine::sendQuit()
-{
+void UciEngine::sendQuit() {
     writeProcess("quit");
     checkErrors();
 }
 
-void UciEngine::sendSetoption(const std::string &name, const std::string &value)
-{
+void UciEngine::sendSetoption(const std::string &name, const std::string &value) {
     writeProcess("setoption name " + name + " value " + value);
 }
 
-void UciEngine::restartEngine()
-{
+void UciEngine::restartEngine() {
     resetError();
     killProcess();
     initProcess(config_.cmd);
 }
 
-void UciEngine::startEngine(const std::string &cmd)
-{
+void UciEngine::startEngine(const std::string &cmd) {
     initProcess(cmd);
 
     sendUci();
     readUci();
 
-    if (!isResponsive(60000))
-    {
+    if (!isResponsive(60000)) {
         throw std::runtime_error("Warning: Something went wrong when pinging the engine.");
     }
 
-    for (const auto &option : config_.options)
-    {
+    for (const auto &option : config_.options) {
         sendSetoption(option.first, option.second);
     }
 }
 
-} // namespace fast_chess
+}  // namespace fast_chess

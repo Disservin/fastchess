@@ -1,37 +1,32 @@
-#include <cassert>
-
 #include "chess/helper.hpp"
 
-namespace fast_chess
-{
+#include <cassert>
 
-#if defined(__GNUC__) // GCC, Clang
+namespace fast_chess {
 
-Square lsb(Bitboard b)
-{
+#if defined(__GNUC__)  // GCC, Clang
+
+Square lsb(Bitboard b) {
     assert(b);
     return Square(__builtin_ctzll(b));
 }
 
-Square msb(Bitboard b)
-{
+Square msb(Bitboard b) {
     assert(b);
     return Square(63 ^ __builtin_clzll(b));
 }
 
 #elif defined(_MSC_VER)
 
-#ifdef _WIN64 // MSVC, WIN64
+#ifdef _WIN64  // MSVC, WIN64
 #include <intrin.h>
-Square lsb(Bitboard b)
-{
+Square lsb(Bitboard b) {
     unsigned long idx;
     _BitScanForward64(&idx, b);
     return (Square)idx;
 }
 
-Square msb(Bitboard b)
-{
+Square msb(Bitboard b) {
     unsigned long idx;
     _BitScanReverse64(&idx, b);
     return (Square)idx;
@@ -45,8 +40,7 @@ Square msb(Bitboard b)
 
 #endif
 
-int popcount(Bitboard mask)
-{
+int popcount(Bitboard mask) {
 #if defined(_MSC_VER) || defined(__INTEL_COMPILER)
 
     return (uint8_t)_mm_popcnt_u64(mask);
@@ -58,11 +52,10 @@ int popcount(Bitboard mask)
 #endif
 }
 
-Square poplsb(Bitboard &mask)
-{
+Square poplsb(Bitboard &mask) {
     const int8_t s = lsb(mask);
-    mask &= mask - 1; // compiler optimizes this to _blsr_
+    mask &= mask - 1;  // compiler optimizes this to _blsr_
     return Square(s);
 }
 
-} // namespace fast_chess
+}  // namespace fast_chess

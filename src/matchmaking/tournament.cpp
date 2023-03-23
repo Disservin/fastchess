@@ -8,11 +8,9 @@
 #include "rand.hpp"
 #include "tournament.hpp"
 
-namespace fast_chess
-{
+namespace fast_chess {
 
-Tournament::Tournament(const CMD::GameManagerOptions &game_config)
-{
+Tournament::Tournament(const CMD::GameManagerOptions &game_config) {
     const std::string filename =
         (game_config.pgn.file.empty() ? "fast-chess" : game_config.pgn.file) + ".pgn";
 
@@ -21,30 +19,25 @@ Tournament::Tournament(const CMD::GameManagerOptions &game_config)
     loadConfig(game_config);
 }
 
-void Tournament::loadConfig(const CMD::GameManagerOptions &game_config)
-{
+void Tournament::loadConfig(const CMD::GameManagerOptions &game_config) {
     game_config_ = game_config;
 
     Random::mersenne_rand.seed(game_config_.seed);
 
-    if (!game_config_.opening.file.empty())
-    {
+    if (!game_config_.opening.file.empty()) {
         std::ifstream openingFile;
         std::string line;
         openingFile.open(game_config_.opening.file);
 
-        while (std::getline(openingFile, line))
-        {
+        while (std::getline(openingFile, line)) {
             opening_book_.emplace_back(line);
         }
 
         openingFile.close();
 
-        if (game_config_.opening.order == "random")
-        {
+        if (game_config_.opening.order == "random") {
             // Fisher-Yates / Knuth shuffle
-            for (std::size_t i = 0; i <= opening_book_.size() - 2; i++)
-            {
+            for (std::size_t i = 0; i <= opening_book_.size() - 2; i++) {
                 std::size_t j = i + (Random::mersenne_rand() % (opening_book_.size() - i));
                 std::swap(opening_book_[i], opening_book_[j]);
             }
@@ -57,15 +50,10 @@ void Tournament::loadConfig(const CMD::GameManagerOptions &game_config)
                  game_config_.sprt.elo1);
 }
 
-void Tournament::stop()
-{
-    pool_.kill();
-}
+void Tournament::stop() { pool_.kill(); }
 
-void Tournament::printElo(const std::string &first, const std::string &second)
-{
-    if (engine_count != 2)
-        return;
+void Tournament::printElo(const std::string &first, const std::string &second) {
+    if (engine_count != 2) return;
 
     Stats stats;
     {
@@ -113,8 +101,7 @@ void Tournament::printElo(const std::string &first, const std::string &second)
 
     ss << std::fixed;
 
-    if (sprt_.isValid())
-    {
+    if (sprt_.isValid()) {
         ss << "LLR: " << sprt_.getLLR(stats.wins, stats.draws, stats.losses) << " "
            << sprt_.getBounds() << " " << sprt_.getElo() << "\n";
     }
@@ -129,21 +116,16 @@ void Tournament::printElo(const std::string &first, const std::string &second)
     std::cout << ss.str();
 }
 
-void Tournament::startTournament(const std::vector<EngineConfiguration> &engine_configs)
-{
+void Tournament::startTournament(const std::vector<EngineConfiguration> &engine_configs) {
     engine_count = engine_configs.size();
 
-    if (engine_configs.size() < 2)
-    {
+    if (engine_configs.size() < 2) {
         throw std::runtime_error("Warning: Need at least two engines to start!");
     }
 
-    for (size_t i = 0; i < engine_configs.size(); i++)
-    {
-        for (size_t j = 0; j < i; j++)
-        {
-            if (engine_configs[i].name == engine_configs[j].name)
-            {
+    for (size_t i = 0; i < engine_configs.size(); i++) {
+        for (size_t j = 0; j < i; j++) {
+            if (engine_configs[i].name == engine_configs[j].name) {
                 throw std::runtime_error("Engine with the same are not allowed!: " +
                                          engine_configs[i].name);
             }
@@ -159,23 +141,19 @@ void Tournament::startTournament(const std::vector<EngineConfiguration> &engine_
                    game_config_.games;
 
     bool reverse = game_config_.games == 2;
-    if (!game_config_.report_penta)
-    {
+    if (!game_config_.report_penta) {
         game_config_.games = 1;
     }
 
     // Round robin
-    for (std::size_t i = 0; i < engine_configs.size(); i++)
-    {
-        for (std::size_t j = i + 1; j < engine_configs.size(); j++)
-        {
+    for (std::size_t i = 0; i < engine_configs.size(); i++) {
+        for (std::size_t j = i + 1; j < engine_configs.size(); j++) {
             // Initialize results entry, if we there isnt already a valid stats entry in the results
             // map we must create one so that we properly report the score from engine_configs[i]
             // perspective!
             if (results_.find(engine_configs[i].name) == results_.end() &&
                 results_[engine_configs[i].name].find(engine_configs[j].name) ==
-                    results_[engine_configs[i].name].end())
-            {
+                    results_[engine_configs[i].name].end()) {
                 Stats stats;
                 results_[engine_configs[i].name][engine_configs[j].name] = stats;
             }
@@ -184,15 +162,13 @@ void Tournament::startTournament(const std::vector<EngineConfiguration> &engine_
             auto sum = results_[engine_configs[i].name][engine_configs[j].name].sum();
             match_count_ += sum;
 
-            for (int n = 1 + sum / game_config_.games; n <= game_config_.rounds; n++)
-            {
+            for (int n = 1 + sum / game_config_.games; n <= game_config_.rounds; n++) {
                 results.emplace_back(pool_.enqueue(std::bind(
                     &Tournament::launchMatch, this,
                     std::make_pair(engine_configs[i], engine_configs[j]), fetchNextFen(), n)));
 
                 // We need to play reverse games but shall not collect penta stats.
-                if (!game_config_.report_penta && reverse)
-                {
+                if (!game_config_.report_penta && reverse) {
                     results.emplace_back(pool_.enqueue(std::bind(
                         &Tournament::launchMatch, this,
                         std::make_pair(engine_configs[j], engine_configs[i]), fetchNextFen(), n)));
@@ -202,12 +178,10 @@ void Tournament::startTournament(const std::vector<EngineConfiguration> &engine_
     }
 
     while (engine_configs.size() == 2 && sprt_.isValid() && match_count_ < total_count_ &&
-           !pool_.getStop())
-    {
+           !pool_.getStop()) {
         Stats stats = getResults(engine_configs[0].name, engine_configs[1].name);
         const double llr = sprt_.getLLR(stats.wins, stats.draws, stats.losses);
-        if (sprt_.getResult(llr) != SPRT_CONTINUE)
-        {
+        if (sprt_.getResult(llr) != SPRT_CONTINUE) {
             pool_.kill();
             std::cout << "Finished match\n";
             printElo(engine_configs[0].name, engine_configs[1].name);
@@ -218,44 +192,33 @@ void Tournament::startTournament(const std::vector<EngineConfiguration> &engine_
         std::this_thread::sleep_for(std::chrono::microseconds(250));
     }
 
-    for (auto &&result : results)
-    {
-        if (!result.get())
-            throw std::runtime_error("Unknown error during match playing.");
+    for (auto &&result : results) {
+        if (!result.get()) throw std::runtime_error("Unknown error during match playing.");
     }
 
     std::cout << "Finished match\n";
 
-    if (engine_configs.size() == 2)
-        printElo(engine_configs[0].name, engine_configs[1].name);
+    if (engine_configs.size() == 2) printElo(engine_configs[0].name, engine_configs[1].name);
 }
 
-Stats Tournament::getResults(const std::string &engine1, const std::string &engine2)
-{
+Stats Tournament::getResults(const std::string &engine1, const std::string &engine2) {
     const std::unique_lock<std::mutex> lock(results_mutex_);
     return results_[engine1][engine2];
 }
 
-std::string Tournament::fetchNextFen()
-{
-    if (opening_book_.size() == 0)
-    {
+std::string Tournament::fetchNextFen() {
+    if (opening_book_.size() == 0) {
         return startpos_;
-    }
-    else if (game_config_.opening.format == "pgn")
-    {
+    } else if (game_config_.opening.format == "pgn") {
         // todo: implementation
-    }
-    else if (game_config_.opening.format == "epd")
-    {
+    } else if (game_config_.opening.format == "epd") {
         return opening_book_[(game_config_.opening.start + fen_index_++) % opening_book_.size()];
     }
 
     return startpos_;
 }
 
-void Tournament::writeToFile(const std::string &data)
-{
+void Tournament::writeToFile(const std::string &data) {
     // Acquire the lock
     const std::lock_guard<std::mutex> lock(file_mutex_);
 
@@ -263,8 +226,7 @@ void Tournament::writeToFile(const std::string &data)
 }
 
 void fast_chess::Tournament::updateStats(const std::string &us, const std::string &them,
-                                         const Stats &stats)
-{
+                                         const Stats &stats) {
     const std::unique_lock<std::mutex> lock(results_mutex_);
 
     if (results_.find(us) != results_.end())
@@ -278,8 +240,7 @@ void fast_chess::Tournament::updateStats(const std::string &us, const std::strin
 }
 
 bool Tournament::launchMatch(const std::pair<EngineConfiguration, EngineConfiguration> &configs,
-                             const std::string &fen, int round_id)
-{
+                             const std::string &fen, int round_id) {
     std::vector<MatchData> matches;
 
     std::string result = "*";
@@ -288,35 +249,30 @@ bool Tournament::launchMatch(const std::pair<EngineConfiguration, EngineConfigur
 
     auto config_copy = configs;
 
-    for (int i = 0; i < game_config_.games; i++)
-    {
+    for (int i = 0; i < game_config_.games; i++) {
         Match match = Match(game_config_, config_copy.first, config_copy.second);
         match.playMatch(fen);
 
         MatchData match_data = match.getMatchData();
         match_data.round = round_id;
 
-        if (match_data.players.first.score == GameResult::WIN)
-        {
+        if (match_data.players.first.score == GameResult::WIN) {
             if (match_data.players.first == configs.first)
                 stats.wins++;
             else
                 stats.losses++;
         }
 
-        if (match_data.players.first.score == GameResult::LOSE)
-        {
+        if (match_data.players.first.score == GameResult::LOSE) {
             if (match_data.players.first == configs.first)
                 stats.losses++;
             else
                 stats.wins++;
         }
 
-        if (match_data.players.first.score == GameResult::DRAW)
-            stats.draws++;
+        if (match_data.players.first.score == GameResult::DRAW) stats.draws++;
 
-        if (match_data.termination == "timeout")
-            timeouts_++;
+        if (match_data.termination == "timeout") timeouts_++;
 
         match_count_++;
 
@@ -343,14 +299,13 @@ bool Tournament::launchMatch(const std::pair<EngineConfiguration, EngineConfigur
 
     updateStats(configs.first.name, configs.second.name, stats);
 
-    for (const auto &played_matches : matches)
-    {
+    for (const auto &played_matches : matches) {
         PgnBuilder pgn(played_matches, game_config_, true);
 
 // not thread safe and is only used for unit tests.
 #ifdef TESTS
         pgns_.push_back(pgn.getPGN());
-#endif // TESTS
+#endif  // TESTS
 
         writeToFile(pgn.getPGN());
     }
@@ -358,4 +313,4 @@ bool Tournament::launchMatch(const std::pair<EngineConfiguration, EngineConfigur
     return true;
 }
 
-} // namespace fast_chess
+}  // namespace fast_chess

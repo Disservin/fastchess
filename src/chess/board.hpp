@@ -10,11 +10,9 @@
 #include "chess/types.hpp"
 #include "matchmaking/match_data.hpp"
 
-namespace fast_chess
-{
+namespace fast_chess {
 
-struct State
-{
+struct State {
     Square enpassant{};
     uint8_t castling{};
     uint8_t halfMove{};
@@ -22,15 +20,14 @@ struct State
 
     State(Square _enpassant = {}, uint8_t _castling = {}, uint8_t _halfMove = {},
           Piece _captured_piece = NONE)
-        : enpassant(_enpassant), castling(_castling), halfMove(_halfMove),
-          captured_piece(_captured_piece)
-    {
-    }
+        : enpassant(_enpassant),
+          castling(_castling),
+          halfMove(_halfMove),
+          captured_piece(_captured_piece) {}
 };
 
-class Board
-{
-  public:
+class Board {
+   public:
     Board();
 
     explicit Board(const std::string &fen);
@@ -46,9 +43,12 @@ class Board
 
     Square KingSQ(Color c) const;
 
-    template <PieceType type, Color color> Bitboard pieces() const;
-    template <Color color> Bitboard pieces(PieceType type) const;
-    template <PieceType type> Bitboard pieces(Color color) const;
+    template <PieceType type, Color color>
+    Bitboard pieces() const;
+    template <Color color>
+    Bitboard pieces(PieceType type) const;
+    template <PieceType type>
+    Bitboard pieces(Color color) const;
     Bitboard pieces(PieceType type, Color color) const;
 
     Piece pieceAt(Square square) const;
@@ -94,7 +94,7 @@ class Board
 
     friend std::ostream &operator<<(std::ostream &os, const Board &b);
 
-  private:
+   private:
     void initializeLookupTables();
 
     void placePiece(Piece piece, Square sq);
@@ -129,18 +129,18 @@ class Board
     bool chess960_ = false;
 };
 
-template <PieceType type, Color color> Bitboard Board::pieces() const
-{
+template <PieceType type, Color color>
+Bitboard Board::pieces() const {
     return pieceBB_[color][type];
 }
 
-template <Color color> Bitboard Board::pieces(PieceType type) const
-{
+template <Color color>
+Bitboard Board::pieces(PieceType type) const {
     return pieceBB_[color][type];
 }
 
-template <PieceType type> Bitboard Board::pieces(Color color) const
-{
+template <PieceType type>
+Bitboard Board::pieces(Color color) const {
     return pieceBB_[color][type];
 }
 
@@ -152,4 +152,4 @@ std::string MoveToRep(Board &b, Move move, bool isLan = false);
 
 std::string resultToString(const MatchData &match);
 
-} // namespace fast_chess
+}  // namespace fast_chess

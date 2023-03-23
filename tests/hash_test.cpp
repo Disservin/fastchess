@@ -1,13 +1,10 @@
-#include "doctest/doctest.hpp"
-
 #include "chess/board.hpp"
+#include "doctest/doctest.hpp"
 
 using namespace fast_chess;
 
-TEST_SUITE("Zobrist Hash Tests")
-{
-    TEST_CASE("Test Zobrist Hash Startpos")
-    {
+TEST_SUITE("Zobrist Hash Tests") {
+    TEST_CASE("Test Zobrist Hash Startpos") {
         Board b;
 
         b.loadFen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
@@ -39,8 +36,7 @@ TEST_SUITE("Zobrist Hash Tests")
         CHECK(b.getHash() == 0x00fdd303c946bdd9);
     }
 
-    TEST_CASE("Test Zobrist Hash Second Position")
-    {
+    TEST_CASE("Test Zobrist Hash Second Position") {
         Board b;
 
         b.loadFen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");

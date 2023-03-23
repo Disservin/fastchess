@@ -4,29 +4,19 @@
 #include "engine_config.hpp"
 #include "engineprocess.hpp"
 
-namespace fast_chess
-{
+namespace fast_chess {
 
-enum class Turn
-{
-    FIRST,
-    SECOND
-};
+enum class Turn { FIRST, SECOND };
 
-constexpr Turn operator~(Turn t)
-{
+constexpr Turn operator~(Turn t) {
     return Turn(static_cast<int>(t) ^ static_cast<int>(Turn::SECOND));
 }
 
-class UciEngine : public EngineProcess
-{
-  public:
+class UciEngine : public EngineProcess {
+   public:
     UciEngine() = default;
 
-    ~UciEngine()
-    {
-        sendQuit();
-    }
+    ~UciEngine() { sendQuit(); }
 
     EngineConfiguration getConfig() const;
 
@@ -55,9 +45,9 @@ class UciEngine : public EngineProcess
 
     static const int64_t ping_time_ = 60000;
 
-  private:
+   private:
     EngineConfiguration config_;
 
     void sendSetoption(const std::string &name, const std::string &value);
 };
-} // namespace fast_chess
+}  // namespace fast_chess

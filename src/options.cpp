@@ -9,30 +9,23 @@
 
 #include "third_party/json.hpp"
 
-namespace fast_chess
-{
+namespace fast_chess {
 
-namespace CMD
-{
+namespace CMD {
 
 using json = nlohmann::json;
 
-Options::Options(int argc, char const *argv[])
-{
-    for (int i = 1; i < argc; i++)
-    {
+Options::Options(int argc, char const *argv[]) {
+    for (int i = 1; i < argc; i++) {
         const std::string arg = argv[i];
-        if (arg == "-engine")
-        {
+        if (arg == "-engine") {
             configs_.push_back(EngineConfiguration());
             parseDashOptions(i, argc, argv, [&](std::string key, std::string value) {
                 parseEngineKeyValues(configs_.back(), key, value);
             });
-        }
-        else if (arg == "-each")
+        } else if (arg == "-each")
             parseDashOptions(i, argc, argv, [&](std::string key, std::string value) {
-                for (auto &config : configs_)
-                    parseEngineKeyValues(config, key, value);
+                for (auto &config : configs_) parseEngineKeyValues(config, key, value);
             });
         else if (arg == "-pgnout")
             parseDashOptions(i, argc, argv, [&](std::string key, std::string value) {
@@ -64,8 +57,7 @@ Options::Options(int argc, char const *argv[])
             });
         else if (arg == "-sprt")
             parseDashOptions(i, argc, argv, [&](std::string key, std::string value) {
-                if (game_options_.rounds == 0)
-                    game_options_.rounds = 500000;
+                if (game_options_.rounds == 0) game_options_.rounds = 500000;
 
                 if (key == "elo0")
                     game_options_.sprt.elo0 = std::stod(value);
@@ -113,21 +105,17 @@ Options::Options(int argc, char const *argv[])
             parseDashOptions(i, argc, argv, [&](std::string key, std::string value) {
                 if (key == "file")
                     loadJson(value);
-                else if (key == "discard" && value == "true")
-                {
+                else if (key == "discard" && value == "true") {
                     std::cout << "Discarded previous results.\n";
                     stats_.clear();
-                }
-                else
+                } else
                     coutMissingCommand("config", key, value);
             });
         else if (arg == "-report")
             parseDashOptions(i, argc, argv, [&](std::string key, std::string value) {
-                if (key == "penta")
-                {
+                if (key == "penta") {
                     game_options_.report_penta = value == "true";
-                }
-                else
+                } else
                     coutMissingCommand("report", key, value);
             });
         else if (arg == "-concurrency")
@@ -154,32 +142,27 @@ Options::Options(int argc, char const *argv[])
             throw std::runtime_error("Dash command: " + arg + " doesnt exist!");
     }
 
-    for (auto &config : configs_)
-    {
-        if (config.name.empty())
-            throw std::runtime_error("Warning: Each engine must have a name!");
+    for (auto &config : configs_) {
+        if (config.name.empty()) throw std::runtime_error("Warning: Each engine must have a name!");
 
         config.recover = game_options_.recover;
     }
 }
 
-TimeControl Options::parseTc(const std::string &tcString) const
-{
+TimeControl Options::parseTc(const std::string &tcString) const {
     TimeControl tc;
 
     std::string remainingStringVector = tcString;
     const bool has_moves = contains(tcString, "/");
     const bool has_inc = contains(tcString, "+");
 
-    if (has_moves)
-    {
+    if (has_moves) {
         const auto moves = splitString(tcString, '/');
         tc.moves = std::stoi(moves[0]);
         remainingStringVector = moves[1];
     }
 
-    if (has_inc)
-    {
+    if (has_inc) {
         const auto moves = splitString(remainingStringVector, '+');
         tc.increment = std::stod(moves[1].c_str()) * 1000;
         remainingStringVector = moves[0];
@@ -191,8 +174,7 @@ TimeControl Options::parseTc(const std::string &tcString) const
 }
 
 void Options::parseEngineKeyValues(EngineConfiguration &engineConfig, const std::string &key,
-                                   const std::string &value) const
-{
+                                   const std::string &value) const {
     if (key == "cmd")
         engineConfig.cmd = value;
     else if (key == "name")
@@ -207,22 +189,18 @@ void Options::parseEngineKeyValues(EngineConfiguration &engineConfig, const std:
         engineConfig.plies = std::stoll(value);
     else if (key == "dir")
         engineConfig.dir = value;
-    else if (isEngineSettableOption(key))
-    {
+    else if (isEngineSettableOption(key)) {
         // Strip option.Name of the option. Part
         const std::size_t pos = key.find('.');
         const std::string strippedKey = key.substr(pos + 1);
         engineConfig.options.push_back(std::make_pair(strippedKey, value));
-    }
-    else
+    } else
         coutMissingCommand("engine", key, value);
 }
 
 void Options::parseDashOptions(int &i, int argc, char const *argv[],
-                               std::function<void(std::string, std::string)> func)
-{
-    while (i + 1 < argc && argv[i + 1][0] != '-' && i++)
-    {
+                               std::function<void(std::string, std::string)> func) {
+    while (i + 1 < argc && argv[i + 1][0] != '-' && i++) {
         std::string param = argv[i];
         std::size_t pos = param.find('=');
         std::string key = param.substr(0, pos);
@@ -232,8 +210,7 @@ void Options::parseDashOptions(int &i, int argc, char const *argv[],
     }
 }
 
-void Options::saveJson(const std::map<std::string, std::map<std::string, Stats>> &stats) const
-{
+void Options::saveJson(const std::map<std::string, std::map<std::string, Stats>> &stats) const {
     nlohmann::ordered_json jsonfile = game_options_;
     jsonfile["engines"] = configs_;
     jsonfile["stats"] = stats;
@@ -242,8 +219,7 @@ void Options::saveJson(const std::map<std::string, std::map<std::string, Stats>>
     file << std::setw(4) << jsonfile << std::endl;
 }
 
-void Options::loadJson(const std::string &filename)
-{
+void Options::loadJson(const std::string &filename) {
     std::cout << "Loading config file: " << filename << std::endl;
     std::ifstream f(filename);
     json jsonfile = json::parse(f);
@@ -251,36 +227,24 @@ void Options::loadJson(const std::string &filename)
     game_options_ = jsonfile.get<GameManagerOptions>();
     stats_ = jsonfile["stats"].get<std::map<std::string, std::map<std::string, Stats>>>();
 
-    for (auto engine : jsonfile["engines"])
-    {
+    for (auto engine : jsonfile["engines"]) {
         EngineConfiguration ec = engine.get<EngineConfiguration>();
 
         configs_.push_back(ec);
     }
 }
 
-std::vector<EngineConfiguration> Options::getEngineConfigs() const
-{
-    return configs_;
-}
+std::vector<EngineConfiguration> Options::getEngineConfigs() const { return configs_; }
 
-GameManagerOptions Options::getGameOptions() const
-{
-    return game_options_;
-}
+GameManagerOptions Options::getGameOptions() const { return game_options_; }
 
-std::map<std::string, std::map<std::string, Stats>> Options::getStats() const
-{
-    return stats_;
-}
+std::map<std::string, std::map<std::string, Stats>> Options::getStats() const { return stats_; }
 
-bool Options::isEngineSettableOption(const std::string &stringFormat) const
-{
+bool Options::isEngineSettableOption(const std::string &stringFormat) const {
     return startsWith(stringFormat, "option.");
 }
 
-void Options::printVersion(int &i) const
-{
+void Options::printVersion(int &i) const {
     i++;
     std::unordered_map<std::string, std::string> months({{"Jan", "01"},
                                                          {"Feb", "02"},
@@ -296,7 +260,7 @@ void Options::printVersion(int &i) const
                                                          {"Dec", "12"}});
 
     std::string month, day, year;
-    std::stringstream ss, date(__DATE__); // {month} {date} {year}
+    std::stringstream ss, date(__DATE__);  // {month} {date} {year}
 
     ss << "fast-chess ";
 #ifdef GIT_DATE
@@ -304,8 +268,7 @@ void Options::printVersion(int &i) const
 #else
 
     date >> month >> day >> year;
-    if (day.length() == 1)
-        day = "0" + day;
+    if (day.length() == 1) day = "0" + day;
     ss << year.substr(2) << months[month] << day;
 #endif
 
@@ -320,41 +283,34 @@ void Options::printVersion(int &i) const
 }
 
 void Options::coutMissingCommand(std::string_view name, std::string_view key,
-                                 std::string_view value) const
-{
+                                 std::string_view value) const {
     std::cout << "\nUnrecognized " << name << " option: " << key << " with value " << value
               << " parsing failed." << std::endl;
 }
 
-bool startsWith(std::string_view haystack, std::string_view needle)
-{
-    if (needle.empty())
-        return false;
+bool startsWith(std::string_view haystack, std::string_view needle) {
+    if (needle.empty()) return false;
     return (haystack.rfind(needle, 0) != std::string::npos);
 }
 
-bool contains(std::string_view haystack, std::string_view needle)
-{
+bool contains(std::string_view haystack, std::string_view needle) {
     return haystack.find(needle) != std::string::npos;
 }
 
-bool contains(const std::vector<std::string> &haystack, std::string_view needle)
-{
+bool contains(const std::vector<std::string> &haystack, std::string_view needle) {
     return std::find(haystack.begin(), haystack.end(), needle) != haystack.end();
 }
 
-std::vector<std::string> splitString(const std::string &string, const char &delimiter)
-{
+std::vector<std::string> splitString(const std::string &string, const char &delimiter) {
     std::stringstream string_stream(string);
     std::string segment;
     std::vector<std::string> seglist;
 
-    while (std::getline(string_stream, segment, delimiter))
-        seglist.emplace_back(segment);
+    while (std::getline(string_stream, segment, delimiter)) seglist.emplace_back(segment);
 
     return seglist;
 }
 
-} // namespace CMD
+}  // namespace CMD
 
-} // namespace fast_chess
+}  // namespace fast_chess

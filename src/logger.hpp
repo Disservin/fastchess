@@ -8,17 +8,14 @@
 #include <string>
 #include <thread>
 
-namespace fast_chess
-{
+namespace fast_chess {
 
 /*
  * Singleton logger class.
  */
-class Logger
-{
-  public:
-    static Logger &getInstance()
-    {
+class Logger {
+   public:
+    static Logger &getInstance() {
         static Logger instance;
 
         return instance;
@@ -28,8 +25,8 @@ class Logger
 
     void operator=(Logger const &) = delete;
 
-    template <typename... Args> static void coutInfo(Args &&...args)
-    {
+    template <typename... Args>
+    static void coutInfo(Args &&...args) {
         std::stringstream ss;
         ((ss << std::forward<Args>(args) << " "), ...) << "\n";
         std::cout << ss.str();
@@ -48,13 +45,11 @@ class Logger
 
     static std::atomic_bool should_log_;
 
-  private:
-    Logger()
-    {
-    }
+   private:
+    Logger() {}
 
     static std::ofstream log_;
     static std::mutex log_mutex_;
 };
 
-} // namespace fast_chess
+}  // namespace fast_chess

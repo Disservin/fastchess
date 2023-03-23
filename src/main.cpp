@@ -9,39 +9,35 @@
 
 using namespace fast_chess;
 
-namespace
-{
+namespace {
 std::unique_ptr<Tournament> Tour;
 std::unique_ptr<CMD::Options> Options;
-} // namespace
+}  // namespace
 
 #ifdef _WIN64
 
-BOOL WINAPI consoleHandler(DWORD signal)
-{
-    switch (signal)
-    {
-    case CTRL_CLOSE_EVENT:
-    case CTRL_LOGOFF_EVENT:
-    case CTRL_SHUTDOWN_EVENT:
-    case CTRL_C_EVENT:
+BOOL WINAPI consoleHandler(DWORD signal) {
+    switch (signal) {
+        case CTRL_CLOSE_EVENT:
+        case CTRL_LOGOFF_EVENT:
+        case CTRL_SHUTDOWN_EVENT:
+        case CTRL_C_EVENT:
 
-        std::cout << "Saved results" << std::endl;
-        Options->saveJson(Tour->getResults());
+            std::cout << "Saved results" << std::endl;
+            Options->saveJson(Tour->getResults());
 
-        Tour->stop();
+            Tour->stop();
 
-        return TRUE;
-    default:
-        break;
+            return TRUE;
+        default:
+            break;
     }
 
     return FALSE;
 }
 
 #else
-void sigintHandler(int param)
-{
+void sigintHandler(int param) {
     Options->saveJson(Tour->getResults());
     Tour->stop();
 
@@ -50,11 +46,9 @@ void sigintHandler(int param)
 
 #endif
 
-int main(int argc, char const *argv[])
-{
+int main(int argc, char const *argv[]) {
 #ifdef _WIN64
-    if (!SetConsoleCtrlHandler(consoleHandler, TRUE))
-    {
+    if (!SetConsoleCtrlHandler(consoleHandler, TRUE)) {
         std::cout << "\nERROR: Could not set control handler\n";
         return 1;
     }
@@ -62,8 +56,7 @@ int main(int argc, char const *argv[])
 #else
     signal(SIGINT, sigintHandler);
 #endif
-    try
-    {
+    try {
         Options = std::make_unique<CMD::Options>(argc, argv);
         Tour = std::make_unique<Tournament>(Options->getGameOptions());
 
@@ -73,9 +66,7 @@ int main(int argc, char const *argv[])
 
         std::cout << "Saved results" << std::endl;
         Options->saveJson(Tour->getResults());
-    }
-    catch (const std::exception &e)
-    {
+    } catch (const std::exception &e) {
         throw e;
     }
 

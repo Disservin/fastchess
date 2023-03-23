@@ -1,29 +1,24 @@
 #include "pgn_builder.hpp"
 
-#include <iomanip> // std::setprecision
+#include <iomanip>  // std::setprecision
 #include <sstream>
 
 #include "chess/board.hpp"
 
-namespace fast_chess
-{
+namespace fast_chess {
 
 PgnBuilder::PgnBuilder(const MatchData &match, const CMD::GameManagerOptions &game_options_,
-                       const bool saveTime)
-{
+                       const bool saveTime) {
     const std::string result = resultToString(match);
     const std::string termination = match.termination;
     std::stringstream ss;
 
     PlayerInfo white_player, black_player;
 
-    if (match.players.first.color == WHITE)
-    {
+    if (match.players.first.color == WHITE) {
         white_player = match.players.first;
         black_player = match.players.second;
-    }
-    else
-    {
+    } else {
         white_player = match.players.second;
         black_player = match.players.first;
     }
@@ -54,8 +49,7 @@ PgnBuilder::PgnBuilder(const MatchData &match, const CMD::GameManagerOptions &ga
     ss << "\n";
     std::stringstream illegalMove;
 
-    if (!match.legal)
-    {
+    if (!match.legal) {
         illegalMove << ", other side makes an illegal move: "
                     << match.moves[match.moves.size() - 1].move;
     }
@@ -63,24 +57,20 @@ PgnBuilder::PgnBuilder(const MatchData &match, const CMD::GameManagerOptions &ga
     Board b = Board(match.fen);
 
     int move_count = 3;
-    for (std::size_t i = 0; i < match.moves.size(); i++)
-    {
+    for (std::size_t i = 0; i < match.moves.size(); i++) {
         const MoveData data = match.moves[i];
 
         std::stringstream nodesString, seldepthString, timeString;
 
-        if (saveTime)
-        {
+        if (saveTime) {
             timeString << std::fixed << std::setprecision(3) << data.elapsed_millis / 1000.0 << "s";
         }
 
-        if (game_options_.pgn.track_nodes)
-        {
+        if (game_options_.pgn.track_nodes) {
             nodesString << " n=" << data.nodes;
         }
 
-        if (game_options_.pgn.track_seldepth)
-        {
+        if (game_options_.pgn.track_seldepth) {
             seldepthString << " sd=" << data.seldepth;
         }
 
@@ -91,13 +81,11 @@ PgnBuilder::PgnBuilder(const MatchData &match, const CMD::GameManagerOptions &ga
             ss << move_count / 2 << "."
                << " " << move << " {" << data.score_string << "/" << data.depth << nodesString.str()
                << seldepthString.str() << " " << timeString.str() << illegalMove.str() << "}";
-        else
-        {
+        else {
             ss << " " << move << " {" << data.score_string << "/" << data.depth << nodesString.str()
                << seldepthString.str() << " " << timeString.str() << illegalMove.str() << "}";
 
-            if (i == match.moves.size() - 1)
-                break;
+            if (i == match.moves.size() - 1) break;
 
             if (i % 7 == 0)
                 ss << "\n";
@@ -105,8 +93,7 @@ PgnBuilder::PgnBuilder(const MatchData &match, const CMD::GameManagerOptions &ga
                 ss << " ";
         };
 
-        if (!match.legal && i == match.moves.size() - 2)
-        {
+        if (!match.legal && i == match.moves.size() - 2) {
             break;
         }
 
@@ -120,9 +107,6 @@ PgnBuilder::PgnBuilder(const MatchData &match, const CMD::GameManagerOptions &ga
     pgn_ = ss.str();
 }
 
-std::string PgnBuilder::getPGN() const
-{
-    return pgn_;
-}
+std::string PgnBuilder::getPGN() const { return pgn_; }
 
-} // namespace fast_chess
+}  // namespace fast_chess

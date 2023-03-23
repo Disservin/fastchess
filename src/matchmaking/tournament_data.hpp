@@ -1,10 +1,8 @@
 #pragma once
 #include "engines/engine_config.hpp"
 
-namespace fast_chess
-{
-struct Stats
-{
+namespace fast_chess {
+struct Stats {
     int wins = 0;
     int losses = 0;
     int draws = 0;
@@ -15,9 +13,7 @@ struct Stats
     int penta_LD = 0;
     int penta_LL = 0;
 
-    Stats &operator+=(const Stats &rhs)
-    {
-
+    Stats &operator+=(const Stats &rhs) {
         this->wins += rhs.wins;
         this->losses += rhs.losses;
         this->draws += rhs.draws;
@@ -30,16 +26,12 @@ struct Stats
         return *this;
     }
 
-    int sum() const
-    {
-        return wins + losses + draws;
-    }
+    int sum() const { return wins + losses + draws; }
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(Stats, wins, losses, draws, penta_WW, penta_WD,
                                                 penta_WL, penta_LD, penta_LL)
 
-constexpr Stats operator~(const Stats &rhs)
-{
+constexpr Stats operator~(const Stats &rhs) {
     Stats stats;
     stats.wins = rhs.losses;
     stats.losses = rhs.wins;
@@ -53,4 +45,4 @@ constexpr Stats operator~(const Stats &rhs)
 
     return stats;
 }
-} // namespace fast_chess
+}  // namespace fast_chess

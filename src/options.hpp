@@ -10,14 +10,11 @@
 #include "logger.hpp"
 #include "matchmaking/tournament_data.hpp"
 
-namespace fast_chess
-{
+namespace fast_chess {
 
-namespace CMD
-{
+namespace CMD {
 
-struct OpeningOptions
-{
+struct OpeningOptions {
     std::string file;
     // TODO use enums for this
     std::string format;
@@ -27,8 +24,7 @@ struct OpeningOptions
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(OpeningOptions, file, format, order, plies, start)
 
-struct PgnOptions
-{
+struct PgnOptions {
     std::string file;
     std::string notation = "san";
     bool track_nodes = false;
@@ -37,8 +33,7 @@ struct PgnOptions
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(PgnOptions, file, notation, track_nodes,
                                                 track_seldepth)
 
-struct SprtOptions
-{
+struct SprtOptions {
     double alpha = 0.0;
     double beta = 0.0;
     double elo0 = 0.0;
@@ -46,8 +41,7 @@ struct SprtOptions
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(SprtOptions, alpha, beta, elo0, elo1)
 
-struct DrawAdjudication
-{
+struct DrawAdjudication {
     int move_number = 0;
     int move_count = 0;
     int score = 0;
@@ -57,8 +51,7 @@ struct DrawAdjudication
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(DrawAdjudication, move_number, move_count, score,
                                                 enabled)
 
-struct ResignAdjudication
-{
+struct ResignAdjudication {
     int move_count = 0;
     int score = 0;
 
@@ -66,8 +59,7 @@ struct ResignAdjudication
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(ResignAdjudication, move_count, score, enabled)
 
-struct GameManagerOptions
-{
+struct GameManagerOptions {
     ResignAdjudication resign = {};
     DrawAdjudication draw = {};
 
@@ -99,9 +91,8 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(GameManagerOptions, event_name, 
                                                 overhead, recover, report_penta, resign, draw,
                                                 opening, pgn, sprt)
 
-class Options
-{
-  public:
+class Options {
+   public:
     Options() = default;
 
     Options(int argc, char const *argv[]);
@@ -113,7 +104,7 @@ class Options
     GameManagerOptions getGameOptions() const;
     std::map<std::string, std::map<std::string, Stats>> getStats() const;
 
-  private:
+   private:
     bool isEngineSettableOption(const std::string &stringFormat) const;
 
     TimeControl parseTc(const std::string &tcString) const;
@@ -122,11 +113,10 @@ class Options
                               const std::string &value) const;
 
     // Generic function to parse a standalone value after a dash command.
-    template <typename T> void parseValue(int &i, int argc, const char *argv[], T &optionValue)
-    {
+    template <typename T>
+    void parseValue(int &i, int argc, const char *argv[], T &optionValue) {
         i++;
-        if (i < argc && argv[i][0] != '-')
-        {
+        if (i < argc && argv[i][0] != '-') {
             if constexpr (std::is_same_v<T, int>)
                 optionValue = std::stoi(argv[i]);
             else if constexpr (std::is_same_v<T, uint32_t>)
@@ -168,12 +158,10 @@ bool contains(const std::vector<std::string> &haystack, std::string_view needle)
 std::vector<std::string> splitString(const std::string &string, const char &delimiter);
 
 template <typename T>
-std::optional<T> findElement(const std::vector<std::string> &haystack, std::string_view needle)
-{
+std::optional<T> findElement(const std::vector<std::string> &haystack, std::string_view needle) {
     auto position = std::find(haystack.begin(), haystack.end(), needle);
     auto index = position - haystack.begin();
-    if (position == haystack.end())
-        return std::nullopt;
+    if (position == haystack.end()) return std::nullopt;
     if constexpr (std::is_same_v<T, int>)
         return std::stoi(haystack[index + 1]);
     else if constexpr (std::is_same_v<T, float>)
@@ -184,6 +172,6 @@ std::optional<T> findElement(const std::vector<std::string> &haystack, std::stri
         return haystack[index + 1];
 }
 
-} // namespace CMD
+}  // namespace CMD
 
-} // namespace fast_chess
+}  // namespace fast_chess

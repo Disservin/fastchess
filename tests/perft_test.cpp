@@ -1,15 +1,12 @@
-#include "doctest/doctest.hpp"
+#include "chess/perft.hpp"
 
 #include "chess/board.hpp"
-#include "chess/perft.hpp"
+#include "doctest/doctest.hpp"
 
 using namespace fast_chess;
 
-TEST_SUITE("Perft Tests")
-{
-
-    TEST_CASE("PERFT Startposition")
-    {
+TEST_SUITE("Perft Tests") {
+    TEST_CASE("PERFT Startposition") {
         Perft perf;
         Board b;
         b.loadFen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
@@ -33,8 +30,7 @@ TEST_SUITE("Perft Tests")
         CHECK(perf.getAndResetNodes() == 119060324);
     }
 
-    TEST_CASE("PERFT 1.1")
-    {
+    TEST_CASE("PERFT 1.1") {
         Perft perf;
         Board b;
         b.loadFen("2kr3r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/1K1R3R b - - 3 2");
@@ -42,8 +38,7 @@ TEST_SUITE("Perft Tests")
         CHECK(perf.getAndResetNodes() == 1930);
     }
 
-    TEST_CASE("PERFT 1.2")
-    {
+    TEST_CASE("PERFT 1.2") {
         Perft perf;
         Board b;
         b.loadFen("2kr3r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/2KR3R w - - 2 2");
@@ -51,8 +46,7 @@ TEST_SUITE("Perft Tests")
         CHECK(perf.getAndResetNodes() == 80360);
     }
 
-    TEST_CASE("PERFT 1.2")
-    {
+    TEST_CASE("PERFT 1.2") {
         Perft perf;
         Board b;
         b.loadFen("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q2/PPPBBPpP/2KR3R w kq - 0 2");
@@ -60,8 +54,7 @@ TEST_SUITE("Perft Tests")
         CHECK(perf.getAndResetNodes() == 44);
     }
 
-    TEST_CASE("PERFT 1.3")
-    {
+    TEST_CASE("PERFT 1.3") {
         Perft perf;
         Board b;
         b.loadFen("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q2/PPPBBPpP/2KR3R w kq - 0 2");
@@ -69,8 +62,7 @@ TEST_SUITE("Perft Tests")
         CHECK(perf.getAndResetNodes() == 100518);
     }
 
-    TEST_CASE("PERFT 1.4")
-    {
+    TEST_CASE("PERFT 1.4") {
         Perft perf;
         Board b;
         b.loadFen("r3k2r/p1ppqpb1/Bn2pnp1/3PN3/1p2P3/2N2Q2/PPPB1PpP/2KR3R b kq - 0 2");
@@ -78,8 +70,7 @@ TEST_SUITE("Perft Tests")
         CHECK(perf.getAndResetNodes() == 2146);
     }
 
-    TEST_CASE("PERFT 1.5")
-    {
+    TEST_CASE("PERFT 1.5") {
         Perft perf;
         Board b;
         b.loadFen("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/2KR3R b kq - 1 1");
@@ -87,8 +78,7 @@ TEST_SUITE("Perft Tests")
         CHECK(perf.getAndResetNodes() == 3551583);
     }
 
-    TEST_CASE("PERFT 2")
-    {
+    TEST_CASE("PERFT 2") {
         static constexpr int depth = 5;
 
         Perft perf;
@@ -111,8 +101,7 @@ TEST_SUITE("Perft Tests")
         CHECK(perf.getAndResetNodes() == 193690690ull);
     }
 
-    TEST_CASE("PERFT 3")
-    {
+    TEST_CASE("PERFT 3") {
         static constexpr int depth = 7;
 
         Perft perf;
@@ -123,8 +112,7 @@ TEST_SUITE("Perft Tests")
         CHECK(perf.getAndResetNodes() == 178633661ull);
     }
 
-    TEST_CASE("PERFT 4")
-    {
+    TEST_CASE("PERFT 4") {
         static constexpr int depth = 6;
 
         Perft perf;
@@ -135,8 +123,7 @@ TEST_SUITE("Perft Tests")
         CHECK(perf.getAndResetNodes() == 706045033ull);
     }
 
-    TEST_CASE("PERFT 5")
-    {
+    TEST_CASE("PERFT 5") {
         static constexpr int depth = 5;
 
         Perft perf;
@@ -147,8 +134,7 @@ TEST_SUITE("Perft Tests")
         CHECK(perf.getAndResetNodes() == 89941194ull);
     }
 
-    TEST_CASE("PERFT 6")
-    {
+    TEST_CASE("PERFT 6") {
         static constexpr int depth = 5;
 
         Perft perf;
@@ -159,8 +145,7 @@ TEST_SUITE("Perft Tests")
         CHECK(perf.getAndResetNodes() == 164075551ull);
     }
 
-    TEST_CASE("PERFT 7")
-    {
+    TEST_CASE("PERFT 7") {
         static constexpr int depth = 7;
 
         Perft perf;
@@ -183,8 +168,7 @@ TEST_SUITE("Perft Tests")
     //     CHECK(perf.getAndResetNodes() == 2261050076ull);
     // }
 
-    TEST_CASE("PERFT 9")
-    {
+    TEST_CASE("PERFT 9") {
         static constexpr int depth = 8;
 
         Perft perf;

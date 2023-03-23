@@ -40,6 +40,7 @@ class Tournament {
     std::vector<std::string> getPgns() const { return pgns_; }
 
 #endif
+
    private:
     bool runSprt(const std::vector<EngineConfiguration> &engine_configs);
 

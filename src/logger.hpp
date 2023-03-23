@@ -10,9 +10,7 @@
 
 namespace fast_chess {
 
-/*
- * Singleton logger class.
- */
+/// @brief Singleton class for logging
 class Logger {
    public:
     static Logger &getInstance() {
@@ -32,11 +30,18 @@ class Logger {
         std::cout << ss.str();
     }
 
+    /// @brief open log file
+    /// @param file
     static void openFile(const std::string &file);
 
+    /// @brief write to file indicating that a write was done
+    /// @param msg
+    /// @param thread
     static void writeLog(const std::string &msg, std::thread::id thread);
 
-    // write to file indicating that a read was done
+    /// @brief write to file indicating that a read was done
+    /// @param msg
+    /// @param thread
     static void readLog(const std::string &msg, std::thread::id thread);
 
     static std::string getDateTime(std::string format = "%Y-%m-%dT%H:%M:%S %z");

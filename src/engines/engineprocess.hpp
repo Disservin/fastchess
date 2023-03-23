@@ -52,11 +52,11 @@ class EngineProcess : public Process {
 
     void closeHandles();
 
-    virtual bool isAlive() override;
+    bool isAlive() override;
 
-    virtual std::vector<std::string> readProcess(std::string_view last_word, bool &timeout,
-                                                 int64_t timeoutThreshold = 1000) override;
-    virtual void writeProcess(const std::string &input) override;
+    std::vector<std::string> readProcess(std::string_view last_word, bool &timeout,
+                                         int64_t timeoutThreshold = 1000) override;
+    void writeProcess(const std::string &input) override;
 
    private:
     PROCESS_INFORMATION pi_ = PROCESS_INFORMATION();
@@ -75,11 +75,11 @@ class EngineProcess : public Process {
 
     void killProcess();
 
-    virtual bool isAlive() override;
+    bool isAlive() override;
 
-    virtual std::vector<std::string> readProcess(std::string_view last_word, bool &timeout,
-                                                 int64_t timeoutThreshold = 1000) override;
-    virtual void writeProcess(const std::string &input) override;
+    std::vector<std::string> readProcess(std::string_view last_word, bool &timeout,
+                                         int64_t timeoutThreshold = 1000) override;
+    void writeProcess(const std::string &input) override;
 
    private:
     pid_t process_pid_;

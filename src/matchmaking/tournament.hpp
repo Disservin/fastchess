@@ -84,7 +84,7 @@ class Tournament {
     SPRT sprt_ = SPRT();
 
     /// @brief how many engines are playing
-    int engine_count = 0;
+    int engine_count_ = 0;
 
     /// @brief tracks the engine results
     std::map<std::string, std::map<std::string, Stats>> results_;

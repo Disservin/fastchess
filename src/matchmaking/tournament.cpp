@@ -58,7 +58,7 @@ void Tournament::loadConfig(const CMD::GameManagerOptions &game_config) {
 void Tournament::stop() { pool_.kill(); }
 
 void Tournament::printElo(const std::string &first, const std::string &second) {
-    if (engine_count != 2) return;
+    if (engine_count_ != 2) return;
 
     Stats stats;
     {
@@ -179,7 +179,7 @@ void Tournament::validateConfig(const std::vector<EngineConfiguration> &configs)
     if (game_config_.games > 2)
         throw std::runtime_error("Exceeded -game limit! Must be smaller than 2");
 
-    engine_count = configs.size();
+    engine_count_ = configs.size();
 }
 
 void Tournament::createRoundRobin(const std::vector<EngineConfiguration> &engine_configs,

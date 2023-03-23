@@ -120,8 +120,8 @@ bool Match::playNextMove(Participant &player, Participant &enemy, std::string &p
     position_input += " " + bestMove;
 
     // play move on internal board_ and store it for later pgn creation
-    match_data_.legal = board_.makeMove(convertUciToMove(board_, bestMove));
     match_data_.moves.emplace_back(parseEngineOutput(output, bestMove, measured_time));
+    match_data_.legal = board_.makeMove(convertUciToMove(board_, bestMove));
 
     // Check if the player played an illegal move
     if (!match_data_.legal) {
@@ -173,13 +173,17 @@ void Match::updateTrackers(const Score moveScore, const int move_number) {
     // Score is low for draw adj, increase the counter
     if (move_number >= game_config_.draw.move_number && abs(moveScore) < drawTracker_.draw_score)
         drawTracker_.move_count++;
-    // Score wasn't low enough for draw adj, since we care about consecutive
-    // moves we have to reset the counter
+    /*
+    Score wasn't low enough for draw adj, since we care about consecutive
+    moves we have to reset the counter
+    */
     else
         drawTracker_.move_count = 0;
-    // Score is low for resign adj, increase the counter (this purposely makes
-    // it possible that a move can work for both draw and resign adj for
-    // whatever reason that might be the case)
+    /*
+    Score is low for resign adj, increase the counter (this purposely makes
+    it possible that a move can work for both draw and resign adj for
+    whatever reason that might be the case)
+    */
     if (abs(moveScore) > resignTracker_.resign_score)
         resignTracker_.move_count++;
     else
@@ -200,8 +204,10 @@ GameResult Match::checkAdj(const Score score)
         resignTracker_.move_count >= game_config_.resign.move_count && score != mate_score_) {
         match_data_.termination = "adjudication";
 
-        // We have the Score for the last side that moved, if it's bad that side
-        // is the resigning one.
+        /*
+        We have the Score for the last side that moved, if it's bad that side
+        is the resigning one.
+        */
         return score < resignTracker_.resign_score ? GameResult::LOSE : GameResult::WIN;
     }
 
@@ -217,27 +223,25 @@ MoveData Match::parseEngineOutput(const std::vector<std::string> &output, const 
     // extract last info line
     const auto info = CMD::splitString(output[output.size() - 2], ' ');
 
-    // Missing elements default to 0
     std::string scoreType = CMD::findElement<std::string>(info, "score").value_or("cp");
+
     move_data.depth = CMD::findElement<int>(info, "depth").value_or(0);
     move_data.seldepth = CMD::findElement<int>(info, "seldepth").value_or(0);
     move_data.nodes = CMD::findElement<uint64_t>(info, "nodes").value_or(0);
+    move_data.score = CMD::findElement<int>(info, scoreType).value_or(0);
 
+    // Missing elements default to 0
+    std::stringstream ss;
     if (scoreType == "cp") {
-        move_data.score = CMD::findElement<int>(info, "cp").value_or(0);
-
-        std::stringstream ss;
         ss << (move_data.score >= 0 ? '+' : '-');
         ss << std::fixed << std::setprecision(2) << (float(std::abs(move_data.score)) / 100);
-        move_data.score_string = ss.str();
     } else if (scoreType == "mate") {
-        move_data.score = CMD::findElement<int>(info, "mate").value_or(0);
-        move_data.score_string =
-            (move_data.score > 0 ? "+M" : "-M") + std::to_string(std::abs(move_data.score));
-        move_data.score = mate_score_;
+        ss << (move_data.score > 0 ? "+M" : "-M") << std::to_string(std::abs(move_data.score));
     } else {
-        move_data.score_string = "ERR";
+        ss << "ERR";
     }
+
+    move_data.score_string = ss.str();
 
     // verify pv
     for (const auto &info : output) {

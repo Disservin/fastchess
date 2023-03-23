@@ -22,7 +22,7 @@ class Tournament {
     /// @brief
     /// @param first engine name
     /// @param second engine name
-    void printElo(const std::string &first, const std::string &second);
+    void printElo(std::string first, std::string second);
 
     void startTournament(const std::vector<EngineConfiguration> &engine_configs);
 
@@ -84,7 +84,7 @@ class Tournament {
     SPRT sprt_ = SPRT();
 
     /// @brief how many engines are playing
-    int engine_count = 0;
+    int engine_count_ = 0;
 
     /// @brief tracks the engine results
     std::map<std::string, std::map<std::string, Stats>> results_;

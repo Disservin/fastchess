@@ -57,33 +57,35 @@ void Tournament::loadConfig(const CMD::GameManagerOptions &game_config) {
 
 void Tournament::stop() { pool_.kill(); }
 
-void Tournament::printElo(const std::string &first, const std::string &second) {
-    if (engine_count != 2) return;
+void Tournament::printElo(std::string first, std::string second) {
+    if (engine_count_ != 2) return;
 
     Stats stats;
     {
         const std::unique_lock<std::mutex> lock(results_mutex_);
 
-        if (results_.find(first) != results_.end())
-            stats = results_[first][second];
-        else
-            stats = results_[second][first];
+        if (results_.find(first) == results_.end()) std::swap(first, second);
+
+        stats = results_[first][second];
     }
 
-    Elo elo(stats.wins, stats.losses, stats.draws);
-    // Elo white_advantage(white_stats.wins, white_stats.losses, stats.draws);
     std::stringstream ss;
 
     int64_t games = stats.sum();
 
     // clang-format off
     ss << "--------------------------------------------------------\n"
-       << "Score of " << first << " vs " <<second << " after " << games << " games: "
-       << stats.wins << " - " << stats.losses << " - " << stats.draws;
+       << "Score of " << first << " vs " <<second << " after ";
+
 
     if (game_config_.report_penta)
     {
+       stats.wins = stats.penta_WW * 2 + stats.penta_WD + stats.penta_WL;
+       stats.losses = stats.penta_LL * 2 + stats.penta_LD + stats.penta_WL;
+       stats.draws = stats.penta_WD + stats.penta_LD + stats.penta_DD * 2;
+
        ss
+       << games / 2 << " rounds: " << stats.wins << " - " << stats.losses << " - " << stats.draws
        << " (" << std::fixed << std::setprecision(2) << (float(stats.wins) + (float(stats.draws) * 0.5)) / games << ")\n"
        << "Ptnml:   "
        << std::right << std::setw(7) << "WW"
@@ -94,15 +96,18 @@ void Tournament::printElo(const std::string &first, const std::string &second) {
        << "Distr:   "
        << std::right << std::setw(7) << stats.penta_WW
        << std::right << std::setw(7) << stats.penta_WD
-       << std::right << std::setw(7) << stats.penta_WL
+       << std::right << std::setw(7) << stats.penta_WL + stats.penta_DD
        << std::right << std::setw(7) << stats.penta_LD
        << std::right << std::setw(7) << stats.penta_LL << "\n";
-    }
-    else
-    {
-        ss << "\n";
+    }  
+    else {
+        ss << games << " games: " << stats.wins << " - " << stats.losses << " - " << stats.draws
+           << "\n";
     }
     // clang-format on
+
+    Elo elo(stats.wins, stats.losses, stats.draws);
+    // Elo white_advantage(white_stats.wins, white_stats.losses, stats.draws);
 
     ss << std::fixed;
 
@@ -179,7 +184,7 @@ void Tournament::validateConfig(const std::vector<EngineConfiguration> &configs)
     if (game_config_.games > 2)
         throw std::runtime_error("Exceeded -game limit! Must be smaller than 2");
 
-    engine_count = configs.size();
+    engine_count_ = configs.size();
 }
 
 void Tournament::createRoundRobin(const std::vector<EngineConfiguration> &engine_configs,
@@ -334,18 +339,22 @@ bool Tournament::launchMatch(const std::pair<EngineConfiguration, EngineConfigur
         std::cout << ss.str();
     }
 
-    round_count_++;
-
-    if ((game_config_.games == 2 ? round_count_ : match_count_) % game_config_.ratinginterval == 0)
-        printElo(configs.first.name, configs.second.name);
-
     stats.penta_WW += stats.wins == 2;
     stats.penta_WD += stats.wins == 1 && stats.draws == 1;
-    stats.penta_WL += (stats.wins == 1 && stats.losses == 1) || stats.draws == 2;
+    stats.penta_WL += stats.wins == 1 && stats.losses == 1;
+    stats.penta_DD += stats.draws == 2;
     stats.penta_LD += stats.losses == 1 && stats.draws == 1;
     stats.penta_LL += stats.losses == 2;
 
     updateStats(configs.first.name, configs.second.name, stats);
+
+    round_count_++;
+
+    int64_t interval = game_config_.report_penta ? round_count_ : match_count_;
+
+    if (interval % game_config_.ratinginterval == 0) {
+        printElo(configs.first.name, configs.second.name);
+    }
 
     for (const auto &played_matches : matches) {
         PgnBuilder pgn(played_matches, game_config_, true);

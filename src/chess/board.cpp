@@ -590,7 +590,7 @@ Move convertUciToMove(const Board &board, const std::string &input) {
     Square target = extractSquare(input.substr(2, 2));
 
     if (!board.isChess960() && Board::typeOfPiece(board.pieceAt(source)) == KING &&
-        Board::squareDistance(target, source) == 2) {
+        Board::squareDistance(target, source) >= 2) {
         target =
             Board::fileRankSquare(target > source ? FILE_H : FILE_A, Board::squareRank(source));
     }

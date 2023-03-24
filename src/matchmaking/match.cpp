@@ -73,24 +73,18 @@ bool Match::playNextMove(Participant &player, Participant &enemy, std::string &p
     isResponsive(player);
 
     // inform the engine about the new position
-    player.writeProcess(position_input);
+    player.writeEngine(position_input);
 
     // Send go command
-    player.writeProcess(player.buildGoInput(board_.getSideToMove(), time_left_us, time_left_them));
+    player.writeEngine(player.buildGoInput(board_.getSideToMove(), time_left_us, time_left_them));
 
     // Start measuring time
     const auto t0 = std::chrono::high_resolution_clock::now();
 
-    output = player.readProcess("bestmove", timeout, timeout_threshold);
+    output = player.readEngine("bestmove", timeout, timeout_threshold);
 
     // End of search time
     const auto t1 = std::chrono::high_resolution_clock::now();
-
-    // An error has occured, thus abort match.
-    if (!player.getError().empty()) {
-        Logger::coutInfo("Warning: Engine", player.getConfig().name, "disconnects #");
-        throw std::runtime_error("Warning: Can't read engine.");
-    }
 
     // Subtract measured time from engine time
     const int64_t measured_time =

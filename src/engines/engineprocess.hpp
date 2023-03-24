@@ -14,29 +14,17 @@ namespace fast_chess {
 
 class Process {
    public:
-    // Read engine's stdout until the line matches last_word or timeout is reached
-    virtual std::vector<std::string> readProcess(std::string_view last_word, bool &timeout,
-                                                 int64_t timeoutThreshold = 1000) = 0;
-    // Write input to the engine's stdin
-    virtual void writeProcess(const std::string &input) = 0;
-
     // Returns true if the engine process is alive
     virtual bool isAlive() = 0;
 
     bool is_initalized_ = false;
 
-    int err_code_ = 0;
-    std::string err_str_;
-
-    std::string getError() {
-        if (err_code_ != 0) return err_str_ + ": " + std::to_string(err_code_) + "\n";
-        return "";
-    }
-
-    void resetError() {
-        err_code_ = 0;
-        err_str_ = "";
-    }
+   protected:
+    // Read engine's stdout until the line matches last_word or timeout is reached
+    virtual std::vector<std::string> readProcess(std::string_view last_word, bool &timeout,
+                                                 int64_t timeoutThreshold = 1000) = 0;
+    // Write input to the engine's stdin
+    virtual void writeProcess(const std::string &input) = 0;
 };
 
 #ifdef _WIN64
@@ -54,6 +42,7 @@ class EngineProcess : public Process {
 
     bool isAlive() override;
 
+   protected:
     std::vector<std::string> readProcess(std::string_view last_word, bool &timeout,
                                          int64_t timeoutThreshold = 1000) override;
     void writeProcess(const std::string &input) override;
@@ -77,6 +66,7 @@ class EngineProcess : public Process {
 
     bool isAlive() override;
 
+   protected:
     std::vector<std::string> readProcess(std::string_view last_word, bool &timeout,
                                          int64_t timeoutThreshold = 1000) override;
     void writeProcess(const std::string &input) override;

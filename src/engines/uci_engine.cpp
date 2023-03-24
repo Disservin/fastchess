@@ -4,44 +4,32 @@
 #include <stdexcept>
 
 #include "engines/engine_config.hpp"
+#include "logger.hpp"
+#include "uci_engine.hpp"
 
 namespace fast_chess {
 
 EngineConfiguration UciEngine::getConfig() const { return config_; }
 
-std::string UciEngine::checkErrors(int id) {
-    if (!getError().empty()) {
-        std::stringstream ss;
-        ss << getError() << "\nCant write to engine " << getConfig().name
-           << (id != -1 ? ("# " + std::to_string(id)) : "");
-
-        if (!getConfig().recover) {
-            throw std::runtime_error(ss.str());
-        }
-        return ss.str();
-    }
-    return "";
-}
-
 bool UciEngine::isResponsive(int64_t threshold) {
     if (!isAlive()) return false;
 
     bool timeout = false;
-    writeProcess("isready");
-    readProcess("readyok", timeout, threshold);
+    writeEngine("isready");
+    readEngine("readyok", timeout, threshold);
     return !timeout;
 }
 
 void UciEngine::sendUciNewGame() {
-    writeProcess("ucinewgame");
+    writeEngine("ucinewgame");
     isResponsive(60000);
 }
 
-void UciEngine::sendUci() { writeProcess("uci"); }
+void UciEngine::sendUci() { writeEngine("uci"); }
 
 std::vector<std::string> UciEngine::readUci() {
     bool timeout = false;
-    return readProcess("uciok", timeout);
+    return readEngine("uciok", timeout);
 }
 
 std::string UciEngine::buildGoInput(Color stm, const TimeControl &tc,
@@ -76,17 +64,13 @@ std::string UciEngine::buildGoInput(Color stm, const TimeControl &tc,
 
 void UciEngine::loadConfig(const EngineConfiguration &config) { this->config_ = config; }
 
-void UciEngine::sendQuit() {
-    writeProcess("quit");
-    checkErrors();
-}
+void UciEngine::sendQuit() { writeEngine("quit"); }
 
 void UciEngine::sendSetoption(const std::string &name, const std::string &value) {
-    writeProcess("setoption name " + name + " value " + value);
+    writeEngine("setoption name " + name + " value " + value);
 }
 
 void UciEngine::restartEngine() {
-    resetError();
     killProcess();
     initProcess(config_.cmd);
 }
@@ -103,6 +87,28 @@ void UciEngine::startEngine(const std::string &cmd) {
 
     for (const auto &option : config_.options) {
         sendSetoption(option.first, option.second);
+    }
+}
+
+std::vector<std::string> UciEngine::readEngine(std::string_view last_word, bool &timeout,
+                                               int64_t timeoutThreshold) {
+    try {
+        return readProcess(last_word, timeout, timeoutThreshold);
+    } catch (const std::exception &e) {
+        Logger::coutInfo("Raised Exception in readProcess\nWarning: Engine", config_.name,
+                         "disconnects #");
+        throw e;
+    }
+}
+
+void UciEngine::writeEngine(const std::string &input) {
+    try {
+        writeProcess(input);
+    } catch (const std::exception &e) {
+        Logger::coutInfo("Raised Exception in writeProcess\nWarning: Engine", config_.name,
+                         "disconnects #");
+
+        throw e;
     }
 }
 

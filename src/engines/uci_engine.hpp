@@ -12,42 +12,36 @@ constexpr Turn operator~(Turn t) {
     return Turn(static_cast<int>(t) ^ static_cast<int>(Turn::SECOND));
 }
 
-class UciEngine : public EngineProcess {
+class UciEngine : private EngineProcess {
    public:
     UciEngine() = default;
-
     ~UciEngine() { sendQuit(); }
-
-    EngineConfiguration getConfig() const;
-
-    /// @brief
-    /// @param id
-    /// @return empty string if there are no errors
-    std::string checkErrors(int id = -1);
-
-    bool isResponsive(int64_t threshold = ping_time_);
-
-    void sendUciNewGame();
-
-    void sendUci();
 
     std::vector<std::string> readUci();
 
-    void loadConfig(const EngineConfiguration &config);
-
+    void sendUciNewGame();
+    void sendUci();
     void sendQuit();
+
+    bool isResponsive(int64_t threshold = ping_time_);
+
+    void loadConfig(const EngineConfiguration &config);
+    EngineConfiguration getConfig() const;
 
     std::string buildGoInput(Color stm, const TimeControl &tc, const TimeControl &tc_2) const;
 
     void restartEngine();
-
     void startEngine(const std::string &cmd);
+
+    std::vector<std::string> readEngine(std::string_view last_word, bool &timeout,
+                                        int64_t timeoutThreshold = 1000);
+    void writeEngine(const std::string &input);
 
     static const int64_t ping_time_ = 60000;
 
    private:
-    EngineConfiguration config_;
-
     void sendSetoption(const std::string &name, const std::string &value);
+
+    EngineConfiguration config_;
 };
 }  // namespace fast_chess

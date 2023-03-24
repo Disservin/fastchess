@@ -23,9 +23,7 @@ class Participant : public UciEngine {
    public:
     explicit Participant(const EngineConfiguration &config) {
         loadConfig(config);
-        resetError();
         startEngine(config.cmd);
-        checkErrors();
 
         info_.config = config;
     }

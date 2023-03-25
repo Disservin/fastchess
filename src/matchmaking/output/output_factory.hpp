@@ -52,4 +52,5 @@ class Fastchess : public Output {
     void endMatch(Tournament& tournament, const MatchData& match_data, int game_id,
                   int round_id) override;
 };
+
 }  // namespace fast_chess

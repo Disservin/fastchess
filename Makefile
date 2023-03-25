@@ -22,9 +22,11 @@ else
 endif
 endif
 
+SRC_FILES := $(wildcard src/*.cpp) $(wildcard src/*/*.cpp) $(wildcard src/*/*/*.cpp)
+
 ifeq ($(MAKECMDGOALS),tests)
 	CXXFLAGS  := -O2 -std=c++17 $(INCLUDES) -g3 -fno-omit-frame-pointer -Wall -Wextra -DTESTS
-	TEST_SR   := $(wildcard *.cpp) $(wildcard */*.cpp) $(wildcard */*/*.cpp)
+	TEST_SR   := $(wildcard *.cpp) $(wildcard */*.cpp) $(wildcard */*/*.cpp) $(SRC_FILES)
 	SRC_FILES := $(filter-out src/main.cpp, $(TEST_SR))
 	OBJECTS   := $(patsubst %.cpp,$(TMPDIR)/%.o,$(SRC_FILES))
 	DEPENDS   := $(patsubst %.cpp,$(TMPDIR)/%.d,$(SRC_FILES))
@@ -32,7 +34,6 @@ ifeq ($(MAKECMDGOALS),tests)
 else
 	CXXFLAGS  += $(INCLUDES)
 	NATIVE 	  := -march=native
-	SRC_FILES := $(wildcard src/*.cpp) $(wildcard src/*/*.cpp)
 	OBJECTS   := $(patsubst %.cpp,$(TMPDIR)/%.o,$(SRC_FILES))
 	DEPENDS   := $(patsubst %.cpp,$(TMPDIR)/%.d,$(SRC_FILES))
 	TARGET    := fast-chess
@@ -92,7 +93,7 @@ $(TMPDIR)/%.o: %.cpp | $(TMPDIR)
 	$(CXX) $(CXXFLAGS) $(NATIVE) -MMD -MP -c $< -o $@ $(LDFLAGS)
 
 $(TMPDIR):
-	$(MKDIR) "$(TMPDIR)" "$(TMPDIR)/src" "$(TMPDIR)/src/engines" "$(TMPDIR)/src/chess" "$(TMPDIR)/tests" "$(TMPDIR)/src/matchmaking"
+	$(MKDIR) "$(TMPDIR)" "$(TMPDIR)/src" "$(TMPDIR)/src/engines" "$(TMPDIR)/src/chess" "$(TMPDIR)/src/matchmaking" "$(TMPDIR)/src/matchmaking/output" "$(TMPDIR)/tests"
 
 clean:
 	rm -rf $(TMPDIR)

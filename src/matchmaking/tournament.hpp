@@ -4,11 +4,12 @@
 #include <mutex>
 #include <string>
 
-#include "matchmaking/output.hpp"
+#include "matchmaking/output/output_factory.hpp"
 #include "matchmaking/threadpool.hpp"
 #include "matchmaking/tournament_data.hpp"
 #include "options.hpp"
 #include "sprt.hpp"
+
 namespace fast_chess {
 
 class Tournament {
@@ -56,8 +57,7 @@ class Tournament {
     void validateConfig(const std::vector<EngineConfiguration> &configs);
 
     void createGames(int sum, const EngineConfiguration &player1,
-                     const EngineConfiguration &player2,
-                     std::vector<std::future<bool>> &results);
+                     const EngineConfiguration &player2, std::vector<std::future<bool>> &results);
 
     void createRoundRobin(const std::vector<EngineConfiguration> &engine_configs,
                           std::vector<std::future<bool>> &results);

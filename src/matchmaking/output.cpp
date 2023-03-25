@@ -6,6 +6,7 @@
 #include "output.hpp"
 
 namespace fast_chess {
+
 void Cutechess::printElo(Tournament& tournament, std::string first, std::string second) {
     if (tournament.engineCount() != 2) return;
 

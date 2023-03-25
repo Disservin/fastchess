@@ -63,12 +63,17 @@ Options:
     FORMAT can be "epd" and order "sequential" or "random", start specifies the offset.
     If plies is set to zero, as it is by default, the entire opening line will be used.
   -option.OPTION=VALUE
-  -resign movecount=COUNT score=SCORE
-  -rounds N
-  -repeat
-    This has the same effect as -games 2 and is the default.
+  -output format=FORMAT
+    FORMAT can be "cutechess" or "fastchess" (default) change this if you have scripts
+    that only parse cutechess like output. This is experimental as of know.
   -ratinginterval N
     print the current elo estimation every N rounds.
+  -resign movecount=COUNT score=SCORE
+  -repeat
+    This has the same effect as -games 2 and is the default.
+  -report penta=PENTA
+    PENTA can be "true" or "false", and indicates if pentanomial stats should be reported.
+  -rounds N
   -sprt elo0=ELO0 elo1=ELO1 alpha=ALPHA beta=BETA
   -srand SEED
   -pgnout notation=NOTATION file=FILE tracknodes trackseldepth

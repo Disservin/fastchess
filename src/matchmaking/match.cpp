@@ -19,7 +19,7 @@ void Match::playMatch(const std::string &openingFen) {
     auto second_player_time = player_2_.getConfig().tc;
 
     std::string position_input =
-        board_.getFen() == startpos_ ? "position startpos" : "position fen " + board_.getFen();
+        board_.getFen() == STARTPOS ? "position startpos" : "position fen " + board_.getFen();
 
     player_1_.sendUciNewGame();
     player_2_.sendUciNewGame();

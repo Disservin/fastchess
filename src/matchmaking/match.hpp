@@ -68,7 +68,6 @@ class Match {
     MoveData parseEngineOutput(const std::vector<std::string> &output, const std::string &move,
                                int64_t measured_time);
 
-    const std::string startpos_ = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
     const Score mate_score_ = 100'000;
 
     Participant player_1_;

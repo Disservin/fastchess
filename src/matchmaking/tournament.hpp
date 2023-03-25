@@ -55,6 +55,10 @@ class Tournament {
 
     void validateConfig(const std::vector<EngineConfiguration> &configs);
 
+    void createGames(int sum, const EngineConfiguration &player1,
+                     const EngineConfiguration &player2,
+                     std::vector<std::future<bool>> &results);
+
     void createRoundRobin(const std::vector<EngineConfiguration> &engine_configs,
                           std::vector<std::future<bool>> &results);
 

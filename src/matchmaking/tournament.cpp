@@ -124,20 +124,40 @@ void Tournament::validateConfig(const std::vector<EngineConfiguration> &configs)
     engine_count_ = configs.size();
 }
 
-void Tournament::createRoundRobin(const std::vector<EngineConfiguration> &engine_configs,
-                                  std::vector<std::future<bool>> &results) {
-    // Round robin
-    total_count_ = (engine_configs.size() * (engine_configs.size() - 1) / 2) * game_config_.rounds *
-                   game_config_.games;
-
+void Tournament::createGames(int sum, const EngineConfiguration &player1,
+                             const EngineConfiguration &player2,
+                             std::vector<std::future<bool>> &results) {
     bool reverse = game_config_.games == 2;
     if (!game_config_.report_penta) {
         game_config_.games = 1;
     }
 
-    if (game_config_.output == "cutechess" && game_config_.games == 2) {
-        throw std::runtime_error("Cutechess output does not support penta games!");
+    int stepSize = 1 + reverse;
+    int endRound = game_config_.rounds;
+    bool shouldPlayReverseGames = reverse && !game_config_.report_penta;
+
+    if (shouldPlayReverseGames) {
+        endRound *= 2;
     }
+
+    // sum / game_config_.games is the number of games played so far, due to config loading
+    for (int n = 1 + sum / game_config_.games; n <= endRound; n += stepSize) {
+        auto fen = fetchNextFen();
+        results.emplace_back(pool_.enqueue(
+            std::bind(&Tournament::launchMatch, this, std::make_pair(player1, player2), fen, n)));
+
+        if (shouldPlayReverseGames) {
+            results.emplace_back(pool_.enqueue(std::bind(
+                &Tournament::launchMatch, this, std::make_pair(player2, player1), fen, n + 1)));
+        }
+    }
+}
+
+void Tournament::createRoundRobin(const std::vector<EngineConfiguration> &engine_configs,
+                                  std::vector<std::future<bool>> &results) {
+    // Round robin
+    total_count_ = (engine_configs.size() * (engine_configs.size() - 1) / 2) * game_config_.rounds *
+                   game_config_.games;
 
     // Round robin
     for (std::size_t i = 0; i < engine_configs.size(); i++) {
@@ -156,17 +176,7 @@ void Tournament::createRoundRobin(const std::vector<EngineConfiguration> &engine
             auto sum = results_[player1.name][player2.name].sum();
             match_count_ += sum;
 
-            for (int n = 1 + sum / game_config_.games; n <= game_config_.rounds; n++) {
-                auto fen = fetchNextFen();
-                results.emplace_back(pool_.enqueue(std::bind(
-                    &Tournament::launchMatch, this, std::make_pair(player1, player2), fen, n)));
-
-                // We need to play reverse games but shall not collect penta stats.
-                if (!game_config_.report_penta && reverse) {
-                    results.emplace_back(pool_.enqueue(std::bind(
-                        &Tournament::launchMatch, this, std::make_pair(player2, player1), fen, n)));
-                }
-            }
+            createGames(sum, player1, player2, results);
         }
     }
 }

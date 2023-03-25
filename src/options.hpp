@@ -71,6 +71,9 @@ struct GameManagerOptions {
     std::string event_name = "?";
     std::string site = "?";
 
+    /// @brief output format, fastchess or cutechess
+    std::string output = "fastchess";
+
     uint32_t seed = 951356066;
 
     int ratinginterval = 10;

@@ -176,4 +176,6 @@ static constexpr Bitboard MASK_RANK[8] = {
     0xff,         0xff00,         0xff0000,         0xff000000,
     0xff00000000, 0xff0000000000, 0xff000000000000, 0xff00000000000000};
 
+static const std::string STARTPOS = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+
 }  // namespace fast_chess

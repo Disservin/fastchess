@@ -62,4 +62,18 @@ std::string Elo::getElo() const {
     return ss.str();
 }
 
+std::string Elo::getLos(int wins, int losses) {
+    const double los = (0.5 + 0.5 * std::erf((wins - losses) / std::sqrt(2.0 * (wins + losses))));
+    std::stringstream ss;
+    ss << std::fixed << std::setprecision(2) << los * 100.0 << " %";
+    return ss.str();
+}
+
+std::string Elo::getDrawRatio(int wins, int losses, int draws) {
+    const double n = wins + losses + draws;
+    std::stringstream ss;
+    ss << std::fixed << std::setprecision(2) << (draws / n) * 100.0 << " %";
+    return ss.str();
+}
+
 }  // namespace fast_chess

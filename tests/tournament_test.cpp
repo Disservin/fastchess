@@ -47,7 +47,7 @@ TEST_SUITE("Tournament Tests") {
             "g4 {0.00/0 0.000s} Qh4# {0.00/0 0.000s} 0-1\n";
 
 #ifdef TESTS
-        CHECK(tour.getPgns()[0] == pgn);
+        CHECK(tour.pgns()[0] == pgn);
 #endif  // TESTS
     }
 }

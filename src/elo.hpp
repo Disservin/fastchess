@@ -17,6 +17,10 @@ class Elo {
 
     std::string getElo() const;
 
+    static std::string getLos(int wins, int losses);
+
+    static std::string getDrawRatio(int wins, int losses, int draws);
+
    private:
     double diff_;
     double error_;

@@ -118,6 +118,14 @@ Options::Options(int argc, char const *argv[]) {
                 } else
                     coutMissingCommand("report", key, value);
             });
+        else if (arg == "-output")
+            parseDashOptions(i, argc, argv, [&](std::string key, std::string value) {
+                if (key == "format") {
+                    game_options_.output = value;
+                    if (value == "cutechess") game_options_.report_penta = false;
+                } else
+                    coutMissingCommand("output", key, value);
+            });
         else if (arg == "-concurrency")
             parseValue(i, argc, argv, game_options_.concurrency);
         else if (arg == "-event")

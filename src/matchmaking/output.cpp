@@ -189,6 +189,7 @@ void Fastchess::printElo(Tournament& tournament, std::string first, std::string 
        << "\n--------------------------------------------------------\n";
     std::cout << ss.str();
 }
+
 void Fastchess::startMatch(const EngineConfiguration&, const EngineConfiguration&, int, int) {
     return;
 }

@@ -154,8 +154,8 @@ bool Match::playNextMove(Participant &player, Participant &enemy, std::string &p
 
         return false;
     } else if (resAdj != GameResult::NONE) {
-        player.info_.score = res;
-        enemy.info_.score = ~res;
+        player.info_.score = resAdj;
+        enemy.info_.score = ~resAdj;
 
         return false;
     }

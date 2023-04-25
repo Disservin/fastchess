@@ -4,6 +4,7 @@
 #include <stdexcept>
 
 #include "engines/engine_config.hpp"
+#include "helper.hpp"
 #include "logger.hpp"
 #include "uci_engine.hpp"
 
@@ -25,7 +26,6 @@ void UciEngine::sendUciNewGame() {
 }
 
 void UciEngine::sendUci() { writeEngine("uci"); }
-
 std::vector<std::string> UciEngine::readUci() { return readEngine("uciok"); }
 
 std::string UciEngine::buildGoInput(Chess::Color stm, const TimeControl &tc,
@@ -89,7 +89,10 @@ void UciEngine::startEngine(const std::string &cmd) {
 std::vector<std::string> UciEngine::readEngine(std::string_view last_word,
                                                int64_t timeoutThreshold) {
     try {
-        return readProcess(last_word, timeoutThreshold);
+        output_.clear();
+        output_ = readProcess(last_word, timeoutThreshold);
+        return output_;
+
     } catch (const std::exception &e) {
         Logger::coutInfo("Raised Exception in readProcess\nWarning: Engine", config_.name,
                          "disconnects #");
@@ -106,6 +109,22 @@ void UciEngine::writeEngine(const std::string &input) {
 
         throw e;
     }
+}
+
+std::string UciEngine::bestmove() const {
+    return findElement<std::string>(splitString(output_.back(), ' '), "bestmove").value();
+}
+
+std::vector<std::string> UciEngine::lastInfo() const {
+    return splitString(output_[output_.size() - 2], ' ');
+}
+
+std::string UciEngine::lastScoreType() const {
+    return findElement<std::string>(lastInfo(), "score").value_or("cp");
+}
+
+int UciEngine::lastScore() const {
+    return findElement<int>(lastInfo(), lastScoreType()).value_or(0);
 }
 
 }  // namespace fast_chess

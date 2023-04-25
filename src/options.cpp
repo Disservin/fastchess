@@ -7,6 +7,7 @@
 #include <type_traits>
 #include <unordered_map>
 
+#include "helper.hpp"
 #include "third_party/json.hpp"
 
 namespace fast_chess {
@@ -262,29 +263,6 @@ void Options::coutMissingCommand(std::string_view name, std::string_view key,
                                  std::string_view value) const {
     std::cout << "\nUnrecognized " << name << " option: " << key << " with value " << value
               << " parsing failed." << std::endl;
-}
-
-bool startsWith(std::string_view haystack, std::string_view needle) {
-    if (needle.empty()) return false;
-    return (haystack.rfind(needle, 0) != std::string::npos);
-}
-
-bool contains(std::string_view haystack, std::string_view needle) {
-    return haystack.find(needle) != std::string::npos;
-}
-
-bool contains(const std::vector<std::string> &haystack, std::string_view needle) {
-    return std::find(haystack.begin(), haystack.end(), needle) != haystack.end();
-}
-
-std::vector<std::string> splitString(const std::string &string, const char &delimiter) {
-    std::stringstream string_stream(string);
-    std::string segment;
-    std::vector<std::string> seglist;
-
-    while (std::getline(string_stream, segment, delimiter)) seglist.emplace_back(segment);
-
-    return seglist;
 }
 
 }  // namespace CMD

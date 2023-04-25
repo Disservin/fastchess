@@ -17,10 +17,10 @@ class UciEngine : public Communication::Process {
     UciEngine() = default;
     ~UciEngine() { sendQuit(); }
 
+    void sendUci();
     std::vector<std::string> readUci();
 
     void sendUciNewGame();
-    void sendUci();
     void sendQuit();
 
     bool isResponsive(int64_t threshold = ping_time_);
@@ -38,10 +38,17 @@ class UciEngine : public Communication::Process {
                                         int64_t timeoutThreshold = 1000);
     void writeEngine(const std::string &input);
 
+    std::string bestmove() const;
+    std::vector<std::string> lastInfo() const;
+    std::string lastScoreType() const;
+    int lastScore() const;
+
     static const int64_t ping_time_ = 60000;
 
    private:
     void sendSetoption(const std::string &name, const std::string &value);
+
+    std::vector<std::string> output_;
 
     EngineConfiguration config_;
 };

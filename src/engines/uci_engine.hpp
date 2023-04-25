@@ -28,8 +28,10 @@ class UciEngine : public Communication::Process {
     void loadConfig(const EngineConfiguration &config);
     [[nodiscard]] EngineConfiguration getConfig() const;
 
-    [[nodiscard]] std::string buildGoInput(const std::vector<std::string> &moves, Chess::Color stm,
-                                           const TimeControl &tc, const TimeControl &tc_2) const;
+    [[nodiscard]] std::string buildPositionInput(const std::vector<std::string> &moves,
+                                                 const std::string &fen) const;
+    [[nodiscard]] std::string buildGoInput(Chess::Color stm, const TimeControl &tc,
+                                           const TimeControl &tc_2) const;
 
     void restartEngine();
     void startEngine(const std::string &cmd);
@@ -46,9 +48,6 @@ class UciEngine : public Communication::Process {
     static const int64_t ping_time_ = 60000;
 
    private:
-    std::string buildPositionInput(const std::vector<std::string> &moves,
-                                   const std::string &fen) const;
-
     void sendSetoption(const std::string &name, const std::string &value);
 
     std::vector<std::string> output_;

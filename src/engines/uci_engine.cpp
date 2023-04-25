@@ -45,8 +45,8 @@ std::string UciEngine::buildPositionInput(const std::vector<std::string> &moves,
     return position;
 }
 
-std::string UciEngine::buildGoInput(const std::vector<std::string> &moves, Chess::Color stm,
-                                    const TimeControl &tc, const TimeControl &tc_2) const {
+std::string UciEngine::buildGoInput(Chess::Color stm, const TimeControl &tc,
+                                    const TimeControl &tc_2) const {
     std::stringstream input;
     input << "go";
 

@@ -14,14 +14,14 @@ class Match {
     MatchData get() const;
 
    private:
-    void start(const std::string& fen);
-    bool playMove();
+    void start(Participant& engine1, Participant& engine2, const std::string& fen);
+    bool playMove(Participant& us, Participant& opponent);
 
+    CMD::GameManagerOptions game_config_;
     std::vector<std::string> played_moves_;
-
-    UciEngine engine1_;
-    UciEngine engine2_;
-
     MatchData data_;
+    Chess::Board board_;
+
+    std::string start_fen_;
 };
 }  // namespace fast_chess

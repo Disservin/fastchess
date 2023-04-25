@@ -32,7 +32,7 @@ std::vector<std::string> UciEngine::readUci() {
     return readEngine("uciok", timeout);
 }
 
-std::string UciEngine::buildGoInput(Color stm, const TimeControl &tc,
+std::string UciEngine::buildGoInput(Chess::Color stm, const TimeControl &tc,
                                     const TimeControl &tc_2) const {
     std::stringstream input;
     input << "go";
@@ -46,8 +46,8 @@ std::string UciEngine::buildGoInput(Color stm, const TimeControl &tc,
     }
     // We cannot use st and tc together
     else {
-        auto white = stm == WHITE ? tc : tc_2;
-        auto black = stm == WHITE ? tc_2 : tc;
+        auto white = stm == Chess::Color::WHITE ? tc : tc_2;
+        auto black = stm == Chess::Color::WHITE ? tc_2 : tc;
 
         if (tc.time != 0) {
             input << " wtime " << white.time << " btime " << black.time;

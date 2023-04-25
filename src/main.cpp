@@ -4,13 +4,11 @@
 #include <thread>
 
 #include "engines/uci_engine.hpp"
-#include "matchmaking/tournament.hpp"
 #include "options.hpp"
 
 using namespace fast_chess;
 
 namespace {
-std::unique_ptr<Tournament> Tour;
 std::unique_ptr<CMD::Options> Options;
 }  // namespace
 
@@ -24,9 +22,6 @@ BOOL WINAPI consoleHandler(DWORD signal) {
         case CTRL_C_EVENT:
 
             std::cout << "Saved results" << std::endl;
-            Options->saveJson(Tour->results());
-
-            Tour->stop();
 
             return TRUE;
         default:
@@ -39,7 +34,6 @@ BOOL WINAPI consoleHandler(DWORD signal) {
 #else
 void sigintHandler(int param) {
     Options->saveJson(Tour->results());
-    Tour->stop();
 
     exit(param);
 }
@@ -58,14 +52,8 @@ int main(int argc, char const *argv[]) {
 #endif
     try {
         Options = std::make_unique<CMD::Options>(argc, argv);
-        Tour = std::make_unique<Tournament>(Options->getGameOptions());
-
-        Tour->setResults(Options->getStats());
-
-        Tour->startTournament(Options->getEngineConfigs());
 
         std::cout << "Saved results" << std::endl;
-        Options->saveJson(Tour->results());
     } catch (const std::exception &e) {
         throw e;
     }

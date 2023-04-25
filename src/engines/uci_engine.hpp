@@ -1,8 +1,8 @@
 #pragma once
 
-#include "chess/types.hpp"
 #include "engine_config.hpp"
-#include "engineprocess.hpp"
+#include "engines/engineprocess.hpp"
+#include "third_party/chess.hpp"
 
 namespace fast_chess {
 
@@ -28,7 +28,8 @@ class UciEngine : private EngineProcess {
     void loadConfig(const EngineConfiguration &config);
     EngineConfiguration getConfig() const;
 
-    std::string buildGoInput(Color stm, const TimeControl &tc, const TimeControl &tc_2) const;
+    std::string buildGoInput(Chess::Color stm, const TimeControl &tc,
+                             const TimeControl &tc_2) const;
 
     void restartEngine();
     void startEngine(const std::string &cmd);

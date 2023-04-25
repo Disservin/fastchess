@@ -103,13 +103,7 @@ Options::Options(int argc, char const *argv[]) {
             });
         else if (arg == "-config")
             parseDashOptions(i, argc, argv, [&](std::string key, std::string value) {
-                if (key == "file")
-                    loadJson(value);
-                else if (key == "discard" && value == "true") {
-                    std::cout << "Discarded previous results.\n";
-                    stats_.clear();
-                } else
-                    coutMissingCommand("config", key, value);
+
             });
         else if (arg == "-report")
             parseDashOptions(i, argc, argv, [&](std::string key, std::string value) {
@@ -218,35 +212,9 @@ void Options::parseDashOptions(int &i, int argc, char const *argv[],
     }
 }
 
-void Options::saveJson(const std::map<std::string, std::map<std::string, Stats>> &stats) const {
-    nlohmann::ordered_json jsonfile = game_options_;
-    jsonfile["engines"] = configs_;
-    jsonfile["stats"] = stats;
-
-    std::ofstream file("config.json");
-    file << std::setw(4) << jsonfile << std::endl;
-}
-
-void Options::loadJson(const std::string &filename) {
-    std::cout << "Loading config file: " << filename << std::endl;
-    std::ifstream f(filename);
-    json jsonfile = json::parse(f);
-
-    game_options_ = jsonfile.get<GameManagerOptions>();
-    stats_ = jsonfile["stats"].get<std::map<std::string, std::map<std::string, Stats>>>();
-
-    for (auto engine : jsonfile["engines"]) {
-        EngineConfiguration ec = engine.get<EngineConfiguration>();
-
-        configs_.push_back(ec);
-    }
-}
-
 std::vector<EngineConfiguration> Options::getEngineConfigs() const { return configs_; }
 
 GameManagerOptions Options::getGameOptions() const { return game_options_; }
-
-std::map<std::string, std::map<std::string, Stats>> Options::getStats() const { return stats_; }
 
 bool Options::isEngineSettableOption(const std::string &stringFormat) const {
     return startsWith(stringFormat, "option.");

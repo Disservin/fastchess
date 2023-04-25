@@ -8,7 +8,6 @@
 
 #include "engines/engine_config.hpp"
 #include "logger.hpp"
-#include "matchmaking/tournament_data.hpp"
 
 namespace fast_chess {
 
@@ -100,12 +99,8 @@ class Options {
 
     Options(int argc, char const *argv[]);
 
-    void saveJson(const std::map<std::string, std::map<std::string, Stats>> &stats) const;
-    void loadJson(const std::string &filename);
-
     std::vector<EngineConfiguration> getEngineConfigs() const;
     GameManagerOptions getGameOptions() const;
-    std::map<std::string, std::map<std::string, Stats>> getStats() const;
 
    private:
     bool isEngineSettableOption(const std::string &stringFormat) const;
@@ -143,8 +138,6 @@ class Options {
 
     void coutMissingCommand(std::string_view name, std::string_view key,
                             std::string_view value) const;
-
-    std::map<std::string, std::map<std::string, Stats>> stats_;
 
     // Holds all the relevant settings for the handling of the games
     GameManagerOptions game_options_;

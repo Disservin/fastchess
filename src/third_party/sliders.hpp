@@ -865,17 +865,17 @@ namespace Chess_Lookup::Fancy {
 
     constexpr auto Size = sizeof(lookup_table) + sizeof(b_magics) + sizeof(r_magics);
 
-    static constexpr uint64_t GetRookAttacks(int s, uint64_t occ) {
+    static constexpr uint64_t RookAttacks(int s, uint64_t occ) {
         FancyHash m = r_magics[s];
         return m.attacks[((occ | m.mask) * m.hash) >> (64 - 12)];
     }
 
-    static constexpr uint64_t GetBishopAttacks(int s, uint64_t occ) {
+    static constexpr uint64_t BishopAttacks(int s, uint64_t occ) {
         FancyHash m = b_magics[s];
         return m.attacks[((occ | m.mask) * m.hash) >> (64 - 9)];
     }
 
-    static constexpr uint64_t GetQueenAttacks(int s, uint64_t occ) {
-        return GetRookAttacks(s, occ) | GetBishopAttacks(s, occ);
+    static constexpr uint64_t QueenAttacks(int s, uint64_t occ) {
+        return RookAttacks(s, occ) | BishopAttacks(s, occ);
     }
 }

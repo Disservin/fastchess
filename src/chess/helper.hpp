@@ -1,18 +1,7 @@
 #pragma once
 
 #include <array>
-
-#include "types.hpp"
-
 namespace fast_chess {
-
-Square lsb(Bitboard mask);
-
-Square msb(Bitboard mask);
-
-int popcount(Bitboard mask);
-
-Square poplsb(Bitboard &mask);
 
 /// @brief Table template class for creating N-dimensional arrays.
 /// @tparam T

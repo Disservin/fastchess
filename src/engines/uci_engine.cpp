@@ -20,22 +20,25 @@ bool UciEngine::isResponsive(int64_t threshold) {
     return !timeout();
 }
 
-void UciEngine::sendUciNewGame() {
+bool UciEngine::sendUciNewGame() {
     writeEngine("ucinewgame");
-    isResponsive(60000);
+    return isResponsive(60000);
 }
 
 void UciEngine::sendUci() { writeEngine("uci"); }
-std::vector<std::string> UciEngine::readUci() { return readEngine("uciok"); }
+bool UciEngine::readUci() {
+    readEngine("uciok");
+    return timeout();
+}
 
 std::string UciEngine::buildGoInput(Chess::Color stm, const TimeControl &tc,
                                     const TimeControl &tc_2) const {
     std::stringstream input;
     input << "go";
 
-    if (config_.nodes != 0) input << " nodes " << config_.nodes;
+    if (config_.limit.nodes != 0) input << " nodes " << config_.limit.nodes;
 
-    if (config_.plies != 0) input << " depth " << config_.plies;
+    if (config_.limit.plies != 0) input << " depth " << config_.limit.plies;
 
     if (tc.fixed_time != 0) {
         input << " movetime " << tc.fixed_time;
@@ -55,6 +58,7 @@ std::string UciEngine::buildGoInput(Chess::Color stm, const TimeControl &tc,
 
         if (tc.moves != 0) input << " movestogo " << tc.moves;
     }
+
     return input.str();
 }
 
@@ -75,9 +79,8 @@ void UciEngine::startEngine(const std::string &cmd) {
     initProcess(cmd);
 
     sendUci();
-    readUci();
 
-    if (!isResponsive(60000)) {
+    if (!readUci() || !isResponsive(60000)) {
         throw std::runtime_error("Warning: Something went wrong when pinging the engine.");
     }
 

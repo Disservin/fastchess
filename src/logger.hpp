@@ -44,9 +44,9 @@ class Logger {
     /// @param thread
     static void readLog(const std::string &msg, std::thread::id thread);
 
-    static std::string getDateTime(std::string format = "%Y-%m-%dT%H:%M:%S %z");
+    [[nodiscard]] static std::string getDateTime(std::string format = "%Y-%m-%dT%H:%M:%S %z");
 
-    static std::string formatDuration(std::chrono::seconds duration);
+    [[nodiscard]] static std::string formatDuration(std::chrono::seconds duration);
 
     static std::atomic_bool should_log_;
 

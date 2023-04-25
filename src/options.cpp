@@ -183,13 +183,13 @@ void Options::parseEngineKeyValues(EngineConfiguration &engineConfig, const std:
     else if (key == "name")
         engineConfig.name = value;
     else if (key == "tc")
-        engineConfig.tc = parseTc(value);
+        engineConfig.limit.tc = parseTc(value);
     else if (key == "st")
-        engineConfig.tc.fixed_time = std::stod(value) * 1000;
+        engineConfig.limit.tc.fixed_time = std::stod(value) * 1000;
     else if (key == "nodes")
-        engineConfig.nodes = std::stoll(value);
+        engineConfig.limit.nodes = std::stoll(value);
     else if (key == "plies")
-        engineConfig.plies = std::stoll(value);
+        engineConfig.limit.plies = std::stoll(value);
     else if (key == "dir")
         engineConfig.dir = value;
     else if (isEngineSettableOption(key)) {

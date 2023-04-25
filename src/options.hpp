@@ -103,9 +103,9 @@ class Options {
     GameManagerOptions getGameOptions() const;
 
    private:
-    bool isEngineSettableOption(const std::string &stringFormat) const;
+    [[nodiscard]] bool isEngineSettableOption(const std::string &stringFormat) const;
 
-    TimeControl parseTc(const std::string &tcString) const;
+    [[nodiscard]] TimeControl parseTc(const std::string &tcString) const;
 
     void parseEngineKeyValues(EngineConfiguration &engineConfig, const std::string &key,
                               const std::string &value) const;

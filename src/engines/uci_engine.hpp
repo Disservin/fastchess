@@ -1,8 +1,8 @@
 #pragma once
 
 #include "engine_config.hpp"
-#include "engines/engineprocess.hpp"
 #include "third_party/chess.hpp"
+#include "third_party/communication.hpp"
 
 namespace fast_chess {
 
@@ -12,7 +12,7 @@ constexpr Turn operator~(Turn t) {
     return Turn(static_cast<int>(t) ^ static_cast<int>(Turn::SECOND));
 }
 
-class UciEngine : private EngineProcess {
+class UciEngine : public Communication::Process {
    public:
     UciEngine() = default;
     ~UciEngine() { sendQuit(); }
@@ -34,7 +34,7 @@ class UciEngine : private EngineProcess {
     void restartEngine();
     void startEngine(const std::string &cmd);
 
-    std::vector<std::string> readEngine(std::string_view last_word, bool &timeout,
+    std::vector<std::string> readEngine(std::string_view last_word,
                                         int64_t timeoutThreshold = 1000);
     void writeEngine(const std::string &input);
 

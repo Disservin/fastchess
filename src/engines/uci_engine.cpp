@@ -14,10 +14,9 @@ EngineConfiguration UciEngine::getConfig() const { return config_; }
 bool UciEngine::isResponsive(int64_t threshold) {
     if (!isAlive()) return false;
 
-    bool timeout = false;
     writeEngine("isready");
-    readEngine("readyok", timeout, threshold);
-    return !timeout;
+    readEngine("readyok", threshold);
+    return !timeout();
 }
 
 void UciEngine::sendUciNewGame() {
@@ -27,10 +26,7 @@ void UciEngine::sendUciNewGame() {
 
 void UciEngine::sendUci() { writeEngine("uci"); }
 
-std::vector<std::string> UciEngine::readUci() {
-    bool timeout = false;
-    return readEngine("uciok", timeout);
-}
+std::vector<std::string> UciEngine::readUci() { return readEngine("uciok"); }
 
 std::string UciEngine::buildGoInput(Chess::Color stm, const TimeControl &tc,
                                     const TimeControl &tc_2) const {
@@ -90,10 +86,10 @@ void UciEngine::startEngine(const std::string &cmd) {
     }
 }
 
-std::vector<std::string> UciEngine::readEngine(std::string_view last_word, bool &timeout,
+std::vector<std::string> UciEngine::readEngine(std::string_view last_word,
                                                int64_t timeoutThreshold) {
     try {
-        return readProcess(last_word, timeout, timeoutThreshold);
+        return readProcess(last_word, timeoutThreshold);
     } catch (const std::exception &e) {
         Logger::coutInfo("Raised Exception in readProcess\nWarning: Engine", config_.name,
                          "disconnects #");
@@ -103,7 +99,7 @@ std::vector<std::string> UciEngine::readEngine(std::string_view last_word, bool 
 
 void UciEngine::writeEngine(const std::string &input) {
     try {
-        writeProcess(input);
+        writeProcess(input + "\n");
     } catch (const std::exception &e) {
         Logger::coutInfo("Raised Exception in writeProcess\nWarning: Engine", config_.name,
                          "disconnects #");

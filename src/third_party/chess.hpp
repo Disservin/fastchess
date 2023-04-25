@@ -941,6 +941,9 @@ class Board {
     [[nodiscard]] std::string uci(const Move &move) const;
     [[nodiscard]] Move uciToMove(const std::string &uci) const;
 
+    [[nodiscard]] std::string san(const Move &move);
+    [[nodiscard]] std::string lan(const Move &move);
+
    protected:
    private:
     void updateKeyPiece(Piece piece, Square sq);
@@ -2039,7 +2042,7 @@ void genLegalmoves(Movelist<T> &movelist, const Board &board) {
     }
 }
 
-template <typename T, MoveGenType mt>
+template <typename T, MoveGenType mt = MoveGenType::ALL>
 inline void legalmoves(Movelist<T> &movelist, const Board &board) {
     movelist.clear();
 
@@ -2101,6 +2104,123 @@ inline GameResult Board::isGameOver() {
     }
 
     return GameResult::NONE;
+}
+
+inline std::string Board::san(const Move &move) {
+    static const std::string repPieceType[] = {"", "N", "B", "R", "Q", "K"};
+    static const std::string repFile[] = {"a", "b", "c", "d", "e", "f", "g", "h"};
+
+    if (move.typeOf() == Move::CASTLING) {
+        return move.to() > move.from() ? "O-O" : "O-O-O";
+    }
+
+    const PieceType pt = typeOfPiece(pieceAt(move.from()));
+
+    assert(pt != PieceType::NONE);
+
+    std::string san;
+
+    if (pt != PieceType::PAWN) {
+        san += repPieceType[int(pt)];
+    }
+
+    Movelist<Move> moves;
+    Movegen::legalmoves<Move>(moves, *this);
+
+    for (const auto &m : moves) {
+        if (pt != PieceType::PAWN && m != move && pieceAt(m.from()) == pieceAt(move.from()) &&
+            m.to() == move.to()) {
+            if (squareFile(m.from()) == squareFile(move.from())) {
+                san += std::to_string(int(squareRank(move.from())) + 1);
+                break;
+            } else {
+                san += repFile[int(squareFile(move.from()))];
+                break;
+            }
+        }
+    }
+
+    if (pieceAt(move.to()) != Piece::NONE || move.typeOf() == Move::EN_PASSANT) {
+        if (pt == PieceType::PAWN) {
+            san += repFile[int(squareFile(move.from()))];
+        }
+
+        san += "x";
+    }
+
+    san += repFile[int(squareFile(move.to()))];
+    san += std::to_string(int(squareRank(move.to())) + 1);
+
+    if (move.typeOf() == Move::PROMOTION) {
+        san += "=";
+        san += PieceTypeToPromPiece[move.promotionType()];
+    }
+
+    makeMove(move);
+
+    if (isKingAttacked()) {
+        if (isGameOver() == GameResult::LOSE) {
+            san += "#";
+        } else {
+            san += "+";
+        }
+    }
+
+    unmakeMove(move);
+
+    return san;
+}
+
+inline std::string Board::lan(const Move &move) {
+    static const std::string repPieceType[] = {"", "N", "B", "R", "Q", "K"};
+    static const std::string repFile[] = {"a", "b", "c", "d", "e", "f", "g", "h"};
+
+    if (move.typeOf() == Move::CASTLING) {
+        return move.to() > move.from() ? "O-O" : "O-O-O";
+    }
+
+    const PieceType pt = typeOfPiece(pieceAt(move.from()));
+
+    assert(pt != PieceType::NONE);
+
+    std::string san;
+
+    if (pt != PieceType::PAWN) {
+        san += repPieceType[int(pt)];
+    }
+
+    san += repFile[int(squareFile(move.from()))];
+    san += std::to_string(int(squareRank(move.from())) + 1);
+
+    if (pieceAt(move.to()) != Piece::NONE || move.typeOf() == Move::EN_PASSANT) {
+        if (pt == PieceType::PAWN) {
+            san += repFile[int(squareFile(move.from()))];
+        }
+
+        san += "x";
+    }
+
+    san += repFile[int(squareFile(move.to()))];
+    san += std::to_string(int(squareRank(move.to())) + 1);
+
+    if (move.typeOf() == Move::PROMOTION) {
+        san += "=";
+        san += PieceTypeToPromPiece[move.promotionType()];
+    }
+
+    makeMove(move);
+
+    if (isKingAttacked()) {
+        if (isGameOver() == GameResult::LOSE) {
+            san += "#";
+        } else {
+            san += "+";
+        }
+    }
+
+    unmakeMove(move);
+
+    return san;
 }
 
 }  // namespace Chess

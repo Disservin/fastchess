@@ -5,7 +5,7 @@
 #include <tuple>
 #include <vector>
 
-#include "third_party/json.hpp"
+#include "../third_party/json.hpp"
 
 namespace fast_chess {
 

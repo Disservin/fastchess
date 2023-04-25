@@ -31,8 +31,22 @@ bool UciEngine::readUci() {
     return timeout();
 }
 
-std::string UciEngine::buildGoInput(Chess::Color stm, const TimeControl &tc,
-                                    const TimeControl &tc_2) const {
+std::string UciEngine::buildPositionInput(const std::vector<std::string> &moves,
+                                          const std::string &fen) const {
+    std::string position = fen == "startpos" ? "position startpos" : ("position fen " + fen);
+
+    if (!moves.empty()) {
+        position += " moves";
+        for (const auto &move : moves) {
+            position += " " + move;
+        }
+    }
+
+    return position;
+}
+
+std::string UciEngine::buildGoInput(const std::vector<std::string> &moves, Chess::Color stm,
+                                    const TimeControl &tc, const TimeControl &tc_2) const {
     std::stringstream input;
     input << "go";
 

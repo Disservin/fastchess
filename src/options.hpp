@@ -7,7 +7,6 @@
 #include <vector>
 
 #include "engines/engine_config.hpp"
-#include "logger.hpp"
 
 namespace fast_chess {
 

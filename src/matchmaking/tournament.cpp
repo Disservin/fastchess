@@ -1,5 +1,6 @@
 #include "tournament.hpp"
 
+#include "../logger.hpp"
 #include "../rand.hpp"
 #include "../third_party/chess.hpp"
 

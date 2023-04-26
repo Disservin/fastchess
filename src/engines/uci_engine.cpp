@@ -3,7 +3,6 @@
 #include <sstream>
 #include <stdexcept>
 
-#include "engines/engine_config.hpp"
 #include "helper.hpp"
 #include "logger.hpp"
 #include "uci_engine.hpp"

@@ -1,6 +1,6 @@
 #pragma once
-#include "../engines/engine_config.hpp"
 
+#include "../../helper.hpp"
 namespace fast_chess {
 
 struct Stats {

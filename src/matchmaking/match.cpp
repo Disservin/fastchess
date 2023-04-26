@@ -1,6 +1,7 @@
 #include "match.hpp"
 
 #include "../helper.hpp"
+#include "../logger.hpp"
 
 namespace fast_chess {
 
@@ -187,11 +188,13 @@ bool Match::playMove(Participant& us, Participant& opponent) {
         return false;
     }
 
+    updateDrawTracker(us);
+    updateResignTracker(us);
+
     addMoveData(us, elapsed_millis);
     played_moves_.push_back(best_move);
 
-    updateDrawTracker(us);
-    updateResignTracker(us);
+    board_.makeMove(move);
 
     return !adjudicate(us, opponent);
 }

@@ -2,7 +2,7 @@
 #include <mutex>
 #include <string>
 
-#include "stats.hpp"
+#include "./types/stats.hpp"
 
 namespace fast_chess {
 class Result {
@@ -19,12 +19,11 @@ class Result {
     Stats getStats(std::string_view engine1, std::string_view engine2) {
         std::lock_guard<std::mutex> lock(results_mutex_);
 
-        // we need to collect the results of engine1 vs engine2 and engine2 vs engine1
-        // and combine them so that engine2's wins are engine1's losses and vice versa
-
         auto stats1 = results_[std::string(engine1)][std::string(engine2)];
         auto stats2 = results_[std::string(engine2)][std::string(engine1)];
 
+        // we need to collect the results of engine1 vs engine2 and engine2 vs engine1
+        // and combine them so that engine2's wins are engine1's losses and vice versa
         return stats1 + ~stats2;
     }
 

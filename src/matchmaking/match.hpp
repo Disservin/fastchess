@@ -2,8 +2,9 @@
 
 #include "../options.hpp"
 #include "../third_party/chess.hpp"
-#include "match_data.hpp"
+#include "./types/match_data.hpp"
 #include "participant.hpp"
+
 namespace fast_chess {
 
 struct DrawTacker {

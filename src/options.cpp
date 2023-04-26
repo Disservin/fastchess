@@ -25,104 +25,116 @@ Options::Options(int argc, char const *argv[]) {
             parseDashOptions(i, argc, argv, [&](std::string key, std::string value) {
                 parseEngineKeyValues(configs_.back(), key, value);
             });
-        } else if (arg == "-each")
+        } else if (arg == "-each") {
             parseDashOptions(i, argc, argv, [&](std::string key, std::string value) {
-                for (auto &config : configs_) parseEngineKeyValues(config, key, value);
+                for (auto &config : configs_) {
+                    parseEngineKeyValues(config, key, value);
+                }
             });
-        else if (arg == "-pgnout")
+        } else if (arg == "-pgnout") {
             parseDashOptions(i, argc, argv, [&](std::string key, std::string value) {
-                if (key == "file")
+                if (key == "file") {
                     game_options_.pgn.file = value;
-                else if (key == "tracknodes")
+                } else if (key == "tracknodes") {
                     game_options_.pgn.track_nodes = true;
-                else if (key == "trackseldepth")
+                } else if (key == "trackseldepth") {
                     game_options_.pgn.track_seldepth = true;
-                else if (key == "notation")
+                } else if (key == "notation") {
                     game_options_.pgn.notation = value;
-                else
+                } else {
                     coutMissingCommand("pgnout", key, value);
+                }
             });
-        else if (arg == "-openings")
+        } else if (arg == "-openings") {
             parseDashOptions(i, argc, argv, [&](std::string key, std::string value) {
-                if (key == "file")
+                if (key == "file") {
                     game_options_.opening.file = value;
-                else if (key == "format")
+                } else if (key == "format") {
                     game_options_.opening.format = value;
-                else if (key == "order")
+                } else if (key == "order") {
                     game_options_.opening.order = value;
-                else if (key == "plies")
+                } else if (key == "plies") {
                     game_options_.opening.plies = std::stoi(value);
-                else if (key == "start")
+                } else if (key == "start") {
                     game_options_.opening.start = std::stoi(value);
-                else
+                } else {
                     coutMissingCommand("openings", key, value);
+                }
             });
-        else if (arg == "-sprt")
+        } else if (arg == "-sprt") {
             parseDashOptions(i, argc, argv, [&](std::string key, std::string value) {
-                if (game_options_.rounds == 0) game_options_.rounds = 500000;
+                if (game_options_.rounds == 0) {
+                    game_options_.rounds = 500000;
+                }
 
-                if (key == "elo0")
+                if (key == "elo0") {
                     game_options_.sprt.elo0 = std::stod(value);
-                else if (key == "elo1")
+                } else if (key == "elo1") {
                     game_options_.sprt.elo1 = std::stod(value);
-                else if (key == "alpha")
+                } else if (key == "alpha") {
                     game_options_.sprt.alpha = std::stod(value);
-                else if (key == "beta")
+                } else if (key == "beta") {
                     game_options_.sprt.beta = std::stod(value);
-                else
+                } else {
                     coutMissingCommand("sprt", key, value);
+                }
             });
-        else if (arg == "-draw")
+        } else if (arg == "-draw") {
             parseDashOptions(i, argc, argv, [&](std::string key, std::string value) {
                 game_options_.draw.enabled = true;
 
-                if (key == "movenumber")
+                if (key == "movenumber") {
                     game_options_.draw.move_number = std::stoi(value);
-                else if (key == "movecount")
+                } else if (key == "movecount") {
                     game_options_.draw.move_count = std::stoi(value);
-                else if (key == "score")
+                } else if (key == "score") {
                     game_options_.draw.score = std::stoi(value);
-                else
+                } else {
                     coutMissingCommand("draw", key, value);
+                }
             });
-        else if (arg == "-resign")
+        } else if (arg == "-resign") {
             parseDashOptions(i, argc, argv, [&](std::string key, std::string value) {
                 game_options_.resign.enabled = true;
 
-                if (key == "movecount")
+                if (key == "movecount") {
                     game_options_.resign.move_count = std::stoi(value);
-                else if (key == "score")
+                } else if (key == "score") {
                     game_options_.resign.score = std::stoi(value);
-                else
+                } else {
                     coutMissingCommand("resign", key, value);
+                }
             });
-        else if (arg == "-log")
+        } else if (arg == "-log") {
             parseDashOptions(i, argc, argv, [&](std::string key, std::string value) {
-                if (key == "file")
+                if (key == "file") {
                     Logger::openFile(value);
-                else
+                } else {
                     coutMissingCommand("log", key, value);
+                }
             });
-        else if (arg == "-config")
+        } else if (arg == "-config") {
             parseDashOptions(i, argc, argv, [&](std::string key, std::string value) {
 
             });
-        else if (arg == "-report")
+        } else if (arg == "-report") {
             parseDashOptions(i, argc, argv, [&](std::string key, std::string value) {
-                if (key == "penta")
+                if (key == "penta") {
                     game_options_.report_penta = value == "true";
-                else
+                } else {
                     coutMissingCommand("report", key, value);
+                }
             });
-        else if (arg == "-output")
+        } else if (arg == "-output") {
             parseDashOptions(i, argc, argv, [&](std::string key, std::string value) {
                 if (key == "format") {
                     game_options_.output = value;
                     if (value == "cutechess") game_options_.report_penta = false;
-                } else
+                } else {
                     coutMissingCommand("output", key, value);
+                }
             });
-        else if (arg == "-concurrency")
+        } else if (arg == "-concurrency")
             parseValue(i, argc, argv, game_options_.concurrency);
         else if (arg == "-event")
             parseValue(i, argc, argv, game_options_.event_name);

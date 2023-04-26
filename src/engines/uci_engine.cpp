@@ -1,10 +1,10 @@
-#include "engines/uci_engine.hpp"
+#include "uci_engine.hpp"
 
 #include <sstream>
 #include <stdexcept>
 
-#include "helper.hpp"
-#include "logger.hpp"
+#include "../helper.hpp"
+#include "../logger.hpp"
 #include "uci_engine.hpp"
 
 namespace fast_chess {
@@ -28,7 +28,7 @@ void UciEngine::sendUci() { writeEngine("uci"); }
 
 bool UciEngine::readUci() {
     readEngine("uciok");
-    return timeout();
+    return !timeout();
 }
 
 std::string UciEngine::buildPositionInput(const std::vector<std::string> &moves,
@@ -109,6 +109,7 @@ std::vector<std::string> UciEngine::readEngine(std::string_view last_word,
     try {
         output_.clear();
         output_ = readProcess(last_word, timeoutThreshold);
+
         return output_;
 
     } catch (const std::exception &e) {
@@ -145,6 +146,6 @@ int UciEngine::lastScore() const {
     return findElement<int>(lastInfo(), lastScoreType()).value_or(0);
 }
 
-std::vector<std::string> UciEngine::output() const { return std::vector<std::string>(); }
+std::vector<std::string> UciEngine::output() const { return output_; }
 
 }  // namespace fast_chess

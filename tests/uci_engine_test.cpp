@@ -1,4 +1,4 @@
-#include "engines/uci_engine.hpp"
+#include "../src/engines/uci_engine.hpp"
 
 #include <cassert>
 #include <chrono>
@@ -18,8 +18,10 @@ TEST_SUITE("Uci Engine Communication Tests") {
 #endif
 
         uci_engine.sendUci();
-        auto uciOutput = uci_engine.readUci();
+        auto uci = uci_engine.readUci();
+        auto uciOutput = uci_engine.output();
 
+        CHECK(uci);
         CHECK(uciOutput.size() == 3);
         CHECK(uciOutput[0] == "line0");
         CHECK(uciOutput[1] == "line1");

@@ -99,8 +99,8 @@ class Options {
 
     Options(int argc, char const *argv[]);
 
-    std::vector<EngineConfiguration> getEngineConfigs() const;
-    GameManagerOptions getGameOptions() const;
+    [[nodiscard]] std::vector<EngineConfiguration> getEngineConfigs() const;
+    [[nodiscard]] GameManagerOptions getGameOptions() const;
 
    private:
     [[nodiscard]] bool isEngineSettableOption(const std::string &stringFormat) const;

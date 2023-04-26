@@ -7,6 +7,7 @@
 #include "participant.hpp"
 
 namespace fast_chess {
+
 struct MoveData {
     std::string move;
     std::string score_string;

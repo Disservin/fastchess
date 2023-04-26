@@ -4,6 +4,7 @@
 #include "../third_party/chess.hpp"
 
 namespace fast_chess {
+
 Tournament::Tournament(const CMD::GameManagerOptions& game_config) {
     const std::string filename =
         (game_config.pgn.file.empty() ? "fast-chess" : game_config.pgn.file) + ".pgn";
@@ -12,6 +13,7 @@ Tournament::Tournament(const CMD::GameManagerOptions& game_config) {
 
     loadConfig(game_config);
 }
+
 void Tournament::loadConfig(const CMD::GameManagerOptions& game_config) {
     this->game_config_ = game_config;
 

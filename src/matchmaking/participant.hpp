@@ -11,24 +11,13 @@ struct PlayerInfo {
 
     Chess::GameResult result = Chess::GameResult::NONE;
     Chess::Color color = Chess::Color::NO_COLOR;
+
+    inline bool operator==(const EngineConfiguration &rhs) { return this->config.name == rhs.name; }
+    inline bool operator!=(const EngineConfiguration &rhs) { return !(*this == rhs); }
 };
-
-inline bool operator==(const PlayerInfo &lhs, const EngineConfiguration &rhs) {
-    return lhs.config.name == rhs.name;
-}
-
-inline bool operator!=(const PlayerInfo &lhs, const EngineConfiguration &rhs) {
-    return !(lhs == rhs);
-}
 
 class Participant {
    public:
-    UciEngine engine_;
-    PlayerInfo info_;
-
-    // updated time control after each move
-    TimeControl time_control_;
-
     [[nodiscard]] int64_t getTimeoutThreshold() const {
         if (info_.config.limit.nodes != 0) {
             return 0;
@@ -56,6 +45,12 @@ class Participant {
 
         return true;
     }
+
+    // updated time control after each move
+    TimeControl time_control_;
+
+    UciEngine engine_;
+    PlayerInfo info_;
 };
 
 }  // namespace fast_chess

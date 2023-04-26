@@ -26,6 +26,7 @@ bool UciEngine::sendUciNewGame() {
 }
 
 void UciEngine::sendUci() { writeEngine("uci"); }
+
 bool UciEngine::readUci() {
     readEngine("uciok");
     return timeout();
@@ -54,11 +55,10 @@ std::string UciEngine::buildGoInput(Chess::Color stm, const TimeControl &tc,
 
     if (config_.limit.plies != 0) input << " depth " << config_.limit.plies;
 
+    // We cannot use st and tc together
     if (tc.fixed_time != 0) {
         input << " movetime " << tc.fixed_time;
-    }
-    // We cannot use st and tc together
-    else {
+    } else {
         auto white = stm == Chess::Color::WHITE ? tc : tc_2;
         auto black = stm == Chess::Color::WHITE ? tc_2 : tc;
 
@@ -70,7 +70,9 @@ std::string UciEngine::buildGoInput(Chess::Color stm, const TimeControl &tc,
             input << " winc " << white.increment << " binc " << black.increment;
         }
 
-        if (tc.moves != 0) input << " movestogo " << tc.moves;
+        if (tc.moves != 0) {
+            input << " movestogo " << tc.moves;
+        }
     }
 
     return input.str();
@@ -94,7 +96,7 @@ void UciEngine::startEngine(const std::string &cmd) {
 
     sendUci();
 
-    if (!readUci() || !isResponsive(60000)) {
+    if (!readUci() && !isResponsive(60000)) {
         throw std::runtime_error("Warning: Something went wrong when pinging the engine.");
     }
 

@@ -6,12 +6,6 @@
 
 namespace fast_chess {
 
-enum class Turn { FIRST, SECOND };
-
-constexpr Turn operator~(Turn t) {
-    return Turn(static_cast<int>(t) ^ static_cast<int>(Turn::SECOND));
-}
-
 class UciEngine : public Communication::Process {
    public:
     UciEngine() = default;

@@ -144,4 +144,6 @@ int UciEngine::lastScore() const {
     return findElement<int>(lastInfo(), lastScoreType()).value_or(0);
 }
 
+std::vector<std::string> UciEngine::output() const { return std::vector<std::string>(); }
+
 }  // namespace fast_chess

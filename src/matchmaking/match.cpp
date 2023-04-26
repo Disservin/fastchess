@@ -63,13 +63,12 @@ void Match::addMoveData(Participant& player, int64_t measured_time) {
 
     // extract last info line
     const auto score_type = player.engine_.lastScoreType();
-    const auto score = player.engine_.lastScore();
     const auto info = player.engine_.lastInfo();
 
     move_data.depth = findElement<int>(info, "depth").value_or(0);
     move_data.seldepth = findElement<int>(info, "seldepth").value_or(0);
     move_data.nodes = findElement<uint64_t>(info, "nodes").value_or(0);
-    move_data.score = findElement<int>(info, score_type).value_or(0);
+    move_data.score = player.engine_.lastScore();
 
     // Missing elements default to 0
     std::stringstream ss;
@@ -93,7 +92,7 @@ void Match::addMoveData(Participant& player, int64_t measured_time) {
         auto tmp = board_;
         auto it = std::find(tokens.begin(), tokens.end(), "pv");
         while (++it != tokens.end()) {
-            if (Movegen::isLegal(tmp, board_.uciToMove(*it))) {
+            if (Movegen::isLegal<Chess::Move>(tmp, board_.uciToMove(*it))) {
                 std::stringstream ss;
                 ss << "Warning: Illegal pv move " << *it << ".\n";
                 std::cout << ss.str();
@@ -110,8 +109,12 @@ void Match::start(Participant& engine1, Participant& engine2, const std::string&
 
     start_fen_ = board.getFen() == STARTPOS ? "startpos" : board.getFen();
 
-    engine1.engine_.sendUciNewGame();
-    engine2.engine_.sendUciNewGame();
+    if (!engine1.engine_.sendUciNewGame()) {
+        throw std::runtime_error(engine1.info_.config.name + " failed to start.");
+    }
+    if (!engine2.engine_.sendUciNewGame()) {
+        throw std::runtime_error(engine2.info_.config.name + " failed to start.");
+    }
 
     // copy time control which will be updated later
     engine1.time_control_ = engine1.info_.config.limit.tc;
@@ -178,7 +181,7 @@ bool Match::playMove(Participant& us, Participant& opponent) {
     const auto best_move = us.engine_.bestmove();
     const auto move = board_.uciToMove(best_move);
 
-    if (!Movegen::isLegal(board_, move)) {
+    if (!Movegen::isLegal<Chess::Move>(board_, move)) {
         setLose(us, opponent, "illegal move");
 
         Logger::coutInfo("Warning: Illegal move", best_move, "played by", us.info_.config.name);

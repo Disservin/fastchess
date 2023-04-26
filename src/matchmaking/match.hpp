@@ -7,13 +7,13 @@
 namespace fast_chess {
 
 struct DrawTacker {
+    size_t draw_moves = 0;
     int draw_score = 0;
-    int draw_moves = 0;
 };
 
 struct ResignTracker {
+    size_t resign_moves = 0;
     int resign_score = 0;
-    int resign_moves = 0;
 };
 
 class Match {

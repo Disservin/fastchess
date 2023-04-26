@@ -300,7 +300,7 @@ struct Movelist {
 
     constexpr int find(T m) {
         for (int i = 0; i < size_; i++) {
-            if (list_[i].move == m) return i;
+            if (list_[i] == m) return i;
         }
 
         return -1;

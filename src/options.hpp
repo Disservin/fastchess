@@ -41,8 +41,8 @@ struct SprtOptions {
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(SprtOptions, alpha, beta, elo0, elo1)
 
 struct DrawAdjudication {
-    int move_number = 0;
-    int move_count = 0;
+    size_t move_number = 0;
+    size_t move_count = 0;
     int score = 0;
 
     bool enabled = false;
@@ -51,7 +51,7 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(DrawAdjudication, move_number, m
                                                 enabled)
 
 struct ResignAdjudication {
-    int move_count = 0;
+    size_t move_count = 0;
     int score = 0;
 
     bool enabled = false;

@@ -17,7 +17,7 @@ class Tournament {
     void stop();
 
    private:
-    void validateConfig(const std::vector<EngineConfiguration> &configs);
+    void validateEngines(const std::vector<EngineConfiguration> &configs);
 
     /// @brief fetches the next fen from a sequential read opening book or from a randomized opening
     /// book order

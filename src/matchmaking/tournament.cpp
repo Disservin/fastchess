@@ -1,6 +1,7 @@
 #include "tournament.hpp"
 
 #include "../rand.hpp"
+#include "../third_party/chess.hpp"
 
 namespace fast_chess {
 Tournament::Tournament(const CMD::GameManagerOptions& game_config) {
@@ -13,6 +14,9 @@ Tournament::Tournament(const CMD::GameManagerOptions& game_config) {
 }
 void Tournament::loadConfig(const CMD::GameManagerOptions& game_config) {
     this->game_config_ = game_config;
+
+    if (game_config_.games > 2)
+        throw std::runtime_error("Error: Exceeded -game limit! Must be less than 2");
 
     // Set the seed for the random number generator
     Random::mersenne_rand.seed(game_config_.seed);
@@ -45,7 +49,8 @@ void Tournament::loadConfig(const CMD::GameManagerOptions& game_config) {
     sprt_ = SPRT(game_config_.sprt.alpha, game_config_.sprt.beta, game_config_.sprt.elo0,
                  game_config_.sprt.elo1);
 }
-void Tournament::validateConfig(const std::vector<EngineConfiguration>& configs) {
+
+void Tournament::validateEngines(const std::vector<EngineConfiguration>& configs) {
     if (configs.size() < 2) {
         throw std::runtime_error("Error: Need at least two engines to start!");
     }
@@ -59,9 +64,27 @@ void Tournament::validateConfig(const std::vector<EngineConfiguration>& configs)
         }
     }
 
-    if (game_config_.games > 2)
-        throw std::runtime_error("Error: Exceeded -game limit! Must be less than 2");
-
     engine_count_ = configs.size();
 }
+
+std::string Tournament::fetchNextFen() {
+    static uint64_t fen_index_ = 0;
+
+    if (opening_book_.size() == 0) {
+        return Chess::STARTPOS;
+    } else if (game_config_.opening.format == "pgn") {
+        // TODO implementation
+    } else if (game_config_.opening.format == "epd") {
+        return opening_book_[(game_config_.opening.start + fen_index_++) % opening_book_.size()];
+    }
+
+    return Chess::STARTPOS;
+}
+
+void Tournament::start(const std::vector<EngineConfiguration>& engine_configs) {
+    validateEngines(engine_configs);
+}
+
+void Tournament::stop() {}
+
 }  // namespace fast_chess

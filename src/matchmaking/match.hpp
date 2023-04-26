@@ -22,7 +22,7 @@ class Match {
     Match(const CMD::GameManagerOptions& game_config, const EngineConfiguration& engine1_config,
           const EngineConfiguration& engine2_config, const std::string& fen, int round);
 
-    MatchData get() const;
+    [[nodiscard]] MatchData get() const;
 
    private:
     void setDraw(Participant& us, Participant& them, const std::string& msg);
@@ -37,7 +37,7 @@ class Match {
     /// @param us
     /// @param opponent
     /// @return
-    bool playMove(Participant& us, Participant& opponent);
+    [[nodiscard]] bool playMove(Participant& us, Participant& opponent);
 
     void updateDrawTracker(const Participant& player);
     void updateResignTracker(const Participant& player);
@@ -46,7 +46,7 @@ class Match {
     /// @param us
     /// @param them
     /// @return
-    bool adjudicate(Participant& us, Participant& them);
+    [[nodiscard]] bool adjudicate(Participant& us, Participant& them);
 
     DrawTacker draw_tracker_;
     ResignTracker resign_tracker_;

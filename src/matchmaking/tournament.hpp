@@ -22,7 +22,7 @@ class Tournament {
     /// @brief fetches the next fen from a sequential read opening book or from a randomized opening
     /// book order
     /// @return
-    std::string fetchNextFen();
+    [[nodiscard]] std::string fetchNextFen();
 
     CMD::GameManagerOptions game_config_ = {};
 

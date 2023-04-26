@@ -8,6 +8,7 @@
 #include <unordered_map>
 
 #include "helper.hpp"
+#include "logger.hpp"
 #include "third_party/json.hpp"
 
 namespace fast_chess {
@@ -261,8 +262,8 @@ void Options::printVersion(int &i) const {
 
 void Options::coutMissingCommand(std::string_view name, std::string_view key,
                                  std::string_view value) const {
-    std::cout << "\nUnrecognized " << name << " option: " << key << " with value " << value
-              << " parsing failed." << std::endl;
+    Logger::cout("Unrecognized ", name, " option: ", key, " with value ", value,
+                 " parsing failed.");
 }
 
 }  // namespace CMD

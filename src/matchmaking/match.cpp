@@ -93,9 +93,7 @@ void Match::addMoveData(Participant& player, int64_t measured_time) {
         auto it = std::find(tokens.begin(), tokens.end(), "pv");
         while (++it != tokens.end()) {
             if (Movegen::isLegal<Chess::Move>(tmp, board_.uciToMove(*it))) {
-                std::stringstream ss;
-                ss << "Warning: Illegal pv move " << *it << ".\n";
-                std::cout << ss.str();
+                Logger::cout("Warning: Illegal pv move ", *it);
                 break;
             }
         }
@@ -173,7 +171,7 @@ bool Match::playMove(Participant& us, Participant& opponent) {
     if (!us.updateTc(elapsed_millis)) {
         setLose(us, opponent, "timeout");
 
-        Logger::coutInfo("Warning: Engine", us.info_.config.name, "loses on time");
+        Logger::cout("Warning: Engine", us.info_.config.name, "loses on time");
 
         return false;
     }
@@ -184,7 +182,7 @@ bool Match::playMove(Participant& us, Participant& opponent) {
     if (!Movegen::isLegal<Chess::Move>(board_, move)) {
         setLose(us, opponent, "illegal move");
 
-        Logger::coutInfo("Warning: Illegal move", best_move, "played by", us.info_.config.name);
+        Logger::cout("Warning: Illegal move", best_move, "played by", us.info_.config.name);
 
         return false;
     }

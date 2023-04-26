@@ -5,6 +5,8 @@
 #include <iostream>
 #include <sstream>
 
+#include "logger.hpp"
+
 namespace fast_chess {
 
 SPRT::SPRT(double alpha, double beta, double elo0, double elo1) {
@@ -18,9 +20,9 @@ SPRT::SPRT(double alpha, double beta, double elo0, double elo1) {
         this->elo0_ = elo0;
         this->elo1_ = elo1;
 
-        std::cout << "Initialized valid SPRT configuration." << std::endl;
+        Logger::cout("Initialized valid SPRT configuration.");
     } else if (!(alpha == 0.0 && beta == 0.0 && elo0 == 0.0 && elo1 == 0.0)) {
-        std::cout << "No valid SPRT configuration was found!" << std::endl;
+        Logger::cout("No valid SPRT configuration was found!");
     }
 }
 

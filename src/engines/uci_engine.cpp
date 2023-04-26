@@ -111,8 +111,8 @@ std::vector<std::string> UciEngine::readEngine(std::string_view last_word,
         return output_;
 
     } catch (const std::exception &e) {
-        Logger::coutInfo("Raised Exception in readProcess\nWarning: Engine", config_.name,
-                         "disconnects #");
+        Logger::cout("Raised Exception in readProcess\nWarning: Engine", config_.name,
+                     "disconnects #");
         throw e;
     }
 }
@@ -121,8 +121,8 @@ void UciEngine::writeEngine(const std::string &input) {
     try {
         writeProcess(input + "\n");
     } catch (const std::exception &e) {
-        Logger::coutInfo("Raised Exception in writeProcess\nWarning: Engine", config_.name,
-                         "disconnects #");
+        Logger::cout("Raised Exception in writeProcess\nWarning: Engine", config_.name,
+                     "disconnects #");
 
         throw e;
     }

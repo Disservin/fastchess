@@ -84,8 +84,8 @@ std::string Tournament::fetchNextFen() {
 void Tournament::start(const std::vector<EngineConfiguration>& engine_configs) {
     validateEngines(engine_configs);
 
-    Logger::coutInfo("Starting tournament...");
-    Logger::coutInfo("Finished tournament\nSaving results...");
+    Logger::cout("Starting tournament...");
+    Logger::cout("Finished tournament\nSaving results...");
 }
 
 void Tournament::stop() { pool_.kill(); }

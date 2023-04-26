@@ -45,6 +45,8 @@ class UciEngine : public Communication::Process {
     [[nodiscard]] std::string lastScoreType() const;
     [[nodiscard]] int lastScore() const;
 
+    [[nodiscard]] std::vector<std::string> output() const;
+
     static const int64_t ping_time_ = 60000;
 
    private:

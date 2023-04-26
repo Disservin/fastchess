@@ -5,8 +5,7 @@
 namespace fast_chess {
 class FileWriter {
    public:
-    FileWriter() = default;
-    explicit FileWriter(const std::string &filename) { file_.open(filename, std::ios::app); }
+    void open(const std::string &filename) { file_.open(filename, std::ios::app); }
 
     void write(const std::string &data) {
         std::lock_guard<std::mutex> lock(file_mutex_);

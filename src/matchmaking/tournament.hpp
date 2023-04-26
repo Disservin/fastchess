@@ -36,6 +36,8 @@ class Tournament {
 
     /// @brief contains all opening fens
     std::vector<std::string> opening_book_;
+
+    size_t engine_count_ = 0;
 };
 
 }  // namespace fast_chess

@@ -24,9 +24,6 @@ Match::Match(const CMD::GameManagerOptions& game_config, const EngineConfigurati
     player_1.engine_.startEngine(engine1_config.cmd);
     player_2.engine_.startEngine(engine2_config.cmd);
 
-    data_.players.first.config = engine1_config;
-    data_.players.second.config = engine2_config;
-
     data_.round = round;
 
     start(player_1, player_2, fen);
@@ -109,15 +106,15 @@ void Match::start(Participant& engine1, Participant& engine2, const std::string&
     start_fen_ = board.getFen() == STARTPOS ? "startpos" : board.getFen();
 
     if (!engine1.engine_.sendUciNewGame()) {
-        throw std::runtime_error(engine1.info_.config.name + " failed to start.");
+        throw std::runtime_error(engine1.engine_.getConfig().name + " failed to start.");
     }
     if (!engine2.engine_.sendUciNewGame()) {
-        throw std::runtime_error(engine2.info_.config.name + " failed to start.");
+        throw std::runtime_error(engine2.engine_.getConfig().name + " failed to start.");
     }
 
     // copy time control which will be updated later
-    engine1.time_control_ = engine1.info_.config.limit.tc;
-    engine2.time_control_ = engine2.info_.config.limit.tc;
+    engine1.time_control_ = engine1.engine_.getConfig().limit.tc;
+    engine2.time_control_ = engine2.engine_.getConfig().limit.tc;
 
     engine1.info_.color = board.sideToMove();
     engine2.info_.color = ~board.sideToMove();
@@ -128,11 +125,15 @@ void Match::start(Participant& engine1, Participant& engine2, const std::string&
     data_.date = Logger::getDateTime("%Y-%m-%d");
 
     try {
+        Logger::cout("Starting match ", engine1.engine_.getConfig().name, " vs ",
+                     engine2.engine_.getConfig().name, " (",
+                     engine1.info_.color == Color::WHITE ? "white" : "black", ")");
         while (true) {
             if (!playMove(engine1, engine2)) break;
 
             if (!playMove(engine2, engine1)) break;
         }
+        Logger::cout("Match finished.");
     } catch (const std::exception& e) {
         if (game_config_.recover)
             data_.needs_restart = true;
@@ -159,9 +160,12 @@ bool Match::playMove(Participant& us, Participant& opponent) {
         return false;
     }
 
-    us.engine_.writeEngine(us.engine_.buildPositionInput(played_moves_, start_fen_));
-    us.engine_.writeEngine(
-        us.engine_.buildGoInput(board_.sideToMove(), us.time_control_, opponent.time_control_));
+    auto position = us.engine_.buildPositionInput(played_moves_, start_fen_);
+    auto go =
+        us.engine_.buildGoInput(board_.sideToMove(), us.time_control_, opponent.time_control_);
+
+    us.engine_.writeEngine(position);
+    us.engine_.writeEngine(go);
 
     const auto t0 = clock::now();
     auto output = us.engine_.readEngine("bestmove", us.getTimeoutThreshold());
@@ -172,7 +176,7 @@ bool Match::playMove(Participant& us, Participant& opponent) {
     if (!us.updateTc(elapsed_millis)) {
         setLose(us, opponent, "timeout");
 
-        Logger::cout("Warning: Engine", us.info_.config.name, "loses on time");
+        Logger::cout("Warning: Engine", us.engine_.getConfig().name, "loses on time");
 
         return false;
     }
@@ -183,7 +187,7 @@ bool Match::playMove(Participant& us, Participant& opponent) {
     if (!Movegen::isLegal<Chess::Move>(board_, move)) {
         setLose(us, opponent, "illegal move");
 
-        Logger::cout("Warning: Illegal move", best_move, "played by", us.info_.config.name);
+        Logger::cout("Warning: Illegal move", best_move, "played by", us.engine_.getConfig().name);
 
         return false;
     }

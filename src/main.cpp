@@ -4,12 +4,14 @@
 #include <thread>
 
 #include "engines/uci_engine.hpp"
+#include "matchmaking/tournament.hpp"
 #include "options.hpp"
 
 using namespace fast_chess;
 
 namespace {
 std::unique_ptr<CMD::Options> Options;
+std::unique_ptr<Tournament> Tour;
 }  // namespace
 
 #ifdef _WIN64
@@ -52,6 +54,9 @@ int main(int argc, char const *argv[]) {
 #endif
     try {
         Options = std::make_unique<CMD::Options>(argc, argv);
+        Tour = std::make_unique<Tournament>(Options->getGameOptions());
+
+        Tour->start(Options->getEngineConfigs());
 
         std::cout << "Saved results" << std::endl;
     } catch (const std::exception &e) {

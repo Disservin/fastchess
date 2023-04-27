@@ -8,9 +8,9 @@ namespace fast_chess {
 class Participant {
    public:
     [[nodiscard]] int64_t getTimeoutThreshold() const {
-        if (info_.config.limit.nodes != 0) {
+        if (engine_.getConfig().limit.nodes != 0) {
             return 0;
-        } else if (info_.config.limit.plies != 0) {
+        } else if (engine_.getConfig().limit.plies != 0) {
             return 0;
         } else if (time_control_.fixed_time != 0) {
             return 0;
@@ -20,7 +20,7 @@ class Participant {
     }
 
     [[nodiscard]] bool updateTc(const int64_t elapsed_millis) {
-        if (info_.config.limit.tc.time == 0) {
+        if (engine_.getConfig().limit.tc.time == 0) {
             return true;
         }
 

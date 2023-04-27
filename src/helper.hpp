@@ -21,36 +21,6 @@ ordered_json type conversion is not yet supported, though we only have to change
         NLOHMANN_JSON_EXPAND(NLOHMANN_JSON_PASTE(NLOHMANN_JSON_FROM, __VA_ARGS__))                \
     }
 
-/// @brief Table template class for creating N-dimensional arrays.
-/// @tparam T
-/// @tparam N
-/// @tparam ...Dims
-template <typename T, std::size_t N, std::size_t... Dims>
-struct Table {
-    std::array<Table<T, Dims...>, N> data;
-
-    Table() { data.fill({}); }
-
-    Table<T, Dims...> &operator[](std::size_t index) { return data[index]; }
-
-    const Table<T, Dims...> &operator[](std::size_t index) const { return data[index]; }
-
-    void reset(T value) { data.fill({value}); }
-};
-
-template <typename T, std::size_t N>
-struct Table<T, N> {
-    std::array<T, N> data;
-
-    Table() { data.fill({}); }
-
-    T &operator[](std::size_t index) { return data[index]; }
-
-    const T &operator[](std::size_t index) const { return data[index]; }
-
-    void reset(T value) { data.fill({value}); }
-};
-
 inline bool startsWith(std::string_view haystack, std::string_view needle) {
     if (needle.empty()) return false;
     return (haystack.rfind(needle, 0) != std::string::npos);

@@ -125,9 +125,6 @@ void Match::start(Participant& engine1, Participant& engine2, const std::string&
     data_.date = Logger::getDateTime("%Y-%m-%d");
 
     try {
-        Logger::cout("Starting match ", engine1.engine_.getConfig().name, " vs ",
-                     engine2.engine_.getConfig().name, " (",
-                     engine1.info_.color == Color::WHITE ? "white" : "black", ")");
         while (true) {
             if (!playMove(engine1, engine2)) break;
 

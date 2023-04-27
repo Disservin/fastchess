@@ -4,6 +4,7 @@
 #include "../sprt.hpp"
 #include "file_writer.hpp"
 #include "match.hpp"
+#include "output/output_fastchess.hpp"
 #include "result.hpp"
 #include "threadpool.hpp"
 #include "types/stats.hpp"
@@ -32,6 +33,8 @@ class RoundRobin {
     /// @return
     [[nodiscard]] std::string fetchNextFen();
 
+    std::unique_ptr<Output> output_;
+
     CMD::GameManagerOptions game_config_ = {};
 
     ThreadPool pool_ = ThreadPool(1);
@@ -44,5 +47,7 @@ class RoundRobin {
 
     /// @brief contains all opening fens
     std::vector<std::string> opening_book_;
+
+    std::atomic<uint64_t> total = 0;
 };
 }  // namespace fast_chess

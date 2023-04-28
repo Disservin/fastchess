@@ -98,6 +98,7 @@ void Match::addMoveData(Participant& player, int64_t measured_time) {
     }
 
     data_.moves.push_back(move_data);
+    played_moves_.push_back(best_move);
 }
 
 void Match::start(Participant& engine1, Participant& engine2, const std::string& fen) {
@@ -108,6 +109,7 @@ void Match::start(Participant& engine1, Participant& engine2, const std::string&
     if (!engine1.engine_.sendUciNewGame()) {
         throw std::runtime_error(engine1.engine_.getConfig().name + " failed to start.");
     }
+
     if (!engine2.engine_.sendUciNewGame()) {
         throw std::runtime_error(engine2.engine_.getConfig().name + " failed to start.");
     }
@@ -124,6 +126,7 @@ void Match::start(Participant& engine1, Participant& engine2, const std::string&
     data_.start_time = Logger::getDateTime();
     data_.date = Logger::getDateTime("%Y-%m-%d");
 
+    auto start = clock::now();
     try {
         while (true) {
             if (!playMove(engine1, engine2)) break;
@@ -136,25 +139,30 @@ void Match::start(Participant& engine1, Participant& engine2, const std::string&
         else
             throw e;
     }
+    auto end = clock::now();
+
+    data_.end_time = Logger::getDateTime();
+    data_.duration = chrono::duration_cast<chrono::milliseconds>(end - start).count();
 
     data_.players = std::make_pair(engine1.info_, engine2.info_);
 }
 
 bool Match::playMove(Participant& us, Participant& opponent) {
     const auto gameover = board_.isGameOver();
+    const auto name = us.engine_.getConfig().name;
 
     if (gameover.second == GameResult::DRAW) {
-        data_.internal_reason = convertChessReason(us.engine_.getConfig().name, gameover.first);
+        data_.internal_reason = convertChessReason(name, gameover.first);
         setDraw(us, opponent, "");
         return false;
     } else if (gameover.second == GameResult::LOSE) {
-        data_.internal_reason = convertChessReason(us.engine_.getConfig().name, gameover.first);
+        data_.internal_reason = convertChessReason(name, gameover.first);
         setLose(us, opponent, "");
         return false;
     }
 
     if (!us.engine_.isResponsive()) {
-        data_.internal_reason = us.engine_.getConfig().name + Match::TIMEOUT_MSG;
+        data_.internal_reason = name + Match::TIMEOUT_MSG;
         setLose(us, opponent, "timeout");
         return false;
     }
@@ -173,10 +181,10 @@ bool Match::playMove(Participant& us, Participant& opponent) {
     const auto elapsed_millis = chrono::duration_cast<chrono::milliseconds>(t1 - t0).count();
 
     if (!us.updateTc(elapsed_millis)) {
-        data_.internal_reason = us.engine_.getConfig().name + Match::TIMEOUT_MSG;
+        data_.internal_reason = name + Match::TIMEOUT_MSG;
         setLose(us, opponent, "timeout");
 
-        Logger::cout("Warning: Engine", us.engine_.getConfig().name, "loses on time");
+        Logger::cout("Warning: Engine", name, "loses on time");
 
         return false;
     }
@@ -185,10 +193,10 @@ bool Match::playMove(Participant& us, Participant& opponent) {
     const auto move = board_.uciToMove(best_move);
 
     if (!Movegen::isLegal<Chess::Move>(board_, move)) {
-        data_.internal_reason = us.engine_.getConfig().name + Match::ILLEGAL_MSG;
+        data_.internal_reason = name + Match::ILLEGAL_MSG;
         setLose(us, opponent, "illegal move");
 
-        Logger::cout("Warning: Illegal move", best_move, "played by", us.engine_.getConfig().name);
+        Logger::cout("Warning: Illegal move", best_move, "played by", name);
 
         return false;
     }
@@ -197,7 +205,6 @@ bool Match::playMove(Participant& us, Participant& opponent) {
     updateResignTracker(us);
 
     addMoveData(us, elapsed_millis);
-    played_moves_.push_back(best_move);
 
     board_.makeMove(move);
 

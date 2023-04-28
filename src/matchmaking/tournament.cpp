@@ -3,11 +3,12 @@
 #include "../logger.hpp"
 #include "../rand.hpp"
 #include "../third_party/chess.hpp"
-#include "roundrobin.hpp"
 
 namespace fast_chess {
 
-Tournament::Tournament(const CMD::GameManagerOptions& game_config) { loadConfig(game_config); }
+Tournament::Tournament(const CMD::GameManagerOptions& game_config) : round_robin_(game_config) {
+    loadConfig(game_config);
+}
 
 void Tournament::loadConfig(const CMD::GameManagerOptions& game_config) {
     this->game_config_ = game_config;
@@ -38,8 +39,7 @@ void Tournament::start(const std::vector<EngineConfiguration>& engine_configs) {
 
     Logger::cout("Starting tournament...");
 
-    RoundRobin round_robin(game_config_);
-    round_robin.start(engine_configs);
+    round_robin_.start(engine_configs);
 
     Logger::cout("Finished tournament\nSaving results...");
 }

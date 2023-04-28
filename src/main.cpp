@@ -7,6 +7,12 @@
 #include "matchmaking/tournament.hpp"
 #include "options.hpp"
 
+namespace fast_chess {
+namespace Atomic {
+std::atomic_bool stop = false;
+}  // namespace Atomic
+}  // namespace fast_chess
+
 using namespace fast_chess;
 
 namespace {
@@ -22,10 +28,10 @@ BOOL WINAPI consoleHandler(DWORD signal) {
         case CTRL_LOGOFF_EVENT:
         case CTRL_SHUTDOWN_EVENT:
         case CTRL_C_EVENT:
-
+            Tour->stop();
             std::cout << "Saved results" << std::endl;
 
-            return TRUE;
+            return FALSE;
         default:
             break;
     }

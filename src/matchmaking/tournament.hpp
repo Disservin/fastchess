@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../options.hpp"
+#include "roundrobin.hpp"
 
 namespace fast_chess {
 class Tournament {
@@ -10,9 +11,12 @@ class Tournament {
     void loadConfig(const CMD::GameManagerOptions &game_config);
 
     void start(const std::vector<EngineConfiguration> &engine_configs);
+    void stop() { round_robin_.stop(); }
 
    private:
     void validateEngines(const std::vector<EngineConfiguration> &configs);
+
+    RoundRobin round_robin_;
 
     CMD::GameManagerOptions game_config_ = {};
 

@@ -10,11 +10,21 @@
 #include "types/stats.hpp"
 
 namespace fast_chess {
+
+namespace Atomic {
+extern std::atomic_bool stop;
+}  // namespace Atomic
+
 class RoundRobin {
    public:
     RoundRobin(const CMD::GameManagerOptions &game_config);
 
     void start(const std::vector<EngineConfiguration> &engine_configs);
+
+    void stop() {
+        Atomic::stop = true;
+        Logger::cout("Stopped round robin!");
+    }
 
    private:
     void create(const std::vector<EngineConfiguration> &engine_configs,

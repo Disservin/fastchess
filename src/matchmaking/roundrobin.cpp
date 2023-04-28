@@ -1,6 +1,7 @@
 #include "roundrobin.hpp"
 
 #include "../logger.hpp"
+#include "../pgn_builder.hpp"
 #include "../rand.hpp"
 #include "../third_party/chess.hpp"
 
@@ -135,10 +136,13 @@ std::tuple<bool, Stats, std::string> RoundRobin::playGame(
     const std::pair<EngineConfiguration, EngineConfiguration>& configs, const std::string& fen,
     int round_id) {
     Match match = Match(game_config_, configs.first, configs.second, fen, round_id);
-
     MatchData match_data = match.get();
 
     auto stats = updateStats(match_data);
+
+    PgnBuilder pgn_builder = PgnBuilder(match_data, game_config_);
+
+    std::cout << pgn_builder.get();
 
     return {true, stats, match_data.internal_reason};
 }

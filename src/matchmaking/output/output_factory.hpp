@@ -28,8 +28,7 @@ class Output {
     virtual void endGame(const Stats& stats, const std::string& first, const std::string& second,
                          const std::string& annotation, int id) = 0;
 
-   protected:
-    std::string formatStats(const Stats& stats) {
+    static std::string formatStats(const Stats& stats) {
         if (stats.wins) {
             return "1-0";
         }
@@ -38,6 +37,8 @@ class Output {
         }
         return "1/2-1/2";
     };
+
+   protected:
     // SPRT sprt_;
 
     // class Cutechess : public Output {

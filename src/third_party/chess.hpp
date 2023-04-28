@@ -2160,7 +2160,7 @@ inline std::string Board::san(const Move &move) {
 
     if (move.typeOf() == Move::PROMOTION) {
         san += "=";
-        san += PieceTypeToPromPiece[move.promotionType()];
+        san += repPieceType[int(move.promotionType())];
     }
 
     makeMove(move);
@@ -2190,44 +2190,44 @@ inline std::string Board::lan(const Move &move) {
 
     assert(pt != PieceType::NONE);
 
-    std::string san;
+    std::string lan;
 
     if (pt != PieceType::PAWN) {
-        san += repPieceType[int(pt)];
+        lan += repPieceType[int(pt)];
     }
 
-    san += repFile[int(squareFile(move.from()))];
-    san += std::to_string(int(squareRank(move.from())) + 1);
+    lan += repFile[int(squareFile(move.from()))];
+    lan += std::to_string(int(squareRank(move.from())) + 1);
 
     if (pieceAt(move.to()) != Piece::NONE || move.typeOf() == Move::EN_PASSANT) {
         if (pt == PieceType::PAWN) {
-            san += repFile[int(squareFile(move.from()))];
+            lan += repFile[int(squareFile(move.from()))];
         }
 
-        san += "x";
+        lan += "x";
     }
 
-    san += repFile[int(squareFile(move.to()))];
-    san += std::to_string(int(squareRank(move.to())) + 1);
+    lan += repFile[int(squareFile(move.to()))];
+    lan += std::to_string(int(squareRank(move.to())) + 1);
 
     if (move.typeOf() == Move::PROMOTION) {
-        san += "=";
-        san += PieceTypeToPromPiece[move.promotionType()];
+        lan += "=";
+        lan += repPieceType[int(move.promotionType())];
     }
 
     makeMove(move);
 
     if (isKingAttacked()) {
         if (isGameOver().second == GameResult::LOSE) {
-            san += "#";
+            lan += "#";
         } else {
-            san += "+";
+            lan += "+";
         }
     }
 
     unmakeMove(move);
 
-    return san;
+    return lan;
 }
 
 }  // namespace Chess

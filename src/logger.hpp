@@ -24,12 +24,16 @@ class Logger {
     void operator=(Logger const &) = delete;
 
     /// @brief thread safe cout
+    /// @tparam First
     /// @tparam ...Args
+    /// @param first
     /// @param ...args
-    template <typename... Args>
-    static void cout(Args &&...args) {
+    template <typename First, typename... Args>
+    static void cout(First &&first, Args &&...args) {
         std::stringstream ss;
-        ((ss << std::forward<Args>(args) << " "), ...) << "\n";
+        ss << std::forward<First>(first);
+        ((ss << " " << std::forward<Args>(args)), ...);
+        ss << "\n";
         std::cout << ss.str();
     }
 

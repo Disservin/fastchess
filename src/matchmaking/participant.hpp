@@ -7,6 +7,11 @@ namespace fast_chess {
 
 class Participant {
    public:
+    explicit Participant(const EngineConfiguration& config) {
+        engine_.loadConfig(config);
+        info_.config = config;
+    }
+
     [[nodiscard]] int64_t getTimeoutThreshold() const {
         if (engine_.getConfig().limit.nodes != 0) {
             return 0;

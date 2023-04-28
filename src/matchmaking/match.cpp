@@ -15,17 +15,11 @@ Match::Match(const CMD::GameManagerOptions& game_config, const EngineConfigurati
              const EngineConfiguration& engine2_config, const std::string& fen, int round) {
     game_config_ = game_config;
 
-    Participant player_1;
-    Participant player_2;
-
-    player_1.engine_.loadConfig(engine1_config);
-    player_2.engine_.loadConfig(engine2_config);
+    Participant player_1 = Participant(engine1_config);
+    Participant player_2 = Participant(engine2_config);
 
     player_1.engine_.startEngine(engine1_config.cmd);
     player_2.engine_.startEngine(engine2_config.cmd);
-
-    data_.players.first.config = player_1.engine_.getConfig();
-    data_.players.second.config = player_2.engine_.getConfig();
 
     data_.round = round;
 

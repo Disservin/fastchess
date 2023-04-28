@@ -142,7 +142,7 @@ std::tuple<bool, Stats, std::string> RoundRobin::playGame(
 
     PgnBuilder pgn_builder = PgnBuilder(match_data, game_config_);
 
-    std::cout << pgn_builder.get();
+    file_writer_.write(pgn_builder.get());
 
     return {true, stats, match_data.internal_reason};
 }

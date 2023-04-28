@@ -24,6 +24,9 @@ Match::Match(const CMD::GameManagerOptions& game_config, const EngineConfigurati
     player_1.engine_.startEngine(engine1_config.cmd);
     player_2.engine_.startEngine(engine2_config.cmd);
 
+    data_.players.first.config = player_1.engine_.getConfig();
+    data_.players.second.config = player_2.engine_.getConfig();
+
     data_.round = round;
 
     start(player_1, player_2, fen);
@@ -142,7 +145,7 @@ void Match::start(Participant& engine1, Participant& engine2, const std::string&
     auto end = clock::now();
 
     data_.end_time = Logger::getDateTime();
-    data_.duration = chrono::duration_cast<chrono::milliseconds>(end - start).count();
+    data_.duration = Logger::formatDuration(chrono::duration_cast<chrono::seconds>(end - start));
 
     data_.players = std::make_pair(engine1.info_, engine2.info_);
 }

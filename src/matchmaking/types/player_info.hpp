@@ -6,6 +6,7 @@
 namespace fast_chess {
 
 struct PlayerInfo {
+    EngineConfiguration config;
     Chess::GameResult result = Chess::GameResult::NONE;
     Chess::Color color = Chess::Color::NO_COLOR;
 };

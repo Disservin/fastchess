@@ -10,10 +10,11 @@ class PgnBuilder {
    public:
     PgnBuilder(const MatchData &match, const CMD::GameManagerOptions &game_options);
 
-    std::string get() const { return pgn_.str(); }
+    std::string get() const { return pgn_.str() + "\n\n"; }
 
    private:
-    void addHeader(const std::string &name, const std::string &value);
+    template <typename T>
+    void addHeader(const std::string &name, const T &value);
 
     void addMove(Chess::Board &board, const MoveData &move, std::size_t move_number);
 
@@ -28,7 +29,7 @@ class PgnBuilder {
 
     static std::string formatTime(uint64_t millis) {
         std::stringstream ss;
-        ss << std::setprecision(3) << std::fixed << millis / 1000.0;
+        ss << std::setprecision(3) << std::fixed << millis / 1000.0 << "s";
         return ss.str();
     }
 

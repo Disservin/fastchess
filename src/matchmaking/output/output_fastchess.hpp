@@ -10,7 +10,11 @@ class Fastchess : public Output {
    public:
     void printInterval(const Stats& stats, const std::string& first, const std::string& second,
                        int total) override {
-        Logger::cout("Interval");
+        std::cout << printElo(stats, first, second, total);
+    }
+
+    std::string printElo(const Stats& stats, const std::string& first, const std::string& second,
+                         int total) override {
         Elo elo(stats.wins, stats.losses, stats.draws);
 
         // clang-format off
@@ -38,16 +42,51 @@ class Fastchess : public Output {
             << "DrawRatio: "
             << elo.getDrawRatio(stats.wins, stats.losses, stats.draws)
             << "\n";
-
         // clang-format on
+        return ss.str();
+    }
+
+    void startGame(const std::string& first, const std::string& second, int current,
+                   int total) override {
+        std::stringstream ss;
+
+        // clang-format off
+        ss << "Started game "
+           << current
+           << " of "
+           << total
+           << " ("
+           << first
+           << " vs "
+           << second
+           << ")"
+           << "\n";
+        // clang-format on
+
         std::cout << ss.str();
     }
 
-    void printElo() override { Logger::cout("Elo"); }
+    void endGame(const Stats& stats, const std::string& first, const std::string& second,
+                 const std::string& annotation, int id) override {
+        std::stringstream ss;
 
-    void startGame() override { Logger::cout("Start game"); }
+        // clang-format off
+        ss << "Finished game "
+           << id
+           << " ("
+           << first
+           << " vs "
+           << second
+           << "): "
+           << formatStats(stats)
+           << " {"
+           << annotation 
+           << "}"
+           << "\n";
+        // clang-format on
 
-    void endGame() override { Logger::cout("End game"); }
+        std::cout << ss.str();
+    }
 };
 
 }  // namespace fast_chess

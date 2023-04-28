@@ -130,7 +130,6 @@ void Match::start(Participant& engine1, Participant& engine2, const std::string&
 
             if (!playMove(engine2, engine1)) break;
         }
-        Logger::cout("Match finished.");
     } catch (const std::exception& e) {
         if (game_config_.recover)
             data_.needs_restart = true;
@@ -144,15 +143,18 @@ void Match::start(Participant& engine1, Participant& engine2, const std::string&
 bool Match::playMove(Participant& us, Participant& opponent) {
     const auto gameover = board_.isGameOver();
 
-    if (gameover == GameResult::DRAW) {
+    if (gameover.second == GameResult::DRAW) {
+        data_.internal_reason = convertChessReason(us.engine_.getConfig().name, gameover.first);
         setDraw(us, opponent, "");
         return false;
-    } else if (gameover == GameResult::LOSE) {
+    } else if (gameover.second == GameResult::LOSE) {
+        data_.internal_reason = convertChessReason(us.engine_.getConfig().name, gameover.first);
         setLose(us, opponent, "");
         return false;
     }
 
     if (!us.engine_.isResponsive()) {
+        data_.internal_reason = us.engine_.getConfig().name + Match::TIMEOUT_MSG;
         setLose(us, opponent, "timeout");
         return false;
     }
@@ -171,6 +173,7 @@ bool Match::playMove(Participant& us, Participant& opponent) {
     const auto elapsed_millis = chrono::duration_cast<chrono::milliseconds>(t1 - t0).count();
 
     if (!us.updateTc(elapsed_millis)) {
+        data_.internal_reason = us.engine_.getConfig().name + Match::TIMEOUT_MSG;
         setLose(us, opponent, "timeout");
 
         Logger::cout("Warning: Engine", us.engine_.getConfig().name, "loses on time");
@@ -182,6 +185,7 @@ bool Match::playMove(Participant& us, Participant& opponent) {
     const auto move = board_.uciToMove(best_move);
 
     if (!Movegen::isLegal<Chess::Move>(board_, move)) {
+        data_.internal_reason = us.engine_.getConfig().name + Match::ILLEGAL_MSG;
         setLose(us, opponent, "illegal move");
 
         Logger::cout("Warning: Illegal move", best_move, "played by", us.engine_.getConfig().name);
@@ -223,18 +227,40 @@ void Match::updateResignTracker(const Participant& player) {
 
 bool Match::adjudicate(Participant& us, Participant& them) {
     if (game_config_.draw.enabled && draw_tracker_.draw_moves >= game_config_.draw.move_count) {
+        data_.internal_reason = Match::ADJUDICATION_MSG;
         setDraw(us, them, "adjudication");
         return true;
     } else if (game_config_.resign.enabled &&
                resign_tracker_.resign_moves >= game_config_.resign.move_count) {
         if (us.engine_.lastScore() < game_config_.resign.score) {
+            data_.internal_reason = us.engine_.getConfig().name + Match::ADJUDICATION_LOSE_MSG;
             setLose(us, them, "resign adjudication");
         } else {
+            data_.internal_reason = us.engine_.getConfig().name + Match::ADJUDICATION_WIN_MSG;
             setWin(us, them, "resign adjudication");
         }
         return true;
     }
     return false;
+}
+
+std::string Match::convertChessReason(const std::string& engine_name, std::string_view reason) {
+    if (reason == "checkmate") {
+        return engine_name + Match::CHECKMATE_MSG;
+    }
+    if (reason == "stalemate") {
+        return Match::STALEMATE_MSG;
+    }
+    if (reason == "insufficient material") {
+        return Match::INSUFFICIENT_MSG;
+    }
+    if (reason == "threefold repetition") {
+        return Match::REPETITION_MSG;
+    }
+    if (reason == "50 move rule") {
+        return Match::FIFTY_MSG;
+    }
+    return "";
 }
 
 }  // namespace fast_chess

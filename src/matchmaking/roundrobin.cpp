@@ -79,31 +79,28 @@ void RoundRobin::create(const std::vector<EngineConfiguration>& engine_configs,
     for (std::size_t i = 0; i < engine_configs.size(); i++) {
         for (std::size_t j = i + 1; j < engine_configs.size(); j++) {
             for (int k = 0; k < game_config_.rounds; k++) {
-                Logger::cout("Added " + engine_configs[i].name + " vs " + engine_configs[j].name +
-                             " to the queue");
                 results.emplace_back(pool_.enqueue(&RoundRobin::createPairings, this,
-                                                   engine_configs[i], engine_configs[j]));
+                                                   engine_configs[i], engine_configs[j], k));
             }
         }
     }
 }
 
 void RoundRobin::createPairings(const EngineConfiguration& player1,
-                                const EngineConfiguration& player2) {
+                                const EngineConfiguration& player2, int current) {
     std::pair<EngineConfiguration, EngineConfiguration> configs = {player1, player2};
 
-    auto random_bit = Random::mersenne_rand() & 1;
-
-    if (random_bit && game_config_.output == "cutechess") {
+    if (Random::boolean() && game_config_.output == "cutechess") {
         std::swap(configs.first, configs.second);
     }
 
     Stats stats;
     auto fen = fetchNextFen();
     for (int i = 0; i < game_config_.games; i++) {
-        output_->startGame();
+        output_->startGame(configs.first.name, configs.second.name, current * 2 + i,
+                           game_config_.rounds * 2);
 
-        auto [success, result] = playGame(configs, fen, i);
+        auto [success, result, reason] = playGame(configs, fen, current * 2 + i);
         if (success) {
             stats += result;
             total++;
@@ -117,7 +114,7 @@ void RoundRobin::createPairings(const EngineConfiguration& player1,
             std::swap(configs.first, configs.second);
         }
 
-        output_->endGame();
+        output_->endGame(result, configs.first.name, configs.second.name, reason, current * 2 + i);
     }
 
     stats.penta_WW += stats.wins == 2;
@@ -129,13 +126,12 @@ void RoundRobin::createPairings(const EngineConfiguration& player1,
 
     if (game_config_.report_penta) {
         result_.updateStats(configs.first.name, configs.second.name, stats);
+        output_->printInterval(result_.getStats(player1.name, player2.name), player1.name,
+                               player2.name, total);
     }
-
-    output_->printInterval(result_.getStats(player1.name, player2.name), player1.name, player2.name,
-                           total);
 }
 
-std::pair<bool, Stats> RoundRobin::playGame(
+std::tuple<bool, Stats, std::string> RoundRobin::playGame(
     const std::pair<EngineConfiguration, EngineConfiguration>& configs, const std::string& fen,
     int round_id) {
     Match match = Match(game_config_, configs.first, configs.second, fen, round_id);
@@ -144,7 +140,7 @@ std::pair<bool, Stats> RoundRobin::playGame(
 
     auto stats = updateStats(match_data);
 
-    return {true, stats};
+    return {true, stats, match_data.internal_reason};
 }
 
 Stats RoundRobin::updateStats(const MatchData& match_data) {

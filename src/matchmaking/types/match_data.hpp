@@ -37,6 +37,10 @@ struct MatchData {
     std::string duration;
     std::string date;
     std::string fen;
+
+    // internal reason why the game ended
+    std::string internal_reason;
+
     int round = 0;
     bool needs_restart = false;
 };

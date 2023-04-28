@@ -924,7 +924,12 @@ class Board {
     /// @param count
     /// @return
     [[nodiscard]] bool isRepetition(int count = 2) const;
-    GameResult isGameOver();
+
+    /// @brief
+    /// @param os
+    /// @param b
+    /// @return
+    std::pair<std::string, GameResult> isGameOver() const;
 
     /// Is the square attacked by color c?
     /// @param square
@@ -2061,26 +2066,27 @@ inline bool isLegal(const Board &board, const T &move) {
 }
 }  // namespace Movegen
 
-inline GameResult Board::isGameOver() {
+inline std::pair<std::string, GameResult> Board::isGameOver() const {
     if (half_moves_ >= 100) {
         const Board &board = *this;
 
         Movelist<Move> movelist;
         Movegen::legalmoves<Move, MoveGenType::ALL>(movelist, board);
-        if (isSquareAttacked(kingSq(side_to_move_), ~side_to_move_) && movelist.size() == 0)
-            return GameResult::LOSE;
-        return GameResult::DRAW;
+        if (isSquareAttacked(kingSq(side_to_move_), ~side_to_move_) && movelist.size() == 0) {
+            return {"checkmate", GameResult::LOSE};
+        }
+        return {"50 move rule", GameResult::DRAW};
     }
 
     const auto count = popcount(all());
 
-    if (count == 2) return GameResult::DRAW;
+    if (count == 2) return {"insufficient material", GameResult::DRAW};
 
     if (count == 3) {
         if (pieces<PieceType::BISHOP, Color::WHITE>() || pieces<PieceType::BISHOP, Color::BLACK>())
-            return GameResult::DRAW;
+            return {"insufficient material", GameResult::DRAW};
         if (pieces<PieceType::KNIGHT, Color::WHITE>() || pieces<PieceType::KNIGHT, Color::BLACK>())
-            return GameResult::DRAW;
+            return {"insufficient material", GameResult::DRAW};
     }
 
     if (count == 4) {
@@ -2088,10 +2094,10 @@ inline GameResult Board::isGameOver() {
             pieces<PieceType::BISHOP, Color::BLACK>() &&
             sameColor(lsb(pieces<PieceType::BISHOP, Color::WHITE>()),
                       lsb(pieces<PieceType::BISHOP, Color::BLACK>())))
-            return GameResult::DRAW;
+            return {"insufficient material", GameResult::DRAW};
     }
 
-    if (isRepetition()) return GameResult::DRAW;
+    if (isRepetition()) return {"threefold repetition", GameResult::DRAW};
 
     const Board &board = *this;
 
@@ -2099,11 +2105,12 @@ inline GameResult Board::isGameOver() {
     Movegen::legalmoves<Move, MoveGenType::ALL>(movelist, board);
 
     if (movelist.size() == 0) {
-        if (isSquareAttacked(kingSq(side_to_move_), ~side_to_move_)) return GameResult::LOSE;
-        return GameResult::DRAW;
+        if (isSquareAttacked(kingSq(side_to_move_), ~side_to_move_))
+            return {"checkmate", GameResult::LOSE};
+        return {"stalemate", GameResult::DRAW};
     }
 
-    return GameResult::NONE;
+    return {"", GameResult::NONE};
 }
 
 inline std::string Board::san(const Move &move) {
@@ -2159,7 +2166,7 @@ inline std::string Board::san(const Move &move) {
     makeMove(move);
 
     if (isKingAttacked()) {
-        if (isGameOver() == GameResult::LOSE) {
+        if (isGameOver().second == GameResult::LOSE) {
             san += "#";
         } else {
             san += "+";
@@ -2211,7 +2218,7 @@ inline std::string Board::lan(const Move &move) {
     makeMove(move);
 
     if (isKingAttacked()) {
-        if (isGameOver() == GameResult::LOSE) {
+        if (isGameOver().second == GameResult::LOSE) {
             san += "#";
         } else {
             san += "+";

@@ -7,7 +7,6 @@
 #include "../types/match_data.hpp"
 #include "../types/stats.hpp"
 
-
 namespace fast_chess {
 
 class Tournament;  // forward declaration
@@ -20,28 +19,39 @@ class Output {
     virtual void printInterval(const Stats& stats, const std::string& first,
                                const std::string& second, int total) = 0;
 
-    virtual void printElo() = 0;
+    virtual std::string printElo(const Stats& stats, const std::string& first,
+                                 const std::string& second, int total) = 0;
 
-    virtual void startGame() = 0;
+    virtual void startGame(const std::string& first, const std::string& second, int current,
+                           int total) = 0;
 
-    virtual void endGame() = 0;
+    virtual void endGame(const Stats& stats, const std::string& first, const std::string& second,
+                         const std::string& annotation, int id) = 0;
 
    protected:
+    std::string formatStats(const Stats& stats) {
+        if (stats.wins) {
+            return "1-0";
+        }
+        if (stats.losses) {
+            return "0-1";
+        }
+        return "1/2-1/2";
+    };
     // SPRT sprt_;
+
+    // class Cutechess : public Output {
+    //    public:
+    //     Cutechess(const SPRT& sprt) { sprt_ = sprt; };
+
+    //     void printElo(Tournament& tournament, std::string first, std::string second) override;
+
+    //     void startMatch(const EngineConfiguration& engine1_config,
+    //                     const EngineConfiguration& engine2_config, int round_id,
+    //                     int total_count) override;
+
+    //     void endMatch(Tournament& tournament, const MatchData& match_data, int, int round_id)
+    //     override;
 };
-
-// class Cutechess : public Output {
-//    public:
-//     Cutechess(const SPRT& sprt) { sprt_ = sprt; };
-
-//     void printElo(Tournament& tournament, std::string first, std::string second) override;
-
-//     void startMatch(const EngineConfiguration& engine1_config,
-//                     const EngineConfiguration& engine2_config, int round_id,
-//                     int total_count) override;
-
-//     void endMatch(Tournament& tournament, const MatchData& match_data, int, int round_id)
-//     override;
-// };
 
 }  // namespace fast_chess

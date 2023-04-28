@@ -48,6 +48,21 @@ class Match {
     /// @return
     [[nodiscard]] bool adjudicate(Participant& us, Participant& them);
 
+    [[nodiscard]] std::string convertChessReason(const std::string& engine_name,
+                                                 std::string_view reason);
+
+    inline static const std::string ADJUDICATION_MSG = "Draw by adjudication";
+    inline static const std::string ADJUDICATION_WIN_MSG = " wins by adjudication";
+    inline static const std::string ADJUDICATION_LOSE_MSG = " losses by adjudication";
+
+    inline static const std::string INSUFFICIENT_MSG = "Draw by insufficient material";
+    inline static const std::string REPETITION_MSG = "Draw by 3-fold repetition";
+    inline static const std::string FIFTY_MSG = "Draw by 50-move rule";
+    inline static const std::string TIMEOUT_MSG = /*.. */ " timed out";
+    inline static const std::string CHECKMATE_MSG = /*..*/ " got checkmated";
+    inline static const std::string STALEMATE_MSG = "Draw by stalemate";
+    inline static const std::string ILLEGAL_MSG = " made an illegal move";
+
     DrawTacker draw_tracker_;
     ResignTracker resign_tracker_;
 

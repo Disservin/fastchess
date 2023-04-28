@@ -131,7 +131,7 @@ constexpr GameResult operator~(GameResult gm) {
 
 static const std::string STARTPOS = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 static constexpr int MAX_SQ = 64;
-static constexpr int MAX_MOVES = 128;
+static constexpr int MAX_MOVES = 218;
 
 static constexpr U64 WK_CASTLE_MASK = (1ULL << SQ_F1) | (1ULL << SQ_G1);
 static constexpr U64 WQ_CASTLE_MASK = (1ULL << SQ_D1) | (1ULL << SQ_C1) | (1ULL << SQ_B1);

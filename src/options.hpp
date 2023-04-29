@@ -152,6 +152,10 @@ class Options {
     std::vector<EngineConfiguration> configs_;
 
     stats_map stats_;
+
+    /*previous olded values before config*/
+    GameManagerOptions old_game_options_;
+    std::vector<EngineConfiguration> old_configs_;
 };
 }  // namespace CMD
 

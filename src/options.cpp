@@ -119,6 +119,8 @@ Options::Options(int argc, char const *argv[]) {
                     loadJson(value);
                 } else if (key == "discard" && value == "true") {
                     Logger::cout("Discarding config file");
+                    game_options_ = old_game_options_;
+                    configs_ = old_configs_;
                     stats_.clear();
                 }
             });
@@ -248,6 +250,9 @@ void Options::loadJson(const std::string &filename) {
     std::cout << "Loading config file: " << filename << std::endl;
     std::ifstream f(filename);
     json jsonfile = json::parse(f);
+
+    old_configs_ = configs_;
+    old_game_options_ = game_options_;
 
     game_options_ = jsonfile.get<GameManagerOptions>();
 

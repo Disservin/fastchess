@@ -12,6 +12,8 @@ class PgnBuilder {
 
     std::string get() const { return pgn_.str() + "\n\n"; }
 
+    static constexpr int LINE_LENGTH = 80;
+
    private:
     template <typename T>
     void addHeader(const std::string &name, const T &value);
@@ -21,9 +23,9 @@ class PgnBuilder {
     template <typename First, typename... Args>
     static std::string addComment(First &&first, Args &&...args) {
         std::stringstream ss;
-        ss << " { " << std::forward<First>(first);
+        ss << " {" << std::forward<First>(first);
         ((ss << ", " << std::forward<Args>(args)), ...);
-        ss << " }";
+        ss << "}";
         return ss.str();
     }
 
@@ -35,9 +37,11 @@ class PgnBuilder {
 
     std::string getResultFromMatch(const MatchData &match) const;
 
-    std::stringstream pgn_;
     MatchData match_;
     CMD::GameManagerOptions game_options_;
+
+    std::stringstream pgn_;
+    std::vector<std::string> moves_;
 };
 
 }  // namespace fast_chess

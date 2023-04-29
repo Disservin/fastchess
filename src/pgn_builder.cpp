@@ -51,6 +51,21 @@ PgnBuilder::PgnBuilder(const MatchData &match, const CMD::GameManagerOptions &ga
 
         move_number++;
     }
+
+    pgn_ << "\n";
+
+    // create the pgn lines and assert that the line length is below 80 characters
+    // otherwise move the move onto the next line
+    std::size_t line_length = 0;
+    for (auto &move : moves_) {
+        assert(move.size() <= 80);
+        if (line_length + move.size() > LINE_LENGTH) {
+            pgn_ << "\n";
+            line_length = 0;
+        }
+        pgn_ << move;
+        line_length += move.size();
+    }
 }
 
 template <typename T>
@@ -59,9 +74,13 @@ void PgnBuilder::addHeader(const std::string &name, const T &value) {
 }
 
 void PgnBuilder::addMove(Chess::Board &board, const MoveData &move, std::size_t move_number) {
-    pgn_ << (move_number % 2 == 1 ? std::to_string(move_number / 2 + 1) + ". " : "")
-         << board.san(board.uciToMove(move.move)) << addComment(formatTime(move.elapsed_millis))
-         << " ";
+    std::stringstream ss;
+    ss << (move_number % 2 == 1 ? std::to_string(move_number / 2 + 1) + ". " : "")
+       << board.san(board.uciToMove(move.move))
+       << addComment((move.score_string + "/" + std::to_string(move.depth)),
+                     formatTime(move.elapsed_millis))
+       << " ";
+    moves_.emplace_back(ss.str());
 }
 
 std::string PgnBuilder::getResultFromMatch(const MatchData &match) const {

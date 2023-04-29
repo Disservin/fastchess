@@ -34,6 +34,15 @@ struct Stats {
         return stats;
     }
 
+    [[nodiscard]] bool operator==(const Stats &rhs) const {
+        return this->wins == rhs.wins && this->losses == rhs.losses && this->draws == rhs.draws &&
+               this->penta_WW == rhs.penta_WW && this->penta_WD == rhs.penta_WD &&
+               this->penta_WL == rhs.penta_WL && this->penta_DD == rhs.penta_DD &&
+               this->penta_LD == rhs.penta_LD && this->penta_LL == rhs.penta_LL;
+    }
+
+    [[nodiscard]] bool operator!=(const Stats &rhs) const { return !(*this == rhs); }
+
     [[nodiscard]] int sum() const { return wins + losses + draws; }
 
     int wins = 0;

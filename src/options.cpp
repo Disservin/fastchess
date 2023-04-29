@@ -9,7 +9,6 @@
 
 #include "helper.hpp"
 #include "logger.hpp"
-#include "third_party/json.hpp"
 
 namespace fast_chess {
 

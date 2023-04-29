@@ -70,16 +70,20 @@ PgnBuilder::PgnBuilder(const MatchData &match, const CMD::GameManagerOptions &ga
 
 template <typename T>
 void PgnBuilder::addHeader(const std::string &name, const T &value) {
+    if constexpr (std::is_same_v<T, std::string>) {
+        if (value.empty()) {
+            return;
+        }
+    }
     pgn_ << "[" << name << " \"" << value << "\"]\n";
 }
 
 void PgnBuilder::addMove(Chess::Board &board, const MoveData &move, std::size_t move_number) {
     std::stringstream ss;
-    ss << (move_number % 2 == 1 ? std::to_string(move_number / 2 + 1) + ". " : "")
+    ss << (move_number % 2 == 1 ? std::to_string(move_number / 2 + 1) + ". " : " ")
        << board.san(board.uciToMove(move.move))
        << addComment((move.score_string + "/" + std::to_string(move.depth)),
-                     formatTime(move.elapsed_millis))
-       << " ";
+                     formatTime(move.elapsed_millis));
     moves_.emplace_back(ss.str());
 }
 

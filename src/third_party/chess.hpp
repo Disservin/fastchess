@@ -767,7 +767,7 @@ constexpr Square fileRankSquare(File f, Rank r) {
 /// @param a
 /// @param b
 /// @return
-constexpr uint8_t squareDistance(Square a, Square b) {
+inline uint8_t squareDistance(Square a, Square b) {
     return std::max(std::abs(static_cast<int>(static_cast<int>(squareFile(a)) -
                                               static_cast<int>(squareFile(b)))),
                     std::abs(static_cast<int>(static_cast<int>(squareRank(a)) -
@@ -787,7 +787,7 @@ constexpr uint8_t antiDiagonalOf(Square sq) {
 /// @param sq1
 /// @param sq2
 /// @return
-constexpr uint8_t manhattenDistance(Square sq1, Square sq2) {
+inline uint8_t manhattenDistance(Square sq1, Square sq2) {
     return std::abs(static_cast<int>(static_cast<int>(squareFile(sq1)) -
                                      static_cast<int>(squareFile(sq2)))) +
            std::abs(static_cast<int>(static_cast<int>(squareRank(sq1)) -

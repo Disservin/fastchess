@@ -1402,7 +1402,7 @@ inline void Board::makeMove(const Move &move) {
 }
 
 inline void Board::unmakeMove(const Move &move) {
-    const auto &prev = prev_states_.back();
+    const auto prev = prev_states_.back();
     prev_states_.pop_back();
 
     enpassant_square_ = prev.enpassant;

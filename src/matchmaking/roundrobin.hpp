@@ -35,6 +35,8 @@ class RoundRobin {
     void createPairings(const EngineConfiguration &player1, const EngineConfiguration &player2,
                         int current);
 
+    bool sprt(const std::vector<EngineConfiguration> &engine_configs);
+
     std::tuple<bool, Stats, std::string> playGame(
         const std::pair<EngineConfiguration, EngineConfiguration> &configs, const std::string &fen,
         int round_id);

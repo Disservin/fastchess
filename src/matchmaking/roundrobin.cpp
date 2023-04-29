@@ -63,10 +63,8 @@ std::string RoundRobin::fetchNextFen() {
     return Chess::STARTPOS;
 }
 
-void RoundRobin::start(const std::vector<EngineConfiguration>& engine_configs) {
-    std::vector<std::future<void>> results;
-
-    create(engine_configs, results);
+bool RoundRobin::sprt(const std::vector<EngineConfiguration>& engine_configs) {
+    if (engine_configs.size() != 2 || !sprt_.isValid()) return false;
 
     while (engine_configs.size() == 2 && sprt_.isValid() && match_count_ < total_ &&
            !Atomic::stop) {
@@ -79,11 +77,20 @@ void RoundRobin::start(const std::vector<EngineConfiguration>& engine_configs) {
             Logger::cout("SPRT test finished: " + sprt_.getBounds() + " " + sprt_.getElo());
             output_->printElo(stats, engine_configs[0].name, engine_configs[1].name, match_count_);
             output_->endTournament();
-            return;
+            return true;
         }
 
         std::this_thread::sleep_for(std::chrono::microseconds(250));
     }
+    return true;
+}
+
+void RoundRobin::start(const std::vector<EngineConfiguration>& engine_configs) {
+    std::vector<std::future<void>> results;
+
+    create(engine_configs, results);
+
+    if (sprt(engine_configs)) return;
 
     while (!results.empty()) {
         Logger::cout("Waiting for " + std::to_string(results.size()) + " results to finish...");

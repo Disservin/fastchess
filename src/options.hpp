@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "engines/engine_config.hpp"
+#include "matchmaking/result.hpp"
 
 namespace fast_chess {
 
@@ -87,10 +88,10 @@ struct GameManagerOptions {
 
     bool report_penta = true;
 };
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(GameManagerOptions, event_name, site, seed,
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(GameManagerOptions, resign, draw, opening, pgn,
+                                                sprt, event_name, site, output, seed,
                                                 ratinginterval, games, rounds, concurrency,
-                                                overhead, recover, report_penta, resign, draw,
-                                                opening, pgn, sprt)
+                                                overhead, recover, report_penta)
 
 class Options {
    public:
@@ -100,6 +101,9 @@ class Options {
 
     [[nodiscard]] std::vector<EngineConfiguration> getEngineConfigs() const;
     [[nodiscard]] GameManagerOptions getGameOptions() const;
+
+    void saveJson(const stats_map &stats) const;
+    stats_map loadJson(const std::string &filename);
 
    private:
     [[nodiscard]] bool isEngineSettableOption(const std::string &stringFormat) const;

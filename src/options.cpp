@@ -230,6 +230,29 @@ std::vector<EngineConfiguration> Options::getEngineConfigs() const { return conf
 
 GameManagerOptions Options::getGameOptions() const { return game_options_; }
 
+void Options::saveJson(const stats_map &stats) const {
+    nlohmann::ordered_json jsonfile = game_options_;
+    jsonfile["engines"] = configs_;
+    jsonfile["stats"] = stats;
+
+    std::ofstream file("config.json");
+    file << std::setw(4) << jsonfile << std::endl;
+}
+
+stats_map Options::loadJson(const std::string &filename) {
+    std::cout << "Loading config file: " << filename << std::endl;
+    std::ifstream f(filename);
+    json jsonfile = json::parse(f);
+
+    game_options_ = jsonfile.get<GameManagerOptions>();
+
+    for (auto engine : jsonfile["engines"]) {
+        configs_.push_back(engine.get<EngineConfiguration>());
+    }
+
+    return jsonfile["stats"].get<stats_map>();
+}
+
 bool Options::isEngineSettableOption(const std::string &stringFormat) const {
     return startsWith(stringFormat, "option.");
 }

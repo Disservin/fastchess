@@ -1,3 +1,5 @@
+#pragma once
+
 #include <map>
 #include <mutex>
 #include <string>
@@ -5,6 +7,9 @@
 #include "./types/stats.hpp"
 
 namespace fast_chess {
+
+using stats_map = std::map<std::string, std::map<std::string, Stats>>;
+
 class Result {
    public:
     void updateStats(std::string_view engine1, std::string_view engine2, const Stats& stats) {
@@ -27,9 +32,14 @@ class Result {
         return stats1 + ~stats2;
     }
 
+    stats_map getResults() {
+        std::lock_guard<std::mutex> lock(results_mutex_);
+        return results_;
+    }
+
    private:
     /// @brief tracks the engine results
-    std::map<std::string, std::map<std::string, Stats>> results_;
+    stats_map results_;
     std::mutex results_mutex_;
 };
 

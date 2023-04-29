@@ -26,6 +26,8 @@ class RoundRobin {
         Logger::cout("Stopped round robin!");
     }
 
+    stats_map getResults() { return result_.getResults(); }
+
    private:
     void create(const std::vector<EngineConfiguration> &engine_configs,
                 std::vector<std::future<void>> &results);

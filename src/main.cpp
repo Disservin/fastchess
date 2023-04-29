@@ -29,6 +29,7 @@ BOOL WINAPI consoleHandler(DWORD signal) {
         case CTRL_SHUTDOWN_EVENT:
         case CTRL_C_EVENT:
             Tour->stop();
+            Options->saveJson(Tour->getResults());
             std::cout << "Saved results" << std::endl;
 
             return FALSE;
@@ -41,6 +42,8 @@ BOOL WINAPI consoleHandler(DWORD signal) {
 
 #else
 void sigintHandler(int param) {
+    Tour->stop();
+
     Options->saveJson(Tour->results());
 
     exit(param);
@@ -63,6 +66,7 @@ int main(int argc, char const *argv[]) {
         Tour = std::make_unique<Tournament>(Options->getGameOptions());
 
         Tour->start(Options->getEngineConfigs());
+        Options->saveJson(Tour->getResults());
 
         std::cout << "Saved results" << std::endl;
     } catch (const std::exception &e) {

@@ -133,7 +133,7 @@ Options::Options(int argc, char const *argv[]) {
         } else if (arg == "-output") {
             parseDashOptions(i, argc, argv, [&](std::string key, std::string value) {
                 if (key == "format") {
-                    game_options_.output = value;
+                    game_options_.output = getOutputType(value);
                     if (value == "cutechess") game_options_.report_penta = false;
                 } else {
                     coutMissingCommand("output", key, value);

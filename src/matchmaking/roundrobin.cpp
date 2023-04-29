@@ -4,12 +4,14 @@
 #include "../pgn_builder.hpp"
 #include "../rand.hpp"
 #include "../third_party/chess.hpp"
+#include "output/output_factory.hpp"
 
 namespace fast_chess {
 
 RoundRobin::RoundRobin(const CMD::GameManagerOptions& game_config) {
     this->game_config_ = game_config;
-    this->output_ = std::make_unique<Fastchess>();
+
+    this->output_ = getNewOutput(game_config_.output);
 
     const std::string filename =
         (game_config.pgn.file.empty() ? "fast-chess" : game_config.pgn.file) + ".pgn";
@@ -115,7 +117,7 @@ void RoundRobin::createPairings(const EngineConfiguration& player1,
                                 const EngineConfiguration& player2, int current) {
     std::pair<EngineConfiguration, EngineConfiguration> configs = {player1, player2};
 
-    if (Random::boolean() && game_config_.output == "cutechess") {
+    if (Random::boolean() && game_config_.output == OutputType::CUTECHESS) {
         std::swap(configs.first, configs.second);
     }
 

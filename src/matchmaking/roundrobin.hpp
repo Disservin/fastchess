@@ -4,7 +4,6 @@
 #include "../sprt.hpp"
 #include "file_writer.hpp"
 #include "match.hpp"
-#include "output/output_fastchess.hpp"
 #include "result.hpp"
 #include "threadpool.hpp"
 #include "types/stats.hpp"

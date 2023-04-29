@@ -6,9 +6,9 @@
 
 namespace fast_chess {
 
-class Fastchess : public Output {
+class Cutechess : public Output {
    public:
-    OutputType getType() const override { return OutputType::FASTCHESS; }
+    OutputType getType() const override { return OutputType::CUTECHESS; }
 
     void printInterval(const Stats& stats, const std::string& first, const std::string& second,
                        int total) override {

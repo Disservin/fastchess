@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "engines/engine_config.hpp"
+#include "matchmaking/output/output_factory.hpp"
 #include "matchmaking/result.hpp"
 
 namespace fast_chess {
@@ -71,7 +72,7 @@ struct GameManagerOptions {
     std::string site = "?";
 
     /// @brief output format, fastchess or cutechess
-    std::string output = "fastchess";
+    OutputType output = OutputType::FASTCHESS;
 
     uint32_t seed = 951356066;
 

@@ -1,60 +1,28 @@
 #pragma once
 
-#include <string>
-
-#include "../../options.hpp"
-#include "../../sprt.hpp"
-#include "../types/match_data.hpp"
-#include "../types/stats.hpp"
+#include "output_cutechess.hpp"
+#include "output_fastchess.hpp"
 
 namespace fast_chess {
+inline std::unique_ptr<Output> getNewOutput(OutputType type) {
+    switch (type) {
+        case OutputType::FASTCHESS:
+            return std::make_unique<Fastchess>();
+        case OutputType::CUTECHESS:
+            return std::make_unique<Cutechess>();
+        default:
+            return std::make_unique<Fastchess>();
+    }
+}
 
-class Tournament;  // forward declaration
-
-class Output {
-   public:
-    Output() = default;
-    virtual ~Output() = default;
-
-    virtual void printInterval(const Stats& stats, const std::string& first,
-                               const std::string& second, int total) = 0;
-
-    virtual std::string printElo(const Stats& stats, const std::string& first,
-                                 const std::string& second, int total) = 0;
-
-    virtual void startGame(const std::string& first, const std::string& second, int current,
-                           int total) = 0;
-
-    virtual void endGame(const Stats& stats, const std::string& first, const std::string& second,
-                         const std::string& annotation, int id) = 0;
-
-    virtual void endTournament();
-
-    static std::string formatStats(const Stats& stats) {
-        if (stats.wins) {
-            return "1-0";
-        }
-        if (stats.losses) {
-            return "0-1";
-        }
-        return "1/2-1/2";
-    };
-
-   protected:
-    // SPRT sprt_;
-
-    // class Cutechess : public Output {
-    //    public:
-    //     Cutechess(const SPRT& sprt) { sprt_ = sprt; };
-
-    //     void printElo(Tournament& tournament, std::string first, std::string second) override;
-
-    //     void startMatch(const EngineConfiguration& engine1_config,
-    //                     const EngineConfiguration& engine2_config, int round_id,
-    //                     int total_count) override;
-
-    //     void endMatch(Tournament& tournament, const MatchData& match_data, int, int round_id)
-    //     override;
-};
+inline OutputType getOutputType(const std::string& type) {
+    if (type == "fastchess") {
+        return OutputType::FASTCHESS;
+    }
+    if (type == "cutechess") {
+        return OutputType::CUTECHESS;
+    }
+    return OutputType::FASTCHESS;
+}
 
 }  // namespace fast_chess

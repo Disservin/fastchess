@@ -55,7 +55,8 @@ bool RoundRobin::sprt(const std::vector<EngineConfiguration>& engine_configs) {
             Atomic::stop = true;
 
             Logger::cout("SPRT test finished: " + sprt_.getBounds() + " " + sprt_.getElo());
-            output_->printElo(stats, engine_configs[0].name, engine_configs[1].name, match_count_);
+            std::cout << output_->printElo(stats, engine_configs[0].name, engine_configs[1].name,
+                                           match_count_);
             output_->endTournament();
             return true;
         }

@@ -18,29 +18,7 @@ RoundRobin::RoundRobin(const CMD::GameManagerOptions& game_config) {
 
     file_writer_.open(filename);
 
-    // Set the seed for the random number generator
-    Random::mersenne_rand.seed(game_config_.seed);
-
-    // Read the opening book from file
-    if (!game_config_.opening.file.empty()) {
-        std::ifstream openingFile;
-        std::string line;
-        openingFile.open(game_config_.opening.file);
-
-        while (std::getline(openingFile, line)) {
-            opening_book_.emplace_back(line);
-        }
-
-        openingFile.close();
-
-        if (game_config_.opening.order == "random") {
-            // Fisher-Yates / Knuth shuffle
-            for (std::size_t i = 0; i <= opening_book_.size() - 2; i++) {
-                std::size_t j = i + (Random::mersenne_rand() % (opening_book_.size() - i));
-                std::swap(opening_book_[i], opening_book_[j]);
-            }
-        }
-    }
+    setupOpeningBook();
 
     // Initialize the thread pool
     pool_.resize(game_config_.concurrency);
@@ -98,6 +76,34 @@ void RoundRobin::start(const std::vector<EngineConfiguration>& engine_configs) {
         Logger::cout("Waiting for " + std::to_string(results.size()) + " results to finish...");
         results.back().get();
         results.pop_back();
+    }
+}
+
+void RoundRobin::setupOpeningBook() {
+    // Set the seed for the random number generator
+    Random::mersenne_rand.seed(game_config_.seed);
+
+    // Read the opening book from file
+    if (game_config_.opening.file.empty()) {
+        return;
+    }
+
+    std::ifstream openingFile;
+    std::string line;
+    openingFile.open(game_config_.opening.file);
+
+    while (std::getline(openingFile, line)) {
+        opening_book_.emplace_back(line);
+    }
+
+    openingFile.close();
+
+    if (game_config_.opening.order == "random") {
+        // Fisher-Yates / Knuth shuffle
+        for (std::size_t i = 0; i <= opening_book_.size() - 2; i++) {
+            std::size_t j = i + (Random::mersenne_rand() % (opening_book_.size() - i));
+            std::swap(opening_book_[i], opening_book_[j]);
+        }
     }
 }
 

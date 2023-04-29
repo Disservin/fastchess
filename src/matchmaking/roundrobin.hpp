@@ -29,6 +29,8 @@ class RoundRobin {
     void setResults(const stats_map &results) { result_.setResults(results); }
 
    private:
+    void setupOpeningBook();
+
     void create(const std::vector<EngineConfiguration> &engine_configs,
                 std::vector<std::future<void>> &results);
 

@@ -14,6 +14,7 @@ using namespace Chess;
 Match::Match(const CMD::GameManagerOptions& game_config, const EngineConfiguration& engine1_config,
              const EngineConfiguration& engine2_config, const std::string& fen, int round) {
     game_config_ = game_config;
+    data_.round = round;
 
     Participant player_1 = Participant(engine1_config);
     Participant player_2 = Participant(engine2_config);
@@ -21,12 +22,35 @@ Match::Match(const CMD::GameManagerOptions& game_config, const EngineConfigurati
     player_1.engine_.startEngine(engine1_config.cmd);
     player_2.engine_.startEngine(engine2_config.cmd);
 
-    data_.round = round;
+    if (!player_1.engine_.sendUciNewGame()) {
+        throw std::runtime_error(player_1.engine_.getConfig().name + " failed to start.");
+    }
+
+    if (!player_2.engine_.sendUciNewGame()) {
+        throw std::runtime_error(player_2.engine_.getConfig().name + " failed to start.");
+    }
 
     start(player_1, player_2, fen);
 }
 
 MatchData Match::get() const { return data_; }
+
+void Match::verifyPv(const Participant& us) {
+    for (const auto& info : us.engine_.output()) {
+        const auto tokens = splitString(info, ' ');
+
+        if (!contains(tokens, "moves")) continue;
+
+        auto tmp = board_;
+        auto it = std::find(tokens.begin(), tokens.end(), "pv");
+        while (++it != tokens.end()) {
+            if (Movegen::isLegal<Chess::Move>(tmp, board_.uciToMove(*it))) {
+                Logger::cout("Warning: Illegal pv move ", *it);
+                break;
+            }
+        }
+    }
+}
 
 void Match::setDraw(Participant& us, Participant& them, const std::string& msg) {
     data_.termination = msg;
@@ -79,20 +103,7 @@ void Match::addMoveData(Participant& player, int64_t measured_time) {
     move_data.score_string = ss.str();
 
     // verify pv
-    for (const auto& info : player.engine_.output()) {
-        const auto tokens = splitString(info, ' ');
-
-        if (!contains(tokens, "moves")) continue;
-
-        auto tmp = board_;
-        auto it = std::find(tokens.begin(), tokens.end(), "pv");
-        while (++it != tokens.end()) {
-            if (Movegen::isLegal<Chess::Move>(tmp, board_.uciToMove(*it))) {
-                Logger::cout("Warning: Illegal pv move ", *it);
-                break;
-            }
-        }
-    }
+    verifyPv(player);
 
     data_.moves.push_back(move_data);
     played_moves_.push_back(best_move);
@@ -102,14 +113,6 @@ void Match::start(Participant& engine1, Participant& engine2, const std::string&
     Board board(fen);
 
     start_fen_ = board.getFen() == STARTPOS ? "startpos" : board.getFen();
-
-    if (!engine1.engine_.sendUciNewGame()) {
-        throw std::runtime_error(engine1.engine_.getConfig().name + " failed to start.");
-    }
-
-    if (!engine2.engine_.sendUciNewGame()) {
-        throw std::runtime_error(engine2.engine_.getConfig().name + " failed to start.");
-    }
 
     // copy time control which will be updated later
     engine1.time_control_ = engine1.engine_.getConfig().limit.tc;

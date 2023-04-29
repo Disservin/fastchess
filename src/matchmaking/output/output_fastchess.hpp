@@ -87,6 +87,8 @@ class Fastchess : public Output {
 
         std::cout << ss.str();
     }
+
+    virtual void endTournament() { std::cout << "Tournament finished" << std::endl; }
 };
 
 }  // namespace fast_chess

@@ -28,6 +28,8 @@ class Output {
     virtual void endGame(const Stats& stats, const std::string& first, const std::string& second,
                          const std::string& annotation, int id) = 0;
 
+    virtual void endTournament();
+
     static std::string formatStats(const Stats& stats) {
         if (stats.wins) {
             return "1-0";

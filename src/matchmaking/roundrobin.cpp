@@ -68,6 +68,23 @@ void RoundRobin::start(const std::vector<EngineConfiguration>& engine_configs) {
 
     create(engine_configs, results);
 
+    while (engine_configs.size() == 2 && sprt_.isValid() && match_count_ < total_ &&
+           !Atomic::stop) {
+        Stats stats = result_.getStats(engine_configs[0].name, engine_configs[1].name);
+        const double llr = sprt_.getLLR(stats.wins, stats.draws, stats.losses);
+
+        if (sprt_.getResult(llr) != SPRT_CONTINUE) {
+            Atomic::stop = true;
+
+            Logger::cout("SPRT test finished: " + sprt_.getBounds() + " " + sprt_.getElo());
+            output_->printElo(stats, engine_configs[0].name, engine_configs[1].name, match_count_);
+            output_->endTournament();
+            return;
+        }
+
+        std::this_thread::sleep_for(std::chrono::microseconds(250));
+    }
+
     while (!results.empty()) {
         Logger::cout("Waiting for " + std::to_string(results.size()) + " results to finish...");
         results.back().get();
@@ -104,12 +121,12 @@ void RoundRobin::createPairings(const EngineConfiguration& player1,
         auto [success, result, reason] = playGame(configs, fen, current * 2 + i);
         if (success) {
             stats += result;
-            total++;
+            total_++;
 
             if (!game_config_.report_penta) {
                 result_.updateStats(configs.first.name, configs.second.name, result);
                 output_->printInterval(result_.getStats(player1.name, player2.name), player1.name,
-                                       player2.name, total);
+                                       player2.name, total_);
             }
 
             std::swap(configs.first, configs.second);
@@ -128,7 +145,7 @@ void RoundRobin::createPairings(const EngineConfiguration& player1,
     if (game_config_.report_penta) {
         result_.updateStats(configs.first.name, configs.second.name, stats);
         output_->printInterval(result_.getStats(player1.name, player2.name), player1.name,
-                               player2.name, total);
+                               player2.name, total_);
     }
 }
 
@@ -138,15 +155,14 @@ std::tuple<bool, Stats, std::string> RoundRobin::playGame(
     Match match = Match(game_config_, configs.first, configs.second, fen, round_id);
     MatchData match_data = match.get();
 
-    auto stats = updateStats(match_data);
-
     PgnBuilder pgn_builder = PgnBuilder(match_data, game_config_);
 
     if (!Atomic::stop) {
         file_writer_.write(pgn_builder.get());
     }
 
-    return {true, stats, match_data.internal_reason};
+    match_count_++;
+    return {true, updateStats(match_data), match_data.internal_reason};
 }
 
 Stats RoundRobin::updateStats(const MatchData& match_data) {

@@ -4,7 +4,7 @@
 #include "output_fastchess.hpp"
 
 namespace fast_chess {
-inline std::unique_ptr<Output> getNewOutput(OutputType type) {
+[[nodiscard]] inline std::unique_ptr<Output> getNewOutput(OutputType type) {
     switch (type) {
         case OutputType::FASTCHESS:
             return std::make_unique<Fastchess>();
@@ -15,7 +15,7 @@ inline std::unique_ptr<Output> getNewOutput(OutputType type) {
     }
 }
 
-inline OutputType getOutputType(const std::string& type) {
+[[nodiscard]] inline OutputType getOutputType(const std::string& type) {
     if (type == "fastchess") {
         return OutputType::FASTCHESS;
     }

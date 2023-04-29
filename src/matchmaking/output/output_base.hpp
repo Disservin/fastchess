@@ -21,13 +21,13 @@ class Output {
     Output() = default;
     virtual ~Output() = default;
 
-    virtual OutputType getType() const;
+    [[nodiscard]] virtual OutputType getType() const = 0;
 
     virtual void printInterval(const Stats& stats, const std::string& first,
                                const std::string& second, int total) = 0;
 
-    virtual std::string printElo(const Stats& stats, const std::string& first,
-                                 const std::string& second, int total) = 0;
+    [[nodiscard]] virtual std::string printElo(const Stats& stats, const std::string& first,
+                                               const std::string& second, int total) = 0;
 
     virtual void startGame(const std::string& first, const std::string& second, int current,
                            int total) = 0;
@@ -35,9 +35,9 @@ class Output {
     virtual void endGame(const Stats& stats, const std::string& first, const std::string& second,
                          const std::string& annotation, int id) = 0;
 
-    virtual void endTournament();
+    virtual void endTournament() = 0;
 
-    static std::string formatStats(const Stats& stats) {
+    [[nodiscard]] static std::string formatStats(const Stats& stats) {
         if (stats.wins) {
             return "1-0";
         }

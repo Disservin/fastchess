@@ -13,9 +13,9 @@ class Tournament {
     void start(const std::vector<EngineConfiguration> &engine_configs);
     void stop() { round_robin_.stop(); }
 
-    stats_map getResults() { return round_robin_.getResults(); }
+    [[nodiscard]] stats_map getResults() { return round_robin_.getResults(); }
 
-    RoundRobin *roundRobin() { return &round_robin_; }
+    [[nodiscard]] RoundRobin *roundRobin() { return &round_robin_; }
 
    private:
     void validateEngines(const std::vector<EngineConfiguration> &configs);

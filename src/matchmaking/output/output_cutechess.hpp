@@ -8,15 +8,15 @@ namespace fast_chess {
 
 class Cutechess : public Output {
    public:
-    OutputType getType() const override { return OutputType::CUTECHESS; }
+    [[nodiscard]] OutputType getType() const override { return OutputType::CUTECHESS; }
 
     void printInterval(const Stats& stats, const std::string& first, const std::string& second,
                        int total) override {
         std::cout << printElo(stats, first, second, total);
     }
 
-    std::string printElo(const Stats& stats, const std::string& first, const std::string& second,
-                         int total) override {
+    [[nodiscard]] std::string printElo(const Stats& stats, const std::string& first,
+                                       const std::string& second, int total) override {
         Elo elo(stats.wins, stats.losses, stats.draws);
 
         // clang-format off

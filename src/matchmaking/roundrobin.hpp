@@ -25,7 +25,7 @@ class RoundRobin {
         Logger::cout("Stopped round robin!");
     }
 
-    stats_map getResults() { return result_.getResults(); }
+    [[nodiscard]] stats_map getResults() { return result_.getResults(); }
     void setResults(const stats_map &results) { result_.setResults(results); }
 
    private:
@@ -35,13 +35,13 @@ class RoundRobin {
     void createPairings(const EngineConfiguration &player1, const EngineConfiguration &player2,
                         int current);
 
-    bool sprt(const std::vector<EngineConfiguration> &engine_configs);
+    [[nodiscard]] bool sprt(const std::vector<EngineConfiguration> &engine_configs);
 
-    std::tuple<bool, Stats, std::string> playGame(
+    [[nodiscard]] std::tuple<bool, Stats, std::string> playGame(
         const std::pair<EngineConfiguration, EngineConfiguration> &configs, const std::string &fen,
         int round_id);
 
-    Stats updateStats(const MatchData &match_data);
+    [[nodiscard]] Stats updateStats(const MatchData &match_data);
 
     /// @brief fetches the next fen from a sequential read opening book or from a randomized
     /// opening book order

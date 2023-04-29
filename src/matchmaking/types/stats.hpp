@@ -34,7 +34,7 @@ struct Stats {
         return stats;
     }
 
-    int sum() const { return wins + losses + draws; }
+    [[nodiscard]] int sum() const { return wins + losses + draws; }
 
     int wins = 0;
     int losses = 0;

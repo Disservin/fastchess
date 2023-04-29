@@ -21,7 +21,7 @@ class Result {
     /// @param engine1
     /// @param engine2
     /// @return
-    Stats getStats(std::string_view engine1, std::string_view engine2) {
+    [[nodiscard]] Stats getStats(std::string_view engine1, std::string_view engine2) {
         std::lock_guard<std::mutex> lock(results_mutex_);
 
         auto stats1 = results_[std::string(engine1)][std::string(engine2)];
@@ -32,7 +32,7 @@ class Result {
         return stats1 + ~stats2;
     }
 
-    stats_map getResults() {
+    [[nodiscard]] stats_map getResults() {
         std::lock_guard<std::mutex> lock(results_mutex_);
         return results_;
     }

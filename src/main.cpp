@@ -43,8 +43,8 @@ BOOL WINAPI consoleHandler(DWORD signal) {
 #else
 void sigintHandler(int param) {
     Tour->stop();
-
-    Options->saveJson(Tour->results());
+    Options->saveJson(Tour->getResults());
+    std::cout << "Saved results" << std::endl;
 
     exit(param);
 }

@@ -15,14 +15,16 @@ class Tournament {
 
     stats_map getResults() { return round_robin_.getResults(); }
 
+    RoundRobin *roundRobin() { return &round_robin_; }
+
    private:
     void validateEngines(const std::vector<EngineConfiguration> &configs);
 
     RoundRobin round_robin_;
 
-    CMD::GameManagerOptions game_config_ = {};
+    CMD::GameManagerOptions game_config_;
 
-    size_t engine_count_ = 0;
+    size_t engine_count_;
 };
 
 }  // namespace fast_chess

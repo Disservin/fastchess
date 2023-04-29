@@ -37,6 +37,11 @@ class Result {
         return results_;
     }
 
+    void setResults(const stats_map& results) {
+        std::lock_guard<std::mutex> lock(results_mutex_);
+        results_ = results;
+    }
+
    private:
     /// @brief tracks the engine results
     stats_map results_;

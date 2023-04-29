@@ -65,6 +65,7 @@ int main(int argc, char const *argv[]) {
         Options = std::make_unique<CMD::Options>(argc, argv);
         Tour = std::make_unique<Tournament>(Options->getGameOptions());
 
+        Tour->roundRobin()->setResults(Options->getResults());
         Tour->start(Options->getEngineConfigs());
         Options->saveJson(Tour->getResults());
 

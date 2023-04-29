@@ -27,6 +27,7 @@ class RoundRobin {
     }
 
     stats_map getResults() { return result_.getResults(); }
+    void setResults(const stats_map &results) { result_.setResults(results); }
 
    private:
     void create(const std::vector<EngineConfiguration> &engine_configs,

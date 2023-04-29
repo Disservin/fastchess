@@ -103,9 +103,11 @@ class Options {
     [[nodiscard]] GameManagerOptions getGameOptions() const;
 
     void saveJson(const stats_map &stats) const;
-    stats_map loadJson(const std::string &filename);
+    stats_map getResults() const { return stats_; }
 
    private:
+    void loadJson(const std::string &filename);
+
     [[nodiscard]] bool isEngineSettableOption(const std::string &stringFormat) const;
 
     [[nodiscard]] TimeControl parseTc(const std::string &tcString) const;
@@ -147,6 +149,8 @@ class Options {
 
     // Holds all the engines with their options
     std::vector<EngineConfiguration> configs_;
+
+    stats_map stats_;
 };
 }  // namespace CMD
 

@@ -115,7 +115,12 @@ Options::Options(int argc, char const *argv[]) {
             });
         } else if (arg == "-config") {
             parseDashOptions(i, argc, argv, [&](std::string key, std::string value) {
-
+                if (key == "file") {
+                    loadJson(value);
+                } else if (key == "discard" && value == "true") {
+                    Logger::cout("Discarding config file");
+                    stats_.clear();
+                }
             });
         } else if (arg == "-report") {
             parseDashOptions(i, argc, argv, [&](std::string key, std::string value) {
@@ -239,18 +244,20 @@ void Options::saveJson(const stats_map &stats) const {
     file << std::setw(4) << jsonfile << std::endl;
 }
 
-stats_map Options::loadJson(const std::string &filename) {
+void Options::loadJson(const std::string &filename) {
     std::cout << "Loading config file: " << filename << std::endl;
     std::ifstream f(filename);
     json jsonfile = json::parse(f);
 
     game_options_ = jsonfile.get<GameManagerOptions>();
 
+    configs_.clear();
+
     for (auto engine : jsonfile["engines"]) {
         configs_.push_back(engine.get<EngineConfiguration>());
     }
 
-    return jsonfile["stats"].get<stats_map>();
+    stats_ = jsonfile["stats"].get<stats_map>();
 }
 
 bool Options::isEngineSettableOption(const std::string &stringFormat) const {

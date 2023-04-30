@@ -65,7 +65,7 @@ class RoundRobin {
     /// @brief StrUtil::contains all opening fens
     std::vector<std::string> opening_book_;
 
-    std::atomic<uint64_t> total_ = 0;
     std::atomic<uint64_t> match_count_ = 0;
+    std::atomic<uint64_t> total_ = 0;
 };
 }  // namespace fast_chess

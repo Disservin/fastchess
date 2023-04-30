@@ -46,6 +46,8 @@ std::string RoundRobin::fetchNextFen() {
 bool RoundRobin::sprt(const std::vector<EngineConfiguration>& engine_configs) {
     if (engine_configs.size() != 2 || !sprt_.isValid()) return false;
 
+    Logger::cout("SPRT test started: " + sprt_.getBounds() + " " + sprt_.getElo());
+
     while (engine_configs.size() == 2 && sprt_.isValid() && match_count_ < total_ &&
            !Atomic::stop) {
         Stats stats = result_.getStats(engine_configs[0].name, engine_configs[1].name);
@@ -63,6 +65,10 @@ bool RoundRobin::sprt(const std::vector<EngineConfiguration>& engine_configs) {
 
         std::this_thread::sleep_for(std::chrono::microseconds(250));
     }
+
+    Logger::cout("SPRT test skipped", engine_configs.size() == 2, sprt_.isValid(), match_count_,
+                 total_, !Atomic::stop);
+
     return true;
 }
 
@@ -110,6 +116,8 @@ void RoundRobin::setupOpeningBook() {
 
 void RoundRobin::create(const std::vector<EngineConfiguration>& engine_configs,
                         std::vector<std::future<void>>& results) {
+    total_ = (engine_configs.size() * (engine_configs.size() - 1) / 2) * game_config_.rounds *
+             game_config_.games;
     for (std::size_t i = 0; i < engine_configs.size(); i++) {
         for (std::size_t j = i + 1; j < engine_configs.size(); j++) {
             for (int k = 0; k < game_config_.rounds; k++) {
@@ -137,12 +145,12 @@ void RoundRobin::createPairings(const EngineConfiguration& player1,
         auto [success, result, reason] = playGame(configs, fen, current * 2 + i);
         if (success) {
             stats += result;
-            total_++;
+            match_count_++;
 
             if (!game_config_.report_penta) {
                 result_.updateStats(configs.first.name, configs.second.name, result);
                 output_->printInterval(result_.getStats(player1.name, player2.name), player1.name,
-                                       player2.name, total_);
+                                       player2.name, match_count_);
             }
 
             std::swap(configs.first, configs.second);
@@ -161,7 +169,7 @@ void RoundRobin::createPairings(const EngineConfiguration& player1,
     if (game_config_.report_penta) {
         result_.updateStats(configs.first.name, configs.second.name, stats);
         output_->printInterval(result_.getStats(player1.name, player2.name), player1.name,
-                               player2.name, total_);
+                               player2.name, match_count_);
     }
 }
 
@@ -177,7 +185,6 @@ std::tuple<bool, Stats, std::string> RoundRobin::playGame(
         file_writer_.write(pgn_builder.get());
     }
 
-    match_count_++;
     return {true, updateStats(match_data), match_data.internal_reason};
 }
 

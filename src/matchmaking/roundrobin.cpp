@@ -20,7 +20,7 @@ RoundRobin::RoundRobin(const CMD::GameManagerOptions& game_config) {
 
     setupOpeningBook();
 
-    // Initialize the thread pool
+    // Resize the thread pool
     pool_.resize(game_config_.concurrency);
 
     // Initialize the SPRT test
@@ -148,12 +148,8 @@ void RoundRobin::createPairings(const EngineConfiguration& player1,
 
             result_.updateStats(configs.first.name, configs.second.name, result);
 
-            if (!game_config_.report_penta) {
-                output_->printInterval(result_.getStats(player1.name, player2.name), player1.name,
-                                       player2.name, match_count_);
-            }
-
-            output_->printSprt(sprt_, result_.getStats(player1.name, player2.name));
+            output_->printInterval(sprt_, result_.getStats(player1.name, player2.name),
+                                   player1.name, player2.name, match_count_);
 
             std::swap(configs.first, configs.second);
         }
@@ -167,11 +163,6 @@ void RoundRobin::createPairings(const EngineConfiguration& player1,
     stats.penta_DD += stats.draws == 2;
     stats.penta_LD += stats.losses == 1 && stats.draws == 1;
     stats.penta_LL += stats.losses == 2;
-
-    if (game_config_.report_penta) {
-        output_->printInterval(result_.getStats(player1.name, player2.name), player1.name,
-                               player2.name, match_count_);
-    }
 }
 
 std::tuple<bool, Stats, std::string> RoundRobin::playGame(

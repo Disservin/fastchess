@@ -146,10 +146,11 @@ void RoundRobin::createPairings(const EngineConfiguration& player1,
             stats += result;
             match_count_++;
 
-            result_.updateStats(configs.first.name, configs.second.name, result);
-
-            output_->printInterval(sprt_, result_.getStats(player1.name, player2.name),
-                                   player1.name, player2.name, match_count_);
+            if (!game_config_.report_penta) {
+                result_.updateStats(configs.first.name, configs.second.name, result);
+                output_->printInterval(sprt_, result_.getStats(player1.name, player2.name),
+                                       player1.name, player2.name, match_count_);
+            }
 
             std::swap(configs.first, configs.second);
         }
@@ -163,6 +164,12 @@ void RoundRobin::createPairings(const EngineConfiguration& player1,
     stats.penta_DD += stats.draws == 2;
     stats.penta_LD += stats.losses == 1 && stats.draws == 1;
     stats.penta_LL += stats.losses == 2;
+
+    if (game_config_.report_penta) {
+        result_.updateStats(configs.first.name, configs.second.name, stats);
+        output_->printInterval(sprt_, result_.getStats(player1.name, player2.name), player1.name,
+                               player2.name, match_count_);
+    }
 }
 
 std::tuple<bool, Stats, std::string> RoundRobin::playGame(

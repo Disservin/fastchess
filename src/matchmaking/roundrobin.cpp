@@ -57,8 +57,7 @@ bool RoundRobin::sprt(const std::vector<EngineConfiguration>& engine_configs) {
             Atomic::stop = true;
 
             Logger::cout("SPRT test finished: " + sprt_.getBounds() + " " + sprt_.getElo());
-            std::cout << output_->printElo(stats, engine_configs[0].name, engine_configs[1].name,
-                                           match_count_);
+            output_->printElo(stats, engine_configs[0].name, engine_configs[1].name, match_count_);
             output_->endTournament();
             return true;
         }
@@ -147,11 +146,14 @@ void RoundRobin::createPairings(const EngineConfiguration& player1,
             stats += result;
             match_count_++;
 
+            result_.updateStats(configs.first.name, configs.second.name, result);
+
             if (!game_config_.report_penta) {
-                result_.updateStats(configs.first.name, configs.second.name, result);
                 output_->printInterval(result_.getStats(player1.name, player2.name), player1.name,
                                        player2.name, match_count_);
             }
+
+            output_->printSprt(sprt_, result_.getStats(player1.name, player2.name));
 
             std::swap(configs.first, configs.second);
         }
@@ -167,7 +169,6 @@ void RoundRobin::createPairings(const EngineConfiguration& player1,
     stats.penta_LL += stats.losses == 2;
 
     if (game_config_.report_penta) {
-        result_.updateStats(configs.first.name, configs.second.name, stats);
         output_->printInterval(result_.getStats(player1.name, player2.name), player1.name,
                                player2.name, match_count_);
     }

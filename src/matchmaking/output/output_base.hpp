@@ -26,8 +26,10 @@ class Output {
     virtual void printInterval(const Stats& stats, const std::string& first,
                                const std::string& second, int total) = 0;
 
-    [[nodiscard]] virtual std::string printElo(const Stats& stats, const std::string& first,
-                                               const std::string& second, int total) = 0;
+    virtual void printElo(const Stats& stats, const std::string& first, const std::string& second,
+                          int total) = 0;
+
+    virtual void printSprt(const SPRT& sprt, const Stats& stats) = 0;
 
     virtual void startGame(const std::string& first, const std::string& second, int current,
                            int total) = 0;

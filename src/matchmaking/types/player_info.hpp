@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../../engines/engine_config.hpp"
-#include "../../third_party/chess.hpp"
+#include <engines/engine_config.hpp>
+#include <third_party/chess.hpp>
 
 namespace fast_chess {
 

@@ -1,4 +1,4 @@
-#include "elo.hpp"
+#include <elo.hpp>
 
 #include <cmath>
 #include <iomanip>

@@ -4,7 +4,7 @@
 #include <mutex>
 #include <string>
 
-#include "./types/stats.hpp"
+#include <matchmaking/types/stats.hpp>
 
 namespace fast_chess {
 

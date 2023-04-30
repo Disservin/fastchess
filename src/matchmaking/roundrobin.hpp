@@ -1,12 +1,12 @@
 #pragma once
 
-#include "../options.hpp"
-#include "../sprt.hpp"
-#include "file_writer.hpp"
-#include "match.hpp"
-#include "result.hpp"
-#include "threadpool.hpp"
-#include "types/stats.hpp"
+#include <matchmaking/file_writer.hpp>
+#include <matchmaking/match.hpp>
+#include <matchmaking/result.hpp>
+#include <matchmaking/threadpool.hpp>
+#include <matchmaking/types/stats.hpp>
+#include <options.hpp>
+#include <sprt.hpp>
 
 namespace fast_chess {
 

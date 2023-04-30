@@ -1,11 +1,11 @@
-#include "sprt.hpp"
+#include <sprt.hpp>
 
 #include <cmath>
 #include <iomanip>
 #include <iostream>
 #include <sstream>
 
-#include "logger.hpp"
+#include <logger.hpp>
 
 namespace fast_chess {
 

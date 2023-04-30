@@ -5,7 +5,7 @@
 #include <tuple>
 #include <vector>
 
-#include "../helper.hpp"
+#include <helper.hpp>
 
 namespace fast_chess {
 

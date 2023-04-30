@@ -1,6 +1,7 @@
 #pragma once
 
-#include "../../helper.hpp"
+#include <helper.hpp>
+
 namespace fast_chess {
 
 struct Stats {

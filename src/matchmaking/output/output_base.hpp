@@ -2,10 +2,10 @@
 
 #include <string>
 
-#include "../../options.hpp"
-#include "../../sprt.hpp"
-#include "../types/match_data.hpp"
-#include "../types/stats.hpp"
+#include <options.hpp>
+#include <sprt.hpp>
+#include <matchmaking/types/match_data.hpp>
+#include <matchmaking/types/stats.hpp>
 
 namespace fast_chess {
 

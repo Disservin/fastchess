@@ -1,7 +1,7 @@
-#include "match.hpp"
+#include <matchmaking/match.hpp>
 
-#include "../helper.hpp"
-#include "../logger.hpp"
+#include <helper.hpp>
+#include <logger.hpp>
 
 namespace fast_chess {
 

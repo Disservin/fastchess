@@ -1,4 +1,4 @@
-#include "../src/pgn_builder.hpp"
+#include <pgn_builder.hpp>
 
 #include <cassert>
 #include <chrono>

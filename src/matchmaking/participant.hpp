@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../engines/uci_engine.hpp"
-#include "./types/player_info.hpp"
+#include <engines/uci_engine.hpp>
+#include <matchmaking/types/player_info.hpp>
 
 namespace fast_chess {
 

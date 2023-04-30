@@ -1,4 +1,4 @@
-#include "../src/matchmaking/result.hpp"
+#include <matchmaking/result.hpp>
 
 #include <cassert>
 #include <chrono>

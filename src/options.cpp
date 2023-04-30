@@ -1,4 +1,4 @@
-#include "options.hpp"
+#include <options.hpp>
 
 #include <algorithm>
 #include <limits>
@@ -7,8 +7,8 @@
 #include <type_traits>
 #include <unordered_map>
 
-#include "helper.hpp"
-#include "logger.hpp"
+#include <helper.hpp>
+#include <logger.hpp>
 
 namespace fast_chess {
 

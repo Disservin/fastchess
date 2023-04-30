@@ -1,6 +1,6 @@
+#include <helper.hpp>
+
 #include "doctest/doctest.hpp"
-#include "helper.hpp"
-#include "options.hpp"
 
 using namespace fast_chess;
 

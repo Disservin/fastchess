@@ -3,9 +3,9 @@
 #include <iostream>
 #include <thread>
 
-#include "engines/uci_engine.hpp"
-#include "matchmaking/tournament.hpp"
-#include "options.hpp"
+#include <engines/uci_engine.hpp>
+#include <matchmaking/tournament.hpp>
+#include <options.hpp>
 
 namespace fast_chess {
 namespace Atomic {

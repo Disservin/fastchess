@@ -1,7 +1,7 @@
 #pragma once
 
-#include "output_cutechess.hpp"
-#include "output_fastchess.hpp"
+#include <matchmaking/output/output_cutechess.hpp>
+#include <matchmaking/output/output_fastchess.hpp>
 
 namespace fast_chess {
 [[nodiscard]] inline std::unique_ptr<Output> getNewOutput(OutputType type) {

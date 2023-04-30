@@ -28,63 +28,6 @@ RoundRobin::RoundRobin(const CMD::GameManagerOptions& game_config) {
                  game_config_.sprt.elo1);
 }
 
-std::string RoundRobin::fetchNextFen() {
-    static uint64_t fen_index_ = 0;
-
-    if (opening_book_.size() == 0) {
-        return Chess::STARTPOS;
-    } else if (game_config_.opening.format == "pgn") {
-        // TODO implementation
-        throw std::runtime_error("PGN opening book not implemented yet");
-    } else if (game_config_.opening.format == "epd") {
-        return opening_book_[(game_config_.opening.start + fen_index_++) % opening_book_.size()];
-    }
-
-    return Chess::STARTPOS;
-}
-
-bool RoundRobin::sprt(const std::vector<EngineConfiguration>& engine_configs) {
-    if (engine_configs.size() != 2 || !sprt_.isValid()) return false;
-
-    Logger::cout("SPRT test started: " + sprt_.getBounds() + " " + sprt_.getElo());
-
-    while (engine_configs.size() == 2 && sprt_.isValid() && match_count_ < total_ &&
-           !Atomic::stop) {
-        Stats stats = result_.getStats(engine_configs[0].name, engine_configs[1].name);
-        const double llr = sprt_.getLLR(stats.wins, stats.draws, stats.losses);
-
-        if (sprt_.getResult(llr) != SPRT_CONTINUE) {
-            Atomic::stop = true;
-
-            Logger::cout("SPRT test finished: " + sprt_.getBounds() + " " + sprt_.getElo());
-            output_->printElo(stats, engine_configs[0].name, engine_configs[1].name, match_count_);
-            output_->endTournament();
-            return true;
-        }
-
-        std::this_thread::sleep_for(std::chrono::microseconds(250));
-    }
-
-    Logger::cout("SPRT test skipped", engine_configs.size() == 2, sprt_.isValid(), match_count_,
-                 total_, !Atomic::stop);
-
-    return true;
-}
-
-void RoundRobin::start(const std::vector<EngineConfiguration>& engine_configs) {
-    std::vector<std::future<void>> results;
-
-    create(engine_configs, results);
-
-    if (sprt(engine_configs)) return;
-
-    while (!results.empty()) {
-        Logger::cout("Waiting for " + std::to_string(results.size()) + " results to finish...");
-        results.back().get();
-        results.pop_back();
-    }
-}
-
 void RoundRobin::setupOpeningBook() {
     // Set the seed for the random number generator
     Random::mersenne_rand.seed(game_config_.seed);
@@ -113,6 +56,20 @@ void RoundRobin::setupOpeningBook() {
     }
 }
 
+void RoundRobin::start(const std::vector<EngineConfiguration>& engine_configs) {
+    std::vector<std::future<void>> results;
+
+    create(engine_configs, results);
+
+    if (sprt(engine_configs)) return;
+
+    while (!results.empty()) {
+        Logger::cout("Waiting for " + std::to_string(results.size()) + " results to finish...");
+        results.back().get();
+        results.pop_back();
+    }
+}
+
 void RoundRobin::create(const std::vector<EngineConfiguration>& engine_configs,
                         std::vector<std::future<void>>& results) {
     total_ = (engine_configs.size() * (engine_configs.size() - 1) / 2) * game_config_.rounds *
@@ -125,6 +82,34 @@ void RoundRobin::create(const std::vector<EngineConfiguration>& engine_configs,
             }
         }
     }
+}
+
+bool RoundRobin::sprt(const std::vector<EngineConfiguration>& engine_configs) {
+    if (engine_configs.size() != 2 || !sprt_.isValid()) return false;
+
+    Logger::cout("SPRT test started: " + sprt_.getBounds() + " " + sprt_.getElo());
+
+    while (engine_configs.size() == 2 && sprt_.isValid() && match_count_ < total_ &&
+           !Atomic::stop) {
+        Stats stats = result_.getStats(engine_configs[0].name, engine_configs[1].name);
+        const double llr = sprt_.getLLR(stats.wins, stats.draws, stats.losses);
+
+        if (sprt_.getResult(llr) != SPRT_CONTINUE) {
+            Atomic::stop = true;
+
+            Logger::cout("SPRT test finished: " + sprt_.getBounds() + " " + sprt_.getElo());
+            output_->printElo(stats, engine_configs[0].name, engine_configs[1].name, match_count_);
+            output_->endTournament();
+            return true;
+        }
+
+        std::this_thread::sleep_for(std::chrono::microseconds(250));
+    }
+
+    Logger::cout("SPRT test skipped", engine_configs.size() == 2, sprt_.isValid(), match_count_,
+                 total_, !Atomic::stop);
+
+    return true;
 }
 
 void RoundRobin::createPairings(const EngineConfiguration& player1,
@@ -199,6 +184,21 @@ Stats RoundRobin::updateStats(const MatchData& match_data) {
     }
 
     return stats;
+}
+
+std::string RoundRobin::fetchNextFen() {
+    static uint64_t fen_index_ = 0;
+
+    if (opening_book_.size() == 0) {
+        return Chess::STARTPOS;
+    } else if (game_config_.opening.format == "pgn") {
+        // TODO implementation
+        throw std::runtime_error("PGN opening book not implemented yet");
+    } else if (game_config_.opening.format == "epd") {
+        return opening_book_[(game_config_.opening.start + fen_index_++) % opening_book_.size()];
+    }
+
+    return Chess::STARTPOS;
 }
 
 }  // namespace fast_chess

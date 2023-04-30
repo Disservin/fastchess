@@ -34,15 +34,18 @@ class RoundRobin {
     void create(const std::vector<EngineConfiguration> &engine_configs,
                 std::vector<std::future<void>> &results);
 
+    [[nodiscard]] bool sprt(const std::vector<EngineConfiguration> &engine_configs);
+
     void createPairings(const EngineConfiguration &player1, const EngineConfiguration &player2,
                         int current);
-
-    [[nodiscard]] bool sprt(const std::vector<EngineConfiguration> &engine_configs);
 
     [[nodiscard]] std::tuple<bool, Stats, std::string> playGame(
         const std::pair<EngineConfiguration, EngineConfiguration> &configs, const std::string &fen,
         int round_id);
 
+    /// @brief create the Stats object from the match data
+    /// @param match_data
+    /// @return
     [[nodiscard]] Stats updateStats(const MatchData &match_data);
 
     /// @brief fetches the next fen from a sequential read opening book or from a randomized

@@ -37,9 +37,9 @@ MatchData Match::get() const { return data_; }
 
 void Match::verifyPv(const Participant& us) {
     for (const auto& info : us.engine_.output()) {
-        const auto tokens = splitString(info, ' ');
+        const auto tokens = StrUtil::splitString(info, ' ');
 
-        if (!contains(tokens, "moves")) continue;
+        if (!StrUtil::contains(tokens, "moves")) continue;
 
         auto tmp = board_;
         auto it = std::find(tokens.begin(), tokens.end(), "pv");
@@ -84,9 +84,9 @@ void Match::addMoveData(Participant& player, int64_t measured_time) {
     const auto score_type = player.engine_.lastScoreType();
     const auto info = player.engine_.lastInfo();
 
-    move_data.depth = findElement<int>(info, "depth").value_or(0);
-    move_data.seldepth = findElement<int>(info, "seldepth").value_or(0);
-    move_data.nodes = findElement<uint64_t>(info, "nodes").value_or(0);
+    move_data.depth = StrUtil::findElement<int>(info, "depth").value_or(0);
+    move_data.seldepth = StrUtil::findElement<int>(info, "seldepth").value_or(0);
+    move_data.nodes = StrUtil::findElement<uint64_t>(info, "nodes").value_or(0);
     move_data.score = player.engine_.lastScore();
 
     // Missing elements default to 0

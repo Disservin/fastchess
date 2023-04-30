@@ -62,7 +62,7 @@ class RoundRobin {
 
     FileWriter file_writer_;
 
-    /// @brief contains all opening fens
+    /// @brief StrUtil::contains all opening fens
     std::vector<std::string> opening_book_;
 
     std::atomic<uint64_t> total_ = 0;

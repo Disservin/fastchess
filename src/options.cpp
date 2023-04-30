@@ -175,17 +175,17 @@ TimeControl Options::parseTc(const std::string &tcString) const {
     TimeControl tc;
 
     std::string remainingStringVector = tcString;
-    const bool has_moves = contains(tcString, "/");
-    const bool has_inc = contains(tcString, "+");
+    const bool has_moves = StrUtil::contains(tcString, "/");
+    const bool has_inc = StrUtil::contains(tcString, "+");
 
     if (has_moves) {
-        const auto moves = splitString(tcString, '/');
+        const auto moves = StrUtil::splitString(tcString, '/');
         tc.moves = std::stoi(moves[0]);
         remainingStringVector = moves[1];
     }
 
     if (has_inc) {
-        const auto moves = splitString(remainingStringVector, '+');
+        const auto moves = StrUtil::splitString(remainingStringVector, '+');
         tc.increment = std::stod(moves[1].c_str()) * 1000;
         remainingStringVector = moves[0];
     }
@@ -265,7 +265,7 @@ void Options::loadJson(const std::string &filename) {
 }
 
 bool Options::isEngineSettableOption(const std::string &stringFormat) const {
-    return startsWith(stringFormat, "option.");
+    return StrUtil::startsWith(stringFormat, "option.");
 }
 
 void Options::printVersion(int &i) const {

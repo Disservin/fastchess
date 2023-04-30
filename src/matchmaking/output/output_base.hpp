@@ -24,15 +24,15 @@ class Output {
     [[nodiscard]] virtual OutputType getType() const = 0;
 
     virtual void printInterval(const Stats& stats, const std::string& first,
-                               const std::string& second, int total) = 0;
+                               const std::string& second, int current_game_count) = 0;
 
     virtual void printElo(const Stats& stats, const std::string& first, const std::string& second,
-                          int total) = 0;
+                          int current_game_count) = 0;
 
     virtual void printSprt(const SPRT& sprt, const Stats& stats) = 0;
 
-    virtual void startGame(const std::string& first, const std::string& second, int current,
-                           int total) = 0;
+    virtual void startGame(const std::string& first, const std::string& second,
+                           int current_game_count, int max_game_count) = 0;
 
     virtual void endGame(const Stats& stats, const std::string& first, const std::string& second,
                          const std::string& annotation, int id) = 0;

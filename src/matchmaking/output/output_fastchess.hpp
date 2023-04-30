@@ -11,12 +11,12 @@ class Fastchess : public Output {
     [[nodiscard]] OutputType getType() const override { return OutputType::FASTCHESS; }
 
     void printInterval(const Stats& stats, const std::string& first, const std::string& second,
-                       int total) override {
-        printElo(stats, first, second, total);
+                       int current_game_count) override {
+        printElo(stats, first, second, current_game_count);
     }
 
     void printElo(const Stats& stats, const std::string& first, const std::string& second,
-                  int total) override {
+                  int current_game_count) override {
         Elo elo(stats.wins, stats.losses, stats.draws);
 
         // clang-format off
@@ -32,7 +32,7 @@ class Fastchess : public Output {
             << " - " 
             << stats.draws 
             << " [] " 
-            << total
+            << current_game_count
             << "\n";
         
         ss  << "Elo difference: " 
@@ -59,12 +59,12 @@ class Fastchess : public Output {
         }
     };
 
-    void printPenta(const Stats& stats, int rounds, int total) {
+    void printPenta(const Stats& stats, int rounds, int current_game_count) {
         std::stringstream ss;
 
         ss << rounds << " rounds: " << stats.wins << " - " << stats.losses << " - " << stats.draws
            << " (" << std::fixed << std::setprecision(2)
-           << (float(stats.wins) + (float(stats.draws) * 0.5)) / total << ")\n"
+           << (float(stats.wins) + (float(stats.draws) * 0.5)) / current_game_count << ")\n"
            << "Ptnml:   " << std::right << std::setw(7) << "WW" << std::right << std::setw(7)
            << "WD" << std::right << std::setw(7) << "DD/WL" << std::right << std::setw(7) << "LD"
            << std::right << std::setw(7) << "LL"
@@ -76,15 +76,15 @@ class Fastchess : public Output {
         std::cout << ss.str();
     }
 
-    void startGame(const std::string& first, const std::string& second, int current,
-                   int total) override {
+    void startGame(const std::string& first, const std::string& second, int current_game_count,
+                   int max_game_count) override {
         std::stringstream ss;
 
         // clang-format off
         ss << "Started game "
-           << current
+           << current_game_count
            << " of "
-           << total
+           << max_game_count
            << " ("
            << first
            << " vs "

@@ -11,12 +11,12 @@ class Cutechess : public Output {
     [[nodiscard]] OutputType getType() const override { return OutputType::CUTECHESS; }
 
     void printInterval(const Stats& stats, const std::string& first, const std::string& second,
-                       int total) override {
-        printElo(stats, first, second, total);
+                       int current_game_count) override {
+        printElo(stats, first, second, current_game_count);
     }
 
     void printElo(const Stats& stats, const std::string& first, const std::string& second,
-                  int total) override {
+                  int current_game_count) override {
         Elo elo(stats.wins, stats.losses, stats.draws);
 
         // clang-format off
@@ -32,7 +32,7 @@ class Cutechess : public Output {
             << " - " 
             << stats.draws 
             << " [] " 
-            << total
+            << current_game_count
             << "\n";
         
         ss  << "Elo difference: " 
@@ -59,15 +59,15 @@ class Cutechess : public Output {
         }
     };
 
-    void startGame(const std::string& first, const std::string& second, int current,
-                   int total) override {
+    void startGame(const std::string& first, const std::string& second, int current_game_count,
+                   int max_game_count) override {
         std::stringstream ss;
 
         // clang-format off
         ss << "Started game "
-           << current
+           << current_game_count
            << " of "
-           << total
+           << max_game_count
            << " ("
            << first
            << " vs "

@@ -33,6 +33,8 @@ SOFTWARE.
 #include <thread>
 #include <vector>
 
+#include <logger.hpp>
+
 #ifdef _WIN64
 #include <windows.h>
 #else
@@ -191,6 +193,7 @@ class Process : public IProcess {
                 if (buffer[i] == '\n' || buffer[i] == '\r') {
                     // dont add empty lines
                     if (!currentLine.empty()) {
+                        fast_chess::Logger::readLog(currentLine, std::this_thread::get_id());
                         lines.emplace_back(currentLine);
 
                         if (currentLine.rfind(last_word, 0) == 0) {
@@ -212,6 +215,7 @@ class Process : public IProcess {
 
     void writeProcess(const std::string &input) override {
         assert(is_initalized_);
+        fast_chess::Logger::writeLog(input, std::this_thread::get_id());
 
         if (!isAlive()) {
             closeHandles();
@@ -374,6 +378,7 @@ class Process : public IProcess {
                     if (buffer[i] == '\n') {
                         // dont add empty lines
                         if (!currentLine.empty()) {
+                            fast_chess::Logger::readLog(currentLine, std::this_thread::get_id());
                             lines.emplace_back(currentLine);
                             if (currentLine.rfind(last_word, 0) == 0) {
                                 return lines;
@@ -393,6 +398,7 @@ class Process : public IProcess {
 
     void writeProcess(const std::string &input) override {
         assert(is_initalized_);
+        fast_chess::Logger::writeLog(input, std::this_thread::get_id());
 
         if (!isAlive()) {
             throw std::runtime_error("IProcess is not alive and write occured with message: " +

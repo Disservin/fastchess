@@ -123,24 +123,28 @@ void RoundRobin::createPairings(const EngineConfiguration& player1,
     Stats stats;
     auto fen = fetchNextFen();
     for (int i = 0; i < game_config_.games; i++) {
-        output_->startGame(configs.first.name, configs.second.name, current * 2 + i,
-                           game_config_.rounds * 2);
+        auto idx = current * 2 + i;
 
-        auto [success, result, reason] = playGame(configs, fen, current * 2 + i);
-        if (success) {
-            stats += result;
-            match_count_++;
+        output_->startGame(configs.first.name, configs.second.name, idx, game_config_.rounds * 2);
+        auto [success, result, reason] = playGame(configs, fen, idx);
+        output_->endGame(result, configs.first.name, configs.second.name, reason, idx);
 
-            if (!game_config_.report_penta) {
-                result_.updateStats(configs.first.name, configs.second.name, result);
-                output_->printInterval(sprt_, result_.getStats(player1.name, player2.name),
-                                       player1.name, player2.name, match_count_);
-            }
-
-            std::swap(configs.first, configs.second);
+        // If the game failed to start, try again
+        if (!success) {
+            i--;
+            continue;
         }
 
-        output_->endGame(result, configs.first.name, configs.second.name, reason, current * 2 + i);
+        stats += result;
+        match_count_++;
+
+        if (!game_config_.report_penta) {
+            result_.updateStats(configs.first.name, configs.second.name, result);
+            output_->printInterval(sprt_, result_.getStats(player1.name, player2.name),
+                                   player1.name, player2.name, match_count_);
+        }
+
+        std::swap(configs.first, configs.second);
     }
 
     stats.penta_WW += stats.wins == 2;

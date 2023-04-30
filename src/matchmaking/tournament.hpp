@@ -24,7 +24,7 @@ class Tournament {
 
     CMD::GameManagerOptions game_config_;
 
-    size_t engine_count_;
+    std::size_t engine_count_;
 };
 
 }  // namespace fast_chess

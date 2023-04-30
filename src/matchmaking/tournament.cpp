@@ -22,8 +22,8 @@ void Tournament::validateEngines(const std::vector<EngineConfiguration>& configs
         throw std::runtime_error("Error: Need at least two engines to start!");
     }
 
-    for (size_t i = 0; i < configs.size(); i++) {
-        for (size_t j = 0; j < i; j++) {
+    for (std::size_t i = 0; i < configs.size(); i++) {
+        for (std::size_t j = 0; j < i; j++) {
             if (configs[i].name == configs[j].name) {
                 throw std::runtime_error("Error: Engine with the same name are not allowed!: " +
                                          configs[i].name);

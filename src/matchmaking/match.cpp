@@ -116,16 +116,16 @@ void Match::addMoveData(Participant& player, int64_t measured_time) {
 }
 
 void Match::start(Participant& engine1, Participant& engine2, const std::string& fen) {
-    Board board(fen);
+    board_.loadFen(fen);
 
-    start_fen_ = board.getFen() == STARTPOS ? "startpos" : board.getFen();
+    start_fen_ = board_.getFen() == STARTPOS ? "startpos" : board_.getFen();
 
     // copy time control which will be updated later
     engine1.time_control_ = engine1.engine_.getConfig().limit.tc;
     engine2.time_control_ = engine2.engine_.getConfig().limit.tc;
 
-    engine1.info_.color = board.sideToMove();
-    engine2.info_.color = ~board.sideToMove();
+    engine1.info_.color = board_.sideToMove();
+    engine2.info_.color = ~board_.sideToMove();
 
     data_.fen = fen;
 

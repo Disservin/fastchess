@@ -135,7 +135,12 @@ void RoundRobin::createPairings(const EngineConfiguration& player1,
             continue;
         }
 
-        stats += result;
+        if (player1.name != configs.first.name) {
+            stats += ~result;
+        } else {
+            stats += result;
+        }
+
         match_count_++;
 
         if (!game_config_.report_penta) {

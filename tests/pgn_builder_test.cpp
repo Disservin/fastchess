@@ -34,12 +34,13 @@ TEST_SUITE("PGN Builder Tests") {
         options.site = "localhost";
 
         PgnBuilder pgn_builder = PgnBuilder(match_data, options);
-        CHECK(pgn_builder.get() ==
-              "[Event \"Fast Chess\"]\n[Site \"localhost\"]\n[Round \"1\"]\n[White "
-              "\"engine1\"]\n[Black \"engine2\"]\n[Result \"1-0\"]\n[FEN "
-              "\"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1\"]\n[PlyCount "
-              "\"4\"]\n[TimeControl \"0\"]\n\n1. e4 {+1.00/15, 1.321s} e5 {+1.23/15, 0.430s}2. Nf3 "
-              "{+1.45/16, 0.310s}\n Nf6 {+10.15/18, 1.821s}\n\n");
+        CHECK(
+            pgn_builder.get() ==
+            "[Event \"Fast Chess\"]\n[Site \"localhost\"]\n[Round \"1\"]\n[White "
+            "\"engine1\"]\n[Black \"engine2\"]\n[Result \"1-0\"]\n[FEN "
+            "\"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1\"]\n[PlyCount "
+            "\"4\"]\n[TimeControl \"0\"]\n\n1. e4 {+1.00/15, 1.321s} e5 {+1.23/15, 0.430s} 2. Nf3 "
+            "{+1.45/16, 0.310s}\nNf6 {+10.15/18, 1.821s}\n\n");
     }
 
     TEST_CASE("PGN Creation Black Win") {
@@ -68,12 +69,13 @@ TEST_SUITE("PGN Builder Tests") {
         options.site = "localhost";
 
         PgnBuilder pgn_builder = PgnBuilder(match_data, options);
-        CHECK(pgn_builder.get() ==
-              "[Event \"Fast Chess\"]\n[Site \"localhost\"]\n[Round \"1\"]\n[White "
-              "\"engine1\"]\n[Black \"engine2\"]\n[Result \"0-1\"]\n[FEN "
-              "\"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1\"]\n[PlyCount "
-              "\"4\"]\n[TimeControl \"0\"]\n\n1. e4 {+1.00/15, 1.321s} e5 {+1.23/15, 0.430s}2. Nf3 "
-              "{+1.45/16, 0.310s}\n Nf6 {+10.15/18, 1.821s}\n\n");
+        CHECK(
+            pgn_builder.get() ==
+            "[Event \"Fast Chess\"]\n[Site \"localhost\"]\n[Round \"1\"]\n[White "
+            "\"engine1\"]\n[Black \"engine2\"]\n[Result \"0-1\"]\n[FEN "
+            "\"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1\"]\n[PlyCount "
+            "\"4\"]\n[TimeControl \"0\"]\n\n1. e4 {+1.00/15, 1.321s} e5 {+1.23/15, 0.430s} 2. Nf3 "
+            "{+1.45/16, 0.310s}\nNf6 {+10.15/18, 1.821s}\n\n");
     }
 }
 }  // namespace fast_chess

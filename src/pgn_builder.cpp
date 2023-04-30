@@ -63,7 +63,7 @@ PgnBuilder::PgnBuilder(const MatchData &match, const CMD::GameManagerOptions &ga
             pgn_ << "\n";
             line_length = 0;
         }
-        pgn_ << move;
+        pgn_ << (line_length == 0 ? "" : " ") << move;
         line_length += move.size();
     }
 }
@@ -80,7 +80,7 @@ void PgnBuilder::addHeader(const std::string &name, const T &value) {
 
 void PgnBuilder::addMove(Chess::Board &board, const MoveData &move, std::size_t move_number) {
     std::stringstream ss;
-    ss << (move_number % 2 == 1 ? std::to_string(move_number / 2 + 1) + ". " : " ")
+    ss << (move_number % 2 == 1 ? std::to_string(move_number / 2 + 1) + ". " : "")
        << board.san(board.uciToMove(move.move))
        << addComment((move.score_string + "/" + std::to_string(move.depth)),
                      formatTime(move.elapsed_millis));

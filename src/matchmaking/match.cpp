@@ -52,19 +52,25 @@ void Match::verifyPv(const Participant& us) {
     }
 }
 
-void Match::setDraw(Participant& us, Participant& them, const std::string& msg) {
+void Match::setDraw(Participant& us, Participant& them, const std::string& msg,
+                    const std::string& reason) {
+    data_.internal_reason = reason;
     data_.termination = msg;
     us.info_.result = GameResult::DRAW;
     them.info_.result = GameResult::DRAW;
 }
 
-void Match::setWin(Participant& us, Participant& them, const std::string& msg) {
+void Match::setWin(Participant& us, Participant& them, const std::string& msg,
+                   const std::string& reason) {
+    data_.internal_reason = reason;
     data_.termination = msg;
     us.info_.result = GameResult::WIN;
     them.info_.result = GameResult::LOSE;
 }
 
-void Match::setLose(Participant& us, Participant& them, const std::string& msg) {
+void Match::setLose(Participant& us, Participant& them, const std::string& msg,
+                    const std::string& reason) {
+    data_.internal_reason = reason;
     data_.termination = msg;
     us.info_.result = GameResult::LOSE;
     them.info_.result = GameResult::WIN;
@@ -152,18 +158,15 @@ bool Match::playMove(Participant& us, Participant& opponent) {
     const auto name = us.engine_.getConfig().name;
 
     if (gameover.second == GameResult::DRAW) {
-        data_.internal_reason = convertChessReason(name, gameover.first);
-        setDraw(us, opponent, "");
+        setDraw(us, opponent, "", convertChessReason(name, gameover.first));
         return false;
     } else if (gameover.second == GameResult::LOSE) {
-        data_.internal_reason = convertChessReason(name, gameover.first);
-        setLose(us, opponent, "");
+        setLose(us, opponent, "", convertChessReason(name, gameover.first));
         return false;
     }
 
     if (!us.engine_.isResponsive()) {
-        data_.internal_reason = name + Match::TIMEOUT_MSG;
-        setLose(us, opponent, "timeout");
+        setLose(us, opponent, "timeout", name + Match::TIMEOUT_MSG);
         return false;
     }
 
@@ -181,8 +184,7 @@ bool Match::playMove(Participant& us, Participant& opponent) {
     const auto elapsed_millis = chrono::duration_cast<chrono::milliseconds>(t1 - t0).count();
 
     if (!us.updateTc(elapsed_millis)) {
-        data_.internal_reason = name + Match::TIMEOUT_MSG;
-        setLose(us, opponent, "timeout");
+        setLose(us, opponent, "timeout", name + Match::TIMEOUT_MSG);
 
         Logger::cout("Warning: Engine", name, "loses on time");
 
@@ -193,8 +195,7 @@ bool Match::playMove(Participant& us, Participant& opponent) {
     const auto move = board_.uciToMove(best_move);
 
     if (!Movegen::isLegal<Chess::Move>(board_, move)) {
-        data_.internal_reason = name + Match::ILLEGAL_MSG;
-        setLose(us, opponent, "illegal move");
+        setLose(us, opponent, "illegal move", name + Match::ILLEGAL_MSG);
 
         Logger::cout("Warning: Illegal move", best_move, "played by", name);
 
@@ -234,17 +235,16 @@ void Match::updateResignTracker(const Participant& player) {
 
 bool Match::adjudicate(Participant& us, Participant& them) {
     if (game_config_.draw.enabled && draw_tracker_.draw_moves >= game_config_.draw.move_count) {
-        data_.internal_reason = Match::ADJUDICATION_MSG;
-        setDraw(us, them, "adjudication");
+        setDraw(us, them, "adjudication", Match::ADJUDICATION_MSG);
         return true;
     } else if (game_config_.resign.enabled &&
                resign_tracker_.resign_moves >= game_config_.resign.move_count) {
         if (us.engine_.lastScore() < game_config_.resign.score) {
-            data_.internal_reason = us.engine_.getConfig().name + Match::ADJUDICATION_LOSE_MSG;
-            setLose(us, them, "resign adjudication");
+            setLose(us, them, "resign adjudication",
+                    us.engine_.getConfig().name + Match::ADJUDICATION_LOSE_MSG);
         } else {
-            data_.internal_reason = us.engine_.getConfig().name + Match::ADJUDICATION_WIN_MSG;
-            setWin(us, them, "resign adjudication");
+            setWin(us, them, "resign adjudication",
+                   us.engine_.getConfig().name + Match::ADJUDICATION_WIN_MSG);
         }
         return true;
     }

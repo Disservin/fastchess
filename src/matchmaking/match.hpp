@@ -27,9 +27,12 @@ class Match {
    private:
     void verifyPv(const Participant& us);
 
-    void setDraw(Participant& us, Participant& them, const std::string& msg);
-    void setWin(Participant& us, Participant& them, const std::string& msg);
-    void setLose(Participant& us, Participant& them, const std::string& msg);
+    void setDraw(Participant& us, Participant& them, const std::string& msg,
+                 const std::string& reason);
+    void setWin(Participant& us, Participant& them, const std::string& msg,
+                const std::string& reason);
+    void setLose(Participant& us, Participant& them, const std::string& msg,
+                 const std::string& reason);
 
     void addMoveData(Participant& player, int64_t measured_time);
 

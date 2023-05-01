@@ -110,5 +110,5 @@ tmp/src/matchmaking/tournament.o: FORCE
 FORCE:
 
 tmp/src/matchmaking/match.o: FORCE
-FORCE: 
+FORCE:
 endif

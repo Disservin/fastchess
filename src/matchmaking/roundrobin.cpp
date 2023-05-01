@@ -123,7 +123,7 @@ void RoundRobin::createPairings(const EngineConfiguration& player1,
     Stats stats;
     auto fen = fetchNextFen();
     for (int i = 0; i < game_config_.games; i++) {
-        auto idx = current * 2 + i;
+        auto idx = current * game_config_.games + i;
 
         output_->startGame(configs.first.name, configs.second.name, idx, game_config_.rounds * 2);
         auto [success, result, reason] = playGame(configs, fen, idx);
@@ -174,7 +174,7 @@ std::tuple<bool, Stats, std::string> RoundRobin::playGame(
 
     PgnBuilder pgn_builder = PgnBuilder(match_data, game_config_);
 
-    if (!Atomic::stop) {
+    if (match_data.termination != "stop") {
         file_writer_.write(pgn_builder.get());
     }
 

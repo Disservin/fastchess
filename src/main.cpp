@@ -32,7 +32,7 @@ BOOL WINAPI consoleHandler(DWORD signal) {
             Options->saveJson(Tour->getResults());
             std::cout << "Saved results" << std::endl;
 
-            return FALSE;
+            return TRUE;
         default:
             break;
     }

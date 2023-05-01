@@ -12,9 +12,12 @@ class Fastchess : public Output {
 
     void printInterval(const SPRT& sprt, const Stats& stats, const std::string& first,
                        const std::string& second, int current_game_count) override {
+        std::cout << "--------------------------------------------------\n";
         printElo(stats, first, second, current_game_count);
         printSprt(sprt, stats);
-    }
+        printPenta(stats);
+        std::cout << "--------------------------------------------------\n";
+    };
 
     void printElo(const Stats& stats, const std::string& first, const std::string& second,
                   int current_game_count) override {
@@ -60,13 +63,10 @@ class Fastchess : public Output {
         }
     };
 
-    void printPenta(const Stats& stats, int rounds, int current_game_count) {
+    void printPenta(const Stats& stats) {
         std::stringstream ss;
 
-        ss << rounds << " rounds: " << stats.wins << " - " << stats.losses << " - " << stats.draws
-           << " (" << std::fixed << std::setprecision(2)
-           << (float(stats.wins) + (float(stats.draws) * 0.5)) / current_game_count << ")\n"
-           << "Ptnml:   " << std::right << std::setw(7) << "WW" << std::right << std::setw(7)
+        ss << "Ptnml:   " << std::right << std::setw(7) << "WW" << std::right << std::setw(7)
            << "WD" << std::right << std::setw(7) << "DD/WL" << std::right << std::setw(7) << "LD"
            << std::right << std::setw(7) << "LL"
            << "\n"

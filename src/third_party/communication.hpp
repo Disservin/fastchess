@@ -131,6 +131,7 @@ class Process : public IProcess {
             } catch (const std::exception &e) {
                 std::cerr << e.what();
             }
+            is_initalized_ = false;
         }
     }
 
@@ -218,11 +219,8 @@ class Process : public IProcess {
         fast_chess::Logger::writeLog(input, std::this_thread::get_id());
 
         if (!isAlive()) {
-            closeHandles();
-
-            throw std::runtime_error(
-                "Engine process is not alive and write occured with message: " + input);
-        }
+            killProcess();
+        };
 
         DWORD bytesWritten;
         WriteFile(child_std_in_, input.c_str(), input.length(), &bytesWritten, nullptr);

@@ -5,6 +5,10 @@
 
 namespace fast_chess {
 
+namespace Atomic {
+extern std::atomic_bool stop;
+}  // namespace Atomic
+
 using namespace std::literals;
 namespace chrono = std::chrono;
 using clock = chrono::high_resolution_clock;
@@ -135,15 +139,24 @@ void Match::start(Participant& engine1, Participant& engine2, const std::string&
     auto start = clock::now();
     try {
         while (true) {
+            if (Atomic::stop.load()) {
+                data_.termination = "stop";
+                break;
+            };
             if (!playMove(engine1, engine2)) break;
 
+            if (Atomic::stop.load()) {
+                data_.termination = "stop";
+                break;
+            };
             if (!playMove(engine2, engine1)) break;
         }
     } catch (const std::exception& e) {
         if (game_config_.recover)
             data_.needs_restart = true;
-        else
+        else {
             throw e;
+        }
     }
     auto end = clock::now();
 

@@ -24,7 +24,12 @@ class Output {
     [[nodiscard]] virtual OutputType getType() const = 0;
 
     virtual void printInterval(const SPRT& sprt, const Stats& stats, const std::string& first,
-                               const std::string& second, int current_game_count) = 0;
+                               const std::string& second, int current_game_count) {
+        std::cout << "--------------------------------------------------\n";
+        printElo(stats, first, second, current_game_count);
+        printSprt(sprt, stats);
+        std::cout << "--------------------------------------------------\n";
+    };
 
     virtual void printElo(const Stats& stats, const std::string& first, const std::string& second,
                           int current_game_count) = 0;

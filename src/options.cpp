@@ -1,4 +1,4 @@
-#include "options.hpp"
+#include <options.hpp>
 
 #include <algorithm>
 #include <limits>
@@ -7,7 +7,8 @@
 #include <type_traits>
 #include <unordered_map>
 
-#include "third_party/json.hpp"
+#include <helper.hpp>
+#include <logger.hpp>
 
 namespace fast_chess {
 
@@ -23,110 +24,126 @@ Options::Options(int argc, char const *argv[]) {
             parseDashOptions(i, argc, argv, [&](std::string key, std::string value) {
                 parseEngineKeyValues(configs_.back(), key, value);
             });
-        } else if (arg == "-each")
+        } else if (arg == "-each") {
             parseDashOptions(i, argc, argv, [&](std::string key, std::string value) {
-                for (auto &config : configs_) parseEngineKeyValues(config, key, value);
+                for (auto &config : configs_) {
+                    parseEngineKeyValues(config, key, value);
+                }
             });
-        else if (arg == "-pgnout")
+        } else if (arg == "-pgnout") {
             parseDashOptions(i, argc, argv, [&](std::string key, std::string value) {
-                if (key == "file")
+                if (key == "file") {
                     game_options_.pgn.file = value;
-                else if (key == "tracknodes")
+                } else if (key == "tracknodes") {
                     game_options_.pgn.track_nodes = true;
-                else if (key == "trackseldepth")
+                } else if (key == "trackseldepth") {
                     game_options_.pgn.track_seldepth = true;
-                else if (key == "notation")
+                } else if (key == "notation") {
                     game_options_.pgn.notation = value;
-                else
+                } else {
                     coutMissingCommand("pgnout", key, value);
+                }
             });
-        else if (arg == "-openings")
+        } else if (arg == "-openings") {
             parseDashOptions(i, argc, argv, [&](std::string key, std::string value) {
-                if (key == "file")
+                if (key == "file") {
                     game_options_.opening.file = value;
-                else if (key == "format")
+                    if (StrUtil::endsWith(value, ".epd")) {
+                        game_options_.opening.format = "epd";
+                    }
+                } else if (key == "format") {
                     game_options_.opening.format = value;
-                else if (key == "order")
+                } else if (key == "order") {
                     game_options_.opening.order = value;
-                else if (key == "plies")
+                } else if (key == "plies") {
                     game_options_.opening.plies = std::stoi(value);
-                else if (key == "start")
+                } else if (key == "start") {
                     game_options_.opening.start = std::stoi(value);
-                else
+                } else {
                     coutMissingCommand("openings", key, value);
+                }
             });
-        else if (arg == "-sprt")
+        } else if (arg == "-sprt") {
             parseDashOptions(i, argc, argv, [&](std::string key, std::string value) {
-                if (game_options_.rounds == 0) game_options_.rounds = 500000;
+                if (game_options_.rounds == 0) {
+                    game_options_.rounds = 500000;
+                }
 
-                if (key == "elo0")
+                if (key == "elo0") {
                     game_options_.sprt.elo0 = std::stod(value);
-                else if (key == "elo1")
+                } else if (key == "elo1") {
                     game_options_.sprt.elo1 = std::stod(value);
-                else if (key == "alpha")
+                } else if (key == "alpha") {
                     game_options_.sprt.alpha = std::stod(value);
-                else if (key == "beta")
+                } else if (key == "beta") {
                     game_options_.sprt.beta = std::stod(value);
-                else
+                } else {
                     coutMissingCommand("sprt", key, value);
+                }
             });
-        else if (arg == "-draw")
+        } else if (arg == "-draw") {
             parseDashOptions(i, argc, argv, [&](std::string key, std::string value) {
                 game_options_.draw.enabled = true;
 
-                if (key == "movenumber")
+                if (key == "movenumber") {
                     game_options_.draw.move_number = std::stoi(value);
-                else if (key == "movecount")
+                } else if (key == "movecount") {
                     game_options_.draw.move_count = std::stoi(value);
-                else if (key == "score")
+                } else if (key == "score") {
                     game_options_.draw.score = std::stoi(value);
-                else
+                } else {
                     coutMissingCommand("draw", key, value);
+                }
             });
-        else if (arg == "-resign")
+        } else if (arg == "-resign") {
             parseDashOptions(i, argc, argv, [&](std::string key, std::string value) {
                 game_options_.resign.enabled = true;
 
-                if (key == "movecount")
+                if (key == "movecount") {
                     game_options_.resign.move_count = std::stoi(value);
-                else if (key == "score")
+                } else if (key == "score") {
                     game_options_.resign.score = std::stoi(value);
-                else
+                } else {
                     coutMissingCommand("resign", key, value);
+                }
             });
-        else if (arg == "-log")
+        } else if (arg == "-log") {
             parseDashOptions(i, argc, argv, [&](std::string key, std::string value) {
-                if (key == "file")
+                if (key == "file") {
                     Logger::openFile(value);
-                else
+                } else {
                     coutMissingCommand("log", key, value);
+                }
             });
-        else if (arg == "-config")
+        } else if (arg == "-config") {
             parseDashOptions(i, argc, argv, [&](std::string key, std::string value) {
-                if (key == "file")
+                if (key == "file") {
                     loadJson(value);
-                else if (key == "discard" && value == "true") {
-                    std::cout << "Discarded previous results.\n";
+                } else if (key == "discard" && value == "true") {
+                    Logger::cout("Discarding config file");
+                    game_options_ = old_game_options_;
+                    configs_ = old_configs_;
                     stats_.clear();
-                } else
-                    coutMissingCommand("config", key, value);
+                }
             });
-        else if (arg == "-report")
+        } else if (arg == "-report") {
             parseDashOptions(i, argc, argv, [&](std::string key, std::string value) {
                 if (key == "penta") {
                     game_options_.report_penta = value == "true";
-                } else
+                } else {
                     coutMissingCommand("report", key, value);
+                }
             });
-        else if (arg == "-output")
+        } else if (arg == "-output") {
             parseDashOptions(i, argc, argv, [&](std::string key, std::string value) {
                 if (key == "format") {
-                    game_options_.output = value;
+                    game_options_.output = getOutputType(value);
                     if (value == "cutechess") game_options_.report_penta = false;
-                } else
+                } else {
                     coutMissingCommand("output", key, value);
+                }
             });
-        else if (arg == "-concurrency")
+        } else if (arg == "-concurrency")
             parseValue(i, argc, argv, game_options_.concurrency);
         else if (arg == "-event")
             parseValue(i, argc, argv, game_options_.event_name);
@@ -161,17 +178,17 @@ TimeControl Options::parseTc(const std::string &tcString) const {
     TimeControl tc;
 
     std::string remainingStringVector = tcString;
-    const bool has_moves = contains(tcString, "/");
-    const bool has_inc = contains(tcString, "+");
+    const bool has_moves = StrUtil::contains(tcString, "/");
+    const bool has_inc = StrUtil::contains(tcString, "+");
 
     if (has_moves) {
-        const auto moves = splitString(tcString, '/');
+        const auto moves = StrUtil::splitString(tcString, '/');
         tc.moves = std::stoi(moves[0]);
         remainingStringVector = moves[1];
     }
 
     if (has_inc) {
-        const auto moves = splitString(remainingStringVector, '+');
+        const auto moves = StrUtil::splitString(remainingStringVector, '+');
         tc.increment = std::stod(moves[1].c_str()) * 1000;
         remainingStringVector = moves[0];
     }
@@ -188,13 +205,13 @@ void Options::parseEngineKeyValues(EngineConfiguration &engineConfig, const std:
     else if (key == "name")
         engineConfig.name = value;
     else if (key == "tc")
-        engineConfig.tc = parseTc(value);
+        engineConfig.limit.tc = parseTc(value);
     else if (key == "st")
-        engineConfig.tc.fixed_time = std::stod(value) * 1000;
+        engineConfig.limit.tc.fixed_time = std::stod(value) * 1000;
     else if (key == "nodes")
-        engineConfig.nodes = std::stoll(value);
+        engineConfig.limit.nodes = std::stoll(value);
     else if (key == "plies")
-        engineConfig.plies = std::stoll(value);
+        engineConfig.limit.plies = std::stoll(value);
     else if (key == "dir")
         engineConfig.dir = value;
     else if (isEngineSettableOption(key)) {
@@ -218,7 +235,11 @@ void Options::parseDashOptions(int &i, int argc, char const *argv[],
     }
 }
 
-void Options::saveJson(const std::map<std::string, std::map<std::string, Stats>> &stats) const {
+std::vector<EngineConfiguration> Options::getEngineConfigs() const { return configs_; }
+
+GameManagerOptions Options::getGameOptions() const { return game_options_; }
+
+void Options::saveJson(const stats_map &stats) const {
     nlohmann::ordered_json jsonfile = game_options_;
     jsonfile["engines"] = configs_;
     jsonfile["stats"] = stats;
@@ -232,24 +253,22 @@ void Options::loadJson(const std::string &filename) {
     std::ifstream f(filename);
     json jsonfile = json::parse(f);
 
+    old_configs_ = configs_;
+    old_game_options_ = game_options_;
+
     game_options_ = jsonfile.get<GameManagerOptions>();
-    stats_ = jsonfile["stats"].get<std::map<std::string, std::map<std::string, Stats>>>();
+
+    configs_.clear();
 
     for (auto engine : jsonfile["engines"]) {
-        EngineConfiguration ec = engine.get<EngineConfiguration>();
-
-        configs_.push_back(ec);
+        configs_.push_back(engine.get<EngineConfiguration>());
     }
+
+    stats_ = jsonfile["stats"].get<stats_map>();
 }
 
-std::vector<EngineConfiguration> Options::getEngineConfigs() const { return configs_; }
-
-GameManagerOptions Options::getGameOptions() const { return game_options_; }
-
-std::map<std::string, std::map<std::string, Stats>> Options::getStats() const { return stats_; }
-
 bool Options::isEngineSettableOption(const std::string &stringFormat) const {
-    return startsWith(stringFormat, "option.");
+    return StrUtil::startsWith(stringFormat, "option.");
 }
 
 void Options::printVersion(int &i) const {
@@ -292,31 +311,8 @@ void Options::printVersion(int &i) const {
 
 void Options::coutMissingCommand(std::string_view name, std::string_view key,
                                  std::string_view value) const {
-    std::cout << "\nUnrecognized " << name << " option: " << key << " with value " << value
-              << " parsing failed." << std::endl;
-}
-
-bool startsWith(std::string_view haystack, std::string_view needle) {
-    if (needle.empty()) return false;
-    return (haystack.rfind(needle, 0) != std::string::npos);
-}
-
-bool contains(std::string_view haystack, std::string_view needle) {
-    return haystack.find(needle) != std::string::npos;
-}
-
-bool contains(const std::vector<std::string> &haystack, std::string_view needle) {
-    return std::find(haystack.begin(), haystack.end(), needle) != haystack.end();
-}
-
-std::vector<std::string> splitString(const std::string &string, const char &delimiter) {
-    std::stringstream string_stream(string);
-    std::string segment;
-    std::vector<std::string> seglist;
-
-    while (std::getline(string_stream, segment, delimiter)) seglist.emplace_back(segment);
-
-    return seglist;
+    Logger::cout("Unrecognized ", name, " option: ", key, " with value ", value,
+                 " parsing failed.");
 }
 
 }  // namespace CMD

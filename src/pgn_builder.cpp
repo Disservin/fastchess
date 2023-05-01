@@ -1,21 +1,19 @@
-#include "pgn_builder.hpp"
+#include <pgn_builder.hpp>
 
 #include <iomanip>  // std::setprecision
 #include <sstream>
 
-#include "chess/board.hpp"
+#include <matchmaking/output/output_base.hpp>
 
 namespace fast_chess {
 
-PgnBuilder::PgnBuilder(const MatchData &match, const CMD::GameManagerOptions &game_options_,
-                       const bool saveTime) {
-    const std::string result = resultToString(match);
-    const std::string termination = match.termination;
-    std::stringstream ss;
+PgnBuilder::PgnBuilder(const MatchData &match, const CMD::GameManagerOptions &game_options) {
+    this->match_ = match;
+    this->game_options_ = game_options;
 
     PlayerInfo white_player, black_player;
 
-    if (match.players.first.color == WHITE) {
+    if (match.players.first.color == Chess::Color::WHITE) {
         white_player = match.players.first;
         black_player = match.players.second;
     } else {
@@ -23,90 +21,80 @@ PgnBuilder::PgnBuilder(const MatchData &match, const CMD::GameManagerOptions &ga
         black_player = match.players.first;
     }
 
-    // clang-format off
-    ss << "[Event "         << "\"" << game_options_.event_name << "\"" << "]" << "\n";
-    ss << "[Site "          << "\"" << game_options_.site       << "\"" << "]" << "\n";
-    ss << "[Date "          << "\"" << match.date               << "\"" << "]" << "\n";
-    ss << "[Round "         << "\"" << match.round              << "\"" << "]" << "\n";
-    ss << "[White "         << "\"" << white_player.config.name << "\"" << "]" << "\n";
-    ss << "[Black "         << "\"" << black_player.config.name << "\"" << "]" << "\n";
-    ss << "[Result "        << "\"" << result                   << "\"" << "]" << "\n";
-    ss << "[FEN "           << "\"" << match.fen                << "\"" << "]" << "\n";
-    ss << "[GameDuration "  << "\"" << match.duration           << "\"" << "]" << "\n";
-    ss << "[GameEndTime "   << "\"" << match.end_time           << "\"" << "]" << "\n";
-    ss << "[GameStartTime " << "\"" << match.start_time         << "\"" << "]" << "\n";
-    ss << "[PlyCount "      << "\"" << match.moves.size()       << "\"" << "]" << "\n";
+    addHeader("Event", "Fast Chess");
+    addHeader("Site", game_options_.site);
+    addHeader("Round", std::to_string(match_.round));
+    addHeader("White", white_player.config.name);
+    addHeader("Black", black_player.config.name);
+    addHeader("Date", match_.date);
+    addHeader("Result", getResultFromMatch(match_));
+    addHeader("FEN", match_.fen);
+    addHeader("GameDuration", match_.duration);
+    addHeader("GameStartTime", match_.start_time);
+    addHeader("GameEndTime", match_.end_time);
+    addHeader("PlyCount", std::to_string(match_.moves.size()));
+    addHeader("Termination", match_.termination);
+    addHeader("TimeControl", white_player.config.limit.tc);
 
-    if (!termination.empty())
-        ss << "[Termination " << "\"" << termination << "\"" << "]" << "\n";
+    Chess::Board board = Chess::Board(match_.fen);
+    std::size_t move_number = 0;
 
-    if (white_player.config.tc.fixed_time != 0)
-        ss << "[TimeControl " << "\"" << white_player.config.tc.fixed_time << "/move" << "\"" <<
-        "]" << "\n";
-    else
-        ss << "[TimeControl " << "\"" << white_player.config.tc << "\"" << "]" << "\n";
-    // clang-format on
-    ss << "\n";
-    std::stringstream illegalMove;
+    while (move_number < match_.moves.size()) {
+        auto move = match_.moves[move_number];
+        addMove(board, move, move_number + 1);
 
-    if (!match.legal) {
-        illegalMove << ", other side makes an illegal move: "
-                    << match.moves[match.moves.size() - 1].move;
-    }
-
-    Board b = Board(match.fen);
-
-    int move_count = 3;
-    for (std::size_t i = 0; i < match.moves.size(); i++) {
-        const MoveData data = match.moves[i];
-
-        std::stringstream nodesString, seldepthString, timeString;
-
-        if (saveTime) {
-            timeString << std::fixed << std::setprecision(3) << data.elapsed_millis / 1000.0 << "s";
-        }
-
-        if (game_options_.pgn.track_nodes) {
-            nodesString << " n=" << data.nodes;
-        }
-
-        if (game_options_.pgn.track_seldepth) {
-            seldepthString << " sd=" << data.seldepth;
-        }
-
-        const std::string move =
-            MoveToRep(b, convertUciToMove(b, data.move), game_options_.pgn.notation != "san");
-
-        if (move_count % 2 != 0)
-            ss << move_count / 2 << "."
-               << " " << move << " {" << data.score_string << "/" << data.depth << nodesString.str()
-               << seldepthString.str() << " " << timeString.str() << illegalMove.str() << "}";
-        else {
-            ss << " " << move << " {" << data.score_string << "/" << data.depth << nodesString.str()
-               << seldepthString.str() << " " << timeString.str() << illegalMove.str() << "}";
-
-            if (i == match.moves.size() - 1) break;
-
-            if (i % 7 == 0)
-                ss << "\n";
-            else
-                ss << " ";
-        };
-
-        if (!match.legal && i == match.moves.size() - 2) {
+        if (match_.termination == "illegal move" && move_number == match_.moves.size()) {
             break;
         }
 
-        b.makeMove(convertUciToMove(b, data.move));
+        board.makeMove(board.uciToMove(move.move));
 
-        move_count++;
+        move_number++;
     }
 
-    ss << " " << result << "\n";
+    pgn_ << "\n";
 
-    pgn_ = ss.str();
+    // create the pgn lines and assert that the line length is below 80 characters
+    // otherwise move the move onto the next line
+    std::size_t line_length = 0;
+    for (auto &move : moves_) {
+        assert(move.size() <= 80);
+        if (line_length + move.size() > LINE_LENGTH) {
+            pgn_ << "\n";
+            line_length = 0;
+        }
+        pgn_ << (line_length == 0 ? "" : " ") << move;
+        line_length += move.size();
+    }
 }
 
-std::string PgnBuilder::getPGN() const { return pgn_; }
+template <typename T>
+void PgnBuilder::addHeader(const std::string &name, const T &value) {
+    if constexpr (std::is_same_v<T, std::string>) {
+        if (value.empty()) {
+            return;
+        }
+    }
+    pgn_ << "[" << name << " \"" << value << "\"]\n";
+}
+
+void PgnBuilder::addMove(Chess::Board &board, const MoveData &move, std::size_t move_number) {
+    std::stringstream ss;
+    ss << (move_number % 2 == 1 ? std::to_string(move_number / 2 + 1) + ". " : "")
+       << board.san(board.uciToMove(move.move))
+       << addComment((move.score_string + "/" + std::to_string(move.depth)),
+                     formatTime(move.elapsed_millis));
+    moves_.emplace_back(ss.str());
+}
+
+std::string PgnBuilder::getResultFromMatch(const MatchData &match) const {
+    if (match.players.first.result == Chess::GameResult::WIN) {
+        return "1-0";
+    } else if (match.players.second.result == Chess::GameResult::WIN) {
+        return "0-1";
+    } else {
+        return "1/2-1/2";
+    }
+}
 
 }  // namespace fast_chess

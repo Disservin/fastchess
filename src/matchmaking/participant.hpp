@@ -1,33 +1,49 @@
 #pragma once
 
-#include "engines/uci_engine.hpp"
+#include <engines/uci_engine.hpp>
+#include <matchmaking/types/player_info.hpp>
 
 namespace fast_chess {
 
-struct PlayerInfo {
-    std::string termination;
-    GameResult score = GameResult::NONE;
-    Color color = NO_COLOR;
-    EngineConfiguration config;
-};
-
-inline bool operator==(const PlayerInfo &lhs, const EngineConfiguration &rhs) {
-    return lhs.config.name == rhs.name;
-}
-
-inline bool operator!=(const PlayerInfo &lhs, const EngineConfiguration &rhs) {
-    return !(lhs == rhs);
-}
-
-class Participant : public UciEngine {
+class Participant {
    public:
-    explicit Participant(const EngineConfiguration &config) {
-        loadConfig(config);
-        startEngine(config.cmd);
-
+    explicit Participant(const EngineConfiguration& config) {
+        engine_.loadConfig(config);
         info_.config = config;
     }
 
+    [[nodiscard]] int64_t getTimeoutThreshold() const {
+        if (engine_.getConfig().limit.nodes != 0) {
+            return 0;
+        } else if (engine_.getConfig().limit.plies != 0) {
+            return 0;
+        } else if (time_control_.fixed_time != 0) {
+            return 0;
+        } else {
+            return time_control_.time + 100 /*margin*/;
+        }
+    }
+
+    [[nodiscard]] bool updateTc(const int64_t elapsed_millis) {
+        if (engine_.getConfig().limit.tc.time == 0) {
+            return true;
+        }
+
+        time_control_.time -= elapsed_millis;
+
+        if (time_control_.time < 0) {
+            return false;
+        }
+
+        time_control_.time += time_control_.increment;
+
+        return true;
+    }
+
+    // updated time control after each move
+    TimeControl time_control_;
+
+    UciEngine engine_;
     PlayerInfo info_;
 };
 

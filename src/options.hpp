@@ -6,9 +6,9 @@
 #include <string>
 #include <vector>
 
-#include "engines/engine_config.hpp"
-#include "logger.hpp"
-#include "matchmaking/tournament_data.hpp"
+#include <engines/engine_config.hpp>
+#include <matchmaking/output/output_factory.hpp>
+#include <matchmaking/result.hpp>
 
 namespace fast_chess {
 
@@ -42,8 +42,8 @@ struct SprtOptions {
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(SprtOptions, alpha, beta, elo0, elo1)
 
 struct DrawAdjudication {
-    int move_number = 0;
-    int move_count = 0;
+    std::size_t move_number = 0;
+    std::size_t move_count = 0;
     int score = 0;
 
     bool enabled = false;
@@ -52,7 +52,7 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(DrawAdjudication, move_number, m
                                                 enabled)
 
 struct ResignAdjudication {
-    int move_count = 0;
+    std::size_t move_count = 0;
     int score = 0;
 
     bool enabled = false;
@@ -72,7 +72,7 @@ struct GameManagerOptions {
     std::string site = "?";
 
     /// @brief output format, fastchess or cutechess
-    std::string output = "fastchess";
+    OutputType output = OutputType::FASTCHESS;
 
     uint32_t seed = 951356066;
 
@@ -89,10 +89,10 @@ struct GameManagerOptions {
 
     bool report_penta = true;
 };
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(GameManagerOptions, event_name, site, seed,
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(GameManagerOptions, resign, draw, opening, pgn,
+                                                sprt, event_name, site, output, seed,
                                                 ratinginterval, games, rounds, concurrency,
-                                                overhead, recover, report_penta, resign, draw,
-                                                opening, pgn, sprt)
+                                                overhead, recover, report_penta)
 
 class Options {
    public:
@@ -100,17 +100,18 @@ class Options {
 
     Options(int argc, char const *argv[]);
 
-    void saveJson(const std::map<std::string, std::map<std::string, Stats>> &stats) const;
-    void loadJson(const std::string &filename);
+    [[nodiscard]] std::vector<EngineConfiguration> getEngineConfigs() const;
+    [[nodiscard]] GameManagerOptions getGameOptions() const;
 
-    std::vector<EngineConfiguration> getEngineConfigs() const;
-    GameManagerOptions getGameOptions() const;
-    std::map<std::string, std::map<std::string, Stats>> getStats() const;
+    void saveJson(const stats_map &stats) const;
+    stats_map getResults() const { return stats_; }
 
    private:
-    bool isEngineSettableOption(const std::string &stringFormat) const;
+    void loadJson(const std::string &filename);
 
-    TimeControl parseTc(const std::string &tcString) const;
+    [[nodiscard]] bool isEngineSettableOption(const std::string &stringFormat) const;
+
+    [[nodiscard]] TimeControl parseTc(const std::string &tcString) const;
 
     void parseEngineKeyValues(EngineConfiguration &engineConfig, const std::string &key,
                               const std::string &value) const;
@@ -144,37 +145,18 @@ class Options {
     void coutMissingCommand(std::string_view name, std::string_view key,
                             std::string_view value) const;
 
-    std::map<std::string, std::map<std::string, Stats>> stats_;
-
     // Holds all the relevant settings for the handling of the games
     GameManagerOptions game_options_;
 
     // Holds all the engines with their options
     std::vector<EngineConfiguration> configs_;
+
+    stats_map stats_;
+
+    /*previous olded values before config*/
+    GameManagerOptions old_game_options_;
+    std::vector<EngineConfiguration> old_configs_;
 };
-
-bool startsWith(std::string_view haystack, std::string_view needle);
-
-bool contains(std::string_view haystack, std::string_view needle);
-bool contains(const std::vector<std::string> &haystack, std::string_view needle);
-
-std::vector<std::string> splitString(const std::string &string, const char &delimiter);
-
-template <typename T>
-std::optional<T> findElement(const std::vector<std::string> &haystack, std::string_view needle) {
-    auto position = std::find(haystack.begin(), haystack.end(), needle);
-    auto index = position - haystack.begin();
-    if (position == haystack.end()) return std::nullopt;
-    if constexpr (std::is_same_v<T, int>)
-        return std::stoi(haystack[index + 1]);
-    else if constexpr (std::is_same_v<T, float>)
-        return std::stof(haystack[index + 1]);
-    else if constexpr (std::is_same_v<T, uint64_t>)
-        return std::stoull(haystack[index + 1]);
-    else
-        return haystack[index + 1];
-}
-
 }  // namespace CMD
 
 }  // namespace fast_chess

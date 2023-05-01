@@ -1,4 +1,4 @@
-#include "engines/uci_engine.hpp"
+#include <engines/uci_engine.hpp>
 
 #include <cassert>
 #include <chrono>
@@ -18,8 +18,10 @@ TEST_SUITE("Uci Engine Communication Tests") {
 #endif
 
         uci_engine.sendUci();
-        auto uciOutput = uci_engine.readUci();
+        auto uci = uci_engine.readUci();
+        auto uciOutput = uci_engine.output();
 
+        CHECK(uci);
         CHECK(uciOutput.size() == 3);
         CHECK(uciOutput[0] == "line0");
         CHECK(uciOutput[1] == "line1");
@@ -29,11 +31,11 @@ TEST_SUITE("Uci Engine Communication Tests") {
         bool timeout = false;
 
         uci_engine.writeEngine("sleep");
-        auto sleeper = uci_engine.readEngine("done", timeout, 100);
-        CHECK(timeout == true);
+        auto sleeper = uci_engine.readEngine("done", 100);
+        CHECK(uci_engine.timeout() == true);
 
         uci_engine.writeEngine("sleep");
-        auto sleeper2 = uci_engine.readEngine("done", timeout, 5000);
+        auto sleeper2 = uci_engine.readEngine("done", 5000);
         CHECK(timeout == false);
         CHECK(sleeper2.size() == 1);
         CHECK(sleeper2[0] == "done");
@@ -49,31 +51,30 @@ TEST_SUITE("Uci Engine Communication Tests") {
         uci_engine.startEngine("./tests/data/engine/dummy_engine");
 #endif
 
-        bool timeout = false;
         uci_engine.writeEngine("uci");
-        auto uciOutput = uci_engine.readEngine("uciok", timeout);
+        auto uciOutput = uci_engine.readEngine("uciok");
 
-        CHECK(timeout == false);
+        CHECK(uci_engine.timeout() == false);
         CHECK(uciOutput.size() == 3);
         CHECK(uciOutput[0] == "line0");
         CHECK(uciOutput[1] == "line1");
         CHECK(uciOutput[2] == "uciok");
 
         uci_engine.writeEngine("isready");
-        auto readyok = uci_engine.readEngine("readyok", timeout);
-        CHECK(timeout == false);
+        auto readyok = uci_engine.readEngine("readyok");
+        CHECK(uci_engine.timeout() == false);
         CHECK(readyok.size() == 1);
         CHECK(readyok[0] == "readyok");
 
         uci_engine.writeEngine("sleep");
-        auto sleeper = uci_engine.readEngine("done", timeout, 100);
-        CHECK(timeout == true);
+        auto sleeper = uci_engine.readEngine("done", 100);
+        CHECK(uci_engine.timeout() == true);
 
         std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
         uci_engine.writeEngine("sleep");
-        auto sleeper2 = uci_engine.readEngine("done", timeout, 5000);
-        CHECK(timeout == false);
+        auto sleeper2 = uci_engine.readEngine("done", 5000);
+        CHECK(uci_engine.timeout() == false);
         CHECK(sleeper2.size() == 1);
         CHECK(sleeper2[0] == "done");
 

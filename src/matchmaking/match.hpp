@@ -1,86 +1,82 @@
 #pragma once
 
-#include <string>
-#include <tuple>
-#include <vector>
-
-#include "chess/board.hpp"
-#include "matchmaking/match_data.hpp"
-#include "matchmaking/participant.hpp"
-#include "options.hpp"
+#include <options.hpp>
+#include <third_party/chess.hpp>
+#include <matchmaking/types/match_data.hpp>
+#include <matchmaking/participant.hpp>
 
 namespace fast_chess {
 
-struct DrawAdjTracker {
-    Score draw_score = 0;
-    int move_count = 0;
-
-    DrawAdjTracker(Score draw_score, int move_count) {
-        this->draw_score = draw_score;
-        this->move_count = move_count;
-    }
+struct DrawTacker {
+    std::size_t draw_moves = 0;
+    int draw_score = 0;
 };
 
-struct ResignAdjTracker {
-    int move_count = 0;
-    Score resign_score = 0;
-
-    ResignAdjTracker(Score resign_score, int move_count) {
-        this->resign_score = resign_score;
-        this->move_count = move_count;
-    }
+struct ResignTracker {
+    std::size_t resign_moves = 0;
+    int resign_score = 0;
 };
 
 class Match {
    public:
-    Match(const CMD::GameManagerOptions &game_config, const EngineConfiguration &engine1_config,
-          const EngineConfiguration &engine2_config);
+    Match(const CMD::GameManagerOptions& game_config, const EngineConfiguration& engine1_config,
+          const EngineConfiguration& engine2_config, const std::string& fen, int round);
 
-    /// @brief plays a match between the previously loaded engines
-    /// @param openingFen
-    void playMatch(const std::string &openingFen);
-
-    MatchData getMatchData();
+    [[nodiscard]] MatchData get() const;
 
    private:
-    bool playerTimedOut(const int64_t measured_time, const TimeControl &time_left_them);
+    void verifyPv(const Participant& us);
 
-    /// @brief Plays the next move and checks for game over and legalitly
-    /// @param player
-    /// @param position_input
-    /// @param time_left_us
-    /// @param time_left_them
-    /// @return false if game has ended
-    bool playNextMove(Participant &player, Participant &enemy, std::string &position_input,
-                      TimeControl &time_left_us, const TimeControl &time_left_them);
+    void setDraw(Participant& us, Participant& them, const std::string& msg,
+                 const std::string& reason);
+    void setWin(Participant& us, Participant& them, const std::string& msg,
+                const std::string& reason);
+    void setLose(Participant& us, Participant& them, const std::string& msg,
+                 const std::string& reason);
 
-    void updateTrackers(const Score moveScore, const int move_number);
+    void addMoveData(Participant& player, int64_t measured_time);
 
-    GameResult checkAdj(const Score score);
+    void start(Participant& engine1, Participant& engine2, const std::string& fen);
 
-    void isResponsive(Participant &player);
-
-    /// @brief Extracts information from the engines reported info string
-    /// @param output
-    /// @param move
-    /// @param measured_time
+    /// @brief returns false if the next move could not be played
+    /// @param us
+    /// @param opponent
     /// @return
-    MoveData parseEngineOutput(const std::vector<std::string> &output, const std::string &move,
-                               int64_t measured_time);
+    [[nodiscard]] bool playMove(Participant& us, Participant& opponent);
 
-    const Score mate_score_ = 100'000;
+    void updateDrawTracker(const Participant& player);
+    void updateResignTracker(const Participant& player);
 
-    Participant player_1_;
-    Participant player_2_;
+    /// @brief returns true if adjudicated
+    /// @param us
+    /// @param them
+    /// @return
+    [[nodiscard]] bool adjudicate(Participant& us, Participant& them);
 
-    DrawAdjTracker drawTracker_;
-    ResignAdjTracker resignTracker_;
+    [[nodiscard]] std::string convertChessReason(const std::string& engine_name,
+                                                 std::string_view reason);
+
+    inline static const std::string ADJUDICATION_MSG = "Draw by adjudication";
+    inline static const std::string ADJUDICATION_WIN_MSG = " wins by adjudication";
+    inline static const std::string ADJUDICATION_LOSE_MSG = " losses by adjudication";
+
+    inline static const std::string INSUFFICIENT_MSG = "Draw by insufficient material";
+    inline static const std::string REPETITION_MSG = "Draw by 3-fold repetition";
+    inline static const std::string FIFTY_MSG = "Draw by 50-move rule";
+    inline static const std::string TIMEOUT_MSG = /*.. */ " timed out";
+    inline static const std::string CHECKMATE_MSG = /*..*/ " got checkmated";
+    inline static const std::string STALEMATE_MSG = "Draw by stalemate";
+    inline static const std::string ILLEGAL_MSG = " made an illegal move";
+
+    DrawTacker draw_tracker_;
+    ResignTracker resign_tracker_;
 
     CMD::GameManagerOptions game_config_;
+    Chess::Board board_;
+    MatchData data_;
 
-    Board board_;
+    std::vector<std::string> played_moves_;
 
-    MatchData match_data_;
+    std::string start_fen_;
 };
-
 }  // namespace fast_chess

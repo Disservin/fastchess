@@ -1,6 +1,12 @@
 #define DOCTEST_CONFIG_IMPLEMENT
 #include "doctest/doctest.hpp"
 
+namespace fast_chess {
+namespace Atomic {
+std::atomic_bool stop = false;
+}  // namespace Atomic
+}  // namespace fast_chess
+
 int main(int argc, char **argv) {
     doctest::Context ctx;
 

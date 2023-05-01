@@ -67,7 +67,7 @@ jobs:
 
       - name: Building Fast-Chess
         run: |
-          make -j build=release
+          make -j2 build=release
           strip ./fast-chess$EXT
           mv fast-chess$EXT fast-chess-$OS$EXT
           ./fast-chess* -version

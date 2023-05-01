@@ -1,3 +1,5 @@
+#pragma once
+
 #include <atomic>
 #include <chrono>
 #include <cmath>
@@ -5,18 +7,12 @@
 #include <future>
 #include <iostream>
 #include <queue>
+#include <stdexcept>
 #include <thread>
 #include <type_traits>
 #include <vector>
 
 namespace fast_chess {
-
-#include <functional>
-#include <future>
-#include <queue>
-#include <stdexcept>
-#include <thread>
-#include <vector>
 
 class ThreadPool {
    public:

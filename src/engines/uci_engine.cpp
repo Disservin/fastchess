@@ -1,11 +1,11 @@
-#include "engines/uci_engine.hpp"
+#include <engines/uci_engine.hpp>
 
 #include <sstream>
 #include <stdexcept>
 
-#include "engines/engine_config.hpp"
-#include "logger.hpp"
-#include "uci_engine.hpp"
+#include <engines/uci_engine.hpp>
+#include <helper.hpp>
+#include <logger.hpp>
 
 namespace fast_chess {
 
@@ -14,40 +14,52 @@ EngineConfiguration UciEngine::getConfig() const { return config_; }
 bool UciEngine::isResponsive(int64_t threshold) {
     if (!isAlive()) return false;
 
-    bool timeout = false;
     writeEngine("isready");
-    readEngine("readyok", timeout, threshold);
-    return !timeout;
+    readEngine("readyok", threshold);
+    return !timeout();
 }
 
-void UciEngine::sendUciNewGame() {
+bool UciEngine::sendUciNewGame() {
     writeEngine("ucinewgame");
-    isResponsive(60000);
+    return isResponsive(60000);
 }
 
 void UciEngine::sendUci() { writeEngine("uci"); }
 
-std::vector<std::string> UciEngine::readUci() {
-    bool timeout = false;
-    return readEngine("uciok", timeout);
+bool UciEngine::readUci() {
+    readEngine("uciok");
+    return !timeout();
 }
 
-std::string UciEngine::buildGoInput(Color stm, const TimeControl &tc,
+std::string UciEngine::buildPositionInput(const std::vector<std::string> &moves,
+                                          const std::string &fen) const {
+    std::string position = fen == "startpos" ? "position startpos" : ("position fen " + fen);
+
+    if (!moves.empty()) {
+        position += " moves";
+        for (const auto &move : moves) {
+            position += " " + move;
+        }
+    }
+
+    return position;
+}
+
+std::string UciEngine::buildGoInput(Chess::Color stm, const TimeControl &tc,
                                     const TimeControl &tc_2) const {
     std::stringstream input;
     input << "go";
 
-    if (config_.nodes != 0) input << " nodes " << config_.nodes;
+    if (config_.limit.nodes != 0) input << " nodes " << config_.limit.nodes;
 
-    if (config_.plies != 0) input << " depth " << config_.plies;
+    if (config_.limit.plies != 0) input << " depth " << config_.limit.plies;
 
+    // We cannot use st and tc together
     if (tc.fixed_time != 0) {
         input << " movetime " << tc.fixed_time;
-    }
-    // We cannot use st and tc together
-    else {
-        auto white = stm == WHITE ? tc : tc_2;
-        auto black = stm == WHITE ? tc_2 : tc;
+    } else {
+        auto white = stm == Chess::Color::WHITE ? tc : tc_2;
+        auto black = stm == Chess::Color::WHITE ? tc_2 : tc;
 
         if (tc.time != 0) {
             input << " wtime " << white.time << " btime " << black.time;
@@ -57,8 +69,11 @@ std::string UciEngine::buildGoInput(Color stm, const TimeControl &tc,
             input << " winc " << white.increment << " binc " << black.increment;
         }
 
-        if (tc.moves != 0) input << " movestogo " << tc.moves;
+        if (tc.moves != 0) {
+            input << " movestogo " << tc.moves;
+        }
     }
+
     return input.str();
 }
 
@@ -79,9 +94,8 @@ void UciEngine::startEngine(const std::string &cmd) {
     initProcess(cmd);
 
     sendUci();
-    readUci();
 
-    if (!isResponsive(60000)) {
+    if (!readUci() && !isResponsive(60000)) {
         throw std::runtime_error("Warning: Something went wrong when pinging the engine.");
     }
 
@@ -90,26 +104,48 @@ void UciEngine::startEngine(const std::string &cmd) {
     }
 }
 
-std::vector<std::string> UciEngine::readEngine(std::string_view last_word, bool &timeout,
+std::vector<std::string> UciEngine::readEngine(std::string_view last_word,
                                                int64_t timeoutThreshold) {
     try {
-        return readProcess(last_word, timeout, timeoutThreshold);
+        output_.clear();
+        output_ = readProcess(last_word, timeoutThreshold);
+
+        return output_;
     } catch (const std::exception &e) {
-        Logger::coutInfo("Raised Exception in readProcess\nWarning: Engine", config_.name,
-                         "disconnects #");
+        Logger::cout("Raised Exception in readProcess\nWarning: Engine", config_.name,
+                     "disconnects #");
         throw e;
     }
 }
 
 void UciEngine::writeEngine(const std::string &input) {
     try {
-        writeProcess(input);
+        writeProcess(input + "\n");
     } catch (const std::exception &e) {
-        Logger::coutInfo("Raised Exception in writeProcess\nWarning: Engine", config_.name,
-                         "disconnects #");
+        Logger::cout("Raised Exception in writeProcess\nWarning: Engine", config_.name,
+                     "disconnects #");
 
         throw e;
     }
 }
+
+std::string UciEngine::bestmove() const {
+    return StrUtil::findElement<std::string>(StrUtil::splitString(output_.back(), ' '), "bestmove")
+        .value();
+}
+
+std::vector<std::string> UciEngine::lastInfo() const {
+    return StrUtil::splitString(output_[output_.size() - 2], ' ');
+}
+
+std::string UciEngine::lastScoreType() const {
+    return StrUtil::findElement<std::string>(lastInfo(), "score").value_or("cp");
+}
+
+int UciEngine::lastScore() const {
+    return StrUtil::findElement<int>(lastInfo(), lastScoreType()).value_or(0);
+}
+
+std::vector<std::string> UciEngine::output() const { return output_; }
 
 }  // namespace fast_chess

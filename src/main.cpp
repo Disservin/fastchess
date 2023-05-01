@@ -3,15 +3,21 @@
 #include <iostream>
 #include <thread>
 
-#include "engines/uci_engine.hpp"
-#include "matchmaking/tournament.hpp"
-#include "options.hpp"
+#include <engines/uci_engine.hpp>
+#include <matchmaking/tournament.hpp>
+#include <options.hpp>
+
+namespace fast_chess {
+namespace Atomic {
+std::atomic_bool stop = false;
+}  // namespace Atomic
+}  // namespace fast_chess
 
 using namespace fast_chess;
 
 namespace {
-std::unique_ptr<Tournament> Tour;
 std::unique_ptr<CMD::Options> Options;
+std::unique_ptr<Tournament> Tour;
 }  // namespace
 
 #ifdef _WIN64
@@ -22,11 +28,9 @@ BOOL WINAPI consoleHandler(DWORD signal) {
         case CTRL_LOGOFF_EVENT:
         case CTRL_SHUTDOWN_EVENT:
         case CTRL_C_EVENT:
-
-            std::cout << "Saved results" << std::endl;
-            Options->saveJson(Tour->results());
-
             Tour->stop();
+            Options->saveJson(Tour->getResults());
+            std::cout << "Saved results" << std::endl;
 
             return TRUE;
         default:
@@ -38,8 +42,9 @@ BOOL WINAPI consoleHandler(DWORD signal) {
 
 #else
 void sigintHandler(int param) {
-    Options->saveJson(Tour->results());
     Tour->stop();
+    Options->saveJson(Tour->getResults());
+    std::cout << "Saved results" << std::endl;
 
     exit(param);
 }
@@ -60,12 +65,11 @@ int main(int argc, char const *argv[]) {
         Options = std::make_unique<CMD::Options>(argc, argv);
         Tour = std::make_unique<Tournament>(Options->getGameOptions());
 
-        Tour->setResults(Options->getStats());
-
-        Tour->startTournament(Options->getEngineConfigs());
+        Tour->roundRobin()->setResults(Options->getResults());
+        Tour->start(Options->getEngineConfigs());
+        Options->saveJson(Tour->getResults());
 
         std::cout << "Saved results" << std::endl;
-        Options->saveJson(Tour->results());
     } catch (const std::exception &e) {
         throw e;
     }

@@ -1,4 +1,4 @@
-#include "elo.hpp"
+#include <elo.hpp>
 
 #include "doctest/doctest.hpp"
 

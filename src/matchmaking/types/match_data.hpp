@@ -4,9 +4,10 @@
 #include <string>
 #include <vector>
 
-#include "matchmaking/participant.hpp"
+#include <matchmaking/types/player_info.hpp>
 
 namespace fast_chess {
+
 struct MoveData {
     std::string move;
     std::string score_string;
@@ -36,8 +37,12 @@ struct MatchData {
     std::string duration;
     std::string date;
     std::string fen;
+
+    // internal reason why the game ended
+    std::string internal_reason;
+
     int round = 0;
-    bool legal = true;
     bool needs_restart = false;
 };
+
 }  // namespace fast_chess

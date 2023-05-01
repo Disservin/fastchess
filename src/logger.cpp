@@ -1,7 +1,6 @@
-#include "logger.hpp"
+#include <logger.hpp>
 
 #include <iomanip>
-#include <sstream>
 
 namespace fast_chess {
 

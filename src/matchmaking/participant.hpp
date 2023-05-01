@@ -8,43 +8,43 @@ namespace fast_chess {
 class Participant {
    public:
     explicit Participant(const EngineConfiguration& config) {
-        engine_.loadConfig(config);
-        info_.config = config;
+        engine.loadConfig(config);
+        info.config = config;
     }
 
     [[nodiscard]] int64_t getTimeoutThreshold() const {
-        if (engine_.getConfig().limit.nodes != 0) {
+        if (engine.getConfig().limit.nodes != 0) {
             return 0;
-        } else if (engine_.getConfig().limit.plies != 0) {
+        } else if (engine.getConfig().limit.plies != 0) {
             return 0;
-        } else if (time_control_.fixed_time != 0) {
+        } else if (time_control.fixed_time != 0) {
             return 0;
         } else {
-            return time_control_.time + 100 /*margin*/;
+            return time_control.time + 100 /*margin*/;
         }
     }
 
     [[nodiscard]] bool updateTc(const int64_t elapsed_millis) {
-        if (engine_.getConfig().limit.tc.time == 0) {
+        if (engine.getConfig().limit.tc.time == 0) {
             return true;
         }
 
-        time_control_.time -= elapsed_millis;
+        time_control.time -= elapsed_millis;
 
-        if (time_control_.time < 0) {
+        if (time_control.time < 0) {
             return false;
         }
 
-        time_control_.time += time_control_.increment;
+        time_control.time += time_control.increment;
 
         return true;
     }
 
     // updated time control after each move
-    TimeControl time_control_;
+    TimeControl time_control;
 
-    UciEngine engine_;
-    PlayerInfo info_;
+    UciEngine engine;
+    PlayerInfo info;
 };
 
 }  // namespace fast_chess

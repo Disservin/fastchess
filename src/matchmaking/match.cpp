@@ -23,15 +23,15 @@ Match::Match(const CMD::GameManagerOptions& game_config, const EngineConfigurati
     Participant player_1 = Participant(engine1_config);
     Participant player_2 = Participant(engine2_config);
 
-    player_1.engine_.startEngine(engine1_config.cmd);
-    player_2.engine_.startEngine(engine2_config.cmd);
+    player_1.engine.startEngine(engine1_config.cmd);
+    player_2.engine.startEngine(engine2_config.cmd);
 
-    if (!player_1.engine_.sendUciNewGame()) {
-        throw std::runtime_error(player_1.engine_.getConfig().name + " failed to start.");
+    if (!player_1.engine.sendUciNewGame()) {
+        throw std::runtime_error(player_1.engine.getConfig().name + " failed to start.");
     }
 
-    if (!player_2.engine_.sendUciNewGame()) {
-        throw std::runtime_error(player_2.engine_.getConfig().name + " failed to start.");
+    if (!player_2.engine.sendUciNewGame()) {
+        throw std::runtime_error(player_2.engine.getConfig().name + " failed to start.");
     }
 
     start(player_1, player_2, fen);
@@ -40,7 +40,7 @@ Match::Match(const CMD::GameManagerOptions& game_config, const EngineConfigurati
 MatchData Match::get() const { return data_; }
 
 void Match::verifyPv(const Participant& us) {
-    for (const auto& info : us.engine_.output()) {
+    for (const auto& info : us.engine.output()) {
         const auto tokens = StrUtil::splitString(info, ' ');
 
         if (!StrUtil::contains(tokens, "moves")) continue;
@@ -60,44 +60,44 @@ void Match::setDraw(Participant& us, Participant& them, const std::string& msg,
                     const std::string& reason) {
     data_.internal_reason = reason;
     data_.termination = msg;
-    us.info_.result = GameResult::DRAW;
-    them.info_.result = GameResult::DRAW;
+    us.info.result = GameResult::DRAW;
+    them.info.result = GameResult::DRAW;
 }
 
 void Match::setWin(Participant& us, Participant& them, const std::string& msg,
                    const std::string& reason) {
     data_.internal_reason = reason;
     data_.termination = msg;
-    us.info_.result = GameResult::WIN;
-    them.info_.result = GameResult::LOSE;
+    us.info.result = GameResult::WIN;
+    them.info.result = GameResult::LOSE;
 }
 
 void Match::setLose(Participant& us, Participant& them, const std::string& msg,
                     const std::string& reason) {
     data_.internal_reason = reason;
     data_.termination = msg;
-    us.info_.result = GameResult::LOSE;
-    them.info_.result = GameResult::WIN;
+    us.info.result = GameResult::LOSE;
+    them.info.result = GameResult::WIN;
 }
 
 void Match::addMoveData(Participant& player, int64_t measured_time) {
-    const auto best_move = player.engine_.bestmove();
+    const auto best_move = player.engine.bestmove();
 
     MoveData move_data = MoveData(best_move, "0.00", measured_time, 0, 0, 0, 0);
 
-    if (player.engine_.output().size() <= 1) {
+    if (player.engine.output().size() <= 1) {
         data_.moves.push_back(move_data);
         return;
     }
 
     // extract last info line
-    const auto score_type = player.engine_.lastScoreType();
-    const auto info = player.engine_.lastInfo();
+    const auto score_type = player.engine.lastScoreType();
+    const auto info = player.engine.lastInfo();
 
     move_data.depth = StrUtil::findElement<int>(info, "depth").value_or(0);
     move_data.seldepth = StrUtil::findElement<int>(info, "seldepth").value_or(0);
     move_data.nodes = StrUtil::findElement<uint64_t>(info, "nodes").value_or(0);
-    move_data.score = player.engine_.lastScore();
+    move_data.score = player.engine.lastScore();
 
     // Missing elements default to 0
     std::stringstream ss;
@@ -125,11 +125,11 @@ void Match::start(Participant& engine1, Participant& engine2, const std::string&
     start_fen_ = board_.getFen() == STARTPOS ? "startpos" : board_.getFen();
 
     // copy time control which will be updated later
-    engine1.time_control_ = engine1.engine_.getConfig().limit.tc;
-    engine2.time_control_ = engine2.engine_.getConfig().limit.tc;
+    engine1.time_control = engine1.engine.getConfig().limit.tc;
+    engine2.time_control = engine2.engine.getConfig().limit.tc;
 
-    engine1.info_.color = board_.sideToMove();
-    engine2.info_.color = ~board_.sideToMove();
+    engine1.info.color = board_.sideToMove();
+    engine2.info.color = ~board_.sideToMove();
 
     data_.fen = fen;
 
@@ -163,12 +163,12 @@ void Match::start(Participant& engine1, Participant& engine2, const std::string&
     data_.end_time = Logger::getDateTime();
     data_.duration = Logger::formatDuration(chrono::duration_cast<chrono::seconds>(end - start));
 
-    data_.players = std::make_pair(engine1.info_, engine2.info_);
+    data_.players = std::make_pair(engine1.info, engine2.info);
 }
 
 bool Match::playMove(Participant& us, Participant& opponent) {
     const auto gameover = board_.isGameOver();
-    const auto name = us.engine_.getConfig().name;
+    const auto name = us.engine.getConfig().name;
 
     if (gameover.second == GameResult::DRAW) {
         setDraw(us, opponent, "", convertChessReason(name, gameover.first));
@@ -178,20 +178,19 @@ bool Match::playMove(Participant& us, Participant& opponent) {
         return false;
     }
 
-    if (!us.engine_.isResponsive()) {
+    if (!us.engine.isResponsive()) {
         setLose(us, opponent, "timeout", name + Match::TIMEOUT_MSG);
         return false;
     }
 
-    auto position = us.engine_.buildPositionInput(played_moves_, start_fen_);
-    auto go =
-        us.engine_.buildGoInput(board_.sideToMove(), us.time_control_, opponent.time_control_);
+    auto position = us.engine.buildPositionInput(played_moves_, start_fen_);
+    auto go = us.engine.buildGoInput(board_.sideToMove(), us.time_control, opponent.time_control);
 
-    us.engine_.writeEngine(position);
-    us.engine_.writeEngine(go);
+    us.engine.writeEngine(position);
+    us.engine.writeEngine(go);
 
     const auto t0 = clock::now();
-    auto output = us.engine_.readEngine("bestmove", us.getTimeoutThreshold());
+    auto output = us.engine.readEngine("bestmove", us.getTimeoutThreshold());
     const auto t1 = clock::now();
 
     const auto elapsed_millis = chrono::duration_cast<chrono::milliseconds>(t1 - t0).count();
@@ -204,7 +203,7 @@ bool Match::playMove(Participant& us, Participant& opponent) {
         return false;
     }
 
-    const auto best_move = us.engine_.bestmove();
+    const auto best_move = us.engine.bestmove();
     const auto move = board_.uciToMove(best_move);
 
     if (!Movegen::isLegal<Chess::Move>(board_, move)) {
@@ -226,10 +225,10 @@ bool Match::playMove(Participant& us, Participant& opponent) {
 }
 
 void Match::updateDrawTracker(const Participant& player) {
-    const auto score = player.engine_.lastScore();
+    const auto score = player.engine.lastScore();
 
     if (played_moves_.size() >= game_config_.draw.move_number &&
-        std::abs(score) <= game_config_.draw.score && player.engine_.lastScoreType() == "cp") {
+        std::abs(score) <= game_config_.draw.score && player.engine.lastScoreType() == "cp") {
         draw_tracker_.draw_moves++;
     } else {
         draw_tracker_.draw_moves = 0;
@@ -237,9 +236,9 @@ void Match::updateDrawTracker(const Participant& player) {
 }
 
 void Match::updateResignTracker(const Participant& player) {
-    const auto score = player.engine_.lastScore();
+    const auto score = player.engine.lastScore();
 
-    if (std::abs(score) >= game_config_.resign.score && player.engine_.lastScoreType() == "cp") {
+    if (std::abs(score) >= game_config_.resign.score && player.engine.lastScoreType() == "cp") {
         resign_tracker_.resign_moves++;
     } else {
         resign_tracker_.resign_moves = 0;
@@ -252,12 +251,12 @@ bool Match::adjudicate(Participant& us, Participant& them) {
         return true;
     } else if (game_config_.resign.enabled &&
                resign_tracker_.resign_moves >= game_config_.resign.move_count) {
-        if (us.engine_.lastScore() < game_config_.resign.score) {
+        if (us.engine.lastScore() < game_config_.resign.score) {
             setLose(us, them, "resign adjudication",
-                    us.engine_.getConfig().name + Match::ADJUDICATION_LOSE_MSG);
+                    us.engine.getConfig().name + Match::ADJUDICATION_LOSE_MSG);
         } else {
             setWin(us, them, "resign adjudication",
-                   us.engine_.getConfig().name + Match::ADJUDICATION_WIN_MSG);
+                   us.engine.getConfig().name + Match::ADJUDICATION_WIN_MSG);
         }
         return true;
     }

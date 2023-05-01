@@ -16,7 +16,7 @@ using clock = chrono::high_resolution_clock;
 using namespace Chess;
 
 Match::Match(const CMD::GameManagerOptions& game_config, const EngineConfiguration& engine1_config,
-             const EngineConfiguration& engine2_config, const std::string& fen, int round) {
+             const EngineConfiguration& engine2_config, const Opening& opening, int round) {
     game_config_ = game_config;
     data_.round = round;
 
@@ -34,7 +34,7 @@ Match::Match(const CMD::GameManagerOptions& game_config, const EngineConfigurati
         throw std::runtime_error(player_2.engine_.getConfig().name + " failed to start.");
     }
 
-    start(player_1, player_2, fen);
+    start(player_1, player_2, opening);
 }
 
 MatchData Match::get() const { return data_; }
@@ -119,8 +119,9 @@ void Match::addMoveData(Participant& player, int64_t measured_time) {
     played_moves_.push_back(best_move);
 }
 
-void Match::start(Participant& engine1, Participant& engine2, const std::string& fen) {
-    board_.loadFen(fen);
+void Match::start(Participant& engine1, Participant& engine2, const Opening& opening) {
+    board_.loadFen(opening.fen);
+    played_moves_.insert(played_moves_.end(), opening.moves.begin(), opening.moves.end());
 
     start_fen_ = board_.getFen() == STARTPOS ? "startpos" : board_.getFen();
 
@@ -131,7 +132,7 @@ void Match::start(Participant& engine1, Participant& engine2, const std::string&
     engine1.info_.color = board_.sideToMove();
     engine2.info_.color = ~board_.sideToMove();
 
-    data_.fen = fen;
+    data_.fen = opening.fen;
 
     data_.start_time = Logger::getDateTime();
     data_.date = Logger::getDateTime("%Y-%m-%d");

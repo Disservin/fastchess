@@ -34,6 +34,12 @@ inline bool endsWith(std::string_view value, std::string_view ending) {
     return std::equal(ending.rbegin(), ending.rend(), value.rbegin());
 }
 
+inline std::string toLower(std::string_view string) {
+    std::string lower_string(string);
+    std::transform(lower_string.begin(), lower_string.end(), lower_string.begin(), ::tolower);
+    return lower_string;
+}
+
 inline bool contains(std::string_view haystack, std::string_view needle) {
     return haystack.find(needle) != std::string::npos;
 }
@@ -66,6 +72,7 @@ std::optional<T> findElement(const std::vector<std::string> &haystack, std::stri
     else
         return haystack[index + 1];
 }
+
 }  // namespace StrUtil
 
 }  // namespace fast_chess

@@ -4,6 +4,7 @@
 #include <third_party/chess.hpp>
 #include <matchmaking/types/match_data.hpp>
 #include <matchmaking/participant.hpp>
+#include <pgn_reader.hpp>
 
 namespace fast_chess {
 
@@ -20,7 +21,7 @@ struct ResignTracker {
 class Match {
    public:
     Match(const CMD::GameManagerOptions& game_config, const EngineConfiguration& engine1_config,
-          const EngineConfiguration& engine2_config, const std::string& fen, int round);
+          const EngineConfiguration& engine2_config, const Opening& opening, int round);
 
     [[nodiscard]] MatchData get() const;
 
@@ -36,7 +37,7 @@ class Match {
 
     void addMoveData(Participant& player, int64_t measured_time);
 
-    void start(Participant& engine1, Participant& engine2, const std::string& fen);
+    void start(Participant& engine1, Participant& engine2, const Opening& opening);
 
     /// @brief returns false if the next move could not be played
     /// @param us

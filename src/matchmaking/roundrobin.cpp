@@ -5,6 +5,7 @@
 #include <rand.hpp>
 #include <third_party/chess.hpp>
 #include <matchmaking/output/output_factory.hpp>
+#include "roundrobin.hpp"
 
 namespace fast_chess {
 
@@ -18,7 +19,8 @@ RoundRobin::RoundRobin(const CMD::GameManagerOptions& game_config) {
 
     file_writer_.open(filename);
 
-    setupOpeningBook();
+    setupEpdOpeningBook();
+    setupPgnOpeningBook();
 
     // Resize the thread pool
     pool_.resize(game_config_.concurrency);
@@ -28,7 +30,7 @@ RoundRobin::RoundRobin(const CMD::GameManagerOptions& game_config) {
                  game_config_.sprt.elo1);
 }
 
-void RoundRobin::setupOpeningBook() {
+void RoundRobin::setupEpdOpeningBook() {
     // Set the seed for the random number generator
     Random::mersenne_rand.seed(game_config_.seed);
 
@@ -53,6 +55,32 @@ void RoundRobin::setupOpeningBook() {
             std::size_t j = i + (Random::mersenne_rand() % (opening_book_.size() - i));
             std::swap(opening_book_[i], opening_book_[j]);
         }
+    }
+
+    if (opening_book_.empty()) {
+        throw std::runtime_error("No openings found in EPD file: " + game_config_.opening.file);
+    }
+}
+
+void RoundRobin::setupPgnOpeningBook() {
+    // Read the opening book from file
+    if (game_config_.opening.file.empty()) {
+        return;
+    }
+
+    PgnReader pgn_reader = PgnReader(game_config_.opening.file);
+    pgn_opening_book_ = pgn_reader.getPgns();
+
+    if (game_config_.opening.order == "random") {
+        // Fisher-Yates / Knuth shuffle
+        for (std::size_t i = 0; i <= pgn_opening_book_.size() - 2; i++) {
+            std::size_t j = i + (Random::mersenne_rand() % (pgn_opening_book_.size() - i));
+            std::swap(pgn_opening_book_[i], pgn_opening_book_[j]);
+        }
+    }
+
+    if (pgn_opening_book_.empty()) {
+        throw std::runtime_error("No openings found in PGN file: " + game_config_.opening.file);
     }
 }
 
@@ -121,12 +149,12 @@ void RoundRobin::createPairings(const EngineConfiguration& player1,
     }
 
     Stats stats;
-    auto fen = fetchNextFen();
+    auto opening = fetchNextOpening();
     for (int i = 0; i < game_config_.games; i++) {
         auto idx = current * game_config_.games + i;
 
         output_->startGame(configs.first.name, configs.second.name, idx, game_config_.rounds * 2);
-        auto [success, result, reason] = playGame(configs, fen, idx);
+        auto [success, result, reason] = playGame(configs, opening, idx);
         output_->endGame(result, configs.first.name, configs.second.name, reason, idx);
 
         // If the game failed to start, try again
@@ -167,9 +195,9 @@ void RoundRobin::createPairings(const EngineConfiguration& player1,
 }
 
 std::tuple<bool, Stats, std::string> RoundRobin::playGame(
-    const std::pair<EngineConfiguration, EngineConfiguration>& configs, const std::string& fen,
+    const std::pair<EngineConfiguration, EngineConfiguration>& configs, const Opening& opening,
     int round_id) {
-    Match match = Match(game_config_, configs.first, configs.second, fen, round_id);
+    Match match = Match(game_config_, configs.first, configs.second, opening, round_id);
     MatchData match_data = match.get();
 
     PgnBuilder pgn_builder = PgnBuilder(match_data, game_config_);
@@ -195,19 +223,18 @@ Stats RoundRobin::updateStats(const MatchData& match_data) {
     return stats;
 }
 
-std::string RoundRobin::fetchNextFen() {
+Opening RoundRobin::fetchNextOpening() {
     static uint64_t fen_index_ = 0;
 
-    if (opening_book_.size() == 0) {
-        return Chess::STARTPOS;
-    } else if (game_config_.opening.format == "pgn") {
-        // TODO implementation
-        throw std::runtime_error("PGN opening book not implemented yet");
+    if (game_config_.opening.format == "pgn") {
+        return pgn_opening_book_[(game_config_.opening.start + fen_index_++) %
+                                 pgn_opening_book_.size()];
     } else if (game_config_.opening.format == "epd") {
-        return opening_book_[(game_config_.opening.start + fen_index_++) % opening_book_.size()];
+        return {opening_book_[(game_config_.opening.start + fen_index_++) % opening_book_.size()],
+                {}};
     }
 
-    return Chess::STARTPOS;
+    return {Chess::STARTPOS, {}};
 }
 
 }  // namespace fast_chess

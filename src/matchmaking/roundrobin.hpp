@@ -7,6 +7,7 @@
 #include <matchmaking/types/stats.hpp>
 #include <options.hpp>
 #include <sprt.hpp>
+#include <pgn_reader.hpp>
 
 namespace fast_chess {
 
@@ -29,7 +30,8 @@ class RoundRobin {
     void setResults(const stats_map &results) { result_.setResults(results); }
 
    private:
-    void setupOpeningBook();
+    void setupPgnOpeningBook();
+    void setupEpdOpeningBook();
 
     void create(const std::vector<EngineConfiguration> &engine_configs,
                 std::vector<std::future<void>> &results);
@@ -40,7 +42,7 @@ class RoundRobin {
                         int current);
 
     [[nodiscard]] std::tuple<bool, Stats, std::string> playGame(
-        const std::pair<EngineConfiguration, EngineConfiguration> &configs, const std::string &fen,
+        const std::pair<EngineConfiguration, EngineConfiguration> &configs, const Opening &opening,
         int round_id);
 
     /// @brief create the Stats object from the match data
@@ -51,7 +53,7 @@ class RoundRobin {
     /// @brief fetches the next fen from a sequential read opening book or from a randomized
     /// opening book order
     /// @return
-    [[nodiscard]] std::string fetchNextFen();
+    [[nodiscard]] Opening fetchNextOpening();
 
     std::unique_ptr<Output> output_;
 
@@ -65,8 +67,10 @@ class RoundRobin {
 
     FileWriter file_writer_;
 
-    /// @brief StrUtil::contains all opening fens
+    /// @brief contains all openings
     std::vector<std::string> opening_book_;
+    /// @brief contains all openings
+    std::vector<Opening> pgn_opening_book_;
 
     std::atomic<uint64_t> match_count_ = 0;
     std::atomic<uint64_t> total_ = 0;

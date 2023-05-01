@@ -51,6 +51,9 @@ Options::Options(int argc, char const *argv[]) {
                     if (StrUtil::endsWith(value, ".epd")) {
                         game_options_.opening.format = "epd";
                     }
+                    else if (StrUtil::endsWith(value, ".pgn")) {
+                        game_options_.opening.format = "pgn";
+                    }
                 } else if (key == "format") {
                     game_options_.opening.format = value;
                 } else if (key == "order") {

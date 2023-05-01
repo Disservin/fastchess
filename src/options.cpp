@@ -48,7 +48,7 @@ Options::Options(int argc, char const *argv[]) {
             parseDashOptions(i, argc, argv, [&](std::string key, std::string value) {
                 if (key == "file") {
                     game_options_.opening.file = value;
-                    if (StrUtil::ends_with(value, ".epd")) {
+                    if (StrUtil::endsWith(value, ".epd")) {
                         game_options_.opening.format = "epd";
                     }
                 } else if (key == "format") {

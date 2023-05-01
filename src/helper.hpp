@@ -29,17 +29,17 @@ inline bool startsWith(std::string_view haystack, std::string_view needle) {
     return (haystack.rfind(needle, 0) != std::string::npos);
 }
 
+inline bool endsWith(std::string_view value, std::string_view ending) {
+    if (ending.size() > value.size()) return false;
+    return std::equal(ending.rbegin(), ending.rend(), value.rbegin());
+}
+
 inline bool contains(std::string_view haystack, std::string_view needle) {
     return haystack.find(needle) != std::string::npos;
 }
 
 inline bool contains(const std::vector<std::string> &haystack, std::string_view needle) {
     return std::find(haystack.begin(), haystack.end(), needle) != haystack.end();
-}
-
-inline bool ends_with(std::string const &value, std::string const &ending) {
-    if (ending.size() > value.size()) return false;
-    return std::equal(ending.rbegin(), ending.rend(), value.rbegin());
 }
 
 inline std::vector<std::string> splitString(const std::string &string, const char &delimiter) {

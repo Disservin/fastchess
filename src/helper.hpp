@@ -37,6 +37,11 @@ inline bool contains(const std::vector<std::string> &haystack, std::string_view 
     return std::find(haystack.begin(), haystack.end(), needle) != haystack.end();
 }
 
+inline bool ends_with(std::string const &value, std::string const &ending) {
+    if (ending.size() > value.size()) return false;
+    return std::equal(ending.rbegin(), ending.rend(), value.rbegin());
+}
+
 inline std::vector<std::string> splitString(const std::string &string, const char &delimiter) {
     std::stringstream string_stream(string);
     std::string segment;

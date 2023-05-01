@@ -130,7 +130,7 @@ void RoundRobin::createPairings(const EngineConfiguration& player1,
         output_->endGame(result, configs.first.name, configs.second.name, reason, idx);
 
         // If the game failed to start, try again
-        if (!success) {
+        if (!success && game_config_.recover) {
             i--;
             continue;
         }

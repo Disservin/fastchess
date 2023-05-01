@@ -1,8 +1,9 @@
 #include <matchmaking/tournament.hpp>
 
+#include <third_party/chess.hpp>
+
 #include <logger.hpp>
 #include <rand.hpp>
-#include <third_party/chess.hpp>
 
 namespace fast_chess {
 

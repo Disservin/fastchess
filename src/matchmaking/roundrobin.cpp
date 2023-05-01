@@ -1,9 +1,10 @@
 #include <matchmaking/roundrobin.hpp>
 
+#include <third_party/chess.hpp>
+
 #include <logger.hpp>
 #include <pgn_builder.hpp>
 #include <rand.hpp>
-#include <third_party/chess.hpp>
 #include <matchmaking/output/output_factory.hpp>
 
 namespace fast_chess {

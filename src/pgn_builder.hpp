@@ -1,8 +1,9 @@
 #pragma once
 
+#include <third_party/chess.hpp>
+
 #include <matchmaking/match.hpp>
 #include <options.hpp>
-#include <third_party/chess.hpp>
 
 namespace fast_chess {
 

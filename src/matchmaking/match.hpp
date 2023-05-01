@@ -1,7 +1,8 @@
 #pragma once
 
-#include <options.hpp>
 #include <third_party/chess.hpp>
+
+#include <options.hpp>
 #include <matchmaking/types/match_data.hpp>
 #include <matchmaking/participant.hpp>
 

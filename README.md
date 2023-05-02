@@ -67,19 +67,15 @@ Options:
   -output format=FORMAT
     FORMAT can be "cutechess" or "fastchess" (default) change this if you have scripts
     that only parse cutechess like output. This is experimental as of know.
-  -ratinginterval N
-    print the current elo estimation every N rounds.
   -resign movecount=COUNT score=SCORE
   -repeat
     This has the same effect as -games 2 and is the default.
-  -report penta=PENTA
-    PENTA can be "true" or "false", and indicates if pentanomial stats should be reported.
   -rounds N
   -sprt elo0=ELO0 elo1=ELO1 alpha=ALPHA beta=BETA
   -srand SEED
-  -pgnout notation=NOTATION file=FILE tracknodes trackseldepth
+  -pgnout notation=NOTATION file=FILE
     NOTATION defaults to san, alternatively you can choose lan, default file output is
-    fast-chess.pgn, tracknodes adds the node count to the pgn and trackseldepth adds the seldepth.
+    fast-chess.pgn.
   -log file=NAME
 
 Engine;

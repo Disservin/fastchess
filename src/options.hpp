@@ -14,11 +14,14 @@ namespace fast_chess {
 
 namespace CMD {
 
+enum class NotationType { SAN, LAN, UCI };
+enum class OrderType { RANDOM, SEQUENTIAL };
+enum class FormatType { EPD, PGN };
+
 struct OpeningOptions {
     std::string file;
-    // TODO use enums for this
-    std::string format;
-    std::string order;
+    FormatType format = FormatType::EPD;
+    OrderType order = OrderType::RANDOM;
     int plies = 0;
     int start = 0;
 };
@@ -26,7 +29,7 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(OpeningOptions, file, format, or
 
 struct PgnOptions {
     std::string file;
-    std::string notation = "san";
+    NotationType notation = NotationType::SAN;
     bool track_nodes = false;
     bool track_seldepth = false;
 };

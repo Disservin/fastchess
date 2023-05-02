@@ -16,6 +16,8 @@ class PgnBuilder {
     static constexpr int LINE_LENGTH = 80;
 
    private:
+    std::string moveNotation(Chess::Board &board,const std::string &move) const;
+
     template <typename T>
     void addHeader(const std::string &name, const T &value);
 

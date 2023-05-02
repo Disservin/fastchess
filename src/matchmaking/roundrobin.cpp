@@ -50,7 +50,7 @@ void RoundRobin::setupEpdOpeningBook() {
 
     openingFile.close();
 
-    if (game_config_.opening.order == "random") {
+    if (game_config_.opening.order == CMD::OrderType::RANDOM) {
         // Fisher-Yates / Knuth shuffle
         for (std::size_t i = 0; i <= opening_book_.size() - 2; i++) {
             std::size_t j = i + (Random::mersenne_rand() % (opening_book_.size() - i));
@@ -72,7 +72,7 @@ void RoundRobin::setupPgnOpeningBook() {
     PgnReader pgn_reader = PgnReader(game_config_.opening.file);
     pgn_opening_book_ = pgn_reader.getPgns();
 
-    if (game_config_.opening.order == "random") {
+    if (game_config_.opening.order == CMD::OrderType::RANDOM) {
         // Fisher-Yates / Knuth shuffle
         for (std::size_t i = 0; i <= pgn_opening_book_.size() - 2; i++) {
             std::size_t j = i + (Random::mersenne_rand() % (pgn_opening_book_.size() - i));
@@ -227,10 +227,10 @@ Stats RoundRobin::updateStats(const MatchData& match_data) {
 Opening RoundRobin::fetchNextOpening() {
     static uint64_t opening_index = 0;
 
-    if (game_config_.opening.format == "pgn") {
+    if (game_config_.opening.format == CMD::FormatType::PGN) {
         return pgn_opening_book_[(game_config_.opening.start + opening_index++) %
                                  pgn_opening_book_.size()];
-    } else if (game_config_.opening.format == "epd") {
+    } else if (game_config_.opening.format == CMD::FormatType::EPD) {
         return {
             opening_book_[(game_config_.opening.start + opening_index++) % opening_book_.size()],
             {}};

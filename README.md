@@ -60,13 +60,13 @@ Options:
   -games N
     This should be set to 1 or 2, each round will play n games with, setting this higher than 2 does not really make sense.
   -openings file=NAME format=FORMAT order=ORDER plies=PLIES start=START
-    FORMAT can be "epd" and order "sequential" or "random", start specifies the offset.
+    FORMAT can be "epd" (or experimental pgn) and order "sequential" or"random", start specifies the offset.
     If plies is set to zero, as it is by default, the entire opening line will be used.
     FORMAT "pgn" is currently experimental.
   -option.OPTION=VALUE
   -output format=FORMAT
     FORMAT can be "cutechess" or "fastchess" (default) change this if you have scripts
-    that only parse cutechess like output. This is experimental as of know.
+    that only parse cutechess like output. This is experimental as of now.
   -resign movecount=COUNT score=SCORE
   -repeat
     This has the same effect as -games 2 and is the default.
@@ -74,7 +74,7 @@ Options:
   -sprt elo0=ELO0 elo1=ELO1 alpha=ALPHA beta=BETA
   -srand SEED
   -pgnout notation=NOTATION file=FILE
-    NOTATION defaults to san, alternatively you can choose lan, default file output is
+    NOTATION defaults to san, alternatively you can choose lan or uci, default file output is
     fast-chess.pgn.
   -log file=NAME
 

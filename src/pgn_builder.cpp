@@ -78,10 +78,20 @@ void PgnBuilder::addHeader(const std::string &name, const T &value) {
     pgn_ << "[" << name << " \"" << value << "\"]\n";
 }
 
+std::string PgnBuilder::moveNotation(Chess::Board &board, const std::string &move) const {
+    if (game_options_.pgn.notation == CMD::NotationType::SAN) {
+        return board.san(board.uciToMove(move));
+    } else if (game_options_.pgn.notation == CMD::NotationType::LAN) {
+        return board.lan(board.uciToMove(move));
+    } else {
+        return move;
+    }
+}
+
 void PgnBuilder::addMove(Chess::Board &board, const MoveData &move, std::size_t move_number) {
     std::stringstream ss;
     ss << (move_number % 2 == 1 ? std::to_string(move_number / 2 + 1) + ". " : "")
-       << board.san(board.uciToMove(move.move))
+       << moveNotation(board, move.move)
        << addComment((move.score_string + "/" + std::to_string(move.depth)),
                      formatTime(move.elapsed_millis));
     moves_.emplace_back(ss.str());

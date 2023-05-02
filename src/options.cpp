@@ -39,7 +39,15 @@ Options::Options(int argc, char const *argv[]) {
                 } else if (key == "trackseldepth") {
                     game_options_.pgn.track_seldepth = true;
                 } else if (key == "notation") {
-                    game_options_.pgn.notation = value;
+                    if (value == "san") {
+                        game_options_.pgn.notation = NotationType::SAN;
+                    } else if (value == "lan") {
+                        game_options_.pgn.notation = NotationType::LAN;
+                    } else if (value == "uci") {
+                        game_options_.pgn.notation = NotationType::UCI;
+                    } else {
+                        coutMissingCommand("pgnout notation", key, value);
+                    }
                 } else {
                     coutMissingCommand("pgnout", key, value);
                 }
@@ -49,15 +57,21 @@ Options::Options(int argc, char const *argv[]) {
                 if (key == "file") {
                     game_options_.opening.file = value;
                     if (StrUtil::endsWith(value, ".epd")) {
-                        game_options_.opening.format = "epd";
-                    }
-                    else if (StrUtil::endsWith(value, ".pgn")) {
-                        game_options_.opening.format = "pgn";
+                        game_options_.opening.format = FormatType::EPD;
+                    } else if (StrUtil::endsWith(value, ".pgn")) {
+                        game_options_.opening.format = FormatType::PGN;
                     }
                 } else if (key == "format") {
-                    game_options_.opening.format = value;
+                    if (value == "epd") {
+                        game_options_.opening.format = FormatType::EPD;
+                    } else if (value == "pgn") {
+                        game_options_.opening.format = FormatType::PGN;
+                    } else {
+                        coutMissingCommand("openings format", key, value);
+                    }
                 } else if (key == "order") {
-                    game_options_.opening.order = value;
+                    game_options_.opening.order =
+                        value == "random" ? OrderType::RANDOM : OrderType::SEQUENTIAL;
                 } else if (key == "plies") {
                     game_options_.opening.plies = std::stoi(value);
                 } else if (key == "start") {

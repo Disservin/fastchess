@@ -38,7 +38,7 @@ class Match {
 
     void addMoveData(Participant& player, int64_t measured_time);
 
-    void start(Participant& engine1, Participant& engine2, const Opening& opening);
+    void start(Participant& player1, Participant& player2, const Opening& opening);
 
     /// @brief returns false if the next move could not be played
     /// @param us

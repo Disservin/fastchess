@@ -28,15 +28,15 @@ TEST_SUITE("Uci Engine Communication Tests") {
         CHECK(uciOutput[2] == "uciok");
         CHECK(uci_engine.isResponsive());
 
-        bool timeout = false;
+        bool timedout = false;
 
         uci_engine.writeEngine("sleep");
         auto sleeper = uci_engine.readEngine("done", 100);
-        CHECK(uci_engine.timeout() == true);
+        CHECK(uci_engine.timedout() == true);
 
         uci_engine.writeEngine("sleep");
         auto sleeper2 = uci_engine.readEngine("done", 5000);
-        CHECK(timeout == false);
+        CHECK(timedout == false);
         CHECK(sleeper2.size() == 1);
         CHECK(sleeper2[0] == "done");
 
@@ -54,7 +54,7 @@ TEST_SUITE("Uci Engine Communication Tests") {
         uci_engine.writeEngine("uci");
         auto uciOutput = uci_engine.readEngine("uciok");
 
-        CHECK(uci_engine.timeout() == false);
+        CHECK(uci_engine.timedout() == false);
         CHECK(uciOutput.size() == 3);
         CHECK(uciOutput[0] == "line0");
         CHECK(uciOutput[1] == "line1");
@@ -62,19 +62,19 @@ TEST_SUITE("Uci Engine Communication Tests") {
 
         uci_engine.writeEngine("isready");
         auto readyok = uci_engine.readEngine("readyok");
-        CHECK(uci_engine.timeout() == false);
+        CHECK(uci_engine.timedout() == false);
         CHECK(readyok.size() == 1);
         CHECK(readyok[0] == "readyok");
 
         uci_engine.writeEngine("sleep");
         auto sleeper = uci_engine.readEngine("done", 100);
-        CHECK(uci_engine.timeout() == true);
+        CHECK(uci_engine.timedout() == true);
 
         std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
         uci_engine.writeEngine("sleep");
         auto sleeper2 = uci_engine.readEngine("done", 5000);
-        CHECK(uci_engine.timeout() == false);
+        CHECK(uci_engine.timedout() == false);
         CHECK(sleeper2.size() == 1);
         CHECK(sleeper2[0] == "done");
 

@@ -147,4 +147,5 @@ int UciEngine::lastScore() const {
 
 std::vector<std::string> UciEngine::output() const { return output_; }
 
+bool UciEngine::timedout() const { return timeout(); }
 }  // namespace fast_chess

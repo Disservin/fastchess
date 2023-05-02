@@ -7,7 +7,7 @@
 
 namespace fast_chess {
 
-class UciEngine : public Communication::Process {
+class UciEngine : private Communication::Process {
    public:
     UciEngine() = default;
     ~UciEngine() { sendQuit(); }
@@ -41,6 +41,7 @@ class UciEngine : public Communication::Process {
     [[nodiscard]] int lastScore() const;
 
     [[nodiscard]] std::vector<std::string> output() const;
+    [[nodiscard]] bool timedout() const;
 
     static const int64_t ping_time_ = 60000;
 

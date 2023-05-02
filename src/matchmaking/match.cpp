@@ -119,7 +119,7 @@ void Match::addMoveData(Participant& player, int64_t measured_time) {
     played_moves_.push_back(best_move);
 }
 
-void Match::start(Participant& engine1, Participant& engine2, const Opening& opening) {
+void Match::start(Participant& player1, Participant& player2, const Opening& opening) {
     board_.loadFen(opening.fen);
 
     std::vector<std::string> uci_moves = [&]() {
@@ -138,11 +138,11 @@ void Match::start(Participant& engine1, Participant& engine2, const Opening& ope
     start_fen_ = board_.getFen() == STARTPOS ? "startpos" : board_.getFen();
 
     // copy time control which will be updated later
-    engine1.time_control = engine1.engine.getConfig().limit.tc;
-    engine2.time_control = engine2.engine.getConfig().limit.tc;
+    player1.time_control = player1.engine.getConfig().limit.tc;
+    player2.time_control = player2.engine.getConfig().limit.tc;
 
-    engine1.info.color = board_.sideToMove();
-    engine2.info.color = ~board_.sideToMove();
+    player1.info.color = board_.sideToMove();
+    player2.info.color = ~board_.sideToMove();
 
     data_.fen = opening.fen;
 
@@ -156,13 +156,13 @@ void Match::start(Participant& engine1, Participant& engine2, const Opening& ope
                 data_.termination = "stop";
                 break;
             };
-            if (!playMove(engine1, engine2)) break;
+            if (!playMove(player1, player2)) break;
 
             if (Atomic::stop.load()) {
                 data_.termination = "stop";
                 break;
             };
-            if (!playMove(engine2, engine1)) break;
+            if (!playMove(player2, player1)) break;
         }
     } catch (const std::exception& e) {
         if (game_config_.recover)
@@ -176,7 +176,7 @@ void Match::start(Participant& engine1, Participant& engine2, const Opening& ope
     data_.end_time = Logger::getDateTime();
     data_.duration = Logger::formatDuration(chrono::duration_cast<chrono::seconds>(end - start));
 
-    data_.players = std::make_pair(engine1.info, engine2.info);
+    data_.players = std::make_pair(player1.info, player2.info);
 }
 
 bool Match::playMove(Participant& us, Participant& opponent) {

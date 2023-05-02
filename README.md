@@ -2,8 +2,8 @@
 
 Fast-Chess is a command-line tool designed for creating chess engine tournaments. It is mostly written in C++17 and uses [doctest](https://github.com/doctest/doctest) as its testing framework.
 
-With Fast-Chess, you can easily create and run chess tournaments with two engines, 
-set time controls, and run matches in parallel to save time. 
+With Fast-Chess, you can easily create and run chess tournaments with two engines,
+set time controls, and run matches in parallel to save time.
 The POSIX implementation has been extensively tested for high concurrency (250) with short time controls (0.2+0.002) and has demonstrated minimal timeout issues, with only 10 matches out of 20,000 timing out.
 
 ## Quick start
@@ -18,7 +18,7 @@ Building Fast-Chess from source is simple and straightforward. Just follow these
 
 ### Download the latest release
 
-If you prefer to download the latest release, you can do so from our [release page](https://github.com/Disservin/fast-chess/releases). 
+If you prefer to download the latest release, you can do so from our [release page](https://github.com/Disservin/fast-chess/releases).
 Just choose the version that fits your needs, download it, and you're good to go!
 
 ### Example usage
@@ -26,16 +26,16 @@ Just choose the version that fits your needs, download it, and you're good to go
 Here's an example of how to use Fast-Chess:
 
 ```
-fast-chess.exe -engine cmd=Engine1.exe name=Engine1 -engine cmd=Engine2.exe name=Engine2 
+fast-chess.exe -engine cmd=Engine1.exe name=Engine1 -engine cmd=Engine2.exe name=Engine2
 -each tc=10+0.1 -rounds 200 -repeat -concurrency 4
 ```
 
-In this command we add two engines with `-engine`. We've specified the name of the 
+In this command we add two engines with `-engine`. We've specified the name of the
 engines and set the executables with `name=NAME cmd=CMD`. Options following an `-each` flag will be
 used for both engines, like a time control (in this case 10s with 0.1s increment per move) or a Hash size.
-We're also running 200 rounds with each engine playing two games per round using the `-rounds` and `-repeat` options, 
-respectively. Finally, we've set the concurrency to 4 threads using the `-concurrency` option. 
-Note that setting the concurrency higher than your CPU's core count may not result in any significant performance gains 
+We're also running 200 rounds with each engine playing two games per round using the `-rounds` and `-repeat` options,
+respectively. Finally, we've set the concurrency to 4 threads using the `-concurrency` option.
+Note that setting the concurrency higher than your CPU's core count may not result in any significant performance gains
 and may even have the opposite effect.
 
 ## Command line options
@@ -62,6 +62,7 @@ Options:
   -openings file=NAME format=FORMAT order=ORDER plies=PLIES start=START
     FORMAT can be "epd" and order "sequential" or "random", start specifies the offset.
     If plies is set to zero, as it is by default, the entire opening line will be used.
+    FORMAT "pgn" is currently experimental.
   -option.OPTION=VALUE
   -output format=FORMAT
     FORMAT can be "cutechess" or "fastchess" (default) change this if you have scripts
@@ -87,7 +88,7 @@ Engine;
   plies=N
   tc=TC
     TC uses the same format as Cute-Chess. For example 10+0.1 would be 10 seconds with 100 millisecond increments.
-  
+
 ```
 
 ## Contributing
@@ -96,5 +97,5 @@ We welcome contributions to Fast-Chess! Please ensure that any changes you make 
 
 The entire code is formatted with **clang-format** using the **Google style**. If you create pull requests, please make sure that the code is formatted using this style.
 
-To contribute, you need a recent GCC compiler that supports C++17, as well as a way to run the Makefile. **You can run tests locally** by navigating to the /tests directory and running make -j. 
+To contribute, you need a recent GCC compiler that supports C++17, as well as a way to run the Makefile. **You can run tests locally** by navigating to the /tests directory and running make -j.
 Then, run the ./fast-chess-tests executable to ensure your changes pass the tests.

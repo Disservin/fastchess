@@ -121,7 +121,19 @@ void Match::addMoveData(Participant& player, int64_t measured_time) {
 
 void Match::start(Participant& engine1, Participant& engine2, const Opening& opening) {
     board_.loadFen(opening.fen);
-    played_moves_.insert(played_moves_.end(), opening.moves.begin(), opening.moves.end());
+
+    std::vector<std::string> uci_moves = [&]() {
+        Board board = board_;
+        std::vector<std::string> moves;
+        for (const auto& move : opening.moves) {
+            Move i_move = board_.parseSan(move);
+            moves.push_back(board.uci(i_move));
+            board_.makeMove(i_move);
+        }
+        return moves;
+    }();
+
+    played_moves_.insert(played_moves_.end(), uci_moves.begin(), uci_moves.end());
 
     start_fen_ = board_.getFen() == STARTPOS ? "startpos" : board_.getFen();
 

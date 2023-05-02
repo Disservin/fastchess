@@ -224,14 +224,15 @@ Stats RoundRobin::updateStats(const MatchData& match_data) {
 }
 
 Opening RoundRobin::fetchNextOpening() {
-    static uint64_t fen_index_ = 0;
+    static uint64_t opening_index = 0;
 
     if (game_config_.opening.format == "pgn") {
-        return pgn_opening_book_[(game_config_.opening.start + fen_index_++) %
+        return pgn_opening_book_[(game_config_.opening.start + opening_index++) %
                                  pgn_opening_book_.size()];
     } else if (game_config_.opening.format == "epd") {
-        return {opening_book_[(game_config_.opening.start + fen_index_++) % opening_book_.size()],
-                {}};
+        return {
+            opening_book_[(game_config_.opening.start + opening_index++) % opening_book_.size()],
+            {}};
     }
 
     return {Chess::STARTPOS, {}};

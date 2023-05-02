@@ -100,15 +100,5 @@ clean:
 
 -include $(DEPENDS)
 
-
 tmp/src/options.o: FORCE
 FORCE:
-
-# Force recompile for tests
-ifeq ($(MAKECMDGOALS),tests)
-tmp/src/matchmaking/tournament.o: FORCE
-FORCE:
-
-tmp/src/matchmaking/match.o: FORCE
-FORCE:
-endif

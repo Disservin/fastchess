@@ -36,6 +36,7 @@ SOFTWARE.
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include <regex>
 
 namespace Chess {
 
@@ -91,9 +92,9 @@ enum class Piece : uint8_t {
 
 enum class PieceType : uint8_t { PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING, NONE };
 
-enum class Rank : uint8_t { RANK_1, RANK_2, RANK_3, RANK_4, RANK_5, RANK_6, RANK_7, RANK_8 };
+enum class Rank : uint8_t { RANK_1, RANK_2, RANK_3, RANK_4, RANK_5, RANK_6, RANK_7, RANK_8, NONE };
 
-enum class File : uint8_t { FILE_A, FILE_B, FILE_C, FILE_D, FILE_E, FILE_F, FILE_G, FILE_H };
+enum class File : uint8_t { FILE_A, FILE_B, FILE_C, FILE_D, FILE_E, FILE_F, FILE_G, FILE_H, NONE };
 
 enum CastlingRight : uint8_t { WK = 1, WQ = 2, BK = 4, BQ = 8 };
 
@@ -146,10 +147,12 @@ static std::unordered_map<char, PieceType> pieceToInt({{'n', PieceType::KNIGHT},
                                                        {'b', PieceType::BISHOP},
                                                        {'r', PieceType::ROOK},
                                                        {'q', PieceType::QUEEN},
+                                                       {'k', PieceType::KING},
                                                        {'N', PieceType::KNIGHT},
                                                        {'B', PieceType::BISHOP},
                                                        {'R', PieceType::ROOK},
-                                                       {'Q', PieceType::QUEEN}});
+                                                       {'Q', PieceType::QUEEN},
+                                                       {'K', PieceType::KING}});
 
 static std::unordered_map<char, Piece> charToPiece({{'P', Piece::WHITEPAWN},
                                                     {'N', Piece::WHITEKNIGHT},
@@ -830,6 +833,13 @@ inline void printBitboard(U64 bb) {
     std::cout << '\n' << std::endl;
 }
 
+inline std::smatch regex(const std::string &str, const std::string &reg) {
+    std::regex re(reg);
+    std::smatch match;
+    std::regex_search(str, match, re);
+    return match;
+}
+
 namespace {
 auto init_squares_between = []() constexpr {
     // initialize squares between table
@@ -948,6 +958,8 @@ class Board {
 
     [[nodiscard]] std::string san(const Move &move);
     [[nodiscard]] std::string lan(const Move &move);
+
+    [[nodiscard]] Move parseSan(std::string san);
 
    protected:
    private:
@@ -2230,4 +2242,89 @@ inline std::string Board::lan(const Move &move) {
     return lan;
 }
 
+inline Move Board::parseSan(std::string san) {
+    Movelist<Move> moves;
+    Movegen::legalmoves<Move>(moves, *this);
+    if (san == "0-0" || san == "0-0+" || san == "0-0#" || san == "O-O" || san == "O-O+" ||
+        san == "O-O#") {
+        for (auto move : moves) {
+            if (move.typeOf() == Move::CASTLING && move.to() > move.from()) {
+                return move;
+            }
+        }
+        throw std::runtime_error("illegal san, step 1: " + san);
+
+    } else if (san == "0-0-0" || san == "0-0-0+" || san == "0-0-0#" || san == "O-O-O" ||
+               san == "O-O-O+" || san == "O-O-O#") {
+        for (auto move : moves) {
+            if (move.typeOf() == Move::CASTLING && move.to() < move.from()) {
+                return move;
+            }
+        }
+        throw std::runtime_error("illegal san, step 2: " + san);
+    }
+
+    /*
+    group | description
+    1     | ^([NBKRQ])? match moving piecetype (optional)
+    2     | ([a-h])? match from file (optional)
+    3     | ([1-8])?[\\-x]? match from rank (optional), castle - or capture x
+    4     | ([a-h][1-8]) match to square, always present
+    5     | (=?[nbrqkNBRQK])?[\\+#]? match promotion (optional), check + or checkmate #
+    */
+    const auto match =
+        regex(san, "^([NBKRQ])?([a-h])?([1-8])?[\\-x]?([a-h][1-8])(=?[nbrqkNBRQK])?[\\+#]?");
+
+    Square to = extractSquare(match.str(4));
+
+    PieceType moving = PieceType::PAWN;
+    PieceType promotionType = !match.str(5).empty() ? pieceToInt[match.str(5)[1]] : PieceType::NONE;
+
+    File from_file = File::NONE;
+    Rank from_rank = Rank::NONE;
+
+    if (!match.str(2).empty()) {
+        from_file = File(match.str(2)[0] - 'a');
+    }
+    if (!match.str(3).empty()) {
+        from_rank = Rank(match.str(3)[0] - '1');
+    }
+
+    if (!match.str(1).empty()) {
+        moving = pieceToInt[match.str(1)[0]];
+    } else if (!match.str(2).empty() && !match.str(3).empty()) {
+        for (auto move : moves) {
+            if (move.from() == fileRankSquare(from_file, from_rank) && move.to() == to &&
+                typeOfPiece(pieceAt(move.from())) == moving) {
+                if (move.typeOf() == Move::PROMOTION) {
+                    if (move.promotionType() == promotionType)
+                        return move;
+                    else
+                        throw std::runtime_error("illegal san, step 3: " + san);
+                }
+                return move;
+            }
+        }
+        throw std::runtime_error("illegal san, step 4: " + san);
+    }
+
+    for (auto move : moves) {
+        if (typeOfPiece(pieceAt(move.from())) == moving && to == move.to()) {
+            if (move.typeOf() == Move::PROMOTION) {
+                if (promotionType == move.promotionType()) {
+                    return move;
+                }
+            } else {
+                if (from_file == File::NONE && from_rank == Rank::NONE) {
+                    return move;
+                } else if ((squareFile(move.from()) == from_file) ||
+                           (squareRank(move.from()) == from_rank)) {
+                    return move;
+                }
+            }
+        }
+    }
+
+    throw std::runtime_error("illegal san, step 5: " + san);
+}
 }  // namespace Chess

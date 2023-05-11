@@ -5,9 +5,10 @@
 #include <matchmaking/result.hpp>
 #include <matchmaking/threadpool.hpp>
 #include <matchmaking/types/stats.hpp>
-#include <options.hpp>
-#include <sprt.hpp>
 #include <pgn_reader.hpp>
+#include <sprt.hpp>
+#include <types.hpp>
+
 
 namespace fast_chess {
 
@@ -17,7 +18,7 @@ extern std::atomic_bool stop;
 
 class RoundRobin {
    public:
-    RoundRobin(const CMD::GameManagerOptions &game_config);
+    RoundRobin(const cmd::GameManagerOptions &game_config);
 
     void start(const std::vector<EngineConfiguration> &engine_configs);
 
@@ -57,7 +58,7 @@ class RoundRobin {
 
     std::unique_ptr<Output> output_;
 
-    CMD::GameManagerOptions game_config_ = {};
+    cmd::GameManagerOptions game_config_ = {};
 
     ThreadPool pool_ = ThreadPool(1);
 

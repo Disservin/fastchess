@@ -31,7 +31,7 @@ fast-chess.exe -engine cmd=Engine1.exe name=Engine1 -engine cmd=Engine2.exe name
 ```
 
 In this command we add two engines with `-engine`. We've specified the name of the
-engines and set the executables with `name=NAME cmd=CMD`. Options following an `-each` flag will be
+engines and set the executables with `name=NAME cmd=cmd`. Options following an `-each` flag will be
 used for both engines, like a time control (in this case 10s with 0.1s increment per move) or a Hash size.
 We're also running 200 rounds with each engine playing two games per round using the `-rounds` and `-repeat` options,
 respectively. Finally, we've set the concurrency to 4 threads using the `-concurrency` option.

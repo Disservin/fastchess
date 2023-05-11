@@ -3,9 +3,9 @@
 #include <iostream>
 #include <thread>
 
+#include <cli.hpp>
 #include <engines/uci_engine.hpp>
 #include <matchmaking/tournament.hpp>
-#include <options.hpp>
 
 namespace fast_chess {
 namespace Atomic {
@@ -16,7 +16,7 @@ std::atomic_bool stop = false;
 using namespace fast_chess;
 
 namespace {
-std::unique_ptr<CMD::Options> Options;
+std::unique_ptr<cmd::OptionsParser> Options;
 std::unique_ptr<Tournament> Tour;
 }  // namespace
 
@@ -61,18 +61,14 @@ int main(int argc, char const *argv[]) {
 #else
     signal(SIGINT, sigintHandler);
 #endif
-    try {
-        Options = std::make_unique<CMD::Options>(argc, argv);
-        Tour = std::make_unique<Tournament>(Options->getGameOptions());
+    Options = std::make_unique<cmd::OptionsParser>(argc, argv);
+    Tour = std::make_unique<Tournament>(Options->getGameOptions());
 
-        Tour->roundRobin()->setResults(Options->getResults());
-        Tour->start(Options->getEngineConfigs());
-        Options->saveJson(Tour->getResults());
+    Tour->roundRobin()->setResults(Options->getResults());
+    Tour->start(Options->getEngineConfigs());
+    Options->saveJson(Tour->getResults());
 
-        std::cout << "Saved results" << std::endl;
-    } catch (const std::exception &e) {
-        throw e;
-    }
+    std::cout << "Saved results" << std::endl;
 
     return 0;
 }

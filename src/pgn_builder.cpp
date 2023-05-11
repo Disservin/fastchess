@@ -7,7 +7,7 @@
 
 namespace fast_chess {
 
-PgnBuilder::PgnBuilder(const MatchData &match, const CMD::GameManagerOptions &game_options) {
+PgnBuilder::PgnBuilder(const MatchData &match, const cmd::GameManagerOptions &game_options) {
     this->match_ = match;
     this->game_options_ = game_options;
 
@@ -79,9 +79,9 @@ void PgnBuilder::addHeader(const std::string &name, const T &value) {
 }
 
 std::string PgnBuilder::moveNotation(Chess::Board &board, const std::string &move) const {
-    if (game_options_.pgn.notation == CMD::NotationType::SAN) {
+    if (game_options_.pgn.notation == cmd::NotationType::SAN) {
         return board.san(board.uciToMove(move));
-    } else if (game_options_.pgn.notation == CMD::NotationType::LAN) {
+    } else if (game_options_.pgn.notation == cmd::NotationType::LAN) {
         return board.lan(board.uciToMove(move));
     } else {
         return move;

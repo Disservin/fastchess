@@ -15,7 +15,7 @@ using clock = chrono::high_resolution_clock;
 
 using namespace Chess;
 
-Match::Match(const CMD::GameManagerOptions& game_config, const EngineConfiguration& engine1_config,
+Match::Match(const cmd::GameManagerOptions& game_config, const EngineConfiguration& engine1_config,
              const EngineConfiguration& engine2_config, const Opening& opening, int round) {
     game_config_ = game_config;
     data_.round = round;

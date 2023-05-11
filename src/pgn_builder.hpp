@@ -3,20 +3,20 @@
 #include <third_party/chess.hpp>
 
 #include <matchmaking/match.hpp>
-#include <options.hpp>
+#include <types.hpp>
 
 namespace fast_chess {
 
 class PgnBuilder {
    public:
-    PgnBuilder(const MatchData &match, const CMD::GameManagerOptions &game_options);
+    PgnBuilder(const MatchData &match, const cmd::GameManagerOptions &game_options);
 
     std::string get() const { return pgn_.str() + "\n\n"; }
 
     static constexpr int LINE_LENGTH = 80;
 
    private:
-    std::string moveNotation(Chess::Board &board,const std::string &move) const;
+    std::string moveNotation(Chess::Board &board, const std::string &move) const;
 
     template <typename T>
     void addHeader(const std::string &name, const T &value);
@@ -41,7 +41,7 @@ class PgnBuilder {
     std::string getResultFromMatch(const MatchData &match) const;
 
     MatchData match_;
-    CMD::GameManagerOptions game_options_;
+    cmd::GameManagerOptions game_options_;
 
     std::stringstream pgn_;
     std::vector<std::string> moves_;

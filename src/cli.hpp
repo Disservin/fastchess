@@ -106,7 +106,9 @@ class OptionsParser {
     [[nodiscard]] stats_map getResults() const { return argument_data_.stats; }
 
    private:
-    void addOption(std::string optionName, Option *option) { options_[optionName] = option; }
+    void addOption(std::string optionName, Option *option) {
+        options_.insert(std::make_pair(optionName, std::unique_ptr<Option>(option)));
+    }
 
     void parse(int argc, char const *argv[]) {
         for (int i = 1; i < argc; i++) {
@@ -119,7 +121,7 @@ class OptionsParser {
         }
     }
 
-    std::map<std::string, Option *> options_;
+    std::map<std::string, std::unique_ptr<Option>> options_;
 
     ArgumentData argument_data_;
 };

@@ -1,21 +1,20 @@
 #pragma once
 
 #include <algorithm>
+#include <engines/engine_config.hpp>
 #include <functional>
 #include <iostream>
 #include <limits>
+#include <logger.hpp>
 #include <map>
 #include <memory>
 #include <optional>
 #include <sstream>
 #include <string>
 #include <type_traits>
+#include <types.hpp>
 #include <unordered_map>
 #include <vector>
-
-#include <engines/engine_config.hpp>
-#include <logger.hpp>
-#include <types.hpp>
 
 namespace fast_chess {
 namespace cmd {
@@ -107,7 +106,8 @@ class OptionsParser {
 
    private:
     void addOption(std::string optionName, Option *option) {
-        options_.insert(std::make_pair(optionName, std::unique_ptr<Option>(option)));
+        options_.insert(std::make_pair("-" + optionName, std::unique_ptr<Option>(option)));
+        options_.insert(std::make_pair("--" + optionName, std::unique_ptr<Option>(option)));
     }
 
     void parse(int argc, char const *argv[]) {

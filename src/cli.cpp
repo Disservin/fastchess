@@ -1,7 +1,5 @@
 #include <cli.hpp>
-
 #include <filesystem>
-
 #include <logger.hpp>
 #include <matchmaking/output/output_factory.hpp>
 #include <matchmaking/result.hpp>
@@ -358,26 +356,27 @@ class Repeat : public Option {
 };
 
 OptionsParser::OptionsParser(int argc, char const *argv[]) {
-    addOption("-engine", new Engine());
-    addOption("-each", new Each());
-    addOption("-pgnout", new Pgnout());
-    addOption("-openings", new Opening());
-    addOption("-sprt", new Sprt());
-    addOption("-draw", new Draw());
-    addOption("-resign", new Resign());
-    addOption("-log", new Log());
-    addOption("-report", new Report());
-    addOption("-output", new Output());
-    addOption("-concurrency", new Concurrency());
-    addOption("-event", new Event());
-    addOption("-site", new Site());
-    addOption("-games", new Games());
-    addOption("-rounds", new Rounds());
-    addOption("-ratinginterval", new Ratinginterval());
-    addOption("-srand", new SRand());
-    addOption("-version", new Version());
-    addOption("-recover", new Recover());
-    addOption("-repeat", new Repeat());
+    addOption("engine", new Engine());
+    addOption("each", new Each());
+    addOption("pgnout", new Pgnout());
+    addOption("openings", new Opening());
+    addOption("sprt", new Sprt());
+    addOption("draw", new Draw());
+    addOption("resign", new Resign());
+    addOption("log", new Log());
+    addOption("report", new Report());
+    addOption("output", new Output());
+    addOption("concurrency", new Concurrency());
+    addOption("event", new Event());
+    addOption("site", new Site());
+    addOption("games", new Games());
+    addOption("rounds", new Rounds());
+    addOption("ratinginterval", new Ratinginterval());
+    addOption("srand", new SRand());
+    addOption("version", new Version());
+    addOption("v", new Version());
+    addOption("recover", new Recover());
+    addOption("repeat", new Repeat());
 
     parse(argc, argv);
 }

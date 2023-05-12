@@ -107,7 +107,6 @@ class OptionsParser {
    private:
     void addOption(std::string optionName, Option *option) {
         options_.insert(std::make_pair("-" + optionName, std::unique_ptr<Option>(option)));
-        options_.insert(std::make_pair("--" + optionName, std::unique_ptr<Option>(option)));
     }
 
     void parse(int argc, char const *argv[]) {

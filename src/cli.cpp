@@ -374,7 +374,9 @@ OptionsParser::OptionsParser(int argc, char const *argv[]) {
     addOption("ratinginterval", new Ratinginterval());
     addOption("srand", new SRand());
     addOption("version", new Version());
+    addOption("-version", new Version());
     addOption("v", new Version());
+    addOption("-v", new Version());
     addOption("recover", new Recover());
     addOption("repeat", new Repeat());
 

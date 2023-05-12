@@ -1,4 +1,4 @@
-#include <options.hpp>
+#include <cli.hpp>
 
 #include <cassert>
 
@@ -24,7 +24,7 @@ TEST_SUITE("Option Parsing Tests") {
                               "option.Hash=32",
                               "name=Alexandria-27E42728",
                               "-openings",
-                              "file=Books/Pohl.epd",
+                              "file=./tests/data/test.epd",
                               "format=epd",
                               "order=random",
                               "plies=16",
@@ -34,7 +34,8 @@ TEST_SUITE("Option Parsing Tests") {
                               "2",
                               "-pgnout",
                               "file=PGNs/Alexandria-EA649FED_vs_Alexandria-27E42728"};
-        CMD::Options options = CMD::Options(26, argv);
+
+        cmd::OptionsParser options = cmd::OptionsParser(26, argv);
 
         auto configs = options.getEngineConfigs();
 
@@ -79,13 +80,13 @@ TEST_SUITE("Option Parsing Tests") {
                               "elo0=0",
                               "elo1=5",
                               "-openings",
-                              "file=Books/Pohl.epd",
+                              "file=./tests/data/test.epd",
                               "format=epd",
                               "order=random",
                               "plies=16",
                               "-pgnout",
                               "file=PGNs/Alexandria-EA649FED_vs_Alexandria-27E42728"};
-        CMD::Options options = CMD::Options(21, argv);
+        cmd::OptionsParser options = cmd::OptionsParser(21, argv);
         auto gameOptions = options.getGameOptions();
 
         // Test proper cli settings
@@ -100,9 +101,9 @@ TEST_SUITE("Option Parsing Tests") {
         CHECK(gameOptions.sprt.elo1 == 5.0);
         CHECK(gameOptions.pgn.file == "PGNs/Alexandria-EA649FED_vs_Alexandria-27E42728");
         // Test opening settings parsing
-        CHECK(gameOptions.opening.file == "Books/Pohl.epd");
-        CHECK(gameOptions.opening.format == CMD::FormatType::EPD);
-        CHECK(gameOptions.opening.order == CMD::OrderType::RANDOM);
+        CHECK(gameOptions.opening.file == "./tests/data/test.epd");
+        CHECK(gameOptions.opening.format == cmd::FormatType::EPD);
+        CHECK(gameOptions.opening.order == cmd::OrderType::RANDOM);
         CHECK(gameOptions.opening.plies == 16);
     }
 }

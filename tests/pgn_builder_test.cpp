@@ -30,7 +30,7 @@ TEST_SUITE("PGN Builder Tests") {
 
         match_data.round = 1;
 
-        CMD::GameManagerOptions options;
+        cmd::GameManagerOptions options;
         options.site = "localhost";
 
         PgnBuilder pgn_builder = PgnBuilder(match_data, options);
@@ -65,7 +65,7 @@ TEST_SUITE("PGN Builder Tests") {
 
         match_data.round = 1;
 
-        CMD::GameManagerOptions options;
+        cmd::GameManagerOptions options;
         options.site = "localhost";
 
         PgnBuilder pgn_builder = PgnBuilder(match_data, options);

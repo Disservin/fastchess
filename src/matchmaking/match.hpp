@@ -2,9 +2,9 @@
 
 #include <third_party/chess.hpp>
 
-#include <options.hpp>
-#include <matchmaking/types/match_data.hpp>
+#include <cli.hpp>
 #include <matchmaking/participant.hpp>
+#include <matchmaking/types/match_data.hpp>
 #include <pgn_reader.hpp>
 
 namespace fast_chess {
@@ -21,7 +21,7 @@ struct ResignTracker {
 
 class Match {
    public:
-    Match(const CMD::GameManagerOptions& game_config, const EngineConfiguration& engine1_config,
+    Match(const cmd::GameManagerOptions& game_config, const EngineConfiguration& engine1_config,
           const EngineConfiguration& engine2_config, const Opening& opening, int round);
 
     [[nodiscard]] MatchData get() const;
@@ -73,7 +73,7 @@ class Match {
     DrawTacker draw_tracker_;
     ResignTracker resign_tracker_;
 
-    CMD::GameManagerOptions game_config_;
+    cmd::GameManagerOptions game_config_;
     Chess::Board board_;
     MatchData data_;
 

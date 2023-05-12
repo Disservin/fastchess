@@ -93,5 +93,5 @@ We welcome contributions to Fast-Chess! Please ensure that any changes you make 
 
 The entire code is formatted with **clang-format** using the **Google style**. If you create pull requests, please make sure that the code is formatted using this style.
 
-To contribute, you need a recent GCC compiler that supports C++17, as well as a way to run the Makefile. **You can run tests locally** by navigating to the /tests directory and running make -j.
+To contribute, you need a recent GCC compiler that supports C++17, as well as a way to run the Makefile. **You can run tests locally** by running `make -j tests`.
 Then, run the ./fast-chess-tests executable to ensure your changes pass the tests.

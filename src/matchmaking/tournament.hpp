@@ -3,7 +3,6 @@
 #include <matchmaking/roundrobin.hpp>
 #include <types.hpp>
 
-
 namespace fast_chess {
 class Tournament {
    public:

@@ -1,8 +1,5 @@
 #include <engines/uci_engine.hpp>
 
-#include <sstream>
-#include <stdexcept>
-
 #include <helper.hpp>
 #include <logger.hpp>
 

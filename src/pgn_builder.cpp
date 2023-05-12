@@ -1,7 +1,6 @@
 #include <pgn_builder.hpp>
 
 #include <iomanip>  // std::setprecision
-#include <sstream>
 
 #include <matchmaking/output/output_base.hpp>
 

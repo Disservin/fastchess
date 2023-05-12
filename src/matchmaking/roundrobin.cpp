@@ -4,9 +4,9 @@
 
 #include <logger.hpp>
 #include <matchmaking/output/output_factory.hpp>
+#include <matchmaking/roundrobin.hpp>
 #include <pgn_builder.hpp>
 #include <rand.hpp>
-#include "roundrobin.hpp"
 
 
 namespace fast_chess {

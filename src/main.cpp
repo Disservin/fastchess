@@ -1,8 +1,3 @@
-#include <chrono>
-#include <csignal>
-#include <iostream>
-#include <thread>
-
 #include <cli.hpp>
 #include <engines/uci_engine.hpp>
 #include <matchmaking/tournament.hpp>

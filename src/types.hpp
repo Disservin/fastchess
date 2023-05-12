@@ -1,7 +1,5 @@
 #pragma once
 
-#include <string>
-
 #include <engines/engine_config.hpp>
 #include <matchmaking/output/output_factory.hpp>
 #include <matchmaking/result.hpp>

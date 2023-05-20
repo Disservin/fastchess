@@ -11,11 +11,11 @@ namespace cmd {
 
 enum class NotationType { SAN, LAN, UCI };
 enum class OrderType { RANDOM, SEQUENTIAL };
-enum class FormatType { EPD, PGN };
+enum class FormatType { EPD, PGN, NONE };
 
 struct OpeningOptions {
     std::string file;
-    FormatType format = FormatType::EPD;
+    FormatType format = FormatType::NONE;
     OrderType order = OrderType::RANDOM;
     int plies = 0;
     int start = 0;

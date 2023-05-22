@@ -16,12 +16,12 @@ class PgnBuilder {
     static constexpr int LINE_LENGTH = 80;
 
    private:
-    std::string moveNotation(Chess::Board &board, const std::string &move) const;
+    std::string moveNotation(chess::Board &board, const std::string &move) const;
 
     template <typename T>
     void addHeader(const std::string &name, const T &value);
 
-    void addMove(Chess::Board &board, const MoveData &move, std::size_t move_number);
+    void addMove(chess::Board &board, const MoveData &move, std::size_t move_number);
 
     template <typename First, typename... Args>
     static std::string addComment(First &&first, Args &&...args) {

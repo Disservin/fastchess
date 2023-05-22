@@ -13,7 +13,7 @@ PgnBuilder::PgnBuilder(const MatchData &match, const cmd::GameManagerOptions &ga
 
     PlayerInfo white_player, black_player;
 
-    if (match.players.first.color == Chess::Color::WHITE) {
+    if (match.players.first.color == chess::Color::WHITE) {
         white_player = match.players.first;
         black_player = match.players.second;
     } else {
@@ -36,7 +36,7 @@ PgnBuilder::PgnBuilder(const MatchData &match, const cmd::GameManagerOptions &ga
     addHeader("Termination", match_.termination);
     addHeader("TimeControl", white_player.config.limit.tc);
 
-    Chess::Board board = Chess::Board(match_.fen);
+    chess::Board board = chess::Board(match_.fen);
     std::size_t move_number = 0;
 
     while (move_number < match_.moves.size()) {
@@ -78,17 +78,17 @@ void PgnBuilder::addHeader(const std::string &name, const T &value) {
     pgn_ << "[" << name << " \"" << value << "\"]\n";
 }
 
-std::string PgnBuilder::moveNotation(Chess::Board &board, const std::string &move) const {
+std::string PgnBuilder::moveNotation(chess::Board &board, const std::string &move) const {
     if (game_options_.pgn.notation == cmd::NotationType::SAN) {
-        return board.san(board.uciToMove(move));
+        return board.moveToSan(board.uciToMove(move));
     } else if (game_options_.pgn.notation == cmd::NotationType::LAN) {
-        return board.lan(board.uciToMove(move));
+        return board.moveToLan(board.uciToMove(move));
     } else {
         return move;
     }
 }
 
-void PgnBuilder::addMove(Chess::Board &board, const MoveData &move, std::size_t move_number) {
+void PgnBuilder::addMove(chess::Board &board, const MoveData &move, std::size_t move_number) {
     std::stringstream ss;
     ss << (move_number % 2 == 1 ? std::to_string(move_number / 2 + 1) + ". " : "")
        << moveNotation(board, move.move)
@@ -98,9 +98,9 @@ void PgnBuilder::addMove(Chess::Board &board, const MoveData &move, std::size_t 
 }
 
 std::string PgnBuilder::getResultFromMatch(const MatchData &match) const {
-    if (match.players.first.result == Chess::GameResult::WIN) {
+    if (match.players.first.result == chess::GameResult::WIN) {
         return "1-0";
-    } else if (match.players.second.result == Chess::GameResult::WIN) {
+    } else if (match.players.second.result == chess::GameResult::WIN) {
         return "0-1";
     } else {
         return "1/2-1/2";

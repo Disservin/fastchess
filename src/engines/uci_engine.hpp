@@ -25,7 +25,7 @@ class UciEngine : private Communication::Process {
 
     [[nodiscard]] std::string buildPositionInput(const std::vector<std::string> &moves,
                                                  const std::string &fen) const;
-    [[nodiscard]] std::string buildGoInput(Chess::Color stm, const TimeControl &tc,
+    [[nodiscard]] std::string buildGoInput(chess::Color stm, const TimeControl &tc,
                                            const TimeControl &tc_2) const;
 
     void restartEngine();

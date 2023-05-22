@@ -15,9 +15,9 @@ TEST_SUITE("PgnReader") {
 
         CHECK(games.size() == 6);
 
-        CHECK(games[0].fen == Chess::STARTPOS);
-        CHECK(games[1].fen == Chess::STARTPOS);
-        CHECK(games[2].fen == Chess::STARTPOS);
+        CHECK(games[0].fen == chess::STARTPOS);
+        CHECK(games[1].fen == chess::STARTPOS);
+        CHECK(games[2].fen == chess::STARTPOS);
         CHECK(games[3].fen == "5k2/3r1p2/1p3pp1/p2n3p/P6P/1PPR1PP1/3KN3/6b1 w - - 0 34");
         CHECK(games[4].fen == "5k2/5p2/4B2p/r5pn/4P3/5PPP/2NR2K1/8 b - - 0 59");
         CHECK(games[5].fen == "8/p3kp1p/1p4p1/2r2b2/2BR3P/1P3P2/P4PK1/8 b - - 0 28");
@@ -30,11 +30,11 @@ TEST_SUITE("PgnReader") {
         CHECK(games[5].moves.size() == 0);
 
         auto convert = [](std::vector<std::string> moves) {
-            Chess::Board board;
+            chess::Board board;
             std::vector<std::string> uci_moves;
             for (const auto& move : moves) {
-                Chess::Move i_move = board.parseSan(move);
-                uci_moves.push_back(board.uci(i_move));
+                chess::Move i_move = board.parseSan(move);
+                uci_moves.push_back(board.moveToUci(i_move));
                 board.makeMove(i_move);
             }
             return uci_moves;

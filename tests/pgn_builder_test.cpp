@@ -11,12 +11,12 @@ TEST_SUITE("PGN Builder Tests") {
     TEST_CASE("PGN Creation") {
         MatchData match_data;
         match_data.players.first.config.name = "engine1";
-        match_data.players.first.color = Chess::Color::WHITE;
-        match_data.players.first.result = Chess::GameResult::WIN;
+        match_data.players.first.color = chess::Color::WHITE;
+        match_data.players.first.result = chess::GameResult::WIN;
 
         match_data.players.second.config.name = "engine2";
-        match_data.players.second.color = Chess::Color::BLACK;
-        match_data.players.second.result = Chess::GameResult::LOSE;
+        match_data.players.second.color = chess::Color::BLACK;
+        match_data.players.second.result = chess::GameResult::LOSE;
 
         match_data.moves = {MoveData("e2e4", "+1.00", 1321, 15, 4, 0, 0),
                             MoveData("e7e5", "+1.23", 430, 15, 3, 0, 0),
@@ -46,12 +46,12 @@ TEST_SUITE("PGN Builder Tests") {
     TEST_CASE("PGN Creation Black Win") {
         MatchData match_data;
         match_data.players.first.config.name = "engine1";
-        match_data.players.first.color = Chess::Color::WHITE;
-        match_data.players.first.result = Chess::GameResult::LOSE;
+        match_data.players.first.color = chess::Color::WHITE;
+        match_data.players.first.result = chess::GameResult::LOSE;
 
         match_data.players.second.config.name = "engine2";
-        match_data.players.second.color = Chess::Color::BLACK;
-        match_data.players.second.result = Chess::GameResult::WIN;
+        match_data.players.second.color = chess::Color::BLACK;
+        match_data.players.second.result = chess::GameResult::WIN;
 
         match_data.moves = {MoveData("e2e4", "+1.00", 1321, 15, 4, 0, 0),
                             MoveData("e7e5", "+1.23", 430, 15, 3, 0, 0),

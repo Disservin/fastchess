@@ -44,7 +44,7 @@ std::string UciEngine::buildPositionInput(const std::vector<std::string> &moves,
     return position;
 }
 
-std::string UciEngine::buildGoInput(Chess::Color stm, const TimeControl &tc,
+std::string UciEngine::buildGoInput(chess::Color stm, const TimeControl &tc,
                                     const TimeControl &tc_2) const {
     std::stringstream input;
     input << "go";
@@ -57,8 +57,8 @@ std::string UciEngine::buildGoInput(Chess::Color stm, const TimeControl &tc,
     if (tc.fixed_time != 0) {
         input << " movetime " << tc.fixed_time;
     } else {
-        auto white = stm == Chess::Color::WHITE ? tc : tc_2;
-        auto black = stm == Chess::Color::WHITE ? tc_2 : tc;
+        auto white = stm == chess::Color::WHITE ? tc : tc_2;
+        auto black = stm == chess::Color::WHITE ? tc_2 : tc;
 
         if (tc.time != 0) {
             input << " wtime " << white.time << " btime " << black.time;

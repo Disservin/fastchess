@@ -74,7 +74,7 @@ class Match {
     ResignTracker resign_tracker_;
 
     cmd::GameManagerOptions game_config_;
-    Chess::Board board_;
+    chess::Board board_;
     MatchData data_;
 
     std::vector<std::string> played_moves_;

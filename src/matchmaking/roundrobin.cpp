@@ -214,9 +214,9 @@ std::tuple<bool, Stats, std::string> RoundRobin::playGame(
 Stats RoundRobin::updateStats(const MatchData& match_data) {
     Stats stats;
 
-    if (match_data.players.first.result == Chess::GameResult::WIN) {
+    if (match_data.players.first.result == chess::GameResult::WIN) {
         stats.wins++;
-    } else if (match_data.players.first.result == Chess::GameResult::LOSE) {
+    } else if (match_data.players.first.result == chess::GameResult::LOSE) {
         stats.losses++;
     } else {
         stats.draws++;
@@ -237,7 +237,7 @@ Opening RoundRobin::fetchNextOpening() {
             {}};
     }
 
-    return {Chess::STARTPOS, {}};
+    return {chess::STARTPOS, {}};
 }
 
 }  // namespace fast_chess

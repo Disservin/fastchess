@@ -13,7 +13,7 @@ using namespace std::literals;
 namespace chrono = std::chrono;
 using clock = chrono::high_resolution_clock;
 
-using namespace Chess;
+using namespace chess;
 
 Match::Match(const cmd::GameManagerOptions& game_config, const EngineConfiguration& engine1_config,
              const EngineConfiguration& engine2_config, const Opening& opening, int round) {
@@ -48,7 +48,7 @@ void Match::verifyPv(const Participant& us) {
         auto tmp = board_;
         auto it = std::find(tokens.begin(), tokens.end(), "pv");
         while (++it != tokens.end()) {
-            if (Movegen::isLegal<Chess::Move>(tmp, board_.uciToMove(*it))) {
+            if (movegen::isLegal<chess::Move>(tmp, board_.uciToMove(*it))) {
                 Logger::cout("Warning: Illegal pv move ", *it);
                 break;
             }
@@ -127,7 +127,7 @@ void Match::start(Participant& player1, Participant& player2, const Opening& ope
         std::vector<std::string> moves;
         for (const auto& move : opening.moves) {
             Move i_move = board_.parseSan(move);
-            moves.push_back(board.uci(i_move));
+            moves.push_back(board.moveToUci(i_move));
             board_.makeMove(i_move);
         }
         return moves;
@@ -219,7 +219,7 @@ bool Match::playMove(Participant& us, Participant& opponent) {
     const auto best_move = us.engine.bestmove();
     const auto move = board_.uciToMove(best_move);
 
-    if (!Movegen::isLegal<Chess::Move>(board_, move)) {
+    if (!movegen::isLegal<chess::Move>(board_, move)) {
         setLose(us, opponent, "illegal move", name + Match::ILLEGAL_MSG);
 
         Logger::cout("Warning: Illegal move", best_move, "played by", name);

@@ -40,6 +40,7 @@ SOFTWARE.
 #include <vector>
 
 namespace fast_chess {
+
 namespace chess {
 
 // *******************
@@ -791,7 +792,7 @@ inline Square msb(U64 b) {
 
 #endif
 
-inline uint8_t popcount(U64 mask) {
+[[nodiscard]] inline uint8_t popcount(U64 mask) {
 #if defined(_MSC_VER) || defined(__INTEL_COMPILER)
 
     return (uint8_t)_mm_popcnt_u64(mask);
@@ -806,7 +807,7 @@ inline uint8_t popcount(U64 mask) {
 /// @brief return the lsb and remove it
 /// @param mask
 /// @return
-inline Square poplsb(U64 &mask) {
+[[nodiscard]] inline Square poplsb(U64 &mask) {
     assert(mask);
     int8_t s = lsb(mask);
     mask &= mask - 1;
@@ -858,18 +859,18 @@ static inline void trim(std::string &s) {
 /// @brief Gets the file index of the square where 0 is the a-file
 /// @param sq
 /// @return the file of the square
-constexpr File squareFile(Square sq) { return File(sq & 7); }
+[[nodiscard]] constexpr File squareFile(Square sq) { return File(sq & 7); }
 
 /// @brief Gets the rank index of the square where 0 is the first rank.
 /// @param sq
 /// @return the rank of the square
-constexpr Rank squareRank(Square sq) { return Rank(sq >> 3); }
+[[nodiscard]] constexpr Rank squareRank(Square sq) { return Rank(sq >> 3); }
 
 /// @brief makes a square out of rank and file
 /// @param f
 /// @param r
 /// @return
-constexpr Square fileRankSquare(File f, Rank r) {
+[[nodiscard]] constexpr Square fileRankSquare(File f, Rank r) {
     return static_cast<Square>((static_cast<int>(r) << 3) + static_cast<int>(f));
 }
 
@@ -877,18 +878,18 @@ constexpr Square fileRankSquare(File f, Rank r) {
 /// @param a
 /// @param b
 /// @return
-inline uint8_t squareDistance(Square a, Square b) {
+[[nodiscard]] inline uint8_t squareDistance(Square a, Square b) {
     return std::max(std::abs(static_cast<int>(static_cast<int>(squareFile(a)) -
                                               static_cast<int>(squareFile(b)))),
                     std::abs(static_cast<int>(static_cast<int>(squareRank(a)) -
                                               static_cast<int>(squareRank(b)))));
 }
 
-constexpr uint8_t diagonalOf(Square sq) {
+[[nodiscard]] constexpr uint8_t diagonalOf(Square sq) {
     return 7 + static_cast<int>(squareRank(sq)) - static_cast<int>(squareFile(sq));
 }
 
-constexpr uint8_t antiDiagonalOf(Square sq) {
+[[nodiscard]] constexpr uint8_t antiDiagonalOf(Square sq) {
     return static_cast<uint8_t>(static_cast<int>(squareRank(sq)) +
                                 static_cast<int>(squareFile(sq)));
 }
@@ -897,7 +898,7 @@ constexpr uint8_t antiDiagonalOf(Square sq) {
 /// @param sq1
 /// @param sq2
 /// @return
-inline uint8_t manhattenDistance(Square sq1, Square sq2) {
+[[nodiscard]] inline uint8_t manhattenDistance(Square sq1, Square sq2) {
     return std::abs(static_cast<int>(static_cast<int>(squareFile(sq1)) -
                                      static_cast<int>(squareFile(sq2)))) +
            std::abs(static_cast<int>(static_cast<int>(squareRank(sq1)) -
@@ -907,7 +908,7 @@ inline uint8_t manhattenDistance(Square sq1, Square sq2) {
 /// @brief color of a square, has nothing to do with whose piece is on that square
 /// @param square
 /// @return
-constexpr Color getSquareColor(Square square) {
+[[nodiscard]] constexpr Color getSquareColor(Square square) {
     if ((square % 8) % 2 == (square / 8) % 2) {
         return Color::BLACK;
     } else {
@@ -915,19 +916,21 @@ constexpr Color getSquareColor(Square square) {
     }
 }
 
-constexpr Square relativeSquare(Color c, Square s) {
+[[nodiscard]] constexpr Square relativeSquare(Color c, Square s) {
     return Square(s ^ (static_cast<int>(c) * 56));
 }
 
-constexpr Piece makePiece(Color c, PieceType pt) {
+[[nodiscard]] constexpr Piece makePiece(Color c, PieceType pt) {
     return static_cast<Piece>(static_cast<int>(c) * 6 + static_cast<int>(pt));
 }
 
-constexpr PieceType typeOfPiece(Piece piece) {
+[[nodiscard]] constexpr PieceType typeOfPiece(Piece piece) {
     return static_cast<PieceType>(static_cast<int>(piece) % 6);
 }
 
-constexpr bool sameColor(Square sq1, Square sq2) { return ((9 * (sq1 ^ sq2)) & 8) == 0; }
+[[nodiscard]] constexpr bool sameColor(Square sq1, Square sq2) {
+    return ((9 * (sq1 ^ sq2)) & 8) == 0;
+}
 
 inline void printBitboard(U64 bb) {
     std::bitset<64> b(bb);
@@ -940,7 +943,7 @@ inline void printBitboard(U64 bb) {
     std::cout << '\n' << std::endl;
 }
 
-inline std::smatch regex(const std::string &str, const std::string &reg) {
+[[nodiscard]] inline std::smatch regex(const std::string &str, const std::string &reg) {
     std::regex re(reg);
     std::smatch match;
     std::regex_search(str, match, re);
@@ -971,7 +974,8 @@ auto init_squares_between = []() constexpr {
 
 static const std::array<std::array<U64, 64>, 64> SQUARES_BETWEEN_BB = init_squares_between();
 
-inline std::vector<std::string> splitString(const std::string &string, const char &delimiter) {
+[[nodiscard]] inline std::vector<std::string> splitString(const std::string &string,
+                                                          const char &delimiter) {
     std::stringstream string_stream(string);
     std::string segment;
     std::vector<std::string> seglist;
@@ -1049,7 +1053,7 @@ class Board {
     /// @param os
     /// @param b
     /// @return
-    std::pair<std::string, GameResult> isGameOver() const;
+    [[nodiscard]] std::pair<std::string, GameResult> isGameOver() const;
 
     /// Is the square attacked by color c?
     /// @param square
@@ -1707,19 +1711,19 @@ inline Move Board::uciToMove(const std::string &uci) const {
 namespace movegen {
 
 template <Color c>
-U64 pawnLeftAttacks(const U64 pawns) {
+[[nodiscard]] U64 pawnLeftAttacks(const U64 pawns) {
     return c == Color::WHITE ? (pawns << 7) & ~MASK_FILE[static_cast<int>(File::FILE_H)]
                              : (pawns >> 7) & ~MASK_FILE[static_cast<int>(File::FILE_A)];
 }
 
 template <Color c>
-U64 pawnRightAttacks(const U64 pawns) {
+[[nodiscard]] U64 pawnRightAttacks(const U64 pawns) {
     return c == Color::WHITE ? (pawns << 9) & ~MASK_FILE[static_cast<int>(File::FILE_A)]
                              : (pawns >> 9) & ~MASK_FILE[static_cast<int>(File::FILE_H)];
 }
 
 template <Color c>
-U64 checkMask(const Board &board, Square sq, int &double_check) {
+[[nodiscard]] U64 checkMask(const Board &board, Square sq, int &double_check) {
     U64 mask = 0;
     double_check = 0;
 
@@ -1772,7 +1776,7 @@ U64 checkMask(const Board &board, Square sq, int &double_check) {
 }
 
 template <Color c>
-U64 pinMaskRooks(const Board &board, Square sq, U64 occ_enemy, U64 occ_us) {
+[[nodiscard]] U64 pinMaskRooks(const Board &board, Square sq, U64 occ_enemy, U64 occ_us) {
     U64 pin_hv = 0;
 
     const auto opp_rook = board.pieces<PieceType::ROOK, ~c>();
@@ -1791,7 +1795,7 @@ U64 pinMaskRooks(const Board &board, Square sq, U64 occ_enemy, U64 occ_us) {
 }
 
 template <Color c>
-U64 pinMaskBishops(const Board &board, Square sq, U64 occ_enemy, U64 occ_us) {
+[[nodiscard]] U64 pinMaskBishops(const Board &board, Square sq, U64 occ_enemy, U64 occ_us) {
     U64 pin_diag = 0;
 
     const auto opp_bishop = board.pieces<PieceType::BISHOP, ~c>();
@@ -1810,7 +1814,7 @@ U64 pinMaskBishops(const Board &board, Square sq, U64 occ_enemy, U64 occ_us) {
 }
 
 template <Color c>
-U64 seenSquares(const Board &board, U64 enemy_empty) {
+[[nodiscard]] U64 seenSquares(const Board &board, U64 enemy_empty) {
     const auto king_sq = board.kingSq(~c);
 
     const auto queens = board.pieces<PieceType::QUEEN, c>();
@@ -1853,7 +1857,7 @@ U64 seenSquares(const Board &board, U64 enemy_empty) {
 }
 
 template <Direction direction>
-constexpr U64 shift(const U64 b) {
+[[nodiscard]] constexpr U64 shift(const U64 b) {
     switch (direction) {
         case Direction::NORTH:
             return b << 8;
@@ -2041,21 +2045,24 @@ void generatePawnMoves(const Board &board, Movelist<T> &moves, U64 pin_d, U64 pi
     }
 }
 
-inline U64 generateKnightMoves(Square sq, U64 movable) { return Attacks::KNIGHT(sq) & movable; }
+[[nodiscard]] inline U64 generateKnightMoves(Square sq, U64 movable) {
+    return Attacks::KNIGHT(sq) & movable;
+}
 
-inline U64 generateBishopMoves(Square sq, U64 movable, U64 pin_d, U64 occ_all) {
+[[nodiscard]] inline U64 generateBishopMoves(Square sq, U64 movable, U64 pin_d, U64 occ_all) {
     // The Bishop is pinned diagonally thus can only move diagonally.
     if (pin_d & (1ULL << sq)) return Attacks::BISHOP(sq, occ_all) & movable & pin_d;
     return Attacks::BISHOP(sq, occ_all) & movable;
 }
 
-inline U64 generateRookMoves(Square sq, U64 movable, U64 pin_hv, U64 occ_all) {
+[[nodiscard]] inline U64 generateRookMoves(Square sq, U64 movable, U64 pin_hv, U64 occ_all) {
     // The Rook is pinned horizontally thus can only move horizontally.
     if (pin_hv & (1ULL << sq)) return Attacks::ROOK(sq, occ_all) & movable & pin_hv;
     return Attacks::ROOK(sq, occ_all) & movable;
 }
 
-inline U64 generateQueenMoves(Square sq, U64 movable, U64 pin_d, U64 pin_hv, U64 occ_all) {
+[[nodiscard]] inline U64 generateQueenMoves(Square sq, U64 movable, U64 pin_d, U64 pin_hv,
+                                            U64 occ_all) {
     U64 moves = 0ULL;
     if (pin_d & (1ULL << sq))
         moves |= Attacks::BISHOP(sq, occ_all) & movable & pin_d;
@@ -2069,12 +2076,12 @@ inline U64 generateQueenMoves(Square sq, U64 movable, U64 pin_d, U64 pin_hv, U64
     return moves;
 }
 
-inline U64 generateKingMoves(Square sq, U64 _seen, U64 movable_square) {
+[[nodiscard]] inline U64 generateKingMoves(Square sq, U64 _seen, U64 movable_square) {
     return Attacks::KING(sq) & movable_square & ~_seen;
 }
 
 template <Color c, MoveGenType mt>
-inline U64 generateCastleMoves(const Board &board, Square sq, U64 seen, U64 pinHV) {
+[[nodiscard]] inline U64 generateCastleMoves(const Board &board, Square sq, U64 seen, U64 pinHV) {
     if constexpr (mt == MoveGenType::CAPTURE) return 0ull;
     const auto rights = board.castlingRights();
 
@@ -2227,7 +2234,7 @@ inline void legalmoves(Movelist<T> &movelist, const Board &board) {
 }
 
 template <typename T>
-inline bool isLegal(const Board &board, const T &move) {
+[[nodiscard]] inline bool isLegal(const Board &board, const T &move) {
     Movelist<T> movelist;
     legalmoves<T, MoveGenType::ALL>(movelist, board);
 

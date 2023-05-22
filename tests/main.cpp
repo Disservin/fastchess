@@ -2,9 +2,9 @@
 #include "doctest/doctest.hpp"
 
 namespace fast_chess {
-namespace Atomic {
+namespace atomic {
 std::atomic_bool stop = false;
-}  // namespace Atomic
+}  // namespace atomic
 }  // namespace fast_chess
 
 int main(int argc, char **argv) {

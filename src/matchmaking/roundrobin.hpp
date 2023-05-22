@@ -11,9 +11,9 @@
 
 namespace fast_chess {
 
-namespace Atomic {
+namespace atomic {
 extern std::atomic_bool stop;
-}  // namespace Atomic
+}  // namespace atomic
 
 class RoundRobin {
    public:
@@ -22,7 +22,8 @@ class RoundRobin {
     void start(const std::vector<EngineConfiguration> &engine_configs);
 
     void stop() {
-        Atomic::stop = true;
+        atomic::stop = true;
+        pool_.kill();
         Logger::cout("Stopped round robin!");
     }
 

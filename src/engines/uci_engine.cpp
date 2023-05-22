@@ -112,7 +112,7 @@ std::vector<std::string> UciEngine::readEngine(std::string_view last_word,
         return output_;
     } catch (const std::exception &e) {
         Logger::cout("Raised Exception in readProcess\nWarning: Engine", config_.name,
-                     "disconnects #");
+                     "disconnects");
         throw e;
     }
 }
@@ -122,7 +122,7 @@ void UciEngine::writeEngine(const std::string &input) {
         writeProcess(input + "\n");
     } catch (const std::exception &e) {
         Logger::cout("Raised Exception in writeProcess\nWarning: Engine", config_.name,
-                     "disconnects #");
+                     "disconnects");
 
         throw e;
     }

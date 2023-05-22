@@ -8,7 +8,6 @@
 #include <rand.hpp>
 #include "roundrobin.hpp"
 
-
 namespace fast_chess {
 
 RoundRobin::RoundRobin(const cmd::GameManagerOptions& game_config) {
@@ -120,12 +119,12 @@ bool RoundRobin::sprt(const std::vector<EngineConfiguration>& engine_configs) {
     Logger::cout("SPRT test started: " + sprt_.getBounds() + " " + sprt_.getElo());
 
     while (engine_configs.size() == 2 && sprt_.isValid() && match_count_ < total_ &&
-           !Atomic::stop) {
+           !atomic::stop) {
         Stats stats = result_.getStats(engine_configs[0].name, engine_configs[1].name);
         const double llr = sprt_.getLLR(stats.wins, stats.draws, stats.losses);
 
         if (sprt_.getResult(llr) != SPRT_CONTINUE) {
-            Atomic::stop = true;
+            atomic::stop = true;
 
             Logger::cout("SPRT test finished: " + sprt_.getBounds() + " " + sprt_.getElo());
             output_->printElo(stats, engine_configs[0].name, engine_configs[1].name, match_count_);
@@ -137,7 +136,7 @@ bool RoundRobin::sprt(const std::vector<EngineConfiguration>& engine_configs) {
     }
 
     Logger::cout("SPRT test skipped", engine_configs.size() == 2, sprt_.isValid(), match_count_,
-                 total_, !Atomic::stop);
+                 total_, !atomic::stop);
 
     return true;
 }
@@ -200,6 +199,14 @@ std::tuple<bool, Stats, std::string> RoundRobin::playGame(
     const std::pair<EngineConfiguration, EngineConfiguration>& configs, const Opening& opening,
     int round_id) {
     Match match = Match(game_config_, configs.first, configs.second, opening, round_id);
+
+    try {
+        match.start();
+    } catch (const std::exception& e) {
+        Logger::error(e.what(), std::this_thread::get_id());
+        throw e;
+    }
+
     MatchData match_data = match.get();
 
     PgnBuilder pgn_builder = PgnBuilder(match_data, game_config_);

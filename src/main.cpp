@@ -8,9 +8,9 @@
 #include <matchmaking/tournament.hpp>
 
 namespace fast_chess {
-namespace Atomic {
+namespace atomic {
 std::atomic_bool stop = false;
-}  // namespace Atomic
+}  // namespace atomic
 }  // namespace fast_chess
 
 using namespace fast_chess;
@@ -31,8 +31,7 @@ BOOL WINAPI consoleHandler(DWORD signal) {
             Tour->stop();
             Options->saveJson(Tour->getResults());
             std::cout << "Saved results" << std::endl;
-
-            return TRUE;
+            exit(0);
         default:
             break;
     }

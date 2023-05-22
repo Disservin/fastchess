@@ -24,6 +24,8 @@ class Match {
     Match(const cmd::GameManagerOptions& game_config, const EngineConfiguration& engine1_config,
           const EngineConfiguration& engine2_config, const Opening& opening, int round);
 
+    void start();
+
     [[nodiscard]] MatchData get() const;
 
    private:
@@ -37,8 +39,6 @@ class Match {
                  const std::string& reason);
 
     void addMoveData(Participant& player, int64_t measured_time);
-
-    void start(Participant& player1, Participant& player2, const Opening& opening);
 
     /// @brief returns false if the next move could not be played
     /// @param us
@@ -78,6 +78,10 @@ class Match {
     MatchData data_;
 
     std::vector<std::string> played_moves_;
+
+    Opening opening_;
+    EngineConfiguration engine1_config_;
+    EngineConfiguration engine2_config_;
 
     std::string start_fen_;
 };

@@ -5,9 +5,9 @@
 
 namespace fast_chess {
 
-namespace Atomic {
+namespace atomic {
 extern std::atomic_bool stop;
-}  // namespace Atomic
+}  // namespace atomic
 
 using namespace std::literals;
 namespace chrono = std::chrono;
@@ -20,21 +20,10 @@ Match::Match(const cmd::GameManagerOptions& game_config, const EngineConfigurati
     game_config_ = game_config;
     data_.round = round;
 
-    Participant player_1 = Participant(engine1_config);
-    Participant player_2 = Participant(engine2_config);
+    engine1_config_ = engine1_config;
+    engine2_config_ = engine2_config;
 
-    player_1.engine.startEngine(engine1_config.cmd);
-    player_2.engine.startEngine(engine2_config.cmd);
-
-    if (!player_1.engine.sendUciNewGame()) {
-        throw std::runtime_error(player_1.engine.getConfig().name + " failed to start.");
-    }
-
-    if (!player_2.engine.sendUciNewGame()) {
-        throw std::runtime_error(player_2.engine.getConfig().name + " failed to start.");
-    }
-
-    start(player_1, player_2, opening);
+    opening_ = opening;
 }
 
 MatchData Match::get() const { return data_; }
@@ -119,13 +108,27 @@ void Match::addMoveData(Participant& player, int64_t measured_time) {
     played_moves_.push_back(best_move);
 }
 
-void Match::start(Participant& player1, Participant& player2, const Opening& opening) {
-    board_.loadFen(opening.fen);
+void Match::start() {
+    Participant player_1 = Participant(engine1_config_);
+    Participant player_2 = Participant(engine2_config_);
+
+    player_1.engine.startEngine(engine1_config_.cmd);
+    player_2.engine.startEngine(engine2_config_.cmd);
+
+    if (!player_1.engine.sendUciNewGame()) {
+        throw std::runtime_error(player_1.engine.getConfig().name + " failed to start.");
+    }
+
+    if (!player_2.engine.sendUciNewGame()) {
+        throw std::runtime_error(player_2.engine.getConfig().name + " failed to start.");
+    }
+
+    board_.loadFen(opening_.fen);
 
     std::vector<std::string> uci_moves = [&]() {
         Board board = board_;
         std::vector<std::string> moves;
-        for (const auto& move : opening.moves) {
+        for (const auto& move : opening_.moves) {
             Move i_move = board_.parseSan(move);
             moves.push_back(board.moveToUci(i_move));
             board_.makeMove(i_move);
@@ -138,13 +141,13 @@ void Match::start(Participant& player1, Participant& player2, const Opening& ope
     start_fen_ = board_.getFen() == STARTPOS ? "startpos" : board_.getFen();
 
     // copy time control which will be updated later
-    player1.time_control = player1.engine.getConfig().limit.tc;
-    player2.time_control = player2.engine.getConfig().limit.tc;
+    player_1.time_control = player_1.engine.getConfig().limit.tc;
+    player_2.time_control = player_2.engine.getConfig().limit.tc;
 
-    player1.info.color = board_.sideToMove();
-    player2.info.color = ~board_.sideToMove();
+    player_1.info.color = board_.sideToMove();
+    player_2.info.color = ~board_.sideToMove();
 
-    data_.fen = opening.fen;
+    data_.fen = opening_.fen;
 
     data_.start_time = Logger::getDateTime();
     data_.date = Logger::getDateTime("%Y-%m-%d");
@@ -152,17 +155,17 @@ void Match::start(Participant& player1, Participant& player2, const Opening& ope
     auto start = clock::now();
     try {
         while (true) {
-            if (Atomic::stop.load()) {
+            if (atomic::stop.load()) {
                 data_.termination = "stop";
                 break;
             };
-            if (!playMove(player1, player2)) break;
+            if (!playMove(player_1, player_2)) break;
 
-            if (Atomic::stop.load()) {
+            if (atomic::stop.load()) {
                 data_.termination = "stop";
                 break;
             };
-            if (!playMove(player2, player1)) break;
+            if (!playMove(player_2, player_1)) break;
         }
     } catch (const std::exception& e) {
         if (game_config_.recover)
@@ -176,7 +179,7 @@ void Match::start(Participant& player1, Participant& player2, const Opening& ope
     data_.end_time = Logger::getDateTime();
     data_.duration = Logger::formatDuration(chrono::duration_cast<chrono::seconds>(end - start));
 
-    data_.players = std::make_pair(player1.info, player2.info);
+    data_.players = std::make_pair(player_1.info, player_2.info);
 }
 
 bool Match::playMove(Participant& us, Participant& opponent) {

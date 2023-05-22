@@ -17,21 +17,7 @@ namespace fast_chess {
 class ThreadPool {
    public:
     ThreadPool(std::size_t num_threads) : stop_(false) {
-        for (std::size_t i = 0; i < num_threads; ++i)
-            workers_.emplace_back([this] {
-                while (!this->stop_) {
-                    std::function<void()> task;
-                    {
-                        std::unique_lock<std::mutex> lock(this->queue_mutex_);
-                        this->condition_.wait(
-                            lock, [this] { return this->stop_ || !this->tasks_.empty(); });
-                        if (this->stop_ && this->tasks_.empty()) return;
-                        task = std::move(this->tasks_.front());
-                        this->tasks_.pop();
-                    }
-                    task();
-                }
-            });
+        for (std::size_t i = 0; i < num_threads; ++i) workers_.emplace_back(work, this);
     }
 
     template <class F, class... Args>
@@ -65,21 +51,7 @@ class ThreadPool {
         workers_.clear();
         workers_.resize(num_threads);
 
-        for (std::size_t i = 0; i < num_threads; ++i)
-            workers_.emplace_back([this] {
-                while (!this->stop_) {
-                    std::function<void()> task;
-                    {
-                        std::unique_lock<std::mutex> lock(this->queue_mutex_);
-                        this->condition_.wait(
-                            lock, [this] { return this->stop_ || !this->tasks_.empty(); });
-                        if (this->stop_ && this->tasks_.empty()) return;
-                        task = std::move(this->tasks_.front());
-                        this->tasks_.pop();
-                    }
-                    task();
-                }
-            });
+        for (std::size_t i = 0; i < num_threads; ++i) workers_.emplace_back(work, this);
     }
 
     void kill() {
@@ -107,6 +79,21 @@ class ThreadPool {
     bool getStop() { return stop_; }
 
    private:
+    void work() {
+        while (!this->stop_) {
+            std::function<void()> task;
+            {
+                std::unique_lock<std::mutex> lock(this->queue_mutex_);
+                this->condition_.wait(lock,
+                                      [this] { return this->stop_ || !this->tasks_.empty(); });
+                if (this->stop_ && this->tasks_.empty()) return;
+                task = std::move(this->tasks_.front());
+                this->tasks_.pop();
+            }
+            task();
+        }
+    }
+
     std::vector<std::thread> workers_;
     std::queue<std::function<void()>> tasks_;
     std::mutex queue_mutex_;

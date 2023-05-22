@@ -7,7 +7,6 @@
 #include <matchmaking/types/stats.hpp>
 #include <sprt.hpp>
 
-
 namespace fast_chess {
 
 class Tournament;  // forward declaration
@@ -17,10 +16,10 @@ enum class OutputType {
     CUTECHESS,
 };
 
-class Output {
+class IOutput {
    public:
-    Output() = default;
-    virtual ~Output() = default;
+    IOutput() = default;
+    virtual ~IOutput() = default;
 
     [[nodiscard]] virtual OutputType getType() const = 0;
 

@@ -3,7 +3,7 @@
 #include <iomanip>  // std::setprecision
 #include <sstream>
 
-#include <matchmaking/output/output_base.hpp>
+#include <matchmaking/output/output.hpp>
 
 namespace fast_chess {
 

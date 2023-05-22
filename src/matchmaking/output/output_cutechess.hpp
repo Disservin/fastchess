@@ -2,12 +2,18 @@
 
 #include <elo.hpp>
 #include <logger.hpp>
-#include <matchmaking/output/output_base.hpp>
+#include <matchmaking/output/output.hpp>
 
 namespace fast_chess {
 
-class Cutechess : public Output {
+class Cutechess : public IOutput {
    public:
+    void printInterval(const SPRT& sprt, const Stats& stats, const std::string& first,
+                       const std::string& second, int current_game_count) override {
+        printElo(stats, first, second, current_game_count);
+        printSprt(sprt, stats);
+    };
+
     [[nodiscard]] OutputType getType() const override { return OutputType::CUTECHESS; }
 
     void printElo(const Stats& stats, const std::string& first, const std::string& second,

@@ -2,11 +2,11 @@
 
 #include <elo.hpp>
 #include <logger.hpp>
-#include <matchmaking/output/output_base.hpp>
+#include <matchmaking/output/output.hpp>
 
 namespace fast_chess {
 
-class Fastchess : public Output {
+class Fastchess : public IOutput {
    public:
     [[nodiscard]] OutputType getType() const override { return OutputType::FASTCHESS; }
 

@@ -4,7 +4,7 @@
 #include <matchmaking/output/output_fastchess.hpp>
 
 namespace fast_chess {
-[[nodiscard]] inline std::unique_ptr<Output> getNewOutput(OutputType type) {
+[[nodiscard]] inline std::unique_ptr<IOutput> getNewOutput(OutputType type) {
     switch (type) {
         case OutputType::FASTCHESS:
             return std::make_unique<Fastchess>();

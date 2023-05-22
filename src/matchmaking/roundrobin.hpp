@@ -9,7 +9,6 @@
 #include <sprt.hpp>
 #include <types.hpp>
 
-
 namespace fast_chess {
 
 namespace Atomic {
@@ -56,7 +55,7 @@ class RoundRobin {
     /// @return
     [[nodiscard]] Opening fetchNextOpening();
 
-    std::unique_ptr<Output> output_;
+    std::unique_ptr<IOutput> output_;
 
     cmd::GameManagerOptions game_config_ = {};
 

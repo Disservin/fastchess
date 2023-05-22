@@ -17,7 +17,7 @@ namespace fast_chess {
 class ThreadPool {
    public:
     ThreadPool(std::size_t num_threads) : stop_(false) {
-        for (std::size_t i = 0; i < num_threads; ++i) workers_.emplace_back(work, this);
+        for (std::size_t i = 0; i < num_threads; ++i) workers_.emplace_back([this] { work(); });
     }
 
     template <class F, class... Args>
@@ -51,7 +51,7 @@ class ThreadPool {
         workers_.clear();
         workers_.resize(num_threads);
 
-        for (std::size_t i = 0; i < num_threads; ++i) workers_.emplace_back(work, this);
+        for (std::size_t i = 0; i < num_threads; ++i) workers_.emplace_back([this] { work(); });
     }
 
     void kill() {

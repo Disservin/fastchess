@@ -12,14 +12,14 @@
     },
     "opening": {
         "file": "UHO_XXL_+0.90_+1.19.epd",
-        "format": "epd",
-        "order": "random",
+        "format": 0,
+        "order": 0,
         "plies": 0,
         "start": 0
     },
     "pgn": {
         "file": "",
-        "notation": "san",
+        "notation": 0,
         "track_nodes": false,
         "track_seldepth": false
     },

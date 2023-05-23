@@ -20,7 +20,7 @@ bool UciEngine::isResponsive(int64_t threshold) {
 
 bool UciEngine::sendUciNewGame() {
     writeEngine("ucinewgame");
-    return isResponsive(60000);
+    return isResponsive(ping_time_);
 }
 
 void UciEngine::sendUci() { writeEngine("uci"); }
@@ -104,10 +104,10 @@ void UciEngine::startEngine() {
 }
 
 std::vector<std::string> UciEngine::readEngine(std::string_view last_word,
-                                               int64_t timeoutThreshold) {
+                                               int64_t timeout_threshold) {
     try {
         output_.clear();
-        output_ = readProcess(last_word, timeoutThreshold);
+        output_ = readProcess(last_word, timeout_threshold);
 
         return output_;
     } catch (const std::exception &e) {

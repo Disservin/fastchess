@@ -9,7 +9,8 @@ namespace fast_chess {
 
 class UciEngine : private Communication::Process {
    public:
-    UciEngine() = default;
+    explicit UciEngine(const EngineConfiguration &config) { loadConfig(config); }
+
     ~UciEngine() { sendQuit(); }
 
     void sendUci();
@@ -20,7 +21,6 @@ class UciEngine : private Communication::Process {
 
     [[nodiscard]] bool isResponsive(int64_t threshold = ping_time_);
 
-    void loadConfig(const EngineConfiguration &config);
     [[nodiscard]] EngineConfiguration getConfig() const;
 
     [[nodiscard]] std::string buildPositionInput(const std::vector<std::string> &moves,
@@ -29,7 +29,7 @@ class UciEngine : private Communication::Process {
                                            const TimeControl &tc_2) const;
 
     void restartEngine();
-    void startEngine(const std::string &cmd);
+    void startEngine();
 
     std::vector<std::string> readEngine(std::string_view last_word,
                                         int64_t timeoutThreshold = 1000);
@@ -46,6 +46,7 @@ class UciEngine : private Communication::Process {
     static const int64_t ping_time_ = 60000;
 
    private:
+    void loadConfig(const EngineConfiguration &config);
     void sendSetoption(const std::string &name, const std::string &value);
 
     std::vector<std::string> output_;

@@ -86,11 +86,11 @@ void UciEngine::sendSetoption(const std::string &name, const std::string &value)
 
 void UciEngine::restartEngine() {
     killProcess();
-    initProcess(config_.cmd);
+    initProcess(config_.dir + config_.cmd);
 }
 
-void UciEngine::startEngine(const std::string &cmd) {
-    initProcess(cmd);
+void UciEngine::startEngine() {
+    initProcess(config_.dir + config_.cmd);
 
     sendUci();
 

@@ -1,4 +1,5 @@
 #include <engines/uci_engine.hpp>
+#include <engines/engine_config.hpp>
 
 #include <cassert>
 #include <chrono>
@@ -10,12 +11,16 @@ using namespace fast_chess;
 
 TEST_SUITE("Uci Engine Communication Tests") {
     TEST_CASE("Testing the EngineProcess class") {
-        UciEngine uci_engine;
+        EngineConfiguration config;
 #ifdef _WIN64
-        uci_engine.startEngine("./tests/data/engine/dummy_engine.exe");
+        config.cmd = "./tests/data/engine/dummy_engine.exe";
 #else
-        uci_engine.startEngine("./tests/data/engine/dummy_engine");
+        config.cmd = "./tests/data/engine/dummy_engine";
 #endif
+
+        UciEngine uci_engine = UciEngine(config);
+
+        uci_engine.startEngine();
 
         uci_engine.sendUci();
         auto uci = uci_engine.readUci();
@@ -44,12 +49,16 @@ TEST_SUITE("Uci Engine Communication Tests") {
     }
 
     TEST_CASE("Testing the EngineProcess class with lower level class functions") {
-        UciEngine uci_engine;
+        EngineConfiguration config;
 #ifdef _WIN64
-        uci_engine.startEngine("./tests/data/engine/dummy_engine.exe");
+        config.cmd = "./tests/data/engine/dummy_engine.exe";
 #else
-        uci_engine.startEngine("./tests/data/engine/dummy_engine");
+        config.cmd = "./tests/data/engine/dummy_engine";
 #endif
+
+        UciEngine uci_engine = UciEngine(config);
+
+        uci_engine.startEngine();
 
         uci_engine.writeEngine("uci");
         auto uciOutput = uci_engine.readEngine("uciok");

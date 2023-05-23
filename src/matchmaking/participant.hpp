@@ -7,8 +7,7 @@ namespace fast_chess {
 
 class Participant {
    public:
-    explicit Participant(const EngineConfiguration& config) {
-        engine.loadConfig(config);
+    explicit Participant(const EngineConfiguration& config) : engine(config) {
         info.config = config;
     }
 

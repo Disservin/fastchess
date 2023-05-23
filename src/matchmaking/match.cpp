@@ -112,8 +112,8 @@ void Match::start() {
     Participant player_1 = Participant(engine1_config_);
     Participant player_2 = Participant(engine2_config_);
 
-    player_1.engine.startEngine(engine1_config_.cmd);
-    player_2.engine.startEngine(engine2_config_.cmd);
+    player_1.engine.startEngine();
+    player_2.engine.startEngine();
 
     if (!player_1.engine.sendUciNewGame()) {
         throw std::runtime_error(player_1.engine.getConfig().name + " failed to start.");

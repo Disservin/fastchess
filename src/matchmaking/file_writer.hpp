@@ -5,6 +5,8 @@
 #include <string>
 
 namespace fast_chess {
+
+/// @brief Used to write the pgns to a file
 class FileWriter {
    public:
     void open(const std::string &filename) { file_.open(filename, std::ios::app); }

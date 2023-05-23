@@ -19,8 +19,11 @@ class RoundRobin {
    public:
     RoundRobin(const cmd::GameManagerOptions &game_config);
 
+    /// @brief starts the round robin
+    /// @param engine_configs
     void start(const std::vector<EngineConfiguration> &engine_configs);
 
+    /// @brief forces the round robin to stop
     void stop() {
         atomic::stop = true;
         pool_.kill();
@@ -31,17 +34,34 @@ class RoundRobin {
     void setResults(const stats_map &results) { result_.setResults(results); }
 
    private:
+    /// @brief load a pgn opening book
     void setupPgnOpeningBook();
+    /// @brief load a epd opening book
     void setupEpdOpeningBook();
 
+    /// @brief creates the matches
+    /// @param engine_configs
+    /// @param results
     void create(const std::vector<EngineConfiguration> &engine_configs,
                 std::vector<std::future<void>> &results);
 
+    /// @brief run as a sprt test
+    /// @param engine_configs
+    /// @return
     [[nodiscard]] bool sprt(const std::vector<EngineConfiguration> &engine_configs);
 
+    /// @brief pairs player1 vs player2
+    /// @param player1
+    /// @param player2
+    /// @param current
     void createPairings(const EngineConfiguration &player1, const EngineConfiguration &player2,
                         int current);
 
+    /// @brief play one game and write it to the pgn file
+    /// @param configs
+    /// @param opening
+    /// @param round_id
+    /// @return
     [[nodiscard]] std::tuple<bool, Stats, std::string> playGame(
         const std::pair<EngineConfiguration, EngineConfiguration> &configs, const Opening &opening,
         int round_id);

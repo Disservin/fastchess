@@ -211,7 +211,7 @@ bool Match::playMove(Participant& us, Participant& opponent) {
 
     const auto elapsed_millis = chrono::duration_cast<chrono::milliseconds>(t1 - t0).count();
 
-    if (!us.updateTc(elapsed_millis)) {
+    if (!us.updateTime(elapsed_millis)) {
         setLose(us, opponent, "timeout", name + Match::TIMEOUT_MSG);
 
         Logger::cout("Warning: Engine", name, "loses on time");

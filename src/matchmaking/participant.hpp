@@ -11,6 +11,8 @@ class Participant {
         info.config = config;
     }
 
+    /// @brief the timeout threshol for the read engine command, actual time verification will be
+    /// done by the match runner
     [[nodiscard]] int64_t getTimeoutThreshold() const {
         if (engine.getConfig().limit.nodes != 0) {
             return 0;
@@ -23,7 +25,10 @@ class Participant {
         }
     }
 
-    [[nodiscard]] bool updateTc(const int64_t elapsed_millis) {
+    /// @brief remove the elapsed time from the participant's time
+    /// @param elapsed_millis
+    /// @return
+    [[nodiscard]] bool updateTime(const int64_t elapsed_millis) {
         if (engine.getConfig().limit.tc.time == 0) {
             return true;
         }

@@ -10,12 +10,16 @@
 namespace fast_chess {
 
 struct DrawTacker {
+    /// @brief number of moves below the draw threshold
     std::size_t draw_moves = 0;
+    /// @brief defines the draw threshold
     int draw_score = 0;
 };
 
 struct ResignTracker {
+    /// @brief number of moves above the resign threshold
     std::size_t resign_moves = 0;
+    /// @brief defines the resign threshold
     int resign_score = 0;
 };
 
@@ -24,8 +28,10 @@ class Match {
     Match(const cmd::GameManagerOptions& game_config, const EngineConfiguration& engine1_config,
           const EngineConfiguration& engine2_config, const Opening& opening, int round);
 
+    /// @brief starts the match
     void start();
 
+    /// @brief returns the match data, only valid after the match has finished
     [[nodiscard]] MatchData get() const;
 
    private:
@@ -38,6 +44,9 @@ class Match {
     void setLose(Participant& us, Participant& them, const std::string& msg,
                  const std::string& reason);
 
+    /// @brief append the move data to the match data
+    /// @param player
+    /// @param measured_time
     void addMoveData(Participant& player, int64_t measured_time);
 
     /// @brief returns false if the next move could not be played

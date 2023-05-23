@@ -51,6 +51,9 @@ class Logger {
     /// @param thread
     static void read(const std::string &msg, std::thread::id thread);
 
+    /// @brief log an error
+    /// @param msg
+    /// @param thread
     static void error(const std::string &msg, std::thread::id thread);
 
     [[nodiscard]] static std::string getDateTime(std::string format = "%Y-%m-%dT%H:%M:%S %z");

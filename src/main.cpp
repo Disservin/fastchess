@@ -60,6 +60,7 @@ int main(int argc, char const *argv[]) {
 #else
     signal(SIGINT, sigintHandler);
 #endif
+
     Options = std::make_unique<cmd::OptionsParser>(argc, argv);
     Tour = std::make_unique<Tournament>(Options->getGameOptions());
 

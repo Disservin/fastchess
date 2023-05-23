@@ -3,8 +3,10 @@
 #include <matchmaking/roundrobin.hpp>
 #include <types.hpp>
 
-
 namespace fast_chess {
+
+/// @brief Manages the tournament, currenlty wraps round robin but can be extended to support
+/// different tournament types
 class Tournament {
    public:
     explicit Tournament(const cmd::GameManagerOptions &game_config);

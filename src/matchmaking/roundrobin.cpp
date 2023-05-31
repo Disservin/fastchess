@@ -36,7 +36,7 @@ void RoundRobin::setupEpdOpeningBook() {
     Random::mersenne_rand.seed(game_config_.seed);
 
     // Read the opening book from file
-    if (game_config_.opening.file.empty()) {
+    if (game_config_.opening.file.empty() || game_config_.opening.format != cmd::FormatType::EPD) {
         return;
     }
 
@@ -65,7 +65,7 @@ void RoundRobin::setupEpdOpeningBook() {
 
 void RoundRobin::setupPgnOpeningBook() {
     // Read the opening book from file
-    if (game_config_.opening.file.empty()) {
+    if (game_config_.opening.file.empty() || game_config_.opening.format != cmd::FormatType::PGN) {
         return;
     }
 
@@ -136,8 +136,7 @@ bool RoundRobin::sprt(const std::vector<EngineConfiguration>& engine_configs) {
         std::this_thread::sleep_for(std::chrono::microseconds(250));
     }
 
-    Logger::cout("SPRT test skipped", engine_configs.size() == 2, sprt_.isValid(), match_count_,
-                 total_, !atomic::stop);
+    Logger::cout("SPRT test skipped");
 
     return true;
 }

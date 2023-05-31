@@ -37,6 +37,22 @@ class Logger {
         std::cout << ss.str();
     }
 
+    /// @brief thread safe cout
+    /// @tparam First
+    /// @tparam ...Args
+    /// @param first
+    /// @param ...args
+    template <typename First, typename... Args>
+    static void debug(First &&first, Args &&...args) {
+#ifndef NDEBUG
+        std::stringstream ss;
+        ss << std::forward<First>(first);
+        ((ss << " " << std::forward<Args>(args)), ...);
+        ss << "\n";
+        std::cout << ss.str();
+#endif
+    }
+
     /// @brief open log file
     /// @param file
     static void openFile(const std::string &file);

@@ -60,12 +60,19 @@ int main(int argc, char const *argv[]) {
 #else
     signal(SIGINT, sigintHandler);
 #endif
-
+    Logger::debug("Reading options...");
     Options = std::make_unique<cmd::OptionsParser>(argc, argv);
+
+    Logger::debug("Creating tournament...");
     Tour = std::make_unique<Tournament>(Options->getGameOptions());
 
+    Logger::debug("Setting results...");
     Tour->roundRobin()->setResults(Options->getResults());
+
+    Logger::debug("Starting tournament...");
     Tour->start(Options->getEngineConfigs());
+
+    Logger::debug("Saving results...");
     Options->saveJson(Tour->getResults());
 
     std::cout << "Saved results" << std::endl;

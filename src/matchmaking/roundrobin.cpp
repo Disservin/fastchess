@@ -114,6 +114,7 @@ void RoundRobin::create(const std::vector<EngineConfiguration>& engine_configs,
 }
 
 bool RoundRobin::sprt(const std::vector<EngineConfiguration>& engine_configs) {
+    Logger::debug("Trying to enter SPRT test...");
     if (engine_configs.size() != 2 || !sprt_.isValid()) return false;
 
     Logger::cout("SPRT test started: " + sprt_.getBounds() + " " + sprt_.getElo());

@@ -227,6 +227,8 @@ bool Match::playMove(Participant& us, Participant& opponent) {
 
         Logger::cout("Warning: Illegal move", best_move, "played by", name);
 
+        addMoveData(us, elapsed_millis);
+
         return false;
     }
 

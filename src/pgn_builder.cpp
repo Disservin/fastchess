@@ -40,10 +40,13 @@ PgnBuilder::PgnBuilder(const MatchData &match, const cmd::GameManagerOptions &ga
     std::size_t move_number = 0;
 
     while (move_number < match_.moves.size()) {
-        auto move = match_.moves[move_number];
-        addMove(board, move, move_number + 1);
+        const auto illegal =
+            match_.termination == "illegal move" && move_number == match_.moves.size();
 
-        if (match_.termination == "illegal move" && move_number == match_.moves.size()) {
+        auto move = match_.moves[move_number];
+        addMove(board, move, move_number + 1, illegal);
+
+        if (illegal) {
             break;
         }
 
@@ -88,12 +91,19 @@ std::string PgnBuilder::moveNotation(chess::Board &board, const std::string &mov
     }
 }
 
-void PgnBuilder::addMove(chess::Board &board, const MoveData &move, std::size_t move_number) {
+void PgnBuilder::addMove(chess::Board &board, const MoveData &move, std::size_t move_number,
+                         bool illegal) {
     std::stringstream ss;
-    ss << (move_number % 2 == 1 ? std::to_string(move_number / 2 + 1) + ". " : "")
-       << moveNotation(board, move.move)
-       << addComment((move.score_string + "/" + std::to_string(move.depth)),
-                     formatTime(move.elapsed_millis));
+    ss << (move_number % 2 == 1 ? std::to_string(move_number / 2 + 1) + ". " : "");
+    ss << moveNotation(board, move.move);
+
+    if (illegal) {
+        ss << addComment("illegal move", "");
+    } else {
+        ss << addComment((move.score_string + "/" + std::to_string(move.depth)),
+                         formatTime(move.elapsed_millis));
+    }
+
     moves_.emplace_back(ss.str());
 }
 

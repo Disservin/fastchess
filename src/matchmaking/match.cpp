@@ -37,7 +37,9 @@ void Match::verifyPv(const Participant& us) {
         auto tmp = board_;
         auto it = std::find(tokens.begin(), tokens.end(), "pv");
         while (++it != tokens.end()) {
-            if (movegen::isLegal<chess::Move>(tmp, board_.uciToMove(*it))) {
+            chess::Movelist moves;
+            chess::movegen::legalmoves(moves, tmp);
+            if (moves.find(uci::uciToMove(tmp, *it)) == -1) {
                 Logger::cout("Warning: Illegal pv move ", *it);
                 break;
             }
@@ -123,14 +125,14 @@ void Match::start() {
         throw std::runtime_error(player_2.engine.getConfig().name + " failed to start.");
     }
 
-    board_.loadFen(opening_.fen);
+    board_.setFen(opening_.fen);
 
     std::vector<std::string> uci_moves = [&]() {
         Board board = board_;
         std::vector<std::string> moves;
         for (const auto& move : opening_.moves) {
-            Move i_move = board_.parseSan(move);
-            moves.push_back(board.moveToUci(i_move));
+            Move i_move = uci::parseSan(board, move);
+            moves.push_back(uci::moveToUci(i_move, board.chess960()));
             board_.makeMove(i_move);
         }
         return moves;
@@ -220,9 +222,11 @@ bool Match::playMove(Participant& us, Participant& opponent) {
     }
 
     const auto best_move = us.engine.bestmove();
-    const auto move = board_.uciToMove(best_move);
+    const auto move = uci::uciToMove(board_, best_move);
 
-    if (!movegen::isLegal<chess::Move>(board_, move)) {
+    chess::Movelist moves;
+    chess::movegen::legalmoves(moves, board_);
+    if (moves.find(move) == -1) {
         setLose(us, opponent, "illegal move", name + Match::ILLEGAL_MSG);
 
         Logger::cout("Warning: Illegal move", best_move, "played by", name);

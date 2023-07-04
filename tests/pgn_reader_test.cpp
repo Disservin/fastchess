@@ -33,7 +33,8 @@ TEST_SUITE("PgnReader") {
             chess::Board board;
             std::vector<std::string> uci_moves;
             for (const auto& move : moves) {
-                chess::Move i_move = board.parseSan(move);
+                chess::Move i_move = chess::uci::parseSan(board, move);
+
                 uci_moves.push_back(chess::uci::moveToUci(i_move, board.chess960()));
                 board.makeMove(i_move);
             }

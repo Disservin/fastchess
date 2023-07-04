@@ -335,8 +335,8 @@ struct State {
 
 struct Move {
    public:
-    [[nodiscard]] Move() = default;
-    [[nodiscard]] constexpr Move(uint16_t move) : move_(move), score_(0) {}
+    Move() = default;
+    constexpr Move(uint16_t move) : move_(move), score_(0) {}
 
     template <uint16_t MoveType = 0>
     [[nodiscard]] static constexpr Move make(Square source, Square target,

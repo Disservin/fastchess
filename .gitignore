@@ -1,14 +1,11 @@
 fast-chess*
-DummyEngine*
 *.vscode
 *.d
 *.o
 *.exe
-dummy_engine*
 .DS_Store
-*.pgn
-*.epd
 src/x64/*
 *.txt
 *.json
 tmp
+

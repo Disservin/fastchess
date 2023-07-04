@@ -4,8 +4,8 @@
 #include <chrono>
 #include <thread>
 
-#include "doctest/doctest.hpp"
 #include <third_party/chess.hpp>
+#include "doctest/doctest.hpp"
 
 namespace fast_chess {
 TEST_SUITE("PgnReader") {
@@ -34,7 +34,7 @@ TEST_SUITE("PgnReader") {
             std::vector<std::string> uci_moves;
             for (const auto& move : moves) {
                 chess::Move i_move = board.parseSan(move);
-                uci_moves.push_back(board.moveToUci(i_move));
+                uci_moves.push_back(chess::uci::moveToUci(i_move, board.chess960()));
                 board.makeMove(i_move);
             }
             return uci_moves;

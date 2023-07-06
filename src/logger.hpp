@@ -43,7 +43,7 @@ class Logger {
     /// @param first
     /// @param ...args
     template <typename First, typename... Args>
-    static void debug(First &&first, Args &&...args) {
+    static void debug([[maybe_unused]] First &&first, [[maybe_unused]] Args &&...args) {
 #ifndef NDEBUG
         std::stringstream ss;
         ss << std::forward<First>(first);

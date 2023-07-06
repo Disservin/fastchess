@@ -4,39 +4,29 @@
 #include <thread>
 #include <vector>
 
-bool contains(std::string_view haystack, std::string_view needle)
-{
+bool contains(std::string_view haystack, std::string_view needle) {
     return haystack.find(needle) != std::string::npos;
 }
 
 using namespace std;
 
-int main()
-{
+int main() {
     std::vector<std::string> moves = {"f2f3", "e7e5", "g2g4", "d8h4"};
     int moveIndex = 0;
 
-    while (true)
-    {
+    while (true) {
         string cmd;
         getline(cin, cmd);
 
-        if (cmd == "quit")
-        {
+        if (cmd == "quit") {
             break;
-        }
-        else if (cmd == "isready")
-        {
+        } else if (cmd == "isready") {
             cout << "readyok" << endl;
-        }
-        else if (cmd == "uci")
-        {
+        } else if (cmd == "uci") {
             cout << "line0" << endl;
             cout << "line1" << endl;
             cout << "uciok" << endl;
-        }
-        else if (cmd == "info")
-        {
+        } else if (cmd == "info") {
             int ms = 0;
             // clang-format off
             vector<string> infos{
@@ -65,31 +55,22 @@ int main()
                 "info depth 23 seldepth 24 score cp 20 tbhits 0 nodes 11116018 nps 3164000 hashfull 868 time 3512 pv d2d4 g8f6 c2c4 e7e6 g1f3 d7d5 g2g3 a7a6 b1d2 f8e7 f1g2 e8g8 e1g1 b7b6 d1c2 c8b7 f1d1 d5c4 d2c4 b7e4 c2b3"};
             // clang-format on
 
-            for (const auto &info : infos)
-            {
+            for (const auto &info : infos) {
                 cout << info << endl;
                 this_thread::sleep_for(chrono::milliseconds(ms++));
             }
-        }
-        else if (cmd == "sleep")
-        {
+        } else if (cmd == "sleep") {
             this_thread::sleep_for(chrono::milliseconds(1000));
 
             cout << "done" << endl;
-        }
-        else if (contains(cmd, "position"))
-        {
-            for (int i = moves.size() - 1; i >= 0; i--)
-            {
-                if (contains(cmd, moves[i]))
-                {
+        } else if (contains(cmd, "position")) {
+            for (int i = moves.size() - 1; i >= 0; i--) {
+                if (contains(cmd, moves[i])) {
                     moveIndex = i + 1;
                     break;
                 }
             }
-        }
-        else if (contains(cmd, "go"))
-        {
+        } else if (contains(cmd, "go")) {
             std::cout << "bestmove " << moves[moveIndex] << std::endl;
         }
     }

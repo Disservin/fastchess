@@ -50,7 +50,7 @@ PgnBuilder::PgnBuilder(const MatchData &match, const cmd::GameManagerOptions &ga
             break;
         }
 
-        board.makeMove(board.uciToMove(move.move));
+        board.makeMove(chess::uci::uciToMove(board, move.move));
 
         move_number++;
     }
@@ -83,9 +83,9 @@ void PgnBuilder::addHeader(const std::string &name, const T &value) {
 
 std::string PgnBuilder::moveNotation(chess::Board &board, const std::string &move) const {
     if (game_options_.pgn.notation == cmd::NotationType::SAN) {
-        return board.moveToSan(board.uciToMove(move));
+        return chess::uci::moveToSan(board, chess::uci::uciToMove(board, move));
     } else if (game_options_.pgn.notation == cmd::NotationType::LAN) {
-        return board.moveToLan(board.uciToMove(move));
+        return chess::uci::moveToLan(board, chess::uci::uciToMove(board, move));
     } else {
         return move;
     }

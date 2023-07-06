@@ -23,7 +23,7 @@ ordered_json type conversion is not yet supported, though we only have to change
         NLOHMANN_JSON_EXPAND(NLOHMANN_JSON_PASTE(NLOHMANN_JSON_FROM, __VA_ARGS__))                \
     }
 
-namespace StrUtil {
+namespace str_utils {
 inline bool startsWith(std::string_view haystack, std::string_view needle) {
     if (needle.empty()) return false;
     return (haystack.rfind(needle, 0) != std::string::npos);
@@ -73,6 +73,6 @@ std::optional<T> findElement(const std::vector<std::string> &haystack, std::stri
         return haystack[index + 1];
 }
 
-}  // namespace StrUtil
+}  // namespace str_utils
 
 }  // namespace fast_chess

@@ -1,8 +1,8 @@
 #pragma once
 
+#include <fstream>
 #include <string>
 #include <vector>
-#include <fstream>
 
 #include <third_party/chess.hpp>
 
@@ -12,6 +12,7 @@ struct Opening {
     std::string fen = chess::STARTPOS;
     std::vector<std::string> moves;
 };
+
 class PgnReader {
    public:
     explicit PgnReader(const std::string &pgn_file_path);

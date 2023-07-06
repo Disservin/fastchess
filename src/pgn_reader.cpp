@@ -67,7 +67,7 @@ void PgnReader::analyseFile() {
         if (line[0] == '[') {
             // we have a header
             in_header = true;
-            if (StrUtil::contains(StrUtil::toLower(line), "fen")) {
+            if (str_utils::contains(str_utils::toLower(line), "fen")) {
                 pgn.fen = extractHeader(line);
             }
         } else if (line.empty() && in_header) {

@@ -8,4 +8,5 @@ src/x64/*
 *.txt
 *.json
 tmp
-
+UHO*
+*.bat

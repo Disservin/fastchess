@@ -39,6 +39,7 @@ Source: https://github.com/Disservin/chess-library
 #include <vector>
 
 namespace fast_chess {
+
 namespace chess {
 
 /****************************************************************************\
@@ -52,8 +53,6 @@ using Bitboard = std::uint64_t;  // clear distinction between bitboard and U64
  * Enumerations                                                              *
 \****************************************************************************/
 
-enum MoveGenType : uint8_t { ALL, CAPTURE, QUIET };
-
 // clang-format off
 enum Square : uint8_t {
     SQ_A1, SQ_B1, SQ_C1, SQ_D1, SQ_E1, SQ_F1, SQ_G1, SQ_H1,
@@ -66,14 +65,9 @@ enum Square : uint8_t {
     SQ_A8, SQ_B8, SQ_C8, SQ_D8, SQ_E8, SQ_F8, SQ_G8, SQ_H8,
     NO_SQ
 };
-constexpr Square operator++(Square& sq) {
-    sq = static_cast<Square>(static_cast<uint8_t>(sq) + 1);
-    return sq;
-}
-constexpr Square operator^(Square sq, int i) {
-    return static_cast<Square>(static_cast<uint8_t>(sq) ^ static_cast<uint8_t>(i));
-}
 // clang-format on
+
+enum class MoveGenType : uint8_t { ALL, CAPTURE, QUIET };
 
 enum class Direction : int8_t {
     NORTH = 8,
@@ -85,23 +79,12 @@ enum class Direction : int8_t {
     SOUTH_WEST = -9,
     SOUTH_EAST = -7
 };
-constexpr Square operator+(Square sq, Direction dir) {
-    return static_cast<Square>(static_cast<int8_t>(sq) + static_cast<int8_t>(dir));
-}
 
 enum class File { NO_FILE = -1, FILE_A, FILE_B, FILE_C, FILE_D, FILE_E, FILE_F, FILE_G, FILE_H };
+
 enum class Rank { RANK_1, RANK_2, RANK_3, RANK_4, RANK_5, RANK_6, RANK_7, RANK_8, NO_RANK };
 
 enum class PieceType : uint8_t { PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING, NONE };
-constexpr PieceType operator++(PieceType &pt) {
-    pt = static_cast<PieceType>(static_cast<uint8_t>(pt) + 1);
-    return pt;
-}
-constexpr PieceType operator++(PieceType &pt, int) {
-    PieceType result = pt;
-    ++pt;
-    return result;
-}
 
 enum class Piece : uint8_t {
     WHITEPAWN,
@@ -118,17 +101,53 @@ enum class Piece : uint8_t {
     BLACKKING,
     NONE
 };
-constexpr Piece operator++(Piece &p) {
-    p = static_cast<Piece>(static_cast<uint8_t>(p) + 1);
-    return p;
-}
 
 enum class Color : uint8_t { WHITE, BLACK, NONE };
-constexpr Color operator~(Color c) { return Color(static_cast<uint8_t>(c) ^ 1); }
 
 enum class CastleSide : uint8_t { KING_SIDE, QUEEN_SIDE };
 
 enum class GameResult { WIN, LOSE, DRAW, NONE };
+
+enum class GameResultReason {
+    CHECKMATE,
+    STALEMATE,
+    INSUFFICIENT_MATERIAL,
+    FIFTY_MOVE_RULE,
+    THREEFOLD_REPETITION,
+    NONE
+};
+
+/****************************************************************************\
+ * Enum Overloads                                                            *
+\****************************************************************************/
+
+#define ADD_BASE_OPERATORS_FOR(T)                                                        \
+    constexpr T operator+(T vv_1, int vv_2) { return static_cast<T>(int(vv_1) + vv_2); } \
+    constexpr T operator-(T vv_1, int vv_2) { return static_cast<T>(int(vv_1) - vv_2); } \
+    constexpr T operator-(T vv) { return static_cast<T>(-int(vv)); }                     \
+    constexpr T &operator+=(T &vv_1, int vv_2) { return vv_1 = vv_1 + vv_2; }            \
+    constexpr T &operator-=(T &vv_1, int vv_2) { return vv_1 = vv_1 - vv_2; }
+
+#define ADD_INCR_OPERATORS_FOR(T)                                               \
+    constexpr T &operator++(T &vv) { return vv = static_cast<T>(int(vv) + 1); } \
+    constexpr T &operator--(T &vv) { return vv = static_cast<T>(int(vv) - 1); } \
+    constexpr T operator++(T &vv, int) {                                        \
+        T result = vv;                                                          \
+        ++vv;                                                                   \
+        return result;                                                          \
+    }                                                                           \
+    constexpr T operator--(T &vv, int) {                                        \
+        T result = vv;                                                          \
+        --vv;                                                                   \
+        return result;                                                          \
+    }
+
+constexpr Square operator+(Square sq, Direction dir) {
+    return static_cast<Square>(static_cast<int8_t>(sq) + static_cast<int8_t>(dir));
+}
+
+constexpr Color operator~(Color c) { return Color(static_cast<uint8_t>(c) ^ 1); }
+
 constexpr GameResult operator~(GameResult gm) {
     if (gm == GameResult::WIN)
         return GameResult::LOSE;
@@ -138,6 +157,10 @@ constexpr GameResult operator~(GameResult gm) {
         return GameResult::DRAW;
     else
         return GameResult::NONE;
+}
+
+constexpr Square operator^(Square sq, int i) {
+    return static_cast<Square>(static_cast<uint8_t>(sq) ^ static_cast<uint8_t>(i));
 }
 
 /****************************************************************************\
@@ -216,10 +239,31 @@ static std::unordered_map<char, PieceType> charToPieceType({{'n', PieceType::KNI
 class Board;
 
 namespace utils {
+/// @brief Converts a string to a square
+/// @param squareStr
+/// @return
 [[nodiscard]] Square extractSquare(std::string_view squareStr);
+
+/// @brief Makes a square from a file and rank
+/// @param f
+/// @param r
+/// @return
 [[nodiscard]] constexpr Square fileRankSquare(File f, Rank r);
+
+/// @brief Get the rank of a square
+/// @param sq
+/// @return
 [[nodiscard]] constexpr Rank squareRank(Square sq);
+
+/// @brief Get the file of a square
+/// @param a
+/// @param b
+/// @return
 [[nodiscard]] int squareDistance(Square a, Square b);
+
+/// @brief Get the PieceType of a piece
+/// @param piece
+/// @return
 [[nodiscard]] constexpr PieceType typeOfPiece(Piece piece);
 }  // namespace utils
 
@@ -267,44 +311,44 @@ class CastlingRights {
     void setCastlingRight() {
         int file = static_cast<uint16_t>(rook_file) + 1;
 
-        castling_rights.setGroupValue(2 * static_cast<int>(color) + static_cast<int>(castle),
-                                      static_cast<uint16_t>(file));
+        castling_rights_.setGroupValue(2 * static_cast<int>(color) + static_cast<int>(castle),
+                                       static_cast<uint16_t>(file));
     }
 
     void setCastlingRight(Color color, CastleSide castle, File rook_file) {
         int file = static_cast<uint16_t>(rook_file) + 1;
 
-        castling_rights.setGroupValue(2 * static_cast<int>(color) + static_cast<int>(castle),
-                                      static_cast<uint16_t>(file));
+        castling_rights_.setGroupValue(2 * static_cast<int>(color) + static_cast<int>(castle),
+                                       static_cast<uint16_t>(file));
     }
 
-    void clearAllCastlingRights() { castling_rights.clear(); }
+    void clearAllCastlingRights() { castling_rights_.clear(); }
 
     void clearCastlingRight(Color color, CastleSide castle) {
-        castling_rights.setGroupValue(2 * static_cast<int>(color) + static_cast<int>(castle), 0);
+        castling_rights_.setGroupValue(2 * static_cast<int>(color) + static_cast<int>(castle), 0);
     }
 
     void clearCastlingRight(Color color) {
-        castling_rights.setGroupValue(2 * static_cast<int>(color), 0);
-        castling_rights.setGroupValue(2 * static_cast<int>(color) + 1, 0);
+        castling_rights_.setGroupValue(2 * static_cast<int>(color), 0);
+        castling_rights_.setGroupValue(2 * static_cast<int>(color) + 1, 0);
     }
 
-    bool isEmpty() const { return castling_rights.get() == 0; }
+    bool isEmpty() const { return castling_rights_.get() == 0; }
 
     bool hasCastlingRight(Color color) const {
-        return castling_rights.getGroup(2 * static_cast<int>(color)) != 0 ||
-               castling_rights.getGroup(2 * static_cast<int>(color) + 1) != 0;
+        return castling_rights_.getGroup(2 * static_cast<int>(color)) != 0 ||
+               castling_rights_.getGroup(2 * static_cast<int>(color) + 1) != 0;
     }
 
     bool hasCastlingRight(Color color, CastleSide castle) const {
-        return castling_rights.getGroup(2 * static_cast<int>(color) + static_cast<int>(castle)) !=
+        return castling_rights_.getGroup(2 * static_cast<int>(color) + static_cast<int>(castle)) !=
                0;
     }
 
     File getRookFile(Color color, CastleSide castle) const {
         assert(hasCastlingRight(color, castle) && "Castling right does not exist");
         return static_cast<File>(
-            castling_rights.getGroup(2 * static_cast<int>(color) + static_cast<int>(castle)) - 1);
+            castling_rights_.getGroup(2 * static_cast<int>(color) + static_cast<int>(castle)) - 1);
     }
 
     int getHashIndex() const {
@@ -322,7 +366,7 @@ class CastlingRights {
      bq   bk   wq   wk
      3    2    1    0    // group index
      */
-    BitField16 castling_rights;
+    BitField16 castling_rights_;
 };
 
 struct State {
@@ -338,6 +382,14 @@ struct Move {
     Move() = default;
     constexpr Move(uint16_t move) : move_(move), score_(0) {}
 
+    /// @brief Creates a move from a source and target square.
+    /// pt is the promotion piece, when you want to create a promotion move you must also
+    /// pass PROMOTION as the MoveType template parameter.
+    /// @tparam MoveType
+    /// @param source
+    /// @param target
+    /// @param pt
+    /// @return
     template <uint16_t MoveType = 0>
     [[nodiscard]] static constexpr Move make(Square source, Square target,
                                              PieceType pt = PieceType::KNIGHT) {
@@ -345,18 +397,29 @@ struct Move {
                     uint16_t(source << 6) + uint16_t(target));
     }
 
+    /// @brief Get the source square of the move.
+    /// @return
     [[nodiscard]] constexpr Square from() const { return static_cast<Square>((move_ >> 6) & 0x3F); }
 
+    /// @brief Get the target square of the move.
+    /// @return
     [[nodiscard]] constexpr Square to() const { return static_cast<Square>(move_ & 0x3F); }
 
+    /// @brief Get the type of the move. Can be NORMAL, PROMOTION, ENPASSANT or CASTLING.
+    /// @return
     [[nodiscard]] constexpr uint16_t typeOf() const {
         return static_cast<uint16_t>(move_ & (3 << 14));
     }
 
+    /// @brief Get the promotion piece of the move, should only be used if typeOf() returns
+    /// PROMOTION.
+    /// @return
     [[nodiscard]] constexpr PieceType promotionType() const {
         return static_cast<PieceType>(((move_ >> 12) & 3) + static_cast<int>(PieceType::KNIGHT));
     }
 
+    /// @brief Set the score for a move. Useful if you later want to sort the moves.
+    /// @param score
     constexpr void setScore(int16_t score) { score_ = score; }
 
     [[nodiscard]] constexpr uint16_t move() const { return move_; }
@@ -393,11 +456,17 @@ inline std::ostream &operator<<(std::ostream &os, const Move &move) {
 
 struct Movelist {
    public:
+    /// @brief Add a move to the end of the movelist.
+    /// @param move
     constexpr void add(Move move) {
         assert(size_ < MAX_MOVES);
         moves_[size_++] = move;
     }
 
+    /// @brief Checks if a move is in the movelist, returns the index of the move if it is found,
+    /// otherwise -1.
+    /// @param move
+    /// @return
     constexpr int find(Move move) {
         for (int i = 0; i < size_; ++i) {
             if (moves_[i] == move) {
@@ -407,10 +476,18 @@ struct Movelist {
         return -1;
     }
 
+    /// @brief Return the number of moves in the movelist.
+    /// @return
     constexpr int size() const { return size_; }
 
+    /// @brief Checks if the movelist is empty.
+    /// @return
+    constexpr bool empty() const { return size_ == 0; }
+
+    /// @brief Clears the movelist.
     constexpr void clear() { size_ = 0; }
 
+    /// @brief Sorts the movelist by score in descending order. Uses std::stable_sort.
     inline void sort(int index = 0) {
         std::stable_sort(moves_ + index, moves_ + size_,
                          [](const Move &a, const Move &b) { return a.score() > b.score(); });
@@ -439,6 +516,8 @@ struct Movelist {
 
 namespace utils {
 
+/// @brief Print a bitboard to the console.
+/// @param bb
 inline void printBitboard(Bitboard bb) {
     std::bitset<MAX_SQ> b(bb);
     std::string str_bitset = b.to_string();
@@ -450,6 +529,10 @@ inline void printBitboard(Bitboard bb) {
     std::cout << '\n' << std::endl;
 }
 
+/// @brief Split a string into a vector of strings, using a delimiter.
+/// @param string
+/// @param delimiter
+/// @return
 [[nodiscard]] inline std::vector<std::string> splitString(const std::string &string,
                                                           const char &delimiter) {
     std::stringstream string_stream(string);
@@ -461,7 +544,14 @@ inline void printBitboard(Bitboard bb) {
     return seglist;
 }
 
+/// @brief Get the file of a square.
+/// @param sq
+/// @return
 [[nodiscard]] constexpr File squareFile(Square sq) { return File(sq & 7); }
+
+/// @brief Get the rank of a square.
+/// @param sq
+/// @return
 [[nodiscard]] constexpr Rank squareRank(Square sq) { return Rank(sq >> 3); }
 
 [[nodiscard]] inline int squareDistance(Square a, Square b) {
@@ -500,6 +590,10 @@ static inline void trim(std::string &s) {
     return Square(s ^ (static_cast<int>(c) * 56));
 }
 
+/// @brief Make a piece from a color and a piece type.
+/// @param c
+/// @param pt
+/// @return
 [[nodiscard]] constexpr Piece makePiece(Color c, PieceType pt) {
     return static_cast<Piece>(static_cast<int>(c) * 6 + static_cast<int>(pt));
 }
@@ -508,6 +602,10 @@ static inline void trim(std::string &s) {
     return static_cast<Square>((static_cast<int>(r) << 3) + static_cast<int>(f));
 }
 
+/// @brief Checks if two squares have the same color. I.e light or dark.
+/// @param sq1
+/// @param sq2
+/// @return
 [[nodiscard]] constexpr bool sameColor(Square sq1, Square sq2) {
     return ((9 * (sq1 ^ sq2)) & 8) == 0;
 }
@@ -541,6 +639,15 @@ static inline void trim(std::string &s) {
 \****************************************************************************/
 
 namespace builtin {
+/// @brief Get the least significant bit of a U64.
+/// @param b
+/// @return
+inline Square lsb(U64 b);
+
+/// @brief Get the most significant bit of a U64.
+/// @param b
+/// @return
+inline Square msb(U64 b);
 
 #if defined(__GNUC__)  // GCC, Clang, ICC
 inline Square lsb(U64 b) {
@@ -603,6 +710,9 @@ inline Square msb(U64 b) {
 
 #endif
 
+/// @brief Count the number of set bits in a U64.
+/// @param mask
+/// @return
 inline int popcount(U64 mask) {
 #if defined(_MSC_VER) || defined(__INTEL_COMPILER)
 
@@ -615,8 +725,11 @@ inline int popcount(U64 mask) {
 #endif
 }
 
+/// @brief Get the least significant bit of a U64 and pop it.
+/// @param mask
+/// @return
 inline Square poplsb(Bitboard &mask) {
-    int8_t s = lsb(mask);
+    Square s = lsb(mask);
     mask &= mask - 1;  // compiler optimizes this to _blsr_u64
     return Square(s);
 }
@@ -899,12 +1012,16 @@ class Board {
                pieces(PieceType::QUEEN, color) | pieces(PieceType::KING, color);
     }
     [[nodiscard]] Bitboard them(Color color) const { return us(~color); }
+
+    /// @brief
+    /// @return
     [[nodiscard]] Bitboard occ() const {
         assert(occ_all_ == all());
         return occ_all_;
     }
 
-    // recalculate all bitboards
+    /// @brief recalculate all bitboards
+    /// @return
     [[nodiscard]] Bitboard all() const { return us(Color::WHITE) | us(Color::BLACK); }
 
     [[nodiscard]] Square kingSq(Color color) const {
@@ -920,11 +1037,25 @@ class Board {
         return pieces(type, Color::WHITE) | pieces(type, Color::BLACK);
     }
 
-    [[nodiscard]] Piece at(Square square) const { return board_[static_cast<int>(square)]; }
+    /// @brief Returns either the piece or the piece type on a square
+    /// @tparam T
+    /// @param sq
+    /// @return
+    template <typename T = Piece>
+    [[nodiscard]] T at(Square sq) const {
+        if constexpr (std::is_same_v<T, PieceType>) {
+            return utils::typeOfPiece(board_[sq]);
+        } else {
+            return board_[sq];
+        }
+    }
+
     [[nodiscard]] Color color(Piece piece) const {
         return static_cast<Color>(static_cast<int>(piece) / 6);
     }
 
+    /// @brief Get the current hash key of the board
+    /// @return
     [[nodiscard]] U64 hash() const { return hash_key_; }
     [[nodiscard]] Color sideToMove() const { return side_to_move_; }
     [[nodiscard]] Square enpassantSq() const { return enpassant_sq_; }
@@ -932,21 +1063,29 @@ class Board {
     [[nodiscard]] int halfMoveClock() const { return half_moves_; }
     [[nodiscard]] int fullMoveNumber() const { return full_moves_; }
 
-    void set960(bool is960) { chess960_ = is960; }
+    void set960(bool is960) {
+        chess960_ = is960;
+        setFen(original_fen_);
+    }
+
     [[nodiscard]] bool chess960() const { return chess960_; }
 
     [[nodiscard]] std::string getCastleString() const;
 
     [[nodiscard]] bool isRepetition(int count = 2) const;
 
-    [[nodiscard]] std::pair<std::string, GameResult> isGameOver() const;
+    [[nodiscard]] std::pair<GameResultReason, GameResult> isGameOver() const;
 
+    /// @brief Checks if a square is attacked by the given color.
+    /// @param square
+    /// @param color
+    /// @return
     [[nodiscard]] bool isAttacked(Square square, Color color) const;
 
     [[nodiscard]] bool inCheck() const;
 
-    [[nodiscard]] Move parseSan(std::string san) const;
-
+    /// @brief Regenerates the zobrist hash key
+    /// @return
     [[nodiscard]] U64 zobrist() const;
 
     friend std::ostream &operator<<(std::ostream &os, const Board &board);
@@ -954,8 +1093,6 @@ class Board {
    protected:
     void placePiece(Piece piece, Square sq);
     void removePiece(Piece piece, Square sq);
-
-    [[nodiscard]] Piece removePiece(Square sq);
 
     std::vector<State> prev_states_;
 
@@ -975,11 +1112,19 @@ class Board {
     uint8_t half_moves_;
 
     bool chess960_ = false;
+
+   private:
+    std::string original_fen_;
 };
 
+/****************************************************************************\
+ * Board Implementations                                                     *
+\****************************************************************************/
 inline Board::Board(const std::string fen) { setFen(fen); }
 
 inline void Board::setFen(std::string fen) {
+    original_fen_ = fen;
+
     std::fill(std::begin(board_), std::end(board_), Piece::NONE);
 
     utils::trim(fen);
@@ -987,8 +1132,8 @@ inline void Board::setFen(std::string fen) {
     occ_all_ = 0ULL;
 
     for (const auto c : {Color::WHITE, Color::BLACK}) {
-        for (PieceType p = PieceType::PAWN; p < PieceType::NONE; p++) {
-            pieces_bb_[static_cast<int>(c)][static_cast<int>(p)] = 0ULL;
+        for (int i = 0; i < 6; i++) {
+            pieces_bb_[static_cast<int>(c)][i] = 0ULL;
         }
     }
 
@@ -1212,37 +1357,37 @@ inline std::ostream &operator<<(std::ostream &os, const Board &b) {
     return false;
 }
 
-[[nodiscard]] inline std::pair<std::string, GameResult> Board::isGameOver() const {
+[[nodiscard]] inline std::pair<GameResultReason, GameResult> Board::isGameOver() const {
     if (half_moves_ >= 100) {
         const Board &board = *this;
 
         Movelist movelist;
         movegen::legalmoves<MoveGenType::ALL>(movelist, board);
-        if (isAttacked(kingSq(side_to_move_), ~side_to_move_) && movelist.size() == 0) {
-            return {"checkmate", GameResult::LOSE};
+        if (movelist.size() == 0 && isAttacked(kingSq(side_to_move_), ~side_to_move_)) {
+            return {GameResultReason::CHECKMATE, GameResult::LOSE};
         }
-        return {"50 move rule", GameResult::DRAW};
+        return {GameResultReason::FIFTY_MOVE_RULE, GameResult::DRAW};
     }
 
     const auto count = builtin::popcount(occ());
 
-    if (count == 2) return {"insufficient material", GameResult::DRAW};
+    if (count == 2) return {GameResultReason::INSUFFICIENT_MATERIAL, GameResult::DRAW};
 
     if (count == 3) {
         if (pieces(PieceType::BISHOP, Color::WHITE) || pieces(PieceType::BISHOP, Color::BLACK))
-            return {"insufficient material", GameResult::DRAW};
+            return {GameResultReason::INSUFFICIENT_MATERIAL, GameResult::DRAW};
         if (pieces(PieceType::KNIGHT, Color::WHITE) || pieces(PieceType::KNIGHT, Color::BLACK))
-            return {"insufficient material", GameResult::DRAW};
+            return {GameResultReason::INSUFFICIENT_MATERIAL, GameResult::DRAW};
     }
 
     if (count == 4) {
         if (pieces(PieceType::BISHOP, Color::WHITE) && pieces(PieceType::BISHOP, Color::BLACK) &&
             utils::sameColor(builtin::lsb(pieces(PieceType::BISHOP, Color::WHITE)),
                              builtin::lsb(pieces(PieceType::BISHOP, Color::BLACK))))
-            return {"insufficient material", GameResult::DRAW};
+            return {GameResultReason::INSUFFICIENT_MATERIAL, GameResult::DRAW};
     }
 
-    if (isRepetition()) return {"threefold repetition", GameResult::DRAW};
+    if (isRepetition()) return {GameResultReason::THREEFOLD_REPETITION, GameResult::DRAW};
 
     const Board &board = *this;
 
@@ -1251,11 +1396,11 @@ inline std::ostream &operator<<(std::ostream &os, const Board &b) {
 
     if (movelist.size() == 0) {
         if (isAttacked(kingSq(side_to_move_), ~side_to_move_))
-            return {"checkmate", GameResult::LOSE};
-        return {"stalemate", GameResult::DRAW};
+            return {GameResultReason::CHECKMATE, GameResult::LOSE};
+        return {GameResultReason::STALEMATE, GameResult::DRAW};
     }
 
-    return {"", GameResult::NONE};
+    return {GameResultReason::NONE, GameResult::NONE};
 }
 
 [[nodiscard]] inline bool Board::isAttacked(Square square, Color color) const {
@@ -1296,26 +1441,11 @@ inline void Board::removePiece(Piece piece, Square sq) {
     occ_all_ &= ~(1ULL << sq);
 }
 
-[[nodiscard]] inline Piece Board::removePiece(Square sq) {
-    assert(board_[sq] != Piece::NONE);
-    auto piece = board_[sq];
-
-    hash_key_ ^= zobrist::piece(piece, sq);
-
-    pieces_bb_[int(color(piece))][int(utils::typeOfPiece(piece))] &= ~(1ULL << sq);
-    board_[sq] = Piece::NONE;
-
-    occ_all_ &= ~(1ULL << sq);
-
-    return piece;
-}
-
 inline void Board::makeMove(const Move &move) {
     auto capture = at(move.to()) != Piece::NONE && move.typeOf() != Move::CASTLING;
     auto captured = at(move.to());
-    const auto pt = utils::typeOfPiece(at(move.from()));
+    const auto pt = at<PieceType>(move.from());
 
-    // captured);
     prev_states_.emplace_back(
         State{hash_key_, castling_rights_, enpassant_sq_, half_moves_, captured});
 
@@ -1369,8 +1499,8 @@ inline void Board::makeMove(const Move &move) {
     }
 
     if (move.typeOf() == Move::CASTLING) {
-        assert(utils::typeOfPiece(at(move.from())) == PieceType::KING);
-        assert(utils::typeOfPiece(at(move.to())) == PieceType::ROOK);
+        assert(at<PieceType>(move.from()) == PieceType::KING);
+        assert(at<PieceType>(move.to()) == PieceType::ROOK);
 
         bool king_side = move.to() > move.from();
         auto rookTo =
@@ -1378,11 +1508,12 @@ inline void Board::makeMove(const Move &move) {
         auto kingTo =
             utils::relativeSquare(side_to_move_, king_side ? Square::SQ_G1 : Square::SQ_C1);
 
-        assert(utils::typeOfPiece(at(move.from())) == PieceType::KING);
-        assert(utils::typeOfPiece(at(move.to())) == PieceType::ROOK);
+        const auto king = at(move.from());
+        const auto rook = at(move.to());
 
-        auto king = removePiece(move.from());
-        auto rook = removePiece(move.to());
+        removePiece(king, move.from());
+        removePiece(rook, move.to());
+
         assert(king == utils::makePiece(side_to_move_, PieceType::KING));
         assert(rook == utils::makePiece(side_to_move_, PieceType::ROOK));
 
@@ -1394,13 +1525,14 @@ inline void Board::makeMove(const Move &move) {
     } else {
         assert(at(move.from()) != Piece::NONE);
         assert(at(move.to()) == Piece::NONE);
+        const auto piece = at(move.from());
 
-        auto piece = removePiece(move.from());
+        removePiece(piece, move.from());
         placePiece(piece, move.to());
     }
 
     if (move.typeOf() == Move::ENPASSANT) {
-        assert(utils::typeOfPiece(at(move.to() ^ 8)) == PieceType::PAWN);
+        assert(at<PieceType>(move.to() ^ 8) == PieceType::PAWN);
         removePiece(utils::makePiece(~side_to_move_, PieceType::PAWN), Square(int(move.to()) ^ 8));
     }
 
@@ -1430,11 +1562,14 @@ inline void Board::unmakeMove(const Move &move) {
         const auto king_to_sq = utils::fileRankSquare(king_side ? File::FILE_G : File::FILE_C,
                                                       utils::squareRank(move.from()));
 
-        assert(utils::typeOfPiece(at(rook_from_sq)) == PieceType::ROOK);
-        assert(utils::typeOfPiece(at(king_to_sq)) == PieceType::KING);
+        assert(at<PieceType>(rook_from_sq) == PieceType::ROOK);
+        assert(at<PieceType>(king_to_sq) == PieceType::KING);
 
-        const auto rook = removePiece(rook_from_sq);
-        const auto king = removePiece(king_to_sq);
+        const auto rook = at(rook_from_sq);
+        const auto king = at(king_to_sq);
+
+        removePiece(rook, rook_from_sq);
+        removePiece(king, king_to_sq);
         assert(king == utils::makePiece(side_to_move_, PieceType::KING));
         assert(rook == utils::makePiece(side_to_move_, PieceType::ROOK));
 
@@ -1465,8 +1600,10 @@ inline void Board::unmakeMove(const Move &move) {
     } else {
         assert(at(move.to()) != Piece::NONE);
 
-        const auto piece = removePiece(move.to());
+        const auto piece = at(move.to());
         assert(at(move.from()) == Piece::NONE);
+
+        removePiece(piece, move.to());
         placePiece(piece, move.from());
     }
 
@@ -1506,6 +1643,8 @@ inline void Board::unmakeNullMove() {
     hash_key_ = prev.hash;
 
     full_moves_--;
+
+    side_to_move_ = ~side_to_move_;
 
     prev_states_.pop_back();
 }
@@ -1828,20 +1967,23 @@ static auto init_squares_between = []() constexpr {
     // initialize squares between table
     std::array<std::array<U64, MAX_SQ>, MAX_SQ> squares_between_bb{};
     U64 sqs = 0;
-    for (Square sq1 = Square::SQ_A1; sq1 <= Square::SQ_H8; ++sq1) {
-        for (Square sq2 = Square::SQ_A1; sq2 <= Square::SQ_H8; ++sq2) {
+
+    for (int sq1 = 0; sq1 < MAX_SQ; ++sq1) {
+        for (int sq2 = 0; sq2 < MAX_SQ; ++sq2) {
             sqs = (1ULL << sq1) | (1ULL << sq2);
             if (sq1 == sq2)
                 squares_between_bb[sq1][sq2] = 0ull;
-            else if (utils::squareFile(sq1) == utils::squareFile(sq2) ||
-                     utils::squareRank(sq1) == utils::squareRank(sq2))
-                squares_between_bb[sq1][sq2] = attacks::rook(sq1, sqs) & attacks::rook(sq2, sqs);
-            else if (utils::diagonalOf(sq1) == utils::diagonalOf(sq2) ||
-                     utils::antiDiagonalOf(sq1) == utils::antiDiagonalOf(sq2))
+            else if (utils::squareFile(Square(sq1)) == utils::squareFile(Square(sq2)) ||
+                     utils::squareRank(Square(sq1)) == utils::squareRank(Square(sq2)))
                 squares_between_bb[sq1][sq2] =
-                    attacks::bishop(sq1, sqs) & attacks::bishop(sq2, sqs);
+                    attacks::rook(Square(sq1), sqs) & attacks::rook(Square(sq2), sqs);
+            else if (utils::diagonalOf(Square(sq1)) == utils::diagonalOf(Square(sq2)) ||
+                     utils::antiDiagonalOf(Square(sq1)) == utils::antiDiagonalOf(Square(sq2)))
+                squares_between_bb[sq1][sq2] =
+                    attacks::bishop(Square(sq1), sqs) & attacks::bishop(Square(sq2), sqs);
         }
     }
+
     return squares_between_bb;
 };
 
@@ -2352,8 +2494,15 @@ inline void legalmoves(Movelist &movelist, const Board &board) {
 
 }  // namespace movegen
 
-namespace uci {
+/****************************************************************************\
+ * uci utility functions                                                     *
+\****************************************************************************/
 
+namespace uci {
+/// @brief Converts an internal move to a UCI string
+/// @param move
+/// @param chess960
+/// @return
 [[nodiscard]] inline std::string moveToUci(const Move &move, bool chess960 = false) {
     std::stringstream ss;
 
@@ -2380,6 +2529,10 @@ namespace uci {
     return ss.str();
 }
 
+/// @brief Converts a UCI string to an internal move.
+/// @param board
+/// @param uci
+/// @return
 [[nodiscard]] inline Move uciToMove(const Board &board, const std::string &uci) {
     Square source = utils::extractSquare(uci.substr(0, 2));
     Square target = utils::extractSquare(uci.substr(2, 2));
@@ -2414,6 +2567,10 @@ namespace uci {
     }
 }
 
+/// @brief Converts a move to a SAN string
+/// @param board
+/// @param move
+/// @return
 [[nodiscard]] inline std::string moveToSan(Board board, const Move &move) {
     static const std::string repPieceType[] = {"", "N", "B", "R", "Q", "K"};
     static const std::string repFile[] = {"a", "b", "c", "d", "e", "f", "g", "h"};
@@ -2477,6 +2634,10 @@ namespace uci {
     return san;
 }
 
+/// @brief Converts a move to a LAN string
+/// @param board
+/// @param move
+/// @return
 [[nodiscard]] inline std::string moveToLan(Board board, const Move &move) {
     static const std::string repPieceType[] = {"", "N", "B", "R", "Q", "K"};
     static const std::string repFile[] = {"a", "b", "c", "d", "e", "f", "g", "h"};
@@ -2527,6 +2688,10 @@ namespace uci {
     return lan;
 }
 
+/// @brief Converts a SAN string to a move
+/// @param board
+/// @param san
+/// @return
 [[nodiscard]] inline Move parseSan(const Board &board, std::string san) {
     Movelist moves;
     movegen::legalmoves(moves, board);

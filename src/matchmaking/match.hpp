@@ -65,7 +65,7 @@ class Match {
     [[nodiscard]] bool adjudicate(Participant& us, Participant& them);
 
     [[nodiscard]] std::string convertChessReason(const std::string& engine_name,
-                                                 std::string_view reason);
+                                                 chess::GameResultReason reason);
 
     inline static const std::string ADJUDICATION_MSG = "Draw by adjudication";
     inline static const std::string ADJUDICATION_WIN_MSG = " wins by adjudication";

@@ -285,22 +285,23 @@ bool Match::adjudicate(Participant& us, Participant& them) {
     return false;
 }
 
-std::string Match::convertChessReason(const std::string& engine_name, std::string_view reason) {
-    if (reason == "checkmate") {
+std::string Match::convertChessReason(const std::string& engine_name, GameResultReason reason) {
+    if (reason == GameResultReason::CHECKMATE) {
         return engine_name + Match::CHECKMATE_MSG;
     }
-    if (reason == "stalemate") {
+    if (reason == GameResultReason::STALEMATE) {
         return Match::STALEMATE_MSG;
     }
-    if (reason == "insufficient material") {
+    if (reason == GameResultReason::INSUFFICIENT_MATERIAL) {
         return Match::INSUFFICIENT_MSG;
     }
-    if (reason == "threefold repetition") {
+    if (reason == GameResultReason::THREEFOLD_REPETITION) {
         return Match::REPETITION_MSG;
     }
-    if (reason == "50 move rule") {
+    if (reason == GameResultReason::FIFTY_MOVE_RULE) {
         return Match::FIFTY_MSG;
     }
+
     return "";
 }
 

@@ -1,8 +1,8 @@
 #pragma once
 
+#include <fstream>
 #include <string>
 #include <vector>
-#include <fstream>
 
 #include <third_party/chess.hpp>
 

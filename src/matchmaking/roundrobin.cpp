@@ -213,7 +213,7 @@ std::tuple<bool, Stats, std::string> RoundRobin::playGame(
     try {
         match.start();
     } catch (const std::exception& e) {
-        Logger::error(e.what(), std::this_thread::get_id());
+        Logger::error(e.what(), std::this_thread::get_id(), "fast-chess::RoundRobin::playGame");
         throw e;
     }
 

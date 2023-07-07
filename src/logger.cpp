@@ -13,7 +13,7 @@ void Logger::openFile(const std::string &file) {
     Logger::should_log_ = true;
 }
 
-void Logger::write(const std::string &msg, std::thread::id thread) {
+void Logger::write(const std::string &msg, std::thread::id thread, const std::string &name) {
     if (!Logger::should_log_) {
         return;
     }
@@ -22,13 +22,13 @@ void Logger::write(const std::string &msg, std::thread::id thread) {
     const std::lock_guard<std::mutex> lock(Logger::log_mutex_);
 
     std::stringstream ss;
-    ss << "[" << getDateTime("%H:%M:%S") << "]"
-       << " <" << std::setw(3) << thread << "> <---" << msg << std::endl;
+    ss << "[" << getDateTime("%H:%M:%S") << "] " << name << " <" << std::setw(3) << thread
+       << "> <---" << msg << std::endl;
 
     Logger::log_ << ss.str() << std::flush;
 }
 
-void Logger::read(const std::string &msg, std::thread::id thread) {
+void Logger::read(const std::string &msg, std::thread::id thread, const std::string &name) {
     if (!Logger::should_log_) {
         return;
     }
@@ -37,13 +37,13 @@ void Logger::read(const std::string &msg, std::thread::id thread) {
     const std::lock_guard<std::mutex> lock(Logger::log_mutex_);
 
     std::stringstream ss;
-    ss << "[" << getDateTime("%H:%M:%S") << "]"
-       << " <" << std::setw(3) << thread << "> --->" << msg << std::endl;
+    ss << "[" << getDateTime("%H:%M:%S") << "] " << name << " <" << std::setw(3) << thread
+       << "> --->" << msg << std::endl;
 
     Logger::log_ << ss.str() << std::flush;
 }
 
-void Logger::error(const std::string &msg, std::thread::id thread) {
+void Logger::error(const std::string &msg, std::thread::id thread, const std::string &name) {
     if (!Logger::should_log_) {
         return;
     }
@@ -52,8 +52,8 @@ void Logger::error(const std::string &msg, std::thread::id thread) {
     const std::lock_guard<std::mutex> lock(Logger::log_mutex_);
 
     std::stringstream ss;
-    ss << "[" << getDateTime("%H:%M:%S") << "]"
-       << " <" << std::setw(3) << thread << "> !!!" << msg << std::endl;
+    ss << "[" << getDateTime("%H:%M:%S") << "] " << name << " <" << std::setw(3) << thread
+       << "> !!!" << msg << std::endl;
 
     Logger::log_ << ss.str() << std::flush;
 }

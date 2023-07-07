@@ -55,7 +55,7 @@ class IProcess {
     virtual ~IProcess() = default;
 
     // Initialize the engine process
-    virtual void initProcess(const std::string &command) = 0;
+    virtual void initProcess(const std::string &command, const std::string &log_name) = 0;
 
     // Returns true if the engine process is alive
     virtual bool isAlive() = 0;
@@ -70,6 +70,8 @@ class IProcess {
     // Write input to the engine's stdin
     virtual void writeProcess(const std::string &input) = 0;
 
+    std::string log_name_;
+
     bool is_initalized_ = false;
     bool timeout_ = false;
 };
@@ -80,7 +82,9 @@ class Process : public IProcess {
    public:
     ~Process() override { killProcess(); }
 
-    void initProcess(const std::string &command) override {
+    void initProcess(const std::string &command, const std::string &log_name) override {
+        log_name_ = log_name;
+
         pi_ = PROCESS_INFORMATION();
 
         is_initalized_ = true;
@@ -194,7 +198,8 @@ class Process : public IProcess {
                 if (buffer[i] == '\n' || buffer[i] == '\r') {
                     // dont add empty lines
                     if (!currentLine.empty()) {
-                        fast_chess::Logger::read(currentLine, std::this_thread::get_id());
+                        fast_chess::Logger::read(currentLine, std::this_thread::get_id(),
+                                                 log_name_);
                         lines.emplace_back(currentLine);
 
                         if (currentLine.rfind(last_word, 0) == 0) {
@@ -216,7 +221,7 @@ class Process : public IProcess {
 
     void writeProcess(const std::string &input) override {
         assert(is_initalized_);
-        fast_chess::Logger::write(input, std::this_thread::get_id());
+        fast_chess::Logger::write(input, std::this_thread::get_id(), log_name_);
 
         if (!isAlive()) {
             killProcess();
@@ -251,8 +256,9 @@ class Process : public IProcess {
    public:
     ~Process() override { killProcess(); }
 
-    void initProcess(const std::string &command) override {
+    void initProcess(const std::string &command, const std::string &log_name) override {
         is_initalized_ = true;
+        log_name_ = log_name;
         // Create input pipe
         if (pipe(in_pipe_) == -1) {
             throw std::runtime_error("Failed to create input pipe");
@@ -376,7 +382,8 @@ class Process : public IProcess {
                     if (buffer[i] == '\n') {
                         // dont add empty lines
                         if (!currentLine.empty()) {
-                            fast_chess::Logger::read(currentLine, std::this_thread::get_id());
+                            fast_chess::Logger::read(currentLine, std::this_thread::get_id(),
+                                                     log_name_);
                             lines.emplace_back(currentLine);
                             if (currentLine.rfind(last_word, 0) == 0) {
                                 return lines;
@@ -396,7 +403,7 @@ class Process : public IProcess {
 
     void writeProcess(const std::string &input) override {
         assert(is_initalized_);
-        fast_chess::Logger::write(input, std::this_thread::get_id());
+        fast_chess::Logger::write(input, std::this_thread::get_id(), log_name_);
 
         if (!isAlive()) {
             throw std::runtime_error("IProcess is not alive and write occured with message: " +

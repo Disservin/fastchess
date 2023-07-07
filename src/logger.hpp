@@ -60,17 +60,17 @@ class Logger {
     /// @brief write to file indicating that a write was done
     /// @param msg
     /// @param thread
-    static void write(const std::string &msg, std::thread::id thread);
+    static void write(const std::string &msg, std::thread::id thread, const std::string &name);
 
     /// @brief write to file indicating that a read was done
     /// @param msg
     /// @param thread
-    static void read(const std::string &msg, std::thread::id thread);
+    static void read(const std::string &msg, std::thread::id thread, const std::string &name);
 
     /// @brief log an error
     /// @param msg
     /// @param thread
-    static void error(const std::string &msg, std::thread::id thread);
+    static void error(const std::string &msg, std::thread::id thread, const std::string &name);
 
     [[nodiscard]] static std::string getDateTime(std::string format = "%Y-%m-%dT%H:%M:%S %z");
 

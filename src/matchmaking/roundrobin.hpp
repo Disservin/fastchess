@@ -50,6 +50,8 @@ class RoundRobin {
     /// @return
     [[nodiscard]] bool sprt(const std::vector<EngineConfiguration> &engine_configs);
 
+    void updateSprtStatus(const std::vector<EngineConfiguration> &engine_configs);
+
     /// @brief pairs player1 vs player2
     /// @param player1
     /// @param player2
@@ -88,10 +90,8 @@ class RoundRobin {
 
     FileWriter file_writer_;
 
-    /// @brief contains all openings
-    std::vector<std::string> opening_book_;
-    /// @brief contains all openings
-    std::vector<Opening> pgn_opening_book_;
+    std::vector<std::string> opening_book_epd;
+    std::vector<Opening> opening_book_pgn;
 
     std::atomic<uint64_t> match_count_ = 0;
     std::atomic<uint64_t> total_ = 0;

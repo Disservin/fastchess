@@ -129,20 +129,21 @@ void UciEngine::writeEngine(const std::string &input) {
 }
 
 std::string UciEngine::bestmove() const {
-    return StrUtil::findElement<std::string>(StrUtil::splitString(output_.back(), ' '), "bestmove")
+    return str_utils::findElement<std::string>(str_utils::splitString(output_.back(), ' '),
+                                               "bestmove")
         .value();
 }
 
 std::vector<std::string> UciEngine::lastInfo() const {
-    return StrUtil::splitString(output_[output_.size() - 2], ' ');
+    return str_utils::splitString(output_[output_.size() - 2], ' ');
 }
 
 std::string UciEngine::lastScoreType() const {
-    return StrUtil::findElement<std::string>(lastInfo(), "score").value_or("cp");
+    return str_utils::findElement<std::string>(lastInfo(), "score").value_or("cp");
 }
 
 int UciEngine::lastScore() const {
-    return StrUtil::findElement<int>(lastInfo(), lastScoreType()).value_or(0);
+    return str_utils::findElement<int>(lastInfo(), lastScoreType()).value_or(0);
 }
 
 std::vector<std::string> UciEngine::output() const { return output_; }

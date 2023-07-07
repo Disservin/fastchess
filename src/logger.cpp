@@ -14,42 +14,48 @@ void Logger::openFile(const std::string &file) {
 }
 
 void Logger::write(const std::string &msg, std::thread::id thread) {
-    if (Logger::should_log_) {
-        // Acquire the lock
-        const std::lock_guard<std::mutex> lock(Logger::log_mutex_);
-
-        std::stringstream ss;
-        ss << "[" << getDateTime("%H:%M:%S") << "]"
-           << " <" << std::setw(3) << thread << "> <---" << msg << std::endl;
-
-        Logger::log_ << ss.str() << std::flush;
+    if (!Logger::should_log_) {
+        return;
     }
+
+    // Acquire the lock
+    const std::lock_guard<std::mutex> lock(Logger::log_mutex_);
+
+    std::stringstream ss;
+    ss << "[" << getDateTime("%H:%M:%S") << "]"
+       << " <" << std::setw(3) << thread << "> <---" << msg << std::endl;
+
+    Logger::log_ << ss.str() << std::flush;
 }
 
 void Logger::read(const std::string &msg, std::thread::id thread) {
-    if (Logger::should_log_) {
-        // Acquire the lock
-        const std::lock_guard<std::mutex> lock(Logger::log_mutex_);
-
-        std::stringstream ss;
-        ss << "[" << getDateTime("%H:%M:%S") << "]"
-           << " <" << std::setw(3) << thread << "> --->" << msg << std::endl;
-
-        Logger::log_ << ss.str() << std::flush;
+    if (!Logger::should_log_) {
+        return;
     }
+
+    // Acquire the lock
+    const std::lock_guard<std::mutex> lock(Logger::log_mutex_);
+
+    std::stringstream ss;
+    ss << "[" << getDateTime("%H:%M:%S") << "]"
+       << " <" << std::setw(3) << thread << "> --->" << msg << std::endl;
+
+    Logger::log_ << ss.str() << std::flush;
 }
 
 void Logger::error(const std::string &msg, std::thread::id thread) {
-    if (Logger::should_log_) {
-        // Acquire the lock
-        const std::lock_guard<std::mutex> lock(Logger::log_mutex_);
-
-        std::stringstream ss;
-        ss << "[" << getDateTime("%H:%M:%S") << "]"
-           << " <" << std::setw(3) << thread << "> !!!" << msg << std::endl;
-
-        Logger::log_ << ss.str() << std::flush;
+    if (!Logger::should_log_) {
+        return;
     }
+
+    // Acquire the lock
+    const std::lock_guard<std::mutex> lock(Logger::log_mutex_);
+
+    std::stringstream ss;
+    ss << "[" << getDateTime("%H:%M:%S") << "]"
+       << " <" << std::setw(3) << thread << "> !!!" << msg << std::endl;
+
+    Logger::log_ << ss.str() << std::flush;
 }
 
 std::string Logger::getDateTime(std::string format) {

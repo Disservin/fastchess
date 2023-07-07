@@ -15,17 +15,17 @@ TimeControl parseTc(const std::string &tcString) {
     TimeControl tc;
 
     std::string remainingStringVector = tcString;
-    const bool has_moves = StrUtil::contains(tcString, "/");
-    const bool has_inc = StrUtil::contains(tcString, "+");
+    const bool has_moves = str_utils::contains(tcString, "/");
+    const bool has_inc = str_utils::contains(tcString, "+");
 
     if (has_moves) {
-        const auto moves = StrUtil::splitString(tcString, '/');
+        const auto moves = str_utils::splitString(tcString, '/');
         tc.moves = std::stoi(moves[0]);
         remainingStringVector = moves[1];
     }
 
     if (has_inc) {
-        const auto moves = StrUtil::splitString(remainingStringVector, '+');
+        const auto moves = str_utils::splitString(remainingStringVector, '+');
         tc.increment = std::stod(moves[1].c_str()) * 1000;
         remainingStringVector = moves[0];
     }
@@ -36,7 +36,7 @@ TimeControl parseTc(const std::string &tcString) {
 }
 
 bool isEngineSettableOption(const std::string &stringFormat) {
-    return StrUtil::startsWith(stringFormat, "option.");
+    return str_utils::startsWith(stringFormat, "option.");
 }
 
 void parseEngineKeyValues(EngineConfiguration &engineConfig, const std::string &key,
@@ -121,9 +121,9 @@ class Opening : public Option {
         parseDashOptions(i, argc, argv, [&](std::string key, std::string value) {
             if (key == "file") {
                 argument_data.game_options.opening.file = value;
-                if (StrUtil::endsWith(value, ".epd")) {
+                if (str_utils::endsWith(value, ".epd")) {
                     argument_data.game_options.opening.format = FormatType::EPD;
-                } else if (StrUtil::endsWith(value, ".pgn")) {
+                } else if (str_utils::endsWith(value, ".pgn")) {
                     argument_data.game_options.opening.format = FormatType::PGN;
                 }
 

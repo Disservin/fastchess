@@ -17,6 +17,7 @@ class UciEngine : Process {
     explicit UciEngine(const EngineConfiguration &config, const std::vector<int> &cpus)
         : cpus_(cpus) {
         loadConfig(config);
+        startEngine();
     }
 
     ~UciEngine() override { sendQuit(); }

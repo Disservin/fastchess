@@ -188,11 +188,13 @@ void RoundRobin::playGame(const std::pair<EngineConfiguration, EngineConfigurati
 
     start();
 
+    cache_.save(configs.first.name, configs.first);
+
     try {
-        match.start(configs.first, configs.second);
+        match.start(cache_.get(configs.first.name), cache_.get(configs.second.name));
 
         while (match.get().needs_restart) {
-            match.start(configs.first, configs.second);
+            match.start(cache_.get(configs.first.name), cache_.get(configs.second.name));
         }
 
     } catch (const std::exception& e) {

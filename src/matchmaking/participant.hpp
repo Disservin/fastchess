@@ -9,19 +9,17 @@ namespace fast_chess {
 
 class Participant {
    public:
-    explicit Participant(const EngineConfiguration &config, const std::vector<int> &cpus)
-        : engine(config, cpus) {
-        info.config = config;
-
+    explicit Participant(UciEngine *uci_engine) : engine(uci_engine) {
+        info.config = uci_engine->getConfig();
         // copy time control which will be updated later
-        time_control_ = engine.getConfig().limit.tc;
+        time_control_ = engine->getConfig().limit.tc;
     }
 
     /// @brief The timeout threshold for the read engine command.
     /// This has nothing to do with the time control itself.
     /// @return time in ms
     [[nodiscard]] std::chrono::milliseconds getTimeoutThreshold() const {
-        if (engine.getConfig().limit.nodes != 0 || engine.getConfig().limit.plies != 0 ||
+        if (engine->getConfig().limit.nodes != 0 || engine->getConfig().limit.plies != 0 ||
             time_control_.fixed_time != 0) {
             return std::chrono::milliseconds(0);  // no timeout
         } else {
@@ -33,7 +31,7 @@ class Participant {
     /// @param elapsed_millis
     /// @return `false` when out of time
     [[nodiscard]] bool updateTime(const int64_t elapsed_millis) {
-        if (engine.getConfig().limit.tc.time == 0) {
+        if (engine->getConfig().limit.tc.time == 0) {
             return true;
         }
 
@@ -74,11 +72,11 @@ class Participant {
         std::stringstream input;
         input << "go";
 
-        if (engine.getConfig().limit.nodes != 0)
-            input << " nodes " << engine.getConfig().limit.nodes;
+        if (engine->getConfig().limit.nodes != 0)
+            input << " nodes " << engine->getConfig().limit.nodes;
 
-        if (engine.getConfig().limit.plies != 0)
-            input << " depth " << engine.getConfig().limit.plies;
+        if (engine->getConfig().limit.plies != 0)
+            input << " depth " << engine->getConfig().limit.plies;
 
         // We cannot use st and tc together
         if (time_control_.fixed_time != 0) {
@@ -103,7 +101,7 @@ class Participant {
 
     [[nodiscard]] const TimeControl &getTimeControl() const { return time_control_; }
 
-    UciEngine engine;
+    UciEngine *engine = nullptr;
     PlayerInfo info;
 
    private:

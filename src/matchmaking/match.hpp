@@ -30,8 +30,7 @@ class Match {
         : tournament_options_(game_config), opening_(opening), cpus_(cpus) {}
 
     /// @brief starts the match
-    void start(const EngineConfiguration& engine1_config,
-               const EngineConfiguration& engine2_config);
+    void start(UciEngine& engine1, UciEngine& engine2);
 
     /// @brief returns the match data, only valid after the match has finished
     [[nodiscard]] const MatchData& get() const { return data_; }
@@ -49,7 +48,7 @@ class Match {
     /// @brief append the move data to the match data
     /// @param player
     /// @param measured_time_ms
-    void addMoveData(const Participant& player, int64_t measured_time_ms);
+    void addMoveData(Participant& player, int64_t measured_time_ms);
 
     /// @brief returns false if the next move could not be played
     /// @param us

@@ -1,7 +1,6 @@
 #include "doctest/doctest.hpp"
 #include "third_party/chess.hpp"
 
-using namespace fast_chess;
 using namespace chess;
 
 TEST_SUITE("Zobrist Hash Tests") {

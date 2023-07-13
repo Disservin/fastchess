@@ -23,22 +23,24 @@ SOFTWARE.
 
 Source: https://github.com/Disservin/chess-library
 */
-#pragma once
+
+#ifndef CHESS_HPP
+#define CHESS_HPP
 
 #include <algorithm>
 #include <array>
 #include <bitset>
 #include <cassert>
 #include <cstdint>
+#include <fstream>
 #include <functional>
 #include <iostream>
+#include <optional>
 #include <regex>
 #include <sstream>
 #include <string>
 #include <unordered_map>
 #include <vector>
-
-namespace fast_chess {
 
 namespace chess {
 
@@ -346,7 +348,6 @@ class CastlingRights {
     }
 
     File getRookFile(Color color, CastleSide castle) const {
-        assert(hasCastlingRight(color, castle) && "Castling right does not exist");
         return static_cast<File>(
             castling_rights_.getGroup(2 * static_cast<int>(color) + static_cast<int>(castle)) - 1);
     }
@@ -510,11 +511,50 @@ struct Movelist {
     int size_ = 0;
 };
 
+struct PgnMove {
+    Move move;
+    std::string comment;
+};
+
 /****************************************************************************\
  * Various utility functions used across the codebase                        *
 \****************************************************************************/
 
 namespace utils {
+
+/// @brief https://stackoverflow.com/questions/6089231/getting-std-ifstream-to-handle-lf-cr-and-crlf
+/// @param is
+/// @param t
+/// @return
+inline std::istream &safeGetline(std::istream &is, std::string &t) {
+    t.clear();
+
+    // The characters in the stream are read one-by-one using a std::streambuf.
+    // That is faster than reading them one-by-one using the std::istream.
+    // Code that uses streambuf this way must be guarded by a sentry object.
+    // The sentry object performs various tasks,
+    // such as thread synchronization and updating the stream state.
+
+    std::istream::sentry se(is, true);
+    std::streambuf *sb = is.rdbuf();
+
+    for (;;) {
+        int c = sb->sbumpc();
+        switch (c) {
+            case '\n':
+                return is;
+            case '\r':
+                if (sb->sgetc() == '\n') sb->sbumpc();
+                return is;
+            case std::streambuf::traits_type::eof():
+                // Also handle the case when the last line has no line ending
+                if (t.empty()) is.setstate(std::ios::eofbit);
+                return is;
+            default:
+                t += (char)c;
+        }
+    }
+}
 
 /// @brief Print a bitboard to the console.
 /// @param bb
@@ -997,7 +1037,7 @@ class Board {
    public:
     explicit Board(const std::string fen = STARTPOS);
 
-    void setFen(std::string fen);
+    virtual void setFen(std::string fen);
     [[nodiscard]] std::string getFen() const;
 
     void makeMove(const Move &move);
@@ -1091,8 +1131,8 @@ class Board {
     friend std::ostream &operator<<(std::ostream &os, const Board &board);
 
    protected:
-    void placePiece(Piece piece, Square sq);
-    void removePiece(Piece piece, Square sq);
+    virtual void placePiece(Piece piece, Square sq);
+    virtual void removePiece(Piece piece, Square sq);
 
     std::vector<State> prev_states_;
 
@@ -1166,6 +1206,7 @@ inline void Board::setFen(std::string fen) {
     castling_rights_.clearAllCastlingRights();
 
     for (char i : castling) {
+        if (i == '-') break;
         if (!chess960_) {
             if (i == 'K')
                 castling_rights_
@@ -1180,12 +1221,48 @@ inline void Board::setFen(std::string fen) {
                 castling_rights_
                     .setCastlingRight<Color::BLACK, CastleSide::QUEEN_SIDE, File::FILE_A>();
         } else {
-            const auto color = isupper(i) ? Color::WHITE : Color::BLACK;
-            const auto king_sq = kingSq(color);
-            const auto file = static_cast<File>(tolower(i) - 97);
-            const auto side = int(file) > int(utils::squareFile(king_sq)) ? CastleSide::KING_SIDE
-                                                                          : CastleSide::QUEEN_SIDE;
-            castling_rights_.setCastlingRight(color, side, file);
+            if (i == 'K' || i == 'k') {
+                // find rook on the right side of the king
+                const auto color = isupper(i) ? Color::WHITE : Color::BLACK;
+                const auto king_sq = kingSq(color);
+
+                const auto sq_corner = color == Color::WHITE ? SQ_H1 : SQ_H8;
+
+                for (int sq = king_sq + 1; sq <= sq_corner; sq++) {
+                    if (at<PieceType>(Square(sq)) == PieceType::NONE) continue;
+                    if (at<PieceType>(Square(sq)) == PieceType::ROOK &&
+                        int(at(Square(sq))) / 6 == int(color)) {
+                        castling_rights_.setCastlingRight(color, CastleSide::KING_SIDE,
+                                                          utils::squareFile(Square(sq)));
+                        break;
+                    }
+                }
+
+            } else if (i == 'Q' || i == 'q') {
+                // find rook on the left side of the king
+                const auto color = isupper(i) ? Color::WHITE : Color::BLACK;
+                const auto king_sq = kingSq(color);
+
+                const auto sq_corner = color == Color::WHITE ? SQ_A1 : SQ_A8;
+
+                for (int sq = king_sq - 1; sq >= sq_corner; sq--) {
+                    if (at<PieceType>(Square(sq)) == PieceType::NONE) continue;
+                    if (at<PieceType>(Square(sq)) == PieceType::ROOK &&
+                        int(at(Square(sq))) / 6 == int(color)) {
+                        castling_rights_.setCastlingRight(color, CastleSide::QUEEN_SIDE,
+                                                          utils::squareFile(Square(sq)));
+                        break;
+                    }
+                }
+            } else {
+                const auto color = isupper(i) ? Color::WHITE : Color::BLACK;
+                const auto king_sq = kingSq(color);
+                const auto file = static_cast<File>(tolower(i) - 97);
+                const auto side = int(file) > int(utils::squareFile(king_sq))
+                                      ? CastleSide::KING_SIDE
+                                      : CastleSide::QUEEN_SIDE;
+                castling_rights_.setCastlingRight(color, side, file);
+            }
         }
     }
 
@@ -1442,8 +1519,8 @@ inline void Board::removePiece(Piece piece, Square sq) {
 }
 
 inline void Board::makeMove(const Move &move) {
-    auto capture = at(move.to()) != Piece::NONE && move.typeOf() != Move::CASTLING;
-    auto captured = at(move.to());
+    const auto capture = at(move.to()) != Piece::NONE && move.typeOf() != Move::CASTLING;
+    const auto captured = at(move.to());
     const auto pt = at<PieceType>(move.from());
 
     prev_states_.emplace_back(
@@ -1479,9 +1556,11 @@ inline void Board::makeMove(const Move &move) {
         castling_rights_.clearCastlingRight(side_to_move_);
     } else if (pt == PieceType::ROOK && utils::ourBackRank(move.from(), side_to_move_)) {
         const auto king_sq = kingSq(side_to_move_);
+        const auto file = move.from() > king_sq ? CastleSide::KING_SIDE : CastleSide::QUEEN_SIDE;
 
-        castling_rights_.clearCastlingRight(
-            side_to_move_, move.from() > king_sq ? CastleSide::KING_SIDE : CastleSide::QUEEN_SIDE);
+        if (castling_rights_.getRookFile(side_to_move_, file) == utils::squareFile(move.from())) {
+            castling_rights_.clearCastlingRight(side_to_move_, file);
+        }
     } else if (pt == PieceType::PAWN) {
         half_moves_ = 0;
 
@@ -2359,12 +2438,13 @@ template <Color c, MoveGenType mt>
         const Bitboard not_attacked_path = SQUARES_BETWEEN_BB[sq][end_king_sq];
         const Bitboard empty_not_attacked = ~seen & ~(board.occ() & ~(1ull << from_rook_sq));
         const Bitboard withoutRook = board.occ() & ~(1ull << from_rook_sq);
+        const Bitboard withoutKing = board.occ() & ~(1ull << sq);
 
         if ((not_attacked_path & empty_not_attacked) == not_attacked_path &&
             ((not_occ_path & ~board.occ()) == not_occ_path) &&
             !((1ull << from_rook_sq) & pinHV &
               MASK_RANK[static_cast<int>(utils::squareRank(sq))]) &&
-            !((1ull << end_rook_sq) & withoutRook) &&
+            !((1ull << end_rook_sq) & (withoutRook & withoutKing)) &&
             !((1ull << end_king_sq) & (seen | (withoutRook & ~(1ull << sq))))) {
             moves |= (1ull << from_rook_sq);
         }
@@ -2695,6 +2775,9 @@ namespace uci {
 [[nodiscard]] inline Move parseSan(const Board &board, std::string san) {
     Movelist moves;
     movegen::legalmoves(moves, board);
+
+    const auto original = san;
+
     if (san == "0-0" || san == "0-0+" || san == "0-0#" || san == "O-O" || san == "O-O+" ||
         san == "O-O#") {
         for (auto move : moves) {
@@ -2702,7 +2785,9 @@ namespace uci {
                 return move;
             }
         }
-        throw std::runtime_error("illegal san, step 1: " + san);
+
+        throw std::runtime_error("Illegal San, Step 1: " + san);
+
     } else if (san == "0-0-0" || san == "0-0-0+" || san == "0-0-0#" || san == "O-O-O" ||
                san == "O-O-O+" || san == "O-O-O#") {
         for (auto move : moves) {
@@ -2710,76 +2795,298 @@ namespace uci {
                 return move;
             }
         }
-        throw std::runtime_error("illegal san, step 2: " + san);
+
+        throw std::runtime_error("Illegal San, Step 2: " + san);
     }
 
-    /*
-    group | description
-    1     | ^([NBKRQ])? match moving piecetype (optional)
-    2     | ([a-h])? match from file (optional)
-    3     | ([1-8])?[\\-x]? match from rank (optional), castle - or capture x
-    4     | ([a-h][1-8]) match to square, always present
-    5     | (=?[nbrqkNBRQK])?[\\+#]? match promotion (optional), check + or checkmate #
-    */
-    const auto match =
-        utils::regex(san, "^([NBKRQ])?([a-h])?([1-8])?[\\-x]?([a-h][1-8])(=?[nbrqkNBRQK])?[\\+#]?");
+    // A move looks like this:
 
-    Square to = utils::extractSquare(match.str(4));
+    // [NBKRQ]? ([a-h])? ([1-8])? x? [a-h] [1-8] (=[nbrqkNBRQK])?
 
-    PieceType moving = PieceType::PAWN;
-    PieceType promotionType =
-        !match.str(5).empty() ? charToPieceType[match.str(5)[1]] : PieceType::NONE;
-
-    File from_file = File::NO_FILE;
-    Rank from_rank = Rank::NO_RANK;
-
-    if (!match.str(2).empty()) {
-        from_file = File(match.str(2)[0] - 'a');
-    }
-    if (!match.str(3).empty()) {
-        from_rank = Rank(match.str(3)[0] - '1');
+    if (san.size() < 2) {
+        throw std::runtime_error("Illegal San, Step 3: " + san);
     }
 
-    if (!match.str(1).empty()) {
-        moving = charToPieceType[match.str(1)[0]];
-    } else if (!match.str(2).empty() && !match.str(3).empty()) {
-        for (auto move : moves) {
-            if (move.from() == utils::fileRankSquare(from_file, from_rank) && move.to() == to &&
-                utils::typeOfPiece(board.at(move.from())) == moving) {
-                if (move.typeOf() == Move::PROMOTION) {
-                    if (move.promotionType() == promotionType)
-                        return move;
-                    else
-                        throw std::runtime_error("illegal san, step 3: " + san);
-                }
+    PieceType pt = PieceType::NONE;
+
+    PieceType promotion = PieceType::NONE;
+
+    File file_from = File::NO_FILE;
+    Rank rank_from = Rank::NO_RANK;
+
+    File file_to = File::NO_FILE;
+    Rank rank_to = Rank::NO_RANK;
+
+    // check if san starts with file
+    if (san[0] == 'N' || san[0] == 'B' || san[0] == 'R' || san[0] == 'Q' || san[0] == 'K') {
+        pt = charToPieceType[san[0]];
+        san.erase(0, 1);
+    }
+
+    if (san[0] >= 'a' && san[0] <= 'h') {
+        file_from = File(int(san[0] - 97));
+
+        if (pt == PieceType::NONE) {
+            pt = PieceType::PAWN;
+        }
+
+        san.erase(0, 1);
+    }
+
+    if (san[0] >= '1' && san[0] <= '8') {
+        rank_from = Rank(int(san[0] - 49));
+
+        san.erase(0, 1);
+    }
+
+    // skip capture sign
+    if (san[0] == 'x') {
+        san.erase(0, 1);
+    }
+
+    if (san[0] >= 'a' && san[0] <= 'h') {
+        file_to = File(int(san[0] - 97));
+
+        if (pt == PieceType::NONE) {
+            pt = PieceType::PAWN;
+        }
+
+        san.erase(0, 1);
+    }
+
+    if (san[0] >= '1' && san[0] <= '8') {
+        rank_to = Rank(int(san[0] - 49));
+
+        san.erase(0, 1);
+    }
+
+    if (san[0] == '=') {
+        san.erase(0, 1);
+
+        promotion = charToPieceType[san[0]];
+    }
+
+    // the from is actually the to
+    if (file_to == File::NO_FILE && rank_to == Rank::NO_RANK) {
+        file_to = file_from;
+        rank_to = rank_from;
+        file_from = File::NO_FILE;
+        rank_from = Rank::NO_RANK;
+    }
+
+    Square from_sq = NO_SQ;
+    Square to_sq = utils::fileRankSquare(file_to, rank_to);
+
+    if (file_from != File::NO_FILE && rank_from != Rank::NO_RANK) {
+        from_sq = utils::fileRankSquare(file_from, rank_from);
+    }
+
+    for (const auto move : moves) {
+        if (pt != board.at<PieceType>(move.from()) || move.to() != to_sq) {
+            continue;
+        }
+
+        if (promotion != PieceType::NONE && move.typeOf() == Move::PROMOTION &&
+            promotion == move.promotionType() && move.to() == to_sq &&
+            ((file_from == File::NO_FILE && utils::squareFile(move.from()) == file_to) ||
+             utils::squareFile(move.from()) == file_from)) {
+            return move;
+        }
+
+        if (move.typeOf() == Move::PROMOTION) continue;
+
+        if (move.typeOf() == Move::ENPASSANT && pt == PieceType::PAWN && move.to() == to_sq &&
+            utils::squareFile(move.from()) == file_from) {
+            return move;
+        }
+
+        if (move.typeOf() == Move::ENPASSANT) continue;
+
+        if (rank_from == Rank::NO_RANK && file_from == File::NO_FILE) {
+            return move;
+        }
+
+        if (from_sq != NO_SQ) {
+            if (move.from() == from_sq) {
                 return move;
             }
+            continue;
         }
-        throw std::runtime_error("illegal san, step 4: " + san);
-    }
 
-    for (auto move : moves) {
-        if (utils::typeOfPiece(board.at(move.from())) == moving && to == move.to()) {
-            if (move.typeOf() == Move::PROMOTION) {
-                if (promotionType == move.promotionType()) {
-                    return move;
-                }
-            } else {
-                if (from_file == File::NO_FILE && from_rank == Rank::NO_RANK) {
-                    return move;
-                } else if ((utils::squareFile(move.from()) == from_file) ||
-                           (utils::squareRank(move.from()) == from_rank)) {
-                    return move;
-                }
-            }
+        if ((utils::squareFile(move.from()) == file_from) ||
+            (utils::squareRank(move.from()) == rank_from)) {
+            return move;
         }
     }
 
-    throw std::runtime_error("illegal san, step 5: " + san);
+    std::cout << "pt " << int(pt) << std::endl;
+    std::cout << "file_from " << int(file_from) << std::endl;
+    std::cout << "rank_from " << int(rank_from) << std::endl;
+    std::cout << "file_to " << int(file_to) << std::endl;
+    std::cout << "rank_to " << int(rank_to) << std::endl;
+    std::cout << "promotion " << int(promotion) << std::endl;
+    std::cout << "to_sq " << squareToString[int(to_sq)] << std::endl;
+
+    throw std::runtime_error("Illegal San, Step 4: " + original + " " + board.getFen());
 }
 
 }  // namespace uci
 
+struct Game {
+   public:
+    Game() = default;
+
+    Game(const std::unordered_map<std::string, std::string> &headers,
+         const std::vector<PgnMove> &moves)
+        : headers_(headers), moves_(moves) {}
+
+    [[nodiscard]] const std::unordered_map<std::string, std::string> &headers() const {
+        return headers_;
+    }
+
+    [[nodiscard]] const std::vector<PgnMove> &moves() const { return moves_; }
+    [[nodiscard]] std::vector<PgnMove> &moves() { return moves_; }
+
+    void set(const std::string &key, const std::string &value) { headers_[key] = value; }
+
+   private:
+    std::unordered_map<std::string, std::string> headers_;
+    std::vector<PgnMove> moves_;
+};
+
+namespace pgn {
+
+inline std::pair<std::string, std::string> extractHeader(const std::string &line) {
+    std::string key;
+    std::string value;
+
+    bool readingKey = false;
+    bool readingValue = false;
+
+    for (const auto c : line) {
+        if (c == '[') {
+            readingKey = true;
+        } else if (c == '"') {
+            readingValue = !readingValue;
+        } else if (readingKey && c == ' ') {
+            readingKey = false;
+        } else if (readingKey) {
+            key += c;
+        } else if (readingValue) {
+            value += c;
+        }
+    }
+
+    return {key, value};
+}
+
+/// @brief Extract and parse the move, plus any comments it might have.
+/// @param board
+/// @param line
+/// @return
+inline void extractMoves(Board &board, std::vector<PgnMove> &moves, std::string_view line) {
+    std::string move;
+    std::string comment;
+
+    bool readingMove = false;
+    bool readingComment = false;
+
+    // Pgn are build up in the following way.
+    // {move_number} {move} {comment} {move} {comment} {move_number} ...
+    // So we need to skip the move_number then start reading the move, then save the comment
+    // then read the second move in the group. After that a move_number will follow again.
+    for (const auto c : line) {
+        if (readingMove && c == ' ') {
+            readingMove = false;
+        } else if (readingMove) {
+            move += c;
+        } else if (!readingComment && c == '{') {
+            readingComment = true;
+        } else if (readingComment && c == '}') {
+            readingComment = false;
+
+            if (!move.empty()) {
+                const auto move_internal = uci::parseSan(board, move);
+                moves.push_back({move_internal, comment});
+
+                board.makeMove(move_internal);
+
+                move.clear();
+                comment.clear();
+            }
+        } else if (!readingMove && !readingComment) {
+            if (!std::isalpha(c)) {
+                continue;
+            }
+
+            if (!move.empty()) {
+                const auto move_internal = uci::parseSan(board, move);
+                moves.push_back({move_internal, comment});
+
+                board.makeMove(move_internal);
+
+                move.clear();
+                comment.clear();
+            }
+
+            readingMove = true;
+            move += c;
+        } else if (readingComment) {
+            comment += c;
+        }
+    }
+}
+
+/// @brief Read the next game from a file
+/// @param file
+/// @return
+inline std::optional<Game> readGame(std::ifstream &file) {
+    Board board;
+
+    Game game;
+
+    std::string line;
+
+    bool readingMoves = false;
+
+    bool hasBody = false;
+
+    while (!utils::safeGetline(file, line).eof()) {
+        if (line[0] == '[') {
+            if (readingMoves) {
+                break;
+            }
+
+            // Parse the header
+            const auto header = extractHeader(line);
+
+            game.set(header.first, header.second);
+
+            if (header.first == "FEN") {
+                board.setFen(header.second);
+            }
+
+            if (header.first == "Variant") {
+                board.set960(header.second == "fischerandom");
+            }
+        } else {
+            // Parse the moves
+            extractMoves(board, game.moves(), line);
+
+            readingMoves = true;
+            hasBody = true;
+        }
+    }
+
+    if (!hasBody) {
+        return std::nullopt;
+    }
+
+    return game;
+}
+
+}  // namespace pgn
+
 }  // namespace chess
 
-}  // namespace fast_chess
+#endif  // CHESS_HPP

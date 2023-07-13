@@ -40,6 +40,7 @@ Source: https://github.com/Disservin/chess-library
 #include <sstream>
 #include <string>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
 namespace chess {
@@ -123,26 +124,30 @@ enum class GameResultReason {
  * Enum Overloads                                                            *
 \****************************************************************************/
 
-#define ADD_BASE_OPERATORS_FOR(T)                                                        \
-    constexpr T operator+(T vv_1, int vv_2) { return static_cast<T>(int(vv_1) + vv_2); } \
-    constexpr T operator-(T vv_1, int vv_2) { return static_cast<T>(int(vv_1) - vv_2); } \
-    constexpr T operator-(T vv) { return static_cast<T>(-int(vv)); }                     \
-    constexpr T &operator+=(T &vv_1, int vv_2) { return vv_1 = vv_1 + vv_2; }            \
-    constexpr T &operator-=(T &vv_1, int vv_2) { return vv_1 = vv_1 - vv_2; }
+#define ADD_BASE_OPERATORS_FOR(T)                                                            \
+    (                                                                                        \
+        constexpr T operator+(T vv_1, int vv_2) {                                            \
+            return static_cast<T>(int(vv_1) + vv_2);                                         \
+        } constexpr T                                                                        \
+        operator-(T vv_1, int vv_2) { return static_cast<T>(int(vv_1) - vv_2); } constexpr T \
+        operator-(T vv) { return static_cast<T>(-int(vv)); } constexpr T &                   \
+        operator+=(T &vv_1, int vv_2) { return vv_1 = vv_1 + vv_2; } constexpr T &           \
+        operator-=(T &vv_1, int vv_2) { return vv_1 = vv_1 - vv_2; })
 
-#define ADD_INCR_OPERATORS_FOR(T)                                               \
-    constexpr T &operator++(T &vv) { return vv = static_cast<T>(int(vv) + 1); } \
-    constexpr T &operator--(T &vv) { return vv = static_cast<T>(int(vv) - 1); } \
-    constexpr T operator++(T &vv, int) {                                        \
-        T result = vv;                                                          \
-        ++vv;                                                                   \
-        return result;                                                          \
-    }                                                                           \
-    constexpr T operator--(T &vv, int) {                                        \
-        T result = vv;                                                          \
-        --vv;                                                                   \
-        return result;                                                          \
-    }
+#define ADD_INCR_OPERATORS_FOR(T)                                                                  \
+    (                                                                                              \
+        constexpr T & operator++(T &vv) { return vv = static_cast<T>(int(vv) + 1); } constexpr T & \
+                      operator--(T &vv) { return vv = static_cast<T>(int(vv) - 1); } constexpr T   \
+                      operator++(T &vv, int) {                                                     \
+                          T result = vv;                                                           \
+                          ++vv;                                                                    \
+                          return result;                                                           \
+                      } constexpr T                                                                \
+                      operator--(T &vv, int) {                                                     \
+                          T result = vv;                                                           \
+                          --vv;                                                                    \
+                          return result;                                                           \
+                      })
 
 constexpr Square operator+(Square sq, Direction dir) {
     return static_cast<Square>(static_cast<int8_t>(sq) + static_cast<int8_t>(dir));
@@ -283,8 +288,8 @@ class BitField16 {
         assert(group_index < 4 && "group_index must be less than 4");
 
         // calculate the bit position of the start of the group you want to set
-        uint16_t startBit = group_index * group_size_;
-        uint16_t setMask = static_cast<uint16_t>(group_value << startBit);
+        const uint16_t startBit = group_index * group_size_;
+        const auto setMask = static_cast<uint16_t>(group_value << startBit);
 
         // clear the bits in the group
         value_ &= ~(0xF << startBit);
@@ -293,14 +298,14 @@ class BitField16 {
         value_ |= setMask;
     }
 
-    uint16_t getGroup(uint16_t group_index) const {
+    [[nodiscard]] uint16_t getGroup(uint16_t group_index) const {
         assert(group_index < 4 && "group_index must be less than 4");
         uint16_t startBit = group_index * group_size_;
         return (value_ >> startBit) & 0xF;
     }
 
     void clear() { value_ = 0; }
-    uint16_t get() const { return value_; }
+    [[nodiscard]] uint16_t get() const { return value_; }
 
    private:
     static constexpr uint16_t group_size_ = 4;  // size of each group
@@ -335,24 +340,24 @@ class CastlingRights {
         castling_rights_.setGroupValue(2 * static_cast<int>(color) + 1, 0);
     }
 
-    bool isEmpty() const { return castling_rights_.get() == 0; }
+    [[nodiscard]] bool isEmpty() const { return castling_rights_.get() == 0; }
 
-    bool hasCastlingRight(Color color) const {
+    [[nodiscard]] bool hasCastlingRight(Color color) const {
         return castling_rights_.getGroup(2 * static_cast<int>(color)) != 0 ||
                castling_rights_.getGroup(2 * static_cast<int>(color) + 1) != 0;
     }
 
-    bool hasCastlingRight(Color color, CastleSide castle) const {
+    [[nodiscard]] bool hasCastlingRight(Color color, CastleSide castle) const {
         return castling_rights_.getGroup(2 * static_cast<int>(color) + static_cast<int>(castle)) !=
                0;
     }
 
-    File getRookFile(Color color, CastleSide castle) const {
+    [[nodiscard]] File getRookFile(Color color, CastleSide castle) const {
         return static_cast<File>(
             castling_rights_.getGroup(2 * static_cast<int>(color) + static_cast<int>(castle)) - 1);
     }
 
-    int getHashIndex() const {
+    [[nodiscard]] int getHashIndex() const {
         return hasCastlingRight(Color::WHITE, CastleSide::KING_SIDE) +
                2 * hasCastlingRight(Color::WHITE, CastleSide::QUEEN_SIDE) +
                4 * hasCastlingRight(Color::BLACK, CastleSide::KING_SIDE) +
@@ -381,7 +386,7 @@ struct State {
 struct Move {
    public:
     Move() = default;
-    constexpr Move(uint16_t move) : move_(move), score_(0) {}
+    constexpr explicit Move(uint16_t move) : move_(move), score_(0) {}
 
     /// @brief Creates a move from a source and target square.
     /// pt is the promotion piece, when you want to create a promotion move you must also
@@ -479,11 +484,11 @@ struct Movelist {
 
     /// @brief Return the number of moves in the movelist.
     /// @return
-    constexpr int size() const { return size_; }
+    [[nodiscard]] constexpr int size() const { return size_; }
 
     /// @brief Checks if the movelist is empty.
     /// @return
-    constexpr bool empty() const { return size_ == 0; }
+    [[nodiscard]] constexpr bool empty() const { return size_ == 0; }
 
     /// @brief Clears the movelist.
     constexpr void clear() { size_ = 0; }
@@ -503,11 +508,11 @@ struct Movelist {
     constexpr iterator begin() { return moves_; }
     constexpr iterator end() { return moves_ + size_; }
 
-    constexpr const_iterator begin() const { return moves_; }
-    constexpr const_iterator end() const { return moves_ + size_; }
+    [[nodiscard]] constexpr const_iterator begin() const { return moves_; }
+    [[nodiscard]] constexpr const_iterator end() const { return moves_ + size_; }
 
    private:
-    Move moves_[MAX_MOVES];
+    Move moves_[MAX_MOVES]{};
     int size_ = 0;
 };
 
@@ -1035,9 +1040,11 @@ void legalmoves(Movelist &movelist, const Board &board);
 \****************************************************************************/
 class Board {
    public:
-    explicit Board(const std::string fen = STARTPOS);
+    explicit Board(std::string fen = STARTPOS);
 
-    virtual void setFen(std::string fen);
+    void setFenInternal(std::string fen);
+
+    virtual void setFen(const std::string &fen);
     [[nodiscard]] std::string getFen() const;
 
     void makeMove(const Move &move);
@@ -1090,7 +1097,7 @@ class Board {
         }
     }
 
-    [[nodiscard]] Color color(Piece piece) const {
+    [[nodiscard]] static Color color(Piece piece) {
         return static_cast<Color>(static_cast<int>(piece) / 6);
     }
 
@@ -1136,20 +1143,20 @@ class Board {
 
     std::vector<State> prev_states_;
 
-    U64 pieces_bb_[2][6];
+    U64 pieces_bb_[2][6]{};
 
-    std::array<Piece, 64> board_;
+    std::array<Piece, 64> board_{};
 
-    U64 hash_key_;
+    U64 hash_key_ = 0ULL;
 
-    U64 occ_all_;
+    U64 occ_all_ = 0ULL;
 
     CastlingRights castling_rights_;
-    uint16_t full_moves_;
+    uint16_t full_moves_ = 1;
 
-    Color side_to_move_;
-    Square enpassant_sq_;
-    uint8_t half_moves_;
+    Color side_to_move_ = Color::WHITE;
+    Square enpassant_sq_ = Square::NO_SQ;
+    uint8_t half_moves_ = 0;
 
     bool chess960_ = false;
 
@@ -1160,9 +1167,9 @@ class Board {
 /****************************************************************************\
  * Board Implementations                                                     *
 \****************************************************************************/
-inline Board::Board(const std::string fen) { setFen(fen); }
+inline Board::Board(std::string fen) { setFenInternal(std::move(fen)); }
 
-inline void Board::setFen(std::string fen) {
+inline void Board::setFenInternal(std::string fen) {
     original_fen_ = fen;
 
     std::fill(std::begin(board_), std::end(board_), Piece::NONE);
@@ -1282,6 +1289,8 @@ inline void Board::setFen(std::string fen) {
     prev_states_.reserve(150);
 }
 
+inline void Board::setFen(const std::string &fen) { setFenInternal(fen); }
+
 [[nodiscard]] inline std::string Board::getFen() const {
     std::stringstream ss;
 
@@ -1398,7 +1407,6 @@ inline std::ostream &operator<<(std::ostream &os, const Board &b) {
     std::stringstream ss;
 
     if (chess960_) {
-        // loop to cleanup
         if (castling_rights_.hasCastlingRight(Color::WHITE, CastleSide::KING_SIDE))
             ss << char(char(castling_rights_.getRookFile(Color::WHITE, CastleSide::KING_SIDE)) +
                        65);
@@ -1440,7 +1448,7 @@ inline std::ostream &operator<<(std::ostream &os, const Board &b) {
 
         Movelist movelist;
         movegen::legalmoves<MoveGenType::ALL>(movelist, board);
-        if (movelist.size() == 0 && isAttacked(kingSq(side_to_move_), ~side_to_move_)) {
+        if (movelist.empty() && isAttacked(kingSq(side_to_move_), ~side_to_move_)) {
             return {GameResultReason::CHECKMATE, GameResult::LOSE};
         }
         return {GameResultReason::FIFTY_MOVE_RULE, GameResult::DRAW};
@@ -1471,7 +1479,7 @@ inline std::ostream &operator<<(std::ostream &os, const Board &b) {
     Movelist movelist;
     movegen::legalmoves<MoveGenType::ALL>(movelist, board);
 
-    if (movelist.size() == 0) {
+    if (movelist.empty()) {
         if (isAttacked(kingSq(side_to_move_), ~side_to_move_))
             return {GameResultReason::CHECKMATE, GameResult::LOSE};
         return {GameResultReason::STALEMATE, GameResult::DRAW};
@@ -1545,10 +1553,12 @@ inline void Board::makeMove(const Move &move) {
             ((rank == Rank::RANK_1 && side_to_move_ == Color::BLACK) ||
              (rank == Rank::RANK_8 && side_to_move_ == Color::WHITE))) {
             const auto king_sq = kingSq(~side_to_move_);
+            const auto file = move.to() > king_sq ? CastleSide::KING_SIDE : CastleSide::QUEEN_SIDE;
 
-            castling_rights_.clearCastlingRight(~side_to_move_, move.to() > king_sq
-                                                                    ? CastleSide::KING_SIDE
-                                                                    : CastleSide::QUEEN_SIDE);
+            if (castling_rights_.getRookFile(~side_to_move_, file) ==
+                utils::squareFile(move.to())) {
+                castling_rights_.clearCastlingRight(~side_to_move_, file);
+            }
         }
     }
 
@@ -1877,7 +1887,7 @@ namespace runtime {
 }  // namespace runtime
 
 inline void initSliders(Square sq, Magic table[], U64 magic,
-                        std::function<Bitboard(Square, Bitboard)> attacks) {
+                        const std::function<Bitboard(Square, Bitboard)> &attacks) {
     const Bitboard edges =
         ((MASK_RANK[static_cast<int>(Rank::RANK_1)] | MASK_RANK[static_cast<int>(Rank::RANK_8)]) &
          ~MASK_RANK[static_cast<int>(utils::squareRank(sq))]) |
@@ -2866,7 +2876,7 @@ namespace uci {
         promotion = charToPieceType[san[0]];
     }
 
-    // the from is actually the to
+    // the from square is actually the to
     if (file_to == File::NO_FILE && rank_to == Rank::NO_RANK) {
         file_to = file_from;
         rank_to = rank_from;

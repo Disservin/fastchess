@@ -25,11 +25,11 @@ TimeControl parseTc(const std::string &tcString) {
 
     if (has_inc) {
         const auto moves = str_utils::splitString(remainingStringVector, '+');
-        tc.increment = std::stod(moves[1]) * 1000;
+        tc.increment = static_cast<uint64_t>(std::stod(moves[1]) * 1000);
         remainingStringVector = moves[0];
     }
 
-    tc.time = std::stod(remainingStringVector) * 1000;
+    tc.time = static_cast<int64_t>(std::stod(remainingStringVector) * 1000);
 
     return tc;
 }
@@ -47,7 +47,7 @@ void parseEngineKeyValues(EngineConfiguration &engineConfig, const std::string &
     else if (key == "tc")
         engineConfig.limit.tc = parseTc(value);
     else if (key == "st")
-        engineConfig.limit.tc.fixed_time = std::stod(value) * 1000;
+        engineConfig.limit.tc.fixed_time = static_cast<int64_t>(std::stod(value) * 1000);
     else if (key == "nodes")
         engineConfig.limit.nodes = std::stoll(value);
     else if (key == "plies")

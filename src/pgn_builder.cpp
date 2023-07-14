@@ -107,7 +107,7 @@ void PgnBuilder::addMove(chess::Board &board, const MoveData &move, std::size_t 
     moves_.emplace_back(ss.str());
 }
 
-std::string PgnBuilder::getResultFromMatch(const MatchData &match) const {
+std::string PgnBuilder::getResultFromMatch(const MatchData &match) {
     if (match.players.first.result == chess::GameResult::WIN) {
         return "1-0";
     } else if (match.players.second.result == chess::GameResult::WIN) {

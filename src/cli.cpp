@@ -6,8 +6,7 @@
 #include <matchmaking/output/output_factory.hpp>
 #include <matchmaking/result.hpp>
 
-namespace fast_chess {
-namespace cmd {
+namespace fast_chess::cmd {
 using json = nlohmann::json;
 
 namespace EngineParser {
@@ -26,11 +25,11 @@ TimeControl parseTc(const std::string &tcString) {
 
     if (has_inc) {
         const auto moves = str_utils::splitString(remainingStringVector, '+');
-        tc.increment = std::stod(moves[1].c_str()) * 1000;
+        tc.increment = std::stod(moves[1]) * 1000;
         remainingStringVector = moves[0];
     }
 
-    tc.time = std::stod(remainingStringVector.c_str()) * 1000;
+    tc.time = std::stod(remainingStringVector) * 1000;
 
     return tc;
 }
@@ -59,7 +58,7 @@ void parseEngineKeyValues(EngineConfiguration &engineConfig, const std::string &
         // Strip option.Name of the option. Part
         const std::size_t pos = key.find('.');
         const std::string strippedKey = key.substr(pos + 1);
-        engineConfig.options.push_back(std::make_pair(strippedKey, value));
+        engineConfig.options.emplace_back(strippedKey, value);
     } else
         OptionsParser::throwMissing("engine", key, value);
 }
@@ -71,7 +70,7 @@ class Engine : public Option {
     void parse(int &i, int argc, char const *argv[], ArgumentData &argument_data) override {
         argument_data.configs.emplace_back();
 
-        parseDashOptions(i, argc, argv, [&](std::string key, std::string value) {
+        parseDashOptions(i, argc, argv, [&](const std::string &key, const std::string &value) {
             EngineParser::parseEngineKeyValues(argument_data.configs.back(), key, value);
         });
     }
@@ -80,7 +79,7 @@ class Engine : public Option {
 class Each : public Option {
    public:
     void parse(int &i, int argc, char const *argv[], ArgumentData &argument_data) override {
-        parseDashOptions(i, argc, argv, [&](std::string key, std::string value) {
+        parseDashOptions(i, argc, argv, [&](const std::string &key, const std::string &value) {
             for (auto &config : argument_data.configs) {
                 EngineParser::parseEngineKeyValues(config, key, value);
             }
@@ -91,7 +90,7 @@ class Each : public Option {
 class Pgnout : public Option {
    public:
     void parse(int &i, int argc, char const *argv[], ArgumentData &argument_data) override {
-        parseDashOptions(i, argc, argv, [&](std::string key, std::string value) {
+        parseDashOptions(i, argc, argv, [&](const std::string &key, const std::string &value) {
             if (key == "file") {
                 argument_data.game_options.pgn.file = value;
             } else if (key == "tracknodes") {
@@ -118,7 +117,7 @@ class Pgnout : public Option {
 class Opening : public Option {
    public:
     void parse(int &i, int argc, char const *argv[], ArgumentData &argument_data) override {
-        parseDashOptions(i, argc, argv, [&](std::string key, std::string value) {
+        parseDashOptions(i, argc, argv, [&](const std::string &key, const std::string &value) {
             if (key == "file") {
                 argument_data.game_options.opening.file = value;
                 if (str_utils::endsWith(value, ".epd")) {
@@ -155,7 +154,7 @@ class Opening : public Option {
 class Sprt : public Option {
    public:
     void parse(int &i, int argc, char const *argv[], ArgumentData &argument_data) override {
-        parseDashOptions(i, argc, argv, [&](std::string key, std::string value) {
+        parseDashOptions(i, argc, argv, [&](const std::string &key, const std::string &value) {
             if (argument_data.game_options.rounds == 0) {
                 argument_data.game_options.rounds = 500000;
             }
@@ -178,7 +177,7 @@ class Sprt : public Option {
 class Draw : public Option {
    public:
     void parse(int &i, int argc, char const *argv[], ArgumentData &argument_data) override {
-        parseDashOptions(i, argc, argv, [&](std::string key, std::string value) {
+        parseDashOptions(i, argc, argv, [&](const std::string &key, const std::string &value) {
             argument_data.game_options.draw.enabled = true;
 
             if (key == "movenumber") {
@@ -197,7 +196,7 @@ class Draw : public Option {
 class Resign : public Option {
    public:
     void parse(int &i, int argc, char const *argv[], ArgumentData &argument_data) override {
-        parseDashOptions(i, argc, argv, [&](std::string key, std::string value) {
+        parseDashOptions(i, argc, argv, [&](const std::string &key, const std::string &value) {
             argument_data.game_options.resign.enabled = true;
 
             if (key == "movecount") {
@@ -214,7 +213,7 @@ class Resign : public Option {
 class Log : public Option {
    public:
     void parse(int &i, int argc, char const *argv[], ArgumentData &) override {
-        parseDashOptions(i, argc, argv, [&](std::string key, std::string value) {
+        parseDashOptions(i, argc, argv, [&](const std::string &key, const std::string &value) {
             if (key == "file") {
                 Logger::openFile(value);
             } else {
@@ -227,7 +226,7 @@ class Log : public Option {
 class Config : public Option {
    public:
     void parse(int &i, int argc, char const *argv[], ArgumentData &argument_data) override {
-        parseDashOptions(i, argc, argv, [&](std::string key, std::string value) {
+        parseDashOptions(i, argc, argv, [&](const std::string &key, const std::string &value) {
             if (key == "file") {
                 loadJson(argument_data, value);
             } else if (key == "discard" && value == "true") {
@@ -240,7 +239,7 @@ class Config : public Option {
     }
 
    private:
-    void loadJson(ArgumentData &argument_data, const std::string &filename) {
+    static void loadJson(ArgumentData &argument_data, const std::string &filename) {
         std::cout << "Loading config file: " << filename << std::endl;
         std::ifstream f(filename);
         json jsonfile = json::parse(f);
@@ -252,7 +251,7 @@ class Config : public Option {
 
         argument_data.configs.clear();
 
-        for (auto engine : jsonfile["engines"]) {
+        for (const auto &engine : jsonfile["engines"]) {
             argument_data.configs.push_back(engine.get<EngineConfiguration>());
         }
 
@@ -263,7 +262,7 @@ class Config : public Option {
 class Report : public Option {
    public:
     void parse(int &i, int argc, char const *argv[], ArgumentData &argument_data) override {
-        parseDashOptions(i, argc, argv, [&](std::string key, std::string value) {
+        parseDashOptions(i, argc, argv, [&](const std::string &key, const std::string &value) {
             if (key == "penta") {
                 argument_data.game_options.report_penta = value == "true";
             } else {
@@ -276,7 +275,7 @@ class Report : public Option {
 class Output : public Option {
    public:
     void parse(int &i, int argc, char const *argv[], ArgumentData &argument_data) override {
-        parseDashOptions(i, argc, argv, [&](std::string key, std::string value) {
+        parseDashOptions(i, argc, argv, [&](const std::string &key, const std::string &value) {
             if (key == "format") {
                 argument_data.game_options.output = getOutputType(value);
                 if (value == "cutechess") argument_data.game_options.report_penta = false;
@@ -386,6 +385,4 @@ OptionsParser::OptionsParser(int argc, char const *argv[]) {
     parse(argc, argv);
 }
 
-}  // namespace cmd
-
-}  // namespace fast_chess
+}  // namespace fast_chess::cmd

@@ -16,7 +16,7 @@ namespace fast_chess {
 
 class ThreadPool {
    public:
-    ThreadPool(std::size_t num_threads) : stop_(false) {
+    explicit ThreadPool(std::size_t num_threads) : stop_(false) {
         for (std::size_t i = 0; i < num_threads; ++i) workers_.emplace_back([this] { work(); });
     }
 

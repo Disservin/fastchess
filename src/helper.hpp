@@ -10,7 +10,6 @@
 #include <third_party/json.hpp>
 
 namespace fast_chess {
-
 /*
 Modified version of the NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE macro in nlohmann's json lib.
 ordered_json type conversion is not yet supported, though we only have to change the type.
@@ -22,8 +21,10 @@ ordered_json type conversion is not yet supported, though we only have to change
     inline void from_json(const nlohmann::ordered_json &nlohmann_json_j, Type &nlohmann_json_t) { \
         NLOHMANN_JSON_EXPAND(NLOHMANN_JSON_PASTE(NLOHMANN_JSON_FROM, __VA_ARGS__))                \
     }
+}  // namespace fast_chess
 
-namespace str_utils {
+namespace fast_chess::str_utils {
+
 inline bool startsWith(std::string_view haystack, std::string_view needle) {
     if (needle.empty()) return false;
     return (haystack.rfind(needle, 0) != std::string::npos);
@@ -73,6 +74,4 @@ std::optional<T> findElement(const std::vector<std::string> &haystack, std::stri
         return haystack[index + 1];
 }
 
-}  // namespace str_utils
-
-}  // namespace fast_chess
+}  // namespace fast_chess::str_utils

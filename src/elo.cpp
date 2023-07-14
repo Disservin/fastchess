@@ -28,7 +28,7 @@ double Elo::inverseError(double x) {
 
 double Elo::phiInv(double p) { return std::sqrt(2.0) * inverseError(2.0 * p - 1.0); }
 
-double Elo::getError(int wins, int losses, int draws) const {
+double Elo::getError(int wins, int losses, int draws) {
     const double n = wins + losses + draws;
     const double w = wins / n;
     const double l = losses / n;

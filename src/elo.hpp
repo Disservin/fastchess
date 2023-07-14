@@ -15,7 +15,7 @@ class Elo {
 
     [[nodiscard]] static double getDiff(int wins, int losses, int draws);
 
-    [[nodiscard]] double getError(int wins, int losses, int draws) const;
+    [[nodiscard]] static double getError(int wins, int losses, int draws);
 
     [[nodiscard]] std::string getElo() const;
 

@@ -14,11 +14,8 @@ class Participant {
     /// @brief the timeout threshol for the read engine command, actual time verification will be
     /// done by the match runner
     [[nodiscard]] int64_t getTimeoutThreshold() const {
-        if (engine.getConfig().limit.nodes != 0) {
-            return 0;
-        } else if (engine.getConfig().limit.plies != 0) {
-            return 0;
-        } else if (time_control.fixed_time != 0) {
+        if (engine.getConfig().limit.nodes != 0 || engine.getConfig().limit.plies != 0 ||
+            time_control.fixed_time != 0) {
             return 0;
         } else {
             return time_control.time + 100 /*margin*/;

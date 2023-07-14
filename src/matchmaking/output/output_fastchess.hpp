@@ -43,10 +43,10 @@ class Fastchess : public IOutput {
             << elo.getElo()
             << ", "
             << "LOS: "
-            << elo.getLos(stats.wins, stats.losses)
+            << Elo::getLos(stats.wins, stats.losses)
             << ", "
             << "DrawRatio: "
-            << elo.getDrawRatio(stats.wins, stats.losses, stats.draws)
+            << Elo::getDrawRatio(stats.wins, stats.losses, stats.draws)
             << "\n";
         // clang-format on
         std::cout << ss.str();
@@ -63,7 +63,7 @@ class Fastchess : public IOutput {
         }
     };
 
-    void printPenta(const Stats& stats) {
+    static void printPenta(const Stats& stats) {
         std::stringstream ss;
 
         ss << "Ptnml:   " << std::right << std::setw(7) << "WW" << std::right << std::setw(7)

@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include <matchmaking/types/player_info.hpp>
@@ -19,7 +20,7 @@ struct MoveData {
 
     MoveData(std::string _move, std::string _score_string, int64_t _elapsed_millis, int _depth,
              int _seldepth, int _score, int _nodes)
-        : move(_move),
+        : move(std::move(_move)),
           score_string(std::move(_score_string)),
           elapsed_millis(_elapsed_millis),
           nodes(_nodes),

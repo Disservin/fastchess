@@ -1,11 +1,14 @@
 #pragma once
 
+#include <cstdint>
 #include <iostream>
 #include <string>
 #include <tuple>
 #include <vector>
 
 #include <helper.hpp>
+
+#include <third_party/json.hpp>
 
 namespace fast_chess {
 

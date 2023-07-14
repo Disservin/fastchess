@@ -160,13 +160,15 @@ void Match::start() {
             if (atomic::stop.load()) {
                 data_.termination = "stop";
                 break;
-            };
+            }
+
             if (!playMove(player_1, player_2)) break;
 
             if (atomic::stop.load()) {
                 data_.termination = "stop";
                 break;
-            };
+            }
+
             if (!playMove(player_2, player_1)) break;
         }
     } catch (const std::exception& e) {
@@ -201,7 +203,7 @@ bool Match::playMove(Participant& us, Participant& opponent) {
         return false;
     }
 
-    auto position = us.engine.buildPositionInput(played_moves_, start_fen_);
+    auto position = UciEngine::buildPositionInput(played_moves_, start_fen_);
     auto go = us.engine.buildGoInput(board_.sideToMove(), us.time_control, opponent.time_control);
 
     us.engine.writeEngine(position);

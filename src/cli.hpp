@@ -17,8 +17,7 @@
 #include <logger.hpp>
 #include <types.hpp>
 
-namespace fast_chess {
-namespace cmd {
+namespace fast_chess::cmd {
 
 /// @brief Holds the data of the OptionParser
 struct ArgumentData {
@@ -111,7 +110,7 @@ class OptionsParser {
     /// @brief Adds an option to the parser
     /// @param optionName
     /// @param option
-    void addOption(std::string optionName, Option *option) {
+    void addOption(const std::string &optionName, Option *option) {
         options_.insert(std::make_pair("-" + optionName, std::unique_ptr<Option>(option)));
     }
 
@@ -167,7 +166,7 @@ void parseValue(int &i, int argc, const char *argv[], T &optionValue) {
 /// @param argv
 /// @param func
 inline void parseDashOptions(int &i, int argc, char const *argv[],
-                             std::function<void(std::string, std::string)> func) {
+                             const std::function<void(std::string, std::string)> &func) {
     while (i + 1 < argc && argv[i + 1][0] != '-' && i++) {
         std::string param = argv[i];
         std::size_t pos = param.find('=');
@@ -178,5 +177,4 @@ inline void parseDashOptions(int &i, int argc, char const *argv[],
     }
 }
 
-}  // namespace cmd
-}  // namespace fast_chess
+}  // namespace fast_chess::cmd

@@ -6,8 +6,7 @@
 #include <matchmaking/output/output_factory.hpp>
 #include <matchmaking/result.hpp>
 
-namespace fast_chess {
-namespace cmd {
+namespace fast_chess::cmd {
 
 enum class NotationType { SAN, LAN, UCI };
 enum class OrderType { RANDOM, SEQUENTIAL };
@@ -92,5 +91,4 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(GameManagerOptions, resign, draw
                                                 ratinginterval, games, rounds, concurrency,
                                                 overhead, recover, report_penta)
 
-}  // namespace cmd
-}  // namespace fast_chess
+}  // namespace fast_chess::cmd

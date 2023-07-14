@@ -17,7 +17,7 @@ extern std::atomic_bool stop;
 
 class RoundRobin {
    public:
-    RoundRobin(const cmd::GameManagerOptions &game_config);
+    explicit RoundRobin(const cmd::GameManagerOptions &game_config);
 
     /// @brief starts the round robin
     /// @param engine_configs
@@ -71,7 +71,7 @@ class RoundRobin {
     /// @brief create the Stats object from the match data
     /// @param match_data
     /// @return
-    [[nodiscard]] Stats updateStats(const MatchData &match_data);
+    [[nodiscard]] static Stats updateStats(const MatchData &match_data);
 
     /// @brief fetches the next fen from a sequential read opening book or from a randomized
     /// opening book order

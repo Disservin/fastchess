@@ -39,7 +39,7 @@ std::string PgnReader::extractHeader(const std::string& line) {
 std::vector<std::string> PgnReader::extractMoves(std::string line) {
     // Define the regular expression
     std::regex pattern(
-        "(?:[PNBRQK]?[a-h]?[1-8]?x?[a-h][1-8](?:\\=[PNBRQK])?|O(-?O){1,2})[\\+#]?(\\s*[\\!\\?]+)?");
+        R"((?:[PNBRQK]?[a-h]?[1-8]?x?[a-h][1-8](?:\=[PNBRQK])?|O(-?O){1,2})[\+#]?(\s*[\!\?]+)?)");
 
     // Use std::regex_search to check if the input matches the pattern
     std::smatch match;

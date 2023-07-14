@@ -1,7 +1,5 @@
 #include <matchmaking/tournament.hpp>
 
-#include <third_party/chess.hpp>
-
 #include <logger.hpp>
 #include <rand.hpp>
 
@@ -31,8 +29,6 @@ void Tournament::validateEngines(const std::vector<EngineConfiguration>& configs
             }
         }
     }
-
-    engine_count_ = configs.size();
 }
 
 void Tournament::start(const std::vector<EngineConfiguration>& engine_configs) {

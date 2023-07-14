@@ -11,7 +11,7 @@ class UciEngine : private Communication::Process {
    public:
     explicit UciEngine(const EngineConfiguration &config) { loadConfig(config); }
 
-    ~UciEngine() { sendQuit(); }
+    ~UciEngine() override { sendQuit(); }
 
     /// @brief Just writes "uci" to the engine
     void sendUci();
@@ -36,8 +36,8 @@ class UciEngine : private Communication::Process {
     /// @param moves
     /// @param fen
     /// @return
-    [[nodiscard]] std::string buildPositionInput(const std::vector<std::string> &moves,
-                                                 const std::string &fen) const;
+    [[nodiscard]] static std::string buildPositionInput(const std::vector<std::string> &moves,
+                                                 const std::string &fen) ;
 
     /// @brief Build the uci go input from the given time controls. tc is the time control for the
     /// current player.

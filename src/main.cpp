@@ -1,17 +1,13 @@
-#include <chrono>
 #include <csignal>
 #include <iostream>
 #include <thread>
 
 #include <cli.hpp>
-#include <engines/uci_engine.hpp>
 #include <matchmaking/tournament.hpp>
 
-namespace fast_chess {
-namespace atomic {
+namespace fast_chess::atomic {
 std::atomic_bool stop = false;
-}  // namespace atomic
-}  // namespace fast_chess
+}  // namespace fast_chess::atomic
 
 using namespace fast_chess;
 

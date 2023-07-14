@@ -40,10 +40,10 @@ class Cutechess : public IOutput {
             << elo.getElo()
             << ", "
             << "LOS: "
-            << elo.getLos(stats.wins, stats.losses)
+            << Elo::getLos(stats.wins, stats.losses)
             << ", "
             << "DrawRatio: "
-            << elo.getDrawRatio(stats.wins, stats.losses, stats.draws)
+            << Elo::getDrawRatio(stats.wins, stats.losses, stats.draws)
             << "\n";
         // clang-format on
         std::cout << ss.str();

@@ -57,7 +57,7 @@ class PgnBuilder {
         return ss.str();
     }
 
-    std::string getResultFromMatch(const MatchData &match) const;
+    static std::string getResultFromMatch(const MatchData &match);
 
     MatchData match_;
     cmd::GameManagerOptions game_options_;

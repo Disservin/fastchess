@@ -31,7 +31,7 @@ bool UciEngine::readUci() {
 }
 
 std::string UciEngine::buildPositionInput(const std::vector<std::string> &moves,
-                                          const std::string &fen) const {
+                                          const std::string &fen) {
     std::string position = fen == "startpos" ? "position startpos" : ("position fen " + fen);
 
     if (!moves.empty()) {

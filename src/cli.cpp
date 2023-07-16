@@ -93,9 +93,9 @@ class Pgnout : public Option {
         parseDashOptions(i, argc, argv, [&](const std::string &key, const std::string &value) {
             if (key == "file") {
                 argument_data.game_options.pgn.file = value;
-            } else if (key == "tracknodes") {
+            } else if (key == "nodes") {
                 argument_data.game_options.pgn.track_nodes = true;
-            } else if (key == "trackseldepth") {
+            } else if (key == "seldepth") {
                 argument_data.game_options.pgn.track_seldepth = true;
             } else if (key == "notation") {
                 if (value == "san") {

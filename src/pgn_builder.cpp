@@ -100,7 +100,9 @@ void PgnBuilder::addMove(chess::Board &board, const MoveData &move, std::size_t 
         ss << addComment("illegal move", "");
     } else {
         ss << addComment((move.score_string + "/" + std::to_string(move.depth)),
-                         formatTime(move.elapsed_millis));
+                         formatTime(move.elapsed_millis),
+                         game_options_.pgn.track_nodes ? std::to_string(move.nodes) : "",
+                         game_options_.pgn.track_seldepth ? std::to_string(move.seldepth) : "");
     }
 
     moves_.emplace_back(ss.str());

@@ -42,9 +42,11 @@ class PgnBuilder {
     template <typename First, typename... Args>
     static std::string addComment(First &&first, Args &&...args) {
         std::stringstream ss;
+
         ss << " {" << std::forward<First>(first);
-        ((ss << ", " << std::forward<Args>(args)), ...);
+        ((ss << (std::string(args).empty() ? "" : ", ") << std::forward<Args>(args)), ...);
         ss << "}";
+
         return ss.str();
     }
 

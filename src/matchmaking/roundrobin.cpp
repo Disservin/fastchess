@@ -92,7 +92,6 @@ void RoundRobin::start(const std::vector<EngineConfiguration>& engine_configs) {
     if (sprt(engine_configs)) return;
 
     while (!results.empty()) {
-        Logger::cout("Waiting for " + std::to_string(results.size()) + " results to finish...");
         results.back().get();
         results.pop_back();
     }

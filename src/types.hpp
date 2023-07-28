@@ -11,6 +11,7 @@ namespace fast_chess::cmd {
 enum class NotationType { SAN, LAN, UCI };
 enum class OrderType { RANDOM, SEQUENTIAL };
 enum class FormatType { EPD, PGN, NONE };
+enum class VariantType { STANDARD, FRC };
 
 struct OpeningOptions {
     std::string file;
@@ -73,10 +74,12 @@ struct GameManagerOptions {
 
     uint32_t seed = 951356066;
 
+    VariantType variant = VariantType::STANDARD;
+
     int ratinginterval = 10;
 
     int games = 2;
-    int rounds = 0;
+    int rounds = 2;
 
     int concurrency = 1;
 

@@ -33,6 +33,8 @@ class RoundRobin {
     [[nodiscard]] stats_map getResults() { return result_.getResults(); }
     void setResults(const stats_map &results) { result_.setResults(results); }
 
+    void setGameConfig(const cmd::GameManagerOptions &game_config) { game_config_ = game_config; }
+
    private:
     /// @brief load a pgn opening book
     void setupPgnOpeningBook();

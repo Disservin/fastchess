@@ -59,6 +59,8 @@ void parseEngineKeyValues(EngineConfiguration &engineConfig, const std::string &
         const std::size_t pos = key.find('.');
         const std::string strippedKey = key.substr(pos + 1);
         engineConfig.options.emplace_back(strippedKey, value);
+    } else if (key == "proto") {
+        // silently ignore
     } else
         OptionsParser::throwMissing("engine", key, value);
 }
@@ -90,27 +92,35 @@ class Each : public Option {
 class Pgnout : public Option {
    public:
     void parse(int &i, int argc, char const *argv[], ArgumentData &argument_data) override {
-        parseDashOptions(i, argc, argv, [&](const std::string &key, const std::string &value) {
-            if (key == "file") {
-                argument_data.game_options.pgn.file = value;
-            } else if (key == "nodes") {
-                argument_data.game_options.pgn.track_nodes = true;
-            } else if (key == "seldepth") {
-                argument_data.game_options.pgn.track_seldepth = true;
-            } else if (key == "notation") {
-                if (value == "san") {
-                    argument_data.game_options.pgn.notation = NotationType::SAN;
-                } else if (value == "lan") {
-                    argument_data.game_options.pgn.notation = NotationType::LAN;
-                } else if (value == "uci") {
-                    argument_data.game_options.pgn.notation = NotationType::UCI;
+        const auto originalI = i;
+
+        try {
+            parseDashOptions(i, argc, argv, [&](const std::string &key, const std::string &value) {
+                if (key == "file") {
+                    argument_data.game_options.pgn.file = value;
+                } else if (key == "nodes") {
+                    argument_data.game_options.pgn.track_nodes = true;
+                } else if (key == "seldepth") {
+                    argument_data.game_options.pgn.track_seldepth = true;
+                } else if (key == "notation") {
+                    if (value == "san") {
+                        argument_data.game_options.pgn.notation = NotationType::SAN;
+                    } else if (value == "lan") {
+                        argument_data.game_options.pgn.notation = NotationType::LAN;
+                    } else if (value == "uci") {
+                        argument_data.game_options.pgn.notation = NotationType::UCI;
+                    } else {
+                        OptionsParser::throwMissing("pgnout notation", key, value);
+                    }
                 } else {
-                    OptionsParser::throwMissing("pgnout notation", key, value);
+                    OptionsParser::throwMissing("pgnout", key, value);
                 }
-            } else {
-                OptionsParser::throwMissing("pgnout", key, value);
-            }
-        });
+            });
+        } catch (const std::exception &e) {
+            i = originalI;
+            // try to read as cutechess pgnout
+            parseValue(i, argc, argv, argument_data.game_options.pgn.file);
+        }
     }
 };
 
@@ -356,7 +366,22 @@ class Repeat : public Option {
     }
 };
 
+class Variant : public Option {
+   public:
+    void parse(int &i, int argc, char const *argv[], ArgumentData &argument_data) override {
+        std::string val;
+
+        parseValue(i, argc, argv, val);
+
+        if (val == "fischerandom") argument_data.game_options.variant = VariantType::FRC;
+    }
+};
+
 OptionsParser::OptionsParser(int argc, char const *argv[]) {
+    if (argument_data_.game_options.output == OutputType::CUTECHESS) {
+        argument_data_.game_options.ratinginterval = 1;
+    }
+
     addOption("engine", new Engine());
     addOption("each", new Each());
     addOption("pgnout", new Pgnout());
@@ -381,6 +406,7 @@ OptionsParser::OptionsParser(int argc, char const *argv[]) {
     addOption("-v", new Version());
     addOption("recover", new Recover());
     addOption("repeat", new Repeat());
+    addOption("variant", new Variant());
 
     parse(argc, argv);
 }

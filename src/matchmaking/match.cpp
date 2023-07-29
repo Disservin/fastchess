@@ -42,7 +42,7 @@ void Match::verifyPv(const Participant& us) {
             chess::Movelist moves;
             chess::movegen::legalmoves(moves, tmp);
             if (moves.find(uci::uciToMove(tmp, *it)) == -1) {
-                Logger::cout("Warning: Illegal pv move ", *it);
+                Logger::cout("Warning; Illegal pv move ", *it);
                 break;
             }
         }
@@ -221,7 +221,7 @@ bool Match::playMove(Participant& us, Participant& opponent) {
     if (!us.updateTime(elapsed_millis)) {
         setLose(us, opponent, "timeout", name + Match::TIMEOUT_MSG);
 
-        Logger::cout("Warning: Engine", name, "loses on time");
+        Logger::cout("Warning; Engine", name, "loses on time");
 
         return false;
     }
@@ -234,7 +234,7 @@ bool Match::playMove(Participant& us, Participant& opponent) {
     if (moves.find(move) == -1) {
         setLose(us, opponent, "illegal move", name + Match::ILLEGAL_MSG);
 
-        Logger::cout("Warning: Illegal move", best_move, "played by", name);
+        Logger::cout("Warning; Illegal move", best_move, "played by", name);
 
         addMoveData(us, elapsed_millis);
 

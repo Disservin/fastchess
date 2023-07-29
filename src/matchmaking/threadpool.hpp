@@ -31,7 +31,7 @@ class ThreadPool {
         std::future<return_type> res = task->get_future();
         {
             std::unique_lock<std::mutex> lock(queue_mutex_);
-            if (stop_) throw std::runtime_error("Warning: enqueue on stopped ThreadPool");
+            if (stop_) throw std::runtime_error("Warning; enqueue on stopped ThreadPool");
             tasks_.emplace([task]() { (*task)(); });
         }
         condition_.notify_one();
@@ -40,7 +40,7 @@ class ThreadPool {
 
     void resize(std::size_t num_threads) {
         if (num_threads == 0)
-            throw std::invalid_argument("Warning: ThreadPool::resize() - num_threads cannot be 0");
+            throw std::invalid_argument("Warning; ThreadPool::resize() - num_threads cannot be 0");
 
         if (num_threads == workers_.size()) return;
 

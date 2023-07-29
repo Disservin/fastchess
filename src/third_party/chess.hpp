@@ -2686,7 +2686,7 @@ namespace uci {
         case 4:
             return Move::make<Move::NORMAL>(source, target);
         default:
-            std::cout << "Warning: uci move cannot be converted to move!" << std::endl;
+            std::cout << "Warning; uci move cannot be converted to move!" << std::endl;
             return Move::make<Move::NORMAL>(source, target);
     }
 }

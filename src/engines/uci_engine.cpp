@@ -95,7 +95,7 @@ void UciEngine::startEngine() {
     sendUci();
 
     if (!readUci() && !isResponsive(60000)) {
-        throw std::runtime_error("Warning: Something went wrong when pinging the engine.");
+        throw std::runtime_error("Warning; Something went wrong when pinging the engine.");
     }
 
     for (const auto &option : config_.options) {
@@ -111,7 +111,7 @@ std::vector<std::string> UciEngine::readEngine(std::string_view last_word,
 
         return output_;
     } catch (const std::exception &e) {
-        Logger::cout("Raised Exception in readProcess\nWarning: Engine", config_.name,
+        Logger::cout("Raised Exception in readProcess\nWarning; Engine", config_.name,
                      "disconnects");
         throw e;
     }
@@ -121,7 +121,7 @@ void UciEngine::writeEngine(const std::string &input) {
     try {
         writeProcess(input + "\n");
     } catch (const std::exception &e) {
-        Logger::cout("Raised Exception in writeProcess\nWarning: Engine", config_.name,
+        Logger::cout("Raised Exception in writeProcess\nWarning; Engine", config_.name,
                      "disconnects");
 
         throw e;

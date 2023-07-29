@@ -67,7 +67,7 @@ std::string Logger::getDateTime(std::string format) {
 #ifdef _WIN32
     auto res = gmtime_s(&buf, &time_t_now);
     if (res != 0) {
-        throw std::runtime_error("Warning: gmtime_s failed");
+        throw std::runtime_error("Warning; gmtime_s failed");
     }
 
     // Format the time as an ISO 8601 string

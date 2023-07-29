@@ -177,4 +177,12 @@ inline void parseDashOptions(int &i, int argc, char const *argv[],
     }
 }
 
+inline std::string parseUntilDash(int &i, int argc, char const *argv[]) {
+    std::string result;
+    while (i + 1 < argc && argv[i + 1][0] != '-' && i++) {
+        result += argv[i] + std::string(" ");
+    }
+    return result;
+}
+
 }  // namespace fast_chess::cmd

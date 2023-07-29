@@ -86,11 +86,11 @@ void UciEngine::sendSetoption(const std::string &name, const std::string &value)
 
 void UciEngine::restartEngine() {
     killProcess();
-    initProcess(config_.dir + config_.cmd, config_.name);
+    initProcess((config_.dir == "." ? "" : config_.dir) + config_.cmd, config_.name);
 }
 
 void UciEngine::startEngine() {
-    initProcess(config_.dir + config_.cmd, config_.name);
+    initProcess((config_.dir == "." ? "" : config_.dir) + config_.cmd, config_.name);
 
     sendUci();
 

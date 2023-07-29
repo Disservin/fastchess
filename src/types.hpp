@@ -67,7 +67,7 @@ struct GameManagerOptions {
 
     SprtOptions sprt = {};
 
-    std::string event_name = "?";
+    std::string event_name = "Fast Chess";
     std::string site = "?";
 
     /// @brief output format, fastchess or cutechess

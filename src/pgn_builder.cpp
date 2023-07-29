@@ -20,7 +20,7 @@ PgnBuilder::PgnBuilder(const MatchData &match, const cmd::GameManagerOptions &ga
         black_player = match.players.first;
     }
 
-    addHeader("Event", "Fast Chess");
+    addHeader("Event", game_options.event_name);
     addHeader("Site", game_options_.site);
     addHeader("Round", std::to_string(match_.round));
     addHeader("White", white_player.config.name);

@@ -308,7 +308,7 @@ class Concurrency : public Option {
 class Event : public Option {
    public:
     void parse(int &i, int argc, char const *argv[], ArgumentData &argument_data) override {
-        parseValue(i, argc, argv, argument_data.game_options.event_name);
+        argument_data.game_options.event_name = parseUntilDash(i, argc, argv);
     }
 };
 
@@ -379,6 +379,15 @@ class Variant : public Option {
     }
 };
 
+class Tournament : public Option {
+   public:
+    void parse(int &i, int argc, char const *argv[], ArgumentData &) override {
+        std::string val;
+        // Do nothing
+        parseValue(i, argc, argv, val);
+    }
+};
+
 OptionsParser::OptionsParser(int argc, char const *argv[]) {
     if (argument_data_.game_options.output == OutputType::CUTECHESS) {
         argument_data_.game_options.ratinginterval = 1;
@@ -409,6 +418,7 @@ OptionsParser::OptionsParser(int argc, char const *argv[]) {
     addOption("recover", new Recover());
     addOption("repeat", new Repeat());
     addOption("variant", new Variant());
+    addOption("tournament", new Tournament());
 
     parse(argc, argv);
 }

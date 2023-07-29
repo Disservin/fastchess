@@ -17,6 +17,7 @@ struct MoveData {
     int seldepth = 0;
     int depth = 0;
     int score = 0;
+    int nps = 0;
 
     MoveData(std::string _move, std::string _score_string, int64_t _elapsed_millis, int _depth,
              int _seldepth, int _score, int _nodes)

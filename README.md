@@ -76,9 +76,9 @@ Options:
   -rounds N
   -sprt elo0=ELO0 elo1=ELO1 alpha=ALPHA beta=BETA
   -srand SEED
-  -pgnout notation=NOTATION file=FILE nodes=true seldepth=true
+  -pgnout notation=NOTATION file=FILE nodes=true seldepth=true nps=true
     NOTATION defaults to san, alternatively you can choose lan or uci, default file output is
-    fast-chess.pgn.  
+    fast-chess.pgn.
     If you pass nodes or seldepth as true, the pgn will contain the nodes and/or seldepth in the move comment.
   -log file=NAME
 

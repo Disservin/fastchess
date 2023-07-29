@@ -102,6 +102,8 @@ class Pgnout : public Option {
                     argument_data.game_options.pgn.track_nodes = true;
                 } else if (key == "seldepth") {
                     argument_data.game_options.pgn.track_seldepth = true;
+                } else if (key == "nps") {
+                    argument_data.game_options.pgn.track_nps = true;
                 } else if (key == "notation") {
                     if (value == "san") {
                         argument_data.game_options.pgn.notation = NotationType::SAN;

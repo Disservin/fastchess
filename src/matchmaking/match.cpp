@@ -158,7 +158,7 @@ void Match::start() {
     data_.start_time = Logger::getDateTime();
     data_.date = Logger::getDateTime("%Y-%m-%d");
 
-    auto start = clock::now();
+    const auto start = clock::now();
     try {
         while (true) {
             if (atomic::stop.load()) {
@@ -182,7 +182,8 @@ void Match::start() {
             throw e;
         }
     }
-    auto end = clock::now();
+
+    const auto end = clock::now();
 
     data_.end_time = Logger::getDateTime();
     data_.duration = Logger::formatDuration(chrono::duration_cast<chrono::seconds>(end - start));
@@ -214,7 +215,7 @@ bool Match::playMove(Participant& us, Participant& opponent) {
     us.engine.writeEngine(go);
 
     const auto t0 = clock::now();
-    auto output = us.engine.readEngine("bestmove", us.getTimeoutThreshold());
+    const auto output = us.engine.readEngine("bestmove", us.getTimeoutThreshold());
     const auto t1 = clock::now();
 
     const auto elapsed_millis = chrono::duration_cast<chrono::milliseconds>(t1 - t0).count();

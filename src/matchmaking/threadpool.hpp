@@ -73,12 +73,12 @@ class ThreadPool {
 
     ~ThreadPool() { kill(); }
 
-    std::size_t queueSize() {
+    [[nodiscard]] std::size_t queueSize() {
         std::unique_lock<std::mutex> lock(this->queue_mutex_);
         return tasks_.size();
     }
 
-    bool getStop() { return stop_; }
+    [[nodiscard]] bool getStop() { return stop_; }
 
    private:
     void work() {

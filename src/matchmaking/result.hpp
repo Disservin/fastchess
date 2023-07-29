@@ -28,8 +28,8 @@ class Result {
     [[nodiscard]] Stats getStats(const std::string& engine1, const std::string& engine2) {
         std::lock_guard<std::mutex> lock(results_mutex_);
 
-        auto stats1 = results_[engine1][engine2];
-        auto stats2 = results_[engine2][engine1];
+        const auto stats1 = results_[engine1][engine2];
+        const auto stats2 = results_[engine2][engine1];
 
         // we need to collect the results of engine1 vs engine2 and engine2 vs engine1
         // and combine them so that engine2's wins are engine1's losses and vice versa

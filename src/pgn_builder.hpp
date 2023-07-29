@@ -13,7 +13,7 @@ class PgnBuilder {
 
     /// @brief Get the newly created pgn
     /// @return
-    std::string get() const { return pgn_.str() + "\n\n"; }
+    [[nodiscard]] std::string get() const { return pgn_.str() + "\n\n"; }
 
     static constexpr int LINE_LENGTH = 80;
 
@@ -22,7 +22,7 @@ class PgnBuilder {
     /// @param board
     /// @param move
     /// @return
-    std::string moveNotation(chess::Board &board, const std::string &move) const;
+    [[nodiscard]] std::string moveNotation(chess::Board &board, const std::string &move) const;
 
     /// @brief Adds a header to the pgn
     /// @tparam T
@@ -40,7 +40,7 @@ class PgnBuilder {
     /// @param ...args
     /// @return
     template <typename First, typename... Args>
-    static std::string addComment(First &&first, Args &&...args) {
+    [[nodiscard]] static std::string addComment(First &&first, Args &&...args) {
         std::stringstream ss;
 
         ss << " {" << std::forward<First>(first);
@@ -53,13 +53,13 @@ class PgnBuilder {
     /// @brief Formats a time in milliseconds to seconds with 3 decimals
     /// @param millis
     /// @return
-    static std::string formatTime(uint64_t millis) {
+    [[nodiscard]] static std::string formatTime(uint64_t millis) {
         std::stringstream ss;
         ss << std::setprecision(3) << std::fixed << millis / 1000.0 << "s";
         return ss.str();
     }
 
-    static std::string getResultFromMatch(const MatchData &match);
+    [[nodiscard]] static std::string getResultFromMatch(const MatchData &match);
 
     MatchData match_;
     cmd::GameManagerOptions game_options_;

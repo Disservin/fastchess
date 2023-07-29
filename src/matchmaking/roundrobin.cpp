@@ -71,7 +71,7 @@ void RoundRobin::setupPgnOpeningBook() {
         return;
     }
 
-    PgnReader pgn_reader = PgnReader(game_config_.opening.file);
+    const PgnReader pgn_reader = PgnReader(game_config_.opening.file);
     opening_book_pgn = pgn_reader.getPgns();
 
     if (opening_book_pgn.empty()) {
@@ -130,7 +130,7 @@ bool RoundRobin::sprt(const std::vector<EngineConfiguration>& engine_configs) {
 }
 
 void RoundRobin::updateSprtStatus(const std::vector<EngineConfiguration>& engine_configs) {
-    Stats stats = result_.getStats(engine_configs[0].name, engine_configs[1].name);
+    const Stats stats = result_.getStats(engine_configs[0].name, engine_configs[1].name);
     const double llr = sprt_.getLLR(stats.wins, stats.draws, stats.losses);
 
     if (sprt_.getResult(llr) != SPRT_CONTINUE || match_count_ == total_) {
@@ -218,9 +218,9 @@ std::tuple<bool, Stats, std::string> RoundRobin::playGame(
         throw e;
     }
 
-    MatchData match_data = match.get();
+    const MatchData match_data = match.get();
 
-    PgnBuilder pgn_builder = PgnBuilder(match_data, game_config_);
+    const PgnBuilder pgn_builder = PgnBuilder(match_data, game_config_);
 
     if (match_data.termination != "stop") {
         file_writer_.write(pgn_builder.get());

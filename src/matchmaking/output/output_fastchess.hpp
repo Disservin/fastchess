@@ -21,7 +21,7 @@ class Fastchess : public IOutput {
 
     void printElo(const Stats& stats, const std::string& first, const std::string& second,
                   int current_game_count) override {
-        Elo elo(stats.wins, stats.losses, stats.draws);
+        const Elo elo(stats.wins, stats.losses, stats.draws);
 
         // clang-format off
         std::stringstream ss;

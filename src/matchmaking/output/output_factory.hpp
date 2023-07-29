@@ -19,9 +19,11 @@ namespace fast_chess {
     if (type == "fastchess") {
         return OutputType::FASTCHESS;
     }
+
     if (type == "cutechess") {
         return OutputType::CUTECHESS;
     }
+
     return OutputType::FASTCHESS;
 }
 

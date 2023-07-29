@@ -3,6 +3,8 @@
 #include <helper.hpp>
 #include <logger.hpp>
 
+#include <types.hpp>
+
 namespace fast_chess {
 
 namespace atomic {
@@ -125,6 +127,7 @@ void Match::start() {
         throw std::runtime_error(player_2.engine.getConfig().name + " failed to start.");
     }
 
+    board_.set960(game_config_.variant == cmd::VariantType::FRC);
     board_.setFen(opening_.fen);
 
     std::vector<std::string> uci_moves = [&]() {

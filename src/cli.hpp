@@ -114,13 +114,12 @@ class OptionsParser {
                   << "                                    setting this higher than 2 does not really make sense.\n"
                   << "  -rounds                           placeholder\n"
                   << "  -ratinginterval                   placeholder\n"
-                  << "  -srand                            placeholder\n"
+                  << "  -srand SEED                       Sets the random seed to SEED.\n"
                   << "  -version                          Prints version and exit.\n"
                   << "  -help                             Prints this help and exit.\n"
                   << "  -recover                          placeholder\n"
                   << "  -repeat                           This has the same effect as -games 2 and is the default.\n"
-                  << "  -variant                          placeholder\n"
-                  << "  -tournament                       placeholder\n";
+                  << "  -variant                          placeholder\n";
         exit(0);
     }
 

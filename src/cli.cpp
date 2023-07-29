@@ -400,6 +400,10 @@ OptionsParser::OptionsParser(int argc, char const *argv[]) {
         argument_data_.game_options.ratinginterval = 1;
     }
 
+    if (argc == 1) {
+        printHelp();
+    }
+
     addOption("engine", new Engine());
     addOption("each", new Each());
     addOption("pgnout", new Pgnout());

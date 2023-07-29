@@ -52,8 +52,7 @@ class OptionsParser {
                                  std::string(value) + " parsing failed.");
     }
 
-    static void printVersion(int &i) {
-        i++;
+    static void printVersion() {
         std::unordered_map<std::string, std::string> months({{"Jan", "01"},
                                                              {"Feb", "02"},
                                                              {"Mar", "03"},
@@ -87,6 +86,38 @@ class OptionsParser {
         ss << "\n";
 
         std::cout << ss.str();
+        exit(0);
+    }
+
+    static void printHelp() {
+        std::cout << "Fast-Chess is a command-line tool designed for creating chess engine tournaments.\n"
+                  << "Homepage: https://github.com/Disservin/fast-chess\n\n";
+        std::cout << "Options:\n";
+
+        std::cout << "  -engine              placeholder\n"
+                  << "  -each                placeholder\n"
+                  << "  -pgnout              placeholder\n"
+                  << "  -openings            placeholder\n"
+                  << "  -sprt                placeholder\n"
+                  << "  -draw                placeholder\n"
+                  << "  -resign              placeholder\n"
+                  << "  -log                 placeholder\n"
+                  << "  -config              placeholder\n"
+                  << "  -report              placeholder\n"
+                  << "  -output              placeholder\n"
+                  << "  -concurrency         placeholder\n"
+                  << "  -event               placeholder\n"
+                  << "  -site                placeholder\n"
+                  << "  -games               placeholder\n"
+                  << "  -rounds              placeholder\n"
+                  << "  -ratinginterval      placeholder\n"
+                  << "  -srand               placeholder\n"
+                  << "  -version             placeholder\n"
+                  << "  -help                placeholder\n"
+                  << "  -recover             placeholder\n"
+                  << "  -repeat              placeholder\n"
+                  << "  -variant             placeholder\n"
+                  << "  -tournament          placeholder\n";
         exit(0);
     }
 

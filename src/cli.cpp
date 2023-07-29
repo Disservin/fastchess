@@ -349,8 +349,15 @@ class SRand : public Option {
 
 class Version : public Option {
    public:
-    void parse(int &i, int, char const *[], ArgumentData &) override {
-        OptionsParser::printVersion(i);
+    void parse(int &, int, char const *[], ArgumentData &) override {
+        OptionsParser::printVersion();
+    }
+};
+
+class Help : public Option {
+   public:
+    void parse(int &, int, char const *[], ArgumentData &) override {
+        OptionsParser::printHelp();
     }
 };
 
@@ -415,6 +422,8 @@ OptionsParser::OptionsParser(int argc, char const *argv[]) {
     addOption("-version", new Version());
     addOption("v", new Version());
     addOption("-v", new Version());
+    addOption("help", new Help());
+    addOption("-help", new Help());
     addOption("recover", new Recover());
     addOption("repeat", new Repeat());
     addOption("variant", new Variant());

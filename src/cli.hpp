@@ -182,7 +182,7 @@ inline std::string parseUntilDash(int &i, int argc, char const *argv[]) {
     while (i + 1 < argc && argv[i + 1][0] != '-' && i++) {
         result += argv[i] + std::string(" ");
     }
-    return result;
+    return result.erase(result.size() - 1);
 }
 
 }  // namespace fast_chess::cmd

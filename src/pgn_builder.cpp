@@ -40,10 +40,13 @@ PgnBuilder::PgnBuilder(const MatchData &match, const cmd::GameManagerOptions &ga
 
     while (move_number < match_.moves.size()) {
         const auto illegal =
-            match_.termination == "illegal move" && move_number == match_.moves.size();
+            match_.termination == "illegal move" && move_number == match_.moves.size() - 1;
+        const auto player_name = board.sideToMove() == chess::Color::WHITE
+                                     ? white_player.config.name
+                                     : black_player.config.name;
+        const auto move = match_.moves[move_number];
 
-        auto move = match_.moves[move_number];
-        addMove(board, move, move_number + 1, illegal);
+        addMove(board, move, player_name, move_number + 1, illegal);
 
         if (illegal) {
             break;
@@ -90,14 +93,14 @@ std::string PgnBuilder::moveNotation(chess::Board &board, const std::string &mov
     }
 }
 
-void PgnBuilder::addMove(chess::Board &board, const MoveData &move, std::size_t move_number,
-                         bool illegal) {
+void PgnBuilder::addMove(chess::Board &board, const MoveData &move, const std::string &player,
+                         std::size_t move_number, bool illegal) {
     std::stringstream ss;
     ss << (move_number % 2 == 1 ? std::to_string(move_number / 2 + 1) + ". " : "");
     ss << moveNotation(board, move.move);
 
     if (illegal) {
-        ss << addComment("illegal move", "");
+        ss << addComment(player + " made an illegal move", "");
     } else {
         ss << addComment((move.score_string + "/" + std::to_string(move.depth)),
                          formatTime(move.elapsed_millis),

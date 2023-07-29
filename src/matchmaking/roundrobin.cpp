@@ -14,8 +14,11 @@ RoundRobin::RoundRobin(const cmd::GameManagerOptions& game_config) {
 
     this->output_ = getNewOutput(game_config_.output);
 
-    const std::string filename =
-        (game_config.pgn.file.empty() ? "fast-chess" : game_config.pgn.file) + ".pgn";
+    std::string filename = (game_config.pgn.file.empty() ? "fast-chess" : game_config.pgn.file);
+
+    if (game_config.output == OutputType::FASTCHESS) {
+        filename += ".pgn";
+    }
 
     file_writer_.open(filename);
 

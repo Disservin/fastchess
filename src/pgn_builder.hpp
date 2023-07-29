@@ -31,7 +31,8 @@ class PgnBuilder {
     template <typename T>
     void addHeader(const std::string &name, const T &value);
 
-    void addMove(chess::Board &board, const MoveData &move, std::size_t move_number, bool illegal);
+    void addMove(chess::Board &board, const MoveData &move, const std::string &player,
+                 std::size_t move_number, bool illegal);
 
     /// @brief Adds a comment to the pgn. The comment is formatted as {first, args}
     /// @tparam First

@@ -27,6 +27,7 @@ struct PgnOptions {
     NotationType notation = NotationType::SAN;
     bool track_nodes = false;
     bool track_seldepth = false;
+    bool track_nps = false;
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(PgnOptions, file, notation, track_nodes,
                                                 track_seldepth)

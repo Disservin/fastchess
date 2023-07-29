@@ -69,7 +69,7 @@ class Match {
 
     inline static const std::string ADJUDICATION_MSG = "Draw by adjudication";
     inline static const std::string ADJUDICATION_WIN_MSG = " wins by adjudication";
-    inline static const std::string ADJUDICATION_LOSE_MSG = " losses by adjudication";
+    inline static const std::string ADJUDICATION_LOSE_MSG = " loses by adjudication";
 
     inline static const std::string INSUFFICIENT_MSG = "Draw by insufficient material";
     inline static const std::string REPETITION_MSG = "Draw by 3-fold repetition";

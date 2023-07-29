@@ -65,7 +65,7 @@ class Match {
     [[nodiscard]] bool adjudicate(Participant& us, Participant& them);
 
     [[nodiscard]] static std::string convertChessReason(const std::string& engine_name,
-                                                 chess::GameResultReason reason);
+                                                        chess::GameResultReason reason);
 
     inline static const std::string ADJUDICATION_MSG = "Draw by adjudication";
     inline static const std::string ADJUDICATION_WIN_MSG = " wins by adjudication";
@@ -74,7 +74,8 @@ class Match {
     inline static const std::string INSUFFICIENT_MSG = "Draw by insufficient material";
     inline static const std::string REPETITION_MSG = "Draw by 3-fold repetition";
     inline static const std::string FIFTY_MSG = "Draw by 50-move rule";
-    inline static const std::string TIMEOUT_MSG = /*.. */ " timed out";
+    inline static const std::string DISCONNECT_MSG = /*.. */ " disconnects";
+    inline static const std::string TIMEOUT_MSG = /*.. */ " loses on time";
     inline static const std::string CHECKMATE_MSG = /*..*/ " got checkmated";
     inline static const std::string STALEMATE_MSG = "Draw by stalemate";
     inline static const std::string ILLEGAL_MSG = " made an illegal move";

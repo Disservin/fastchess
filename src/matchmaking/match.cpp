@@ -202,7 +202,7 @@ bool Match::playMove(Participant& us, Participant& opponent) {
     }
 
     if (!us.engine.isResponsive()) {
-        setLose(us, opponent, "timeout", name + Match::TIMEOUT_MSG);
+        setLose(us, opponent, "disconnects", name + Match::DISCONNECT_MSG);
         return false;
     }
 

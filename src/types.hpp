@@ -30,7 +30,7 @@ struct PgnOptions {
     bool track_nps = false;
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(PgnOptions, file, notation, track_nodes,
-                                                track_seldepth)
+                                                track_seldepth, track_nps)
 
 struct SprtOptions {
     double alpha = 0.0;

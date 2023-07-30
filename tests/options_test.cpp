@@ -102,8 +102,8 @@ TEST_SUITE("Option Parsing Tests") {
         CHECK(gameOptions.pgn.file == "PGNs/Alexandria-EA649FED_vs_Alexandria-27E42728");
         // Test opening settings parsing
         CHECK(gameOptions.opening.file == "./tests/data/test.epd");
-        CHECK(gameOptions.opening.format == cmd::FormatType::EPD);
-        CHECK(gameOptions.opening.order == cmd::OrderType::RANDOM);
+        CHECK(gameOptions.opening.format == FormatType::EPD);
+        CHECK(gameOptions.opening.order == OrderType::RANDOM);
         CHECK(gameOptions.opening.plies == 16);
     }
 }

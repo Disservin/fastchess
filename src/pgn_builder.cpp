@@ -82,9 +82,9 @@ void PgnBuilder::addHeader(const std::string &name, const T &value) {
 }
 
 std::string PgnBuilder::moveNotation(chess::Board &board, const std::string &move) const {
-    if (game_options_.pgn.notation == cmd::NotationType::SAN) {
+    if (game_options_.pgn.notation == NotationType::SAN) {
         return chess::uci::moveToSan(board, chess::uci::uciToMove(board, move));
-    } else if (game_options_.pgn.notation == cmd::NotationType::LAN) {
+    } else if (game_options_.pgn.notation == NotationType::LAN) {
         return chess::uci::moveToLan(board, chess::uci::uciToMove(board, move));
     } else {
         return move;

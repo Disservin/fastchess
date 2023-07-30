@@ -99,6 +99,10 @@ void UciEngine::startEngine() {
     for (const auto &option : config_.options) {
         sendSetoption(option.first, option.second);
     }
+
+    if (config_.variant == VariantType::FRC) {
+        sendSetoption("UCI_Chess960", "true");
+    }
 }
 
 std::vector<std::string> UciEngine::readEngine(std::string_view last_word,

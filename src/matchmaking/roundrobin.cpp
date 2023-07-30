@@ -37,7 +37,7 @@ void RoundRobin::setupEpdOpeningBook() {
     // Set the seed for the random number generator
     Random::mersenne_rand.seed(game_config_.seed);
 
-    if (game_config_.opening.file.empty() || game_config_.opening.format != cmd::FormatType::EPD) {
+    if (game_config_.opening.file.empty() || game_config_.opening.format != FormatType::EPD) {
         return;
     }
 
@@ -56,7 +56,7 @@ void RoundRobin::setupEpdOpeningBook() {
         throw std::runtime_error("No openings found in EPD file: " + game_config_.opening.file);
     }
 
-    if (game_config_.opening.order == cmd::OrderType::RANDOM) {
+    if (game_config_.opening.order == OrderType::RANDOM) {
         // Fisher-Yates / Knuth shuffle
         for (std::size_t i = 0; i <= opening_book_epd.size() - 2; i++) {
             std::size_t j = i + (Random::mersenne_rand() % (opening_book_epd.size() - i));
@@ -67,7 +67,7 @@ void RoundRobin::setupEpdOpeningBook() {
 
 void RoundRobin::setupPgnOpeningBook() {
     // Read the opening book from file
-    if (game_config_.opening.file.empty() || game_config_.opening.format != cmd::FormatType::PGN) {
+    if (game_config_.opening.file.empty() || game_config_.opening.format != FormatType::PGN) {
         return;
     }
 
@@ -78,7 +78,7 @@ void RoundRobin::setupPgnOpeningBook() {
         throw std::runtime_error("No openings found in PGN file: " + game_config_.opening.file);
     }
 
-    if (game_config_.opening.order == cmd::OrderType::RANDOM) {
+    if (game_config_.opening.order == OrderType::RANDOM) {
         // Fisher-Yates / Knuth shuffle
         for (std::size_t i = 0; i <= opening_book_pgn.size() - 2; i++) {
             std::size_t j = i + (Random::mersenne_rand() % (opening_book_pgn.size() - i));
@@ -246,10 +246,10 @@ Stats RoundRobin::updateStats(const MatchData& match_data) {
 Opening RoundRobin::fetchNextOpening() {
     static uint64_t opening_index = 0;
 
-    if (game_config_.opening.format == cmd::FormatType::PGN) {
+    if (game_config_.opening.format == FormatType::PGN) {
         return opening_book_pgn[(game_config_.opening.start + opening_index++) %
                                 opening_book_pgn.size()];
-    } else if (game_config_.opening.format == cmd::FormatType::EPD) {
+    } else if (game_config_.opening.format == FormatType::EPD) {
         Opening opening;
 
         opening.fen = opening_book_epd[(game_config_.opening.start + opening_index++) %

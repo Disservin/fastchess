@@ -3,15 +3,11 @@
 #include <string>
 
 #include <engines/engine_config.hpp>
+#include <enums.hpp>
 #include <matchmaking/output/output_factory.hpp>
 #include <matchmaking/result.hpp>
 
 namespace fast_chess::cmd {
-
-enum class NotationType { SAN, LAN, UCI };
-enum class OrderType { RANDOM, SEQUENTIAL };
-enum class FormatType { EPD, PGN, NONE };
-enum class VariantType { STANDARD, FRC };
 
 struct OpeningOptions {
     std::string file;

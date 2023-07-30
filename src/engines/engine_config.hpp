@@ -6,6 +6,7 @@
 #include <tuple>
 #include <vector>
 
+#include <enums.hpp>
 #include <helper.hpp>
 
 #include <third_party/json.hpp>
@@ -56,9 +57,11 @@ struct EngineConfiguration {
 
     Limit limit;
 
+    VariantType variant = VariantType::STANDARD;
+
     bool recover = false;
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(EngineConfiguration, name, dir, cmd, args, options,
-                                                limit, recover)
+                                                limit, variant, recover)
 
 }  // namespace fast_chess

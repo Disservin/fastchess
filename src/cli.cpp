@@ -484,6 +484,11 @@ OptionsParser::OptionsParser(int argc, char const *argv[]) {
     addOption("quick", new Quick());
 
     parse(argc, argv);
+
+    // apply the variant type to all configs
+    for (auto &config : argument_data_.configs) {
+        config.variant = argument_data_.game_options.variant;
+    }
 }
 
 }  // namespace fast_chess::cmd

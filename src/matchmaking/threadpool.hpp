@@ -74,7 +74,7 @@ class ThreadPool {
     ~ThreadPool() { kill(); }
 
     [[nodiscard]] std::size_t queueSize() {
-        std::unique_lock<std::mutex> lock(this->queue_mutex_);
+        std::unique_lock<std::mutex> lock(queue_mutex_);
         return tasks_.size();
     }
 
@@ -82,15 +82,14 @@ class ThreadPool {
 
    private:
     void work() {
-        while (!this->stop_) {
+        while (!stop_) {
             std::function<void()> task;
             {
-                std::unique_lock<std::mutex> lock(this->queue_mutex_);
-                this->condition_.wait(lock,
-                                      [this] { return this->stop_ || !this->tasks_.empty(); });
-                if (this->stop_ && this->tasks_.empty()) return;
-                task = std::move(this->tasks_.front());
-                this->tasks_.pop();
+                std::unique_lock<std::mutex> lock(queue_mutex_);
+                condition_.wait(lock, [this] { return stop_ || !tasks_.empty(); });
+                if (stop_ && tasks_.empty()) return;
+                task = std::move(tasks_.front());
+                tasks_.pop();
             }
             task();
         }

@@ -74,7 +74,7 @@ std::string UciEngine::buildGoInput(chess::Color stm, const TimeControl &tc,
     return input.str();
 }
 
-void UciEngine::loadConfig(const EngineConfiguration &config) { this->config_ = config; }
+void UciEngine::loadConfig(const EngineConfiguration &config) { config_ = config; }
 
 void UciEngine::sendQuit() { writeEngine("quit"); }
 

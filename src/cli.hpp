@@ -126,6 +126,8 @@ class OptionsParser {
                   << "  -recover                               Don't crash when an engine plays an illegal move or crashes. Give a warning and countinue\n"
                   << "                                         with the tournament.\n"
                   << "  -repeat                                This has the same effect as -games 2 and is the default.\n"
+                  << "  -quick                                 This is a shortcut for -engine cmd=ENGINE1 -engine cmd=ENGINE2 -each tc=10+0.1 -rounds 25000 -repeat -concurrency max - 2\n"
+                  << "                                         -openings file=BOOK format=epd order=random -draw movecount=8 score=8 movenumber=30\n"
                   << "  -variant VALUE                         VALUE is either `standard` (default) or `fischerandom`.\n";
 
         exit(0);

@@ -80,6 +80,8 @@ Options:
     fast-chess.pgn.
     If you pass nodes or seldepth as true, the pgn will contain the nodes and/or seldepth in the move comment.
   -log file=NAME
+  -quick cmd=ENGINE1 cmd=ENGINE2 book=BOOK
+    This is a shortcut for -engine cmd=ENGINE1 -engine cmd=ENGINE2 -each tc=10+0.1 -rounds 25000 -repeat -concurrency max - 2 -openings file=BOOK format=epd order=random -draw movecount=8 score=8 movenumber=30
 
 Engine OPTIONS;
   name=NAME

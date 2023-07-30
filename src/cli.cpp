@@ -397,6 +397,53 @@ class Tournament : public Option {
     }
 };
 
+/**
+ * Quick cmd parser,
+ * .\fast-chess.exe -quick cmd=smallbrain.exe cmd=smallbrain-2.exe book="UHO_XXL_2022_+110_+139.epd"
+ */
+class Quick : public Option {
+   public:
+    void parse(int &i, int argc, char const *argv[], ArgumentData &argument_data) override {
+        parseDashOptions(i, argc, argv, [&](const std::string &key, const std::string &value) {
+            if (key == "cmd") {
+                argument_data.configs.emplace_back();
+                argument_data.configs.back().cmd = value;
+                argument_data.configs.back().name = value;
+
+                argument_data.configs.back().limit.tc.time = 10 * 1000;
+                argument_data.configs.back().limit.tc.increment = 100;
+
+                argument_data.configs.back().recover = true;
+
+            } else if (key == "book") {
+                argument_data.game_options.opening.file = value;
+                argument_data.game_options.opening.order = OrderType::RANDOM;
+                argument_data.game_options.opening.format = FormatType::EPD;
+            } else {
+                OptionsParser::throwMissing("quick", key, value);
+            }
+        });
+
+        if (argument_data.configs[0].name == argument_data.configs[1].name) {
+            argument_data.configs[0].name += "1";
+            argument_data.configs[1].name += "2";
+        }
+
+        argument_data.game_options.games = 2;
+        argument_data.game_options.rounds = 25000;
+
+        argument_data.game_options.concurrency =
+            std::max(unsigned(1), std::thread::hardware_concurrency() - 2);
+
+        argument_data.game_options.recover = true;
+
+        argument_data.game_options.draw.enabled = true;
+        argument_data.game_options.draw.move_number = 30;
+        argument_data.game_options.draw.move_count = 8;
+        argument_data.game_options.draw.score = 8;
+    }
+};
+
 OptionsParser::OptionsParser(int argc, char const *argv[]) {
     if (argument_data_.game_options.output == OutputType::CUTECHESS) {
         argument_data_.game_options.ratinginterval = 1;
@@ -434,6 +481,7 @@ OptionsParser::OptionsParser(int argc, char const *argv[]) {
     addOption("repeat", new Repeat());
     addOption("variant", new Variant());
     addOption("tournament", new Tournament());
+    addOption("quick", new Quick());
 
     parse(argc, argv);
 }

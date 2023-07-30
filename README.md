@@ -8,6 +8,14 @@ set time controls, and run matches in parallel to save time.
 The POSIX implementation has been extensively tested for high concurrency (250) with short time controls (0.2+0.002) and
 has demonstrated minimal timeout issues, with only 10 matches out of 20,000 timing out.
 
+## News
+
+- The cutechess output support has been refined and should now be more compatible with other tools.
+  Change the `-output` option to `cutechess` to enable it.
+- You can also track nodes, seldepth and nps in the pgn output read the `-pgnout` option for more information.
+- There is now a `-quick` option that allows you to quickly run a match between two engines with am epd book.
+  You only need to specify `-quick cmd=ENGINE1 cmd=ENGINE2 book=BOOK` and you're good to go.
+
 ## Quick start
 
 ### Building from source
@@ -107,3 +115,11 @@ sure that the code is formatted using this style.
 To contribute, you need a recent GCC compiler that supports C++17, as well as a way to run the Makefile. **You can run
 tests locally** by running `make -j tests`.
 Then, run the ./fast-chess-tests executable to ensure your changes pass the tests.
+
+## Maintainers
+
+The following people have push access to the repository:
+
+- [Disservin](https://github.com/Disservin)
+- [Szil](https://github.com/SzilBalazs)
+- [PGG106](https://github.com/PGG106)

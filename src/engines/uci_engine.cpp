@@ -56,13 +56,11 @@ std::string UciEngine::buildGoInput(chess::Color stm, const TimeControl &tc,
     // We cannot use st and tc together
     if (tc.fixed_time != 0) {
         input << " movetime " << tc.fixed_time;
-    } else {
+    } else if (tc.time != 0 && tc_2.time != 0) {
         auto white = stm == chess::Color::WHITE ? tc : tc_2;
         auto black = stm == chess::Color::WHITE ? tc_2 : tc;
 
-        if (tc.time != 0) {
-            input << " wtime " << white.time << " btime " << black.time;
-        }
+        input << " wtime " << white.time << " btime " << black.time;
 
         if (tc.increment != 0) {
             input << " winc " << white.increment << " binc " << black.increment;

@@ -11,6 +11,10 @@ using json = nlohmann::json;
 
 namespace EngineParser {
 TimeControl parseTc(const std::string &tcString) {
+    if (tcString == "infinite" || tcString == "inf") {
+        return TimeControl{.time = 0};
+    }
+
     TimeControl tc;
 
     std::string remainingStringVector = tcString;
@@ -356,9 +360,7 @@ class Version : public Option {
 
 class Help : public Option {
    public:
-    void parse(int &, int, char const *[], ArgumentData &) override {
-        OptionsParser::printHelp();
-    }
+    void parse(int &, int, char const *[], ArgumentData &) override { OptionsParser::printHelp(); }
 };
 
 class Recover : public Option {

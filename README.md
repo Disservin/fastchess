@@ -66,7 +66,6 @@ Options:
     FORMAT can be "epd" (or experimental pgn) and order "sequential" or"random", start specifies the offset.
     If plies is set to zero, as it is by default, the entire opening line will be used.
     FORMAT "pgn" is currently experimental.
-  -option.OPTION=VALUE
   -output format=FORMAT
     FORMAT can be "cutechess" or "fastchess" (default) change this if you have scripts
     that only parse cutechess like output. This is experimental as of now.
@@ -82,12 +81,16 @@ Options:
     If you pass nodes or seldepth as true, the pgn will contain the nodes and/or seldepth in the move comment.
   -log file=NAME
 
-Engine;
+Engine OPTIONS;
   name=NAME
   cmd=COMMAND
   plies=N
   tc=TC
     TC uses the same format as Cute-Chess. For example 10+0.1 would be 10 seconds with 100 millisecond increments.
+  option.name=VALUE
+    This can be used to set engine options. Note that the engine must support the option.
+    For example, to set the hash size to 128MB, you can use `option.Hash=128 option.
+    Note that the option name is case sensitive.
 
 ```
 

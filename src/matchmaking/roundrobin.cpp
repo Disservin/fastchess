@@ -10,9 +10,9 @@
 namespace fast_chess {
 
 RoundRobin::RoundRobin(const cmd::GameManagerOptions& game_config) {
-    this->game_config_ = game_config;
+    game_config_ = game_config;
 
-    this->output_ = getNewOutput(game_config_.output);
+    output_ = getNewOutput(game_config_.output);
 
     std::string filename = (game_config.pgn.file.empty() ? "fast-chess" : game_config.pgn.file);
 

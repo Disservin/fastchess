@@ -17,7 +17,6 @@ std::unique_ptr<Tournament> Tour;
 }  // namespace
 
 #ifdef _WIN64
-
 BOOL WINAPI consoleHandler(DWORD signal) {
     switch (signal) {
         case CTRL_CLOSE_EVENT:
@@ -34,7 +33,6 @@ BOOL WINAPI consoleHandler(DWORD signal) {
 
     return FALSE;
 }
-
 #else
 void sigintHandler(int param) {
     Tour->stop();
@@ -43,19 +41,21 @@ void sigintHandler(int param) {
 
     exit(param);
 }
-
 #endif
 
-int main(int argc, char const *argv[]) {
+void setCtrlCHandler() {
 #ifdef _WIN64
     if (!SetConsoleCtrlHandler(consoleHandler, TRUE)) {
         std::cout << "\nERROR: Could not set control handler\n";
-        return 1;
     }
-
 #else
     signal(SIGINT, sigintHandler);
 #endif
+}
+
+int main(int argc, char const *argv[]) {
+    setCtrlCHandler();
+
     Logger::debug("Reading options...");
     Options = std::make_unique<cmd::OptionsParser>(argc, argv);
 
@@ -71,7 +71,7 @@ int main(int argc, char const *argv[]) {
     Logger::debug("Saving results...");
     Options->saveJson(Tour->getResults());
 
-    std::cout << "Saved results" << std::endl;
+    std::cout << "Saved results." << std::endl;
 
     return 0;
 }

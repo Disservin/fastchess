@@ -3,6 +3,7 @@
 #include <string>
 
 #include <cli.hpp>
+#include <enums.hpp>
 #include <matchmaking/types/match_data.hpp>
 #include <matchmaking/types/stats.hpp>
 #include <sprt.hpp>
@@ -10,11 +11,6 @@
 namespace fast_chess {
 
 class Tournament;  // forward declaration
-
-enum class OutputType {
-    FASTCHESS,
-    CUTECHESS,
-};
 
 class IOutput {
    public:

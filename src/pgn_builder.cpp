@@ -7,8 +7,8 @@
 namespace fast_chess {
 
 PgnBuilder::PgnBuilder(const MatchData &match, const cmd::GameManagerOptions &game_options) {
-    this->match_ = match;
-    this->game_options_ = game_options;
+    match_ = match;
+    game_options_ = game_options;
 
     PlayerInfo white_player, black_player;
 

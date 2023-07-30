@@ -312,7 +312,7 @@ class Concurrency : public Option {
 class Event : public Option {
    public:
     void parse(int &i, int argc, char const *argv[], ArgumentData &argument_data) override {
-        argument_data.game_options.event_name = parseUntilDash(i, argc, argv);
+        argument_data.game_options.event_name = readUntilDash(i, argc, argv);
     }
 };
 

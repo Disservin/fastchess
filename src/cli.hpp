@@ -85,11 +85,12 @@ class OptionsParser {
 
         ss << "\n";
 
-        std::cout << ss.str();
-        exit(0);
+        std::cout << ss.str() << std::flush;
+        std::exit(0);
     }
 
     static void printHelp() {
+        // clang-format off
         std::cout << "Fast-Chess is a command-line tool designed for creating chess engine tournaments.\n"
                   << "Homepage: https://github.com/Disservin/fast-chess\n\n";
         std::cout << "Options:\n";
@@ -128,9 +129,11 @@ class OptionsParser {
                   << "  -repeat                                This has the same effect as -games 2 and is the default.\n"
                   << "  -quick                                 This is a shortcut for -engine cmd=ENGINE1 -engine cmd=ENGINE2 -each tc=10+0.1 -rounds 25000 -repeat -concurrency max - 2\n"
                   << "                                         -openings file=BOOK format=epd order=random -draw movecount=8 score=8 movenumber=30\n"
-                  << "  -variant VALUE                         VALUE is either `standard` (default) or `fischerandom`.\n";
+                  << "  -variant VALUE                         VALUE is either `standard` (default) or `fischerandom`.\n"
+                  << std::flush;
+        // clang-format on
 
-        exit(0);
+        std::exit(0);
     }
 
     void saveJson(const stats_map &stats) const {
@@ -220,7 +223,7 @@ inline void parseDashOptions(int &i, int argc, char const *argv[],
     }
 }
 
-inline std::string parseUntilDash(int &i, int argc, char const *argv[]) {
+inline std::string readUntilDash(int &i, int argc, char const *argv[]) {
     std::string result;
     while (i + 1 < argc && argv[i + 1][0] != '-' && i++) {
         result += argv[i] + std::string(" ");

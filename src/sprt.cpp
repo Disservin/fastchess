@@ -9,15 +9,15 @@
 namespace fast_chess {
 
 SPRT::SPRT(double alpha, double beta, double elo0, double elo1) {
-    this->valid_ = alpha != 0.0 && beta != 0.0 && elo0 < elo1;
+    valid_ = alpha != 0.0 && beta != 0.0 && elo0 < elo1;
     if (isValid()) {
-        this->lower_ = std::log(beta / (1 - alpha));
-        this->upper_ = std::log((1 - beta) / alpha);
-        this->s0_ = getLL(elo0);
-        this->s1_ = getLL(elo1);
+        lower_ = std::log(beta / (1 - alpha));
+        upper_ = std::log((1 - beta) / alpha);
+        s0_ = getLL(elo0);
+        s1_ = getLL(elo1);
 
-        this->elo0_ = elo0;
-        this->elo1_ = elo1;
+        elo0_ = elo0;
+        elo1_ = elo1;
 
         Logger::cout("Initialized valid SPRT configuration.");
     } else if (!(alpha == 0.0 && beta == 0.0 && elo0 == 0.0 && elo1 == 0.0)) {

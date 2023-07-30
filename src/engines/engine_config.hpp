@@ -14,9 +14,13 @@
 namespace fast_chess {
 
 struct TimeControl {
+    // go winc/binc
     uint64_t increment = 0;
+    // go movetime
     int64_t fixed_time = 0;
+    // go wtime/btime
     int64_t time = 0;
+    // go movestogo
     int moves = 0;
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(TimeControl, increment, fixed_time, time, moves)
@@ -55,8 +59,10 @@ struct EngineConfiguration {
     // UCI options
     std::vector<std::pair<std::string, std::string>> options;
 
+    // the limit for the engines "go" command
     Limit limit;
 
+    // Chess variant
     VariantType variant = VariantType::STANDARD;
 
     bool recover = false;

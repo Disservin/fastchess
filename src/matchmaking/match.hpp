@@ -12,14 +12,14 @@ namespace fast_chess {
 struct DrawTacker {
     /// @brief number of moves below the draw threshold
     std::size_t draw_moves = 0;
-    /// @brief defines the draw threshold
+    /// @brief the score must be below this threshold to draw
     int draw_score = 0;
 };
 
 struct ResignTracker {
     /// @brief number of moves above the resign threshold
     std::size_t resign_moves = 0;
-    /// @brief defines the resign threshold
+    /// @brief the score muust be above this threshold to resign
     int resign_score = 0;
 };
 

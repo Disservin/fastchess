@@ -9,6 +9,7 @@ ifeq ($(OS), Windows_NT)
 	MKDIR    := mkdir
 	uname_S  := Windows
 	SUFFIX   := .exe
+	LDFLAGS  := -static -static-libgcc -static-libstdc++ -Wl,--no-as-needed
 else
 ifeq ($(COMP), MINGW)
 	MKDIR    := mkdir
@@ -84,7 +85,7 @@ endif
 all: $(TARGET)
 
 tests: $(TARGET)
-	$(CXX) $(CXXFLAGS) ./tests/data/engine/dummy_engine.cpp -o ./tests/data/engine/dummy_engine$(SUFFIX)
+	$(CXX) $(CXXFLAGS) ./tests/data/engine/dummy_engine.cpp -o ./tests/data/engine/dummy_engine$(SUFFIX) $(LDFLAGS)
 
 $(TARGET): $(OBJECTS)
 	$(CXX) $(CXXFLAGS) $(NATIVE) -MMD -MP -o $@ $^ $(LDFLAGS)

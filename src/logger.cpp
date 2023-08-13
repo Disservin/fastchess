@@ -22,8 +22,8 @@ void Logger::write(const std::string &msg, std::thread::id thread, const std::st
     const std::lock_guard<std::mutex> lock(Logger::log_mutex_);
 
     std::stringstream ss;
-    ss << "[" << getDateTime("%H:%M:%S") << "] " << name << " <" << std::setw(3) << thread
-       << "> <---" << msg << std::endl;
+    ss << "[" << getDateTime("%H:%M:%S") << "] "
+       << " <" << std::setw(3) << thread << "> " << name << " <--- " << msg << std::endl;
 
     Logger::log_ << ss.str() << std::flush;
 }
@@ -37,8 +37,8 @@ void Logger::read(const std::string &msg, std::thread::id thread, const std::str
     const std::lock_guard<std::mutex> lock(Logger::log_mutex_);
 
     std::stringstream ss;
-    ss << "[" << getDateTime("%H:%M:%S") << "] " << name << " <" << std::setw(3) << thread
-       << "> --->" << msg << std::endl;
+    ss << "[" << getDateTime("%H:%M:%S") << "] "
+       << " <" << std::setw(3) << thread << "> " << name << " ---> " << msg << std::endl;
 
     Logger::log_ << ss.str() << std::flush;
 }
@@ -52,8 +52,8 @@ void Logger::error(const std::string &msg, std::thread::id thread, const std::st
     const std::lock_guard<std::mutex> lock(Logger::log_mutex_);
 
     std::stringstream ss;
-    ss << "[" << getDateTime("%H:%M:%S") << "] " << name << " <" << std::setw(3) << thread
-       << "> !!!" << msg << std::endl;
+    ss << "[" << getDateTime("%H:%M:%S") << "] "
+       << " <" << std::setw(3) << thread << "> " << name << " !!! " << msg << std::endl;
 
     Logger::log_ << ss.str() << std::flush;
 }

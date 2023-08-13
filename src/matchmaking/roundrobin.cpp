@@ -92,7 +92,7 @@ void RoundRobin::start(const std::vector<EngineConfiguration>& engine_configs) {
 
     if (sprt(engine_configs)) return;
 
-    // Wait for all threads to finish
+    // Wait for games to finish
     while (match_count_ < total_ || !atomic::stop) {
     }
 }

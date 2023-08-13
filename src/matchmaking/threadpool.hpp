@@ -27,7 +27,7 @@ class ThreadPool {
 
         {
             std::unique_lock<std::mutex> lock(queue_mutex_);
-            if (stop_) throw std::runtime_error("Warning: enqueue on stopped ThreadPool");
+            if (stop_) throw std::runtime_error("Warning; enqueue on stopped ThreadPool");
             tasks_.emplace([task]() { (*task)(); });
         }
         condition_.notify_one();

@@ -45,8 +45,7 @@ class RoundRobin {
     /// @brief creates the matches
     /// @param engine_configs
     /// @param results
-    void create(const std::vector<EngineConfiguration> &engine_configs,
-                std::vector<std::future<void>> &results);
+    void create(const std::vector<EngineConfiguration> &engine_configs);
 
     /// @brief run as a sprt test
     /// @param engine_configs

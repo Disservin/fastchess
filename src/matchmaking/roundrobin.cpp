@@ -88,28 +88,24 @@ void RoundRobin::setupPgnOpeningBook() {
 }
 
 void RoundRobin::start(const std::vector<EngineConfiguration>& engine_configs) {
-    std::vector<std::future<void>> results;
-
-    create(engine_configs, results);
+    create(engine_configs);
 
     if (sprt(engine_configs)) return;
 
-    while (!results.empty()) {
-        results.back().get();
-        results.pop_back();
+    // Wait for games to finish
+    while (match_count_ < total_ || !atomic::stop) {
     }
 }
 
-void RoundRobin::create(const std::vector<EngineConfiguration>& engine_configs,
-                        std::vector<std::future<void>>& results) {
+void RoundRobin::create(const std::vector<EngineConfiguration>& engine_configs) {
     total_ = (engine_configs.size() * (engine_configs.size() - 1) / 2) * game_config_.rounds *
              game_config_.games;
 
     for (std::size_t i = 0; i < engine_configs.size(); i++) {
         for (std::size_t j = i + 1; j < engine_configs.size(); j++) {
             for (int k = 0; k < game_config_.rounds; k++) {
-                results.emplace_back(pool_.enqueue(&RoundRobin::createPairings, this,
-                                                   engine_configs[i], engine_configs[j], k));
+                pool_.enqueue(&RoundRobin::createPairings, this, engine_configs[i],
+                              engine_configs[j], k);
             }
         }
     }
@@ -161,6 +157,8 @@ void RoundRobin::createPairings(const EngineConfiguration& player1,
         output_->startGame(configs.first.name, configs.second.name, idx, game_config_.rounds * 2);
         const auto [success, result, reason] = playGame(configs, opening, idx);
         output_->endGame(result, configs.first.name, configs.second.name, reason, idx);
+
+        if (atomic::stop) return;
 
         // If the game failed to start, try again
         if (!success && game_config_.recover) {

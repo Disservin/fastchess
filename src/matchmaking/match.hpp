@@ -87,6 +87,8 @@ class Match {
     chess::Board board_;
     MatchData data_;
 
+    // keeps track of the moves played in the match, required for the
+    // uci position command
     std::vector<std::string> played_moves_;
 
     Opening opening_;

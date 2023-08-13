@@ -8,8 +8,6 @@ namespace fast_chess {
 
 class Fastchess : public IOutput {
    public:
-    [[nodiscard]] OutputType getType() const override { return OutputType::FASTCHESS; }
-
     void printInterval(const SPRT& sprt, const Stats& stats, const std::string& first,
                        const std::string& second, int current_game_count) override {
         std::cout << "--------------------------------------------------\n";

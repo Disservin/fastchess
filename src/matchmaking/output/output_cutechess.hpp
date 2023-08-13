@@ -14,8 +14,6 @@ class Cutechess : public IOutput {
         printSprt(sprt, stats);
     };
 
-    [[nodiscard]] OutputType getType() const override { return OutputType::CUTECHESS; }
-
     void printElo(const Stats& stats, const std::string& first, const std::string& second,
                   int current_game_count) override {
         const Elo elo(stats.wins, stats.losses, stats.draws);

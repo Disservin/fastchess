@@ -17,13 +17,9 @@ using clock = chrono::high_resolution_clock;
 
 using namespace chess;
 
-Match::Match(const cmd::TournamentOptions& game_config, const EngineConfiguration& engine1_config,
-             const EngineConfiguration& engine2_config, const Opening& opening, int round) {
+Match::Match(const cmd::TournamentOptions& game_config, const Opening& opening, int round) {
     game_config_ = game_config;
     data_.round = round;
-
-    engine1_config_ = engine1_config;
-    engine2_config_ = engine2_config;
 
     opening_ = opening;
 }
@@ -113,9 +109,10 @@ void Match::addMoveData(Participant& player, int64_t measured_time) {
     played_moves_.push_back(best_move);
 }
 
-void Match::start() {
-    Participant player_1 = Participant(engine1_config_);
-    Participant player_2 = Participant(engine2_config_);
+void Match::start(const EngineConfiguration& engine1_config,
+                  const EngineConfiguration& engine2_config) {
+    Participant player_1 = Participant(engine1_config);
+    Participant player_2 = Participant(engine2_config);
 
     player_1.engine.startEngine();
     player_2.engine.startEngine();
@@ -208,11 +205,8 @@ bool Match::playMove(Participant& us, Participant& opponent) {
         return false;
     }
 
-    auto position = UciEngine::buildPositionInput(played_moves_, start_fen_);
-    auto go = us.engine.buildGoInput(board_.sideToMove(), us.time_control, opponent.time_control);
-
-    us.engine.writeEngine(position);
-    us.engine.writeEngine(go);
+    us.engine.writeEngine(us.buildPositionInput(played_moves_, start_fen_));
+    us.engine.writeEngine(us.buildGoInput(board_.sideToMove(), opponent.time_control));
 
     const auto t0 = clock::now();
     const auto output = us.engine.readEngine("bestmove", us.getTimeoutThreshold());

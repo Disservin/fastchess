@@ -32,22 +32,6 @@ class UciEngine : private Communication::Process {
 
     [[nodiscard]] EngineConfiguration getConfig() const;
 
-    /// @brief Build the uci position input from the given moves and fen.
-    /// @param moves
-    /// @param fen
-    /// @return
-    [[nodiscard]] static std::string buildPositionInput(const std::vector<std::string> &moves,
-                                                 const std::string &fen) ;
-
-    /// @brief Build the uci go input from the given time controls. tc is the time control for the
-    /// current player.
-    /// @param stm
-    /// @param tc
-    /// @param tc_2
-    /// @return
-    [[nodiscard]] std::string buildGoInput(chess::Color stm, const TimeControl &tc,
-                                           const TimeControl &tc_2) const;
-
     /// @brief [untested... and unused]
     void restartEngine();
     /// @brief Creates a new process and starts the engine.

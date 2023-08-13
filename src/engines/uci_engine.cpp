@@ -30,50 +30,6 @@ bool UciEngine::readUci() {
     return !timeout();
 }
 
-std::string UciEngine::buildPositionInput(const std::vector<std::string> &moves,
-                                          const std::string &fen) {
-    std::string position = fen == "startpos" ? "position startpos" : ("position fen " + fen);
-
-    if (!moves.empty()) {
-        position += " moves";
-        for (const auto &move : moves) {
-            position += " " + move;
-        }
-    }
-
-    return position;
-}
-
-std::string UciEngine::buildGoInput(chess::Color stm, const TimeControl &tc,
-                                    const TimeControl &tc_2) const {
-    std::stringstream input;
-    input << "go";
-
-    if (config_.limit.nodes != 0) input << " nodes " << config_.limit.nodes;
-
-    if (config_.limit.plies != 0) input << " depth " << config_.limit.plies;
-
-    // We cannot use st and tc together
-    if (tc.fixed_time != 0) {
-        input << " movetime " << tc.fixed_time;
-    } else if (tc.time != 0 && tc_2.time != 0) {
-        auto white = stm == chess::Color::WHITE ? tc : tc_2;
-        auto black = stm == chess::Color::WHITE ? tc_2 : tc;
-
-        input << " wtime " << white.time << " btime " << black.time;
-
-        if (tc.increment != 0) {
-            input << " winc " << white.increment << " binc " << black.increment;
-        }
-
-        if (tc.moves != 0) {
-            input << " movestogo " << tc.moves;
-        }
-    }
-
-    return input.str();
-}
-
 void UciEngine::loadConfig(const EngineConfiguration &config) { config_ = config; }
 
 void UciEngine::sendQuit() { writeEngine("quit"); }

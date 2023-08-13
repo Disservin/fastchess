@@ -191,10 +191,10 @@ void RoundRobin::createPairings(const EngineConfiguration& player1,
 std::tuple<bool, Stats, std::string> RoundRobin::playGame(
     const std::pair<EngineConfiguration, EngineConfiguration>& configs, const Opening& opening,
     int round_id) {
-    auto match = Match(game_config_, configs.first, configs.second, opening, round_id);
+    auto match = Match(game_config_, opening, round_id);
 
     try {
-        match.start();
+        match.start(configs.first, configs.second);
     } catch (const std::exception& e) {
         Logger::error(e.what(), std::this_thread::get_id(), "fast-chess::RoundRobin::playGame");
         return {false, Stats(), "exception"};

@@ -5,11 +5,11 @@
 
 namespace fast_chess {
 
-Tournament::Tournament(const cmd::GameManagerOptions& game_config) : round_robin_(game_config) {
+Tournament::Tournament(const cmd::TournamentOptions& game_config) : round_robin_(game_config) {
     loadConfig(game_config);
 }
 
-void Tournament::loadConfig(const cmd::GameManagerOptions& game_config) {
+void Tournament::loadConfig(const cmd::TournamentOptions& game_config) {
     game_config_ = game_config;
 
     if (game_config_.games > 2) {

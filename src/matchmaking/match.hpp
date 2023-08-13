@@ -25,7 +25,7 @@ struct ResignTracker {
 
 class Match {
    public:
-    Match(const cmd::GameManagerOptions& game_config, const EngineConfiguration& engine1_config,
+    Match(const cmd::TournamentOptions& game_config, const EngineConfiguration& engine1_config,
           const EngineConfiguration& engine2_config, const Opening& opening, int round);
 
     /// @brief starts the match
@@ -83,7 +83,7 @@ class Match {
     DrawTacker draw_tracker_;
     ResignTracker resign_tracker_;
 
-    cmd::GameManagerOptions game_config_;
+    cmd::TournamentOptions game_config_;
     chess::Board board_;
     MatchData data_;
 

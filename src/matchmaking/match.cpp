@@ -3,7 +3,7 @@
 #include <helper.hpp>
 #include <logger.hpp>
 
-#include <types.hpp>
+#include <tournament_options.hpp>
 
 namespace fast_chess {
 
@@ -17,7 +17,7 @@ using clock = chrono::high_resolution_clock;
 
 using namespace chess;
 
-Match::Match(const cmd::GameManagerOptions& game_config, const EngineConfiguration& engine1_config,
+Match::Match(const cmd::TournamentOptions& game_config, const EngineConfiguration& engine1_config,
              const EngineConfiguration& engine2_config, const Opening& opening, int round) {
     game_config_ = game_config;
     data_.round = round;

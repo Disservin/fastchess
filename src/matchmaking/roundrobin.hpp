@@ -7,7 +7,8 @@
 #include <matchmaking/types/stats.hpp>
 #include <pgn_reader.hpp>
 #include <sprt.hpp>
-#include <types.hpp>
+
+#include <tournament_options.hpp>
 
 namespace fast_chess {
 
@@ -17,7 +18,7 @@ extern std::atomic_bool stop;
 
 class RoundRobin {
    public:
-    explicit RoundRobin(const cmd::GameManagerOptions &game_config);
+    explicit RoundRobin(const cmd::TournamentOptions &game_config);
 
     /// @brief starts the round robin
     /// @param engine_configs
@@ -33,7 +34,7 @@ class RoundRobin {
     [[nodiscard]] stats_map getResults() { return result_.getResults(); }
     void setResults(const stats_map &results) { result_.setResults(results); }
 
-    void setGameConfig(const cmd::GameManagerOptions &game_config) { game_config_ = game_config; }
+    void setGameConfig(const cmd::TournamentOptions &game_config) { game_config_ = game_config; }
 
    private:
     /// @brief load a pgn opening book
@@ -82,7 +83,7 @@ class RoundRobin {
 
     std::unique_ptr<IOutput> output_;
 
-    cmd::GameManagerOptions game_config_ = {};
+    cmd::TournamentOptions game_config_ = {};
 
     ThreadPool pool_ = ThreadPool(1);
 

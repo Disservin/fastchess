@@ -3,13 +3,14 @@
 #include <third_party/chess.hpp>
 
 #include <matchmaking/match.hpp>
-#include <types.hpp>
+
+#include <tournament_options.hpp>
 
 namespace fast_chess {
 
 class PgnBuilder {
    public:
-    PgnBuilder(const MatchData &match, const cmd::GameManagerOptions &game_options);
+    PgnBuilder(const MatchData &match, const cmd::TournamentOptions &game_options);
 
     /// @brief Get the newly created pgn
     /// @return
@@ -62,7 +63,7 @@ class PgnBuilder {
     [[nodiscard]] static std::string getResultFromMatch(const MatchData &match);
 
     MatchData match_;
-    cmd::GameManagerOptions game_options_;
+    cmd::TournamentOptions game_options_;
 
     std::stringstream pgn_;
     std::vector<std::string> moves_;

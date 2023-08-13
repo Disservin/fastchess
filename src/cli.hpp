@@ -15,14 +15,15 @@
 
 #include <engines/engine_config.hpp>
 #include <logger.hpp>
-#include <types.hpp>
+
+#include <tournament_options.hpp>
 
 namespace fast_chess::cmd {
 
 /// @brief Holds the data of the OptionParser
 struct ArgumentData {
     // Holds all the relevant settings for the handling of the games
-    GameManagerOptions game_options;
+    TournamentOptions game_options;
 
     // Holds all the engines with their options
     std::vector<EngineConfiguration> configs;
@@ -30,7 +31,7 @@ struct ArgumentData {
     stats_map stats;
 
     /*previous olded values before config*/
-    GameManagerOptions old_game_options;
+    TournamentOptions old_game_options;
     std::vector<EngineConfiguration> old_configs;
 };
 
@@ -148,7 +149,7 @@ class OptionsParser {
     [[nodiscard]] std::vector<EngineConfiguration> getEngineConfigs() const {
         return argument_data_.configs;
     }
-    [[nodiscard]] GameManagerOptions getGameOptions() const { return argument_data_.game_options; }
+    [[nodiscard]] TournamentOptions getGameOptions() const { return argument_data_.game_options; }
 
     [[nodiscard]] stats_map getResults() const { return argument_data_.stats; }
 

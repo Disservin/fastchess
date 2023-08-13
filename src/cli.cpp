@@ -263,7 +263,7 @@ class Config : public Option {
         argument_data.old_configs = argument_data.configs;
         argument_data.old_game_options = argument_data.game_options;
 
-        argument_data.game_options = jsonfile.get<GameManagerOptions>();
+        argument_data.game_options = jsonfile.get<TournamentOptions>();
 
         argument_data.configs.clear();
 

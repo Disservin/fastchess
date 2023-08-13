@@ -9,7 +9,7 @@
 
 namespace fast_chess {
 
-RoundRobin::RoundRobin(const cmd::GameManagerOptions& game_config) {
+RoundRobin::RoundRobin(const cmd::TournamentOptions& game_config) {
     game_config_ = game_config;
 
     output_ = getNewOutput(game_config_.output);

@@ -54,7 +54,7 @@ struct ResignAdjudication {
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(ResignAdjudication, move_count, score, enabled)
 
-struct GameManagerOptions {
+struct TournamentOptions {
     ResignAdjudication resign = {};
     DrawAdjudication draw = {};
 
@@ -86,8 +86,8 @@ struct GameManagerOptions {
 
     bool report_penta = true;
 };
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(GameManagerOptions, resign, draw, opening, pgn,
-                                                sprt, event_name, site, output, seed, variant,
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(TournamentOptions, resign, draw, opening, pgn, sprt,
+                                                event_name, site, output, seed, variant,
                                                 ratinginterval, games, rounds, concurrency,
                                                 overhead, recover, report_penta)
 

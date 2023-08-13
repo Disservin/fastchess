@@ -9,12 +9,9 @@
 
 namespace fast_chess {
 
-RoundRobin::RoundRobin(const cmd::TournamentOptions& game_config) {
-    game_config_ = game_config;
-
-    output_ = getNewOutput(game_config_.output);
-
-    std::string filename = (game_config.pgn.file.empty() ? "fast-chess" : game_config.pgn.file);
+RoundRobin::RoundRobin(const cmd::TournamentOptions& game_config)
+    : output_(getNewOutput(game_config.output)), game_config_(game_config) {
+    auto filename = (game_config.pgn.file.empty() ? "fast-chess" : game_config.pgn.file);
 
     if (game_config.output == OutputType::FASTCHESS) {
         filename += ".pgn";
@@ -88,9 +85,9 @@ void RoundRobin::setupPgnOpeningBook() {
 }
 
 void RoundRobin::start(const std::vector<EngineConfiguration>& engine_configs) {
-    create(engine_configs);
+    Logger::debug("Starting round robin tournament...");
 
-    if (sprt(engine_configs)) return;
+    create(engine_configs);
 
     // Wait for games to finish
     while (match_count_ < total_ || !atomic::stop) {
@@ -109,20 +106,6 @@ void RoundRobin::create(const std::vector<EngineConfiguration>& engine_configs) 
             }
         }
     }
-}
-
-bool RoundRobin::sprt(const std::vector<EngineConfiguration>& engine_configs) {
-    Logger::debug("Trying to enter SPRT test...");
-    if (engine_configs.size() != 2 || !sprt_.isValid()) return false;
-
-    Logger::cout("SPRT test started: " + sprt_.getBounds() + " " + sprt_.getElo());
-
-    while (match_count_ < total_ || !atomic::stop) {
-    }
-
-    Logger::cout("SPRT test skipped");
-
-    return true;
 }
 
 void RoundRobin::updateSprtStatus(const std::vector<EngineConfiguration>& engine_configs) {
@@ -144,6 +127,7 @@ void RoundRobin::createPairings(const EngineConfiguration& player1,
                                 const EngineConfiguration& player2, int current) {
     std::pair<EngineConfiguration, EngineConfiguration> configs = {player1, player2};
 
+    // Swap the players randomly when using Cutechess
     if (Random::boolean() && game_config_.output == OutputType::CUTECHESS) {
         std::swap(configs.first, configs.second);
     }
@@ -207,19 +191,20 @@ void RoundRobin::createPairings(const EngineConfiguration& player1,
 std::tuple<bool, Stats, std::string> RoundRobin::playGame(
     const std::pair<EngineConfiguration, EngineConfiguration>& configs, const Opening& opening,
     int round_id) {
-    Match match = Match(game_config_, configs.first, configs.second, opening, round_id);
+    auto match = Match(game_config_, configs.first, configs.second, opening, round_id);
 
     try {
         match.start();
     } catch (const std::exception& e) {
         Logger::error(e.what(), std::this_thread::get_id(), "fast-chess::RoundRobin::playGame");
-        throw e;
+        return {false, Stats(), "exception"};
     }
 
-    const MatchData match_data = match.get();
+    const auto match_data = match.get();
 
-    const PgnBuilder pgn_builder = PgnBuilder(match_data, game_config_);
+    const auto pgn_builder = PgnBuilder(match_data, game_config_);
 
+    // If the game was stopped, don't write the PGN
     if (match_data.termination != "stop") {
         file_writer_.write(pgn_builder.get());
     }
@@ -253,11 +238,10 @@ Opening RoundRobin::fetchNextOpening() {
         opening.fen = opening_book_epd[(game_config_.opening.start + opening_index++) %
                                        opening_book_epd.size()];
 
-        // epd books dont have any moves, so we just return the epd string
-        opening.moves = {};
-
         return opening;
     }
+
+    Logger::cout("Unknown opening format: " + int(game_config_.opening.format));
 
     return {chess::STARTPOS, {}};
 }

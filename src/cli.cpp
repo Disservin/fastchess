@@ -441,6 +441,8 @@ class Quick : public Option {
         argument_data.game_options.draw.move_number = 30;
         argument_data.game_options.draw.move_count = 8;
         argument_data.game_options.draw.score = 8;
+
+        argument_data.game_options.output = OutputType::CUTECHESS;
     }
 };
 

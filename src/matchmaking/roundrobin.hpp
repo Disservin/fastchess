@@ -47,11 +47,8 @@ class RoundRobin {
     /// @param results
     void create(const std::vector<EngineConfiguration> &engine_configs);
 
-    /// @brief run as a sprt test
+    /// @brief update the current running sprt. SPRT Config has to be valid.
     /// @param engine_configs
-    /// @return
-    [[nodiscard]] bool sprt(const std::vector<EngineConfiguration> &engine_configs);
-
     void updateSprtStatus(const std::vector<EngineConfiguration> &engine_configs);
 
     /// @brief pairs player1 vs player2

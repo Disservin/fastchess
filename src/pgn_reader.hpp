@@ -10,7 +10,7 @@ namespace fast_chess {
 
 struct Opening {
     std::string fen = chess::STARTPOS;
-    std::vector<std::string> moves;
+    std::vector<std::string> moves = {};
 };
 
 class PgnReader {

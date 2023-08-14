@@ -90,7 +90,7 @@ void RoundRobin::start(const std::vector<EngineConfiguration>& engine_configs) {
     create(engine_configs);
 
     // Wait for games to finish
-    while (match_count_ < total_ || !atomic::stop) {
+    while (match_count_ < total_ && !atomic::stop) {
     }
 }
 
@@ -136,7 +136,7 @@ void RoundRobin::createPairings(const EngineConfiguration& player1,
 
     Stats stats;
     for (int i = 0; i < game_config_.games; i++) {
-        const auto idx = current * game_config_.games + i;
+        const auto idx = current * game_config_.games + (i + 1);
 
         output_->startGame(configs.first.name, configs.second.name, idx, game_config_.rounds * 2);
         const auto [success, result, reason] = playGame(configs, opening, idx);

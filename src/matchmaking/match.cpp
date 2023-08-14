@@ -117,14 +117,6 @@ void Match::start(const EngineConfiguration& engine1_config,
     player_1.engine.startEngine();
     player_2.engine.startEngine();
 
-    if (!player_1.engine.sendUciNewGame()) {
-        throw std::runtime_error(player_1.engine.getConfig().name + " failed to start.");
-    }
-
-    if (!player_2.engine.sendUciNewGame()) {
-        throw std::runtime_error(player_2.engine.getConfig().name + " failed to start.");
-    }
-
     board_.set960(game_config_.variant == VariantType::FRC);
     board_.setFen(opening_.fen);
 
@@ -142,10 +134,6 @@ void Match::start(const EngineConfiguration& engine1_config,
     played_moves_.insert(played_moves_.end(), uci_moves.begin(), uci_moves.end());
 
     start_fen_ = board_.getFen() == STARTPOS ? "startpos" : board_.getFen();
-
-    // copy time control which will be updated later
-    player_1.time_control = player_1.engine.getConfig().limit.tc;
-    player_2.time_control = player_2.engine.getConfig().limit.tc;
 
     player_1.info.color = board_.sideToMove();
     player_2.info.color = ~board_.sideToMove();

@@ -59,6 +59,10 @@ void UciEngine::startEngine() {
     if (config_.variant == VariantType::FRC) {
         sendSetoption("UCI_Chess960", "true");
     }
+
+    if (!sendUciNewGame()) {
+        throw std::runtime_error(config_.name + " failed to start.");
+    }
 }
 
 std::vector<std::string> UciEngine::readEngine(std::string_view last_word,

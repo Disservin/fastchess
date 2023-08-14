@@ -9,6 +9,9 @@ class Participant {
    public:
     explicit Participant(const EngineConfiguration &config) : engine(config) {
         info.config = config;
+
+        // copy time control which will be updated later
+        time_control = engine.getConfig().limit.tc;
     }
 
     /// @brief the timeout threshol for the read engine command, actual time verification will be

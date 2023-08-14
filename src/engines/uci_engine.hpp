@@ -42,8 +42,7 @@ class UciEngine : private Communication::Process {
     /// @param last_word
     /// @param timeout_threshold
     /// @return
-    std::vector<std::string> readEngine(std::string_view last_word,
-                                        int64_t timeout_threshold = ping_time_);
+    void readEngine(std::string_view last_word, int64_t timeout_threshold = ping_time_);
     /// @brief Writes the input to the engine. May throw if the write fails.
     /// @param input
     void writeEngine(const std::string &input);

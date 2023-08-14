@@ -65,13 +65,9 @@ void UciEngine::startEngine() {
     }
 }
 
-std::vector<std::string> UciEngine::readEngine(std::string_view last_word,
-                                               int64_t timeout_threshold) {
+void UciEngine::readEngine(std::string_view last_word, int64_t timeout_threshold) {
     try {
-        output_.clear();
-        output_ = readProcess(last_word, timeout_threshold);
-
-        return output_;
+        readProcess(output_, last_word, timeout_threshold);
     } catch (const std::exception &e) {
         Logger::cout("Raised Exception in readProcess\nWarning; Engine", config_.name,
                      "disconnects");

@@ -198,7 +198,7 @@ bool Match::playMove(Participant& us, Participant& opponent) {
     us.engine.writeEngine(us.buildGoInput(board_.sideToMove(), opponent.time_control));
 
     const auto t0 = clock::now();
-    const auto output = us.engine.readEngine("bestmove", us.getTimeoutThreshold());
+    us.engine.readEngine("bestmove", us.getTimeoutThreshold());
     const auto t1 = clock::now();
 
     const auto elapsed_millis = chrono::duration_cast<chrono::milliseconds>(t1 - t0).count();

@@ -64,8 +64,8 @@ class IProcess {
 
    protected:
     // Read engine's stdout until the line matches last_word or timeout is reached
-    virtual std::vector<std::string> readProcess(std::string_view last_word,
-                                                 int64_t timeout_threshold) = 0;
+    virtual void readProcess(std::vector<std::string> &lines, std::string_view last_word,
+                             int64_t timeout_threshold) = 0;
 
     // Write input to the engine's stdin
     virtual void writeProcess(const std::string &input) = 0;
@@ -140,11 +140,11 @@ class Process : public IProcess {
     }
 
    protected:
-    std::vector<std::string> readProcess(std::string_view last_word,
-                                         int64_t timeout_threshold) override {
+    void readProcess(std::vector<std::string> &lines, std::string_view last_word,
+                     int64_t timeout_threshold) override {
         assert(is_initalized_);
 
-        std::vector<std::string> lines;
+        lines.clear();
         lines.reserve(30);
 
         std::string currentLine;
@@ -203,7 +203,7 @@ class Process : public IProcess {
                         lines.emplace_back(currentLine);
 
                         if (currentLine.rfind(last_word, 0) == 0) {
-                            return lines;
+                            return;
                         }
 
                         currentLine = "";
@@ -216,7 +216,7 @@ class Process : public IProcess {
             }
         }
 
-        return lines;
+        return;
     }
 
     void writeProcess(const std::string &input) override {
@@ -329,14 +329,14 @@ class Process : public IProcess {
     }
 
    protected:
-    std::vector<std::string> readProcess(std::string_view last_word,
-                                         int64_t timeout_threshold) override {
+    void readProcess(std::vector<std::string> &lines, std::string_view last_word,
+                     int64_t timeout_threshold) override {
         assert(is_initalized_);
 
         // Disable blocking
         fcntl(in_pipe_[0], F_SETFL, fcntl(in_pipe_[0], F_GETFL) | O_NONBLOCK);
 
-        std::vector<std::string> lines;
+        lines.clear();
         lines.reserve(30);
 
         std::string currentLine;
@@ -386,7 +386,7 @@ class Process : public IProcess {
                                                      log_name_);
                             lines.emplace_back(currentLine);
                             if (currentLine.rfind(last_word, 0) == 0) {
-                                return lines;
+                                return;
                             }
                             currentLine = "";
                         }
@@ -398,7 +398,7 @@ class Process : public IProcess {
                 }
             }
         }
-        return lines;
+        return;
     }
 
     void writeProcess(const std::string &input) override {

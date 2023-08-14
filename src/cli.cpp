@@ -12,7 +12,7 @@ using json = nlohmann::json;
 namespace EngineParser {
 TimeControl parseTc(const std::string &tcString) {
     if (tcString == "infinite" || tcString == "inf") {
-        return TimeControl{.time = 0};
+        return {};
     }
 
     TimeControl tc;

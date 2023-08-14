@@ -26,7 +26,7 @@ BOOL WINAPI consoleHandler(DWORD signal) {
             Tour->stop();
             Options->saveJson(Tour->getResults());
             std::cout << "Saved results" << std::endl;
-            exit(0);
+            std::exit(0);
         default:
             break;
     }
@@ -39,7 +39,7 @@ void sigintHandler(int param) {
     Options->saveJson(Tour->getResults());
     std::cout << "Saved results" << std::endl;
 
-    exit(param);
+    std::exit(param);
 }
 #endif
 

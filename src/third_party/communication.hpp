@@ -104,8 +104,12 @@ class Process : public IProcess {
         SetHandleInformation(childStdInWr, HANDLE_FLAG_INHERIT, 0);
         si.hStdInput = childStdInRd;
 
-        CreateProcessA(nullptr, const_cast<char *>(command.c_str()), nullptr, nullptr, TRUE, 0,
-                       nullptr, nullptr, &si, &pi_);
+        /*
+        CREATE_NEW_PROCESS_GROUP flag is important here to disable all CTRL+C signals for the new
+        process
+        */
+        CreateProcessA(nullptr, const_cast<char *>(command.c_str()), nullptr, nullptr, TRUE,
+                       CREATE_NEW_PROCESS_GROUP, nullptr, nullptr, &si, &pi_);
 
         CloseHandle(childStdOutWr);
         CloseHandle(childStdInRd);
@@ -278,6 +282,9 @@ class Process : public IProcess {
 
         // If this is the child process, set up the pipes and start the engine
         if (forkPid == 0) {
+            // Ignore signals, because the main process takes care of them
+            signal(SIGINT, SIG_IGN);
+
             // Redirect the child's standard input to the read end of the output pipe
             if (dup2(out_pipe_[0], 0) == -1)
                 throw std::runtime_error("Failed to duplicate outpipe");

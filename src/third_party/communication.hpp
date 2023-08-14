@@ -280,9 +280,7 @@ class Process : public IProcess {
         if (forkPid == 0) {
 
             // Ignore signals, because the main process takes care of them
-            struct sigaction sa{};
-            sa.sa_handler = SIG_IGN;
-            sigaction(SIGINT, &sa, NULL);
+            signal(SIGINT, SIG_IGN);
 
             // Redirect the child's standard input to the read end of the output pipe
             if (dup2(out_pipe_[0], 0) == -1)

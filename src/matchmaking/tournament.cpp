@@ -38,6 +38,10 @@ void Tournament::validateEngines(const std::vector<EngineConfiguration>& configs
                 throw std::runtime_error("Error: Engine with the same name are not allowed!: " +
                                          configs[i].name);
             }
+
+            if (!std::filesystem::exists(configs[i].cmd)) {
+                throw std::runtime_error("Error; Engine not found: " + configs[i].cmd);
+            }
         }
     }
 }

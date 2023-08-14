@@ -46,9 +46,6 @@ void parseEngineKeyValues(EngineConfiguration &engineConfig, const std::string &
                           const std::string &value) {
     if (key == "cmd") {
         engineConfig.cmd = value;
-        if (!std::filesystem::exists(value)) {
-            throw std::runtime_error("Error; Engine not found: " + value);
-        }
     } else if (key == "name")
         engineConfig.name = value;
     else if (key == "tc")
@@ -417,10 +414,6 @@ class Quick : public Option {
                 argument_data.configs.back().limit.tc.increment = 100;
 
                 argument_data.configs.back().recover = true;
-
-                if (!std::filesystem::exists(value)) {
-                    throw std::runtime_error("Error; Engine not found: " + value);
-                }
             } else if (key == "book") {
                 argument_data.game_options.opening.file = value;
                 argument_data.game_options.opening.order = OrderType::RANDOM;

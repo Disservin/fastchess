@@ -125,9 +125,8 @@ void Match::start(const EngineConfiguration& engine1_config,
         Board board = board_;
         std::vector<std::string> moves;
         for (const auto& move : opening_.moves) {
-            Move i_move = uci::parseSan(board, move);
-            moves.push_back(uci::moveToUci(i_move, board.chess960()));
-            board_.makeMove(i_move);
+            moves.push_back(uci::moveToUci(move, board.chess960()));
+            board_.makeMove(move);
         }
         return moves;
     }();

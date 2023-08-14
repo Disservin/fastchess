@@ -50,6 +50,11 @@ class ThreadPool {
     }
 
     void kill() {
+
+        if (stop_) {
+            return;
+        }
+
         {
             std::unique_lock<std::mutex> lock(queue_mutex_);
             stop_ = true;

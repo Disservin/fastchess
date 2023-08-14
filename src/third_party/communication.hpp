@@ -278,6 +278,12 @@ class Process : public IProcess {
 
         // If this is the child process, set up the pipes and start the engine
         if (forkPid == 0) {
+
+            // Ignore signals, because the main process takes care of them
+            struct sigaction sa;
+            sa.sa_handler = SIG_IGN;
+            sigaction(SIGINT, &sa, NULL);
+
             // Redirect the child's standard input to the read end of the output pipe
             if (dup2(out_pipe_[0], 0) == -1)
                 throw std::runtime_error("Failed to duplicate outpipe");

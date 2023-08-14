@@ -280,7 +280,7 @@ class Process : public IProcess {
         if (forkPid == 0) {
 
             // Ignore signals, because the main process takes care of them
-            struct sigaction sa;
+            struct sigaction sa{};
             sa.sa_handler = SIG_IGN;
             sigaction(SIGINT, &sa, NULL);
 

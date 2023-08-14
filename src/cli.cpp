@@ -44,9 +44,12 @@ bool isEngineSettableOption(const std::string &stringFormat) {
 
 void parseEngineKeyValues(EngineConfiguration &engineConfig, const std::string &key,
                           const std::string &value) {
-    if (key == "cmd")
+    if (key == "cmd") {
         engineConfig.cmd = value;
-    else if (key == "name")
+        if (!std::filesystem::exists(value)) {
+            throw std::runtime_error("Error; Engine not found: " + value);
+        }
+    } else if (key == "name")
         engineConfig.name = value;
     else if (key == "tc")
         engineConfig.limit.tc = parseTc(value);
@@ -415,6 +418,9 @@ class Quick : public Option {
 
                 argument_data.configs.back().recover = true;
 
+                if (!std::filesystem::exists(value)) {
+                    throw std::runtime_error("Error; Engine not found: " + value);
+                }
             } else if (key == "book") {
                 argument_data.game_options.opening.file = value;
                 argument_data.game_options.opening.order = OrderType::RANDOM;

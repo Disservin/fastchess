@@ -50,7 +50,6 @@ class ThreadPool {
     }
 
     void kill() {
-
         if (stop_) {
             return;
         }

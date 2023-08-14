@@ -30,7 +30,7 @@ void Match::verifyPv(const Participant& us) {
     for (const auto& info : us.engine.output()) {
         const auto tokens = str_utils::splitString(info, ' ');
 
-        if (!str_utils::contains(tokens, "moves")) continue;
+        if (!str_utils::contains(tokens, "pv")) continue;
 
         auto tmp = board_;
         auto it = std::find(tokens.begin(), tokens.end(), "pv");
@@ -41,6 +41,7 @@ void Match::verifyPv(const Participant& us) {
                 Logger::cout("Warning; Illegal pv move ", *it);
                 break;
             }
+            tmp.makeMove(uci::uciToMove(tmp, *it));
         }
     }
 }

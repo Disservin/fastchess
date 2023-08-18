@@ -1,14 +1,15 @@
 #pragma once
 
-#include <map>
 #include <mutex>
 #include <string>
+#include <unordered_map>
+
 
 #include <matchmaking/types/stats.hpp>
 
 namespace fast_chess {
 
-using stats_map = std::map<std::string, std::map<std::string, Stats>>;
+using stats_map = std::unordered_map<std::string, std::unordered_map<std::string, Stats>>;
 
 class Result {
    public:

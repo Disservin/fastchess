@@ -89,8 +89,8 @@ class RoundRobin {
 
     FileWriter file_writer_;
 
-    std::vector<std::string> opening_book_epd;
-    std::vector<Opening> opening_book_pgn;
+    std::vector<std::string> opening_book_epd_;
+    std::vector<Opening> opening_book_pgn_;
 
     std::atomic<uint64_t> match_count_ = 0;
     std::atomic<uint64_t> total_ = 0;

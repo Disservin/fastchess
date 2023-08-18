@@ -44,20 +44,20 @@ void RoundRobin::setupEpdOpeningBook() {
     openingFile.open(game_config_.opening.file);
 
     while (std::getline(openingFile, line)) {
-        opening_book_epd.emplace_back(line);
+        opening_book_epd_.emplace_back(line);
     }
 
     openingFile.close();
 
-    if (opening_book_epd.empty()) {
+    if (opening_book_epd_.empty()) {
         throw std::runtime_error("No openings found in EPD file: " + game_config_.opening.file);
     }
 
     if (game_config_.opening.order == OrderType::RANDOM) {
         // Fisher-Yates / Knuth shuffle
-        for (std::size_t i = 0; i <= opening_book_epd.size() - 2; i++) {
-            std::size_t j = i + (Random::mersenne_rand() % (opening_book_epd.size() - i));
-            std::swap(opening_book_epd[i], opening_book_epd[j]);
+        for (std::size_t i = 0; i <= opening_book_epd_.size() - 2; i++) {
+            std::size_t j = i + (Random::mersenne_rand() % (opening_book_epd_.size() - i));
+            std::swap(opening_book_epd_[i], opening_book_epd_[j]);
         }
     }
 }
@@ -69,17 +69,17 @@ void RoundRobin::setupPgnOpeningBook() {
     }
 
     const PgnReader pgn_reader = PgnReader(game_config_.opening.file);
-    opening_book_pgn = pgn_reader.getPgns();
+    opening_book_pgn_ = pgn_reader.getPgns();
 
-    if (opening_book_pgn.empty()) {
+    if (opening_book_pgn_.empty()) {
         throw std::runtime_error("No openings found in PGN file: " + game_config_.opening.file);
     }
 
     if (game_config_.opening.order == OrderType::RANDOM) {
         // Fisher-Yates / Knuth shuffle
-        for (std::size_t i = 0; i <= opening_book_pgn.size() - 2; i++) {
-            std::size_t j = i + (Random::mersenne_rand() % (opening_book_pgn.size() - i));
-            std::swap(opening_book_pgn[i], opening_book_pgn[j]);
+        for (std::size_t i = 0; i <= opening_book_pgn_.size() - 2; i++) {
+            std::size_t j = i + (Random::mersenne_rand() % (opening_book_pgn_.size() - i));
+            std::swap(opening_book_pgn_[i], opening_book_pgn_[j]);
         }
     }
 }
@@ -230,13 +230,13 @@ Opening RoundRobin::fetchNextOpening() {
     static uint64_t opening_index = 0;
 
     if (game_config_.opening.format == FormatType::PGN) {
-        return opening_book_pgn[(game_config_.opening.start + opening_index++) %
-                                opening_book_pgn.size()];
+        return opening_book_pgn_[(game_config_.opening.start + opening_index++) %
+                                 opening_book_pgn_.size()];
     } else if (game_config_.opening.format == FormatType::EPD) {
         Opening opening;
 
-        opening.fen = opening_book_epd[(game_config_.opening.start + opening_index++) %
-                                       opening_book_epd.size()];
+        opening.fen = opening_book_epd_[(game_config_.opening.start + opening_index++) %
+                                        opening_book_epd_.size()];
 
         return opening;
     }

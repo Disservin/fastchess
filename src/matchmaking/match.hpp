@@ -25,14 +25,19 @@ struct ResignTracker {
 
 class Match {
    public:
-    Match(const cmd::TournamentOptions& game_config, const Opening& opening, int round);
+    Match(const cmd::TournamentOptions& game_config, const Opening& opening, int round) {
+        game_config_ = game_config;
+        data_.round = round;
+
+        opening_ = opening;
+    }
 
     /// @brief starts the match
     void start(const EngineConfiguration& engine1_config,
                const EngineConfiguration& engine2_config);
 
     /// @brief returns the match data, only valid after the match has finished
-    [[nodiscard]] MatchData get() const;
+    [[nodiscard]] MatchData get() const { return data_; }
 
    private:
     void verifyPv(const Participant& us);

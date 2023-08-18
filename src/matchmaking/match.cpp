@@ -12,54 +12,11 @@ extern std::atomic_bool stop;
 }  // namespace atomic
 
 using namespace std::literals;
+
 namespace chrono = std::chrono;
 using clock = chrono::high_resolution_clock;
 
 using namespace chess;
-
-Match::Match(const cmd::TournamentOptions& game_config, const Opening& opening, int round) {
-    game_config_ = game_config;
-    data_.round = round;
-
-    opening_ = opening;
-}
-
-MatchData Match::get() const { return data_; }
-
-void Match::verifyPv(const Participant& us) {
-    for (const auto& info : us.engine.output()) {
-        const auto tokens = str_utils::splitString(info, ' ');
-
-        if (!str_utils::contains(tokens, "pv")) continue;
-
-        auto tmp = board_;
-        auto it = std::find(tokens.begin(), tokens.end(), "pv");
-        while (++it != tokens.end()) {
-            chess::Movelist moves;
-            chess::movegen::legalmoves(moves, tmp);
-            if (moves.find(uci::uciToMove(tmp, *it)) == -1) {
-                Logger::cout("Warning; Illegal pv move ", *it);
-                break;
-            }
-            tmp.makeMove(uci::uciToMove(tmp, *it));
-        }
-    }
-}
-
-void Match::setDraw(Participant& us, Participant& them) {
-    us.info.result = GameResult::DRAW;
-    them.info.result = GameResult::DRAW;
-}
-
-void Match::setWin(Participant& us, Participant& them) {
-    us.info.result = GameResult::WIN;
-    them.info.result = GameResult::LOSE;
-}
-
-void Match::setLose(Participant& us, Participant& them) {
-    us.info.result = GameResult::LOSE;
-    them.info.result = GameResult::WIN;
-}
 
 void Match::addMoveData(Participant& player, int64_t measured_time) {
     const auto best_move = player.engine.bestmove();
@@ -113,15 +70,17 @@ void Match::start(const EngineConfiguration& engine1_config,
     board_.setFen(opening_.fen);
 
     std::vector<std::string> uci_moves = [&]() {
-        Board board = board_;
         std::vector<std::string> moves;
+
         for (const auto& move : opening_.moves) {
-            moves.push_back(uci::moveToUci(move, board.chess960()));
+            moves.push_back(uci::moveToUci(move, board_.chess960()));
             board_.makeMove(move);
         }
+
         return moves;
     }();
 
+    // Add opening moves to played moves
     played_moves_.insert(played_moves_.end(), uci_moves.begin(), uci_moves.end());
 
     start_fen_ = board_.getFen() == STARTPOS ? "startpos" : board_.getFen();
@@ -173,18 +132,18 @@ bool Match::playMove(Participant& us, Participant& opponent) {
 
     if (gameover.second == GameResult::DRAW) {
         setDraw(us, opponent);
+    }
 
-        data_.reason = convertChessReason(name, gameover.first);
-
-        return false;
-    } else if (gameover.second == GameResult::LOSE) {
+    if (gameover.second == GameResult::LOSE) {
         setLose(us, opponent);
+    }
 
+    if (gameover.first == chess::GameResultReason::NONE) {
         data_.reason = convertChessReason(name, gameover.first);
-
         return false;
     }
 
+    // disconnect
     if (!us.engine.isResponsive()) {
         setLose(us, opponent);
 
@@ -203,6 +162,7 @@ bool Match::playMove(Participant& us, Participant& opponent) {
 
     const auto elapsed_millis = chrono::duration_cast<chrono::milliseconds>(t1 - t0).count();
 
+    // Time forfeit
     if (!us.updateTime(elapsed_millis)) {
         setLose(us, opponent);
 
@@ -219,6 +179,8 @@ bool Match::playMove(Participant& us, Participant& opponent) {
 
     chess::Movelist moves;
     chess::movegen::legalmoves(moves, board_);
+
+    // Illegal move
     if (moves.find(move) == -1) {
         setLose(us, opponent);
 
@@ -240,6 +202,41 @@ bool Match::playMove(Participant& us, Participant& opponent) {
     board_.makeMove(move);
 
     return !adjudicate(us, opponent);
+}
+
+void Match::verifyPv(const Participant& us) {
+    for (const auto& info : us.engine.output()) {
+        const auto tokens = str_utils::splitString(info, ' ');
+
+        if (!str_utils::contains(tokens, "pv")) continue;
+
+        auto tmp = board_;
+        auto it = std::find(tokens.begin(), tokens.end(), "pv");
+        while (++it != tokens.end()) {
+            chess::Movelist moves;
+            chess::movegen::legalmoves(moves, tmp);
+            if (moves.find(uci::uciToMove(tmp, *it)) == -1) {
+                Logger::cout("Warning; Illegal pv move ", *it);
+                break;
+            }
+            tmp.makeMove(uci::uciToMove(tmp, *it));
+        }
+    }
+}
+
+void Match::setDraw(Participant& us, Participant& them) {
+    us.info.result = GameResult::DRAW;
+    them.info.result = GameResult::DRAW;
+}
+
+void Match::setWin(Participant& us, Participant& them) {
+    us.info.result = GameResult::WIN;
+    them.info.result = GameResult::LOSE;
+}
+
+void Match::setLose(Participant& us, Participant& them) {
+    us.info.result = GameResult::LOSE;
+    them.info.result = GameResult::WIN;
 }
 
 void Match::updateDrawTracker(const Participant& player) {
@@ -269,22 +266,29 @@ bool Match::adjudicate(Participant& us, Participant& them) {
 
         data_.termination = MatchTermination::ADJUDICATION;
         data_.reason = Match::ADJUDICATION_MSG;
+
         return true;
-    } else if (game_config_.resign.enabled &&
-               resign_tracker_.resign_moves >= game_config_.resign.move_count) {
+    }
+
+    if (game_config_.resign.enabled &&
+        resign_tracker_.resign_moves >= game_config_.resign.move_count) {
+        data_.reason = us.engine.getConfig().name;
+
         if (us.engine.lastScore() < game_config_.resign.score) {
             setLose(us, them);
 
             data_.termination = MatchTermination::ADJUDICATION;
-            data_.reason = us.engine.getConfig().name + Match::ADJUDICATION_LOSE_MSG;
+            data_.reason += Match::ADJUDICATION_LOSE_MSG;
         } else {
             setWin(us, them);
 
             data_.termination = MatchTermination::ADJUDICATION;
-            data_.reason = us.engine.getConfig().name + Match::ADJUDICATION_WIN_MSG;
+            data_.reason += Match::ADJUDICATION_WIN_MSG;
         }
+
         return true;
     }
+
     return false;
 }
 

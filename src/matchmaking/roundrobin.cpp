@@ -205,11 +205,11 @@ std::tuple<bool, Stats, std::string> RoundRobin::playGame(
     const auto pgn_builder = PgnBuilder(match_data, game_config_);
 
     // If the game was stopped, don't write the PGN
-    if (match_data.termination != "stop") {
+    if (match_data.termination != MatchTermination::INTERRUPT) {
         file_writer_.write(pgn_builder.get());
     }
 
-    return {true, updateStats(match_data), match_data.internal_reason};
+    return {true, updateStats(match_data), match_data.reason};
 }
 
 Stats RoundRobin::updateStats(const MatchData& match_data) {

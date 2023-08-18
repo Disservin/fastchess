@@ -37,12 +37,9 @@ class Match {
    private:
     void verifyPv(const Participant& us);
 
-    void setDraw(Participant& us, Participant& them, const std::string& msg,
-                 const std::string& reason);
-    void setWin(Participant& us, Participant& them, const std::string& msg,
-                const std::string& reason);
-    void setLose(Participant& us, Participant& them, const std::string& msg,
-                 const std::string& reason);
+    void setDraw(Participant& us, Participant& them);
+    void setWin(Participant& us, Participant& them);
+    void setLose(Participant& us, Participant& them);
 
     /// @brief append the move data to the match data
     /// @param player

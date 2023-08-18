@@ -62,6 +62,8 @@ class PgnBuilder {
 
     [[nodiscard]] static std::string getResultFromMatch(const MatchData &match);
 
+    [[nodiscard]] static std::string convertMatchTermination(const MatchTermination &res);
+
     MatchData match_;
     cmd::TournamentOptions game_options_;
 

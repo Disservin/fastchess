@@ -30,18 +30,31 @@ struct MoveData {
           score(_score) {}
 };
 
+enum class MatchTermination {
+    ADJUDICATION,
+    TIMEOUT,
+    DISCONNECT,
+    ILLEGAL_MOVE,
+    INTERRUPT,
+    None,
+};
+
 struct MatchData {
     std::vector<MoveData> moves;
     std::pair<PlayerInfo, PlayerInfo> players;
-    std::string termination;
     std::string start_time;
     std::string end_time;
     std::string duration;
     std::string date;
     std::string fen;
 
-    // internal reason why the game ended
-    std::string internal_reason;
+    // This is the reason why the game ended.
+    // It will be used for the PGN Header.
+    MatchTermination termination = MatchTermination::None;
+
+    // This reason will be printed on the console and will be written to the
+    // pgn file as a comment at the end of the game.
+    std::string reason;
 
     int round = 0;
     bool needs_restart = false;

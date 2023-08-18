@@ -46,26 +46,17 @@ void Match::verifyPv(const Participant& us) {
     }
 }
 
-void Match::setDraw(Participant& us, Participant& them, const std::string& msg,
-                    const std::string& reason) {
-    data_.internal_reason = reason;
-    data_.termination = msg;
+void Match::setDraw(Participant& us, Participant& them) {
     us.info.result = GameResult::DRAW;
     them.info.result = GameResult::DRAW;
 }
 
-void Match::setWin(Participant& us, Participant& them, const std::string& msg,
-                   const std::string& reason) {
-    data_.internal_reason = reason;
-    data_.termination = msg;
+void Match::setWin(Participant& us, Participant& them) {
     us.info.result = GameResult::WIN;
     them.info.result = GameResult::LOSE;
 }
 
-void Match::setLose(Participant& us, Participant& them, const std::string& msg,
-                    const std::string& reason) {
-    data_.internal_reason = reason;
-    data_.termination = msg;
+void Match::setLose(Participant& us, Participant& them) {
     us.info.result = GameResult::LOSE;
     them.info.result = GameResult::WIN;
 }
@@ -147,14 +138,14 @@ void Match::start(const EngineConfiguration& engine1_config,
     try {
         while (true) {
             if (atomic::stop.load()) {
-                data_.termination = "stop";
+                data_.termination = MatchTermination::INTERRUPT;
                 break;
             }
 
             if (!playMove(player_1, player_2)) break;
 
             if (atomic::stop.load()) {
-                data_.termination = "stop";
+                data_.termination = MatchTermination::INTERRUPT;
                 break;
             }
 
@@ -181,15 +172,25 @@ bool Match::playMove(Participant& us, Participant& opponent) {
     const auto name = us.engine.getConfig().name;
 
     if (gameover.second == GameResult::DRAW) {
-        setDraw(us, opponent, "", convertChessReason(name, gameover.first));
+        setDraw(us, opponent);
+
+        data_.reason = convertChessReason(name, gameover.first);
+
         return false;
     } else if (gameover.second == GameResult::LOSE) {
-        setLose(us, opponent, "", convertChessReason(name, gameover.first));
+        setLose(us, opponent);
+
+        data_.reason = convertChessReason(name, gameover.first);
+
         return false;
     }
 
     if (!us.engine.isResponsive()) {
-        setLose(us, opponent, "disconnects", name + Match::DISCONNECT_MSG);
+        setLose(us, opponent);
+
+        data_.termination = MatchTermination::DISCONNECT;
+        data_.reason = name + Match::DISCONNECT_MSG;
+
         return false;
     }
 
@@ -203,7 +204,10 @@ bool Match::playMove(Participant& us, Participant& opponent) {
     const auto elapsed_millis = chrono::duration_cast<chrono::milliseconds>(t1 - t0).count();
 
     if (!us.updateTime(elapsed_millis)) {
-        setLose(us, opponent, "timeout", name + Match::TIMEOUT_MSG);
+        setLose(us, opponent);
+
+        data_.termination = MatchTermination::TIMEOUT;
+        data_.reason = name + Match::TIMEOUT_MSG;
 
         Logger::cout("Warning; Engine", name, "loses on time");
 
@@ -216,7 +220,10 @@ bool Match::playMove(Participant& us, Participant& opponent) {
     chess::Movelist moves;
     chess::movegen::legalmoves(moves, board_);
     if (moves.find(move) == -1) {
-        setLose(us, opponent, "illegal move", name + Match::ILLEGAL_MSG);
+        setLose(us, opponent);
+
+        data_.termination = MatchTermination::ILLEGAL_MOVE;
+        data_.reason = name + Match::ILLEGAL_MSG;
 
         Logger::cout("Warning; Illegal move", best_move, "played by", name);
 
@@ -258,16 +265,23 @@ void Match::updateResignTracker(const Participant& player) {
 
 bool Match::adjudicate(Participant& us, Participant& them) {
     if (game_config_.draw.enabled && draw_tracker_.draw_moves >= game_config_.draw.move_count) {
-        setDraw(us, them, "adjudication", Match::ADJUDICATION_MSG);
+        setDraw(us, them);
+
+        data_.termination = MatchTermination::ADJUDICATION;
+        data_.reason = Match::ADJUDICATION_MSG;
         return true;
     } else if (game_config_.resign.enabled &&
                resign_tracker_.resign_moves >= game_config_.resign.move_count) {
         if (us.engine.lastScore() < game_config_.resign.score) {
-            setLose(us, them, "resign adjudication",
-                    us.engine.getConfig().name + Match::ADJUDICATION_LOSE_MSG);
+            setLose(us, them);
+
+            data_.termination = MatchTermination::ADJUDICATION;
+            data_.reason = us.engine.getConfig().name + Match::ADJUDICATION_LOSE_MSG;
         } else {
-            setWin(us, them, "resign adjudication",
-                   us.engine.getConfig().name + Match::ADJUDICATION_WIN_MSG);
+            setWin(us, them);
+
+            data_.termination = MatchTermination::ADJUDICATION;
+            data_.reason = us.engine.getConfig().name + Match::ADJUDICATION_WIN_MSG;
         }
         return true;
     }

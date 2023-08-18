@@ -32,15 +32,15 @@ PgnBuilder::PgnBuilder(const MatchData &match, const cmd::TournamentOptions &gam
     addHeader("GameStartTime", match_.start_time);
     addHeader("GameEndTime", match_.end_time);
     addHeader("PlyCount", std::to_string(match_.moves.size()));
-    addHeader("Termination", match_.termination);
+    addHeader("Termination", convertMatchTermination(match_.termination));
     addHeader("TimeControl", white_player.config.limit.tc);
 
     chess::Board board = chess::Board(match_.fen);
     std::size_t move_number = 0;
 
     while (move_number < match_.moves.size()) {
-        const auto illegal =
-            match_.termination == "illegal move" && move_number == match_.moves.size() - 1;
+        const auto illegal = match_.termination == MatchTermination::ILLEGAL_MOVE &&
+                             move_number == match_.moves.size() - 1;
 
         const auto move = match_.moves[move_number];
 
@@ -101,7 +101,7 @@ void PgnBuilder::addMove(chess::Board &board, const MoveData &move, std::size_t 
         game_options_.pgn.track_nodes ? "nodes," + std::to_string(move.nodes) : "",
         game_options_.pgn.track_seldepth ? "seldepth, " + std::to_string(move.seldepth) : "",
         game_options_.pgn.track_nps ? "nps, " + std::to_string(move.nps) : "",
-        match_.moves.size() == move_number ? match_.internal_reason : "");
+        match_.moves.size() == move_number ? match_.reason : "");
 
     moves_.emplace_back(ss.str());
 }
@@ -113,6 +113,21 @@ std::string PgnBuilder::getResultFromMatch(const MatchData &match) {
         return "0-1";
     } else {
         return "1/2-1/2";
+    }
+}
+
+std::string PgnBuilder::convertMatchTermination(const MatchTermination &res) {
+    switch (res) {
+        case MatchTermination::ADJUDICATION:
+            return "adjudication";
+        case MatchTermination::TIMEOUT:
+            return "time forfeit";
+        case MatchTermination::ILLEGAL_MOVE:
+            return "illegal move";
+        case MatchTermination::INTERRUPT:
+            return "unterminated";
+        default:
+            return "";
     }
 }
 

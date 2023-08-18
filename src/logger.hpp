@@ -23,7 +23,7 @@ class Logger {
 
     void operator=(Logger const &) = delete;
 
-    /// @brief thread safe cout
+    /// @brief Thread safe cout
     /// @tparam First
     /// @tparam ...Args
     /// @param first
@@ -37,7 +37,7 @@ class Logger {
         std::cout << ss.str();
     }
 
-    /// @brief thread safe cout
+    /// @brief Thread safe debug cout, will only print if NDEBUG is not defined
     /// @tparam First
     /// @tparam ...Args
     /// @param first

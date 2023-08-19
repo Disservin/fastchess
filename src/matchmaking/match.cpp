@@ -138,7 +138,7 @@ bool Match::playMove(Participant& us, Participant& opponent) {
         setLose(us, opponent);
     }
 
-    if (gameover.first == chess::GameResultReason::NONE) {
+    if (gameover.first != chess::GameResultReason::NONE) {
         data_.reason = convertChessReason(name, gameover.first);
         return false;
     }

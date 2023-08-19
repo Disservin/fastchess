@@ -37,12 +37,12 @@ class UciEngine : private Communication::Process {
     /// @brief Creates a new process and starts the engine.
     void startEngine();
 
-    /// @brief Reads from the engine until the last_word is found or the timeout_threshold is
+    /// @brief Reads from the engine until the last_word is found or the threshold_ms is
     /// reached. May throw if the read fails.
     /// @param last_word
-    /// @param timeout_threshold
+    /// @param threshold_ms 0 means no timeout.
     /// @return
-    void readEngine(std::string_view last_word, int64_t timeout_threshold = ping_time_);
+    void readEngine(std::string_view last_word, int64_t threshold_ms = ping_time_);
     /// @brief Writes the input to the engine. May throw if the write fails.
     /// @param input
     void writeEngine(const std::string &input);

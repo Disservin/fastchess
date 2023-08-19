@@ -10,21 +10,21 @@ Tournament::Tournament(const cmd::TournamentOptions& game_config) : round_robin_
 }
 
 void Tournament::loadConfig(const cmd::TournamentOptions& game_config) {
-    game_config_ = game_config;
+    tournament_options_ = game_config;
 
-    if (game_config_.games > 2) {
+    if (tournament_options_.games > 2) {
         // wrong config, lets try to fix it
-        std::swap(game_config_.games, game_config_.rounds);
+        std::swap(tournament_options_.games, tournament_options_.rounds);
 
-        if (game_config_.games > 2) {
+        if (tournament_options_.games > 2) {
             throw std::runtime_error("Error: Exceeded -game limit! Must be less than 2");
         }
     }
 
     if (game_config.report_penta && game_config.output == OutputType::CUTECHESS)
-        game_config_.report_penta = false;
+        tournament_options_.report_penta = false;
 
-    round_robin_.setGameConfig(game_config_);
+    round_robin_.setGameConfig(tournament_options_);
 }
 
 void Tournament::validateEngines(const std::vector<EngineConfiguration>& configs) {

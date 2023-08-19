@@ -10,7 +10,7 @@
 namespace fast_chess {
 
 RoundRobin::RoundRobin(const cmd::TournamentOptions& game_config)
-    : output_(getNewOutput(game_config.output)), game_config_(game_config) {
+    : output_(getNewOutput(game_config.output)), tournament_options_(game_config) {
     auto filename = (game_config.pgn.file.empty() ? "fast-chess" : game_config.pgn.file);
 
     if (game_config.output == OutputType::FASTCHESS) {
@@ -23,25 +23,26 @@ RoundRobin::RoundRobin(const cmd::TournamentOptions& game_config)
     setupPgnOpeningBook();
 
     // Resize the thread pool
-    pool_.resize(game_config_.concurrency);
+    pool_.resize(tournament_options_.concurrency);
 
     // Initialize the SPRT test
-    sprt_ = SPRT(game_config_.sprt.alpha, game_config_.sprt.beta, game_config_.sprt.elo0,
-                 game_config_.sprt.elo1);
+    sprt_ = SPRT(tournament_options_.sprt.alpha, tournament_options_.sprt.beta,
+                 tournament_options_.sprt.elo0, tournament_options_.sprt.elo1);
 }
 
 void RoundRobin::setupEpdOpeningBook() {
     // Set the seed for the random number generator
-    Random::mersenne_rand.seed(game_config_.seed);
+    Random::mersenne_rand.seed(tournament_options_.seed);
 
-    if (game_config_.opening.file.empty() || game_config_.opening.format != FormatType::EPD) {
+    if (tournament_options_.opening.file.empty() ||
+        tournament_options_.opening.format != FormatType::EPD) {
         return;
     }
 
     // Read the opening book from file
     std::ifstream openingFile;
     std::string line;
-    openingFile.open(game_config_.opening.file);
+    openingFile.open(tournament_options_.opening.file);
 
     while (std::getline(openingFile, line)) {
         opening_book_epd_.emplace_back(line);
@@ -50,10 +51,11 @@ void RoundRobin::setupEpdOpeningBook() {
     openingFile.close();
 
     if (opening_book_epd_.empty()) {
-        throw std::runtime_error("No openings found in EPD file: " + game_config_.opening.file);
+        throw std::runtime_error("No openings found in EPD file: " +
+                                 tournament_options_.opening.file);
     }
 
-    if (game_config_.opening.order == OrderType::RANDOM) {
+    if (tournament_options_.opening.order == OrderType::RANDOM) {
         // Fisher-Yates / Knuth shuffle
         for (std::size_t i = 0; i <= opening_book_epd_.size() - 2; i++) {
             std::size_t j = i + (Random::mersenne_rand() % (opening_book_epd_.size() - i));
@@ -64,18 +66,20 @@ void RoundRobin::setupEpdOpeningBook() {
 
 void RoundRobin::setupPgnOpeningBook() {
     // Read the opening book from file
-    if (game_config_.opening.file.empty() || game_config_.opening.format != FormatType::PGN) {
+    if (tournament_options_.opening.file.empty() ||
+        tournament_options_.opening.format != FormatType::PGN) {
         return;
     }
 
-    const PgnReader pgn_reader = PgnReader(game_config_.opening.file);
+    const PgnReader pgn_reader = PgnReader(tournament_options_.opening.file);
     opening_book_pgn_ = pgn_reader.getPgns();
 
     if (opening_book_pgn_.empty()) {
-        throw std::runtime_error("No openings found in PGN file: " + game_config_.opening.file);
+        throw std::runtime_error("No openings found in PGN file: " +
+                                 tournament_options_.opening.file);
     }
 
-    if (game_config_.opening.order == OrderType::RANDOM) {
+    if (tournament_options_.opening.order == OrderType::RANDOM) {
         // Fisher-Yates / Knuth shuffle
         for (std::size_t i = 0; i <= opening_book_pgn_.size() - 2; i++) {
             std::size_t j = i + (Random::mersenne_rand() % (opening_book_pgn_.size() - i));
@@ -95,12 +99,12 @@ void RoundRobin::start(const std::vector<EngineConfiguration>& engine_configs) {
 }
 
 void RoundRobin::create(const std::vector<EngineConfiguration>& engine_configs) {
-    total_ = (engine_configs.size() * (engine_configs.size() - 1) / 2) * game_config_.rounds *
-             game_config_.games;
+    total_ = (engine_configs.size() * (engine_configs.size() - 1) / 2) *
+             tournament_options_.rounds * tournament_options_.games;
 
     for (std::size_t i = 0; i < engine_configs.size(); i++) {
         for (std::size_t j = i + 1; j < engine_configs.size(); j++) {
-            for (int k = 0; k < game_config_.rounds; k++) {
+            for (int k = 0; k < tournament_options_.rounds; k++) {
                 pool_.enqueue(&RoundRobin::createPairings, this, engine_configs[i],
                               engine_configs[j], k);
             }
@@ -128,24 +132,25 @@ void RoundRobin::createPairings(const EngineConfiguration& player1,
     std::pair<EngineConfiguration, EngineConfiguration> configs = {player1, player2};
 
     // Swap the players randomly when using Cutechess
-    if (Random::boolean() && game_config_.output == OutputType::CUTECHESS) {
+    if (Random::boolean() && tournament_options_.output == OutputType::CUTECHESS) {
         std::swap(configs.first, configs.second);
     }
 
     const auto opening = fetchNextOpening();
 
     Stats stats;
-    for (int i = 0; i < game_config_.games; i++) {
-        const auto idx = current * game_config_.games + (i + 1);
+    for (int i = 0; i < tournament_options_.games; i++) {
+        const auto idx = current * tournament_options_.games + (i + 1);
 
-        output_->startGame(configs.first.name, configs.second.name, idx, game_config_.rounds * 2);
+        output_->startGame(configs.first.name, configs.second.name, idx,
+                           tournament_options_.rounds * 2);
         const auto [success, result, reason] = playGame(configs, opening, idx);
         output_->endGame(result, configs.first.name, configs.second.name, reason, idx);
 
         if (atomic::stop) return;
 
         // If the game failed to start, try again
-        if (!success && game_config_.recover) {
+        if (!success && tournament_options_.recover) {
             i--;
             continue;
         }
@@ -160,7 +165,7 @@ void RoundRobin::createPairings(const EngineConfiguration& player1,
 
         match_count_++;
 
-        if (!game_config_.report_penta) {
+        if (!tournament_options_.report_penta) {
             result_.updateStats(configs.first.name, configs.second.name, result);
             output_->printInterval(sprt_, result_.getStats(player1.name, player2.name),
                                    player1.name, player2.name, match_count_);
@@ -170,7 +175,7 @@ void RoundRobin::createPairings(const EngineConfiguration& player1,
     }
 
     // track penta stats
-    if (game_config_.report_penta) {
+    if (tournament_options_.report_penta) {
         stats.penta_WW += stats.wins == 2;
         stats.penta_WD += stats.wins == 1 && stats.draws == 1;
         stats.penta_WL += stats.wins == 1 && stats.losses == 1;
@@ -191,7 +196,7 @@ void RoundRobin::createPairings(const EngineConfiguration& player1,
 std::tuple<bool, Stats, std::string> RoundRobin::playGame(
     const std::pair<EngineConfiguration, EngineConfiguration>& configs, const Opening& opening,
     int round_id) {
-    auto match = Match(game_config_, opening, round_id);
+    auto match = Match(tournament_options_, opening, round_id);
 
     try {
         match.start(configs.first, configs.second);
@@ -202,7 +207,7 @@ std::tuple<bool, Stats, std::string> RoundRobin::playGame(
 
     const auto match_data = match.get();
 
-    const auto pgn_builder = PgnBuilder(match_data, game_config_);
+    const auto pgn_builder = PgnBuilder(match_data, tournament_options_);
 
     // If the game was stopped, don't write the PGN
     if (match_data.termination != MatchTermination::INTERRUPT) {
@@ -229,19 +234,19 @@ Stats RoundRobin::updateStats(const MatchData& match_data) {
 Opening RoundRobin::fetchNextOpening() {
     static uint64_t opening_index = 0;
 
-    if (game_config_.opening.format == FormatType::PGN) {
-        return opening_book_pgn_[(game_config_.opening.start + opening_index++) %
+    if (tournament_options_.opening.format == FormatType::PGN) {
+        return opening_book_pgn_[(tournament_options_.opening.start + opening_index++) %
                                  opening_book_pgn_.size()];
-    } else if (game_config_.opening.format == FormatType::EPD) {
+    } else if (tournament_options_.opening.format == FormatType::EPD) {
         Opening opening;
 
-        opening.fen = opening_book_epd_[(game_config_.opening.start + opening_index++) %
+        opening.fen = opening_book_epd_[(tournament_options_.opening.start + opening_index++) %
                                         opening_book_epd_.size()];
 
         return opening;
     }
 
-    Logger::cout("Unknown opening format: " + int(game_config_.opening.format));
+    Logger::cout("Unknown opening format: " + int(tournament_options_.opening.format));
 
     return {chess::STARTPOS, {}};
 }

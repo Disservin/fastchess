@@ -34,7 +34,9 @@ class RoundRobin {
     [[nodiscard]] stats_map getResults() { return result_.getResults(); }
     void setResults(const stats_map &results) { result_.setResults(results); }
 
-    void setGameConfig(const cmd::TournamentOptions &game_config) { game_config_ = game_config; }
+    void setGameConfig(const cmd::TournamentOptions &game_config) {
+        tournament_options_ = game_config;
+    }
 
    private:
     /// @brief load a pgn opening book
@@ -79,7 +81,7 @@ class RoundRobin {
 
     std::unique_ptr<IOutput> output_;
 
-    cmd::TournamentOptions game_config_ = {};
+    cmd::TournamentOptions tournament_options_ = {};
 
     ThreadPool pool_ = ThreadPool(1);
 

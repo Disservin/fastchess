@@ -54,18 +54,22 @@ class IProcess {
    public:
     virtual ~IProcess() = default;
 
-    // Initialize the engine process
+    // Initialize the process
     virtual void initProcess(const std::string &command, const std::string &log_name) = 0;
 
-    // Returns true if the engine process is alive
+    /// @brief Returns true if the process is alive
+    /// @return
     virtual bool isAlive() = 0;
 
     bool timeout() const { return timeout_; }
 
    protected:
-    // Read engine's stdout until the line matches last_word or timeout is reached
+    /// @brief Read stdout until the line matches last_word or timeout is reached
+    /// @param lines
+    /// @param last_word
+    /// @param threshold_ms 0 means no timeout
     virtual void readProcess(std::vector<std::string> &lines, std::string_view last_word,
-                             int64_t timeout_threshold) = 0;
+                             int64_t threshold_ms) = 0;
 
     // Write input to the engine's stdin
     virtual void writeProcess(const std::string &input) = 0;
@@ -144,8 +148,12 @@ class Process : public IProcess {
     }
 
    protected:
+    /// @brief Read stdout until the line matches last_word or timeout is reached
+    /// @param lines
+    /// @param last_word
+    /// @param threshold_ms 0 means no timeout
     void readProcess(std::vector<std::string> &lines, std::string_view last_word,
-                     int64_t timeout_threshold) override {
+                     int64_t threshold_ms) override {
         assert(is_initalized_);
 
         lines.clear();
@@ -166,12 +174,12 @@ class Process : public IProcess {
 
         while (true) {
             // Check if timeout milliseconds have elapsed
-            if (timeout_threshold > 0 && checkTime-- == 0) {
+            if (threshold_ms > 0 && checkTime-- == 0) {
                 /* To achieve "non blocking" file reading on windows with anonymous pipes the only
                 solution that I found was using peeknamedpipe however it turns out this function is
                 terribly slow and leads to timeouts for the engines. Checking this only after n runs
                 seems to reduce the impact of this. For high concurrency windows setups
-                timeout_threshold should probably be 0. Using the assumption that the engine works
+                threshold_ms should probably be 0. Using the assumption that the engine works
                 rather clean and is able to send the last word.*/
                 if (!PeekNamedPipe(child_std_out_, nullptr, 0, nullptr, &bytesAvail, nullptr)) {
                     break;
@@ -179,7 +187,7 @@ class Process : public IProcess {
 
                 if (std::chrono::duration_cast<std::chrono::milliseconds>(
                         std::chrono::high_resolution_clock::now() - start)
-                        .count() > timeout_threshold) {
+                        .count() > threshold_ms) {
                     lines.emplace_back(currentLine);
                     timeout_ = true;
                     break;
@@ -189,7 +197,7 @@ class Process : public IProcess {
             }
 
             // no new bytes to read
-            if (timeout_threshold > 0 && bytesAvail == 0) continue;
+            if (threshold_ms > 0 && bytesAvail == 0) continue;
 
             if (!ReadFile(child_std_out_, buffer, sizeof(buffer), &bytesRead, nullptr)) {
                 break;
@@ -336,8 +344,12 @@ class Process : public IProcess {
     }
 
    protected:
+    /// @brief Read stdout until the line matches last_word or timeout is reached
+    /// @param lines
+    /// @param last_word
+    /// @param threshold_ms 0 means no timeout
     void readProcess(std::vector<std::string> &lines, std::string_view last_word,
-                     int64_t timeout_threshold) override {
+                     int64_t threshold_ms) override {
         assert(is_initalized_);
 
         // Disable blocking
@@ -357,7 +369,7 @@ class Process : public IProcess {
         pollfds[0].events = POLLIN;
 
         // Set up the timeout for poll
-        int timeoutMillis = timeout_threshold;
+        int timeoutMillis = threshold_ms;
         if (timeoutMillis <= 0) {
             timeoutMillis = -1;  // wait indefinitely
         }

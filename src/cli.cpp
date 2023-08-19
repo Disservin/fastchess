@@ -101,20 +101,20 @@ class Pgnout : public Option {
         try {
             parseDashOptions(i, argc, argv, [&](const std::string &key, const std::string &value) {
                 if (key == "file") {
-                    argument_data.game_options.pgn.file = value;
+                    argument_data.tournament_options.pgn.file = value;
                 } else if (key == "nodes") {
-                    argument_data.game_options.pgn.track_nodes = true;
+                    argument_data.tournament_options.pgn.track_nodes = true;
                 } else if (key == "seldepth") {
-                    argument_data.game_options.pgn.track_seldepth = true;
+                    argument_data.tournament_options.pgn.track_seldepth = true;
                 } else if (key == "nps") {
-                    argument_data.game_options.pgn.track_nps = true;
+                    argument_data.tournament_options.pgn.track_nps = true;
                 } else if (key == "notation") {
                     if (value == "san") {
-                        argument_data.game_options.pgn.notation = NotationType::SAN;
+                        argument_data.tournament_options.pgn.notation = NotationType::SAN;
                     } else if (value == "lan") {
-                        argument_data.game_options.pgn.notation = NotationType::LAN;
+                        argument_data.tournament_options.pgn.notation = NotationType::LAN;
                     } else if (value == "uci") {
-                        argument_data.game_options.pgn.notation = NotationType::UCI;
+                        argument_data.tournament_options.pgn.notation = NotationType::UCI;
                     } else {
                         OptionsParser::throwMissing("pgnout notation", key, value);
                     }
@@ -125,7 +125,7 @@ class Pgnout : public Option {
         } catch (const std::exception &e) {
             i = originalI;
             // try to read as cutechess pgnout
-            parseValue(i, argc, argv, argument_data.game_options.pgn.file);
+            parseValue(i, argc, argv, argument_data.tournament_options.pgn.file);
         }
     }
 };
@@ -135,11 +135,11 @@ class Opening : public Option {
     void parse(int &i, int argc, char const *argv[], ArgumentData &argument_data) override {
         parseDashOptions(i, argc, argv, [&](const std::string &key, const std::string &value) {
             if (key == "file") {
-                argument_data.game_options.opening.file = value;
+                argument_data.tournament_options.opening.file = value;
                 if (str_utils::endsWith(value, ".epd")) {
-                    argument_data.game_options.opening.format = FormatType::EPD;
+                    argument_data.tournament_options.opening.format = FormatType::EPD;
                 } else if (str_utils::endsWith(value, ".pgn")) {
-                    argument_data.game_options.opening.format = FormatType::PGN;
+                    argument_data.tournament_options.opening.format = FormatType::PGN;
                 }
 
                 if (!std::filesystem::exists(value)) {
@@ -147,19 +147,19 @@ class Opening : public Option {
                 }
             } else if (key == "format") {
                 if (value == "epd") {
-                    argument_data.game_options.opening.format = FormatType::EPD;
+                    argument_data.tournament_options.opening.format = FormatType::EPD;
                 } else if (value == "pgn") {
-                    argument_data.game_options.opening.format = FormatType::PGN;
+                    argument_data.tournament_options.opening.format = FormatType::PGN;
                 } else {
                     OptionsParser::throwMissing("openings format", key, value);
                 }
             } else if (key == "order") {
-                argument_data.game_options.opening.order =
+                argument_data.tournament_options.opening.order =
                     value == "random" ? OrderType::RANDOM : OrderType::SEQUENTIAL;
             } else if (key == "plies") {
-                argument_data.game_options.opening.plies = std::stoi(value);
+                argument_data.tournament_options.opening.plies = std::stoi(value);
             } else if (key == "start") {
-                argument_data.game_options.opening.start = std::stoi(value);
+                argument_data.tournament_options.opening.start = std::stoi(value);
             } else {
                 OptionsParser::throwMissing("openings", key, value);
             }
@@ -171,18 +171,18 @@ class Sprt : public Option {
    public:
     void parse(int &i, int argc, char const *argv[], ArgumentData &argument_data) override {
         parseDashOptions(i, argc, argv, [&](const std::string &key, const std::string &value) {
-            if (argument_data.game_options.rounds == 0) {
-                argument_data.game_options.rounds = 500000;
+            if (argument_data.tournament_options.rounds == 0) {
+                argument_data.tournament_options.rounds = 500000;
             }
 
             if (key == "elo0") {
-                argument_data.game_options.sprt.elo0 = std::stod(value);
+                argument_data.tournament_options.sprt.elo0 = std::stod(value);
             } else if (key == "elo1") {
-                argument_data.game_options.sprt.elo1 = std::stod(value);
+                argument_data.tournament_options.sprt.elo1 = std::stod(value);
             } else if (key == "alpha") {
-                argument_data.game_options.sprt.alpha = std::stod(value);
+                argument_data.tournament_options.sprt.alpha = std::stod(value);
             } else if (key == "beta") {
-                argument_data.game_options.sprt.beta = std::stod(value);
+                argument_data.tournament_options.sprt.beta = std::stod(value);
             } else {
                 OptionsParser::throwMissing("sprt", key, value);
             }
@@ -194,14 +194,14 @@ class Draw : public Option {
    public:
     void parse(int &i, int argc, char const *argv[], ArgumentData &argument_data) override {
         parseDashOptions(i, argc, argv, [&](const std::string &key, const std::string &value) {
-            argument_data.game_options.draw.enabled = true;
+            argument_data.tournament_options.draw.enabled = true;
 
             if (key == "movenumber") {
-                argument_data.game_options.draw.move_number = std::stoi(value);
+                argument_data.tournament_options.draw.move_number = std::stoi(value);
             } else if (key == "movecount") {
-                argument_data.game_options.draw.move_count = std::stoi(value);
+                argument_data.tournament_options.draw.move_count = std::stoi(value);
             } else if (key == "score") {
-                argument_data.game_options.draw.score = std::stoi(value);
+                argument_data.tournament_options.draw.score = std::stoi(value);
             } else {
                 OptionsParser::throwMissing("draw", key, value);
             }
@@ -213,12 +213,12 @@ class Resign : public Option {
    public:
     void parse(int &i, int argc, char const *argv[], ArgumentData &argument_data) override {
         parseDashOptions(i, argc, argv, [&](const std::string &key, const std::string &value) {
-            argument_data.game_options.resign.enabled = true;
+            argument_data.tournament_options.resign.enabled = true;
 
             if (key == "movecount") {
-                argument_data.game_options.resign.move_count = std::stoi(value);
+                argument_data.tournament_options.resign.move_count = std::stoi(value);
             } else if (key == "score") {
-                argument_data.game_options.resign.score = std::stoi(value);
+                argument_data.tournament_options.resign.score = std::stoi(value);
             } else {
                 OptionsParser::throwMissing("resign", key, value);
             }
@@ -247,7 +247,7 @@ class Config : public Option {
                 loadJson(argument_data, value);
             } else if (key == "discard" && value == "true") {
                 Logger::cout("Discarding config file");
-                argument_data.game_options = argument_data.old_game_options;
+                argument_data.tournament_options = argument_data.old_tournament_options;
                 argument_data.configs = argument_data.old_configs;
                 argument_data.stats.clear();
             }
@@ -261,9 +261,9 @@ class Config : public Option {
         json jsonfile = json::parse(f);
 
         argument_data.old_configs = argument_data.configs;
-        argument_data.old_game_options = argument_data.game_options;
+        argument_data.old_tournament_options = argument_data.tournament_options;
 
-        argument_data.game_options = jsonfile.get<TournamentOptions>();
+        argument_data.tournament_options = jsonfile.get<TournamentOptions>();
 
         argument_data.configs.clear();
 
@@ -280,7 +280,7 @@ class Report : public Option {
     void parse(int &i, int argc, char const *argv[], ArgumentData &argument_data) override {
         parseDashOptions(i, argc, argv, [&](const std::string &key, const std::string &value) {
             if (key == "penta") {
-                argument_data.game_options.report_penta = value == "true";
+                argument_data.tournament_options.report_penta = value == "true";
             } else {
                 OptionsParser::throwMissing("report", key, value);
             }
@@ -293,8 +293,8 @@ class Output : public Option {
     void parse(int &i, int argc, char const *argv[], ArgumentData &argument_data) override {
         parseDashOptions(i, argc, argv, [&](const std::string &key, const std::string &value) {
             if (key == "format") {
-                argument_data.game_options.output = getOutputType(value);
-                if (value == "cutechess") argument_data.game_options.report_penta = false;
+                argument_data.tournament_options.output = getOutputType(value);
+                if (value == "cutechess") argument_data.tournament_options.report_penta = false;
             } else {
                 OptionsParser::throwMissing("output", key, value);
             }
@@ -305,49 +305,49 @@ class Output : public Option {
 class Concurrency : public Option {
    public:
     void parse(int &i, int argc, char const *argv[], ArgumentData &argument_data) override {
-        parseValue(i, argc, argv, argument_data.game_options.concurrency);
+        parseValue(i, argc, argv, argument_data.tournament_options.concurrency);
     }
 };
 
 class Event : public Option {
    public:
     void parse(int &i, int argc, char const *argv[], ArgumentData &argument_data) override {
-        argument_data.game_options.event_name = readUntilDash(i, argc, argv);
+        argument_data.tournament_options.event_name = readUntilDash(i, argc, argv);
     }
 };
 
 class Site : public Option {
    public:
     void parse(int &i, int argc, char const *argv[], ArgumentData &argument_data) override {
-        parseValue(i, argc, argv, argument_data.game_options.site);
+        parseValue(i, argc, argv, argument_data.tournament_options.site);
     }
 };
 
 class Games : public Option {
    public:
     void parse(int &i, int argc, char const *argv[], ArgumentData &argument_data) override {
-        parseValue(i, argc, argv, argument_data.game_options.games);
+        parseValue(i, argc, argv, argument_data.tournament_options.games);
     }
 };
 
 class Rounds : public Option {
    public:
     void parse(int &i, int argc, char const *argv[], ArgumentData &argument_data) override {
-        parseValue(i, argc, argv, argument_data.game_options.rounds);
+        parseValue(i, argc, argv, argument_data.tournament_options.rounds);
     }
 };
 
 class Ratinginterval : public Option {
    public:
     void parse(int &i, int argc, char const *argv[], ArgumentData &argument_data) override {
-        parseValue(i, argc, argv, argument_data.game_options.ratinginterval);
+        parseValue(i, argc, argv, argument_data.tournament_options.ratinginterval);
     };
 };
 
 class SRand : public Option {
    public:
     void parse(int &i, int argc, char const *argv[], ArgumentData &argument_data) override {
-        parseValue(i, argc, argv, argument_data.game_options.seed);
+        parseValue(i, argc, argv, argument_data.tournament_options.seed);
     }
 };
 
@@ -366,14 +366,14 @@ class Help : public Option {
 class Recover : public Option {
    public:
     void parse(int &, int, char const *[], ArgumentData &argument_data) override {
-        argument_data.game_options.recover = true;
+        argument_data.tournament_options.recover = true;
     }
 };
 
 class Repeat : public Option {
    public:
     void parse(int &, int, char const *[], ArgumentData &argument_data) override {
-        argument_data.game_options.games = 2;
+        argument_data.tournament_options.games = 2;
     }
 };
 
@@ -384,7 +384,7 @@ class Variant : public Option {
 
         parseValue(i, argc, argv, val);
 
-        if (val == "fischerandom") argument_data.game_options.variant = VariantType::FRC;
+        if (val == "fischerandom") argument_data.tournament_options.variant = VariantType::FRC;
     }
 };
 
@@ -415,9 +415,9 @@ class Quick : public Option {
 
                 argument_data.configs.back().recover = true;
             } else if (key == "book") {
-                argument_data.game_options.opening.file = value;
-                argument_data.game_options.opening.order = OrderType::RANDOM;
-                argument_data.game_options.opening.format = FormatType::EPD;
+                argument_data.tournament_options.opening.file = value;
+                argument_data.tournament_options.opening.order = OrderType::RANDOM;
+                argument_data.tournament_options.opening.format = FormatType::EPD;
             } else {
                 OptionsParser::throwMissing("quick", key, value);
             }
@@ -428,26 +428,26 @@ class Quick : public Option {
             argument_data.configs[1].name += "2";
         }
 
-        argument_data.game_options.games = 2;
-        argument_data.game_options.rounds = 25000;
+        argument_data.tournament_options.games = 2;
+        argument_data.tournament_options.rounds = 25000;
 
-        argument_data.game_options.concurrency =
+        argument_data.tournament_options.concurrency =
             std::max(unsigned(1), std::thread::hardware_concurrency() - 2);
 
-        argument_data.game_options.recover = true;
+        argument_data.tournament_options.recover = true;
 
-        argument_data.game_options.draw.enabled = true;
-        argument_data.game_options.draw.move_number = 30;
-        argument_data.game_options.draw.move_count = 8;
-        argument_data.game_options.draw.score = 8;
+        argument_data.tournament_options.draw.enabled = true;
+        argument_data.tournament_options.draw.move_number = 30;
+        argument_data.tournament_options.draw.move_count = 8;
+        argument_data.tournament_options.draw.score = 8;
 
-        argument_data.game_options.output = OutputType::CUTECHESS;
+        argument_data.tournament_options.output = OutputType::CUTECHESS;
     }
 };
 
 OptionsParser::OptionsParser(int argc, char const *argv[]) {
-    if (argument_data_.game_options.output == OutputType::CUTECHESS) {
-        argument_data_.game_options.ratinginterval = 1;
+    if (argument_data_.tournament_options.output == OutputType::CUTECHESS) {
+        argument_data_.tournament_options.ratinginterval = 1;
     }
 
     if (argc == 1) {
@@ -488,7 +488,7 @@ OptionsParser::OptionsParser(int argc, char const *argv[]) {
 
     // apply the variant type to all configs
     for (auto &config : argument_data_.configs) {
-        config.variant = argument_data_.game_options.variant;
+        config.variant = argument_data_.tournament_options.variant;
     }
 }
 

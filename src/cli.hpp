@@ -23,7 +23,7 @@ namespace fast_chess::cmd {
 /// @brief Holds the data of the OptionParser
 struct ArgumentData {
     // Holds all the relevant settings for the handling of the games
-    TournamentOptions game_options;
+    TournamentOptions tournament_options;
 
     // Holds all the engines with their options
     std::vector<EngineConfiguration> configs;
@@ -31,7 +31,7 @@ struct ArgumentData {
     stats_map stats;
 
     /*previous olded values before config*/
-    TournamentOptions old_game_options;
+    TournamentOptions old_tournament_options;
     std::vector<EngineConfiguration> old_configs;
 };
 
@@ -138,7 +138,7 @@ class OptionsParser {
     }
 
     void saveJson(const stats_map &stats) const {
-        nlohmann::ordered_json jsonfile = argument_data_.game_options;
+        nlohmann::ordered_json jsonfile = argument_data_.tournament_options;
         jsonfile["engines"] = argument_data_.configs;
         jsonfile["stats"] = stats;
 
@@ -149,7 +149,9 @@ class OptionsParser {
     [[nodiscard]] std::vector<EngineConfiguration> getEngineConfigs() const {
         return argument_data_.configs;
     }
-    [[nodiscard]] TournamentOptions getGameOptions() const { return argument_data_.game_options; }
+    [[nodiscard]] TournamentOptions getGameOptions() const {
+        return argument_data_.tournament_options;
+    }
 
     [[nodiscard]] stats_map getResults() const { return argument_data_.stats; }
 

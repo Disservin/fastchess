@@ -14,11 +14,11 @@
 namespace fast_chess {
 
 struct TimeControl {
-    // go winc/binc
+    // go winc/binc, in milliseconds
     uint64_t increment = 0;
-    // go movetime
+    // go movetime, in milliseconds
     int64_t fixed_time = 0;
-    // go wtime/btime
+    // go wtime/btime, in milliseconds
     int64_t time = 0;
     // go movestogo
     int moves = 0;

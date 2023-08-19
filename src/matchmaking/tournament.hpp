@@ -26,7 +26,7 @@ class Tournament {
 
     RoundRobin round_robin_;
 
-    cmd::TournamentOptions game_config_;
+    cmd::TournamentOptions tournament_options_;
 };
 
 }  // namespace fast_chess

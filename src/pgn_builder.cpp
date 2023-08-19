@@ -6,9 +6,9 @@
 
 namespace fast_chess {
 
-PgnBuilder::PgnBuilder(const MatchData &match, const cmd::TournamentOptions &game_options) {
+PgnBuilder::PgnBuilder(const MatchData &match, const cmd::TournamentOptions &tournament_options) {
     match_ = match;
-    game_options_ = game_options;
+    game_options_ = tournament_options;
 
     PlayerInfo white_player, black_player;
 
@@ -20,7 +20,7 @@ PgnBuilder::PgnBuilder(const MatchData &match, const cmd::TournamentOptions &gam
         black_player = match.players.first;
     }
 
-    addHeader("Event", game_options.event_name);
+    addHeader("Event", tournament_options.event_name);
     addHeader("Site", game_options_.site);
     addHeader("Round", std::to_string(match_.round));
     addHeader("White", white_player.config.name);

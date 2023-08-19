@@ -66,7 +66,7 @@ void Match::start(const EngineConfiguration& engine1_config,
     player_1.engine.startEngine();
     player_2.engine.startEngine();
 
-    board_.set960(game_config_.variant == VariantType::FRC);
+    board_.set960(tournament_options_.variant == VariantType::FRC);
     board_.setFen(opening_.fen);
 
     std::vector<std::string> uci_moves = [&]() {
@@ -83,7 +83,7 @@ void Match::start(const EngineConfiguration& engine1_config,
     // Add opening moves to played moves
     played_moves_.insert(played_moves_.end(), uci_moves.begin(), uci_moves.end());
 
-    start_fen_ = board_.getFen() == STARTPOS ? "startpos" : board_.getFen();
+    start_position = board_.getFen() == STARTPOS ? "startpos" : board_.getFen();
 
     player_1.info.color = board_.sideToMove();
     player_2.info.color = ~board_.sideToMove();
@@ -94,6 +94,7 @@ void Match::start(const EngineConfiguration& engine1_config,
     data_.date = Logger::getDateTime("%Y-%m-%d");
 
     const auto start = clock::now();
+
     try {
         while (true) {
             if (atomic::stop.load()) {
@@ -111,7 +112,7 @@ void Match::start(const EngineConfiguration& engine1_config,
             if (!playMove(player_2, player_1)) break;
         }
     } catch (const std::exception& e) {
-        if (game_config_.recover)
+        if (tournament_options_.recover)
             data_.needs_restart = true;
         else {
             throw e;
@@ -153,7 +154,7 @@ bool Match::playMove(Participant& us, Participant& opponent) {
         return false;
     }
 
-    us.engine.writeEngine(us.buildPositionInput(played_moves_, start_fen_));
+    us.engine.writeEngine(us.buildPositionInput(played_moves_, start_position));
     us.engine.writeEngine(us.buildGoInput(board_.sideToMove(), opponent.time_control));
 
     const auto t0 = clock::now();
@@ -174,6 +175,11 @@ bool Match::playMove(Participant& us, Participant& opponent) {
         return false;
     }
 
+    updateDrawTracker(us);
+    updateResignTracker(us);
+
+    addMoveData(us, elapsed_millis);
+
     const auto best_move = us.engine.bestmove();
     const auto move = uci::uciToMove(board_, best_move);
 
@@ -189,15 +195,8 @@ bool Match::playMove(Participant& us, Participant& opponent) {
 
         Logger::cout("Warning; Illegal move", best_move, "played by", name);
 
-        addMoveData(us, elapsed_millis);
-
         return false;
     }
-
-    updateDrawTracker(us);
-    updateResignTracker(us);
-
-    addMoveData(us, elapsed_millis);
 
     board_.makeMove(move);
 
@@ -208,17 +207,23 @@ void Match::verifyPv(const Participant& us) {
     for (const auto& info : us.engine.output()) {
         const auto tokens = str_utils::splitString(info, ' ');
 
+        // skip lines without pv
         if (!str_utils::contains(tokens, "pv")) continue;
 
         auto tmp = board_;
         auto it = std::find(tokens.begin(), tokens.end(), "pv");
+
+        chess::Movelist moves;
+
+        // iterate over pv moves
         while (++it != tokens.end()) {
-            chess::Movelist moves;
             chess::movegen::legalmoves(moves, tmp);
+
             if (moves.find(uci::uciToMove(tmp, *it)) == -1) {
                 Logger::cout("Warning; Illegal pv move ", *it);
                 break;
             }
+
             tmp.makeMove(uci::uciToMove(tmp, *it));
         }
     }
@@ -242,8 +247,9 @@ void Match::setLose(Participant& us, Participant& them) {
 void Match::updateDrawTracker(const Participant& player) {
     const auto score = player.engine.lastScore();
 
-    if (played_moves_.size() >= game_config_.draw.move_number &&
-        std::abs(score) <= game_config_.draw.score && player.engine.lastScoreType() == "cp") {
+    if (played_moves_.size() >= tournament_options_.draw.move_number &&
+        std::abs(score) <= tournament_options_.draw.score &&
+        player.engine.lastScoreType() == "cp") {
         draw_tracker_.draw_moves++;
     } else {
         draw_tracker_.draw_moves = 0;
@@ -253,7 +259,8 @@ void Match::updateDrawTracker(const Participant& player) {
 void Match::updateResignTracker(const Participant& player) {
     const auto score = player.engine.lastScore();
 
-    if (std::abs(score) >= game_config_.resign.score && player.engine.lastScoreType() == "cp") {
+    if (std::abs(score) >= tournament_options_.resign.score &&
+        player.engine.lastScoreType() == "cp") {
         resign_tracker_.resign_moves++;
     } else {
         resign_tracker_.resign_moves = 0;
@@ -261,7 +268,8 @@ void Match::updateResignTracker(const Participant& player) {
 }
 
 bool Match::adjudicate(Participant& us, Participant& them) {
-    if (game_config_.draw.enabled && draw_tracker_.draw_moves >= game_config_.draw.move_count) {
+    if (tournament_options_.draw.enabled &&
+        draw_tracker_.draw_moves >= tournament_options_.draw.move_count) {
         setDraw(us, them);
 
         data_.termination = MatchTermination::ADJUDICATION;
@@ -270,11 +278,11 @@ bool Match::adjudicate(Participant& us, Participant& them) {
         return true;
     }
 
-    if (game_config_.resign.enabled &&
-        resign_tracker_.resign_moves >= game_config_.resign.move_count) {
+    if (tournament_options_.resign.enabled &&
+        resign_tracker_.resign_moves >= tournament_options_.resign.move_count) {
         data_.reason = us.engine.getConfig().name;
 
-        if (us.engine.lastScore() < game_config_.resign.score) {
+        if (us.engine.lastScore() < tournament_options_.resign.score) {
             setLose(us, them);
 
             data_.termination = MatchTermination::ADJUDICATION;

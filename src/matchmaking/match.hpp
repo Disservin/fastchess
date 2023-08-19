@@ -26,7 +26,7 @@ struct ResignTracker {
 class Match {
    public:
     Match(const cmd::TournamentOptions& game_config, const Opening& opening, int round) {
-        game_config_ = game_config;
+        tournament_options_ = game_config;
         data_.round = round;
 
         opening_ = opening;
@@ -85,7 +85,7 @@ class Match {
     DrawTacker draw_tracker_;
     ResignTracker resign_tracker_;
 
-    cmd::TournamentOptions game_config_;
+    cmd::TournamentOptions tournament_options_;
     chess::Board board_;
     MatchData data_;
 
@@ -94,9 +94,9 @@ class Match {
     std::vector<std::string> played_moves_;
 
     Opening opening_;
-    EngineConfiguration engine1_config_;
-    EngineConfiguration engine2_config_;
 
-    std::string start_fen_;
+    // start position, required for the uci position command
+    // is either startpos or the fen of the opening
+    std::string start_position;
 };
 }  // namespace fast_chess

@@ -139,11 +139,11 @@ void RoundRobin::createPairings(const EngineConfiguration& player1,
     const auto opening = fetchNextOpening();
 
     Stats stats;
+
     for (int i = 0; i < tournament_options_.games; i++) {
         const auto idx = current * tournament_options_.games + (i + 1);
 
-        output_->startGame(configs.first.name, configs.second.name, idx,
-                           tournament_options_.rounds * 2);
+        output_->startGame(configs.first.name, configs.second.name, idx, total_);
         const auto [success, result, reason] = playGame(configs, opening, idx);
         output_->endGame(result, configs.first.name, configs.second.name, reason, idx);
 

@@ -7,7 +7,7 @@
 namespace fast_chess {
 
 PgnBuilder::PgnBuilder(const MatchData &match, const cmd::TournamentOptions &tournament_options) {
-    match_ = match;
+    match_        = match;
     game_options_ = tournament_options;
 
     PlayerInfo white_player, black_player;
@@ -35,7 +35,7 @@ PgnBuilder::PgnBuilder(const MatchData &match, const cmd::TournamentOptions &tou
     addHeader("Termination", convertMatchTermination(match_.termination));
     addHeader("TimeControl", white_player.config.limit.tc);
 
-    chess::Board board = chess::Board(match_.fen);
+    chess::Board board      = chess::Board(match_.fen);
     std::size_t move_number = 0;
 
     while (move_number < match_.moves.size()) {

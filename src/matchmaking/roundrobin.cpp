@@ -72,7 +72,7 @@ void RoundRobin::setupPgnOpeningBook() {
     }
 
     const PgnReader pgn_reader = PgnReader(tournament_options_.opening.file);
-    opening_book_pgn_ = pgn_reader.getPgns();
+    opening_book_pgn_          = pgn_reader.getPgns();
 
     if (opening_book_pgn_.empty()) {
         throw std::runtime_error("No openings found in PGN file: " +
@@ -114,7 +114,7 @@ void RoundRobin::create(const std::vector<EngineConfiguration>& engine_configs) 
 
 void RoundRobin::updateSprtStatus(const std::vector<EngineConfiguration>& engine_configs) {
     const Stats stats = result_.getStats(engine_configs[0].name, engine_configs[1].name);
-    const double llr = sprt_.getLLR(stats.wins, stats.draws, stats.losses);
+    const double llr  = sprt_.getLLR(stats.wins, stats.draws, stats.losses);
 
     if (sprt_.getResult(llr) != SPRT_CONTINUE || match_count_ == total_) {
         atomic::stop = true;

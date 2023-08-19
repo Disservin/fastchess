@@ -15,7 +15,7 @@ class Tournament;  // forward declaration
 /// @brief Interface for outputting current tournament state to the user.
 class IOutput {
    public:
-    IOutput() = default;
+    IOutput()          = default;
     virtual ~IOutput() = default;
 
     /// @brief Interval output. Get's displayed every n `ratinginterval`.

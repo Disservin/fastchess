@@ -18,18 +18,18 @@ TimeControl parseTc(const std::string &tcString) {
     TimeControl tc;
 
     std::string remainingStringVector = tcString;
-    const bool has_moves = str_utils::contains(tcString, "/");
-    const bool has_inc = str_utils::contains(tcString, "+");
+    const bool has_moves              = str_utils::contains(tcString, "/");
+    const bool has_inc                = str_utils::contains(tcString, "+");
 
     if (has_moves) {
-        const auto moves = str_utils::splitString(tcString, '/');
-        tc.moves = std::stoi(moves[0]);
+        const auto moves      = str_utils::splitString(tcString, '/');
+        tc.moves              = std::stoi(moves[0]);
         remainingStringVector = moves[1];
     }
 
     if (has_inc) {
-        const auto moves = str_utils::splitString(remainingStringVector, '+');
-        tc.increment = static_cast<uint64_t>(std::stod(moves[1]) * 1000);
+        const auto moves      = str_utils::splitString(remainingStringVector, '+');
+        tc.increment          = static_cast<uint64_t>(std::stod(moves[1]) * 1000);
         remainingStringVector = moves[0];
     }
 
@@ -60,7 +60,7 @@ void parseEngineKeyValues(EngineConfiguration &engineConfig, const std::string &
         engineConfig.dir = value;
     else if (isEngineSettableOption(key)) {
         // Strip option.Name of the option. Part
-        const std::size_t pos = key.find('.');
+        const std::size_t pos         = key.find('.');
         const std::string strippedKey = key.substr(pos + 1);
         engineConfig.options.emplace_back(strippedKey, value);
     } else if (key == "proto") {
@@ -248,7 +248,7 @@ class Config : public Option {
             } else if (key == "discard" && value == "true") {
                 Logger::cout("Discarding config file");
                 argument_data.tournament_options = argument_data.old_tournament_options;
-                argument_data.configs = argument_data.old_configs;
+                argument_data.configs            = argument_data.old_configs;
                 argument_data.stats.clear();
             }
         });
@@ -260,7 +260,7 @@ class Config : public Option {
         std::ifstream f(filename);
         json jsonfile = json::parse(f);
 
-        argument_data.old_configs = argument_data.configs;
+        argument_data.old_configs            = argument_data.configs;
         argument_data.old_tournament_options = argument_data.tournament_options;
 
         argument_data.tournament_options = jsonfile.get<TournamentOptions>();
@@ -407,16 +407,16 @@ class Quick : public Option {
         parseDashOptions(i, argc, argv, [&](const std::string &key, const std::string &value) {
             if (key == "cmd") {
                 argument_data.configs.emplace_back();
-                argument_data.configs.back().cmd = value;
+                argument_data.configs.back().cmd  = value;
                 argument_data.configs.back().name = value;
 
-                argument_data.configs.back().limit.tc.time = 10 * 1000;
+                argument_data.configs.back().limit.tc.time      = 10 * 1000;
                 argument_data.configs.back().limit.tc.increment = 100;
 
                 argument_data.configs.back().recover = true;
             } else if (key == "book") {
-                argument_data.tournament_options.opening.file = value;
-                argument_data.tournament_options.opening.order = OrderType::RANDOM;
+                argument_data.tournament_options.opening.file   = value;
+                argument_data.tournament_options.opening.order  = OrderType::RANDOM;
                 argument_data.tournament_options.opening.format = FormatType::EPD;
             } else {
                 OptionsParser::throwMissing("quick", key, value);
@@ -428,7 +428,7 @@ class Quick : public Option {
             argument_data.configs[1].name += "2";
         }
 
-        argument_data.tournament_options.games = 2;
+        argument_data.tournament_options.games  = 2;
         argument_data.tournament_options.rounds = 25000;
 
         argument_data.tournament_options.concurrency =
@@ -436,10 +436,10 @@ class Quick : public Option {
 
         argument_data.tournament_options.recover = true;
 
-        argument_data.tournament_options.draw.enabled = true;
+        argument_data.tournament_options.draw.enabled     = true;
         argument_data.tournament_options.draw.move_number = 30;
-        argument_data.tournament_options.draw.move_count = 8;
-        argument_data.tournament_options.draw.score = 8;
+        argument_data.tournament_options.draw.move_count  = 8;
+        argument_data.tournament_options.draw.score       = 8;
 
         argument_data.tournament_options.output = OutputType::CUTECHESS;
     }

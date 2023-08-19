@@ -65,7 +65,7 @@ TEST_SUITE("Option Parsing Tests") {
     }
 
     TEST_CASE("Testing Cli Options Parsing") {
-        const char *argv[] = {"fast-chess.exe",
+        const char *argv[]         = {"fast-chess.exe",
                               "-repeat",
                               "-recover",
                               "-concurrency",
@@ -87,7 +87,7 @@ TEST_SUITE("Option Parsing Tests") {
                               "-pgnout",
                               "file=PGNs/Alexandria-EA649FED_vs_Alexandria-27E42728"};
         cmd::OptionsParser options = cmd::OptionsParser(21, argv);
-        auto gameOptions = options.getGameOptions();
+        auto gameOptions           = options.getGameOptions();
 
         // Test proper cli settings
         CHECK(gameOptions.recover == true);

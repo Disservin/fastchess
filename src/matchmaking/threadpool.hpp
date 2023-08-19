@@ -56,7 +56,7 @@ class ThreadPool {
 
         {
             std::unique_lock<std::mutex> lock(queue_mutex_);
-            stop_ = true;
+            stop_  = true;
             tasks_ = {};
         }
 

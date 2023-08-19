@@ -13,11 +13,11 @@ struct MoveData {
     std::string move;
     std::string score_string;
     int64_t elapsed_millis = 0;
-    uint64_t nodes = 0;
-    int seldepth = 0;
-    int depth = 0;
-    int score = 0;
-    int nps = 0;
+    uint64_t nodes         = 0;
+    int seldepth           = 0;
+    int depth              = 0;
+    int score              = 0;
+    int nps                = 0;
 
     MoveData(std::string _move, std::string _score_string, int64_t _elapsed_millis, int _depth,
              int _seldepth, int _score, int _nodes)
@@ -56,7 +56,7 @@ struct MatchData {
     // pgn file as a comment at the end of the game.
     std::string reason;
 
-    int round = 0;
+    int round          = 0;
     bool needs_restart = false;
 };
 

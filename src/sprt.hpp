@@ -24,8 +24,8 @@ class SPRT {
    private:
     double lower_ = 0.0;
     double upper_ = 0.0;
-    double s0_ = 0.0;
-    double s1_ = 0.0;
+    double s0_    = 0.0;
+    double s1_    = 0.0;
 
     double elo0_ = 0.0;
     double elo1_ = 0.0;

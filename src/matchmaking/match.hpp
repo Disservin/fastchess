@@ -27,7 +27,7 @@ class Match {
    public:
     Match(const cmd::TournamentOptions& game_config, const Opening& opening, int round) {
         tournament_options_ = game_config;
-        data_.round = round;
+        data_.round         = round;
 
         opening_ = opening;
     }
@@ -69,18 +69,18 @@ class Match {
     [[nodiscard]] static std::string convertChessReason(const std::string& engine_name,
                                                         chess::GameResultReason reason);
 
-    inline static const std::string ADJUDICATION_MSG = "Draw by adjudication";
-    inline static const std::string ADJUDICATION_WIN_MSG = " wins by adjudication";
+    inline static const std::string ADJUDICATION_MSG      = "Draw by adjudication";
+    inline static const std::string ADJUDICATION_WIN_MSG  = " wins by adjudication";
     inline static const std::string ADJUDICATION_LOSE_MSG = " loses by adjudication";
 
     inline static const std::string INSUFFICIENT_MSG = "Draw by insufficient material";
-    inline static const std::string REPETITION_MSG = "Draw by 3-fold repetition";
-    inline static const std::string FIFTY_MSG = "Draw by 50-move rule";
-    inline static const std::string DISCONNECT_MSG = /*.. */ " disconnects";
-    inline static const std::string TIMEOUT_MSG = /*.. */ " loses on time";
-    inline static const std::string CHECKMATE_MSG = /*..*/ " got checkmated";
-    inline static const std::string STALEMATE_MSG = "Draw by stalemate";
-    inline static const std::string ILLEGAL_MSG = " made an illegal move";
+    inline static const std::string REPETITION_MSG   = "Draw by 3-fold repetition";
+    inline static const std::string FIFTY_MSG        = "Draw by 50-move rule";
+    inline static const std::string DISCONNECT_MSG   = /*.. */ " disconnects";
+    inline static const std::string TIMEOUT_MSG      = /*.. */ " loses on time";
+    inline static const std::string CHECKMATE_MSG    = /*..*/ " got checkmated";
+    inline static const std::string STALEMATE_MSG    = "Draw by stalemate";
+    inline static const std::string ILLEGAL_MSG      = " made an illegal move";
 
     DrawTacker draw_tracker_;
     ResignTracker resign_tracker_;

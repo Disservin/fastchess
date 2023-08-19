@@ -60,7 +60,7 @@ void Logger::error(const std::string &msg, std::thread::id thread, const std::st
 
 std::string Logger::getDateTime(std::string format) {
     // Get the current time in UTC
-    const auto now = std::chrono::system_clock::now();
+    const auto now        = std::chrono::system_clock::now();
     const auto time_t_now = std::chrono::system_clock::to_time_t(now);
     struct tm buf {};
 

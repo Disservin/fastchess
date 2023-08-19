@@ -139,8 +139,8 @@ class OptionsParser {
 
     void saveJson(const stats_map &stats) const {
         nlohmann::ordered_json jsonfile = argument_data_.tournament_options;
-        jsonfile["engines"] = argument_data_.configs;
-        jsonfile["stats"] = stats;
+        jsonfile["engines"]             = argument_data_.configs;
+        jsonfile["stats"]               = stats;
 
         std::ofstream file("config.json");
         file << std::setw(4) << jsonfile << std::endl;
@@ -218,8 +218,8 @@ inline void parseDashOptions(int &i, int argc, char const *argv[],
                              const std::function<void(std::string, std::string)> &func) {
     while (i + 1 < argc && argv[i + 1][0] != '-' && i++) {
         std::string param = argv[i];
-        std::size_t pos = param.find('=');
-        std::string key = param.substr(0, pos);
+        std::size_t pos   = param.find('=');
+        std::string key   = param.substr(0, pos);
         std::string value = param.substr(pos + 1);
 
         func(key, value);

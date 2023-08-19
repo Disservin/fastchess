@@ -4,7 +4,6 @@
 #include <string>
 #include <unordered_map>
 
-
 #include <matchmaking/types/stats.hpp>
 
 namespace fast_chess {

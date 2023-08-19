@@ -45,9 +45,9 @@ struct Stats {
 
     [[nodiscard]] int sum() const { return wins + losses + draws; }
 
-    int wins = 0;
+    int wins   = 0;
     int losses = 0;
-    int draws = 0;
+    int draws  = 0;
 
     int penta_WW = 0;
     int penta_WD = 0;

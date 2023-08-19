@@ -13,8 +13,8 @@ SPRT::SPRT(double alpha, double beta, double elo0, double elo1) {
     if (isValid()) {
         lower_ = std::log(beta / (1 - alpha));
         upper_ = std::log((1 - beta) / alpha);
-        s0_ = getLL(elo0);
-        s1_ = getLL(elo1);
+        s0_    = getLL(elo0);
+        s1_    = getLL(elo1);
 
         elo0_ = elo0;
         elo1_ = elo1;
@@ -32,9 +32,9 @@ double SPRT::getLLR(int win, int draw, int loss) const {
 
     const double games = win + draw + loss;
     const double W = double(win) / games, D = double(draw) / games;
-    const double a = W + D / 2;
-    const double b = W + D / 4;
-    const double var = b - std::pow(a, 2);
+    const double a     = W + D / 2;
+    const double b     = W + D / 4;
+    const double var   = b - std::pow(a, 2);
     const double var_s = var / games;
     return (s1_ - s0_) * (2 * a - s0_ - s1_) / var_s / 2.0;
 }

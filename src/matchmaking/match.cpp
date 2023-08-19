@@ -14,7 +14,7 @@ extern std::atomic_bool stop;
 using namespace std::literals;
 
 namespace chrono = std::chrono;
-using clock = chrono::high_resolution_clock;
+using clock      = chrono::high_resolution_clock;
 
 using namespace chess;
 
@@ -30,13 +30,13 @@ void Match::addMoveData(Participant& player, int64_t measured_time) {
 
     // extract last info line
     const auto score_type = player.engine.lastScoreType();
-    const auto info = player.engine.lastInfo();
+    const auto info       = player.engine.lastInfo();
 
-    move_data.nps = str_utils::findElement<int>(info, "nps").value_or(0);
-    move_data.depth = str_utils::findElement<int>(info, "depth").value_or(0);
+    move_data.nps      = str_utils::findElement<int>(info, "nps").value_or(0);
+    move_data.depth    = str_utils::findElement<int>(info, "depth").value_or(0);
     move_data.seldepth = str_utils::findElement<int>(info, "seldepth").value_or(0);
-    move_data.nodes = str_utils::findElement<uint64_t>(info, "nodes").value_or(0);
-    move_data.score = player.engine.lastScore();
+    move_data.nodes    = str_utils::findElement<uint64_t>(info, "nodes").value_or(0);
+    move_data.score    = player.engine.lastScore();
 
     // Missing elements default to 0
     std::stringstream ss;
@@ -91,7 +91,7 @@ void Match::start(const EngineConfiguration& engine1_config,
     data_.fen = opening_.fen;
 
     data_.start_time = Logger::getDateTime();
-    data_.date = Logger::getDateTime("%Y-%m-%d");
+    data_.date       = Logger::getDateTime("%Y-%m-%d");
 
     const auto start = clock::now();
 
@@ -129,7 +129,7 @@ void Match::start(const EngineConfiguration& engine1_config,
 
 bool Match::playMove(Participant& us, Participant& opponent) {
     const auto gameover = board_.isGameOver();
-    const auto name = us.engine.getConfig().name;
+    const auto name     = us.engine.getConfig().name;
 
     if (gameover.second == GameResult::DRAW) {
         setDraw(us, opponent);
@@ -149,7 +149,7 @@ bool Match::playMove(Participant& us, Participant& opponent) {
         setLose(us, opponent);
 
         data_.termination = MatchTermination::DISCONNECT;
-        data_.reason = name + Match::DISCONNECT_MSG;
+        data_.reason      = name + Match::DISCONNECT_MSG;
 
         return false;
     }
@@ -168,7 +168,7 @@ bool Match::playMove(Participant& us, Participant& opponent) {
         setLose(us, opponent);
 
         data_.termination = MatchTermination::TIMEOUT;
-        data_.reason = name + Match::TIMEOUT_MSG;
+        data_.reason      = name + Match::TIMEOUT_MSG;
 
         Logger::cout("Warning; Engine", name, "loses on time");
 
@@ -181,7 +181,7 @@ bool Match::playMove(Participant& us, Participant& opponent) {
     addMoveData(us, elapsed_millis);
 
     const auto best_move = us.engine.bestmove();
-    const auto move = uci::uciToMove(board_, best_move);
+    const auto move      = uci::uciToMove(board_, best_move);
 
     chess::Movelist moves;
     chess::movegen::legalmoves(moves, board_);
@@ -191,7 +191,7 @@ bool Match::playMove(Participant& us, Participant& opponent) {
         setLose(us, opponent);
 
         data_.termination = MatchTermination::ILLEGAL_MOVE;
-        data_.reason = name + Match::ILLEGAL_MSG;
+        data_.reason      = name + Match::ILLEGAL_MSG;
 
         Logger::cout("Warning; Illegal move", best_move, "played by", name);
 
@@ -211,7 +211,7 @@ void Match::verifyPv(const Participant& us) {
         if (!str_utils::contains(tokens, "pv")) continue;
 
         auto tmp = board_;
-        auto it = std::find(tokens.begin(), tokens.end(), "pv");
+        auto it  = std::find(tokens.begin(), tokens.end(), "pv");
 
         chess::Movelist moves;
 
@@ -230,17 +230,17 @@ void Match::verifyPv(const Participant& us) {
 }
 
 void Match::setDraw(Participant& us, Participant& them) {
-    us.info.result = GameResult::DRAW;
+    us.info.result   = GameResult::DRAW;
     them.info.result = GameResult::DRAW;
 }
 
 void Match::setWin(Participant& us, Participant& them) {
-    us.info.result = GameResult::WIN;
+    us.info.result   = GameResult::WIN;
     them.info.result = GameResult::LOSE;
 }
 
 void Match::setLose(Participant& us, Participant& them) {
-    us.info.result = GameResult::LOSE;
+    us.info.result   = GameResult::LOSE;
     them.info.result = GameResult::WIN;
 }
 
@@ -273,7 +273,7 @@ bool Match::adjudicate(Participant& us, Participant& them) {
         setDraw(us, them);
 
         data_.termination = MatchTermination::ADJUDICATION;
-        data_.reason = Match::ADJUDICATION_MSG;
+        data_.reason      = Match::ADJUDICATION_MSG;
 
         return true;
     }

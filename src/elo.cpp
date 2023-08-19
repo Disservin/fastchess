@@ -7,7 +7,7 @@
 namespace fast_chess {
 
 Elo::Elo(int wins, int losses, int draws) {
-    diff_ = getDiff(wins, losses, draws);
+    diff_  = getDiff(wins, losses, draws);
     error_ = getError(wins, losses, draws);
 }
 
@@ -29,15 +29,15 @@ double Elo::inverseError(double x) {
 double Elo::phiInv(double p) { return std::sqrt(2.0) * inverseError(2.0 * p - 1.0); }
 
 double Elo::getError(int wins, int losses, int draws) {
-    const double n = wins + losses + draws;
-    const double w = wins / n;
-    const double l = losses / n;
-    const double d = draws / n;
+    const double n    = wins + losses + draws;
+    const double w    = wins / n;
+    const double l    = losses / n;
+    const double d    = draws / n;
     const double perc = w + d / 2.0;
 
-    const double devW = w * std::pow(1.0 - perc, 2.0);
-    const double devL = l * std::pow(0.0 - perc, 2.0);
-    const double devD = d * std::pow(0.5 - perc, 2.0);
+    const double devW  = w * std::pow(1.0 - perc, 2.0);
+    const double devL  = l * std::pow(0.0 - perc, 2.0);
+    const double devD  = d * std::pow(0.5 - perc, 2.0);
     const double stdev = std::sqrt(devW + devL + devD) / std::sqrt(n);
 
     const double devMin = perc + phiInv(0.025) * stdev;
@@ -46,8 +46,8 @@ double Elo::getError(int wins, int losses, int draws) {
 }
 
 double Elo::getDiff(int wins, int losses, int draws) {
-    const double n = wins + losses + draws;
-    const double score = wins + draws / 2.0;
+    const double n          = wins + losses + draws;
+    const double score      = wins + draws / 2.0;
     const double percentage = (score / n);
 
     return -400.0 * std::log10(1.0 / percentage - 1.0);

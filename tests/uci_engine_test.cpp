@@ -23,7 +23,7 @@ TEST_SUITE("Uci Engine Communication Tests") {
         uci_engine.startEngine();
 
         uci_engine.sendUci();
-        auto uci = uci_engine.readUci();
+        auto uci       = uci_engine.readUci();
         auto uciOutput = uci_engine.output();
 
         CHECK(uci);

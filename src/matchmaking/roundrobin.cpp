@@ -122,10 +122,10 @@ void RoundRobin::create(const std::vector<EngineConfiguration>& engine_configs) 
 
                     const auto finish = [this, engine_configs, i, j, round_id, configs, first,
                                          second](const Stats& stats, const std::string& reason) {
+                        match_count_++;
+
                         output_->endGame(stats, configs.first.name, configs.second.name, reason,
                                          round_id);
-
-                        match_count_++;
 
                         if (!tournament_options_.report_penta) {
                             result_.updateStats(configs.first.name, configs.second.name, stats);

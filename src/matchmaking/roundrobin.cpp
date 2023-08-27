@@ -131,11 +131,6 @@ void RoundRobin::createPairings(const EngineConfiguration& player1,
                                 const EngineConfiguration& player2, int current) {
     std::pair<EngineConfiguration, EngineConfiguration> configs = {player1, player2};
 
-    // Swap the players randomly when using Cutechess
-    if (Random::boolean() && tournament_options_.output == OutputType::CUTECHESS) {
-        std::swap(configs.first, configs.second);
-    }
-
     const auto opening = fetchNextOpening();
 
     Stats stats;

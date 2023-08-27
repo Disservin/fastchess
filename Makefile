@@ -80,6 +80,11 @@ ifneq ($(GIT_DATE), )
 	CXXFLAGS += -DGIT_DATE=\"$(GIT_DATE)\"
 endif
 
+# Compile with Cutechess output support
+ifeq ($(USE_CUTE), true)
+	CXXFLAGS += -DUSE_CUTE
+endif
+
 .PHONY: clean all tests FORCE
 
 all: $(TARGET)

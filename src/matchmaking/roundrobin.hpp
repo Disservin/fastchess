@@ -53,13 +53,6 @@ class RoundRobin {
     /// @param engine_configs
     void updateSprtStatus(const std::vector<EngineConfiguration> &engine_configs);
 
-    /// @brief pairs player1 vs player2
-    /// @param player1
-    /// @param player2
-    /// @param current
-    // void createPairings(const EngineConfiguration &player1, const EngineConfiguration &player2,
-    //                     int current);
-
     using start_callback    = std::function<void()>;
     using finished_callback = std::function<void(const Stats &stats, const std::string &reason)>;
 
@@ -67,7 +60,8 @@ class RoundRobin {
     /// @param configs
     /// @param opening
     /// @param round_id
-    /// @return
+    /// @param start
+    /// @param finish
     void playGame(const std::pair<EngineConfiguration, EngineConfiguration> &configs,
                   const Opening &opening, int round_id, start_callback start = nullptr,
                   finished_callback finish = nullptr);

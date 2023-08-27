@@ -105,8 +105,46 @@ void RoundRobin::create(const std::vector<EngineConfiguration>& engine_configs) 
     for (std::size_t i = 0; i < engine_configs.size(); i++) {
         for (std::size_t j = i + 1; j < engine_configs.size(); j++) {
             for (int k = 0; k < tournament_options_.rounds; k++) {
-                pool_.enqueue(&RoundRobin::createPairings, this, engine_configs[i],
-                              engine_configs[j], k);
+                // both players get the same opening
+                const auto opening = fetchNextOpening();
+
+                auto configs = std::pair{engine_configs[i], engine_configs[j]};
+
+                const auto first  = engine_configs[i].name;
+                const auto second = engine_configs[j].name;
+
+                for (int i = 0; i < tournament_options_.games; i++) {
+                    const auto round_id = k * tournament_options_.games + (i + 1);
+
+                    const auto start = [this, engine_configs, i, j, round_id, configs]() {
+                        output_->startGame(configs.first.name, configs.second.name, round_id,
+                                           total_);
+                    };
+
+                    const auto finish = [this, engine_configs, i, j, round_id, configs, first,
+                                         second](const Stats& stats, const std::string& reason) {
+                        output_->endGame(stats, configs.first.name, configs.second.name, reason,
+                                         round_id);
+
+                        match_count_++;
+
+                        if (!tournament_options_.report_penta) {
+                            result_.updateStats(configs.first.name, configs.second.name, stats);
+                            output_->printInterval(sprt_, result_.getStats(first, second), first,
+                                                   second, match_count_);
+                        }
+
+                        if (sprt_.isValid()) {
+                            updateSprtStatus({engine_configs[i], engine_configs[j]});
+                        }
+                    };
+
+                    pool_.enqueue(&RoundRobin::playGame, this, configs, opening, round_id, start,
+                                  finish);
+
+                    // swap players
+                    std::swap(configs.first, configs.second);
+                }
             }
         }
     }
@@ -127,80 +165,87 @@ void RoundRobin::updateSprtStatus(const std::vector<EngineConfiguration>& engine
     }
 }
 
-void RoundRobin::createPairings(const EngineConfiguration& player1,
-                                const EngineConfiguration& player2, int current) {
-    std::pair<EngineConfiguration, EngineConfiguration> configs = {player1, player2};
+// void RoundRobin::createPairings(const EngineConfiguration& player1,
+//                                 const EngineConfiguration& player2, int current) {
+// std::pair<EngineConfiguration, EngineConfiguration> configs = {player1, player2};
 
-    const auto opening = fetchNextOpening();
+// const auto opening = fetchNextOpening();
 
-    Stats stats;
+// Stats stats;
 
-    for (int i = 0; i < tournament_options_.games; i++) {
-        const auto idx = current * tournament_options_.games + (i + 1);
+// for (int i = 0; i < tournament_options_.games; i++) {
+//     const auto idx = current * tournament_options_.games + (i + 1);
 
-        output_->startGame(configs.first.name, configs.second.name, idx, total_);
-        const auto [success, result, reason] = playGame(configs, opening, idx);
-        output_->endGame(result, configs.first.name, configs.second.name, reason, idx);
+//     output_->startGame(configs.first.name, configs.second.name, idx, total_);
+//     const auto [success, result, reason] = playGame(configs, opening, idx);
+//     output_->endGame(result, configs.first.name, configs.second.name, reason, idx);
 
-        if (atomic::stop) return;
+//     if (atomic::stop) return;
 
-        // If the game failed to start, try again
-        if (!success && tournament_options_.recover) {
-            i--;
-            continue;
-        }
+//     // If the game failed to start, try again
+//     if (!success && tournament_options_.recover) {
+//         i--;
+//         continue;
+//     }
 
-        // Invert the result of the other player, so that stats are always from the perspective of
-        // the first player.
-        if (player1.name != configs.first.name) {
-            stats += ~result;
-        } else {
-            stats += result;
-        }
+//     // Invert the result of the other player, so that stats are always from the perspective
+//     of
+//     // the first player.
+//     if (player1.name != configs.first.name) {
+//         stats += ~result;
+//     } else {
+//         stats += result;
+//     }
 
-        match_count_++;
+//     match_count_++;
 
-        if (!tournament_options_.report_penta) {
-            result_.updateStats(configs.first.name, configs.second.name, result);
-            output_->printInterval(sprt_, result_.getStats(player1.name, player2.name),
-                                   player1.name, player2.name, match_count_);
-        }
+//     if (!tournament_options_.report_penta) {
+//         result_.updateStats(configs.first.name, configs.second.name, result);
+//         output_->printInterval(sprt_, result_.getStats(player1.name, player2.name),
+//                                player1.name, player2.name, match_count_);
+//     }
 
-        std::swap(configs.first, configs.second);
-    }
+//     std::swap(configs.first, configs.second);
+// }
 
-    // track penta stats
-    if (tournament_options_.report_penta) {
-        stats.penta_WW += stats.wins == 2;
-        stats.penta_WD += stats.wins == 1 && stats.draws == 1;
-        stats.penta_WL += stats.wins == 1 && stats.losses == 1;
-        stats.penta_DD += stats.draws == 2;
-        stats.penta_LD += stats.losses == 1 && stats.draws == 1;
-        stats.penta_LL += stats.losses == 2;
+// // track penta stats
+// if (tournament_options_.report_penta) {
+//     stats.penta_WW += stats.wins == 2;
+//     stats.penta_WD += stats.wins == 1 && stats.draws == 1;
+//     stats.penta_WL += stats.wins == 1 && stats.losses == 1;
+//     stats.penta_DD += stats.draws == 2;
+//     stats.penta_LD += stats.losses == 1 && stats.draws == 1;
+//     stats.penta_LL += stats.losses == 2;
 
-        result_.updateStats(configs.first.name, configs.second.name, stats);
-        output_->printInterval(sprt_, result_.getStats(player1.name, player2.name), player1.name,
-                               player2.name, match_count_);
-    }
+//     result_.updateStats(configs.first.name, configs.second.name, stats);
+//     output_->printInterval(sprt_, result_.getStats(player1.name, player2.name), player1.name,
+//                            player2.name, match_count_);
+// }
 
-    if (sprt_.isValid()) {
-        updateSprtStatus({player1, player2});
-    }
-}
+// if (sprt_.isValid()) {
+//     updateSprtStatus({player1, player2});
+// }
+// }
 
-std::tuple<bool, Stats, std::string> RoundRobin::playGame(
-    const std::pair<EngineConfiguration, EngineConfiguration>& configs, const Opening& opening,
-    int round_id) {
+void RoundRobin::playGame(const std::pair<EngineConfiguration, EngineConfiguration>& configs,
+                          const Opening& opening, int round_id, start_callback start,
+                          finished_callback finish) {
+    if (atomic::stop) return;
+
     auto match = Match(tournament_options_, opening, round_id);
 
     try {
+        start();
         match.start(configs.first, configs.second);
     } catch (const std::exception& e) {
         Logger::error(e.what(), std::this_thread::get_id(), "fast-chess::RoundRobin::playGame");
-        return {false, Stats(), "exception"};
+        return;
     }
 
     const auto match_data = match.get();
+    const auto result     = updateStats(match_data);
+
+    finish(result, match_data.reason);
 
     const auto pgn_builder = PgnBuilder(match_data, tournament_options_);
 
@@ -209,7 +254,7 @@ std::tuple<bool, Stats, std::string> RoundRobin::playGame(
         file_writer_.write(pgn_builder.get());
     }
 
-    return {true, updateStats(match_data), match_data.reason};
+    // return {true, updateStats(match_data), match_data.reason};
 }
 
 Stats RoundRobin::updateStats(const MatchData& match_data) {

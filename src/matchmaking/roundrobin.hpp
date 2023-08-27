@@ -57,17 +57,20 @@ class RoundRobin {
     /// @param player1
     /// @param player2
     /// @param current
-    void createPairings(const EngineConfiguration &player1, const EngineConfiguration &player2,
-                        int current);
+    // void createPairings(const EngineConfiguration &player1, const EngineConfiguration &player2,
+    //                     int current);
+
+    using start_callback    = std::function<void()>;
+    using finished_callback = std::function<void(const Stats &stats, const std::string &reason)>;
 
     /// @brief play one game and write it to the pgn file
     /// @param configs
     /// @param opening
     /// @param round_id
     /// @return
-    [[nodiscard]] std::tuple<bool, Stats, std::string> playGame(
-        const std::pair<EngineConfiguration, EngineConfiguration> &configs, const Opening &opening,
-        int round_id);
+    void playGame(const std::pair<EngineConfiguration, EngineConfiguration> &configs,
+                  const Opening &opening, int round_id, start_callback start = nullptr,
+                  finished_callback finish = nullptr);
 
     /// @brief create the Stats object from the match data
     /// @param match_data

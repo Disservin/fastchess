@@ -8,7 +8,8 @@
 
 namespace fast_chess {
 
-using stats_map = std::unordered_map<std::string, std::unordered_map<std::string, Stats>>;
+using stats_map   = std::unordered_map<std::string, std::unordered_map<std::string, Stats>>;
+using pair_config = std::pair<fast_chess::EngineConfiguration, fast_chess::EngineConfiguration>;
 
 class Result {
    public:
@@ -16,9 +17,47 @@ class Result {
     /// @param engine1
     /// @param engine2
     /// @param stats
-    void updateStats(const std::string& engine1, const std::string& engine2, const Stats& stats) {
+    void updateStats(const pair_config& configs, const Stats& stats) {
         std::lock_guard<std::mutex> lock(results_mutex_);
-        results_[engine1][engine2] += stats;
+        results_[configs.first.name][configs.second.name] += stats;
+    }
+
+    /// @brief Update the stats in pair batches to keep track of pentanomial stats.
+    /// @param first
+    /// @param engine1
+    /// @param engine2
+    /// @param stats
+    /// @param round_id
+    /// @return
+    bool updatePairStats(const pair_config& configs, const std::string& first, const Stats& stats,
+                         uint64_t round_id) {
+        std::lock_guard<std::mutex> lock(game_pair_cache_mutex_);
+
+        const auto adjusted = first != configs.first.name ? ~stats : stats;
+
+        const auto is_first_game = game_pair_cache_.find(round_id) == game_pair_cache_.end();
+
+        auto& lookup = game_pair_cache_[round_id];
+
+        if (is_first_game) {
+            lookup = adjusted;
+            return false;
+        } else {
+            lookup += adjusted;
+
+            lookup.penta_WW += lookup.wins == 2;
+            lookup.penta_WD += lookup.wins == 1 && lookup.draws == 1;
+            lookup.penta_WL += lookup.wins == 1 && lookup.losses == 1;
+            lookup.penta_DD += lookup.draws == 2;
+            lookup.penta_LD += lookup.losses == 1 && lookup.draws == 1;
+            lookup.penta_LL += lookup.losses == 2;
+
+            updateStats(configs, lookup);
+
+            game_pair_cache_.erase(round_id);
+
+            return true;
+        }
     }
 
     /// @brief Stats of engine1 vs engine2, adjusted with the perspective
@@ -54,6 +93,9 @@ class Result {
     /// @brief tracks the engine results
     stats_map results_;
     std::mutex results_mutex_;
+
+    std::unordered_map<uint64_t, Stats> game_pair_cache_;
+    std::mutex game_pair_cache_mutex_;
 };
 
 }  // namespace fast_chess

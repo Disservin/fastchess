@@ -112,29 +112,37 @@ void RoundRobin::create(const std::vector<EngineConfiguration>& engine_configs) 
 
                 auto configs = std::pair{engine_configs[i], engine_configs[j]};
 
-                for (int i = 0; i < tournament_options_.games; i++) {
-                    const auto round_id = k * tournament_options_.games + (i + 1);
+                for (int g = 0; g < tournament_options_.games; g++) {
+                    const auto round_id = k * tournament_options_.games + (g + 1);
 
                     // callback functions, do not capture by reference
-                    const auto start = [this, round_id, configs]() {
-                        output_->startGame(configs.first.name, configs.second.name, round_id,
-                                           total_);
+                    const auto start = [this, configs, round_id]() {
+                        output_->startGame(configs, round_id, total_);
                     };
 
                     // callback functions, do not capture by reference
-                    const auto finish = [this, engine_configs, i, j, round_id, configs, first,
-                                         second](const Stats& stats, const std::string& reason) {
+                    const auto finish = [this, configs, first, second, round_id, k](
+                                            const Stats& stats, const std::string& reason) {
                         match_count_++;
 
-                        result_.updateStats(configs.first.name, configs.second.name, stats);
+                        output_->endGame(configs, stats, reason, round_id);
 
-                        const auto updated = result_.getStats(first.name, second.name);
+                        bool complete_pair = false;
 
-                        output_->endGame(stats, configs.first.name, configs.second.name, reason,
-                                         round_id);
+                        if (tournament_options_.report_penta) {
+                            complete_pair = result_.updatePairStats(configs, first.name, stats, k);
+                        } else {
+                            result_.updateStats(configs, stats);
+                        }
 
-                        output_->printInterval(sprt_, updated, first.name, second.name,
-                                               match_count_);
+                        // Only print the interval if the pair is complete or we are not tracking
+                        // penta stats.
+                        if (!tournament_options_.report_penta || complete_pair) {
+                            const auto updated_stats = result_.getStats(first.name, second.name);
+
+                            output_->printInterval(sprt_, updated_stats, first.name, second.name,
+                                                   match_count_);
+                        }
 
                         if (sprt_.isValid()) {
                             updateSprtStatus({first, second});

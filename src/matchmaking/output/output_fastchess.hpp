@@ -13,7 +13,7 @@ class Fastchess : public IOutput {
         std::cout << "--------------------------------------------------\n";
         printElo(stats, first, second, current_game_count);
         printSprt(sprt, stats);
-        // printPenta(stats);
+        printPenta(stats);
         std::cout << "--------------------------------------------------\n";
     };
 
@@ -61,7 +61,7 @@ class Fastchess : public IOutput {
         }
     };
 
-    [[deprecated]] static void printPenta(const Stats& stats) {
+    static void printPenta(const Stats& stats) {
         std::stringstream ss;
 
         ss << "Ptnml:   " << std::right << std::setw(7) << "WW" << std::right << std::setw(7)
@@ -75,7 +75,7 @@ class Fastchess : public IOutput {
         std::cout << ss.str();
     }
 
-    void startGame(const std::string& first, const std::string& second, int current_game_count,
+    void startGame(const pair_config& configs, int current_game_count,
                    int max_game_count) override {
         std::stringstream ss;
 
@@ -85,9 +85,9 @@ class Fastchess : public IOutput {
            << " of "
            << max_game_count
            << " ("
-           << first
+           << configs.first.name
            << " vs "
-           << second
+           << configs.second.name
            << ")"
            << "\n";
         // clang-format on
@@ -95,17 +95,17 @@ class Fastchess : public IOutput {
         std::cout << ss.str();
     }
 
-    void endGame(const Stats& stats, const std::string& first, const std::string& second,
-                 const std::string& annotation, int id) override {
+    void endGame(const pair_config& configs, const Stats& stats, const std::string& annotation,
+                 int id) override {
         std::stringstream ss;
 
         // clang-format off
         ss << "Finished game "
            << id
            << " ("
-           << first
+           << configs.first.name
            << " vs "
-           << second
+           << configs.second.name
            << "): "
            << formatStats(stats)
            << " {"

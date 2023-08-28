@@ -82,6 +82,8 @@ void Match::start(const EngineConfiguration& engine1_config,
 
     // Reset data
     played_moves_.clear();
+
+    data_           = MatchData();
     draw_tracker_   = DrawTacker();
     resign_tracker_ = ResignTracker();
 

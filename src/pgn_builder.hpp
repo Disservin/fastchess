@@ -30,7 +30,7 @@ class PgnBuilder {
     /// @param name
     /// @param value
     template <typename T>
-    void addHeader(const std::string &name, const T &value);
+    void addHeader(std::string_view name, const T &value);
 
     void addMove(chess::Board &board, const MoveData &move, std::size_t move_number);
 

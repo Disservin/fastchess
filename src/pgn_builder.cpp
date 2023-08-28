@@ -72,7 +72,7 @@ PgnBuilder::PgnBuilder(const MatchData &match, const cmd::TournamentOptions &tou
 }
 
 template <typename T>
-void PgnBuilder::addHeader(const std::string &name, const T &value) {
+void PgnBuilder::addHeader(std::string_view name, const T &value) {
     if constexpr (std::is_same_v<T, std::string>) {
         if (value.empty()) {
             return;

@@ -38,7 +38,7 @@ TimeControl parseTc(const std::string &tcString) {
     return tc;
 }
 
-bool isEngineSettableOption(const std::string &stringFormat) {
+bool isEngineSettableOption(std::string_view stringFormat) {
     return str_utils::startsWith(stringFormat, "option.");
 }
 

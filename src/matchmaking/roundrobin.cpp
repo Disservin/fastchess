@@ -124,15 +124,13 @@ void RoundRobin::create(const std::vector<EngineConfiguration>& engine_configs) 
                                          second](const Stats& stats, const std::string& reason) {
                         match_count_++;
 
+                        result_.updateStats(configs.first.name, configs.second.name, stats);
+
                         output_->endGame(stats, configs.first.name, configs.second.name, reason,
                                          round_id);
 
-                        if (!tournament_options_.report_penta) {
-                            result_.updateStats(configs.first.name, configs.second.name, stats);
-
-                            output_->printInterval(sprt_, result_.getStats(first.name, second.name),
-                                                   first.name, second.name, match_count_);
-                        }
+                        output_->printInterval(sprt_, result_.getStats(first.name, second.name),
+                                               first.name, second.name, match_count_);
 
                         if (sprt_.isValid()) {
                             updateSprtStatus({first, second});
@@ -168,17 +166,22 @@ void RoundRobin::updateSprtStatus(const std::vector<EngineConfiguration>& engine
 void RoundRobin::playGame(const std::pair<EngineConfiguration, EngineConfiguration>& configs,
                           const Opening& opening, int round_id, start_callback start,
                           finished_callback finish) {
-    if (atomic::stop) return;
-
     auto match = Match(tournament_options_, opening, round_id);
 
     try {
         start();
         match.start(configs.first, configs.second);
+
+        while (match.get().needs_restart) {
+            match.start(configs.first, configs.second);
+        }
+
     } catch (const std::exception& e) {
         Logger::error(e.what(), std::this_thread::get_id(), "fast-chess::RoundRobin::playGame");
         return;
     }
+
+    if (atomic::stop) return;
 
     const auto match_data = match.get();
     const auto result     = updateStats(match_data);

@@ -13,7 +13,7 @@ class Fastchess : public IOutput {
         std::cout << "--------------------------------------------------\n";
         printElo(stats, first, second, current_game_count);
         printSprt(sprt, stats);
-        printPenta(stats);
+        // printPenta(stats);
         std::cout << "--------------------------------------------------\n";
     };
 
@@ -61,7 +61,7 @@ class Fastchess : public IOutput {
         }
     };
 
-    static void printPenta(const Stats& stats) {
+    [[deprecated]] static void printPenta(const Stats& stats) {
         std::stringstream ss;
 
         ss << "Ptnml:   " << std::right << std::setw(7) << "WW" << std::right << std::setw(7)

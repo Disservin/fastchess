@@ -115,22 +115,26 @@ void RoundRobin::create(const std::vector<EngineConfiguration>& engine_configs) 
                 for (int i = 0; i < tournament_options_.games; i++) {
                     const auto round_id = k * tournament_options_.games + (i + 1);
 
+                    // callback functions, do not capture by reference
                     const auto start = [this, round_id, configs]() {
                         output_->startGame(configs.first.name, configs.second.name, round_id,
                                            total_);
                     };
 
+                    // callback functions, do not capture by reference
                     const auto finish = [this, engine_configs, i, j, round_id, configs, first,
                                          second](const Stats& stats, const std::string& reason) {
                         match_count_++;
 
                         result_.updateStats(configs.first.name, configs.second.name, stats);
 
+                        const auto updated = result_.getStats(first.name, second.name);
+
                         output_->endGame(stats, configs.first.name, configs.second.name, reason,
                                          round_id);
 
-                        output_->printInterval(sprt_, result_.getStats(first.name, second.name),
-                                               first.name, second.name, match_count_);
+                        output_->printInterval(sprt_, updated, first.name, second.name,
+                                               match_count_);
 
                         if (sprt_.isValid()) {
                             updateSprtStatus({first, second});

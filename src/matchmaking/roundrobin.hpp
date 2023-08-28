@@ -69,7 +69,7 @@ class RoundRobin {
     /// @brief create the Stats object from the match data
     /// @param match_data
     /// @return
-    [[nodiscard]] static Stats updateStats(const MatchData &match_data);
+    [[nodiscard]] static Stats extractStats(const MatchData &match_data);
 
     /// @brief fetches the next fen from a sequential read opening book or from a randomized
     /// opening book order

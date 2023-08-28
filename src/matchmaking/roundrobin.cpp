@@ -187,7 +187,7 @@ void RoundRobin::playGame(const std::pair<EngineConfiguration, EngineConfigurati
     if (atomic::stop) return;
 
     const auto match_data = match.get();
-    const auto result     = updateStats(match_data);
+    const auto result     = extractStats(match_data);
 
     finish(result, match_data.reason);
 
@@ -199,7 +199,7 @@ void RoundRobin::playGame(const std::pair<EngineConfiguration, EngineConfigurati
     }
 }
 
-Stats RoundRobin::updateStats(const MatchData& match_data) {
+Stats RoundRobin::extractStats(const MatchData& match_data) {
     Stats stats;
 
     if (match_data.players.first.result == chess::GameResult::WIN) {

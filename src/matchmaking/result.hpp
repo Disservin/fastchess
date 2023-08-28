@@ -5,6 +5,7 @@
 #include <unordered_map>
 
 #include <matchmaking/types/stats.hpp>
+#include <engines/engine_config.hpp>
 
 namespace fast_chess {
 

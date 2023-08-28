@@ -63,8 +63,8 @@ class RoundRobin {
     /// @param start
     /// @param finish
     void playGame(const std::pair<EngineConfiguration, EngineConfiguration> &configs,
-                  const Opening &opening, int round_id, start_callback start = nullptr,
-                  finished_callback finish = nullptr);
+                  start_callback start, finished_callback finish, const Opening &opening,
+                  int round_id);
 
     /// @brief create the Stats object from the match data
     /// @param match_data

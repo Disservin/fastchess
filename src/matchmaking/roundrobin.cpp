@@ -102,59 +102,62 @@ void RoundRobin::create(const std::vector<EngineConfiguration>& engine_configs) 
     total_ = (engine_configs.size() * (engine_configs.size() - 1) / 2) *
              tournament_options_.rounds * tournament_options_.games;
 
+    const auto fill = [this, &engine_configs](std::size_t i, std::size_t j, int k) {
+        // both players get the same opening
+        const auto opening = fetchNextOpening();
+        const auto first   = engine_configs[i];
+        const auto second  = engine_configs[j];
+
+        auto configs = std::pair{engine_configs[i], engine_configs[j]};
+
+        for (int g = 0; g < tournament_options_.games; g++) {
+            const auto round_id = k * tournament_options_.games + (g + 1);
+
+            // callback functions, do not capture by reference
+            const auto start = [this, configs, round_id]() {
+                output_->startGame(configs, round_id, total_);
+            };
+
+            // callback functions, do not capture by reference
+            const auto finish = [this, configs, first, second, round_id, k](
+                                    const Stats& stats, const std::string& reason) {
+                match_count_++;
+
+                output_->endGame(configs, stats, reason, round_id);
+
+                bool complete_pair = false;
+
+                if (tournament_options_.report_penta) {
+                    complete_pair = result_.updatePairStats(configs, first.name, stats, k);
+                } else {
+                    result_.updateStats(configs, stats);
+                }
+
+                // Only print the interval if the pair is complete or we are not tracking
+                // penta stats.
+                if (!tournament_options_.report_penta || complete_pair) {
+                    const auto updated_stats = result_.getStats(first.name, second.name);
+
+                    output_->printInterval(sprt_, updated_stats, first.name, second.name,
+                                           match_count_);
+                }
+
+                if (sprt_.isValid()) {
+                    updateSprtStatus({first, second});
+                }
+            };
+
+            pool_.enqueue(&RoundRobin::playGame, this, configs, start, finish, opening, round_id);
+
+            // swap players
+            std::swap(configs.first, configs.second);
+        }
+    };
+
     for (std::size_t i = 0; i < engine_configs.size(); i++) {
         for (std::size_t j = i + 1; j < engine_configs.size(); j++) {
             for (int k = 0; k < tournament_options_.rounds; k++) {
-                // both players get the same opening
-                const auto opening = fetchNextOpening();
-                const auto first   = engine_configs[i];
-                const auto second  = engine_configs[j];
-
-                auto configs = std::pair{engine_configs[i], engine_configs[j]};
-
-                for (int g = 0; g < tournament_options_.games; g++) {
-                    const auto round_id = k * tournament_options_.games + (g + 1);
-
-                    // callback functions, do not capture by reference
-                    const auto start = [this, configs, round_id]() {
-                        output_->startGame(configs, round_id, total_);
-                    };
-
-                    // callback functions, do not capture by reference
-                    const auto finish = [this, configs, first, second, round_id, k](
-                                            const Stats& stats, const std::string& reason) {
-                        match_count_++;
-
-                        output_->endGame(configs, stats, reason, round_id);
-
-                        bool complete_pair = false;
-
-                        if (tournament_options_.report_penta) {
-                            complete_pair = result_.updatePairStats(configs, first.name, stats, k);
-                        } else {
-                            result_.updateStats(configs, stats);
-                        }
-
-                        // Only print the interval if the pair is complete or we are not tracking
-                        // penta stats.
-                        if (!tournament_options_.report_penta || complete_pair) {
-                            const auto updated_stats = result_.getStats(first.name, second.name);
-
-                            output_->printInterval(sprt_, updated_stats, first.name, second.name,
-                                                   match_count_);
-                        }
-
-                        if (sprt_.isValid()) {
-                            updateSprtStatus({first, second});
-                        }
-                    };
-
-                    pool_.enqueue(&RoundRobin::playGame, this, configs, opening, round_id, start,
-                                  finish);
-
-                    // swap players
-                    std::swap(configs.first, configs.second);
-                }
+                fill(i, j, k);
             }
         }
     }
@@ -176,8 +179,8 @@ void RoundRobin::updateSprtStatus(const std::vector<EngineConfiguration>& engine
 }
 
 void RoundRobin::playGame(const std::pair<EngineConfiguration, EngineConfiguration>& configs,
-                          const Opening& opening, int round_id, start_callback start,
-                          finished_callback finish) {
+                          start_callback start, finished_callback finish, const Opening& opening,
+                          int round_id) {
     auto match = Match(tournament_options_, opening, round_id);
 
     try {

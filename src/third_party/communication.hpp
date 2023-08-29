@@ -48,6 +48,10 @@ SOFTWARE.
 #include <unistd.h>  // _exit, fork
 #endif
 
+namespace fast_chess {
+inline std::vector<pid_t> pid_list;
+}  // namespace fast_chess
+
 namespace Communication {
 
 class IProcess {
@@ -77,7 +81,7 @@ class IProcess {
     std::string log_name_;
 
     bool is_initalized_ = false;
-    bool timeout_ = false;
+    bool timeout_       = false;
 };
 
 #ifdef _WIN64
@@ -91,12 +95,12 @@ class Process : public IProcess {
 
         pi_ = PROCESS_INFORMATION();
 
-        is_initalized_ = true;
+        is_initalized_  = true;
         STARTUPINFOA si = STARTUPINFOA();
-        si.dwFlags = STARTF_USESTDHANDLES;
+        si.dwFlags      = STARTF_USESTDHANDLES;
 
         SECURITY_ATTRIBUTES sa = SECURITY_ATTRIBUTES();
-        sa.bInheritHandle = TRUE;
+        sa.bInheritHandle      = TRUE;
 
         HANDLE childStdOutRd, childStdOutWr;
         CreatePipe(&childStdOutRd, &childStdOutWr, &sa, 0);
@@ -119,7 +123,7 @@ class Process : public IProcess {
         CloseHandle(childStdInRd);
 
         child_std_out_ = childStdOutRd;
-        child_std_in_ = childStdInWr;
+        child_std_in_  = childStdInWr;
     }
 
     bool isAlive() override {
@@ -270,7 +274,7 @@ class Process : public IProcess {
 
     void initProcess(const std::string &command, const std::string &log_name) override {
         is_initalized_ = true;
-        log_name_ = log_name;
+        log_name_      = log_name;
         // Create input pipe
         if (pipe(in_pipe_) == -1) {
             throw std::runtime_error("Failed to create input pipe");
@@ -311,6 +315,7 @@ class Process : public IProcess {
             _exit(0); /* Note that we do not use exit() */
         } else {
             process_pid_ = forkPid;
+            fast_chess::pid_list.push_back(process_pid_);
         }
     }
 
@@ -327,6 +332,9 @@ class Process : public IProcess {
     }
 
     void killProcess() {
+        fast_chess::pid_list.erase(
+            std::remove(fast_chess::pid_list.begin(), fast_chess::pid_list.end(), process_pid_),
+            fast_chess::pid_list.end());
         if (is_initalized_) {
             close(in_pipe_[0]);
             close(in_pipe_[1]);
@@ -365,7 +373,7 @@ class Process : public IProcess {
         timeout_ = false;
 
         struct pollfd pollfds[1];
-        pollfds[0].fd = in_pipe_[0];
+        pollfds[0].fd     = in_pipe_[0];
         pollfds[0].events = POLLIN;
 
         // Set up the timeout for poll

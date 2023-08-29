@@ -27,7 +27,7 @@ void Tournament::loadConfig(const cmd::TournamentOptions& game_config) {
     round_robin_.setGameConfig(tournament_options_);
 }
 
-void Tournament::validateEngines(const std::vector<EngineConfiguration>& configs) {
+void Tournament::validateEngines(std::vector<EngineConfiguration>& configs) {
     if (configs.size() < 2) {
         throw std::runtime_error("Error: Need at least two engines to start!");
     }
@@ -40,13 +40,20 @@ void Tournament::validateEngines(const std::vector<EngineConfiguration>& configs
             }
 
             if (!std::filesystem::exists(configs[i].cmd)) {
+#ifdef _WIN64
+                if (!std::filesystem::exists(configs[i].cmd + ".exe")) {
+                    throw std::runtime_error("Error; Engine not found: " + configs[i].cmd);
+                }
+                configs[i].cmd += ".exe";
+#else
                 throw std::runtime_error("Error; Engine not found: " + configs[i].cmd);
+#endif
             }
         }
     }
 }
 
-void Tournament::start(const std::vector<EngineConfiguration>& engine_configs) {
+void Tournament::start(std::vector<EngineConfiguration> engine_configs) {
     validateEngines(engine_configs);
 
     Logger::cout("Starting tournament...");

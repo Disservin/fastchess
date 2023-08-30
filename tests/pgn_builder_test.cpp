@@ -27,12 +27,10 @@ TEST_SUITE("PGN Builder Tests") {
 
         match_data.reason = "engine2 got checkmated";
 
-        match_data.round = 1;
-
         cmd::TournamentOptions options;
         options.site = "localhost";
 
-        PgnBuilder pgn_builder = PgnBuilder(match_data, options);
+        PgnBuilder pgn_builder = PgnBuilder(match_data, options, 1);
         CHECK(
             pgn_builder.get() ==
             "[Event \"Fast Chess\"]\n[Site \"localhost\"]\n[Round \"1\"]\n[White "
@@ -61,12 +59,10 @@ TEST_SUITE("PGN Builder Tests") {
 
         match_data.reason = "engine1 got checkmated";
 
-        match_data.round = 1;
-
         cmd::TournamentOptions options;
         options.site = "localhost";
 
-        PgnBuilder pgn_builder = PgnBuilder(match_data, options);
+        PgnBuilder pgn_builder = PgnBuilder(match_data, options, 1);
         CHECK(
             pgn_builder.get() ==
             "[Event \"Fast Chess\"]\n[Site \"localhost\"]\n[Round \"1\"]\n[White "

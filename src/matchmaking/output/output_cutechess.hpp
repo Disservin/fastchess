@@ -58,7 +58,7 @@ class Cutechess : public IOutput {
         }
     };
 
-    void startGame(const std::string& first, const std::string& second, int current_game_count,
+    void startGame(const pair_config& configs, int current_game_count,
                    int max_game_count) override {
         std::stringstream ss;
 
@@ -68,9 +68,9 @@ class Cutechess : public IOutput {
            << " of "
            << max_game_count
            << " ("
-           << first
+           << configs.first.name
            << " vs "
-           << second
+           << configs.second.name
            << ")"
            << "\n";
         // clang-format on
@@ -78,17 +78,17 @@ class Cutechess : public IOutput {
         std::cout << ss.str() << std::flush;
     }
 
-    void endGame(const Stats& stats, const std::string& first, const std::string& second,
-                 const std::string& annotation, int id) override {
+    void endGame(const pair_config& configs, const Stats& stats, const std::string& annotation,
+                 int id) override {
         std::stringstream ss;
 
         // clang-format off
         ss << "Finished game "
            << id
            << " ("
-           << first
+           << configs.first.name
            << " vs "
-           << second
+           << configs.second.name
            << "): "
            << formatStats(stats)
            << " {"

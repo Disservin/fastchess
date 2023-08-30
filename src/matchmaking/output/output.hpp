@@ -7,10 +7,13 @@
 #include <matchmaking/types/match_data.hpp>
 #include <matchmaking/types/stats.hpp>
 #include <sprt.hpp>
+#include <engines/engine_config.hpp>
 
 namespace fast_chess {
 
 class Tournament;  // forward declaration
+
+using pair_config = std::pair<fast_chess::EngineConfiguration, fast_chess::EngineConfiguration>;
 
 /// @brief Interface for outputting current tournament state to the user.
 class IOutput {
@@ -50,8 +53,8 @@ class IOutput {
     /// @param second
     /// @param current_game_count
     /// @param max_game_count
-    virtual void startGame(const std::string& first, const std::string& second,
-                           int current_game_count, int max_game_count) = 0;
+    virtual void startGame(const pair_config& configs, int current_game_count,
+                           int max_game_count) = 0;
 
     /// @brief Print game end.
     /// @param stats
@@ -59,7 +62,7 @@ class IOutput {
     /// @param second
     /// @param annotation
     /// @param id
-    virtual void endGame(const Stats& stats, const std::string& first, const std::string& second,
+    virtual void endGame(const pair_config& configs, const Stats& stats, 
                          const std::string& annotation, int id) = 0;
 
     /// @brief Print tournament end.

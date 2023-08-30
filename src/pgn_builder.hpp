@@ -10,7 +10,8 @@ namespace fast_chess {
 
 class PgnBuilder {
    public:
-    PgnBuilder(const MatchData &match, const cmd::TournamentOptions &tournament_options);
+    PgnBuilder(const MatchData &match, const cmd::TournamentOptions &tournament_options,
+               std::size_t round_id);
 
     /// @brief Get the newly created pgn
     /// @return
@@ -30,7 +31,7 @@ class PgnBuilder {
     /// @param name
     /// @param value
     template <typename T>
-    void addHeader(const std::string &name, const T &value);
+    void addHeader(std::string_view name, const T &value);
 
     void addMove(chess::Board &board, const MoveData &move, std::size_t move_number);
 

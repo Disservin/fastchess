@@ -56,7 +56,6 @@ struct MatchData {
     // pgn file as a comment at the end of the game.
     std::string reason;
 
-    int round          = 0;
     bool needs_restart = false;
 };
 

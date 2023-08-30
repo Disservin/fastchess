@@ -80,10 +80,17 @@ void Match::start(const EngineConfiguration& engine1_config,
         return moves;
     }();
 
+    // Reset data
+    played_moves_.clear();
+
+    data_           = MatchData();
+    draw_tracker_   = DrawTacker();
+    resign_tracker_ = ResignTracker();
+
     // Add opening moves to played moves
     played_moves_.insert(played_moves_.end(), uci_moves.begin(), uci_moves.end());
 
-    start_position = board_.getFen() == STARTPOS ? "startpos" : board_.getFen();
+    start_position_ = board_.getFen() == STARTPOS ? "startpos" : board_.getFen();
 
     player_1.info.color = board_.sideToMove();
     player_2.info.color = ~board_.sideToMove();
@@ -154,7 +161,7 @@ bool Match::playMove(Participant& us, Participant& opponent) {
         return false;
     }
 
-    us.engine.writeEngine(us.buildPositionInput(played_moves_, start_position));
+    us.engine.writeEngine(us.buildPositionInput(played_moves_, start_position_));
     us.engine.writeEngine(us.buildGoInput(board_.sideToMove(), opponent.time_control));
 
     const auto t0 = clock::now();

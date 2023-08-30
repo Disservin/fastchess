@@ -4,6 +4,7 @@
 
 #include <cli.hpp>
 #include <matchmaking/tournament.hpp>
+#include <third_party/communication.hpp>
 
 namespace fast_chess::atomic {
 std::atomic_bool stop = false;
@@ -64,6 +65,11 @@ void sigintHandler(int param) {
     Tour->stop();
     Options->saveJson(Tour->getResults());
     std::cout << "Saved results" << std::endl;
+
+    for (auto &pid : pid_list) {
+        kill(pid, SIGINT);
+        kill(pid, SIGKILL);
+    }
 
     std::exit(param);
 }

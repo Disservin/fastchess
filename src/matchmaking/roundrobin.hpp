@@ -53,26 +53,23 @@ class RoundRobin {
     /// @param engine_configs
     void updateSprtStatus(const std::vector<EngineConfiguration> &engine_configs);
 
-    /// @brief pairs player1 vs player2
-    /// @param player1
-    /// @param player2
-    /// @param current
-    void createPairings(const EngineConfiguration &player1, const EngineConfiguration &player2,
-                        int current);
+    using start_callback    = std::function<void()>;
+    using finished_callback = std::function<void(const Stats &stats, const std::string &reason)>;
 
     /// @brief play one game and write it to the pgn file
     /// @param configs
     /// @param opening
     /// @param round_id
-    /// @return
-    [[nodiscard]] std::tuple<bool, Stats, std::string> playGame(
-        const std::pair<EngineConfiguration, EngineConfiguration> &configs, const Opening &opening,
-        int round_id);
+    /// @param start
+    /// @param finish
+    void playGame(const std::pair<EngineConfiguration, EngineConfiguration> &configs,
+                  start_callback start, finished_callback finish, const Opening &opening,
+                  std::size_t round_id);
 
     /// @brief create the Stats object from the match data
     /// @param match_data
     /// @return
-    [[nodiscard]] static Stats updateStats(const MatchData &match_data);
+    [[nodiscard]] static Stats extractStats(const MatchData &match_data);
 
     /// @brief fetches the next fen from a sequential read opening book or from a randomized
     /// opening book order

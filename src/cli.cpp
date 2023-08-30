@@ -69,6 +69,25 @@ void parseEngineKeyValues(EngineConfiguration &engineConfig, const std::string &
         OptionsParser::throwMissing("engine", key, value);
 }
 
+void validateEnginePath(std::string dir, std::string &cmd) {
+    // engine path with dir
+    dir              = dir == "." ? "" : dir;
+    auto engine_path = dir + cmd;
+
+// append .exe to cmd if it is missing on windows
+#ifdef _WIN64
+    if (engine_path.find(".exe") == std::string::npos) {
+        cmd += ".exe";
+        engine_path += ".exe";
+    }
+#endif
+
+    // throw if cmd does not exist
+    if (!std::filesystem::exists(engine_path)) {
+        throw std::runtime_error("Error; Engine not found: " + engine_path);
+    }
+}
+
 }  // namespace EngineParser
 
 class Engine : public Option {
@@ -79,6 +98,9 @@ class Engine : public Option {
         parseDashOptions(i, argc, argv, [&](const std::string &key, const std::string &value) {
             EngineParser::parseEngineKeyValues(argument_data.configs.back(), key, value);
         });
+
+        EngineParser::validateEnginePath(argument_data.configs.back().dir,
+                                         argument_data.configs.back().cmd);
     }
 };
 
@@ -414,6 +436,9 @@ class Quick : public Option {
                 argument_data.configs.back().limit.tc.increment = 100;
 
                 argument_data.configs.back().recover = true;
+
+                EngineParser::validateEnginePath(argument_data.configs.back().dir,
+                                                 argument_data.configs.back().cmd);
             } else if (key == "book") {
                 argument_data.tournament_options.opening.file   = value;
                 argument_data.tournament_options.opening.order  = OrderType::RANDOM;

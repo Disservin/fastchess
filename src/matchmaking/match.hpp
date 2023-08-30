@@ -25,9 +25,8 @@ struct ResignTracker {
 
 class Match {
    public:
-    Match(const cmd::TournamentOptions& game_config, const Opening& opening, int round) {
+    Match(const cmd::TournamentOptions& game_config, const Opening& opening) {
         tournament_options_ = game_config;
-        data_.round         = round;
 
         opening_ = opening;
     }

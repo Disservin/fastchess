@@ -10,7 +10,8 @@ namespace fast_chess {
 
 class PgnBuilder {
    public:
-    PgnBuilder(const MatchData &match, const cmd::TournamentOptions &tournament_options);
+    PgnBuilder(const MatchData &match, const cmd::TournamentOptions &tournament_options,
+               std::size_t round_id);
 
     /// @brief Get the newly created pgn
     /// @return

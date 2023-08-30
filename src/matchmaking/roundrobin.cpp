@@ -102,7 +102,7 @@ void RoundRobin::create(const std::vector<EngineConfiguration>& engine_configs) 
     total_ = (engine_configs.size() * (engine_configs.size() - 1) / 2) *
              tournament_options_.rounds * tournament_options_.games;
 
-    const auto fill = [this, &engine_configs](std::size_t i, std::size_t j, int k) {
+    const auto fill = [this, &engine_configs](std::size_t i, std::size_t j, std::size_t round_id) {
         // both players get the same opening
         const auto opening = fetchNextOpening();
         const auto first   = engine_configs[i];
@@ -111,24 +111,22 @@ void RoundRobin::create(const std::vector<EngineConfiguration>& engine_configs) 
         auto configs = std::pair{engine_configs[i], engine_configs[j]};
 
         for (int g = 0; g < tournament_options_.games; g++) {
-            const auto round_id = k * tournament_options_.games + (g + 1);
+            const std::size_t game_id = round_id * tournament_options_.games + (g + 1);
 
             // callback functions, do not capture by reference
-            const auto start = [this, configs, round_id]() {
-                output_->startGame(configs, round_id, total_);
+            const auto start = [this, configs, game_id]() {
+                output_->startGame(configs, game_id, total_);
             };
 
             // callback functions, do not capture by reference
-            const auto finish = [this, configs, first, second, round_id, k](
+            const auto finish = [this, configs, first, second, game_id, round_id](
                                     const Stats& stats, const std::string& reason) {
-                match_count_++;
-
-                output_->endGame(configs, stats, reason, round_id);
+                output_->endGame(configs, stats, reason, game_id);
 
                 bool complete_pair = false;
 
                 if (tournament_options_.report_penta) {
-                    complete_pair = result_.updatePairStats(configs, first.name, stats, k);
+                    complete_pair = result_.updatePairStats(configs, first.name, stats, round_id);
                 } else {
                     result_.updateStats(configs, stats);
                 }
@@ -139,12 +137,14 @@ void RoundRobin::create(const std::vector<EngineConfiguration>& engine_configs) 
                     const auto updated_stats = result_.getStats(first.name, second.name);
 
                     output_->printInterval(sprt_, updated_stats, first.name, second.name,
-                                           match_count_);
+                                           match_count_ + 1);
                 }
 
                 if (sprt_.isValid()) {
                     updateSprtStatus({first, second});
                 }
+
+                match_count_++;
             };
 
             pool_.enqueue(&RoundRobin::playGame, this, configs, start, finish, opening, round_id);
@@ -180,8 +180,8 @@ void RoundRobin::updateSprtStatus(const std::vector<EngineConfiguration>& engine
 
 void RoundRobin::playGame(const std::pair<EngineConfiguration, EngineConfiguration>& configs,
                           start_callback start, finished_callback finish, const Opening& opening,
-                          int round_id) {
-    auto match = Match(tournament_options_, opening, round_id);
+                          std::size_t game_id) {
+    auto match = Match(tournament_options_, opening);
 
     try {
         start();
@@ -202,7 +202,7 @@ void RoundRobin::playGame(const std::pair<EngineConfiguration, EngineConfigurati
 
     finish(result, match_data.reason);
 
-    const auto pgn_builder = PgnBuilder(match_data, tournament_options_);
+    const auto pgn_builder = PgnBuilder(match_data, tournament_options_, game_id);
 
     // If the game was stopped, don't write the PGN
     if (match_data.termination != MatchTermination::INTERRUPT) {

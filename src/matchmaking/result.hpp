@@ -30,8 +30,8 @@ class Result {
     /// @param stats
     /// @param round_id
     /// @return
-    bool updatePairStats(const pair_config& configs, const std::string& first, const Stats& stats,
-                         uint64_t round_id) {
+    [[nodiscard]] bool updatePairStats(const pair_config& configs, const std::string& first,
+                                       const Stats& stats, uint64_t round_id) {
         std::lock_guard<std::mutex> lock(game_pair_cache_mutex_);
 
         const auto adjusted = first != configs.first.name ? ~stats : stats;

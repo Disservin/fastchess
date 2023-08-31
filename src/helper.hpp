@@ -25,31 +25,31 @@ ordered_json type conversion is not yet supported, though we only have to change
 
 namespace fast_chess::str_utils {
 
-inline bool startsWith(std::string_view haystack, std::string_view needle) {
+[[nodiscard]] inline bool startsWith(std::string_view haystack, std::string_view needle) {
     if (needle.empty()) return false;
     return (haystack.rfind(needle, 0) != std::string::npos);
 }
 
-inline bool endsWith(std::string_view value, std::string_view ending) {
+[[nodiscard]] inline bool endsWith(std::string_view value, std::string_view ending) {
     if (ending.size() > value.size()) return false;
     return std::equal(ending.rbegin(), ending.rend(), value.rbegin());
 }
 
-inline std::string toLower(std::string_view string) {
+[[nodiscard]] inline std::string toLower(std::string_view string) {
     std::string lower_string(string);
     std::transform(lower_string.begin(), lower_string.end(), lower_string.begin(), ::tolower);
     return lower_string;
 }
 
-inline bool contains(std::string_view haystack, std::string_view needle) {
+[[nodiscard]] inline bool contains(std::string_view haystack, std::string_view needle) {
     return haystack.find(needle) != std::string::npos;
 }
 
-inline bool contains(const std::vector<std::string> &haystack, std::string_view needle) {
+[[nodiscard]] inline bool contains(const std::vector<std::string> &haystack, std::string_view needle) {
     return std::find(haystack.begin(), haystack.end(), needle) != haystack.end();
 }
 
-inline std::vector<std::string> splitString(const std::string &string, const char &delimiter) {
+[[nodiscard]] inline std::vector<std::string> splitString(const std::string &string, const char &delimiter) {
     std::stringstream string_stream(string);
     std::string segment;
     std::vector<std::string> seglist;
@@ -60,7 +60,7 @@ inline std::vector<std::string> splitString(const std::string &string, const cha
 }
 
 template <typename T>
-std::optional<T> findElement(const std::vector<std::string> &haystack, std::string_view needle) {
+[[nodiscard]] std::optional<T> findElement(const std::vector<std::string> &haystack, std::string_view needle) {
     auto position = std::find(haystack.begin(), haystack.end(), needle);
     auto index    = position - haystack.begin();
     if (position == haystack.end()) return std::nullopt;

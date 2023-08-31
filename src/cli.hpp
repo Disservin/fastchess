@@ -208,30 +208,4 @@ void parseValue(int &i, int argc, const char *argv[], T &optionValue) {
     }
 }
 
-/// @brief Generic function to parse a standalone value after a dash command. Continues parsing
-/// until another dash command is found
-/// @param i
-/// @param argc
-/// @param argv
-/// @param func
-inline void parseDashOptions(int &i, int argc, char const *argv[],
-                             const std::function<void(std::string, std::string)> &func) {
-    while (i + 1 < argc && argv[i + 1][0] != '-' && i++) {
-        std::string param = argv[i];
-        std::size_t pos   = param.find('=');
-        std::string key   = param.substr(0, pos);
-        std::string value = param.substr(pos + 1);
-
-        func(key, value);
-    }
-}
-
-inline std::string readUntilDash(int &i, int argc, char const *argv[]) {
-    std::string result;
-    while (i + 1 < argc && argv[i + 1][0] != '-' && i++) {
-        result += argv[i] + std::string(" ");
-    }
-    return result.erase(result.size() - 1);
-}
-
 }  // namespace fast_chess::cmd

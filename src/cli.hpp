@@ -13,10 +13,10 @@
 #include <unordered_map>
 #include <vector>
 
-#include <engines/engine_config.hpp>
-#include <logger.hpp>
+#include <types/engine_config.hpp>
+#include <util/logger.hpp>
 
-#include <tournament_options.hpp>
+#include <types/tournament_options.hpp>
 
 namespace fast_chess::cmd {
 

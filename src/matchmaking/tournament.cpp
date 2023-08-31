@@ -1,7 +1,6 @@
 #include <matchmaking/tournament.hpp>
 
-#include <logger.hpp>
-#include <rand.hpp>
+#include <util/logger.hpp>
 
 namespace fast_chess {
 

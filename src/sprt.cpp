@@ -4,7 +4,7 @@
 #include <iomanip>
 #include <sstream>
 
-#include <logger.hpp>
+#include <util/logger.hpp>
 
 namespace fast_chess {
 

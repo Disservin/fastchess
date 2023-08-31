@@ -1,14 +1,14 @@
 #pragma once
 
-#include <matchmaking/file_writer.hpp>
+#include <matchmaking/util/file_writer.hpp>
 #include <matchmaking/match.hpp>
 #include <matchmaking/result.hpp>
-#include <matchmaking/threadpool.hpp>
-#include <matchmaking/types/stats.hpp>
+#include <matchmaking/util/threadpool.hpp>
+#include <types/stats.hpp>
 #include <pgn_reader.hpp>
 #include <sprt.hpp>
 
-#include <tournament_options.hpp>
+#include <types/tournament_options.hpp>
 
 namespace fast_chess {
 

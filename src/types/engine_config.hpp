@@ -6,7 +6,7 @@
 #include <tuple>
 #include <vector>
 
-#include <enums.hpp>
+#include <types/enums.hpp>
 #include <helper.hpp>
 
 #include <third_party/json.hpp>

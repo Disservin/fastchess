@@ -2,8 +2,8 @@
 
 #include <string>
 
-#include <engines/engine_config.hpp>
-#include <enums.hpp>
+#include <types/engine_config.hpp>
+#include <types/enums.hpp>
 #include <matchmaking/output/output_factory.hpp>
 #include <matchmaking/result.hpp>
 

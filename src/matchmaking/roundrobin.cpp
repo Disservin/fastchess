@@ -2,10 +2,10 @@
 
 #include <third_party/chess.hpp>
 
-#include <logger.hpp>
+#include <util/logger.hpp>
 #include <matchmaking/output/output_factory.hpp>
 #include <pgn_builder.hpp>
-#include <rand.hpp>
+#include <util/rand.hpp>
 
 namespace fast_chess {
 

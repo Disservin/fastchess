@@ -3,7 +3,7 @@
 #include <third_party/chess.hpp>
 #include <third_party/communication.hpp>
 
-#include <engines/engine_config.hpp>
+#include <types/engine_config.hpp>
 
 namespace fast_chess {
 

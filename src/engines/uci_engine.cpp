@@ -4,7 +4,7 @@
 #include <stdexcept>
 
 #include <helper.hpp>
-#include <logger.hpp>
+#include <util/logger.hpp>
 
 namespace fast_chess {
 

@@ -3,11 +3,11 @@
 #include <string>
 
 #include <cli.hpp>
-#include <enums.hpp>
-#include <matchmaking/types/match_data.hpp>
-#include <matchmaking/types/stats.hpp>
+#include <types/enums.hpp>
+#include <types/match_data.hpp>
+#include <types/stats.hpp>
 #include <sprt.hpp>
-#include <engines/engine_config.hpp>
+#include <types/engine_config.hpp>
 
 namespace fast_chess {
 
@@ -62,7 +62,7 @@ class IOutput {
     /// @param second
     /// @param annotation
     /// @param id
-    virtual void endGame(const pair_config& configs, const Stats& stats, 
+    virtual void endGame(const pair_config& configs, const Stats& stats,
                          const std::string& annotation, int id) = 0;
 
     /// @brief Print tournament end.

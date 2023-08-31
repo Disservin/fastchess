@@ -33,7 +33,7 @@ SOFTWARE.
 #include <thread>
 #include <vector>
 
-#include <logger.hpp>
+#include <util/logger.hpp>
 
 #ifdef _WIN64
 #include <windows.h>

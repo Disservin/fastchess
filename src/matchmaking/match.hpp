@@ -4,7 +4,7 @@
 
 #include <cli.hpp>
 #include <matchmaking/participant.hpp>
-#include <matchmaking/types/match_data.hpp>
+#include <types/match_data.hpp>
 #include <pgn_reader.hpp>
 
 namespace fast_chess {

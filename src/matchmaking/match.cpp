@@ -1,9 +1,9 @@
 #include <matchmaking/match.hpp>
 
 #include <helper.hpp>
-#include <logger.hpp>
+#include <util/logger.hpp>
 
-#include <tournament_options.hpp>
+#include <types/tournament_options.hpp>
 
 namespace fast_chess {
 

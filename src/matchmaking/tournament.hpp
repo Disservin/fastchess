@@ -2,7 +2,7 @@
 
 #include <matchmaking/roundrobin.hpp>
 
-#include <tournament_options.hpp>
+#include <types/tournament_options.hpp>
 
 namespace fast_chess {
 

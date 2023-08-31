@@ -1,4 +1,4 @@
-#include <engines/engine_config.hpp>
+#include <types/engine_config.hpp>
 #include <engines/uci_engine.hpp>
 
 #include <cassert>

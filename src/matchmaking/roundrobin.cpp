@@ -32,7 +32,7 @@ RoundRobin::RoundRobin(const cmd::TournamentOptions& game_config)
 
 void RoundRobin::setupEpdOpeningBook() {
     // Set the seed for the random number generator
-    Random::mersenne_rand.seed(tournament_options_.seed);
+    random::mersenne_rand.seed(tournament_options_.seed);
 
     if (tournament_options_.opening.file.empty() ||
         tournament_options_.opening.format != FormatType::EPD) {
@@ -58,7 +58,7 @@ void RoundRobin::setupEpdOpeningBook() {
     if (tournament_options_.opening.order == OrderType::RANDOM) {
         // Fisher-Yates / Knuth shuffle
         for (std::size_t i = 0; i <= opening_book_epd_.size() - 2; i++) {
-            std::size_t j = i + (Random::mersenne_rand() % (opening_book_epd_.size() - i));
+            std::size_t j = i + (random::mersenne_rand() % (opening_book_epd_.size() - i));
             std::swap(opening_book_epd_[i], opening_book_epd_[j]);
         }
     }
@@ -82,7 +82,7 @@ void RoundRobin::setupPgnOpeningBook() {
     if (tournament_options_.opening.order == OrderType::RANDOM) {
         // Fisher-Yates / Knuth shuffle
         for (std::size_t i = 0; i <= opening_book_pgn_.size() - 2; i++) {
-            std::size_t j = i + (Random::mersenne_rand() % (opening_book_pgn_.size() - i));
+            std::size_t j = i + (random::mersenne_rand() % (opening_book_pgn_.size() - i));
             std::swap(opening_book_pgn_[i], opening_book_pgn_[j]);
         }
     }

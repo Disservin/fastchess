@@ -9,7 +9,7 @@
 namespace fast_chess::cmd {
 using json = nlohmann::json;
 
-namespace EngineParser {
+namespace engine_parser {
 TimeControl parseTc(const std::string &tcString) {
     if (tcString == "infinite" || tcString == "inf") {
         return {};
@@ -88,7 +88,7 @@ void validateEnginePath(std::string dir, std::string &cmd) {
     }
 }
 
-}  // namespace EngineParser
+}  // namespace engine_parser
 
 class Engine : public Option {
    public:
@@ -96,11 +96,11 @@ class Engine : public Option {
         argument_data.configs.emplace_back();
 
         parseDashOptions(i, argc, argv, [&](const std::string &key, const std::string &value) {
-            EngineParser::parseEngineKeyValues(argument_data.configs.back(), key, value);
+            engine_parser::parseEngineKeyValues(argument_data.configs.back(), key, value);
         });
 
-        EngineParser::validateEnginePath(argument_data.configs.back().dir,
-                                         argument_data.configs.back().cmd);
+        engine_parser::validateEnginePath(argument_data.configs.back().dir,
+                                          argument_data.configs.back().cmd);
     }
 };
 
@@ -109,7 +109,7 @@ class Each : public Option {
     void parse(int &i, int argc, char const *argv[], ArgumentData &argument_data) override {
         parseDashOptions(i, argc, argv, [&](const std::string &key, const std::string &value) {
             for (auto &config : argument_data.configs) {
-                EngineParser::parseEngineKeyValues(config, key, value);
+                engine_parser::parseEngineKeyValues(config, key, value);
             }
         });
     }
@@ -437,8 +437,8 @@ class Quick : public Option {
 
                 argument_data.configs.back().recover = true;
 
-                EngineParser::validateEnginePath(argument_data.configs.back().dir,
-                                                 argument_data.configs.back().cmd);
+                engine_parser::validateEnginePath(argument_data.configs.back().dir,
+                                                  argument_data.configs.back().cmd);
             } else if (key == "book") {
                 argument_data.tournament_options.opening.file   = value;
                 argument_data.tournament_options.opening.order  = OrderType::RANDOM;

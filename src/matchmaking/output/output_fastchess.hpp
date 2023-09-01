@@ -18,7 +18,7 @@ class Fastchess : public IOutput {
     };
 
     void printElo(const Stats& stats, const std::string& first, const std::string& second,
-                  int current_game_count) override {
+                  std::size_t current_game_count) override {
         const Elo elo(stats.wins, stats.losses, stats.draws);
 
         // clang-format off
@@ -75,8 +75,8 @@ class Fastchess : public IOutput {
         std::cout << ss.str();
     }
 
-    void startGame(const pair_config& configs, int current_game_count,
-                   int max_game_count) override {
+    void startGame(const pair_config& configs, std::size_t current_game_count,
+                   std::size_t max_game_count) override {
         std::stringstream ss;
 
         // clang-format off
@@ -96,7 +96,7 @@ class Fastchess : public IOutput {
     }
 
     void endGame(const pair_config& configs, const Stats& stats, const std::string& annotation,
-                 int id) override {
+                 std::size_t id) override {
         std::stringstream ss;
 
         // clang-format off

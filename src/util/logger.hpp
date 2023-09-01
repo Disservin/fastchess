@@ -72,7 +72,7 @@ class Logger {
     /// @param thread
     static void error(const std::string &msg, std::thread::id thread, const std::string &name);
 
-    [[nodiscard]] static std::string getDateTime(std::string format = "%Y-%m-%dT%H:%M:%S %z");
+    [[nodiscard]] static std::string getDateTime(const std::string &format);
 
     [[nodiscard]] static std::string formatDuration(std::chrono::seconds duration);
 

@@ -22,7 +22,7 @@ class Tournament {
     [[nodiscard]] RoundRobin *roundRobin() { return &round_robin_; }
 
    private:
-    void validateEngines(std::vector<EngineConfiguration> &configs);
+    static void validateEngines(std::vector<EngineConfiguration> &configs);
 
     RoundRobin round_robin_;
 

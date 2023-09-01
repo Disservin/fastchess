@@ -41,7 +41,7 @@ class IOutput {
     /// @param second
     /// @param current_game_count
     virtual void printElo(const Stats& stats, const std::string& first, const std::string& second,
-                          int current_game_count) = 0;
+                          std::size_t current_game_count) = 0;
 
     /// @brief Print current SPRT stats.
     /// @param sprt
@@ -53,8 +53,8 @@ class IOutput {
     /// @param second
     /// @param current_game_count
     /// @param max_game_count
-    virtual void startGame(const pair_config& configs, int current_game_count,
-                           int max_game_count) = 0;
+    virtual void startGame(const pair_config& configs, std::size_t current_game_count,
+                           std::size_t max_game_count) = 0;
 
     /// @brief Print game end.
     /// @param stats
@@ -63,7 +63,7 @@ class IOutput {
     /// @param annotation
     /// @param id
     virtual void endGame(const pair_config& configs, const Stats& stats,
-                         const std::string& annotation, int id) = 0;
+                         const std::string& annotation, std::size_t id) = 0;
 
     /// @brief Print tournament end.
     virtual void endTournament() = 0;

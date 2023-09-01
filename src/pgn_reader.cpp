@@ -1,9 +1,6 @@
 #include <pgn_reader.hpp>
 
 #include <iostream>
-#include <regex>
-
-#include <helper.hpp>
 
 namespace fast_chess {
 

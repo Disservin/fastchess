@@ -241,7 +241,7 @@ class Process : public IProcess {
 
         if (!isAlive()) {
             killProcess();
-        };
+        }
 
         DWORD bytesWritten;
         WriteFile(child_std_in_, input.c_str(), input.length(), &bytesWritten, nullptr);

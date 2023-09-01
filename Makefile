@@ -24,11 +24,11 @@ endif
 endif
 
 SRC_FILES := $(wildcard src/*.cpp) $(wildcard src/*/*.cpp) $(wildcard src/*/*/*.cpp)
+TEST_SRC  := $(wildcard tests/*.cpp)
 
 ifeq ($(MAKECMDGOALS),tests)
 	CXXFLAGS  := -O2 -std=c++17 $(INCLUDES) -g3 -fno-omit-frame-pointer -Wall -Wextra -DTESTS
-	TEST_SR   := $(wildcard *.cpp) $(wildcard */*.cpp) $(wildcard */*/*.cpp) $(SRC_FILES)
-	SRC_FILES := $(filter-out src/main.cpp, $(TEST_SR))
+	SRC_FILES := $(filter-out src/main.cpp, $(SRC_FILES)) $(TEST_SRC)
 	OBJECTS   := $(patsubst %.cpp,$(TMPDIR)/%.o,$(SRC_FILES))
 	DEPENDS   := $(patsubst %.cpp,$(TMPDIR)/%.d,$(SRC_FILES))
 	TARGET    := fast-chess-tests

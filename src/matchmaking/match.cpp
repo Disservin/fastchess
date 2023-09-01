@@ -96,7 +96,7 @@ void Match::start(const EngineConfiguration& engine1_config,
 
     data_.fen = opening_.fen;
 
-    data_.start_time = Logger::getDateTime();
+    data_.start_time = Logger::getDateTime("%Y-%m-%dT%H:%M:%S %z");
     data_.date       = Logger::getDateTime("%Y-%m-%d");
 
     const auto start = clock::now();
@@ -127,7 +127,7 @@ void Match::start(const EngineConfiguration& engine1_config,
 
     const auto end = clock::now();
 
-    data_.end_time = Logger::getDateTime();
+    data_.end_time = Logger::getDateTime("%Y-%m-%dT%H:%M:%S %z");
     data_.duration = Logger::formatDuration(chrono::duration_cast<chrono::seconds>(end - start));
 
     data_.players = std::make_pair(player_1.info, player_2.info);
@@ -160,7 +160,7 @@ bool Match::playMove(Participant& us, Participant& opponent) {
         return false;
     }
 
-    us.engine.writeEngine(us.buildPositionInput(played_moves_, start_position_));
+    us.engine.writeEngine(Participant::buildPositionInput(played_moves_, start_position_));
     us.engine.writeEngine(us.buildGoInput(board_.sideToMove(), opponent.time_control));
 
     const auto t0 = clock::now();

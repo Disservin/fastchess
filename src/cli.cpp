@@ -2,9 +2,9 @@
 
 #include <filesystem>
 
-#include <util/logger.hpp>
 #include <matchmaking/output/output_factory.hpp>
 #include <matchmaking/result.hpp>
+#include <util/logger.hpp>
 
 namespace fast_chess::cmd {
 using json = nlohmann::json;
@@ -482,8 +482,8 @@ class Quick : public Option {
         argument_data.tournament_options.games  = 2;
         argument_data.tournament_options.rounds = 25000;
 
-        argument_data.tournament_options.concurrency =
-            std::max(unsigned(1), std::thread::hardware_concurrency() - 2);
+        argument_data.tournament_options.concurrency = std::max(
+            static_cast<int>(1), static_cast<int>(std::thread::hardware_concurrency() - 2));
 
         argument_data.tournament_options.recover = true;
 

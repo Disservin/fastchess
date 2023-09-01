@@ -239,7 +239,7 @@ Opening RoundRobin::fetchNextOpening() {
         return opening;
     }
 
-    Logger::cout("Unknown opening format: " + int(tournament_options_.opening.format));
+    Logger::cout("Unknown opening format: " + std::to_string(int(tournament_options_.opening.format)));
 
     return {chess::STARTPOS, {}};
 }

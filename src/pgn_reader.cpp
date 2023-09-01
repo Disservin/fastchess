@@ -24,7 +24,6 @@ void PgnReader::analyseFile() {
             break;
         }
 
-        // do something with Game
         Opening pgn;
 
         if (game->headers().find("FEN") != game->headers().end()) {

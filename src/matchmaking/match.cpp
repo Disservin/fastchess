@@ -51,7 +51,6 @@ void Match::addMoveData(Participant& player, int64_t measured_time) {
 
     move_data.score_string = ss.str();
 
-    // verify pv
     verifyPv(player);
 
     data_.moves.push_back(move_data);

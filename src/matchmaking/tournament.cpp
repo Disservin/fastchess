@@ -20,6 +20,7 @@ void Tournament::loadConfig(const cmd::TournamentOptions& game_config) {
         }
     }
 
+    // fix wrong config
     if (game_config.report_penta && game_config.output == OutputType::CUTECHESS)
         tournament_options_.report_penta = false;
 

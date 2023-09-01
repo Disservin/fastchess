@@ -149,6 +149,7 @@ class OptionsParser {
     [[nodiscard]] std::vector<EngineConfiguration> getEngineConfigs() const {
         return argument_data_.configs;
     }
+
     [[nodiscard]] TournamentOptions getGameOptions() const {
         return argument_data_.tournament_options;
     }
@@ -183,7 +184,7 @@ class OptionsParser {
     ArgumentData argument_data_;
 };
 
-/// @brief Generic function to parse a standalone value after a dash command. i.e -concurrency 10
+/// @brief Parse a standalone value after a dash command. i.e -concurrency 10
 /// @tparam T
 /// @param i
 /// @param argc

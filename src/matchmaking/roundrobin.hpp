@@ -76,6 +76,7 @@ class RoundRobin {
     /// @return
     [[nodiscard]] Opening fetchNextOpening();
 
+    /// @brief Outputs the current state of the round robin to the console
     std::unique_ptr<IOutput> output_;
 
     cmd::TournamentOptions tournament_options_ = {};
@@ -86,12 +87,15 @@ class RoundRobin {
 
     Result result_ = Result();
 
+    /// @brief the file writer for the pgn file
     FileWriter file_writer_;
 
     std::vector<std::string> opening_book_epd_;
     std::vector<Opening> opening_book_pgn_;
 
+    /// @brief number of games played
     std::atomic<uint64_t> match_count_ = 0;
-    std::atomic<uint64_t> total_       = 0;
+    /// @brief number of games to be played
+    std::atomic<uint64_t> total_ = 0;
 };
 }  // namespace fast_chess

@@ -94,6 +94,7 @@ std::string PgnBuilder::moveNotation(chess::Board &board, const std::string &mov
 
 void PgnBuilder::addMove(chess::Board &board, const MoveData &move, std::size_t move_number) {
     std::stringstream ss;
+
     ss << (move_number % 2 == 1 ? std::to_string(move_number / 2 + 1) + ". " : "");
     ss << moveNotation(board, move.move);
 

@@ -64,12 +64,14 @@ BOOL WINAPI consoleHandler(DWORD signal) {
 void sigintHandler(int param) {
     Tour->stop();
     Options->saveJson(Tour->getResults());
-    std::cout << "Saved results" << std::endl;
 
+    // kill remaining pids
     for (auto &pid : pid_list) {
         kill(pid, SIGINT);
         kill(pid, SIGKILL);
     }
+
+    std::cout << "Saved results" << std::endl;
 
     std::exit(param);
 }

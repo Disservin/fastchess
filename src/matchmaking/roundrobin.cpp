@@ -102,7 +102,7 @@ void RoundRobin::create(const std::vector<EngineConfiguration>& engine_configs) 
     total_ = (engine_configs.size() * (engine_configs.size() - 1) / 2) *
              tournament_options_.rounds * tournament_options_.games;
 
-    const auto fill = [this, &engine_configs](std::size_t i, std::size_t j, std::size_t round_id) {
+    const auto match = [this, &engine_configs](std::size_t i, std::size_t j, std::size_t round_id) {
         // both players get the same opening
         const auto opening = fetchNextOpening();
         const auto first   = engine_configs[i];
@@ -157,7 +157,7 @@ void RoundRobin::create(const std::vector<EngineConfiguration>& engine_configs) 
     for (std::size_t i = 0; i < engine_configs.size(); i++) {
         for (std::size_t j = i + 1; j < engine_configs.size(); j++) {
             for (int k = 0; k < tournament_options_.rounds; k++) {
-                fill(i, j, k);
+                match(i, j, k);
             }
         }
     }

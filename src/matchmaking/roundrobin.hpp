@@ -76,10 +76,13 @@ class RoundRobin {
     /// @return
     [[nodiscard]] Opening fetchNextOpening();
 
-    /// @brief the file writer for the pgn file
-    FileWriter file_writer_;
+    /// @brief Outputs the current state of the round robin to the console
+    std::unique_ptr<IOutput> output_;
 
     cmd::TournamentOptions tournament_options_ = {};
+
+    /// @brief the file writer for the pgn file
+    FileWriter file_writer_;
 
     ThreadPool pool_ = ThreadPool(1);
 
@@ -89,9 +92,6 @@ class RoundRobin {
 
     std::vector<std::string> opening_book_epd_;
     std::vector<Opening> opening_book_pgn_;
-
-    /// @brief Outputs the current state of the round robin to the console
-    std::unique_ptr<IOutput> output_;
 
     /// @brief number of games played
     std::atomic<uint64_t> match_count_ = 0;

@@ -24,6 +24,12 @@ void Tournament::loadConfig(const cmd::TournamentOptions& game_config) {
     if (game_config.report_penta && game_config.output == OutputType::CUTECHESS)
         tournament_options_.report_penta = false;
 
+    if (game_config.opening.format != FormatType::EPD &&
+        game_config.opening.format != FormatType::PGN) {
+        Logger::cout("Warning: Unknown opening format, " +
+                     std::to_string(int(tournament_options_.opening.format)));
+    }
+
     round_robin_.setGameConfig(tournament_options_);
 }
 

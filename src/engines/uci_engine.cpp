@@ -99,7 +99,8 @@ std::string UciEngine::bestmove() const {
 
 std::vector<std::string> UciEngine::lastInfo() const {
     if (output_.size() < 2) {
-        Logger::cout("Warning; Could not extract last uci info line.");
+        // silence for now
+        // Logger::cout("Warning; Could not extract last uci info line.");
         return {};
     }
     return str_utils::splitString(output_[output_.size() - 2], ' ');

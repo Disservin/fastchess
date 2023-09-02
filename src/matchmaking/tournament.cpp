@@ -24,10 +24,17 @@ void Tournament::loadConfig(const cmd::TournamentOptions& game_config) {
     if (game_config.report_penta && game_config.output == OutputType::CUTECHESS)
         tournament_options_.report_penta = false;
 
+    if (game_config.opening.file.empty()) {
+        Logger::cout(
+            "Warning: No opening book specified! Consider using one, otherwise all games will be "
+            "played from the starting position.");
+    }
+
     if (game_config.opening.format != FormatType::EPD &&
         game_config.opening.format != FormatType::PGN) {
         Logger::cout("Warning: Unknown opening format, " +
-                     std::to_string(int(tournament_options_.opening.format)));
+                         std::to_string(int(tournament_options_.opening.format)) + ".",
+                     "All games will be played from the starting position.");
     }
 
     round_robin_.setGameConfig(tournament_options_);

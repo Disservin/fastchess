@@ -99,6 +99,8 @@ Fast-Chess supports many other command-line options:
     higher than 2 does not really make sense.
 
 - `-openings file=NAME format=FORMAT [order=ORDER] [plies=PLIES] [start=START]`
+  If no opening book is specified, every game will start from the standard
+  position.
 
   - `NAME` - name of the file containing the openings
   - `FORMAT` - format of the file
@@ -109,6 +111,7 @@ Fast-Chess supports many other command-line options:
     - `random` - random order
   - `PLIES` - number of plies to use
   - `START` - starting offset
+
     <br/>
 
 - `-output format=FORMAT`

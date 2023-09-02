@@ -2,10 +2,10 @@
 
 #include <string>
 
-#include <types/engine_config.hpp>
-#include <types/enums.hpp>
 #include <matchmaking/output/output_factory.hpp>
 #include <matchmaking/result.hpp>
+#include <types/engine_config.hpp>
+#include <types/enums.hpp>
 
 namespace fast_chess::cmd {
 
@@ -55,9 +55,6 @@ struct ResignAdjudication {
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(ResignAdjudication, move_count, score, enabled)
 
 struct TournamentOptions {
-    ResignAdjudication resign = {};
-    DrawAdjudication draw     = {};
-
     OpeningOptions opening = {};
     PgnOptions pgn         = {};
 
@@ -65,6 +62,9 @@ struct TournamentOptions {
 
     std::string event_name = "Fast Chess";
     std::string site       = "?";
+
+    DrawAdjudication draw     = {};
+    ResignAdjudication resign = {};
 
     VariantType variant = VariantType::STANDARD;
 

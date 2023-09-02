@@ -4,8 +4,8 @@
 
 #include <cli.hpp>
 #include <matchmaking/participant.hpp>
-#include <types/match_data.hpp>
 #include <pgn_reader.hpp>
+#include <types/match_data.hpp>
 
 namespace fast_chess {
 
@@ -67,35 +67,34 @@ class Match {
 
     [[nodiscard]] static std::string convertChessReason(const std::string& engine_name,
                                                         chess::GameResultReason reason);
-
-    inline static const std::string ADJUDICATION_MSG      = "Draw by adjudication";
-    inline static const std::string ADJUDICATION_WIN_MSG  = " wins by adjudication";
-    inline static const std::string ADJUDICATION_LOSE_MSG = " loses by adjudication";
-
-    inline static const std::string INSUFFICIENT_MSG = "Draw by insufficient material";
-    inline static const std::string REPETITION_MSG   = "Draw by 3-fold repetition";
-    inline static const std::string FIFTY_MSG        = "Draw by 50-move rule";
-    inline static const std::string DISCONNECT_MSG   = /*.. */ " disconnects";
-    inline static const std::string TIMEOUT_MSG      = /*.. */ " loses on time";
-    inline static const std::string CHECKMATE_MSG    = /*..*/ " got checkmated";
-    inline static const std::string STALEMATE_MSG    = "Draw by stalemate";
-    inline static const std::string ILLEGAL_MSG      = " made an illegal move";
-
-    DrawTacker draw_tracker_      = {};
-    ResignTracker resign_tracker_ = {};
-
-    cmd::TournamentOptions tournament_options_;
-    chess::Board board_;
-    MatchData data_ = {};
-
-    // keeps track of the moves played in the match, required for the
-    // uci position command
-    std::vector<std::string> played_moves_;
+    
+    MatchData data_                            = {};
+    cmd::TournamentOptions tournament_options_ = {};
+    chess::Board board_                        = chess::Board();
 
     Opening opening_;
 
     // start position, required for the uci position command
     // is either startpos or the fen of the opening
     std::string start_position_;
+
+    // keeps track of the moves played in the match, required for the
+    // uci position command
+    std::vector<std::string> played_moves_;
+
+    DrawTacker draw_tracker_      = {};
+    ResignTracker resign_tracker_ = {};
+
+    inline static constexpr char INSUFFICIENT_MSG[]      = "Draw by insufficient material";
+    inline static constexpr char REPETITION_MSG[]        = "Draw by 3-fold repetition";
+    inline static constexpr char ADJUDICATION_LOSE_MSG[] = " loses by adjudication";
+    inline static constexpr char ILLEGAL_MSG[]           = " made an illegal move";
+    inline static constexpr char ADJUDICATION_WIN_MSG[]  = " wins by adjudication";
+    inline static constexpr char ADJUDICATION_MSG[]      = "Draw by adjudication";
+    inline static constexpr char FIFTY_MSG[]             = "Draw by 50-move rule";
+    inline static constexpr char STALEMATE_MSG[]         = "Draw by stalemate";
+    inline static constexpr char CHECKMATE_MSG[]         = /*..*/ " got checkmated";
+    inline static constexpr char TIMEOUT_MSG[]           = /*.. */ " loses on time";
+    inline static constexpr char DISCONNECT_MSG[]        = /*.. */ " disconnects";
 };
 }  // namespace fast_chess

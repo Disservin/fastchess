@@ -6,8 +6,8 @@
 #include <tuple>
 #include <vector>
 
-#include <types/enums.hpp>
 #include <helper.hpp>
+#include <types/enums.hpp>
 
 #include <third_party/json.hpp>
 
@@ -44,6 +44,9 @@ struct Limit {
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(Limit, tc, nodes, plies)
 
 struct EngineConfiguration {
+    // the limit for the engines "go" command
+    Limit limit;
+
     // engine name
     std::string name;
 
@@ -58,9 +61,6 @@ struct EngineConfiguration {
 
     // UCI options
     std::vector<std::pair<std::string, std::string>> options;
-
-    // the limit for the engines "go" command
-    Limit limit;
 
     // Chess variant
     VariantType variant = VariantType::STANDARD;

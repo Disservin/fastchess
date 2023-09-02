@@ -1,12 +1,12 @@
 #pragma once
 
-#include <matchmaking/util/file_writer.hpp>
 #include <matchmaking/match.hpp>
 #include <matchmaking/result.hpp>
+#include <matchmaking/util/file_writer.hpp>
 #include <matchmaking/util/threadpool.hpp>
-#include <types/stats.hpp>
 #include <pgn_reader.hpp>
 #include <sprt.hpp>
+#include <types/stats.hpp>
 
 #include <types/tournament_options.hpp>
 
@@ -76,22 +76,22 @@ class RoundRobin {
     /// @return
     [[nodiscard]] Opening fetchNextOpening();
 
-    /// @brief Outputs the current state of the round robin to the console
-    std::unique_ptr<IOutput> output_;
+    /// @brief the file writer for the pgn file
+    FileWriter file_writer_;
 
     cmd::TournamentOptions tournament_options_ = {};
 
     ThreadPool pool_ = ThreadPool(1);
 
-    SPRT sprt_ = SPRT();
-
     Result result_ = Result();
 
-    /// @brief the file writer for the pgn file
-    FileWriter file_writer_;
+    SPRT sprt_ = SPRT();
 
     std::vector<std::string> opening_book_epd_;
     std::vector<Opening> opening_book_pgn_;
+
+    /// @brief Outputs the current state of the round robin to the console
+    std::unique_ptr<IOutput> output_;
 
     /// @brief number of games played
     std::atomic<uint64_t> match_count_ = 0;

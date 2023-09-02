@@ -95,8 +95,8 @@ class ThreadPool {
         }
     }
 
-    std::vector<std::thread> workers_;
     std::queue<std::function<void()>> tasks_;
+    std::vector<std::thread> workers_;
     std::mutex queue_mutex_;
     std::condition_variable condition_;
 

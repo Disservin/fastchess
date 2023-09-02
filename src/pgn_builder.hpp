@@ -66,9 +66,11 @@ class PgnBuilder {
     [[nodiscard]] static std::string convertMatchTermination(const MatchTermination &res);
 
     MatchData match_;
-    cmd::TournamentOptions game_options_;
 
     std::stringstream pgn_;
+
+    cmd::TournamentOptions game_options_;
+
     std::vector<std::string> moves_;
 };
 

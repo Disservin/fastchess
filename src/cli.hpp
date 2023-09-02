@@ -24,14 +24,14 @@ namespace fast_chess::cmd {
 struct ArgumentData {
     // Holds all the relevant settings for the handling of the games
     TournamentOptions tournament_options;
+    /*previous olded values before config*/
+    TournamentOptions old_tournament_options;
+
+    stats_map stats;
 
     // Holds all the engines with their options
     std::vector<EngineConfiguration> configs;
 
-    stats_map stats;
-
-    /*previous olded values before config*/
-    TournamentOptions old_tournament_options;
     std::vector<EngineConfiguration> old_configs;
 };
 
@@ -179,9 +179,9 @@ class OptionsParser {
         }
     }
 
-    std::map<std::string, std::unique_ptr<Option>> options_;
-
     ArgumentData argument_data_;
+
+    std::map<std::string, std::unique_ptr<Option>> options_;
 };
 
 /// @brief Parse a standalone value after a dash command. i.e -concurrency 10

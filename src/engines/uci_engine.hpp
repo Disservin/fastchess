@@ -74,8 +74,8 @@ class UciEngine : private Communication::Process {
     void loadConfig(const EngineConfiguration &config);
     void sendSetoption(const std::string &name, const std::string &value);
 
-    std::vector<std::string> output_;
-
     EngineConfiguration config_;
+
+    std::vector<std::string> output_;
 };
 }  // namespace fast_chess

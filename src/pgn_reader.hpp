@@ -25,8 +25,8 @@ class PgnReader {
     /// @brief Extracts all pgns from the file and stores them in pgns_
     void analyseFile();
 
-    std::vector<Opening> pgns_;
     std::ifstream pgn_file_;
+    std::vector<Opening> pgns_;
 };
 
 }  // namespace fast_chess

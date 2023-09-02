@@ -86,12 +86,22 @@ void UciEngine::writeEngine(const std::string &input) {
 }
 
 std::string UciEngine::bestmove() const {
-    return str_utils::findElement<std::string>(str_utils::splitString(output_.back(), ' '),
-                                               "bestmove")
-        .value();
+    const auto bm = str_utils::findElement<std::string>(str_utils::splitString(output_.back(), ' '),
+                                                        "bestmove");
+
+    if (!bm.has_value()) {
+        Logger::cout("Warning; Could not extract bestmove.");
+        return "aaaa";
+    }
+
+    return bm.value();
 }
 
 std::vector<std::string> UciEngine::lastInfo() const {
+    if (output_.size() < 2) {
+        Logger::cout("Warning; Could not extract last uci info line.");
+        return {};
+    }
     return str_utils::splitString(output_[output_.size() - 2], ' ');
 }
 

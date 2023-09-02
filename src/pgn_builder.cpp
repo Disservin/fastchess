@@ -45,7 +45,7 @@ PgnBuilder::PgnBuilder(const MatchData &match, const cmd::TournamentOptions &tou
 
         const auto move = match_.moves[move_number];
 
-        addMove(board, move, move_number + 1);
+        addMove(board, move, move_number + 1, illegal);
 
         if (illegal) {
             break;
@@ -92,11 +92,12 @@ std::string PgnBuilder::moveNotation(chess::Board &board, const std::string &mov
     }
 }
 
-void PgnBuilder::addMove(chess::Board &board, const MoveData &move, std::size_t move_number) {
+void PgnBuilder::addMove(chess::Board &board, const MoveData &move, std::size_t move_number,
+                         bool illegal) {
     std::stringstream ss;
 
     ss << (move_number % 2 == 1 ? std::to_string(move_number / 2 + 1) + ". " : "");
-    ss << moveNotation(board, move.move);
+    ss << illegal ? move.move : moveNotation(board, move.move);
 
     ss << addComment(
         (move.score_string + "/" + std::to_string(move.depth)), formatTime(move.elapsed_millis),

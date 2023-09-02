@@ -25,6 +25,7 @@ void Match::addMoveData(Participant& player, int64_t measured_time) {
 
     if (player.engine.output().size() <= 1) {
         data_.moves.push_back(move_data);
+        played_moves_.push_back(best_move);
         return;
     }
 
@@ -226,7 +227,7 @@ void Match::verifyPv(const Participant& us) {
             chess::movegen::legalmoves(moves, tmp);
 
             if (moves.find(uci::uciToMove(tmp, *it)) == -1) {
-                Logger::cout("Warning; Illegal pv move ", *it);
+                Logger::cout("Warning; Illegal pv move ", *it, "pv:", info);
                 break;
             }
 

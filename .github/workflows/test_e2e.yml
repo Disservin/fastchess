@@ -35,7 +35,6 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt install valgrind
           clang++ --version
           g++ --version
 

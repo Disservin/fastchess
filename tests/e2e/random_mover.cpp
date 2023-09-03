@@ -12,17 +12,15 @@ int random_number(int min, int max) {
     return dis(gen);
 }
 
-Move random_move(Board &board) {
+Move random_move(const Board &board) {
     auto moves = Movelist();
     movegen::legalmoves(moves, board);
 
     return moves[random_number(0, moves.size() - 1)];
 }
 
-void uci_line(const std::string &line) {
+void uci_line(Board &board, const std::string &line) {
     auto tokens = utils::splitString(line, ' ');
-
-    Board board = Board();
 
     if (tokens.empty())
         return;
@@ -40,11 +38,14 @@ void uci_line(const std::string &line) {
             // parse until "moves"
             int i = 2;
             for (; i < tokens.size(); i++) {
-                if (tokens[i] == "moves") break;
+                if (tokens[i] == "moves") {
+                    i++;
+                    break;
+                };
                 fen += tokens[i] + " ";
             }
 
-            board = Board(fen);
+            board.setFen(fen);
 
             for (; i < tokens.size(); i++) {
                 board.makeMove(uci::uciToMove(board, tokens[i]));
@@ -52,18 +53,23 @@ void uci_line(const std::string &line) {
         }
     } else if (tokens[0] == "uci") {
         std::cout << "id name random_move" << std::endl;
+        std::cout << "uciok" << std::endl;
     } else if (tokens[0] == "isready") {
         std::cout << "readyok" << std::endl;
     } else if (tokens[0] == "ucinewgame") {
+        board = Board();
     } else if (tokens[0] == "go") {
-        std::cout << "bestmove " << uci::moveToUci(random_move(board)) << std::endl;
-    } else if (tokens[0] == "stop") {
+        const auto move = random_move(board);
+        std::cout << "info depth 1 pv " << uci::moveToUci(move) << std::endl;
+        std::cout << "bestmove " << uci::moveToUci(move) << std::endl;
     }
 }
 
 void uci_loop() {
     std::string input;
     std::cin >> std::ws;
+
+    Board board = Board();
 
     while (true) {
         if (!std::getline(std::cin, input) && std::cin.eof()) {
@@ -73,7 +79,7 @@ void uci_loop() {
         if (input == "quit") {
             return;
         } else {
-            uci_line(input);
+            uci_line(board, input);
         }
     }
 }

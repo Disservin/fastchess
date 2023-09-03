@@ -1,6 +1,8 @@
 name: Binaries
+
 on:
   workflow_call:
+    
 jobs:
   Archive:
     name: ${{ matrix.config.name }}

@@ -1,0 +1,57 @@
+name: FastChess
+
+on:
+  push:
+    branches: ["master"]
+  pull_request:
+    branches: ["master"]
+
+jobs:
+  Binaries:
+    if: github.ref == 'refs/heads/master'
+    uses: ./.github/workflows/binaries.yml
+  FastChess:
+    name: ${{matrix.config.name}}
+    runs-on: ${{matrix.config.os}}
+    strategy:
+      matrix:
+        config:
+          - { name: "Ubuntu 22.04", os: ubuntu-22.04, shell: "bash {0}" }
+          - { name: "MacOS Apple Clang", os: macos-latest, shell: "bash {0}" }
+          - {
+              name: "Windows GCC",
+              os: windows-latest,
+              msys_sys: "mingw64",
+              msys_env: "x86_64-gcc",
+              shell: "msys2 {0}",
+            }
+
+    defaults:
+      run:
+        shell: ${{ matrix.config.shell }}
+    steps:
+      - uses: actions/checkout@v3
+      - name: Installing required packages
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt install valgrind
+          clang++ --version
+          g++ --version
+
+      - name: Install windows make
+        if: runner.os == 'Windows'
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: ${{matrix.config.msys_sys}}
+          install: mingw-w64-${{matrix.config.msys_env}} make git expect
+
+      - name: Macos clang version
+        if: runner.os == 'Macos'
+        run: |
+          clang++ --version
+
+      - name: Running Tests
+        run: |
+          bash ../../tests/e2e/e2e2.sh
+

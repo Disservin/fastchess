@@ -1,0 +1,16 @@
+name: FastChess
+
+on:
+  push:
+    branches: ["master"]
+  pull_request:
+    branches: ["master"]
+
+jobs:
+  Binaries:
+    if: github.ref == 'refs/heads/master'
+    uses: ./.github/workflows/binaries.yml
+  E2E:
+    uses: ./.github/workflows/e2e.yml
+  Tests:
+    uses: ./.github/workflows/tests.yml

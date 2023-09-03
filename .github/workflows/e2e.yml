@@ -1,16 +1,10 @@
-name: FastChess
+name: E2E Tests
 
 on:
-  push:
-    branches: ["master"]
-  pull_request:
-    branches: ["master"]
+  workflow_call:
 
 jobs:
-  Binaries:
-    if: github.ref == 'refs/heads/master'
-    uses: ./.github/workflows/binaries.yml
-  FastChess:
+  Tests:
     name: E2E Tests ${{matrix.config.name}}
     runs-on: ${{matrix.config.os}}
     strategy:

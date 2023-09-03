@@ -52,5 +52,5 @@ jobs:
 
       - name: Running Tests
         run: |
-          bash ../../tests/e2e/e2e.sh
+          bash tests/e2e/e2e.sh
 

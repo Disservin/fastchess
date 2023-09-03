@@ -1,10 +1,11 @@
 #!/bin/bash 
 
-# Compile the random_mover
 set -x
 
+# Compile the random_mover
 g++ -O3 -std=c++17 tests/e2e/random_mover.cpp -o random_mover
 
+# Compile fast-chess
 make -j
 
 OUTPUT_FILE=$(mktemp)

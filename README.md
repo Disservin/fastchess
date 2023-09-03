@@ -1,5 +1,7 @@
 # Fast-Chess
 
+[![FastChess](https://github.com/Disservin/fast-chess/actions/workflows/fastchess.yml/badge.svg?branch=master)](https://github.com/Disservin/fast-chess/actions/workflows/fastchess.yml)
+
 Fast-Chess is a command-line tool designed for creating chess engine
 tournaments. It is mostly written in C++17 and uses
 [doctest](https://github.com/doctest/doctest) as its testing framework.

@@ -1,34 +1,34 @@
-# Fast-Chess
+# fast-chess
 
 [![FastChess](https://github.com/Disservin/fast-chess/actions/workflows/fastchess.yml/badge.svg?branch=master)](https://github.com/Disservin/fast-chess/actions/workflows/fastchess.yml)
 
-Fast-Chess is a command-line tool designed for creating chess engine
-tournaments. It is mostly written in C++17 and uses
-[doctest](https://github.com/doctest/doctest) as its testing framework.
+fast-chess is a versatile command-line tool designed for running chess engine
+tournaments. Written primarily in C++17, it utilizes [doctest](https://github.com/doctest/doctest) as its testing
+framework.
 
-With Fast-Chess, you can easily create and run chess tournaments with two
-engines, set time controls, and run matches in parallel to save time. The POSIX
-implementation has been extensively tested for high concurrency (250 threads)
-with short time controls (0.2+0.002s) and has demonstrated minimal timeout
-issues, with only 10 matches out of 20,000 timing out.
+With fast-chess, you can effortlessly orchestrate chess tournaments, configure
+time controls, and execute matches concurrently for optimal time efficiency.
+Extensively tested for high concurrency (supporting up to 250 threads) with
+short time controls (0.2+0.002s), it exhibits minimal timeout issues, with only
+10 matches out of 20,000 experiencing timeouts.
 
-## News
+## What's New
 
-- The cutechess output support has been refined and should now be more
-  compatible with other tools. Change the `-output` option to `cutechess` to
-  enable it.
-- You can also track nodes, seldepth and nps in the pgn output read the
-  `-pgnout` option for more information.
-- There is now a `-quick` option that allows you to quickly run a match between
-  two engines with am epd book. You only need to specify
-  `-quick cmd=ENGINE1 cmd=ENGINE2 book=BOOK` and you're good to go.
+- **Enhanced Cutechess Output**: The Cutechess output support has been refined to
+  enhance compatibility with other tools. Simply switch the `-output` option to
+  cutechess to enable it.
+- **Extended PGN Data**: You can now track nodes, seldepth, and nps (nodes per
+  second) in the PGN output. Refer to the `-pgnout` option for detailed
+  information.
+- **Quick Match Option**: We've introduced a `-quick` option for running quick
+  matches between two engines with an EPD book. Specify
+  `-quick cmd=ENGINE1 cmd=ENGINE2 book=BOOK` to swiftly initiate a match.
 
 ## Quick start
 
 ### Building from source
 
-Building Fast-Chess from source is simple and straightforward. Just follow these
-steps:
+Building Fast-Chess from source is straightforward. Just follow these steps:
 
 1. Clone the repository `git clone https://github.com/Disservin/fast-chess.git`
 2. Navigate to the fast-chess directory `cd fast-chess`
@@ -36,32 +36,35 @@ steps:
 
 ### Download the latest release
 
-If you prefer to download the latest release, you can do so from our
-[release page](https://github.com/Disservin/fast-chess/releases). Just choose
-the version that fits your needs, download it, and you're good to go!
+Prefer a pre-compiled version?
+
+Download the latest release from our [release page](https://github.com/Disservin/fast-chess/releases).
 
 ### Example usage
 
-Here's an example of how to use Fast-Chess:
+Here's an example of how to use fast-chess:
 
 ```
 fast-chess.exe -engine cmd=Engine1.exe name=Engine1 -engine cmd=Engine2.exe
 name=Engine2 -each tc=10+0.1 -rounds 200 -repeat -concurrency 4
 ```
 
-In this command we add two engines with `-engine`. We've specified the name of
-the engines and set the executables with `name=NAME cmd=CMD`. Options following
-an `-each` flag will be used for both engines, like a time control (in this case
-10s with 0.1s increment per move) or a Hash size. We're also running 200 rounds
-with each engine playing two games per round using the `-rounds` and `-repeat`
-options, respectively. Finally, we've set the concurrency to 4 threads using the
-`-concurrency` option. Note that setting the concurrency higher than your CPU's
-core count may not result in any significant performance gains and may even have
-the opposite effect.
+In this command, we've added two engines using `-engine`, specified their names
+and executables, and set common options like time control (10 seconds with
+0.1-second increment) and hash size using `-each`.
+
+We're running 200 rounds with each engine playing two games per round via
+`-rounds` and `-repeat`, respectively.
+
+Finally, we've set the concurrency to 4 threads with `-concurrency`.
+
+_Note that setting concurrency higher than your CPU core/thread
+count may not yield significant performance gains and could potentially have the
+opposite effect._
 
 ## Command line options
 
-Fast-Chess supports many other command-line options:
+fast-chess supports many other command-line options:
 
 - `-config file=NAME [discard=true]`  
    After a CTRL+C event or finishing all games the current config is
@@ -120,7 +123,7 @@ Fast-Chess supports many other command-line options:
 
   - `FORMAT`
     - `cutechess` - Cute-Chess output format
-    - `fastchess` - Fast-Chess output format
+    - `fastchess` - fast-chess output format
       <br/>
 
 - `-resign movecount=COUNT score=SCORE`
@@ -176,17 +179,16 @@ Fast-Chess supports many other command-line options:
 
 ## Contributing
 
-We welcome contributions to Fast-Chess! Please ensure that any changes you make
+We welcome contributions to fast-chess! Please ensure that any changes you make
 are **beneficial** to the development and **pass the CI tests**.
 
-The entire code is formatted with **clang-format** using the **Google style**.
-If you create pull requests, please make sure that the code is formatted using
-this style.
+The code follows the Google style and is formatted with clang-format. When
+creating pull requests, please format your code accordingly.
 
-To contribute, you need a recent GCC compiler that supports C++17, as well as a
-way to run the Makefile. **You can run tests locally** by running
-`make -j tests`. Then, run the ./fast-chess-tests executable to ensure your
-changes pass the tests.
+To contribute, you'll need a recent GCC compiler that supports C++17 and the
+ability to run the Makefile. You can locally test your changes by running
+`make -j tests`, followed by executing the `./fast-chess-tests` executable to
+verify your changes pass the tests.
 
 ## Maintainers
 

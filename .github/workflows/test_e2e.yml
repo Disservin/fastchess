@@ -11,7 +11,7 @@ jobs:
     if: github.ref == 'refs/heads/master'
     uses: ./.github/workflows/binaries.yml
   FastChess:
-    name: ${{matrix.config.name}}
+    name: E2E Tests ${{matrix.config.name}}
     runs-on: ${{matrix.config.os}}
     strategy:
       matrix:
@@ -52,5 +52,5 @@ jobs:
 
       - name: Running Tests
         run: |
-          bash ../../tests/e2e/e2e2.sh
+          bash ../../tests/e2e/e2e.sh
 

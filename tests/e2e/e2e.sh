@@ -3,10 +3,9 @@
 # Compile the random_mover
 set -x
 
-g++ -O3 tests/e2e/random_mover.cpp -o random_mover
+g++ -O3 -std=c++17 tests/e2e/random_mover.cpp -o random_mover
 
 make -j
-
 
 OUTPUT_FILE=$(mktemp)
 ./fast-chess -engine cmd=random_mover name=random_move_1 -engine cmd=random_mover name=random_move_2 \

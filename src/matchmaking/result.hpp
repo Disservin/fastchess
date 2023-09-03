@@ -34,7 +34,7 @@ class Result {
                                        const Stats& stats, uint64_t round_id) {
         std::lock_guard<std::mutex> lock(game_pair_cache_mutex_);
 
-        const auto adjusted = first != configs.first.name ? ~stats : stats;
+        const auto adjusted = first == configs.first.name ? stats : ~stats;
 
         const auto is_first_game = game_pair_cache_.find(round_id) == game_pair_cache_.end();
 
@@ -53,7 +53,7 @@ class Result {
             lookup.penta_LD += lookup.losses == 1 && lookup.draws == 1;
             lookup.penta_LL += lookup.losses == 2;
 
-            updateStats(configs, lookup);
+            updateStats(configs, first == configs.first.name ? lookup : ~lookup);
 
             game_pair_cache_.erase(round_id);
 

@@ -14,22 +14,22 @@ jobs:
       matrix:
         config:
           - {
-              name: "Ubuntu 20.04 GCC",
-              os: ubuntu-20.04,
+              name: "Ubuntu 22.04 GCC",
+              os: ubuntu-22.04,
               compiler: g++,
               comp: gcc,
               shell: "bash {0}",
             }
           - {
-              name: "MacOS 12 Apple Clang",
-              os: macos-12,
+              name: "MacOS Apple Clang",
+              os: macos-latest,
               compiler: clang++,
               comp: clang,
               shell: "bash {0}",
             }
           - {
-              name: "Windows 2022 GCC",
-              os: windows-2022,
+              name: "Windows GCC",
+              os: windows-latest,
               compiler: g++,
               comp: MINGW,
               msys_sys: "mingw64",

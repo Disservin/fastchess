@@ -146,7 +146,7 @@ bool Match::playMove(Participant& us, Participant& opponent) {
         setLose(us, opponent);
     }
 
-    if (gameover.first != chess::GameResultReason::NONE) {
+    if (gameover.first != GameResultReason::NONE) {
         data_.reason = convertChessReason(name, gameover.first);
         return false;
     }
@@ -190,8 +190,8 @@ bool Match::playMove(Participant& us, Participant& opponent) {
     const auto best_move = us.engine.bestmove();
     const auto move      = uci::uciToMove(board_, best_move);
 
-    chess::Movelist moves;
-    chess::movegen::legalmoves(moves, board_);
+    Movelist moves;
+    movegen::legalmoves(moves, board_);
 
     // Illegal move
     if (moves.find(move) == -1) {
@@ -220,11 +220,11 @@ void Match::verifyPv(const Participant& us) {
         auto tmp = board_;
         auto it  = std::find(tokens.begin(), tokens.end(), "pv");
 
-        chess::Movelist moves;
+        Movelist moves;
 
         // iterate over pv moves
         while (++it != tokens.end()) {
-            chess::movegen::legalmoves(moves, tmp);
+            movegen::legalmoves(moves, tmp);
 
             if (moves.find(uci::uciToMove(tmp, *it)) == -1) {
                 Logger::cout("Warning; Illegal pv move ", *it, "pv:", info);

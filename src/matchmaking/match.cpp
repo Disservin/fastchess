@@ -52,7 +52,7 @@ void Match::addMoveData(Participant& player, int64_t measured_time) {
 
     move_data.score_string = ss.str();
 
-    verifyPv(player);
+    verifyPvLines(player);
 
     data_.moves.push_back(move_data);
     played_moves_.push_back(best_move);
@@ -210,13 +210,8 @@ bool Match::playMove(Participant& us, Participant& opponent) {
     return !adjudicate(us, opponent);
 }
 
-void Match::verifyPv(const Participant& us) {
-    for (const auto& info : us.engine.output()) {
-        const auto tokens = str_utils::splitString(info, ' ');
-
-        // skip lines without pv
-        if (!str_utils::contains(tokens, "pv")) continue;
-
+void Match::verifyPvLines(const Participant& us) {
+    const auto verifyPv = [&](const std::vector<std::string>& tokens, const std::string& info) {
         auto tmp = board_;
         auto it  = std::find(tokens.begin(), tokens.end(), "pv");
 
@@ -233,6 +228,15 @@ void Match::verifyPv(const Participant& us) {
 
             tmp.makeMove(uci::uciToMove(tmp, *it));
         }
+    };
+
+    for (const auto& info : us.engine.output()) {
+        const auto tokens = str_utils::splitString(info, ' ');
+
+        // skip lines without pv
+        if (!str_utils::contains(tokens, "pv")) continue;
+
+        verifyPv(tokens, info);
     }
 }
 

@@ -39,7 +39,7 @@ class Match {
     [[nodiscard]] MatchData get() const { return data_; }
 
    private:
-    void verifyPv(const Participant& us);
+    void verifyPvLines(const Participant& us);
 
     static void setDraw(Participant& us, Participant& them);
     static void setWin(Participant& us, Participant& them);
@@ -67,7 +67,7 @@ class Match {
 
     [[nodiscard]] static std::string convertChessReason(const std::string& engine_name,
                                                         chess::GameResultReason reason);
-    
+
     MatchData data_                            = {};
     cmd::TournamentOptions tournament_options_ = {};
     chess::Board board_                        = chess::Board();

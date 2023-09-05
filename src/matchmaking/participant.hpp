@@ -27,7 +27,7 @@ class Participant {
 
     /// @brief remove the elapsed time from the participant's time
     /// @param elapsed_millis
-    /// @return
+    /// @return `false` when out of time
     [[nodiscard]] bool updateTime(const int64_t elapsed_millis) {
         if (engine.getConfig().limit.tc.time == 0) {
             return true;

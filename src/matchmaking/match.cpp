@@ -69,6 +69,8 @@ void Match::start(const EngineConfiguration& engine1_config,
     board_.set960(tournament_options_.variant == VariantType::FRC);
     board_.setFen(opening_.fen);
 
+    start_position_ = board_.getFen() == STARTPOS ? "startpos" : board_.getFen();
+
     std::vector<std::string> uci_moves = [&]() {
         std::vector<std::string> moves;
 
@@ -90,7 +92,9 @@ void Match::start(const EngineConfiguration& engine1_config,
     // Add opening moves to played moves
     played_moves_.insert(played_moves_.end(), uci_moves.begin(), uci_moves.end());
 
-    start_position_ = board_.getFen() == STARTPOS ? "startpos" : board_.getFen();
+    for (const auto& move : uci_moves) {
+        data_.moves.push_back(MoveData(move, "0.00", 0, 0, 0, 0, 0));
+    }
 
     player_1.info.color = board_.sideToMove();
     player_2.info.color = ~board_.sideToMove();

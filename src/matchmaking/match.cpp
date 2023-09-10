@@ -92,6 +92,10 @@ void Match::start(const EngineConfiguration& engine1_config,
     // Add opening moves to played moves
     played_moves_.insert(played_moves_.end(), uci_moves.begin(), uci_moves.end());
 
+    for (const auto& move : uci_moves) {
+        data_.moves.push_back(MoveData(move, "0.00", 0, 0, 0, 0, 0));
+    }
+
     player_1.info.color = board_.sideToMove();
     player_2.info.color = ~board_.sideToMove();
 

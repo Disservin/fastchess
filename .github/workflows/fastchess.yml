@@ -7,10 +7,10 @@ on:
     branches: ["master"]
 
 jobs:
-  Binaries:
+  Artifacts:
     if: github.ref == 'refs/heads/master'
-    uses: ./.github/workflows/binaries.yml
-  E2E:
-    uses: ./.github/workflows/e2e.yml
-  Tests:
-    uses: ./.github/workflows/tests.yml
+    uses: ./.github/workflows/artifacts.yml
+  E2E-Tests:
+    uses: ./.github/workflows/e2e_tests.yml
+  Unit-Tests:
+    uses: ./.github/workflows/unit_tests.yml

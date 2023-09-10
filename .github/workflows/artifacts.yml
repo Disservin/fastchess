@@ -1,4 +1,4 @@
-name: Binaries
+name: Upload Artifacts
 
 on:
   workflow_call:

@@ -12,8 +12,6 @@ class Tournament {
    public:
     explicit Tournament(const cmd::TournamentOptions &game_config);
 
-    void loadConfig(const cmd::TournamentOptions &game_config);
-
     void start(std::vector<EngineConfiguration> engine_configs);
     void stop() { round_robin_.stop(); }
 
@@ -22,6 +20,8 @@ class Tournament {
     [[nodiscard]] RoundRobin *roundRobin() { return &round_robin_; }
 
    private:
+    void loadConfig(const cmd::TournamentOptions &game_config);
+
     static void validateEngines(std::vector<EngineConfiguration> &configs);
 
     RoundRobin round_robin_;

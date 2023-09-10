@@ -39,9 +39,9 @@ class RoundRobin {
     }
 
    private:
-    /// @brief load a pgn opening book
+    /// @brief load an pgn opening book
     void setupPgnOpeningBook();
-    /// @brief load a epd opening book
+    /// @brief load an epd opening book
     void setupEpdOpeningBook();
 
     /// @brief creates the matches

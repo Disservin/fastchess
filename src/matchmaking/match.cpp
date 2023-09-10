@@ -164,7 +164,7 @@ bool Match::playMove(Participant& us, Participant& opponent) {
     // write new uci position
     us.engine.writeEngine(Participant::buildPositionInput(played_moves_, start_position_));
     // write go command
-    us.engine.writeEngine(us.buildGoInput(board_.sideToMove(), opponent.time_control));
+    us.engine.writeEngine(us.buildGoInput(board_.sideToMove(), opponent.getTimeControl()));
 
     // wait for bestmove
     const auto t0 = clock::now();

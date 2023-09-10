@@ -11,17 +11,18 @@ class Participant {
         info.config = config;
 
         // copy time control which will be updated later
-        time_control = engine.getConfig().limit.tc;
+        time_control_ = engine.getConfig().limit.tc;
     }
 
-    /// @brief the timeout threshold for the read engine command
+    /// @brief The timeout threshold for the read engine command.
+    /// This has nothing to do with the time control itself.
     /// @return time in ms
     [[nodiscard]] int64_t getTimeoutThreshold() const {
         if (engine.getConfig().limit.nodes != 0 || engine.getConfig().limit.plies != 0 ||
-            time_control.fixed_time != 0) {
-            return 0;
+            time_control_.fixed_time != 0) {
+            return 0;  // no timeout
         } else {
-            return time_control.time + 100 /*margin*/;
+            return time_control_.time + 100 /* margin*/;
         }
     }
 
@@ -33,13 +34,13 @@ class Participant {
             return true;
         }
 
-        time_control.time -= elapsed_millis;
+        time_control_.time -= elapsed_millis;
 
-        if (time_control.time < 0) {
+        if (time_control_.time < 0) {
             return false;
         }
 
-        time_control.time += time_control.increment;
+        time_control_.time += time_control_.increment;
 
         return true;
     }
@@ -77,31 +78,34 @@ class Participant {
             input << " depth " << engine.getConfig().limit.plies;
 
         // We cannot use st and tc together
-        if (time_control.fixed_time != 0) {
-            input << " movetime " << time_control.fixed_time;
-        } else if (time_control.time != 0 && enemy_tc.time != 0) {
-            auto white = stm == chess::Color::WHITE ? time_control : enemy_tc;
-            auto black = stm == chess::Color::WHITE ? enemy_tc : time_control;
+        if (time_control_.fixed_time != 0) {
+            input << " movetime " << time_control_.fixed_time;
+        } else if (time_control_.time != 0 && enemy_tc.time != 0) {
+            auto white = stm == chess::Color::WHITE ? time_control_ : enemy_tc;
+            auto black = stm == chess::Color::WHITE ? enemy_tc : time_control_;
 
             input << " wtime " << white.time << " btime " << black.time;
 
-            if (time_control.increment != 0) {
+            if (time_control_.increment != 0) {
                 input << " winc " << white.increment << " binc " << black.increment;
             }
 
-            if (time_control.moves != 0) {
-                input << " movestogo " << time_control.moves;
+            if (time_control_.moves != 0) {
+                input << " movestogo " << time_control_.moves;
             }
         }
 
         return input.str();
     }
 
-    // updated time control after each move
-    TimeControl time_control;
+    [[nodiscard]] const TimeControl &getTimeControl() const { return time_control_; }
 
     UciEngine engine;
     PlayerInfo info;
+
+   private:
+    /// @brief updated time control after each move
+    TimeControl time_control_;
 };
 
 }  // namespace fast_chess

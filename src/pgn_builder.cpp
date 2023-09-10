@@ -61,20 +61,21 @@ PgnBuilder::PgnBuilder(const MatchData &match, const cmd::TournamentOptions &tou
     // create the pgn lines and assert that the line length is below 80 characters
     // otherwise move the move onto the next line
     std::size_t line_length = 0;
-    for (auto &move : moves_) {
-        assert(move.size() <= 80);
-        if (line_length + move.size() > LINE_LENGTH) {
+    for (auto &pgn_move : moves_) {
+        if (line_length + pgn_move.size() > LINE_LENGTH) {
             pgn_ << "\n";
             line_length = 0;
         }
-        pgn_ << (line_length == 0 ? "" : " ") << move;
-        line_length += move.size();
+        // note: the move length might be larger than LINE_LENGTH
+        pgn_ << (line_length == 0 ? "" : " ") << pgn_move;
+        line_length += pgn_move.size();
     }
 }
 
 template <typename T>
 void PgnBuilder::addHeader(std::string_view name, const T &value) {
     if constexpr (std::is_same_v<T, std::string>) {
+        // don't add the header if it is an empty string
         if (value.empty()) {
             return;
         }

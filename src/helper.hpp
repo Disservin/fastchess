@@ -41,14 +41,26 @@ namespace fast_chess::str_utils {
     return lower_string;
 }
 
+/// @brief Check if a string contains a substring.
+/// @param haystack 
+/// @param needle 
+/// @return 
 [[nodiscard]] inline bool contains(std::string_view haystack, std::string_view needle) {
     return haystack.find(needle) != std::string::npos;
 }
 
+/// @brief Check if a vector of strings contains a string.
+/// @param haystack 
+/// @param needle 
+/// @return 
 [[nodiscard]] inline bool contains(const std::vector<std::string> &haystack, std::string_view needle) {
     return std::find(haystack.begin(), haystack.end(), needle) != haystack.end();
 }
 
+/// @brief Split a string into a vector of strings based on a delimiter.
+/// @param string 
+/// @param delimiter 
+/// @return 
 [[nodiscard]] inline std::vector<std::string> splitString(const std::string &string, const char &delimiter) {
     std::stringstream string_stream(string);
     std::string segment;
@@ -59,6 +71,11 @@ namespace fast_chess::str_utils {
     return seglist;
 }
 
+/// @brief Find an element in a vector of strings and return the next element as a specified type.
+/// @tparam T 
+/// @param haystack 
+/// @param needle 
+/// @return 
 template <typename T>
 [[nodiscard]] std::optional<T> findElement(const std::vector<std::string> &haystack, std::string_view needle) {
     auto position = std::find(haystack.begin(), haystack.end(), needle);

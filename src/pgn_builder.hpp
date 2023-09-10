@@ -71,6 +71,8 @@ class PgnBuilder {
 
     cmd::TournamentOptions game_options_;
 
+    /// @brief The moves of the game, a move is not only the move itself but also includes
+    /// the comment
     std::vector<std::string> moves_;
 };
 

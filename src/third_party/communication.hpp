@@ -59,7 +59,8 @@ class IProcess {
     virtual ~IProcess() = default;
 
     // Initialize the process
-    virtual void initProcess(const std::string &command, const std::string &log_name) = 0;
+    virtual void initProcess(const std::string &command, const std::string &args,
+                             const std::string &log_name) = 0;
 
     /// @brief Returns true if the process is alive
     /// @return
@@ -90,7 +91,8 @@ class Process : public IProcess {
    public:
     ~Process() override { killProcess(); }
 
-    void initProcess(const std::string &command, const std::string &log_name) override {
+    void initProcess(const std::string &command, const std::string &args,
+                     const std::string &log_name) override {
         log_name_ = log_name;
 
         pi_ = PROCESS_INFORMATION();
@@ -116,8 +118,8 @@ class Process : public IProcess {
         CREATE_NEW_PROCESS_GROUP flag is important here to disable all CTRL+C signals for the new
         process
         */
-        CreateProcessA(nullptr, const_cast<char *>(command.c_str()), nullptr, nullptr, TRUE,
-                       CREATE_NEW_PROCESS_GROUP, nullptr, nullptr, &si, &pi_);
+        CreateProcessA(nullptr, const_cast<char *>((command + " " + args).c_str()), nullptr,
+                       nullptr, TRUE, CREATE_NEW_PROCESS_GROUP, nullptr, nullptr, &si, &pi_);
 
         CloseHandle(childStdOutWr);
         CloseHandle(childStdInRd);
@@ -272,7 +274,8 @@ class Process : public IProcess {
    public:
     ~Process() override { killProcess(); }
 
-    void initProcess(const std::string &command, const std::string &log_name) override {
+    void initProcess(const std::string &command, const std::string &args,
+                     const std::string &log_name) override {
         is_initalized_ = true;
         log_name_      = log_name;
         // Create input pipe
@@ -309,7 +312,7 @@ class Process : public IProcess {
             if (close(in_pipe_[1]) == -1) throw std::runtime_error("Failed to close inpipe");
 
             // Execute the engine
-            if (execl(command.c_str(), command.c_str(), (char *)NULL) == -1)
+            if (execl(command.c_str(), command.c_str(), args.c_str(), NULL) == -1)
                 throw std::runtime_error("Failed to execute engine");
 
             _exit(0); /* Note that we do not use exit() */

@@ -168,6 +168,15 @@ fast-chess supports many other command-line options:
 ### Options
 
 - `cmd=COMMAND`
+- `args="ARGS"`
+  If you want to pass multiple arguments, you can use `args="ARG1 ARG2 ARG3"`.
+  Please keep in mind that double quotes inside the string must be escaped. 
+  i.e. `args="single words \"multiple words\""` -> your engine will receive
+  ```
+  single
+  words
+  multiple words
+  ```
 - `[name=NAME]`
 - `[tc=TC]`
   TC uses the same format as Cute-Chess. For example 10+0.1 would be 10

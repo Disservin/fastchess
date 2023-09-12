@@ -12,7 +12,7 @@ using namespace std;
 
 int main() {
     std::vector<std::string> moves = {"f2f3", "e7e5", "g2g4", "d8h4"};
-    int moveIndex = 0;
+    int moveIndex                  = 0;
 
     while (true) {
         string cmd;

@@ -312,7 +312,7 @@ class Process : public IProcess {
             if (close(in_pipe_[1]) == -1) throw std::runtime_error("Failed to close inpipe");
 
             // Execute the engine
-            if (execl(command.c_str(), command.c_str(), args.c_str()) == -1)
+            if (execl(command.c_str(), command.c_str(), args.c_str(), NULL) == -1)
                 throw std::runtime_error("Failed to execute engine");
 
             _exit(0); /* Note that we do not use exit() */

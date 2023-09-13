@@ -48,9 +48,11 @@ SOFTWARE.
 #include <unistd.h>  // _exit, fork
 #endif
 
+#ifndef _WIN64
 namespace fast_chess {
 inline std::vector<pid_t> pid_list;
 }  // namespace fast_chess
+#endif
 
 namespace Communication {
 

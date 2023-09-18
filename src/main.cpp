@@ -51,6 +51,13 @@ BOOL WINAPI consoleHandler(DWORD signal) {
         case CTRL_C_EVENT:
             Tour->stop();
             Options->saveJson(Tour->getResults());
+
+            // kill remaining pids
+            for (auto &pid : pid_list) {
+                TerminateProcess(pid, 1);
+                CloseHandle(pid);
+            }
+
             std::cout << "Saved results" << std::endl;
             std::exit(0);
         default:

@@ -48,11 +48,13 @@ SOFTWARE.
 #include <unistd.h>  // _exit, fork
 #endif
 
-#ifndef _WIN64
 namespace fast_chess {
+#ifdef _WIN64
+inline std::vector<HANDLE> pid_list;
+#else
 inline std::vector<pid_t> pid_list;
-}  // namespace fast_chess
 #endif
+}  // namespace fast_chess
 
 namespace Communication {
 
@@ -128,6 +130,8 @@ class Process : public IProcess {
 
         child_std_out_ = childStdOutRd;
         child_std_in_  = childStdInWr;
+
+        fast_chess::pid_list.push_back(pi_.hProcess);
     }
 
     bool isAlive() override {
@@ -138,6 +142,9 @@ class Process : public IProcess {
     }
 
     void killProcess() {
+        fast_chess::pid_list.erase(
+            std::remove(fast_chess::pid_list.begin(), fast_chess::pid_list.end(), pi_.hProcess),
+            fast_chess::pid_list.end());
         if (is_initalized_) {
             try {
                 DWORD exitCode = 0;

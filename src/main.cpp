@@ -18,6 +18,7 @@ std::unique_ptr<Tournament> Tour;
 
 void setCtrlCHandler();
 void sigintHandler(int param);
+void clear_processes();
 
 int main(int argc, char const *argv[]) {
     setCtrlCHandler();
@@ -39,7 +40,23 @@ int main(int argc, char const *argv[]) {
 
     std::cout << "Saved results." << std::endl;
 
+    clear_processes();
+
     return 0;
+}
+
+void clear_processes() {
+#ifdef _WIN64
+    for (const auto &pid : pid_list) {
+        TerminateProcess(pid, 1);
+        CloseHandle(pid);
+    }
+#else
+    for (const auto &pid : pid_list) {
+        kill(pid, SIGINT);
+        kill(pid, SIGKILL);
+    }
+#endif
 }
 
 #ifdef _WIN64
@@ -51,6 +68,9 @@ BOOL WINAPI consoleHandler(DWORD signal) {
         case CTRL_C_EVENT:
             Tour->stop();
             Options->saveJson(Tour->getResults());
+
+            clear_processes();
+
             std::cout << "Saved results" << std::endl;
             std::exit(0);
         default:
@@ -64,11 +84,7 @@ void sigintHandler(int param) {
     Tour->stop();
     Options->saveJson(Tour->getResults());
 
-    // kill remaining pids
-    for (auto &pid : pid_list) {
-        kill(pid, SIGINT);
-        kill(pid, SIGKILL);
-    }
+    clear_processes();
 
     std::cout << "Saved results" << std::endl;
 

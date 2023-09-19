@@ -177,6 +177,12 @@ bool Match::playMove(Participant& us, Participant& opponent) {
 
     const auto elapsed_millis = chrono::duration_cast<chrono::milliseconds>(t1 - t0).count();
 
+    if (atomic::stop) {
+        data_.termination = MatchTermination::INTERRUPT;
+
+        return false;
+    }
+
     // Time forfeit
     if (!us.updateTime(elapsed_millis)) {
         setLose(us, opponent);

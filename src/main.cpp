@@ -47,12 +47,12 @@ int main(int argc, char const *argv[]) {
 
 void clear_processes() {
 #ifdef _WIN64
-    for (auto &pid : pid_list) {
+    for (const auto &pid : pid_list) {
         TerminateProcess(pid, 1);
         CloseHandle(pid);
     }
 #else
-    for (auto &pid : pid_list) {
+    for (const auto &pid : pid_list) {
         kill(pid, SIGINT);
         kill(pid, SIGKILL);
     }

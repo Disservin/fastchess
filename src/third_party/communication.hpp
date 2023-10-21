@@ -321,7 +321,18 @@ class Process : public IProcess {
             if (close(in_pipe_[1]) == -1) throw std::runtime_error("Failed to close inpipe");
 
             // Execute the engine
-            if (execl(command.c_str(), command.c_str(), args.c_str(), NULL) == -1)
+
+            const auto rtrim = [](std::string &s) {
+                s.erase(std::find_if(s.rbegin(), s.rend(),
+                                     [](unsigned char ch) { return !std::isspace(ch); })
+                            .base(),
+                        s.end());
+            };
+
+            auto full_command = command + " " + args;
+            rtrim(full_command);
+
+            if (execl(command.c_str(), full_command.c_str(), (char *)NULL) == -1)
                 throw std::runtime_error("Failed to execute engine");
 
             _exit(0); /* Note that we do not use exit() */

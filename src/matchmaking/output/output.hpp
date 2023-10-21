@@ -3,11 +3,11 @@
 #include <string>
 
 #include <cli.hpp>
+#include <sprt.hpp>
+#include <types/engine_config.hpp>
 #include <types/enums.hpp>
 #include <types/match_data.hpp>
 #include <types/stats.hpp>
-#include <sprt.hpp>
-#include <types/engine_config.hpp>
 
 namespace fast_chess {
 

@@ -4,8 +4,8 @@
 #include <string>
 #include <unordered_map>
 
-#include <types/stats.hpp>
 #include <types/engine_config.hpp>
+#include <types/stats.hpp>
 
 namespace fast_chess {
 

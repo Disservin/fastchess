@@ -1,8 +1,8 @@
 #pragma once
 
 #include <elo.hpp>
-#include <util/logger.hpp>
 #include <matchmaking/output/output.hpp>
+#include <util/logger.hpp>
 
 namespace fast_chess {
 

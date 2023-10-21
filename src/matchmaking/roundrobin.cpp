@@ -2,9 +2,9 @@
 
 #include <third_party/chess.hpp>
 
-#include <util/logger.hpp>
 #include <matchmaking/output/output_factory.hpp>
 #include <pgn_builder.hpp>
+#include <util/logger.hpp>
 #include <util/rand.hpp>
 
 namespace fast_chess {
@@ -239,7 +239,7 @@ Opening RoundRobin::fetchNextOpening() {
         return opening;
     }
 
-    return {chess::STARTPOS, {}};
+    return {chess::constants::STARTPOS, {}};
 }
 
 }  // namespace fast_chess

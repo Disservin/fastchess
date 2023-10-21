@@ -30,7 +30,7 @@ void uci_line(Board &board, const std::string &line) {
             board = Board();
             if (tokens.size() > 2 && tokens[2] == "moves") {
                 for (int i = 3; i < tokens.size(); i++) {
-                    board.makeMove(uci::uciToMove(board, tokens[i]));
+                    board.makeMove(uci::uciToMove(board, std::string(tokens[i])));
                 }
             }
         } else if (tokens[1] == "fen") {
@@ -42,13 +42,13 @@ void uci_line(Board &board, const std::string &line) {
                     i++;
                     break;
                 };
-                fen += tokens[i] + " ";
+                fen += std::string(tokens[i]) + " ";
             }
 
             board.setFen(fen);
 
             for (; i < tokens.size(); i++) {
-                board.makeMove(uci::uciToMove(board, tokens[i]));
+                board.makeMove(uci::uciToMove(board, std::string(tokens[i])));
             }
         }
     } else if (tokens[0] == "uci") {

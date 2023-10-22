@@ -69,7 +69,7 @@ void Match::start(const EngineConfiguration& engine1_config,
     board_.set960(tournament_options_.variant == VariantType::FRC);
     board_.setFen(opening_.fen);
 
-    start_position_ = board_.getFen() == STARTPOS ? "startpos" : board_.getFen();
+    start_position_ = board_.getFen() == constants::STARTPOS ? "startpos" : board_.getFen();
 
     std::vector<std::string> uci_moves = [&]() {
         std::vector<std::string> moves;

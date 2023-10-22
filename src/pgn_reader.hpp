@@ -9,7 +9,7 @@
 namespace fast_chess {
 
 struct Opening {
-    std::string fen                = chess::STARTPOS;
+    std::string fen                = chess::constants::STARTPOS;
     std::vector<chess::Move> moves = {};
 };
 

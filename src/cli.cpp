@@ -306,7 +306,8 @@ class Config : public Option {
 
    private:
     static void loadJson(ArgumentData &argument_data, const std::string &filename) {
-        std::cout << "Loading config file: " << filename << std::endl;
+        Logger::cout("Loading config file:", filename);
+
         std::ifstream f(filename);
         json jsonfile = json::parse(f);
 

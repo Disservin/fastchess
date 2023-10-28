@@ -29,10 +29,10 @@ class IOutput {
     /// @param current_game_count
     virtual void printInterval(const SPRT& sprt, const Stats& stats, const std::string& first,
                                const std::string& second, int current_game_count) {
-        std::cout << "--------------------------------------------------\n";
+        Logger::cout("--------------------------------------------------");
         printElo(stats, first, second, current_game_count);
         printSprt(sprt, stats);
-        std::cout << "--------------------------------------------------\n";
+        Logger::cout("--------------------------------------------------");
     };
 
     /// @brief Print current H2H elo stats.

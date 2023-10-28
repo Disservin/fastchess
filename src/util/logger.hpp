@@ -34,7 +34,18 @@ class Logger {
         ss << std::forward<First>(first);
         ((ss << " " << std::forward<Args>(args)), ...);
         ss << "\n";
-        std::cout << ss.str();
+        std::cout << ss.str() << std::flush;
+
+        if (Logger::should_log_) {
+            // Acquire the lock
+            const std::lock_guard<std::mutex> lock(Logger::log_mutex_);
+
+            std::stringstream log_ss;
+            log_ss << "[" << getDateTime("%H:%M:%S") << "] "
+                   << " <---> " << ss.str() << std::endl;
+
+            Logger::log_ << log_ss.str() << std::flush;
+        }
     }
 
     /// @brief Thread safe debug cout, will only print if NDEBUG is not defined

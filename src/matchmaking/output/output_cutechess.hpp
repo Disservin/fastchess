@@ -41,10 +41,9 @@ class Cutechess : public IOutput {
             << Elo::getLos(stats.wins, stats.losses)
             << ", "
             << "DrawRatio: "
-            << Elo::getDrawRatio(stats.wins, stats.losses, stats.draws)
-            << "\n";
+            << Elo::getDrawRatio(stats.wins, stats.losses, stats.draws);
         // clang-format on
-        std::cout << ss.str() << std::flush;
+        Logger::cout(ss.str());
     }
 
     void printSprt(const SPRT& sprt, const Stats& stats) override {
@@ -53,8 +52,8 @@ class Cutechess : public IOutput {
 
             ss << "LLR: " << std::fixed << std::setprecision(2)
                << sprt.getLLR(stats.wins, stats.draws, stats.losses) << " " << sprt.getBounds()
-               << " " << sprt.getElo() << "\n";
-            std::cout << ss.str() << std::flush;
+               << " " << sprt.getElo();
+            Logger::cout(ss.str());
         }
     };
 
@@ -71,11 +70,10 @@ class Cutechess : public IOutput {
            << configs.first.name
            << " vs "
            << configs.second.name
-           << ")"
-           << "\n";
+           << ")";
         // clang-format on
 
-        std::cout << ss.str() << std::flush;
+        Logger::cout(ss.str());
     }
 
     void endGame(const pair_config& configs, const Stats& stats, const std::string& annotation,
@@ -93,14 +91,13 @@ class Cutechess : public IOutput {
            << formatStats(stats)
            << " {"
            << annotation 
-           << "}"
-           << "\n";
+           << "}";
         // clang-format on
 
-        std::cout << ss.str() << std::flush;
+        Logger::cout(ss.str());
     }
 
-    void endTournament() override { std::cout << "Tournament finished" << std::endl; }
+    void endTournament() override { Logger::cout("Tournament finished."); }
 };
 
 }  // namespace fast_chess

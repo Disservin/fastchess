@@ -10,11 +10,11 @@ class Fastchess : public IOutput {
    public:
     void printInterval(const SPRT& sprt, const Stats& stats, const std::string& first,
                        const std::string& second, int current_game_count) override {
-        std::cout << "--------------------------------------------------\n";
+        Logger::cout("--------------------------------------------------");
         printElo(stats, first, second, current_game_count);
         printSprt(sprt, stats);
         printPenta(stats);
-        std::cout << "--------------------------------------------------\n";
+        Logger::cout("--------------------------------------------------");
     };
 
     void printElo(const Stats& stats, const std::string& first, const std::string& second,
@@ -44,10 +44,9 @@ class Fastchess : public IOutput {
             << Elo::getLos(stats.wins, stats.losses)
             << ", "
             << "DrawRatio: "
-            << Elo::getDrawRatio(stats.wins, stats.losses, stats.draws)
-            << "\n";
+            << Elo::getDrawRatio(stats.wins, stats.losses, stats.draws);
         // clang-format on
-        std::cout << ss.str();
+        Logger::cout(ss.str());
     }
 
     void printSprt(const SPRT& sprt, const Stats& stats) override {
@@ -56,8 +55,8 @@ class Fastchess : public IOutput {
 
             ss << "LLR: " << std::fixed << std::setprecision(2)
                << sprt.getLLR(stats.wins, stats.draws, stats.losses) << " " << sprt.getBounds()
-               << " " << sprt.getElo() << "\n";
-            std::cout << ss.str();
+               << " " << sprt.getElo();
+            Logger::cout(ss.str());
         }
     };
 
@@ -71,8 +70,8 @@ class Fastchess : public IOutput {
            << "Distr:   " << std::right << std::setw(7) << stats.penta_WW << std::right
            << std::setw(7) << stats.penta_WD << std::right << std::setw(7)
            << stats.penta_WL + stats.penta_DD << std::right << std::setw(7) << stats.penta_LD
-           << std::right << std::setw(7) << stats.penta_LL << "\n";
-        std::cout << ss.str();
+           << std::right << std::setw(7) << stats.penta_LL;
+        Logger::cout(ss.str());
     }
 
     void startGame(const pair_config& configs, std::size_t current_game_count,
@@ -88,11 +87,10 @@ class Fastchess : public IOutput {
            << configs.first.name
            << " vs "
            << configs.second.name
-           << ")"
-           << "\n";
+           << ")";
         // clang-format on
 
-        std::cout << ss.str();
+        Logger::cout(ss.str());
     }
 
     void endGame(const pair_config& configs, const Stats& stats, const std::string& annotation,
@@ -110,14 +108,13 @@ class Fastchess : public IOutput {
            << formatStats(stats)
            << " {"
            << annotation 
-           << "}"
-           << "\n";
-        // clang-format on
+           << "}",
+            // clang-format on
 
-        std::cout << ss.str();
+            Logger::cout(ss.str());
     }
 
-    void endTournament() override { std::cout << "Tournament finished" << std::endl; }
+    void endTournament() override { Logger::cout("Tournament finished"); }
 };
 
 }  // namespace fast_chess

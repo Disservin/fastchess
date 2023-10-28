@@ -38,7 +38,7 @@ int main(int argc, char const *argv[]) {
     Logger::debug("Saving results...");
     Options->saveJson(Tour->getResults());
 
-    std::cout << "Saved results." << std::endl;
+    Logger::cout("Saved results.");
 
     clear_processes();
 
@@ -71,7 +71,8 @@ BOOL WINAPI consoleHandler(DWORD signal) {
 
             clear_processes();
 
-            std::cout << "Saved results" << std::endl;
+            Logger::cout("Saved results.");
+
             std::exit(0);
         default:
             break;
@@ -86,7 +87,7 @@ void sigintHandler(int param) {
 
     clear_processes();
 
-    std::cout << "Saved results" << std::endl;
+    Logger::cout("Saved results.");
 
     std::exit(param);
 }
@@ -95,7 +96,7 @@ void sigintHandler(int param) {
 void setCtrlCHandler() {
 #ifdef _WIN64
     if (!SetConsoleCtrlHandler(consoleHandler, TRUE)) {
-        std::cout << "\nERROR: Could not set control handler\n";
+        Logger::cout("ERROR: Could not set control handler\n");
     }
 #else
     signal(SIGINT, sigintHandler);

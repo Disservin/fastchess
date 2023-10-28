@@ -46,6 +46,7 @@ SOFTWARE.
 #include <sys/types.h>  // pid_t
 #include <sys/wait.h>
 #include <unistd.h>  // _exit, fork
+#include <sched.h>
 #endif
 
 namespace fast_chess {
@@ -64,7 +65,7 @@ class IProcess {
 
     // Initialize the process
     virtual void initProcess(const std::string &command, const std::string &args,
-                             const std::string &log_name) = 0;
+                             const std::string &log_name, uint32_t core) = 0;
 
     /// @brief Returns true if the process is alive
     /// @return
@@ -96,7 +97,7 @@ class Process : public IProcess {
     ~Process() override { killProcess(); }
 
     void initProcess(const std::string &command, const std::string &args,
-                     const std::string &log_name) override {
+                     const std::string &log_name, uint32_t core) override {
         log_name_ = log_name;
 
         pi_ = PROCESS_INFORMATION();
@@ -284,7 +285,7 @@ class Process : public IProcess {
     ~Process() override { killProcess(); }
 
     void initProcess(const std::string &command, const std::string &args,
-                     const std::string &log_name) override {
+                     const std::string &log_name, uint32_t core) override {
         is_initalized_ = true;
         log_name_      = log_name;
         // Create input pipe
@@ -338,6 +339,19 @@ class Process : public IProcess {
             _exit(0); /* Note that we do not use exit() */
         } else {
             process_pid_ = forkPid;
+
+            // assign the process to specified core
+            cpu_set_t mask;
+            CPU_ZERO(&mask);
+            CPU_SET(core, &mask);
+
+            if (sched_setaffinity(process_pid_, sizeof(cpu_set_t), &mask) == -1) {
+                fast_chess::Logger::cout("Warning; Failed to assign PID;", process_pid_, "to core",
+                                         core);
+            }
+
+            fast_chess::Logger::cout("PID;", process_pid_, "is assigned to core", core);
+
             fast_chess::pid_list.push_back(process_pid_);
         }
     }

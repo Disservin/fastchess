@@ -7,7 +7,8 @@ namespace fast_chess {
 
 class Participant {
    public:
-    explicit Participant(const EngineConfiguration &config) : engine(config) {
+    explicit Participant(const EngineConfiguration &config, uint32_t core_num)
+        : engine(config, core_num) {
         info.config = config;
 
         // copy time control which will be updated later

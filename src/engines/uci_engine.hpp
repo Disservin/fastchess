@@ -9,7 +9,10 @@ namespace fast_chess {
 
 class UciEngine : private Communication::Process {
    public:
-    explicit UciEngine(const EngineConfiguration &config) { loadConfig(config); }
+    explicit UciEngine(const EngineConfiguration &config, uint32_t core_num) {
+        core_ = core_num;
+        loadConfig(config);
+    }
 
     ~UciEngine() override { sendQuit(); }
 
@@ -76,6 +79,8 @@ class UciEngine : private Communication::Process {
     void sendSetoption(const std::string &name, const std::string &value);
 
     EngineConfiguration config_;
+
+    uint32_t core_;
 
     std::vector<std::string> output_;
 };

@@ -6,9 +6,8 @@
 
 #ifdef _WIN32
 #include <matchmaking/util/affinity/cores_win.hpp>
-// Let Apple also use the easy affinity code
 #elif defined(__APPLE__)
-#include <matchmaking/util/affinity/cores_win.hpp>
+#include <matchmaking/util/affinity/cores_mac.hpp>
 #else
 #include <matchmaking/util/affinity/cores_posix.hpp>
 #endif

@@ -18,10 +18,10 @@ namespace affinity {
 inline bool set_affinity(const std::vector<int>& cpus, HANDLE process_handle) noexcept {
     DWORD_PTR affinity_mask = 0;
 
-    assert(cpus.size() <= 64);
-
     for (const auto& cpu : cpus) {
-        affinity_mask |= (1 << cpu);
+        assert(cpu <= 63);
+
+        affinity_mask |= (1ull << cpu);
     }
 
     return SetProcessAffinityMask(process_handle, affinity_mask) != 0;

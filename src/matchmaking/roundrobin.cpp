@@ -211,10 +211,10 @@ void RoundRobin::playGame(const std::pair<EngineConfiguration, EngineConfigurati
     try {
         start();
 
-        match.start(configs.first, configs.second, core.mask);
+        match.start(configs.first, configs.second, core.cpus);
 
         while (match.get().needs_restart) {
-            match.start(configs.first, configs.second, core.mask);
+            match.start(configs.first, configs.second, core.cpus);
         }
     } catch (const std::exception& e) {
         Logger::cout("Exception: " + std::string(e.what()));

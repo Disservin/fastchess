@@ -9,8 +9,8 @@ namespace fast_chess {
 
 class UciEngine : private Communication::Process {
    public:
-    explicit UciEngine(const EngineConfiguration &config, std::size_t core) {
-        core_ = core;
+    explicit UciEngine(const EngineConfiguration &config, const std::vector<int> &cpus)
+        : cpus_(cpus) {
         loadConfig(config);
     }
 
@@ -78,7 +78,7 @@ class UciEngine : private Communication::Process {
 
     EngineConfiguration config_;
 
-    std::size_t core_;
+    const std::vector<int> &cpus_;
 
     std::vector<std::string> output_;
 };

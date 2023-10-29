@@ -15,13 +15,21 @@ namespace affinity {
 
 #ifdef __WIN32
 
-inline bool set_affinity(std::size_t affinity_mask, HANDLE process_handle) noexcept {
+inline bool set_affinity(const std::vector<int>& cpus, HANDLE process_handle) noexcept {
+    DWORD_PTR affinity_mask = 0;
+
+    assert(cpus.size() <= 64);
+
+    for (const auto& cpu : cpus) {
+        affinity_mask |= (1 << cpu);
+    }
+
     return SetProcessAffinityMask(process_handle, affinity_mask) != 0;
 }
 
 #elif defined(__APPLE__)
 
-inline void set_affinity(std::size_t affinity_mask) noexcept {
+inline void set_affinity(const std::vector<int>& cpus) noexcept {
     // mach_port_t tid = pthread_mach_thread_np(pthread_self());
     // struct thread_affinity_policy policy;
     // policy.affinity_tag = affinity_mask;
@@ -34,12 +42,13 @@ inline void set_affinity(std::size_t affinity_mask) noexcept {
 
 #else
 
-inline bool set_affinity(std::size_t affinity_mask, pid_t process_pid) noexcept {
+inline bool set_affinity(const std::vector<int>& cpus, pid_t process_pid) noexcept {
     cpu_set_t mask;
     CPU_ZERO(&mask);
 
-    // dst, srcset1, srcset2
-    CPU_OR(&mask, &mask, &affinity_mask);
+    for (const auto& cpu : cpus) {
+        CPU_SET(cpu, &mask);
+    }
 
     return sched_setaffinity(process_pid, sizeof(cpu_set_t), &mask);
 }

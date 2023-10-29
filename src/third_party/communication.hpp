@@ -346,6 +346,19 @@ class Process : public IProcess {
             auto full_command = command + " " + args;
             rtrim(full_command);
 
+#if defined(__APPLE__)
+            // assign the process to specified core
+            if (core != -1) {
+                mach_port_t tid = pthread_mach_thread_np(pthread_self());
+                struct thread_affinity_policy policy;
+                policy.affinity_tag = core;
+
+                // ignore error
+                thread_policy_set(tid, THREAD_AFFINITY_POLICY, (thread_policy_t)&policy,
+                                  THREAD_AFFINITY_POLICY_COUNT);
+            }
+#endif
+
             if (execl(command.c_str(), full_command.c_str(), (char *)NULL) == -1)
                 throw std::runtime_error("Failed to execute engine");
 
@@ -355,6 +368,8 @@ class Process : public IProcess {
 
             // assign the process to specified core
             if (core != -1) {
+
+#if !defined(__APPLE__)
                 cpu_set_t mask;
                 CPU_ZERO(&mask);
                 CPU_SET(core, &mask);
@@ -365,6 +380,7 @@ class Process : public IProcess {
                 }
 
                 fast_chess::Logger::cout("PID;", process_pid_, "is assigned to core", core);
+#endif
             }
 
             fast_chess::pid_list.push_back(process_pid_);

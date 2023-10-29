@@ -12,7 +12,7 @@ namespace affinity {
 
 /// @brief [physical id][2][processor id's]
 /// @return
-inline std::map<int, std::array<std::vector<int>, 2>> get_physical_cores() noexcept(false) {
+inline std::map<int, std::array<std::vector<int>, 2>> getPhysicalCores() noexcept(false) {
     std::vector<int> ht_1;
     std::vector<int> ht_2;
 

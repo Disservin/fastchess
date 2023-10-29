@@ -18,16 +18,17 @@
 namespace affinity {
 class CoreHandler {
     enum Group {
+        NONE = -1,
         HT_1,
         HT_2,
     };
 
-    struct Core {
+    struct AffinityProcessor {
         int physical_id;
         Group group;
         std::size_t mask;
 
-        Core(int physical_id, Group group, std::size_t mask)
+        AffinityProcessor(int physical_id, Group group, std::size_t mask)
             : physical_id(physical_id), group(group), mask(mask) {}
     };
 
@@ -41,7 +42,7 @@ class CoreHandler {
         use_affinity_ = use_affinity;
 
         if (use_affinity_) {
-            available_cores_ = get_physical_cores();
+            available_hardware_ = getPhysicalCores();
         }
     }
 
@@ -49,13 +50,13 @@ class CoreHandler {
     ///
     /// @param threads 0 if no affinity is used, otherwise the number of threads.
     /// @return
-    [[nodiscard]] Core consume(int threads) noexcept(false) {
+    [[nodiscard]] AffinityProcessor consume(int threads) noexcept(false) {
         if (!use_affinity_) {
-            return {0, Group::HT_1, 0};
+            return {0, Group::NONE, 0};
         }
 
         if (threads == 0) {
-            return {0, Group::HT_1, 0};
+            return {0, Group::NONE, 0};
         }
 
         std::lock_guard<std::mutex> lock(core_mutex_);
@@ -64,27 +65,27 @@ class CoreHandler {
         // cores is array of two vectors, each vector contains distinct processors which are
         // not on the same physical core. We distribute the workload first over all cores
         // in HT_1, then over all cores in HT_2.
-        for (auto& [physical_id, cores] : available_cores_) {
+        for (auto& [physical_id, bins] : available_hardware_) {
             std::size_t mask = 0ull;
             int count        = 0;
 
-            for (size_t i = 0; i < cores.size(); i++) {
-                while (!cores[i].empty()) {
-                    const auto core = cores[i].back();
-                    cores[i].pop_back();
+            for (size_t i = 0; i < bins.size(); i++) {
+                while (!bins[i].empty()) {
+                    const auto processor = bins[i].back();
+                    bins[i].pop_back();
 
-                    mask |= 1ull << core;
+                    mask |= 1ull << processor;
                     count++;
 
                     if (count == threads) {
                         return {physical_id, static_cast<Group>(i), mask};
                     }
 
-                    // we couldnt find a suitable mask, so we have to put the cores back
-                    if (cores[i].empty()) {
+                    // we couldnt find a suitable mask, so we have to put the processor back
+                    if (bins[i].empty()) {
                         for (int j = 0; j < count; j++) {
                             const int pos = chess::builtin::poplsb(mask);
-                            cores[i].push_back(pos);
+                            bins[i].push_back(pos);
                         }
 
                         mask  = 0ull;
@@ -103,10 +104,10 @@ class CoreHandler {
 
         std::cout << ss.str();
 
-        return {0, Group::HT_1, 0};
+        return {0, Group::NONE, 0};
     }
 
-    void put_back(Core core) noexcept {
+    void put_back(AffinityProcessor core) noexcept {
         if (!use_affinity_) {
             return;
         }
@@ -116,14 +117,14 @@ class CoreHandler {
         // extract the cores back
         while (core.mask) {
             const int pos = chess::builtin::poplsb(core.mask);
-            available_cores_[core.physical_id][core.group].push_back(pos);
+            available_hardware_[core.physical_id][core.group].push_back(pos);
         }
     }
 
    private:
     bool use_affinity_ = false;
 
-    std::map<int, std::array<std::vector<int>, 2>> available_cores_;
+    std::map<int, std::array<std::vector<int>, 2>> available_hardware_;
     std::mutex core_mutex_;
 };
 

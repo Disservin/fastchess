@@ -10,7 +10,7 @@ namespace affinity {
 
 /// @brief Some dumb code for macOS, setting the affinity is not supported.
 /// @return
-inline std::map<int, std::array<std::vector<int>, 2>> get_physical_cores() noexcept {
+inline std::map<int, std::array<std::vector<int>, 2>> getPhysicalCores() noexcept {
     std::vector<int> ht_1;
 
     ht_1.resize(std::thread::hardware_concurrency());

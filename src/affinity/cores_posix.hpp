@@ -14,7 +14,7 @@ namespace affinity {
 
 /// @brief [physical id][2][processor id's]
 /// @return
-inline std::map<int, std::array<std::vector<int>, 2>> get_physical_cores() noexcept(false) {
+inline std::map<int, std::array<std::vector<int>, 2>> getPhysicalCores() noexcept(false) {
     std::ifstream cpuinfo("/proc/cpuinfo");
 
     // [physical id][core id][2][processor id's]

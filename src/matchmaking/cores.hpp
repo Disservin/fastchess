@@ -7,7 +7,7 @@
 #ifdef _WIN32
 #include <matchmaking/util/affinity/cores_win.hpp>
 #else
-#include <matchmaking/util/affinity/cores_linux.hpp>
+#include <matchmaking/util/affinity/cores_posix.hpp>
 #endif
 namespace fast_chess {
 

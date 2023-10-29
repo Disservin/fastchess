@@ -65,7 +65,7 @@ class IProcess {
 
     // Initialize the process
     virtual void initProcess(const std::string &command, const std::string &args,
-                             const std::string &log_name, uint32_t core) = 0;
+                             const std::string &log_name, int core) = 0;
 
     /// @brief Returns true if the process is alive
     /// @return
@@ -97,7 +97,7 @@ class Process : public IProcess {
     ~Process() override { killProcess(); }
 
     void initProcess(const std::string &command, const std::string &args,
-                     const std::string &log_name, uint32_t core) override {
+                     const std::string &log_name, int core) override {
         log_name_ = log_name;
 
         pi_ = PROCESS_INFORMATION();
@@ -133,12 +133,14 @@ class Process : public IProcess {
         child_std_in_  = childStdInWr;
 
         // set process affinity
-        DWORD_PTR affinity_mask = 1 << core;
+        if (core != -1) {
+            DWORD_PTR affinity_mask = 1 << core;
 
-        BOOL success = SetProcessAffinityMask(pi_.hProcess, affinity_mask);
-        if (!success) {
-            fast_chess::Logger::cout("Warning; Failed to assign to Handle;", pi_.hProcess,
-                                     "to core", core);
+            BOOL success = SetProcessAffinityMask(pi_.hProcess, affinity_mask);
+            if (!success) {
+                fast_chess::Logger::cout("Warning; Failed to assign to Handle;", pi_.hProcess,
+                                         "to core", core);
+            }
         }
 
         fast_chess::pid_list.push_back(pi_.hProcess);
@@ -296,7 +298,7 @@ class Process : public IProcess {
     ~Process() override { killProcess(); }
 
     void initProcess(const std::string &command, const std::string &args,
-                     const std::string &log_name, uint32_t core) override {
+                     const std::string &log_name, int core) override {
         is_initalized_ = true;
         log_name_      = log_name;
         // Create input pipe
@@ -352,16 +354,18 @@ class Process : public IProcess {
             process_pid_ = forkPid;
 
             // assign the process to specified core
-            cpu_set_t mask;
-            CPU_ZERO(&mask);
-            CPU_SET(core, &mask);
+            if (core != -1) {
+                cpu_set_t mask;
+                CPU_ZERO(&mask);
+                CPU_SET(core, &mask);
 
-            if (sched_setaffinity(process_pid_, sizeof(cpu_set_t), &mask) == -1) {
-                fast_chess::Logger::cout("Warning; Failed to assign PID;", process_pid_, "to core",
-                                         core);
+                if (sched_setaffinity(process_pid_, sizeof(cpu_set_t), &mask) == -1) {
+                    fast_chess::Logger::cout("Warning; Failed to assign PID;", process_pid_,
+                                             "to core", core);
+                }
+
+                fast_chess::Logger::cout("PID;", process_pid_, "is assigned to core", core);
             }
-
-            fast_chess::Logger::cout("PID;", process_pid_, "is assigned to core", core);
 
             fast_chess::pid_list.push_back(process_pid_);
         }

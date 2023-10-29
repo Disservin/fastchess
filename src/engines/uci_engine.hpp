@@ -35,8 +35,6 @@ class UciEngine : private Communication::Process {
 
     [[nodiscard]] EngineConfiguration getConfig() const;
 
-    /// @brief [untested... and unused]
-    void restartEngine();
     /// @brief Creates a new process and starts the engine.
     void startEngine();
 

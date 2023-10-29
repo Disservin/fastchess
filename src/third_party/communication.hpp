@@ -37,6 +37,16 @@ SOFTWARE.
 
 #ifdef _WIN64
 #include <windows.h>
+#elif defined(__APPLE__)
+#include <mach/thread_act.h>
+#include <stdio.h>
+#include <mach/thread_policy.h>
+#include <mach/task_info.h>
+#include <sys/types.h>
+#include <sys/sysctl.h>
+#include <mach/thread_policy.h>
+#include <mach/thread_act.h>
+#include <pthread.h>
 #else
 #include <errno.h>
 #include <fcntl.h>  // fcntl
@@ -347,16 +357,6 @@ class Process : public IProcess {
             rtrim(full_command);
 
 #if defined(__APPLE__)
-#include <mach/thread_act.h>
-#include <stdio.h>
-#include <mach/thread_policy.h>
-#include <mach/task_info.h>
-#include <sys/types.h>
-#include <sys/sysctl.h>
-#include <mach/thread_policy.h>
-#include <mach/thread_act.h>
-#include <pthread.h>
-
             // assign the process to specified core
             if (core != -1) {
                 mach_port_t tid = pthread_mach_thread_np(pthread_self());

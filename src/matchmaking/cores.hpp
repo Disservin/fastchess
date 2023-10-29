@@ -4,7 +4,8 @@
 #include <stack>
 #include <mutex>
 
-#ifdef _WIN32
+// Let Apple also use the easy affinity code
+#ifdef _WIN32 || __APPLE__
 #include <matchmaking/util/affinity/cores_win.hpp>
 #else
 #include <matchmaking/util/affinity/cores_posix.hpp>

@@ -235,6 +235,8 @@ class Process : public IProcess {
                 if (buffer[i] == '\n' || buffer[i] == '\r') {
                     // dont add empty lines
                     if (!currentLine.empty()) {
+                        // logging will significantly slowdown the reading and lead to engine
+                        // timeouts
                         fast_chess::Logger::read(currentLine, std::this_thread::get_id(),
                                                  log_name_);
                         lines.emplace_back(currentLine);

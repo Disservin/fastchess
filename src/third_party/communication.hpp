@@ -37,16 +37,6 @@ SOFTWARE.
 
 #ifdef _WIN64
 #include <windows.h>
-#elif defined(__APPLE__)
-#include <mach/thread_act.h>
-#include <stdio.h>
-#include <mach/thread_policy.h>
-#include <mach/task_info.h>
-#include <sys/types.h>
-#include <sys/sysctl.h>
-#include <mach/thread_policy.h>
-#include <mach/thread_act.h>
-#include <pthread.h>
 #else
 #include <errno.h>
 #include <fcntl.h>  // fcntl
@@ -56,7 +46,20 @@ SOFTWARE.
 #include <sys/types.h>  // pid_t
 #include <sys/wait.h>
 #include <unistd.h>  // _exit, fork
+
 #include <sched.h>
+#if defined(__APPLE__)
+#include <mach/thread_act.h>
+#include <stdio.h>
+#include <mach/thread_policy.h>
+#include <mach/task_info.h>
+#include <sys/types.h>
+#include <sys/sysctl.h>
+#include <mach/thread_policy.h>
+#include <mach/thread_act.h>
+#include <pthread.h>
+#endif
+
 #endif
 
 namespace fast_chess {

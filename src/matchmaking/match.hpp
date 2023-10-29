@@ -33,7 +33,7 @@ class Match {
 
     /// @brief starts the match
     void start(const EngineConfiguration& engine1_config, const EngineConfiguration& engine2_config,
-               uint32_t core_num);
+               uint32_t core);
 
     /// @brief returns the match data, only valid after the match has finished
     [[nodiscard]] MatchData get() const { return data_; }

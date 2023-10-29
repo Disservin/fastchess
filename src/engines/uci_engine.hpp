@@ -9,8 +9,8 @@ namespace fast_chess {
 
 class UciEngine : private Communication::Process {
    public:
-    explicit UciEngine(const EngineConfiguration &config, uint32_t core_num) {
-        core_ = core_num;
+    explicit UciEngine(const EngineConfiguration &config, uint32_t core) {
+        core_ = core;
         loadConfig(config);
     }
 

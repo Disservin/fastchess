@@ -51,7 +51,6 @@ inline std::array<std::vector<int>, 2> get_physical_cores() {
 
             while (mask) {
                 const int core = chess::builtin::poplsb(mask);
-                std::cout << "core: " << core << std::endl;
                 if (idx % 2 == 0) {
                     ht_1.push_back(core);
                 } else {

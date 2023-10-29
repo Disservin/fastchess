@@ -22,7 +22,7 @@ RoundRobin::RoundRobin(const cmd::TournamentOptions& game_config)
     setupEpdOpeningBook();
     setupPgnOpeningBook();
 
-    // Resize the thread pool, but don't go over the number of cores the system has
+    // Resize the thread pool, but don't go over the number of threads the system has
     pool_.resize(std::min(static_cast<int>(std::thread::hardware_concurrency()),
                           tournament_options_.concurrency));
 

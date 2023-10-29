@@ -384,10 +384,9 @@ class Process : public IProcess {
         } else {
             process_pid_ = forkPid;
 
+#if !defined(__APPLE__)
             // assign the process to specified core
             if (core != -1) {
-
-#if !defined(__APPLE__)
                 cpu_set_t mask;
                 CPU_ZERO(&mask);
                 CPU_SET(core, &mask);
@@ -398,8 +397,8 @@ class Process : public IProcess {
                 }
 
                 fast_chess::Logger::cout("PID;", process_pid_, "is assigned to core", core);
-#endif
             }
+#endif
 
             // append the process to the list of running processes
             fast_chess::pid_list.push_back(process_pid_);

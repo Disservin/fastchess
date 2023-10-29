@@ -14,12 +14,19 @@
 
 namespace affinity {
 class CoreHandler {
-    enum CoreType {
+    enum Group {
         HT_1,
         HT_2,
     };
 
-    using core_type = std::tuple<int, CoreType, int>;
+    struct Core {
+        int physical_id;
+        Group type;
+        uint32_t mask;
+
+        Core(int physical_id, Group type, int mask)
+            : physical_id(physical_id), type(type), mask(mask) {}
+    };
 
    public:
     // Hyperthreads are split up into two groups: HT_1 and HT_2
@@ -38,9 +45,9 @@ class CoreHandler {
     /// @brief Get a core from the pool of available cores.
     ///
     /// @return
-    [[nodiscard]] core_type consume() noexcept(false) {
+    [[nodiscard]] Core consume() noexcept(false) {
         if (!use_affinity_) {
-            return {0, CoreType::HT_1, -1};
+            return {0, Group::HT_1, -1};
         }
 
         std::lock_guard<std::mutex> lock(core_mutex_);
@@ -51,24 +58,24 @@ class CoreHandler {
                     const uint32_t core = cores[i].back();
                     cores[i].pop_back();
 
-                    return {physical_id, static_cast<CoreType>(i), core};
+                    return {physical_id, static_cast<Group>(i), core};
                 }
             }
         }
 
         assert(false);
 
-        return {0, CoreType::HT_1, -1};
+        return {0, Group::HT_1, -1};
     }
 
-    void put_back(core_type core) noexcept {
+    void put_back(Core core) noexcept {
         if (!use_affinity_) {
             return;
         }
 
         std::lock_guard<std::mutex> lock(core_mutex_);
 
-        available_cores_[std::get<0>(core)][std::get<1>(core)].push_back(std::get<2>(core));
+        available_cores_[core.physical_id][core.type].push_back(core.mask);
     }
 
    private:

@@ -7,7 +7,8 @@
 class CoreHandler {
    public:
     CoreHandler() {
-        max_cores_ = 1;  // getMaxCores();
+        std::cout << "Max cores: " << getMaxCores() << std::endl;
+        max_cores_ = getMaxCores();
         for (uint32_t i = 0; i < max_cores_; i++) {
             available_cores_.push(i);
         }

@@ -26,7 +26,6 @@ class CoreHandler {
     struct AffinityProcessor {
         int physical_id;
         Group group;
-        // std::size_t mask;
         std::vector<int> cpus;
 
         AffinityProcessor(int physical_id, Group group, const std::vector<int>& cpus)

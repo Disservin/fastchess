@@ -183,21 +183,25 @@ void RoundRobin::playGame(const std::pair<EngineConfiguration, EngineConfigurati
                           std::size_t game_id) {
     auto match = Match(tournament_options_, opening);
 
+    const auto core = cores_.consume();
+
     try {
         start();
 
-        const auto core = cores_.consume();
         match.start(configs.first, configs.second, core);
-
         while (match.get().needs_restart) {
             match.start(configs.first, configs.second, core);
         }
 
-        cores_.release(core);
     } catch (const std::exception& e) {
         Logger::error(e.what(), std::this_thread::get_id(), "fast-chess::RoundRobin::playGame");
+
+        cores_.put_back(core);
+
         return;
     }
+
+    cores_.put_back(core);
 
     if (atomic::stop) return;
 

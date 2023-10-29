@@ -1,7 +1,7 @@
 #pragma once
 
 #include <iostream>
-#include <vector>
+#include <stack>
 #include <mutex>
 
 class CoreHandler {
@@ -9,7 +9,7 @@ class CoreHandler {
     CoreHandler() {
         max_cores = getMaxCores();
         for (uint32_t i = 0; i < max_cores; i++) {
-            available_cores.push_back(i);
+            available_cores.push(i);
         }
     }
 
@@ -20,24 +20,19 @@ class CoreHandler {
             throw std::runtime_error("No cores available.");
         }
 
-        uint32_t core = available_cores.back();
-        available_cores.pop_back();
-        in_use_cores.push_back(core);
+        uint32_t core = available_cores.top();
+        available_cores.pop();
         return core;
     }
 
-    void release(int core) {
+    void put_back(uint32_t core) {
         std::lock_guard<std::mutex> lock(core_mutex);
 
-        auto it = std::find(in_use_cores.begin(), in_use_cores.end(), core);
-
-        if (it != in_use_cores.end()) {
-            in_use_cores.erase(it);
-            available_cores.push_back(core);
-        } else {
-            throw std::runtime_error("Core " + std::to_string(core) +
-                                     " is not in use and cannot be released.");
+        if (core >= max_cores) {
+            throw std::runtime_error("Core does not exist.");
         }
+
+        available_cores.push(core);
     }
 
    private:
@@ -119,7 +114,6 @@ class CoreHandler {
     }
 
     uint32_t max_cores;
-    std::vector<uint32_t> available_cores;
-    std::vector<uint32_t> in_use_cores;
+    std::stack<uint32_t> available_cores;
     std::mutex core_mutex;
 };

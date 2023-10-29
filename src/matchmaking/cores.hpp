@@ -40,6 +40,7 @@ class CoreHandler {
         }
 
         if (available_cores_[HT_2].empty()) {
+            Logger::cout("Error; No cores available. fast-chess::CoreHandler::consume");
             throw std::runtime_error("No cores available.");
         }
 

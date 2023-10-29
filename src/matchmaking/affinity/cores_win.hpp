@@ -4,10 +4,13 @@
 #include <array>
 #include <thread>
 #include <windows.h>
+#include <memory>
 
-namespace fast_chess {
+#include <third_party/chess.hpp>
 
-inline std::array<std::vector<int>, 2> get_physical_cores() {
+namespace affinity {
+
+inline std::array<std::vector<int>, 2> get_physical_cores() noexcept(false) {
     std::vector<int> ht_1;
     std::vector<int> ht_2;
 
@@ -68,4 +71,4 @@ inline std::array<std::vector<int>, 2> get_physical_cores() {
 
     return {ht_1, ht_2};
 }
-}  // namespace fast_chess
+}  // namespace affinity

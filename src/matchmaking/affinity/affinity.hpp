@@ -11,20 +11,19 @@
 #include <sched.h>
 #endif
 
-#include <util/logger.hpp>
-
 namespace affinity {
 
 #ifdef __WIN32
-#include <windows.h>
-inline bool set_affinity(int core, HANDLE process_handle) {
+
+inline bool set_affinity(int core, HANDLE process_handle) noexcept {
     DWORD_PTR affinity_mask = 1ull << core;
 
     return SetProcessAffinityMask(process_handle, affinity_mask) != 0;
 }
+
 #elif defined(__APPLE__)
 
-inline bool set_affinity(int core) {
+inline bool set_affinity(int core) noexcept {
     mach_port_t tid = pthread_mach_thread_np(pthread_self());
     struct thread_affinity_policy policy;
     policy.affinity_tag = core;
@@ -35,7 +34,7 @@ inline bool set_affinity(int core) {
 
 #else
 
-inline bool set_affinity(int core, pid_t process_pid) {
+inline bool set_affinity(int core, pid_t process_pid) noexcept {
     cpu_set_t mask;
     CPU_ZERO(&mask);
     CPU_SET(core, &mask);
@@ -44,5 +43,3 @@ inline bool set_affinity(int core, pid_t process_pid) {
 }
 #endif
 }  // namespace affinity
-
-namespace fast_chess {}  // namespace fast_chess

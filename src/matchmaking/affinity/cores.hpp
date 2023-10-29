@@ -5,14 +5,14 @@
 #include <mutex>
 
 #ifdef _WIN32
-#include <matchmaking/util/affinity/cores_win.hpp>
+#include <matchmaking/affinity/cores_win.hpp>
 #elif defined(__APPLE__)
-#include <matchmaking/util/affinity/cores_mac.hpp>
+#include <matchmaking/affinity/cores_mac.hpp>
 #else
-#include <matchmaking/util/affinity/cores_posix.hpp>
+#include <matchmaking/affinity/cores_posix.hpp>
 #endif
-namespace fast_chess {
 
+namespace affinity {
 class CoreHandler {
    public:
     // Hyperthreads are split up into two groups: HT_1 and HT_2
@@ -29,7 +29,7 @@ class CoreHandler {
     /// @brief Get a core from the pool of available cores.
     ///
     /// @return
-    [[nodiscard]] std::pair<CoreType, int> consume() {
+    [[nodiscard]] std::pair<CoreType, int> consume() noexcept(false) {
         std::lock_guard<std::mutex> lock(core_mutex_);
 
         // Prefer HT_1 over HT_2, can also be vice versa.
@@ -41,7 +41,6 @@ class CoreHandler {
         }
 
         if (available_cores_[HT_2].empty()) {
-            Logger::cout("Error; No cores available. fast-chess::CoreHandler::consume");
             throw std::runtime_error("No cores available.");
         }
 
@@ -51,7 +50,7 @@ class CoreHandler {
         return {CoreType::HT_2, core};
     }
 
-    void put_back(std::pair<CoreType, int> core) {
+    void put_back(std::pair<CoreType, int> core) noexcept {
         std::lock_guard<std::mutex> lock(core_mutex_);
 
         available_cores_[core.first].push_back(core.second);
@@ -61,4 +60,5 @@ class CoreHandler {
     std::array<std::vector<int>, 2> available_cores_;
     std::mutex core_mutex_;
 };
-}  // namespace fast_chess
+
+}  // namespace affinity

@@ -7,7 +7,7 @@
 #include <pgn_reader.hpp>
 #include <sprt.hpp>
 #include <types/stats.hpp>
-#include <matchmaking/cores.hpp>
+#include <matchmaking/affinity/cores.hpp>
 
 #include <types/tournament_options.hpp>
 
@@ -91,7 +91,7 @@ class RoundRobin {
 
     SPRT sprt_ = SPRT();
 
-    CoreHandler cores_ = CoreHandler();
+    affinity::CoreHandler cores_ = CoreHandler();
 
     std::vector<std::string> opening_book_epd_;
     std::vector<Opening> opening_book_pgn_;

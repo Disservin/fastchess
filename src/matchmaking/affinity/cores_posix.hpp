@@ -9,8 +9,9 @@
 #include <unordered_map>
 #include <vector>
 
-namespace fast_chess {
-inline std::array<std::vector<int>, 2> get_physical_cores() {
+namespace affinity {
+
+inline std::array<std::vector<int>, 2> get_physical_cores() noexcept(false) {
     std::ifstream cpuinfo("/proc/cpuinfo");
 
     std::unordered_map<int, std::vector<int>> physical_cpus;
@@ -61,4 +62,5 @@ inline std::array<std::vector<int>, 2> get_physical_cores() {
 
     return {ht_1, ht_2};
 }
-}  // namespace fast_chess
+
+}  // namespace affinity

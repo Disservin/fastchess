@@ -5,11 +5,11 @@
 #include <thread>
 #include <numeric>
 
-namespace fast_chess {
+namespace affinity {
 
 /// @brief Some dumb code for macOS, setting the affinity is not supported.
 /// @return
-inline std::array<std::vector<int>, 2> get_physical_cores() {
+inline std::array<std::vector<int>, 2> get_physical_cores() noexcept {
     std::vector<int> ht_1;
 
     ht_1.resize(std::thread::hardware_concurrency());
@@ -19,4 +19,5 @@ inline std::array<std::vector<int>, 2> get_physical_cores() {
 
     return {ht_1, std::vector<int>()};
 }
-}  // namespace fast_chess
+
+}  // namespace affinity

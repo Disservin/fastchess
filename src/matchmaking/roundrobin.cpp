@@ -190,10 +190,12 @@ void RoundRobin::playGame(const std::pair<EngineConfiguration, EngineConfigurati
         start();
 
         match.start(configs.first, configs.second, core.second);
+
         while (match.get().needs_restart) {
             match.start(configs.first, configs.second, core.second);
         }
     } catch (const std::exception& e) {
+        Logger::cout("Exception: " + std::string(e.what()));
         Logger::error(e.what(), std::this_thread::get_id(), "fast-chess::RoundRobin::playGame");
 
         cores_.put_back(core);

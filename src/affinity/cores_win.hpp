@@ -10,7 +10,9 @@
 
 namespace affinity {
 
-inline std::array<std::vector<int>, 2> get_physical_cores() noexcept(false) {
+/// @brief [physical id][2][processor id's]
+/// @return
+inline std::map<int, std::array<std::vector<int>, 2>> get_physical_cores() noexcept(false) {
     std::vector<int> ht_1;
     std::vector<int> ht_2;
 
@@ -69,6 +71,7 @@ inline std::array<std::vector<int>, 2> get_physical_cores() noexcept(false) {
         ptr = PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX(buffer.get() + offset);
     }
 
-    return {ht_1, ht_2};
+    // limited to one physical cpu and 64 threads
+    return {{0, {ht_1, ht_2}}};
 }
 }  // namespace affinity

@@ -14,15 +14,18 @@
 
 namespace affinity {
 class CoreHandler {
+    enum CoreType {
+        HT_1,
+        HT_2,
+    };
+
+    using core_type = std::tuple<int, CoreType, int>;
+
    public:
     // Hyperthreads are split up into two groups: HT_1 and HT_2
     // So all elements in HT_1 are guaranteed to be on a different physical core.
     // Same goes for HT_2. This is done to avoid putting two processes on the same
     // physical core. When all cores in HT_1 are used, HT_2 is used.
-    enum CoreType {
-        HT_1,
-        HT_2,
-    };
 
     CoreHandler(bool use_affinity) {
         use_affinity_ = use_affinity;
@@ -35,45 +38,43 @@ class CoreHandler {
     /// @brief Get a core from the pool of available cores.
     ///
     /// @return
-    [[nodiscard]] std::pair<CoreType, int> consume() noexcept(false) {
+    [[nodiscard]] core_type consume() noexcept(false) {
         if (!use_affinity_) {
-            return {CoreType::HT_1, -1};
+            return {0, CoreType::HT_1, -1};
         }
 
         std::lock_guard<std::mutex> lock(core_mutex_);
 
-        // Prefer HT_1 over HT_2, can also be vice versa.
-        if (!available_cores_[HT_1].empty()) {
-            const uint32_t core = available_cores_[HT_1].back();
-            available_cores_[HT_1].pop_back();
+        for (auto& [physical_id, cores] : available_cores_) {
+            for (size_t i = 0; i < cores.size(); i++) {
+                if (!cores[i].empty()) {
+                    const uint32_t core = cores[i].back();
+                    cores[i].pop_back();
 
-            return {CoreType::HT_1, core};
+                    return {physical_id, static_cast<CoreType>(i), core};
+                }
+            }
         }
 
-        if (available_cores_[HT_2].empty()) {
-            throw std::runtime_error("No cores available.");
-        }
+        assert(false);
 
-        const uint32_t core = available_cores_[HT_2].back();
-        available_cores_[HT_2].pop_back();
-
-        return {CoreType::HT_2, core};
+        return {0, CoreType::HT_1, -1};
     }
 
-    void put_back(std::pair<CoreType, int> core) noexcept {
+    void put_back(core_type core) noexcept {
         if (!use_affinity_) {
             return;
         }
 
         std::lock_guard<std::mutex> lock(core_mutex_);
 
-        available_cores_[core.first].push_back(core.second);
+        available_cores_[std::get<0>(core)][std::get<1>(core)].push_back(std::get<2>(core));
     }
 
    private:
     bool use_affinity_ = false;
 
-    std::array<std::vector<int>, 2> available_cores_;
+    std::map<int, std::array<std::vector<int>, 2>> available_cores_;
     std::mutex core_mutex_;
 };
 

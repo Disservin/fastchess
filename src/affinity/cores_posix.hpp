@@ -7,60 +7,74 @@
 #include <fstream>
 #include <string>
 #include <unordered_map>
+#include <map>
 #include <vector>
 
 namespace affinity {
 
-inline std::array<std::vector<int>, 2> get_physical_cores() noexcept(false) {
+/// @brief [physical id][2][processor id's]
+/// @return
+inline std::map<int, std::array<std::vector<int>, 2>> get_physical_cores() noexcept(false) {
     std::ifstream cpuinfo("/proc/cpuinfo");
 
-    std::unordered_map<int, std::vector<int>> physical_cpus;
+    // [physical id][core id][2][processor id's]
+    std::map<int, std::map<int, std::vector<int>>> cpus;
     std::string line;
 
-    int coreId      = -1;
     int processorId = -1;
+    int coreId      = -1;
+    int physicalId  = -1;
+
+    constexpr auto extract_value = [](const std::string& line) -> int {
+        size_t colonPos = line.find(':');
+        if (colonPos != std::string::npos) {
+            return std::stoi(line.substr(colonPos + 1));
+        }
+
+        return -1;
+    };
 
     while (std::getline(cpuinfo, line)) {
         if (line.find("processor") != std::string::npos) {
-            size_t colonPos = line.find(':');
-            if (colonPos != std::string::npos) {
-                processorId = std::stoi(line.substr(colonPos + 1));
-            }
-        }
-        // physical core
-        else if (line.find("core id") != std::string::npos) {
-            size_t colonPos = line.find(':');
-            if (colonPos != std::string::npos) {
-                coreId = std::stoi(line.substr(colonPos + 1));
-            }
+            processorId = extract_value(line);
+        } else if (line.find("core id") != std::string::npos) {
+            coreId = extract_value(line);
+        } else if (line.find("physical id") != std::string::npos) {
+            physicalId = extract_value(line);
         }
 
-        if (coreId != -1 && processorId != -1) {
-            physical_cpus[coreId].push_back(processorId);
+        if (coreId != -1 && processorId != -1 && physicalId != -1) {
+            cpus[physicalId][coreId].push_back(processorId);
+
             coreId      = -1;
             processorId = -1;
+            physicalId  = -1;
         }
     }
 
     cpuinfo.close();
 
-    std::vector<int> ht_1;
-    std::vector<int> ht_2;
+    // [physical id][2][processor id's]
+    std::map<int, std::array<std::vector<int>, 2>> core_map;
 
-    ht_1.reserve(physical_cpus.size());
-    ht_2.reserve(physical_cpus.size());
+    for (const auto& [physical_id, cores] : cpus) {
+        std::vector<int> ht_1;
+        std::vector<int> ht_2;
 
-    for (const auto& [coreId, processorIds] : physical_cpus) {
-        for (size_t i = 0; i < processorIds.size(); i++) {
-            if (i % 2 == 0) {
-                ht_1.push_back(processorIds[i]);
-            } else {
-                ht_2.push_back(processorIds[i]);
+        for (const auto& [core_id, processor_ids] : cores) {
+            for (size_t i = 0; i < processor_ids.size(); i++) {
+                if (i % 2 == 0) {
+                    ht_1.push_back(processor_ids[i]);
+                } else {
+                    ht_2.push_back(processor_ids[i]);
+                }
             }
         }
+
+        core_map[physical_id] = {ht_1, ht_2};
     }
 
-    return {ht_1, ht_2};
+    return core_map;
 }
 
 }  // namespace affinity

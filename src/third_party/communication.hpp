@@ -132,6 +132,15 @@ class Process : public IProcess {
         child_std_out_ = childStdOutRd;
         child_std_in_  = childStdInWr;
 
+        // set process affinity
+        DWORD_PTR affinity_mask = 1 << core;
+
+        BOOL success = SetProcessAffinityMask(pi_.hProcess, affinity_mask);
+        if (!success) {
+            fast_chess::Logger::cout("Warning; Failed to assign to Handle;", pi_.hProcess,
+                                     "to core", core);
+        }
+
         fast_chess::pid_list.push_back(pi_.hProcess);
     }
 

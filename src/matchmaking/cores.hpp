@@ -83,7 +83,36 @@ class CoreHandler {
         return lcores / (tsibs / lcores);
 #elif defined(_WIN32)
 #include <windows.h>
-#error "TODO"
+        DWORD byte_length = 0;
+
+        GetLogicalProcessorInformationEx(RelationProcessorCore, nullptr, &byte_length);
+
+        std::unique_ptr<char[]> buffer(new char[byte_length]);
+
+        if (!GetLogicalProcessorInformationEx(
+                RelationProcessorCore, PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX(buffer.get()),
+                &byte_length)) {
+            std::cerr << "GetLogicalProcessorInformationEx failed." << std::endl;
+            return -1;
+        }
+
+        PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX ptr =
+            PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX(buffer.get());
+
+        DWORD offset       = 0;
+        uint32_t num_cores = 0;
+
+        while (offset < byte_length) {
+            if (ptr->Relationship == RelationProcessorCore) {
+                num_cores++;
+            }
+
+            offset += ptr->Size;
+
+            ptr = PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX(buffer.get() + offset);
+        }
+
+        return num_cores;
 #else
 #error "Cannot detect number of cores on this system"
 #endif

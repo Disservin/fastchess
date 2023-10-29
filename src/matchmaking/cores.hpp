@@ -7,7 +7,7 @@
 class CoreHandler {
    public:
     CoreHandler() {
-        max_cores_ = getMaxCores();
+        max_cores_ = 1;  // getMaxCores();
         for (uint32_t i = 0; i < max_cores_; i++) {
             available_cores_.push(i);
         }

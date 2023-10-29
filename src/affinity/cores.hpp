@@ -21,11 +21,11 @@ class CoreHandler {
 
     struct Core {
         int physical_id;
-        Group type;
+        Group group;
         uint32_t mask;
 
-        Core(int physical_id, Group type, int mask)
-            : physical_id(physical_id), type(type), mask(mask) {}
+        Core(int physical_id, Group group, int mask)
+            : physical_id(physical_id), group(group), mask(mask) {}
     };
 
    public:
@@ -43,7 +43,6 @@ class CoreHandler {
     }
 
     /// @brief Get a core from the pool of available cores.
-    ///
     /// @return
     [[nodiscard]] Core consume() noexcept(false) {
         if (!use_affinity_) {
@@ -75,7 +74,7 @@ class CoreHandler {
 
         std::lock_guard<std::mutex> lock(core_mutex_);
 
-        available_cores_[core.physical_id][core.type].push_back(core.mask);
+        available_cores_[core.physical_id][core.group].push_back(core.mask);
     }
 
    private:

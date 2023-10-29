@@ -347,6 +347,8 @@ class Process : public IProcess {
             rtrim(full_command);
 
 #if defined(__APPLE__)
+#include <mach/thread_act.h>
+
             // assign the process to specified core
             if (core != -1) {
                 mach_port_t tid = pthread_mach_thread_np(pthread_self());

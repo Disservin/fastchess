@@ -4,50 +4,58 @@
 #include <stack>
 #include <mutex>
 
+#ifdef _WIN32
+#include <matchmaking/util/affinity/cores_win.hpp>
+#else
+#include <matchmaking/util/affinity/cores_linux.hpp>
+#endif
+namespace fast_chess {
+
 class CoreHandler {
    public:
-    CoreHandler() {
-        max_cores_ = std::thread::hardware_concurrency();
-        available_cores_.resize(max_cores_);
+    // Hyperthreads are split up into two groups: HT_1 and HT_2
+    // So all elements in HT_1 are guaranteed to be on a different physical core.
+    // Same goes for HT_2. This is done to avoid putting two processes on the same
+    // physical core. When all cores in HT_1 are used, HT_2 is used.
+    enum CoreType {
+        HT_1,
+        HT_2,
+    };
 
-        std::iota(available_cores_.begin(), available_cores_.end(), 0);
-    }
+    CoreHandler() { available_cores_ = get_physical_cores(); }
 
-    [[nodiscard]] uint32_t consume() {
+    /// @brief Get a core from the pool of available cores.
+    ///
+    /// @return
+    [[nodiscard]] std::pair<CoreType, int> consume() {
         std::lock_guard<std::mutex> lock(core_mutex_);
 
-        if (available_cores_.empty()) {
+        // Prefer HT_1 over HT_2, can also be vice versa.
+        if (!available_cores_[HT_1].empty()) {
+            const uint32_t core = available_cores_[HT_1].back();
+            available_cores_[HT_1].pop_back();
+
+            return {CoreType::HT_1, core};
+        }
+
+        if (available_cores_[HT_2].empty()) {
             throw std::runtime_error("No cores available.");
         }
 
-        // first try to find a core with an even number
-        const auto it = std::find_if(available_cores_.begin(), available_cores_.end(),
-                                     [](uint32_t core) { return core % 2 == 0; });
+        const uint32_t core = available_cores_[HT_2].back();
+        available_cores_[HT_2].pop_back();
 
-        if (it != available_cores_.end()) {
-            const uint32_t core = *it;
-            available_cores_.erase(it);
-            return core;
-        }
-
-        // fallback
-        const uint32_t core = available_cores_.back();
-        available_cores_.pop_back();
-        return core;
+        return {CoreType::HT_2, core};
     }
 
-    void put_back(uint32_t core) {
+    void put_back(std::pair<CoreType, int> core) {
         std::lock_guard<std::mutex> lock(core_mutex_);
 
-        if (core >= max_cores_) {
-            throw std::runtime_error("Core does not exist.");
-        }
-
-        available_cores_.emplace_back(core);
+        available_cores_[core.first].push_back(core.second);
     }
 
    private:
-    uint32_t max_cores_;
-    std::vector<uint32_t> available_cores_;
+    std::array<std::vector<int>, 2> available_cores_;
     std::mutex core_mutex_;
 };
+}  // namespace fast_chess

@@ -34,7 +34,7 @@ SOFTWARE.
 #include <vector>
 
 #include <util/logger.hpp>
-#include <matchmaking/affinity/affinity.hpp>
+#include <affinity/affinity.hpp>
 
 #ifdef _WIN64
 #include <windows.h>

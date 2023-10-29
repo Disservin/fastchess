@@ -5,11 +5,11 @@
 #include <mutex>
 
 #ifdef _WIN32
-#include <matchmaking/affinity/cores_win.hpp>
+#include <affinity/cores_win.hpp>
 #elif defined(__APPLE__)
-#include <matchmaking/affinity/cores_mac.hpp>
+#include <affinity/cores_mac.hpp>
 #else
-#include <matchmaking/affinity/cores_posix.hpp>
+#include <affinity/cores_posix.hpp>
 #endif
 
 namespace affinity {

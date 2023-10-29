@@ -34,6 +34,7 @@ SOFTWARE.
 #include <vector>
 
 #include <util/logger.hpp>
+#include <matchmaking/util/affinity/affinity.hpp>
 
 #ifdef _WIN64
 #include <windows.h>
@@ -46,20 +47,6 @@ SOFTWARE.
 #include <sys/types.h>  // pid_t
 #include <sys/wait.h>
 #include <unistd.h>  // _exit, fork
-
-#include <sched.h>
-#if defined(__APPLE__)
-#include <mach/thread_act.h>
-#include <stdio.h>
-#include <mach/thread_policy.h>
-#include <mach/task_info.h>
-#include <sys/types.h>
-#include <sys/sysctl.h>
-#include <mach/thread_policy.h>
-#include <mach/thread_act.h>
-#include <pthread.h>
-#endif
-
 #endif
 
 namespace fast_chess {
@@ -147,13 +134,7 @@ class Process : public IProcess {
 
         // set process affinity
         if (core != -1) {
-            DWORD_PTR affinity_mask = 1ull << core;
-
-            BOOL success = SetProcessAffinityMask(pi_.hProcess, affinity_mask);
-            if (!success) {
-                fast_chess::Logger::cout("Warning; Failed to assign to Handle;", pi_.hProcess,
-                                         "to core", core);
-            }
+            affinity::set_affinity(core, pi_.hProcess);
         }
 
         fast_chess::pid_list.push_back(pi_.hProcess);
@@ -170,6 +151,7 @@ class Process : public IProcess {
         fast_chess::pid_list.erase(
             std::remove(fast_chess::pid_list.begin(), fast_chess::pid_list.end(), pi_.hProcess),
             fast_chess::pid_list.end());
+
         if (is_initalized_) {
             try {
                 DWORD exitCode = 0;
@@ -366,13 +348,7 @@ class Process : public IProcess {
 #if defined(__APPLE__)
             // assign the process to specified core
             if (core != -1) {
-                mach_port_t tid = pthread_mach_thread_np(pthread_self());
-                struct thread_affinity_policy policy;
-                policy.affinity_tag = core;
-
-                // ignore error
-                thread_policy_set(tid, THREAD_AFFINITY_POLICY, (thread_policy_t)&policy,
-                                  THREAD_AFFINITY_POLICY_COUNT);
+                affinity::set_affinity(core);
             }
 #endif
 
@@ -387,16 +363,7 @@ class Process : public IProcess {
 #if !defined(__APPLE__)
             // assign the process to specified core
             if (core != -1) {
-                cpu_set_t mask;
-                CPU_ZERO(&mask);
-                CPU_SET(core, &mask);
-
-                if (sched_setaffinity(process_pid_, sizeof(cpu_set_t), &mask) == -1) {
-                    fast_chess::Logger::cout("Warning; Failed to assign PID;", process_pid_,
-                                             "to core", core);
-                }
-
-                fast_chess::Logger::cout("PID;", process_pid_, "is assigned to core", core);
+                affinity::set_affinity(core, process_pid_);
             }
 #endif
 

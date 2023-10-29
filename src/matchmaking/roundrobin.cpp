@@ -189,6 +189,7 @@ void RoundRobin::playGame(const std::pair<EngineConfiguration, EngineConfigurati
     start();
 
     cache_.save(configs.first.name, configs.first);
+    cache_.save(configs.second.name, configs.second);
 
     try {
         match.start(cache_.get(configs.first.name), cache_.get(configs.second.name));

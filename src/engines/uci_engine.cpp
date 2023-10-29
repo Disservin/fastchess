@@ -38,6 +38,10 @@ void UciEngine::startEngine() {
     initProcess((config_.dir == "." ? "" : config_.dir) + config_.cmd, config_.args, config_.name,
                 cpus_);
 
+    refreshUci();
+}
+
+void UciEngine::refreshUci() {
     sendUci();
 
     if (!readUci() && !isResponsive(std::chrono::milliseconds(60000))) {

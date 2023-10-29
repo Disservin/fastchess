@@ -82,11 +82,11 @@ void Match::start(UciEngine& engine1, UciEngine& engine2) {
     draw_tracker_   = DrawTacker();
     resign_tracker_ = ResignTracker();
 
-    Participant* player_1 = new Participant(&engine1);
-    Participant* player_2 = new Participant(&engine2);
+    auto player_1 = std::make_unique<Participant>(&engine1);
+    auto player_2 = std::make_unique<Participant>(&engine2);
 
-    player_1->engine->startEngine();
-    player_2->engine->startEngine();
+    player_1->engine->refreshUci();
+    player_2->engine->refreshUci();
 
     player_1->info.color = board_.sideToMove();
     player_2->info.color = ~board_.sideToMove();
@@ -132,8 +132,8 @@ void Match::start(UciEngine& engine1, UciEngine& engine2) {
 
     data_.players = std::make_pair(player_1->info, player_2->info);
 
-    delete player_1;
-    delete player_2;
+    // delete player_1;
+    // delete player_2;
 }
 
 bool Match::playMove(Participant& us, Participant& opponent) {

@@ -87,6 +87,7 @@ struct TournamentOptions {
 
     bool recover      = false;
     bool report_penta = true;
+    bool affinity     = true;
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(TournamentOptions, resign, draw, opening, pgn, sprt,
                                                 event_name, site, output, seed, variant,

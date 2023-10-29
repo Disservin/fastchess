@@ -164,6 +164,12 @@ fast-chess supports many other command-line options:
   ````
   -engine cmd=ENGINE1 -engine cmd=ENGINE1 -engine cmd=ENGINE2 -each tc=10+0.1 -rounds 25000 -repeat -concurrency max - 2 -openings file=BOOK format=epd order=random -draw movecount=8 score=8 movenumber=30```
   ````
+  <br/>
+
+- `-no-affinity`
+    Disables thread affinity. This is useful if you want to run multiple instances of fast-chess in parallel.
+  <br/>
+
 
 ### Options
 

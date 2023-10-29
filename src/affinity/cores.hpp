@@ -24,12 +24,22 @@ class CoreHandler {
         HT_2,
     };
 
-    CoreHandler() { available_cores_ = get_physical_cores(); }
+    CoreHandler(bool use_affinity) {
+        use_affinity_ = use_affinity;
+
+        if (use_affinity_) {
+            available_cores_ = get_physical_cores();
+        }
+    }
 
     /// @brief Get a core from the pool of available cores.
     ///
     /// @return
     [[nodiscard]] std::pair<CoreType, int> consume() noexcept(false) {
+        if (!use_affinity_) {
+            return {CoreType::HT_1, -1};
+        }
+
         std::lock_guard<std::mutex> lock(core_mutex_);
 
         // Prefer HT_1 over HT_2, can also be vice versa.
@@ -51,12 +61,18 @@ class CoreHandler {
     }
 
     void put_back(std::pair<CoreType, int> core) noexcept {
+        if (!use_affinity_) {
+            return;
+        }
+
         std::lock_guard<std::mutex> lock(core_mutex_);
 
         available_cores_[core.first].push_back(core.second);
     }
 
    private:
+    bool use_affinity_ = false;
+
     std::array<std::vector<int>, 2> available_cores_;
     std::mutex core_mutex_;
 };

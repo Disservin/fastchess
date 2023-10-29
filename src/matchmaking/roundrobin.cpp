@@ -10,7 +10,9 @@
 namespace fast_chess {
 
 RoundRobin::RoundRobin(const cmd::TournamentOptions& game_config)
-    : output_(getNewOutput(game_config.output)), tournament_options_(game_config) {
+    : output_(getNewOutput(game_config.output)),
+      tournament_options_(game_config),
+      cores_(game_config.affinity) {
     auto filename = (game_config.pgn.file.empty() ? "fast-chess" : game_config.pgn.file);
 
     if (game_config.output == OutputType::FASTCHESS) {

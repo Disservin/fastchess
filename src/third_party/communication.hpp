@@ -348,6 +348,14 @@ class Process : public IProcess {
 
 #if defined(__APPLE__)
 #include <mach/thread_act.h>
+#include <stdio.h>
+#include <mach/thread_policy.h>
+#include <mach/task_info.h>
+#include <sys/types.h>
+#include <sys/sysctl.h>
+#include <mach/thread_policy.h>
+#include <mach/thread_act.h>
+#include <pthread.h>
 
             // assign the process to specified core
             if (core != -1) {

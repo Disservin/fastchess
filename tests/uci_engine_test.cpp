@@ -18,7 +18,7 @@ TEST_SUITE("Uci Engine Communication Tests") {
         config.cmd = "./tests/data/engine/dummy_engine";
 #endif
 
-        UciEngine uci_engine = UciEngine(config);
+        UciEngine uci_engine = UciEngine(config, 0);
 
         uci_engine.startEngine();
 
@@ -56,7 +56,7 @@ TEST_SUITE("Uci Engine Communication Tests") {
         config.cmd = "./tests/data/engine/dummy_engine";
 #endif
 
-        UciEngine uci_engine = UciEngine(config);
+        UciEngine uci_engine = UciEngine(config, 0);
 
         uci_engine.startEngine();
 

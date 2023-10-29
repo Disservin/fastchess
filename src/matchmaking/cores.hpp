@@ -7,32 +7,32 @@
 class CoreHandler {
    public:
     CoreHandler() {
-        max_cores = getMaxCores();
-        for (uint32_t i = 0; i < max_cores; i++) {
-            available_cores.push(i);
+        max_cores_ = getMaxCores();
+        for (uint32_t i = 0; i < max_cores_; i++) {
+            available_cores_.push(i);
         }
     }
 
-    uint32_t consume() {
-        std::lock_guard<std::mutex> lock(core_mutex);
+    [[nodiscard]] uint32_t consume() {
+        std::lock_guard<std::mutex> lock(core_mutex_);
 
-        if (available_cores.empty()) {
+        if (available_cores_.empty()) {
             throw std::runtime_error("No cores available.");
         }
 
-        uint32_t core = available_cores.top();
-        available_cores.pop();
+        uint32_t core = available_cores_.top();
+        available_cores_.pop();
         return core;
     }
 
     void put_back(uint32_t core) {
-        std::lock_guard<std::mutex> lock(core_mutex);
+        std::lock_guard<std::mutex> lock(core_mutex_);
 
-        if (core >= max_cores) {
+        if (core >= max_cores_) {
             throw std::runtime_error("Core does not exist.");
         }
 
-        available_cores.push(core);
+        available_cores_.push(core);
     }
 
    private:
@@ -40,7 +40,7 @@ class CoreHandler {
     /// //
     /// https://stackoverflow.com/questions/150355/programmatically-find-the-number-of-cores-on-a-machine
     /// @return
-    uint32_t getMaxCores() const {
+    [[nodiscard]] uint32_t getMaxCores() const {
 #include <stdint.h>
 
 #if defined(__APPLE__) || defined(__FreeBSD__)
@@ -113,7 +113,7 @@ class CoreHandler {
 #endif
     }
 
-    uint32_t max_cores;
-    std::stack<uint32_t> available_cores;
-    std::mutex core_mutex;
+    uint32_t max_cores_;
+    std::stack<uint32_t> available_cores_;
+    std::mutex core_mutex_;
 };

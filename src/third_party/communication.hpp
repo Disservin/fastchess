@@ -65,7 +65,7 @@ class IProcess {
 
     // Initialize the process
     virtual void initProcess(const std::string &command, const std::string &args,
-                             const std::string &log_name, int core) = 0;
+                             const std::string &log_name, std::size_t core) = 0;
 
     /// @brief Returns true if the process is alive
     /// @return
@@ -97,7 +97,7 @@ class Process : public IProcess {
     ~Process() override { killProcess(); }
 
     void initProcess(const std::string &command, const std::string &args,
-                     const std::string &log_name, int core) override {
+                     const std::string &log_name, std::size_t core) override {
         log_name_ = log_name;
 
         pi_ = PROCESS_INFORMATION();
@@ -133,7 +133,7 @@ class Process : public IProcess {
         child_std_in_  = childStdInWr;
 
         // set process affinity
-        if (core != -1) {
+        if (core != 0ull) {
             affinity::set_affinity(core, pi_.hProcess);
         }
 
@@ -293,7 +293,7 @@ class Process : public IProcess {
     ~Process() override { killProcess(); }
 
     void initProcess(const std::string &command, const std::string &args,
-                     const std::string &log_name, int core) override {
+                     const std::string &log_name, std::size_t core) override {
         is_initalized_ = true;
         log_name_      = log_name;
 
@@ -347,7 +347,7 @@ class Process : public IProcess {
 // affinity from within the process
 #if defined(__APPLE__)
             // assign the process to specified core
-            if (core != -1) {
+            if (core != 0ull) {
                 affinity::set_affinity(core);
             }
 #endif
@@ -362,7 +362,7 @@ class Process : public IProcess {
 
 #if !defined(__APPLE__)
             // assign the process to specified core
-            if (core != -1) {
+            if (core != 0ull) {
                 affinity::set_affinity(core, process_pid_);
             }
 #endif

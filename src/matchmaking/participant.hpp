@@ -7,7 +7,7 @@ namespace fast_chess {
 
 class Participant {
    public:
-    explicit Participant(const EngineConfiguration &config, uint32_t core)
+    explicit Participant(const EngineConfiguration &config, std::size_t core)
         : engine(config, core) {
         info.config = config;
 

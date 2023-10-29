@@ -59,7 +59,7 @@ void Match::addMoveData(Participant& player, int64_t measured_time) {
 }
 
 void Match::start(const EngineConfiguration& engine1_config,
-                  const EngineConfiguration& engine2_config, uint32_t core) {
+                  const EngineConfiguration& engine2_config, std::size_t core) {
     Participant player_1 = Participant(engine1_config, core);
     Participant player_2 = Participant(engine2_config, core);
 

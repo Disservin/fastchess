@@ -91,7 +91,7 @@ class RoundRobin {
 
     SPRT sprt_ = SPRT();
 
-    affinity::CoreHandler cores_ = affinity::CoreHandler();
+    affinity::CoreHandler cores_;
 
     std::vector<std::string> opening_book_epd_;
     std::vector<Opening> opening_book_pgn_;

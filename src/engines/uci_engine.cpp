@@ -38,14 +38,8 @@ void UciEngine::sendSetoption(const std::string &name, const std::string &value)
 }
 
 void UciEngine::startEngine() {
-    const auto it = std::find_if(config_.options.begin(), config_.options.end(),
-                                 [](const auto &option) { return option.first == "Threads"; });
-
-    // When the options has a concurrency of > 1, we dont do any affinity stuff.
-    const auto cores = it != config_.options.end() && std::stoi(it->second) > 1 ? -1 : core_;
-
     initProcess((config_.dir == "." ? "" : config_.dir) + config_.cmd, config_.args, config_.name,
-                cores);
+                core_);
 
     sendUci();
 

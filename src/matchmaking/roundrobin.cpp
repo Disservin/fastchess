@@ -186,7 +186,27 @@ void RoundRobin::playGame(const std::pair<EngineConfiguration, EngineConfigurati
                           std::size_t game_id) {
     auto match = Match(tournament_options_, opening);
 
-    const auto core = cores_.consume();
+    constexpr auto check_config = [](const EngineConfiguration& config) {
+        const auto it = std::find_if(config.options.begin(), config.options.end(),
+                                     [](const auto& option) { return option.first == "Threads"; });
+        return it != config.options.end()
+                   ? std::optional<
+                         std::vector<std::pair<std::string, std::string>>::const_iterator>(it)
+                   : std::nullopt;
+    };
+
+    const auto first_threads = check_config(configs.first).has_value()
+                                   ? std::stoi(check_config(configs.first).value()->second)
+                                   : 1;
+
+    const auto second_threads = check_config(configs.second).has_value()
+                                    ? std::stoi(check_config(configs.second).value()->second)
+                                    : 1;
+
+    // thread count in both configs has to be the same for affinity to work,
+    // otherwise we set it to 0 and affinity is disabled
+    const auto threads = first_threads == second_threads ? first_threads : 0;
+    const auto core    = cores_.consume(threads);
 
     try {
         start();

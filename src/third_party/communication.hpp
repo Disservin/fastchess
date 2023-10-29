@@ -147,7 +147,7 @@ class Process : public IProcess {
 
         // set process affinity
         if (core != -1) {
-            DWORD_PTR affinity_mask = 1 << core;
+            DWORD_PTR affinity_mask = 1ull << core;
 
             BOOL success = SetProcessAffinityMask(pi_.hProcess, affinity_mask);
             if (!success) {

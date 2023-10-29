@@ -314,6 +314,7 @@ class Process : public IProcess {
                      const std::string &log_name, int core) override {
         is_initalized_ = true;
         log_name_      = log_name;
+
         // Create input pipe
         if (pipe(in_pipe_) == -1) {
             throw std::runtime_error("Failed to create input pipe");
@@ -331,8 +332,9 @@ class Process : public IProcess {
             throw std::runtime_error("Failed to fork process");
         }
 
-        // If this is the child process, set up the pipes and start the engine
         if (forkPid == 0) {
+            // This is the child process, set up the pipes and start the engine.
+
             // Ignore signals, because the main process takes care of them
             signal(SIGINT, SIG_IGN);
 
@@ -347,9 +349,7 @@ class Process : public IProcess {
 
             if (close(in_pipe_[1]) == -1) throw std::runtime_error("Failed to close inpipe");
 
-            // Execute the engine
-
-            const auto rtrim = [](std::string &s) {
+            constexpr auto rtrim = [](std::string &s) {
                 s.erase(std::find_if(s.rbegin(), s.rend(),
                                      [](unsigned char ch) { return !std::isspace(ch); })
                             .base(),
@@ -357,8 +357,12 @@ class Process : public IProcess {
             };
 
             auto full_command = command + " " + args;
+
+            // remove trailing whitespaces
             rtrim(full_command);
 
+// Apple does not support setting the affinity of a pid, so we need to set the
+// affinity from within the process
 #if defined(__APPLE__)
             // assign the process to specified core
             if (core != -1) {
@@ -372,6 +376,7 @@ class Process : public IProcess {
             }
 #endif
 
+            // Execute the engine
             if (execl(command.c_str(), full_command.c_str(), (char *)NULL) == -1)
                 throw std::runtime_error("Failed to execute engine");
 
@@ -396,6 +401,7 @@ class Process : public IProcess {
 #endif
             }
 
+            // append the process to the list of running processes
             fast_chess::pid_list.push_back(process_pid_);
         }
     }

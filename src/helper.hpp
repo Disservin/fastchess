@@ -25,23 +25,25 @@ ordered_json type conversion is not yet supported, though we only have to change
 
 namespace fast_chess::str_utils {
 
+/// @brief @todo unnecessary with c++20
+/// @param haystack
+/// @param needle
+/// @return
 [[nodiscard]] inline bool startsWith(std::string_view haystack, std::string_view needle) {
     if (needle.empty()) return false;
     return (haystack.rfind(needle, 0) != std::string::npos);
 }
 
+/// @brief @todo unnecessary with c++20
+/// @param value
+/// @param ending
+/// @return
 [[nodiscard]] inline bool endsWith(std::string_view value, std::string_view ending) {
     if (ending.size() > value.size()) return false;
     return std::equal(ending.rbegin(), ending.rend(), value.rbegin());
 }
 
-[[nodiscard]] inline std::string toLower(std::string_view string) {
-    std::string lower_string(string);
-    std::transform(lower_string.begin(), lower_string.end(), lower_string.begin(), ::tolower);
-    return lower_string;
-}
-
-/// @brief Check if a string contains a substring.
+/// @brief Check if a string contains a substring. @todo unnecessary with c++20
 /// @param haystack
 /// @param needle
 /// @return

@@ -80,15 +80,6 @@ class CoreHandler {
             }
         }
 
-        std::stringstream ss;
-        ss << "Warning; No suiteable affinity mask found for " << threads << " threads\n."
-           << "This is the case when you have specified more threads than\n"
-           << "processors in a physical cpu. I.e. 32 System Threads, 4 Engine\n"
-              "Threads only allow a concurrency of 8, with affinity turned on.\n"
-           << "The program will continue to run, but will not use affinity.\n";
-
-        std::cout << ss.str();
-
         return {0, Group::NONE, {}};
     }
 

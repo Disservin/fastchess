@@ -1,13 +1,23 @@
-fast-chess*
-*.vscode
+#C++ files
 *.d
 *.o
+
+#Executable files
 *.exe
+fast-chess*
+dummy_engine
+random_mover
+
+# IDE
+*.vscode
+.idea
+
+# Mac
 .DS_Store
-src/x64/*
+
+# Misc
 *.txt
 *.json
 tmp
 UHO*
 *.bat
-.idea

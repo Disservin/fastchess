@@ -1,6 +1,6 @@
 #pragma once
 
-#ifdef __WIN32
+#ifdef _WIN64
 #include <windows.h>
 #elif defined(__APPLE__)
 #include <mach/thread_act.h>
@@ -13,7 +13,8 @@
 
 namespace affinity {
 
-#ifdef __WIN32
+#ifdef _WIN64
+#include <windows.h>
 
 inline bool set_affinity(const std::vector<int>& cpus, HANDLE process_handle) noexcept {
     DWORD_PTR affinity_mask = 0;

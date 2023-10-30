@@ -2,8 +2,8 @@
 
 #include <matchmaking/match.hpp>
 #include <matchmaking/result.hpp>
-#include <matchmaking/util/file_writer.hpp>
-#include <matchmaking/util/threadpool.hpp>
+#include <util/file_writer.hpp>
+#include <util/threadpool.hpp>
 #include <pgn_reader.hpp>
 #include <sprt.hpp>
 #include <types/stats.hpp>

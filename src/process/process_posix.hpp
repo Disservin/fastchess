@@ -22,6 +22,7 @@
 #include <sys/wait.h>
 #include <unistd.h>  // _exit, fork
 
+#include <util/logger.hpp>
 #include <affinity/affinity.hpp>
 
 namespace fast_chess {

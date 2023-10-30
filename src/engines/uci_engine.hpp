@@ -1,13 +1,18 @@
 #pragma once
 
 #include <third_party/chess.hpp>
-#include <third_party/communication.hpp>
+
+#ifdef _WIN64
+#include <process/process_win.hpp>
+#else
+#include <process/process_posix.hpp>
+#endif
 
 #include <types/engine_config.hpp>
 
 namespace fast_chess {
 
-class UciEngine : private Communication::Process {
+class UciEngine : Process {
    public:
     explicit UciEngine(const EngineConfiguration &config, const std::vector<int> &cpus)
         : cpus_(cpus) {

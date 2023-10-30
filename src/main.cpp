@@ -3,7 +3,7 @@
 
 #include <cli.hpp>
 #include <matchmaking/tournament.hpp>
-#include <third_party/communication.hpp>
+#include <process/iprocess.hpp>
 
 namespace fast_chess::atomic {
 std::atomic_bool stop = false;

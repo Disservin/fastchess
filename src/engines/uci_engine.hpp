@@ -9,7 +9,10 @@ namespace fast_chess {
 
 class UciEngine : private Communication::Process {
    public:
-    explicit UciEngine(const EngineConfiguration &config) { loadConfig(config); }
+    explicit UciEngine(const EngineConfiguration &config, const std::vector<int> &cpus)
+        : cpus_(cpus) {
+        loadConfig(config);
+    }
 
     ~UciEngine() override { sendQuit(); }
 
@@ -32,8 +35,6 @@ class UciEngine : private Communication::Process {
 
     [[nodiscard]] EngineConfiguration getConfig() const;
 
-    /// @brief [untested... and unused]
-    void restartEngine();
     /// @brief Creates a new process and starts the engine.
     void startEngine();
 
@@ -76,6 +77,8 @@ class UciEngine : private Communication::Process {
     void sendSetoption(const std::string &name, const std::string &value);
 
     EngineConfiguration config_;
+
+    const std::vector<int> &cpus_;
 
     std::vector<std::string> output_;
 };

@@ -10,7 +10,9 @@
 namespace fast_chess {
 
 RoundRobin::RoundRobin(const cmd::TournamentOptions& game_config)
-    : output_(getNewOutput(game_config.output)), tournament_options_(game_config) {
+    : output_(getNewOutput(game_config.output)),
+      tournament_options_(game_config),
+      cores_(game_config.affinity) {
     auto filename = (game_config.pgn.file.empty() ? "fast-chess" : game_config.pgn.file);
 
     if (game_config.output == OutputType::FASTCHESS) {
@@ -22,8 +24,9 @@ RoundRobin::RoundRobin(const cmd::TournamentOptions& game_config)
     setupEpdOpeningBook();
     setupPgnOpeningBook();
 
-    // Resize the thread pool
-    pool_.resize(tournament_options_.concurrency);
+    // Resize the thread pool, but don't go over the number of threads the system has
+    pool_.resize(std::min(static_cast<int>(std::thread::hardware_concurrency()),
+                          tournament_options_.concurrency));
 
     // Initialize the SPRT test
     sprt_ = SPRT(tournament_options_.sprt.alpha, tournament_options_.sprt.beta,
@@ -183,17 +186,46 @@ void RoundRobin::playGame(const std::pair<EngineConfiguration, EngineConfigurati
                           std::size_t game_id) {
     auto match = Match(tournament_options_, opening);
 
+    constexpr auto check_config = [](const EngineConfiguration& config) {
+        const auto it = std::find_if(config.options.begin(), config.options.end(),
+                                     [](const auto& option) { return option.first == "Threads"; });
+        return it != config.options.end()
+                   ? std::optional<
+                         std::vector<std::pair<std::string, std::string>>::const_iterator>(it)
+                   : std::nullopt;
+    };
+
+    const auto first_threads = check_config(configs.first).has_value()
+                                   ? std::stoi(check_config(configs.first).value()->second)
+                                   : 1;
+
+    const auto second_threads = check_config(configs.second).has_value()
+                                    ? std::stoi(check_config(configs.second).value()->second)
+                                    : 1;
+
+    // thread count in both configs has to be the same for affinity to work,
+    // otherwise we set it to 0 and affinity is disabled
+    const auto threads = first_threads == second_threads ? first_threads : 0;
+    const auto core    = cores_.consume(threads);
+
     try {
         start();
-        match.start(configs.first, configs.second);
+
+        match.start(configs.first, configs.second, core.cpus);
 
         while (match.get().needs_restart) {
-            match.start(configs.first, configs.second);
+            match.start(configs.first, configs.second, core.cpus);
         }
     } catch (const std::exception& e) {
+        Logger::cout("Exception: " + std::string(e.what()));
         Logger::error(e.what(), std::this_thread::get_id(), "fast-chess::RoundRobin::playGame");
+
+        cores_.put_back(core);
+
         return;
     }
+
+    cores_.put_back(core);
 
     if (atomic::stop) return;
 

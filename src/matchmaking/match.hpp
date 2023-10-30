@@ -32,8 +32,8 @@ class Match {
     }
 
     /// @brief starts the match
-    void start(const EngineConfiguration& engine1_config,
-               const EngineConfiguration& engine2_config);
+    void start(const EngineConfiguration& engine1_config, const EngineConfiguration& engine2_config,
+               const std::vector<int>& cpus);
 
     /// @brief returns the match data, only valid after the match has finished
     [[nodiscard]] MatchData get() const { return data_; }

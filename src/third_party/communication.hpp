@@ -34,6 +34,7 @@ SOFTWARE.
 #include <vector>
 
 #include <util/logger.hpp>
+#include <affinity/affinity.hpp>
 
 #ifdef _WIN64
 #include <windows.h>
@@ -64,7 +65,7 @@ class IProcess {
 
     // Initialize the process
     virtual void initProcess(const std::string &command, const std::string &args,
-                             const std::string &log_name) = 0;
+                             const std::string &log_name, const std::vector<int> &cpus) = 0;
 
     /// @brief Returns true if the process is alive
     /// @return
@@ -96,7 +97,7 @@ class Process : public IProcess {
     ~Process() override { killProcess(); }
 
     void initProcess(const std::string &command, const std::string &args,
-                     const std::string &log_name) override {
+                     const std::string &log_name, const std::vector<int> &cpus) override {
         log_name_ = log_name;
 
         pi_ = PROCESS_INFORMATION();
@@ -131,6 +132,11 @@ class Process : public IProcess {
         child_std_out_ = childStdOutRd;
         child_std_in_  = childStdInWr;
 
+        // set process affinity
+        if (cpus.size()) {
+            affinity::set_affinity(cpus, pi_.hProcess);
+        }
+
         fast_chess::pid_list.push_back(pi_.hProcess);
     }
 
@@ -145,6 +151,7 @@ class Process : public IProcess {
         fast_chess::pid_list.erase(
             std::remove(fast_chess::pid_list.begin(), fast_chess::pid_list.end(), pi_.hProcess),
             fast_chess::pid_list.end());
+
         if (is_initalized_) {
             try {
                 DWORD exitCode = 0;
@@ -225,6 +232,8 @@ class Process : public IProcess {
                 if (buffer[i] == '\n' || buffer[i] == '\r') {
                     // dont add empty lines
                     if (!currentLine.empty()) {
+                        // logging will significantly slowdown the reading and lead to engine
+                        // timeouts
                         fast_chess::Logger::read(currentLine, std::this_thread::get_id(),
                                                  log_name_);
                         lines.emplace_back(currentLine);
@@ -284,9 +293,10 @@ class Process : public IProcess {
     ~Process() override { killProcess(); }
 
     void initProcess(const std::string &command, const std::string &args,
-                     const std::string &log_name) override {
+                     const std::string &log_name, const std::vector<int> &cpus) override {
         is_initalized_ = true;
         log_name_      = log_name;
+
         // Create input pipe
         if (pipe(in_pipe_) == -1) {
             throw std::runtime_error("Failed to create input pipe");
@@ -304,8 +314,9 @@ class Process : public IProcess {
             throw std::runtime_error("Failed to fork process");
         }
 
-        // If this is the child process, set up the pipes and start the engine
         if (forkPid == 0) {
+            // This is the child process, set up the pipes and start the engine.
+
             // Ignore signals, because the main process takes care of them
             signal(SIGINT, SIG_IGN);
 
@@ -320,9 +331,7 @@ class Process : public IProcess {
 
             if (close(in_pipe_[1]) == -1) throw std::runtime_error("Failed to close inpipe");
 
-            // Execute the engine
-
-            const auto rtrim = [](std::string &s) {
+            constexpr auto rtrim = [](std::string &s) {
                 s.erase(std::find_if(s.rbegin(), s.rend(),
                                      [](unsigned char ch) { return !std::isspace(ch); })
                             .base(),
@@ -330,14 +339,35 @@ class Process : public IProcess {
             };
 
             auto full_command = command + " " + args;
+
+            // remove trailing whitespaces
             rtrim(full_command);
 
+// Apple does not support setting the affinity of a pid, so we need to set the
+// affinity from within the process
+#if defined(__APPLE__)
+            // assign the process to specified core
+            if (cpus.size()) {
+                affinity::set_affinity(cpus);
+            }
+#endif
+
+            // Execute the engine
             if (execl(command.c_str(), full_command.c_str(), (char *)NULL) == -1)
                 throw std::runtime_error("Failed to execute engine");
 
             _exit(0); /* Note that we do not use exit() */
         } else {
             process_pid_ = forkPid;
+
+#if !defined(__APPLE__)
+            // assign the process to specified core
+            if (cpus.size()) {
+                affinity::set_affinity(cpus, process_pid_);
+            }
+#endif
+
+            // append the process to the list of running processes
             fast_chess::pid_list.push_back(process_pid_);
         }
     }

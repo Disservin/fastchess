@@ -37,13 +37,9 @@ void UciEngine::sendSetoption(const std::string &name, const std::string &value)
     writeEngine("setoption name " + name + " value " + value);
 }
 
-void UciEngine::restartEngine() {
-    killProcess();
-    initProcess((config_.dir == "." ? "" : config_.dir) + config_.cmd, config_.args, config_.name);
-}
-
 void UciEngine::startEngine() {
-    initProcess((config_.dir == "." ? "" : config_.dir) + config_.cmd, config_.args, config_.name);
+    initProcess((config_.dir == "." ? "" : config_.dir) + config_.cmd, config_.args, config_.name,
+                cpus_);
 
     sendUci();
 

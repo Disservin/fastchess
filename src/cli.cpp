@@ -498,6 +498,13 @@ class Quick : public Option {
     }
 };
 
+class Affinity : public Option {
+   public:
+    void parse(int &, int, char const *[], ArgumentData &argument_data) override {
+        argument_data.tournament_options.affinity = false;
+    }
+};
+
 OptionsParser::OptionsParser(int argc, char const *argv[]) {
     if (argument_data_.tournament_options.output == OutputType::CUTECHESS) {
         argument_data_.tournament_options.ratinginterval = 1;
@@ -536,6 +543,7 @@ OptionsParser::OptionsParser(int argc, char const *argv[]) {
     addOption("variant", new Variant());
     addOption("tournament", new Tournament());
     addOption("quick", new Quick());
+    addOption("no-affinity", new Affinity());
 
     parse(argc, argv);
 

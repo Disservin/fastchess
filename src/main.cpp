@@ -16,9 +16,8 @@ std::unique_ptr<cmd::OptionsParser> Options;
 std::unique_ptr<Tournament> Tour;
 }  // namespace
 
-void setCtrlCHandler();
-void sigintHandler(int param);
 void clear_processes();
+void setCtrlCHandler();
 
 int main(int argc, char const *argv[]) {
     setCtrlCHandler();
@@ -59,45 +58,39 @@ void clear_processes() {
 #endif
 }
 
+void consoleHandlerAction() {
+    Tour->stop();
+    Options->saveJson(Tour->getResults());
+    clear_processes();
+    std::cout << "Saved results" << std::endl;
+    std::exit(0);
+}
+
 #ifdef _WIN64
-BOOL WINAPI consoleHandler(DWORD signal) {
+BOOL WINAPI handler(DWORD signal) {
     switch (signal) {
         case CTRL_CLOSE_EVENT:
         case CTRL_LOGOFF_EVENT:
         case CTRL_SHUTDOWN_EVENT:
         case CTRL_C_EVENT:
-            Tour->stop();
-            Options->saveJson(Tour->getResults());
-
-            clear_processes();
-
-            std::cout << "Saved results" << std::endl;
-            std::exit(0);
+            consoleHandlerAction();
         default:
             break;
     }
-
     return FALSE;
 }
-#else
-void sigintHandler(int param) {
-    Tour->stop();
-    Options->saveJson(Tour->getResults());
-
-    clear_processes();
-
-    std::cout << "Saved results" << std::endl;
-
-    std::exit(param);
-}
-#endif
 
 void setCtrlCHandler() {
-#ifdef _WIN64
-    if (!SetConsoleCtrlHandler(consoleHandler, TRUE)) {
+    if (!SetConsoleCtrlHandler(handler, TRUE)) {
         std::cout << "\nERROR: Could not set control handler\n";
     }
-#else
-    signal(SIGINT, sigintHandler);
-#endif
 }
+
+#else
+void handler(int param) {
+    consoleHandlerAction();
+    std::exit(param);
+}
+
+void setCtrlCHandler() { signal(SIGINT, handler); }
+#endif

@@ -9,91 +9,7 @@
 namespace fast_chess::cmd {
 using json = nlohmann::json;
 
-namespace engine_parser {
-TimeControl parseTc(const std::string &tcString) {
-    if (tcString == "infinite" || tcString == "inf") {
-        return {};
-    }
-
-    TimeControl tc;
-
-    std::string remainingStringVector = tcString;
-    const bool has_moves              = str_utils::contains(tcString, "/");
-    const bool has_inc                = str_utils::contains(tcString, "+");
-
-    if (has_moves) {
-        const auto moves      = str_utils::splitString(tcString, '/');
-        tc.moves              = std::stoi(moves[0]);
-        remainingStringVector = moves[1];
-    }
-
-    if (has_inc) {
-        const auto moves      = str_utils::splitString(remainingStringVector, '+');
-        tc.increment          = static_cast<uint64_t>(std::stod(moves[1]) * 1000);
-        remainingStringVector = moves[0];
-    }
-
-    tc.time = static_cast<int64_t>(std::stod(remainingStringVector) * 1000);
-
-    return tc;
-}
-
-bool isEngineSettableOption(std::string_view stringFormat) {
-    return str_utils::startsWith(stringFormat, "option.");
-}
-
-void parseEngineKeyValues(EngineConfiguration &engineConfig, const std::string &key,
-                          const std::string &value) {
-    if (key == "cmd") {
-        engineConfig.cmd = value;
-    } else if (key == "name")
-        engineConfig.name = value;
-    else if (key == "tc")
-        engineConfig.limit.tc = parseTc(value);
-    else if (key == "st")
-        engineConfig.limit.tc.fixed_time = static_cast<int64_t>(std::stod(value) * 1000);
-    else if (key == "nodes")
-        engineConfig.limit.nodes = std::stoll(value);
-    else if (key == "plies")
-        engineConfig.limit.plies = std::stoll(value);
-    else if (key == "dir")
-        engineConfig.dir = value;
-    else if (key == "args")
-        engineConfig.args = value;
-    else if (isEngineSettableOption(key)) {
-        // Strip option.Name of the option. Part
-        const std::size_t pos         = key.find('.');
-        const std::string strippedKey = key.substr(pos + 1);
-        engineConfig.options.emplace_back(strippedKey, value);
-    } else if (key == "proto") {
-        // silently ignore
-    } else
-        OptionsParser::throwMissing("engine", key, value);
-}
-
-void validateEnginePath(std::string dir, std::string &cmd) {
-    // engine path with dir
-    dir              = dir == "." ? "" : dir;
-    auto engine_path = dir + cmd;
-
-// append .exe to cmd if it is missing on windows
-#ifdef _WIN64
-    if (engine_path.find(".exe") == std::string::npos) {
-        cmd += ".exe";
-        engine_path += ".exe";
-    }
-#endif
-
-    // throw if cmd does not exist
-    if (!std::filesystem::exists(engine_path)) {
-        throw std::runtime_error("Error; Engine not found: " + engine_path);
-    }
-}
-
-}  // namespace engine_parser
-
-/// @brief Generic function to parse a standalone value after a dash command. Continues parsing
-/// until another dash command is found
+/// @brief Parse -name key=value key=value
 /// @param i
 /// @param argc
 /// @param argv
@@ -110,6 +26,11 @@ inline void parseDashOptions(int &i, int argc, char const *argv[],
     }
 }
 
+/// @brief Reads the entire line until a dash is found
+/// @param i
+/// @param argc
+/// @param argv
+/// @return
 [[nodiscard]] inline std::string readUntilDash(int &i, int argc, char const *argv[]) {
     std::string result;
     while (i + 1 < argc && argv[i + 1][0] != '-' && i++) {
@@ -124,11 +45,90 @@ class Engine : public Option {
         argument_data.configs.emplace_back();
 
         parseDashOptions(i, argc, argv, [&](const std::string &key, const std::string &value) {
-            engine_parser::parseEngineKeyValues(argument_data.configs.back(), key, value);
+            parseEngineKeyValues(argument_data.configs.back(), key, value);
         });
 
-        engine_parser::validateEnginePath(argument_data.configs.back().dir,
-                                          argument_data.configs.back().cmd);
+        validateEnginePath(argument_data.configs.back().dir, argument_data.configs.back().cmd);
+    }
+
+    static TimeControl parseTc(const std::string &tcString) {
+        if (tcString == "infinite" || tcString == "inf") {
+            return {};
+        }
+
+        TimeControl tc;
+
+        std::string remainingStringVector = tcString;
+        const bool has_moves              = str_utils::contains(tcString, "/");
+        const bool has_inc                = str_utils::contains(tcString, "+");
+
+        if (has_moves) {
+            const auto moves      = str_utils::splitString(tcString, '/');
+            tc.moves              = std::stoi(moves[0]);
+            remainingStringVector = moves[1];
+        }
+
+        if (has_inc) {
+            const auto moves      = str_utils::splitString(remainingStringVector, '+');
+            tc.increment          = static_cast<uint64_t>(std::stod(moves[1]) * 1000);
+            remainingStringVector = moves[0];
+        }
+
+        tc.time = static_cast<int64_t>(std::stod(remainingStringVector) * 1000);
+
+        return tc;
+    }
+
+    static bool isEngineSettableOption(std::string_view stringFormat) {
+        return str_utils::startsWith(stringFormat, "option.");
+    }
+
+    static void parseEngineKeyValues(EngineConfiguration &engineConfig, const std::string &key,
+                                     const std::string &value) {
+        if (key == "cmd") {
+            engineConfig.cmd = value;
+        } else if (key == "name")
+            engineConfig.name = value;
+        else if (key == "tc")
+            engineConfig.limit.tc = parseTc(value);
+        else if (key == "st")
+            engineConfig.limit.tc.fixed_time = static_cast<int64_t>(std::stod(value) * 1000);
+        else if (key == "nodes")
+            engineConfig.limit.nodes = std::stoll(value);
+        else if (key == "plies")
+            engineConfig.limit.plies = std::stoll(value);
+        else if (key == "dir")
+            engineConfig.dir = value;
+        else if (key == "args")
+            engineConfig.args = value;
+        else if (isEngineSettableOption(key)) {
+            // Strip option.Name of the option. Part
+            const std::size_t pos         = key.find('.');
+            const std::string strippedKey = key.substr(pos + 1);
+            engineConfig.options.emplace_back(strippedKey, value);
+        } else if (key == "proto") {
+            // silently ignore
+        } else
+            OptionsParser::throwMissing("engine", key, value);
+    }
+
+    static void validateEnginePath(std::string dir, std::string &cmd) {
+        // engine path with dir
+        dir              = dir == "." ? "" : dir;
+        auto engine_path = dir + cmd;
+
+// append .exe to cmd if it is missing on windows
+#ifdef _WIN64
+        if (engine_path.find(".exe") == std::string::npos) {
+            cmd += ".exe";
+            engine_path += ".exe";
+        }
+#endif
+
+        // throw if cmd does not exist
+        if (!std::filesystem::exists(engine_path)) {
+            throw std::runtime_error("Error; Engine not found: " + engine_path);
+        }
     }
 };
 
@@ -137,7 +137,7 @@ class Each : public Option {
     void parse(int &i, int argc, char const *argv[], ArgumentData &argument_data) override {
         parseDashOptions(i, argc, argv, [&](const std::string &key, const std::string &value) {
             for (auto &config : argument_data.configs) {
-                engine_parser::parseEngineKeyValues(config, key, value);
+                Engine::parseEngineKeyValues(config, key, value);
             }
         });
     }
@@ -465,8 +465,8 @@ class Quick : public Option {
 
                 argument_data.configs.back().recover = true;
 
-                engine_parser::validateEnginePath(argument_data.configs.back().dir,
-                                                  argument_data.configs.back().cmd);
+                Engine::validateEnginePath(argument_data.configs.back().dir,
+                                           argument_data.configs.back().cmd);
             } else if (key == "book") {
                 argument_data.tournament_options.opening.file   = value;
                 argument_data.tournament_options.opening.order  = OrderType::RANDOM;

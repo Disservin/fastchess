@@ -143,9 +143,7 @@ void RoundRobin::create(const std::vector<EngineConfiguration>& engine_configs) 
                                            match_count_ + 1);
                 }
 
-                if (sprt_.isValid()) {
-                    updateSprtStatus({first, second});
-                }
+                updateSprtStatus({first, second});
 
                 match_count_++;
             };
@@ -167,6 +165,8 @@ void RoundRobin::create(const std::vector<EngineConfiguration>& engine_configs) 
 }
 
 void RoundRobin::updateSprtStatus(const std::vector<EngineConfiguration>& engine_configs) {
+    if (!sprt_.isValid()) return;
+
     const Stats stats = result_.getStats(engine_configs[0].name, engine_configs[1].name);
     const double llr  = sprt_.getLLR(stats.wins, stats.draws, stats.losses);
 
@@ -189,10 +189,8 @@ void RoundRobin::playGame(const std::pair<EngineConfiguration, EngineConfigurati
     constexpr auto check_config = [](const EngineConfiguration& config) {
         const auto it = std::find_if(config.options.begin(), config.options.end(),
                                      [](const auto& option) { return option.first == "Threads"; });
-        return it != config.options.end()
-                   ? std::optional<
-                         std::vector<std::pair<std::string, std::string>>::const_iterator>(it)
-                   : std::nullopt;
+
+        return it != config.options.end() ? std::optional(it) : std::nullopt;
     };
 
     const auto first_threads = check_config(configs.first).has_value()
@@ -230,7 +228,8 @@ void RoundRobin::playGame(const std::pair<EngineConfiguration, EngineConfigurati
     if (atomic::stop) return;
 
     const auto match_data = match.get();
-    const auto result     = extractStats(match_data);
+
+    const auto result = extractStats(match_data);
 
     finish(result, match_data.reason);
 

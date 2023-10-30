@@ -44,9 +44,9 @@ void RoundRobin::setupEpdOpeningBook() {
 
     // Read the opening book from file
     std::ifstream openingFile;
-    std::string line;
     openingFile.open(tournament_options_.opening.file);
 
+    std::string line;
     while (std::getline(openingFile, line)) {
         opening_book_epd_.emplace_back(line);
     }
@@ -105,7 +105,8 @@ void RoundRobin::create(const std::vector<EngineConfiguration>& engine_configs) 
     total_ = (engine_configs.size() * (engine_configs.size() - 1) / 2) *
              tournament_options_.rounds * tournament_options_.games;
 
-    const auto match = [this, &engine_configs](std::size_t i, std::size_t j, std::size_t round_id) {
+    const auto create_match = [this, &engine_configs](std::size_t i, std::size_t j,
+                                                      std::size_t round_id) {
         // both players get the same opening
         const auto opening = fetchNextOpening();
         const auto first   = engine_configs[i];
@@ -158,7 +159,7 @@ void RoundRobin::create(const std::vector<EngineConfiguration>& engine_configs) 
     for (std::size_t i = 0; i < engine_configs.size(); i++) {
         for (std::size_t j = i + 1; j < engine_configs.size(); j++) {
             for (int k = 0; k < tournament_options_.rounds; k++) {
-                match(i, j, k);
+                create_match(i, j, k);
             }
         }
     }
@@ -167,8 +168,8 @@ void RoundRobin::create(const std::vector<EngineConfiguration>& engine_configs) 
 void RoundRobin::updateSprtStatus(const std::vector<EngineConfiguration>& engine_configs) {
     if (!sprt_.isValid()) return;
 
-    const Stats stats = result_.getStats(engine_configs[0].name, engine_configs[1].name);
-    const double llr  = sprt_.getLLR(stats.wins, stats.draws, stats.losses);
+    const auto stats = result_.getStats(engine_configs[0].name, engine_configs[1].name);
+    const auto llr   = sprt_.getLLR(stats.wins, stats.draws, stats.losses);
 
     if (sprt_.getResult(llr) != SPRT_CONTINUE || match_count_ == total_) {
         atomic::stop = true;
@@ -184,27 +185,14 @@ void RoundRobin::updateSprtStatus(const std::vector<EngineConfiguration>& engine
 void RoundRobin::playGame(const std::pair<EngineConfiguration, EngineConfiguration>& configs,
                           start_callback start, finished_callback finish, const Opening& opening,
                           std::size_t game_id) {
-    auto match = Match(tournament_options_, opening);
-
-    constexpr auto check_config = [](const EngineConfiguration& config) {
-        const auto it = std::find_if(config.options.begin(), config.options.end(),
-                                     [](const auto& option) { return option.first == "Threads"; });
-
-        return it != config.options.end() ? std::optional(it) : std::nullopt;
-    };
-
-    const auto first_threads = check_config(configs.first).has_value()
-                                   ? std::stoi(check_config(configs.first).value()->second)
-                                   : 1;
-
-    const auto second_threads = check_config(configs.second).has_value()
-                                    ? std::stoi(check_config(configs.second).value()->second)
-                                    : 1;
+    auto match                = Match(tournament_options_, opening);
+    const auto first_threads  = configs.first.threads();
+    const auto second_threads = configs.second.threads();
 
     // thread count in both configs has to be the same for affinity to work,
     // otherwise we set it to 0 and affinity is disabled
-    const auto threads = first_threads == second_threads ? first_threads : 0;
-    const auto core    = cores_.consume(threads);
+    const auto max_threads_for_affinity = first_threads == second_threads ? first_threads : 0;
+    const auto core                     = cores_.consume(max_threads_for_affinity);
 
     try {
         start();
@@ -228,17 +216,14 @@ void RoundRobin::playGame(const std::pair<EngineConfiguration, EngineConfigurati
     if (atomic::stop) return;
 
     const auto match_data = match.get();
-
-    const auto result = extractStats(match_data);
-
-    finish(result, match_data.reason);
-
-    const auto pgn_builder = PgnBuilder(match_data, tournament_options_, game_id);
+    const auto result     = extractStats(match_data);
 
     // If the game was stopped, don't write the PGN
     if (match_data.termination != MatchTermination::INTERRUPT) {
-        file_writer_.write(pgn_builder.get());
+        file_writer_.write(PgnBuilder(match_data, tournament_options_, game_id).get());
     }
+
+    finish(result, match_data.reason);
 }
 
 Stats RoundRobin::extractStats(const MatchData& match_data) {
@@ -258,14 +243,14 @@ Stats RoundRobin::extractStats(const MatchData& match_data) {
 Opening RoundRobin::fetchNextOpening() {
     static uint64_t opening_index = 0;
 
+    const auto idx = tournament_options_.opening.start + opening_index++;
+
     if (tournament_options_.opening.format == FormatType::PGN) {
-        return opening_book_pgn_[(tournament_options_.opening.start + opening_index++) %
-                                 opening_book_pgn_.size()];
+        return opening_book_pgn_[idx % opening_book_pgn_.size()];
     } else if (tournament_options_.opening.format == FormatType::EPD) {
         Opening opening;
 
-        opening.fen = opening_book_epd_[(tournament_options_.opening.start + opening_index++) %
-                                        opening_book_epd_.size()];
+        opening.fen = opening_book_epd_[idx % opening_book_epd_.size()];
 
         return opening;
     }

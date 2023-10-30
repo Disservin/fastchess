@@ -66,6 +66,19 @@ struct EngineConfiguration {
     VariantType variant = VariantType::STANDARD;
 
     bool recover = false;
+
+    /// @brief Get the number of threads to use
+    /// @return
+    std::uint32_t threads() const {
+        const auto it = std::find_if(options.begin(), options.end(),
+                                     [](const auto &option) { return option.first == "Threads"; });
+
+        if (it != options.end()) {
+            return std::stoi(it->second);
+        }
+
+        return 1;
+    }
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(EngineConfiguration, name, dir, cmd, args, options,
                                                 limit, variant, recover)

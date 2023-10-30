@@ -12,7 +12,7 @@
 
 namespace affinity {
 
-/// @brief [physical id][2][processor id's]
+/// @brief [physical id][2][processor id's] @todo: better return type
 /// @return
 inline std::map<int, std::array<std::vector<int>, 2>> getPhysicalCores() noexcept(false) {
     std::ifstream cpuinfo("/proc/cpuinfo");

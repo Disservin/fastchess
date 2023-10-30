@@ -67,6 +67,8 @@ class CoreHandler {
         // in HT_1, then over all cores in HT_2.
         std::vector<int> cpus;
 
+        /// @todo: fix logic for multiple threads and multiple concurrencies
+
         for (std::size_t i = 0; i < 2; i++) {
             for (auto& [physical_id, bins] : available_hardware_) {
                 if (!bins[i].empty()) {

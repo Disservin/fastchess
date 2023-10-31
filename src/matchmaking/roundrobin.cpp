@@ -58,13 +58,7 @@ void RoundRobin::setupEpdOpeningBook() {
                                  tournament_options_.opening.file);
     }
 
-    if (tournament_options_.opening.order == OrderType::RANDOM) {
-        // Fisher-Yates / Knuth shuffle
-        for (std::size_t i = 0; i + 2 <= opening_book_epd_.size(); i++) {
-            std::size_t j = i + (random::mersenne_rand() % (opening_book_epd_.size() - i));
-            std::swap(opening_book_epd_[i], opening_book_epd_[j]);
-        }
-    }
+    shuffle(opening_book_epd_);
 }
 
 void RoundRobin::setupPgnOpeningBook() {
@@ -82,13 +76,7 @@ void RoundRobin::setupPgnOpeningBook() {
                                  tournament_options_.opening.file);
     }
 
-    if (tournament_options_.opening.order == OrderType::RANDOM) {
-        // Fisher-Yates / Knuth shuffle
-        for (std::size_t i = 0; i <= opening_book_pgn_.size() - 2; i++) {
-            std::size_t j = i + (random::mersenne_rand() % (opening_book_pgn_.size() - i));
-            std::swap(opening_book_pgn_[i], opening_book_pgn_[j]);
-        }
-    }
+    shuffle(opening_book_pgn_);
 }
 
 void RoundRobin::start(const std::vector<EngineConfiguration>& engine_configs) {

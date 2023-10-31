@@ -1,7 +1,7 @@
 #define DOCTEST_CONFIG_IMPLEMENT
 #include "doctest/doctest.hpp"
 
-#include <process_list.hpp>
+#include <process/process_list.hpp>
 
 namespace fast_chess {
 namespace atomic {

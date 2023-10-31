@@ -23,6 +23,7 @@ class UciEngine : Process {
 
     /// @brief Just writes "uci" to the engine
     void sendUci();
+
     /// @brief Reads until "uciok" is found, uses the default ping_time_ as the timeout thresholdd.
     /// @return
     [[nodiscard]] bool readUci();
@@ -30,6 +31,7 @@ class UciEngine : Process {
     /// @brief Sends "ucinewgame" to the engine and waits for a response. Also uses the ping_time_
     /// as the timeout thresholdd.
     [[nodiscard]] bool sendUciNewGame();
+
     /// @brief Sends "quit" to the engine.
     void sendQuit();
 
@@ -57,18 +59,21 @@ class UciEngine : Process {
     /// @brief Get the bestmove from the last output.
     /// @return
     [[nodiscard]] std::string bestmove() const;
+
     /// @brief Get the last info from the last output.
     /// @return
     [[nodiscard]] std::vector<std::string> lastInfo() const;
+
     /// @brief Get the last score type from the last output. cp or mate.
     /// @return
     [[nodiscard]] std::string lastScoreType() const;
+
     /// @brief Get the last score from the last output. Becareful, mate scores are not converted. So
     /// the score might 1, while it's actually mate 1. Always check lastScoreType() first.
     /// @return
     [[nodiscard]] int lastScore() const;
 
-    [[nodiscard]] std::vector<std::string> output() const;
+    [[nodiscard]] const std::vector<std::string> &output() const;
 
     /// @brief Check if the engine timed out.
     /// @return

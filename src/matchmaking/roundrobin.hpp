@@ -32,10 +32,10 @@ class RoundRobin {
         pool_.kill();
     }
 
-    [[nodiscard]] stats_map getResults() { return result_.getResults(); }
-    void setResults(const stats_map &results) { result_.setResults(results); }
+    [[nodiscard]] stats_map getResults() noexcept { return result_.getResults(); }
+    void setResults(const stats_map &results) noexcept { result_.setResults(results); }
 
-    void setGameConfig(const cmd::TournamentOptions &game_config) {
+    void setGameConfig(const cmd::TournamentOptions &game_config) noexcept {
         tournament_options_ = game_config;
     }
 

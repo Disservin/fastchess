@@ -6,22 +6,22 @@
 template <typename T>
 class ProcessList {
    public:
-    void push(T process) {
+    void push(T process) noexcept {
         std::lock_guard<std::mutex> lock(mutex);
         processes.push_back(process);
     }
 
-    void remove(T process) {
+    void remove(T process)  {
         std::lock_guard<std::mutex> lock(mutex);
         processes.erase(std::remove(processes.begin(), processes.end(), process), processes.end());
     }
 
-    auto begin() {
+    auto begin() noexcept {
         std::lock_guard<std::mutex> lock(mutex);
         return processes.begin();
     }
 
-    auto end() {
+    auto end() noexcept {
         std::lock_guard<std::mutex> lock(mutex);
         return processes.end();
     }

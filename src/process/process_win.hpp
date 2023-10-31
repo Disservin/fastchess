@@ -17,7 +17,7 @@
 
 #include <util/logger.hpp>
 #include <affinity/affinity.hpp>
-#include <process_list.hpp>
+#include <process/process_list.hpp>
 
 namespace fast_chess {
 extern ProcessList<HANDLE> pid_list;

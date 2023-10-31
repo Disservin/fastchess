@@ -8,7 +8,7 @@
 #include <sprt.hpp>
 #include <types/stats.hpp>
 #include <affinity/cores.hpp>
-
+#include <util/rand.hpp>
 #include <types/tournament_options.hpp>
 
 namespace fast_chess {
@@ -76,6 +76,19 @@ class RoundRobin {
     /// opening book order
     /// @return
     [[nodiscard]] Opening fetchNextOpening();
+
+    /// @brief Fisher-Yates / Knuth shuffle
+    /// @tparam T
+    /// @param vec
+    template <typename T>
+    void shuffle(std::vector<T> &vec) {
+        if (tournament_options_.opening.order == OrderType::RANDOM) {
+            for (std::size_t i = 0; i + 2 <= vec.size(); i++) {
+                std::size_t j = i + (random::mersenne_rand() % (vec.size() - i));
+                std::swap(vec[i], vec[j]);
+            }
+        }
+    }
 
     /// @brief Outputs the current state of the round robin to the console
     std::unique_ptr<IOutput> output_;

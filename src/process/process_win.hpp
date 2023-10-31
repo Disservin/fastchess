@@ -65,7 +65,7 @@ class Process : public IProcess {
 
         // set process affinity
         if (cpus.size()) {
-            // affinity::set_affinity(cpus, pi_.hProcess);
+            affinity::set_affinity(cpus, pi_.hProcess);
         }
 
         fast_chess::pid_list.push(pi_.hProcess);

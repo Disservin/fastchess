@@ -6,7 +6,7 @@ set -x
 g++ -O3 -std=c++17 tests/e2e/random_mover.cpp -o random_mover
 
 # Compile fast-chess
-make -j
+make -j $1
 
 # EPD Book Test
 

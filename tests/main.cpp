@@ -1,10 +1,23 @@
 #define DOCTEST_CONFIG_IMPLEMENT
 #include "doctest/doctest.hpp"
 
+#include <process_list.hpp>
+
 namespace fast_chess {
 namespace atomic {
 std::atomic_bool stop = false;
 }  // namespace atomic
+}  // namespace fast_chess
+
+namespace fast_chess {
+
+#ifdef _WIN64
+#include <windows.h>
+ProcessList<HANDLE> pid_list;
+#else
+#include <unistd.h>
+ProcessList<pid_t> pid_list;
+#endif
 }  // namespace fast_chess
 
 int main(int argc, char **argv) {

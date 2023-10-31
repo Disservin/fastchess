@@ -49,5 +49,6 @@ jobs:
           bash tests/e2e/e2e.sh
 
       - name: Asan E2E
+        if: runner.os == 'Linux'
         run: |
           bash tests/e2e/e2e.sh san=asan

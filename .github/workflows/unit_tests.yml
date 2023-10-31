@@ -53,11 +53,18 @@ jobs:
           make -j2 tests
           ./fast-chess-tests*
 
-      - name: Running fsanitize=address unit
+      - name: Running fsanitize=address unit test
         if: runner.os != 'Windows'
         run: |
           make clean
           make -j2 tests san=asan
+          ./fast-chess-tests* -tse="*PERFT*"
+
+      - name: Running fsanitize=thread unit test
+        if: runner.os != 'Windows'
+        run: |
+          make clean
+          make -j2 tests san=thread
           ./fast-chess-tests* -tse="*PERFT*"
 
       - name: Running fsanitize=undefined unit tests with clang++

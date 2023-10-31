@@ -68,6 +68,10 @@ ifeq ($(san), undefined)
 	LDFLAGS += -fsanitize=undefined
 endif
 
+ifeq ($(san), thread)
+	LDFLAGS += -fsanitize=thread
+endif
+
 # Versioning
 GIT_SHA = $(shell git rev-parse --short HEAD 2>/dev/null)
 ifneq ($(GIT_SHA), )

@@ -60,49 +60,43 @@ void Match::addMoveData(Participant& player, int64_t measured_time) {
 
 void Match::start(const EngineConfiguration& engine1_config,
                   const EngineConfiguration& engine2_config, const std::vector<int>& cpus) {
+    board_.set960(tournament_options_.variant == VariantType::FRC);
+    board_.setFen(opening_.fen);
+
+    start_position_ = board_.getFen() == constants::STARTPOS ? "startpos" : board_.getFen();
+
+    std::vector<std::string> uci_moves;
+    for (const auto& move : opening_.moves) {
+        uci_moves.push_back(uci::moveToUci(move, board_.chess960()));
+        board_.makeMove(move);
+    }
+
+    data_ = MatchData();
+
+    data_.fen = opening_.fen;
+
+    data_.start_time = Logger::getDateTime("%Y-%m-%dT%H:%M:%S %z");
+    data_.date       = Logger::getDateTime("%Y-%m-%d");
+
+    for (const auto& move : uci_moves) {
+        data_.moves.push_back(MoveData(move, "0.00", 0, 0, 0, 0, 0));
+    }
+
+    draw_tracker_   = DrawTacker();
+    resign_tracker_ = ResignTracker();
+
+    // Add opening moves to played moves
+    played_moves_.clear();
+    played_moves_.insert(played_moves_.end(), uci_moves.begin(), uci_moves.end());
+
     Participant player_1 = Participant(engine1_config, cpus);
     Participant player_2 = Participant(engine2_config, cpus);
 
     player_1.engine.startEngine();
     player_2.engine.startEngine();
 
-    board_.set960(tournament_options_.variant == VariantType::FRC);
-    board_.setFen(opening_.fen);
-
-    start_position_ = board_.getFen() == constants::STARTPOS ? "startpos" : board_.getFen();
-
-    std::vector<std::string> uci_moves = [&]() {
-        std::vector<std::string> moves;
-
-        for (const auto& move : opening_.moves) {
-            moves.push_back(uci::moveToUci(move, board_.chess960()));
-            board_.makeMove(move);
-        }
-
-        return moves;
-    }();
-
-    // Reset data
-    played_moves_.clear();
-
-    data_           = MatchData();
-    draw_tracker_   = DrawTacker();
-    resign_tracker_ = ResignTracker();
-
-    // Add opening moves to played moves
-    played_moves_.insert(played_moves_.end(), uci_moves.begin(), uci_moves.end());
-
-    for (const auto& move : uci_moves) {
-        data_.moves.push_back(MoveData(move, "0.00", 0, 0, 0, 0, 0));
-    }
-
     player_1.info.color = board_.sideToMove();
     player_2.info.color = ~board_.sideToMove();
-
-    data_.fen = opening_.fen;
-
-    data_.start_time = Logger::getDateTime("%Y-%m-%dT%H:%M:%S %z");
-    data_.date       = Logger::getDateTime("%Y-%m-%d");
 
     const auto start = clock::now();
 
@@ -224,23 +218,21 @@ bool Match::playMove(Participant& us, Participant& opponent) {
 }
 
 void Match::verifyPvLines(const Participant& us) {
-    const auto verifyPv = [&](const std::vector<std::string>& tokens, const std::string& info) {
+    const auto verifyPv = [&](const std::vector<std::string>& tokens, std::string_view info) {
         auto tmp = board_;
-        auto it  = std::find(tokens.begin(), tokens.end(), "pv");
+        auto it  = std::find(tokens.begin(), tokens.end(), "pv") + 1;
 
         Movelist moves;
 
-        // iterate over pv moves
-        while (++it != tokens.end()) {
+        std::for_each(it, tokens.end(), [&](const auto& token) {
             movegen::legalmoves(moves, tmp);
 
-            if (moves.find(uci::uciToMove(tmp, *it)) == -1) {
-                Logger::cout("Warning; Illegal pv move ", *it, "pv:", info);
-                break;
+            if (moves.find(uci::uciToMove(tmp, token)) == -1) {
+                Logger::cout("Warning; Illegal pv move ", token, "pv:", info);
             }
 
-            tmp.makeMove(uci::uciToMove(tmp, *it));
-        }
+            tmp.makeMove(uci::uciToMove(tmp, token));
+        });
     };
 
     for (const auto& info : us.engine.output()) {
@@ -304,17 +296,14 @@ bool Match::adjudicate(Participant& us, Participant& them) {
 
     if (tournament_options_.resign.enabled &&
         resign_tracker_.resign_moves >= tournament_options_.resign.move_count) {
-        data_.reason = us.engine.getConfig().name;
+        data_.termination = MatchTermination::ADJUDICATION;
+        data_.reason      = us.engine.getConfig().name;
 
         if (us.engine.lastScore() < tournament_options_.resign.score) {
             setLose(us, them);
-
-            data_.termination = MatchTermination::ADJUDICATION;
             data_.reason += Match::ADJUDICATION_LOSE_MSG;
         } else {
             setWin(us, them);
-
-            data_.termination = MatchTermination::ADJUDICATION;
             data_.reason += Match::ADJUDICATION_WIN_MSG;
         }
 

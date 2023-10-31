@@ -10,7 +10,7 @@ namespace fast_chess {
 /// different tournament types
 class Tournament {
    public:
-    explicit Tournament(const cmd::TournamentOptions &game_config) noexcept;
+    explicit Tournament(const cmd::TournamentOptions &game_config);
 
     void start(std::vector<EngineConfiguration> engine_configs);
     void stop() { round_robin_.stop(); }

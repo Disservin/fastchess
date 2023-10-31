@@ -144,7 +144,9 @@ void RoundRobin::create(const std::vector<EngineConfiguration>& engine_configs) 
                                            match_count_ + 1);
                 }
 
-                updateSprtStatus({first, second});
+                if (sprt_.isValid()) {
+                    updateSprtStatus({first, second});
+                }
 
                 match_count_++;
             };
@@ -166,10 +168,8 @@ void RoundRobin::create(const std::vector<EngineConfiguration>& engine_configs) 
 }
 
 void RoundRobin::updateSprtStatus(const std::vector<EngineConfiguration>& engine_configs) {
-    if (!sprt_.isValid()) return;
-
-    const auto stats = result_.getStats(engine_configs[0].name, engine_configs[1].name);
-    const auto llr   = sprt_.getLLR(stats.wins, stats.draws, stats.losses);
+    const Stats stats = result_.getStats(engine_configs[0].name, engine_configs[1].name);
+    const double llr  = sprt_.getLLR(stats.wins, stats.draws, stats.losses);
 
     if (sprt_.getResult(llr) != SPRT_CONTINUE || match_count_ == total_) {
         atomic::stop = true;
@@ -185,9 +185,24 @@ void RoundRobin::updateSprtStatus(const std::vector<EngineConfiguration>& engine
 void RoundRobin::playGame(const std::pair<EngineConfiguration, EngineConfiguration>& configs,
                           start_callback start, finished_callback finish, const Opening& opening,
                           std::size_t game_id) {
-    auto match                = Match(tournament_options_, opening);
-    const auto first_threads  = configs.first.threads();
-    const auto second_threads = configs.second.threads();
+    auto match = Match(tournament_options_, opening);
+
+    constexpr auto check_config = [](const EngineConfiguration& config) {
+        const auto it = std::find_if(config.options.begin(), config.options.end(),
+                                     [](const auto& option) { return option.first == "Threads"; });
+        return it != config.options.end()
+                   ? std::optional<
+                         std::vector<std::pair<std::string, std::string>>::const_iterator>(it)
+                   : std::nullopt;
+    };
+
+    const auto first_threads = check_config(configs.first).has_value()
+                                   ? std::stoi(check_config(configs.first).value()->second)
+                                   : 1;
+
+    const auto second_threads = check_config(configs.second).has_value()
+                                    ? std::stoi(check_config(configs.second).value()->second)
+                                    : 1;
 
     // thread count in both configs has to be the same for affinity to work,
     // otherwise we set it to 0 and affinity is disabled
@@ -218,12 +233,14 @@ void RoundRobin::playGame(const std::pair<EngineConfiguration, EngineConfigurati
     const auto match_data = match.get();
     const auto result     = extractStats(match_data);
 
+    finish(result, match_data.reason);
+
+    const auto pgn_builder = PgnBuilder(match_data, tournament_options_, game_id);
+
     // If the game was stopped, don't write the PGN
     if (match_data.termination != MatchTermination::INTERRUPT) {
-        file_writer_.write(PgnBuilder(match_data, tournament_options_, game_id).get());
+        file_writer_.write(pgn_builder.get());
     }
-
-    finish(result, match_data.reason);
 }
 
 Stats RoundRobin::extractStats(const MatchData& match_data) {

@@ -4,19 +4,8 @@
 
 namespace fast_chess {
 
-Tournament::Tournament(const cmd::TournamentOptions& game_config) noexcept
-    : round_robin_(game_config) {
+Tournament::Tournament(const cmd::TournamentOptions& game_config) : round_robin_(game_config) {
     loadConfig(game_config);
-}
-
-void Tournament::start(std::vector<EngineConfiguration> engine_configs) {
-    validateEngines(engine_configs);
-
-    Logger::cout("Starting tournament...");
-
-    round_robin_.start(engine_configs);
-
-    Logger::cout("Finished tournament\nSaving results...");
 }
 
 void Tournament::loadConfig(const cmd::TournamentOptions& game_config) {
@@ -64,6 +53,16 @@ void Tournament::validateEngines(std::vector<EngineConfiguration>& configs) {
             }
         }
     }
+}
+
+void Tournament::start(std::vector<EngineConfiguration> engine_configs) {
+    validateEngines(engine_configs);
+
+    Logger::cout("Starting tournament...");
+
+    round_robin_.start(engine_configs);
+
+    Logger::cout("Finished tournament\nSaving results...");
 }
 
 }  // namespace fast_chess

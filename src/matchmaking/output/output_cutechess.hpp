@@ -18,31 +18,32 @@ class Cutechess : public IOutput {
                   std::size_t current_game_count) override {
         const Elo elo(stats.wins, stats.losses, stats.draws);
 
+        // clang-format off
         std::stringstream ss;
-        ss << "Score of "         //
-           << first               //
-           << " vs "              //
-           << second              //
-           << ": "                //
-           << stats.wins          //
-           << " - "               //
-           << stats.losses        //
-           << " - "               //
-           << stats.draws         //
-           << " [] "              //
-           << current_game_count  //
-           << "\n";
-
-        ss << "Elo difference: "                                        //
-           << elo.getElo()                                              //
-           << ", "                                                      //
-           << "LOS: "                                                   //
-           << Elo::getLos(stats.wins, stats.losses)                     //
-           << ", "                                                      //
-           << "DrawRatio: "                                             //
-           << Elo::getDrawRatio(stats.wins, stats.losses, stats.draws)  //
-           << "\n";
-
+        ss  << "Score of " 
+            << first 
+            << " vs " 
+            << second 
+            << ": "
+            << stats.wins 
+            << " - " 
+            << stats.losses
+            << " - " 
+            << stats.draws 
+            << " [] " 
+            << current_game_count
+            << "\n";
+        
+        ss  << "Elo difference: " 
+            << elo.getElo()
+            << ", "
+            << "LOS: "
+            << Elo::getLos(stats.wins, stats.losses)
+            << ", "
+            << "DrawRatio: "
+            << Elo::getDrawRatio(stats.wins, stats.losses, stats.draws)
+            << "\n";
+        // clang-format on
         std::cout << ss.str() << std::flush;
     }
 
@@ -61,16 +62,18 @@ class Cutechess : public IOutput {
                    std::size_t max_game_count) override {
         std::stringstream ss;
 
-        ss << "Started game "      //
-           << current_game_count   //
-           << " of "               //
-           << max_game_count       //
-           << " ("                 //
-           << configs.first.name   //
-           << " vs "               //
-           << configs.second.name  //
-           << ")"                  //
+        // clang-format off
+        ss << "Started game "
+           << current_game_count
+           << " of "
+           << max_game_count
+           << " ("
+           << configs.first.name
+           << " vs "
+           << configs.second.name
+           << ")"
            << "\n";
+        // clang-format on
 
         std::cout << ss.str() << std::flush;
     }
@@ -79,18 +82,20 @@ class Cutechess : public IOutput {
                  std::size_t id) override {
         std::stringstream ss;
 
-        ss << "Finished game "     //
-           << id                   //
-           << " ("                 //
-           << configs.first.name   //
-           << " vs "               //
-           << configs.second.name  //
-           << "): "                //
-           << formatStats(stats)   //
-           << " {"                 //
-           << annotation           //
-           << "}"                  //
+        // clang-format off
+        ss << "Finished game "
+           << id
+           << " ("
+           << configs.first.name
+           << " vs "
+           << configs.second.name
+           << "): "
+           << formatStats(stats)
+           << " {"
+           << annotation 
+           << "}"
            << "\n";
+        // clang-format on
 
         std::cout << ss.str() << std::flush;
     }

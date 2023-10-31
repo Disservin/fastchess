@@ -4,10 +4,22 @@
 #include <cli.hpp>
 #include <matchmaking/tournament.hpp>
 #include <process/iprocess.hpp>
+#include <process_list.hpp>
 
 namespace fast_chess::atomic {
 std::atomic_bool stop = false;
 }  // namespace fast_chess::atomic
+
+namespace fast_chess {
+
+#ifdef _WIN64
+#include <windows.h>
+ProcessList<HANDLE> pid_list;
+#else
+#include <unistd.h>
+ProcessList<pid_t> pid_list;
+#endif
+}  // namespace fast_chess
 
 using namespace fast_chess;
 

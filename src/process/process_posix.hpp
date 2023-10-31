@@ -24,9 +24,10 @@
 
 #include <util/logger.hpp>
 #include <affinity/affinity.hpp>
+#include <process_list.hpp>
 
 namespace fast_chess {
-inline std::vector<pid_t> pid_list;
+extern ProcessList<pid_t> pid_list;
 }  // namespace fast_chess
 
 class Process : public IProcess {
@@ -109,7 +110,7 @@ class Process : public IProcess {
 #endif
 
             // append the process to the list of running processes
-            fast_chess::pid_list.push_back(process_pid_);
+            fast_chess::pid_list.push(process_pid_);
         }
     }
 
@@ -126,9 +127,8 @@ class Process : public IProcess {
     }
 
     void killProcess() {
-        fast_chess::pid_list.erase(
-            std::remove(fast_chess::pid_list.begin(), fast_chess::pid_list.end(), process_pid_),
-            fast_chess::pid_list.end());
+        fast_chess::pid_list.remove(process_pid_);
+
         if (is_initalized_) {
             close(in_pipe_[0]);
             close(in_pipe_[1]);

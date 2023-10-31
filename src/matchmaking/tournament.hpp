@@ -15,7 +15,7 @@ class Tournament {
     void start(std::vector<EngineConfiguration> engine_configs);
     void stop() { round_robin_.stop(); }
 
-    [[nodiscard]] stats_map getResults() { return round_robin_.getResults(); }
+    [[nodiscard]] stats_map getResults() noexcept { return round_robin_.getResults(); }
 
     [[nodiscard]] RoundRobin *roundRobin() { return &round_robin_; }
 

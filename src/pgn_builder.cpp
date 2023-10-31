@@ -101,11 +101,13 @@ void PgnBuilder::addMove(chess::Board &board, const MoveData &move, std::size_t 
     ss << (illegal ? move.move : moveNotation(board, move.move));
 
     ss << addComment(
-        (move.score_string + "/" + std::to_string(move.depth)), formatTime(move.elapsed_millis),
-        game_options_.pgn.track_nodes ? "nodes," + std::to_string(move.nodes) : "",
-        game_options_.pgn.track_seldepth ? "seldepth, " + std::to_string(move.seldepth) : "",
-        game_options_.pgn.track_nps ? "nps, " + std::to_string(move.nps) : "",
-        match_.moves.size() == move_number ? match_.reason : "");
+        (move.score_string + "/" + std::to_string(move.depth)),                                //
+        formatTime(move.elapsed_millis),                                                       //
+        game_options_.pgn.track_nodes ? "nodes," + std::to_string(move.nodes) : "",            //
+        game_options_.pgn.track_seldepth ? "seldepth, " + std::to_string(move.seldepth) : "",  //
+        game_options_.pgn.track_nps ? "nps, " + std::to_string(move.nps) : "",                 //
+        match_.moves.size() == move_number ? match_.reason : ""                                //
+    );
 
     moves_.emplace_back(ss.str());
 }

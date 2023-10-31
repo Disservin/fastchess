@@ -18,7 +18,7 @@ class Result {
     /// @param engine1
     /// @param engine2
     /// @param stats
-    void updateStats(const pair_config& configs, const Stats& stats) {
+    void updateStats(const pair_config& configs, const Stats& stats) noexcept {
         std::lock_guard<std::mutex> lock(results_mutex_);
         results_[configs.first.name][configs.second.name] += stats;
     }
@@ -31,7 +31,7 @@ class Result {
     /// @param round_id
     /// @return
     [[nodiscard]] bool updatePairStats(const pair_config& configs, const std::string& first,
-                                       const Stats& stats, uint64_t round_id) {
+                                       const Stats& stats, uint64_t round_id) noexcept {
         std::lock_guard<std::mutex> lock(game_pair_cache_mutex_);
 
         const auto adjusted = first == configs.first.name ? stats : ~stats;
@@ -65,7 +65,7 @@ class Result {
     /// @param engine1
     /// @param engine2
     /// @return
-    [[nodiscard]] Stats getStats(const std::string& engine1, const std::string& engine2) {
+    [[nodiscard]] Stats getStats(const std::string& engine1, const std::string& engine2) noexcept {
         std::lock_guard<std::mutex> lock(results_mutex_);
 
         const auto stats1 = results_[engine1][engine2];
@@ -78,14 +78,14 @@ class Result {
 
     /// @brief
     /// @return
-    [[nodiscard]] stats_map getResults() {
+    [[nodiscard]] stats_map getResults() noexcept {
         std::lock_guard<std::mutex> lock(results_mutex_);
         return results_;
     }
 
     /// @brief
     /// @param results
-    void setResults(const stats_map& results) {
+    void setResults(const stats_map& results) noexcept {
         std::lock_guard<std::mutex> lock(results_mutex_);
         results_ = results;
     }

@@ -99,6 +99,7 @@ std::vector<std::string> UciEngine::lastInfo() const {
         // Logger::cout("Warning; Could not extract last uci info line.");
         return {};
     }
+
     return str_utils::splitString(output_[output_.size() - 2], ' ');
 }
 
@@ -110,7 +111,7 @@ int UciEngine::lastScore() const {
     return str_utils::findElement<int>(lastInfo(), lastScoreType()).value_or(0);
 }
 
-std::vector<std::string> UciEngine::output() const { return output_; }
+const std::vector<std::string> &UciEngine::output() const { return output_; }
 
 bool UciEngine::timedout() const { return timeout(); }
 }  // namespace fast_chess

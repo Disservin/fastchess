@@ -60,7 +60,7 @@ void RoundRobin::setupEpdOpeningBook() {
 
     if (tournament_options_.opening.order == OrderType::RANDOM) {
         // Fisher-Yates / Knuth shuffle
-        for (std::size_t i = 0; i <= opening_book_epd_.size() - 2; i++) {
+        for (std::size_t i = 0; i + 2 <= opening_book_epd_.size(); i++) {
             std::size_t j = i + (random::mersenne_rand() % (opening_book_epd_.size() - i));
             std::swap(opening_book_epd_[i], opening_book_epd_[j]);
         }

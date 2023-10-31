@@ -81,21 +81,24 @@ class Process : public IProcess {
     void killProcess() {
         fast_chess::pid_list.remove(pi_.hProcess);
 
-        if (is_initalized_) {
-            try {
-                DWORD exitCode = 0;
-                GetExitCodeProcess(pi_.hProcess, &exitCode);
-                if (exitCode == STILL_ACTIVE) {
-                    UINT uExitCode = 0;
-                    TerminateProcess(pi_.hProcess, uExitCode);
-                }
-                // Clean up the child process resources
-                closeHandles();
-            } catch (const std::exception &e) {
-                std::cerr << e.what();
+        if (!is_initalized_) return;
+
+        try {
+            DWORD exitCode = 0;
+            GetExitCodeProcess(pi_.hProcess, &exitCode);
+
+            if (exitCode == STILL_ACTIVE) {
+                UINT uExitCode = 0;
+                TerminateProcess(pi_.hProcess, uExitCode);
             }
-            is_initalized_ = false;
+
+            // Clean up the child process resources
+            closeHandles();
+        } catch (const std::exception &e) {
+            std::cerr << e.what();
         }
+
+        is_initalized_ = false;
     }
 
    protected:
@@ -121,7 +124,7 @@ class Process : public IProcess {
 
         timeout_ = false;
 
-        auto start = std::chrono::high_resolution_clock::now();
+        const auto start = std::chrono::high_resolution_clock::now();
 
         while (true) {
             // Check if timeout milliseconds have elapsed
@@ -157,26 +160,26 @@ class Process : public IProcess {
             // Iterate over each character in the buffer
             for (DWORD i = 0; i < bytesRead; i++) {
                 // If we encounter a newline, add the current line to the vector and reset the
-                // currentLine on windows newlines are \r\n
-                if (buffer[i] == '\n' || buffer[i] == '\r') {
-                    // dont add empty lines
-                    if (!currentLine.empty()) {
-                        // logging will significantly slowdown the reading and lead to engine
-                        // timeouts
-                        fast_chess::Logger::read(currentLine, std::this_thread::get_id(),
-                                                 log_name_);
-                        lines.emplace_back(currentLine);
-
-                        if (currentLine.rfind(last_word, 0) == 0) {
-                            return;
-                        }
-
-                        currentLine = "";
-                    }
-                }
-                // Otherwise, append the character to the current line
-                else {
+                // currentLine on windows newlines are \r\n. Otherwise, append the character to the
+                // current line
+                if (buffer[i] != '\n' && buffer[i] != '\r') {
                     currentLine += buffer[i];
+                    continue;
+                }
+
+                // dont add empty lines
+                if (!currentLine.empty()) {
+                    // logging will significantly slowdown the reading and lead to engine
+                    // timeouts
+                    fast_chess::Logger::read(currentLine, std::this_thread::get_id(), log_name_);
+
+                    lines.emplace_back(currentLine);
+
+                    if (currentLine.rfind(last_word, 0) == 0) {
+                        return;
+                    }
+
+                    currentLine = "";
                 }
             }
         }
@@ -194,6 +197,8 @@ class Process : public IProcess {
 
         DWORD bytesWritten;
         WriteFile(child_std_in_, input.c_str(), input.length(), &bytesWritten, nullptr);
+
+        assert(bytesWritten == input.length());
     }
 
    private:

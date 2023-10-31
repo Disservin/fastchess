@@ -19,7 +19,7 @@ void Tournament::start(std::vector<EngineConfiguration> engine_configs) {
     Logger::cout("Finished tournament\nSaving results...");
 }
 
-void Tournament::loadConfig(const cmd::TournamentOptions& game_config) noexcept {
+void Tournament::loadConfig(const cmd::TournamentOptions& game_config) {
     tournament_options_ = game_config;
 
     if (tournament_options_.games > 2) {

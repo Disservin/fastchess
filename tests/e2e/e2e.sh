@@ -15,7 +15,7 @@ OUTPUT_FILE=$(mktemp)
     -each tc=2+0.02s -rounds 5 -repeat -concurrency 2 \
     -openings file=tests/e2e/openings.epd format=epd order=random | tee $OUTPUT_FILE
 
-if grep -q "WARNING: ThreadSanitizer:" $OUTPUT_FILE; then
+if grep -q "ThreadSanitizer:" $OUTPUT_FILE; then
     echo "Data races detected."
     exit 1
 fi
@@ -33,7 +33,7 @@ OUTPUT_FILE_2=$(mktemp)
     -each tc=2+0.02s -rounds 5 -repeat -concurrency 2 \
     -openings file=tests/e2e/openings.pgn format=pgn order=random | tee $OUTPUT_FILE_2
 
-if grep -q "WARNING: ThreadSanitizer:" $OUTPUT_FILE; then
+if grep -q "ThreadSanitizer:" $OUTPUT_FILE; then
     echo "Data races detected."
     exit 1
 fi

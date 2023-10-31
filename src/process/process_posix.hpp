@@ -99,7 +99,9 @@ class Process : public IProcess {
                 throw std::runtime_error("Failed to execute engine");
 
             _exit(0); /* Note that we do not use exit() */
-        } else {
+        }
+        // This is the parent process
+        else {
             process_pid_ = forkPid;
 
 #if !defined(__APPLE__)
@@ -116,9 +118,10 @@ class Process : public IProcess {
 
     bool isAlive() override {
         assert(is_initalized_);
-        int status;
 
+        int status;
         const pid_t r = waitpid(process_pid_, &status, WNOHANG);
+
         if (r == -1) {
             throw std::runtime_error("Error: waitpid() failed");
         } else {
@@ -129,19 +132,19 @@ class Process : public IProcess {
     void killProcess() {
         fast_chess::pid_list.remove(process_pid_);
 
-        if (is_initalized_) {
-            close(in_pipe_[0]);
-            close(in_pipe_[1]);
-            close(out_pipe_[0]);
-            close(out_pipe_[1]);
+        if (!is_initalized_) return;
 
-            int status;
-            pid_t r = waitpid(process_pid_, &status, WNOHANG);
+        close(in_pipe_[0]);
+        close(in_pipe_[1]);
+        close(out_pipe_[0]);
+        close(out_pipe_[1]);
 
-            if (r == 0) {
-                kill(process_pid_, SIGKILL);
-                wait(NULL);
-            }
+        int status;
+        pid_t r = waitpid(process_pid_, &status, WNOHANG);
+
+        if (r == 0) {
+            kill(process_pid_, SIGKILL);
+            wait(NULL);
         }
     }
 
@@ -198,28 +201,29 @@ class Process : public IProcess {
 
                 // Iterate over each character in the buffer
                 for (int i = 0; i < bytesRead; i++) {
+                    // append the character to the current line
+                    if (buffer[i] != '\n') {
+                        currentLine += buffer[i];
+                        continue;
+                    }
+
                     // If we encounter a newline, add the current line to the vector and reset the
                     // currentLine
-                    if (buffer[i] == '\n') {
-                        // dont add empty lines
-                        if (!currentLine.empty()) {
-                            fast_chess::Logger::read(currentLine, std::this_thread::get_id(),
-                                                     log_name_);
-                            lines.emplace_back(currentLine);
-                            if (currentLine.rfind(last_word, 0) == 0) {
-                                return;
-                            }
-                            currentLine = "";
+                    // dont add empty lines
+                    if (!currentLine.empty()) {
+                        fast_chess::Logger::read(currentLine, std::this_thread::get_id(),
+                                                 log_name_);
+                        lines.emplace_back(currentLine);
+
+                        if (currentLine.rfind(last_word, 0) == 0) {
+                            return;
                         }
-                    }
-                    // Otherwise, append the character to the current line
-                    else {
-                        currentLine += buffer[i];
+
+                        currentLine = "";
                     }
                 }
             }
         }
-        return;
     }
 
     void writeProcess(const std::string &input) override {

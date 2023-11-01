@@ -65,12 +65,7 @@ void Match::start(const EngineConfiguration& engine1_config,
 
     start_position_ = board_.getFen() == constants::STARTPOS ? "startpos" : board_.getFen();
 
-    data_ = MatchData();
-
-    data_.fen = opening_.fen;
-
-    data_.start_time = Logger::getDateTime("%Y-%m-%dT%H:%M:%S %z");
-    data_.date       = Logger::getDateTime("%Y-%m-%d");
+    data_ = MatchData(opening_.fen);
 
     // Add opening moves to played moves
     const auto insert_move = [&](const auto& opening_move) {
@@ -170,8 +165,6 @@ bool Match::playMove(Participant& us, Participant& opponent) {
     us.engine.readEngine("bestmove", us.getTimeoutThreshold());
     const auto t1 = clock::now();
 
-    const auto elapsed_millis = chrono::duration_cast<chrono::milliseconds>(t1 - t0).count();
-
     if (atomic::stop) {
         data_.termination = MatchTermination::INTERRUPT;
 
@@ -179,6 +172,7 @@ bool Match::playMove(Participant& us, Participant& opponent) {
     }
 
     // Time forfeit
+    const auto elapsed_millis = chrono::duration_cast<chrono::milliseconds>(t1 - t0).count();
     if (!us.updateTime(elapsed_millis)) {
         setLose(us, opponent);
 
@@ -246,47 +240,50 @@ void Match::verifyPvLines(const Participant& us) {
     }
 }
 
-void Match::setDraw(Participant& us, Participant& them) {
+void Match::setDraw(Participant& us, Participant& them) noexcept {
     us.info.result   = GameResult::DRAW;
     them.info.result = GameResult::DRAW;
 }
 
-void Match::setWin(Participant& us, Participant& them) {
+void Match::setWin(Participant& us, Participant& them) noexcept {
     us.info.result   = GameResult::WIN;
     them.info.result = GameResult::LOSE;
 }
 
-void Match::setLose(Participant& us, Participant& them) {
+void Match::setLose(Participant& us, Participant& them) noexcept {
     us.info.result   = GameResult::LOSE;
     them.info.result = GameResult::WIN;
 }
 
-void Match::updateDrawTracker(const Participant& player) {
+void Match::updateDrawTracker(const Participant& player) noexcept {
     const auto score = player.engine.lastScore();
 
-    if (data_.moves.size() >= tournament_options_.draw.move_number &&
-        std::abs(score) <= tournament_options_.draw.score &&
-        player.engine.lastScoreType() == "cp") {
+    if (data_.moves.size() >= tournament_options_.draw.move_number  //
+        && std::abs(score) <= tournament_options_.draw.score        //
+        && player.engine.lastScoreType() == "cp"                    //
+    ) {
         draw_tracker_.draw_moves++;
     } else {
         draw_tracker_.draw_moves = 0;
     }
 }
 
-void Match::updateResignTracker(const Participant& player) {
+void Match::updateResignTracker(const Participant& player) noexcept {
     const auto score = player.engine.lastScore();
 
-    if (std::abs(score) >= tournament_options_.resign.score &&
-        player.engine.lastScoreType() == "cp") {
+    if (std::abs(score) >= tournament_options_.resign.score  //
+        && player.engine.lastScoreType() == "cp"             //
+    ) {
         resign_tracker_.resign_moves++;
     } else {
         resign_tracker_.resign_moves = 0;
     }
 }
 
-bool Match::adjudicate(Participant& us, Participant& them) {
-    if (tournament_options_.draw.enabled &&
-        draw_tracker_.draw_moves >= tournament_options_.draw.move_count) {
+bool Match::adjudicate(Participant& us, Participant& them) noexcept {
+    if (tournament_options_.draw.enabled                                    //
+        && draw_tracker_.draw_moves >= tournament_options_.draw.move_count  //
+    ) {
         setDraw(us, them);
 
         data_.termination = MatchTermination::ADJUDICATION;
@@ -296,7 +293,8 @@ bool Match::adjudicate(Participant& us, Participant& them) {
     }
 
     if (tournament_options_.resign.enabled &&
-        resign_tracker_.resign_moves >= tournament_options_.resign.move_count) {
+        resign_tracker_.resign_moves >= tournament_options_.resign.move_count  //
+    ) {
         data_.termination = MatchTermination::ADJUDICATION;
         data_.reason      = us.engine.getConfig().name;
 
@@ -314,19 +312,24 @@ bool Match::adjudicate(Participant& us, Participant& them) {
     return false;
 }
 
-std::string Match::convertChessReason(const std::string& engine_name, GameResultReason reason) {
+std::string Match::convertChessReason(const std::string& engine_name,
+                                      GameResultReason reason) noexcept {
     if (reason == GameResultReason::CHECKMATE) {
         return engine_name + Match::CHECKMATE_MSG;
     }
+
     if (reason == GameResultReason::STALEMATE) {
         return Match::STALEMATE_MSG;
     }
+
     if (reason == GameResultReason::INSUFFICIENT_MATERIAL) {
         return Match::INSUFFICIENT_MSG;
     }
+
     if (reason == GameResultReason::THREEFOLD_REPETITION) {
         return Match::REPETITION_MSG;
     }
+
     if (reason == GameResultReason::FIFTY_MOVE_RULE) {
         return Match::FIFTY_MSG;
     }

@@ -41,9 +41,9 @@ class Match {
    private:
     void verifyPvLines(const Participant& us);
 
-    static void setDraw(Participant& us, Participant& them);
-    static void setWin(Participant& us, Participant& them);
-    static void setLose(Participant& us, Participant& them);
+    static void setDraw(Participant& us, Participant& them) noexcept;
+    static void setWin(Participant& us, Participant& them) noexcept;
+    static void setLose(Participant& us, Participant& them) noexcept;
 
     /// @brief append the move data to the match data
     /// @param player
@@ -56,17 +56,17 @@ class Match {
     /// @return
     [[nodiscard]] bool playMove(Participant& us, Participant& opponent);
 
-    void updateDrawTracker(const Participant& player);
-    void updateResignTracker(const Participant& player);
+    void updateDrawTracker(const Participant& player) noexcept;
+    void updateResignTracker(const Participant& player) noexcept;
 
     /// @brief returns true if adjudicated
     /// @param us
     /// @param them
     /// @return
-    [[nodiscard]] bool adjudicate(Participant& us, Participant& them);
+    [[nodiscard]] bool adjudicate(Participant& us, Participant& them) noexcept;
 
     [[nodiscard]] static std::string convertChessReason(const std::string& engine_name,
-                                                        chess::GameResultReason reason);
+                                                        chess::GameResultReason reason) noexcept;
 
     MatchData data_                            = {};
     cmd::TournamentOptions tournament_options_ = {};

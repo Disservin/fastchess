@@ -59,6 +59,13 @@ struct MatchData {
     MatchTermination termination = MatchTermination::None;
 
     bool needs_restart = false;
+
+    MatchData() = default;
+
+    MatchData(const std::string& fen) : fen(fen) {
+        start_time = Logger::getDateTime("%Y-%m-%dT%H:%M:%S %z");
+        date       = Logger::getDateTime("%Y-%m-%d");
+    }
 };
 
 }  // namespace fast_chess

@@ -248,9 +248,8 @@ class Process : public IProcess {
 
     bool is_initalized_ = false;
     bool timeout_       = false;
-    _
 
-        pid_t process_pid_;
+    pid_t process_pid_;
     int in_pipe_[2], out_pipe_[2];
 };
 

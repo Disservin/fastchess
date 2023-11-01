@@ -5,6 +5,7 @@
 #include <string>
 #include <tuple>
 #include <vector>
+#include <optional>
 
 #include <helper.hpp>
 #include <types/enums.hpp>
@@ -68,17 +69,16 @@ struct EngineConfiguration {
 
     bool recover = false;
 
-    /// @brief Get the number of threads to use
-    /// @return
-    std::uint32_t threads() const {
+    template <typename T, typename Predicate>
+    std::optional<T> getOption(std::string_view name, Predicate transform) const {
         const auto it = std::find_if(options.begin(), options.end(),
-                                     [](const auto &option) { return option.first == "Threads"; });
+                                     [&name](const auto &option) { return option.first == name; });
 
         if (it != options.end()) {
-            return std::stoi(it->second);
+            return std::optional<T>(transform(it->second));
         }
 
-        return 1;
+        return std::nullopt;
     }
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(EngineConfiguration, name, dir, cmd, args, options,

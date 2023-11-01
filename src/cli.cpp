@@ -282,6 +282,20 @@ class Log : public Option {
         parseDashOptions(i, argc, argv, [&](const std::string &key, const std::string &value) {
             if (key == "file") {
                 Logger::openFile(value);
+            } else if (key == "level") {
+                if (value == "trace") {
+                    Logger::setLevel(Logger::Level::TRACE);
+                } else if (value == "warn") {
+                    Logger::setLevel(Logger::Level::WARN);
+                } else if (value == "info") {
+                    Logger::setLevel(Logger::Level::INFO);
+                } else if (value == "err") {
+                    Logger::setLevel(Logger::Level::ERR);
+                } else if (value == "fatal") {
+                    Logger::setLevel(Logger::Level::FATAL);
+                } else {
+                    OptionsParser::throwMissing("log level", key, value);
+                }
             } else {
                 OptionsParser::throwMissing("log", key, value);
             }

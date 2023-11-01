@@ -73,7 +73,7 @@ PgnBuilder::PgnBuilder(const MatchData &match, const cmd::TournamentOptions &tou
 }
 
 template <typename T>
-void PgnBuilder::addHeader(std::string_view name, const T &value) {
+void PgnBuilder::addHeader(std::string_view name, const T &value) noexcept {
     if constexpr (std::is_same_v<T, std::string>) {
         // don't add the header if it is an empty string
         if (value.empty()) {
@@ -83,7 +83,7 @@ void PgnBuilder::addHeader(std::string_view name, const T &value) {
     pgn_ << "[" << name << " \"" << value << "\"]\n";
 }
 
-std::string PgnBuilder::moveNotation(chess::Board &board, const std::string &move) const {
+std::string PgnBuilder::moveNotation(chess::Board &board, const std::string &move) const noexcept {
     if (game_options_.pgn.notation == NotationType::SAN) {
         return chess::uci::moveToSan(board, chess::uci::uciToMove(board, move));
     } else if (game_options_.pgn.notation == NotationType::LAN) {
@@ -94,7 +94,7 @@ std::string PgnBuilder::moveNotation(chess::Board &board, const std::string &mov
 }
 
 void PgnBuilder::addMove(chess::Board &board, const MoveData &move, std::size_t move_number,
-                         bool illegal) {
+                         bool illegal) noexcept {
     std::stringstream ss;
 
     ss << (move_number % 2 == 1 ? std::to_string(move_number / 2 + 1) + ". " : "");
@@ -112,7 +112,7 @@ void PgnBuilder::addMove(chess::Board &board, const MoveData &move, std::size_t 
     moves_.emplace_back(ss.str());
 }
 
-std::string PgnBuilder::getResultFromMatch(const MatchData &match) {
+std::string PgnBuilder::getResultFromMatch(const MatchData &match) noexcept {
     if (match.players.first.result == chess::GameResult::WIN) {
         return "1-0";
     } else if (match.players.second.result == chess::GameResult::WIN) {
@@ -122,7 +122,7 @@ std::string PgnBuilder::getResultFromMatch(const MatchData &match) {
     }
 }
 
-std::string PgnBuilder::convertMatchTermination(const MatchTermination &res) {
+std::string PgnBuilder::convertMatchTermination(const MatchTermination &res) noexcept {
     switch (res) {
         case MatchTermination::ADJUDICATION:
             return "adjudication";

@@ -12,14 +12,14 @@ class SPRT {
 
     SPRT(double alpha, double beta, double elo0, double elo1);
 
-    [[nodiscard]] bool isValid() const;
+    [[nodiscard]] bool isValid() const noexcept;
 
-    [[nodiscard]] static double getLL(double elo);
-    [[nodiscard]] double getLLR(int win, int draw, int loss) const;
+    [[nodiscard]] static double getLL(double elo) noexcept;
+    [[nodiscard]] double getLLR(int win, int draw, int loss) const noexcept;
 
-    [[nodiscard]] SPRTResult getResult(double llr) const;
-    [[nodiscard]] std::string getBounds() const;
-    [[nodiscard]] std::string getElo() const;
+    [[nodiscard]] SPRTResult getResult(double llr) const noexcept;
+    [[nodiscard]] std::string getBounds() const noexcept;
+    [[nodiscard]] std::string getElo() const noexcept;
 
    private:
     double lower_ = 0.0;

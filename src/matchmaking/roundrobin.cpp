@@ -175,9 +175,11 @@ void RoundRobin::updateSprtStatus(const std::vector<EngineConfiguration>& engine
 void RoundRobin::playGame(const std::pair<EngineConfiguration, EngineConfiguration>& configs,
                           start_callback start, finished_callback finish, const Opening& opening,
                           std::size_t game_id) {
-    auto match                = Match(tournament_options_, opening);
-    const auto first_threads  = configs.first.threads();
-    const auto second_threads = configs.second.threads();
+    auto match = Match(tournament_options_, opening);
+
+    constexpr auto transform  = [](const auto& val) { return std::stoi(val); };
+    const auto first_threads  = configs.first.getOption<int>("Threads", transform).value_or(1);
+    const auto second_threads = configs.second.getOption<int>("Threads", transform).value_or(1);
 
     // thread count in both configs has to be the same for affinity to work,
     // otherwise we set it to 0 and affinity is disabled

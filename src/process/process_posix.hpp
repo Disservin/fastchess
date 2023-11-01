@@ -116,7 +116,9 @@ class Process : public IProcess {
         }
     }
 
-    bool isAlive() override {
+    bool timeout() const override { return timeout_; }
+
+    bool isAlive() const override {
         assert(is_initalized_);
 
         int status;
@@ -154,7 +156,7 @@ class Process : public IProcess {
     /// @param last_word
     /// @param threshold_ms 0 means no timeout
     void readProcess(std::vector<std::string> &lines, std::string_view last_word,
-                     int64_t threshold_ms) override {
+                     std::chrono::milliseconds threshold) override {
         assert(is_initalized_);
 
         // Disable blocking
@@ -174,15 +176,16 @@ class Process : public IProcess {
         pollfds[0].events = POLLIN;
 
         // Set up the timeout for poll
-        int timeoutMillis = threshold_ms;
-        if (timeoutMillis <= 0) {
-            timeoutMillis = -1;  // wait indefinitely
+        auto timeoutMillis = threshold;
+        if (timeoutMillis.count() <= 0) {
+            // wait indefinitely
+            timeoutMillis = std::chrono::milliseconds(-1);
         }
 
         // Continue reading output lines until the line matches the specified line or a timeout
         // occurs
         while (true) {
-            const int ret = poll(pollfds, 1, timeoutMillis);
+            const int ret = poll(pollfds, 1, timeoutMillis.count());
 
             if (ret == -1) {
                 throw std::runtime_error("Error: poll() failed");
@@ -241,6 +244,11 @@ class Process : public IProcess {
     }
 
    private:
+    std::string log_name_;
+
+    bool is_initalized_ = false;
+    bool timeout_       = false;
+
     pid_t process_pid_;
     int in_pipe_[2], out_pipe_[2];
 };

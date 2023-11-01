@@ -11,9 +11,11 @@ Elo::Elo(int wins, int losses, int draws) {
     error_ = getError(wins, losses, draws);
 }
 
-double Elo::getDiff(double percentage) { return -400.0 * std::log10(1.0 / percentage - 1.0); }
+double Elo::percToEloDiff(double percentage) noexcept {
+    return -400.0 * std::log10(1.0 / percentage - 1.0);
+}
 
-double Elo::inverseError(double x) {
+double Elo::inverseError(double x) noexcept {
     constexpr double pi = 3.1415926535897;
 
     const double a = 8.0 * (pi - 3.0) / (3.0 * pi * (4.0 - pi));
@@ -26,9 +28,9 @@ double Elo::inverseError(double x) {
     return ret;
 }
 
-double Elo::phiInv(double p) { return std::sqrt(2.0) * inverseError(2.0 * p - 1.0); }
+double Elo::phiInv(double p) noexcept { return std::sqrt(2.0) * inverseError(2.0 * p - 1.0); }
 
-double Elo::getError(int wins, int losses, int draws) {
+double Elo::getError(int wins, int losses, int draws) noexcept {
     const double n    = wins + losses + draws;
     const double w    = wins / n;
     const double l    = losses / n;
@@ -42,18 +44,18 @@ double Elo::getError(int wins, int losses, int draws) {
 
     const double devMin = perc + phiInv(0.025) * stdev;
     const double devMax = perc + phiInv(0.975) * stdev;
-    return (getDiff(devMax) - getDiff(devMin)) / 2.0;
+    return (percToEloDiff(devMax) - percToEloDiff(devMin)) / 2.0;
 }
 
-double Elo::getDiff(int wins, int losses, int draws) {
+double Elo::getDiff(int wins, int losses, int draws) noexcept {
     const double n          = wins + losses + draws;
     const double score      = wins + draws / 2.0;
     const double percentage = (score / n);
 
-    return -400.0 * std::log10(1.0 / percentage - 1.0);
+    return percToEloDiff(percentage);
 }
 
-std::string Elo::getElo() const {
+std::string Elo::getElo() const noexcept {
     std::stringstream ss;
 
     ss << std::fixed << std::setprecision(2) << diff_;
@@ -62,14 +64,14 @@ std::string Elo::getElo() const {
     return ss.str();
 }
 
-std::string Elo::getLos(int wins, int losses) {
+std::string Elo::getLos(int wins, int losses) noexcept {
     const double los = (0.5 + 0.5 * std::erf((wins - losses) / std::sqrt(2.0 * (wins + losses))));
     std::stringstream ss;
     ss << std::fixed << std::setprecision(2) << los * 100.0 << " %";
     return ss.str();
 }
 
-std::string Elo::getDrawRatio(int wins, int losses, int draws) {
+std::string Elo::getDrawRatio(int wins, int losses, int draws) noexcept {
     const double n = wins + losses + draws;
     std::stringstream ss;
     ss << std::fixed << std::setprecision(2) << (draws / n) * 100.0 << " %";

@@ -9,7 +9,7 @@ namespace fast_chess {
 
 EngineConfiguration UciEngine::getConfig() const { return config_; }
 
-bool UciEngine::isResponsive(int64_t threshold) {
+bool UciEngine::isResponsive(std::chrono::milliseconds threshold) {
     if (!isAlive()) return false;
 
     writeEngine("isready");
@@ -43,7 +43,7 @@ void UciEngine::startEngine() {
 
     sendUci();
 
-    if (!readUci() && !isResponsive(60000)) {
+    if (!readUci() && !isResponsive(std::chrono::milliseconds(60000))) {
         throw std::runtime_error("Warning; Something went wrong when pinging the engine.");
     }
 
@@ -60,9 +60,9 @@ void UciEngine::startEngine() {
     }
 }
 
-void UciEngine::readEngine(std::string_view last_word, int64_t threshold_ms) {
+void UciEngine::readEngine(std::string_view last_word, std::chrono::milliseconds threshold) {
     try {
-        readProcess(output_, last_word, threshold_ms);
+        readProcess(output_, last_word, threshold);
     } catch (const std::exception &e) {
         Logger::log<Logger::Level::ERR>("Raised Exception in readProcess\nWarning; Engine",
                                         config_.name, "disconnects");

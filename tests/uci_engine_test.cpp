@@ -37,11 +37,11 @@ TEST_SUITE("Uci Engine Communication Tests") {
         bool timedout = false;
 
         uci_engine.writeEngine("sleep");
-        uci_engine.readEngine("done", 100);
+        uci_engine.readEngine("done", std::chrono::milliseconds(100));
         CHECK(uci_engine.timedout() == true);
 
         uci_engine.writeEngine("sleep");
-        uci_engine.readEngine("done", 5000);
+        uci_engine.readEngine("done", std::chrono::milliseconds(5000));
         CHECK(timedout == false);
         CHECK(uci_engine.output().size() == 1);
         CHECK(uci_engine.output()[0] == "done");
@@ -78,13 +78,13 @@ TEST_SUITE("Uci Engine Communication Tests") {
         CHECK(uci_engine.output()[0] == "readyok");
 
         uci_engine.writeEngine("sleep");
-        uci_engine.readEngine("done", 100);
+        uci_engine.readEngine("done", std::chrono::milliseconds(100));
         CHECK(uci_engine.timedout() == true);
 
         std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
         uci_engine.writeEngine("sleep");
-        uci_engine.readEngine("done", 5000);
+        uci_engine.readEngine("done", std::chrono::milliseconds(5000));
         CHECK(uci_engine.timedout() == false);
         CHECK(uci_engine.output().size() == 1);
         CHECK(uci_engine.output()[0] == "done");

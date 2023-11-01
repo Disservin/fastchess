@@ -38,7 +38,7 @@ class UciEngine : Process {
     /// @brief Sends "isready" to the engine and waits for a response.
     /// @param threshold
     /// @return
-    [[nodiscard]] bool isResponsive(int64_t threshold = ping_time_);
+    [[nodiscard]] bool isResponsive(std::chrono::milliseconds threshold = ping_time_);
 
     [[nodiscard]] EngineConfiguration getConfig() const;
 
@@ -48,9 +48,9 @@ class UciEngine : Process {
     /// @brief Waits for the engine to output the last_word or until the threshold_ms is reached.
     /// May throw if the read fails.
     /// @param last_word
-    /// @param threshold_ms 0 means no timeout
+    /// @param threshold 0 means no timeout
     /// @return
-    void readEngine(std::string_view last_word, int64_t threshold_ms = ping_time_);
+    void readEngine(std::string_view last_word, std::chrono::milliseconds threshold = ping_time_);
 
     /// @brief Writes the input to the engine. May throw if the write fails.
     /// @param input
@@ -80,7 +80,7 @@ class UciEngine : Process {
     [[nodiscard]] bool timedout() const;
 
     /// @brief TODO: expose this to the user
-    static const int64_t ping_time_ = 60000;
+    static constexpr std::chrono::milliseconds ping_time_ = std::chrono::milliseconds(60000);
 
    private:
     void loadConfig(const EngineConfiguration &config);

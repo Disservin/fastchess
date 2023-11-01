@@ -175,8 +175,6 @@ void RoundRobin::updateSprtStatus(const std::vector<EngineConfiguration>& engine
 void RoundRobin::playGame(const std::pair<EngineConfiguration, EngineConfiguration>& configs,
                           start_callback start, finished_callback finish, const Opening& opening,
                           std::size_t game_id) {
-    auto match = Match(tournament_options_, opening);
-
     constexpr auto transform  = [](const auto& val) { return std::stoi(val); };
     const auto first_threads  = configs.first.getOption<int>("Threads", transform).value_or(1);
     const auto second_threads = configs.second.getOption<int>("Threads", transform).value_or(1);
@@ -186,14 +184,17 @@ void RoundRobin::playGame(const std::pair<EngineConfiguration, EngineConfigurati
     const auto max_threads_for_affinity = first_threads == second_threads ? first_threads : 0;
     const auto core                     = cores_.consume(max_threads_for_affinity);
 
-    try {
-        start();
+    auto match = Match(tournament_options_, opening, core.cpus);
 
-        match.start(configs.first, configs.second, core.cpus);
+    start();
+
+    try {
+        match.start(configs.first, configs.second);
 
         while (match.get().needs_restart) {
-            match.start(configs.first, configs.second, core.cpus);
+            match.start(configs.first, configs.second);
         }
+
     } catch (const std::exception& e) {
         Logger::log<Logger::Level::ERR>("Exception RoundRobin::playGame: " + std::string(e.what()));
 

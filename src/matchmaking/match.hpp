@@ -25,21 +25,22 @@ struct ResignTracker {
 
 class Match {
    public:
-    Match(const cmd::TournamentOptions& game_config, const Opening& opening) {
-        tournament_options_ = game_config;
-
-        opening_ = opening;
-    }
+    Match(const cmd::TournamentOptions& game_config, const Opening& opening,
+          const std::vector<int>& cpus)
+        : tournament_options_(game_config), opening_(opening), cpus_(cpus) {}
 
     /// @brief starts the match
-    void start(const EngineConfiguration& engine1_config, const EngineConfiguration& engine2_config,
-               const std::vector<int>& cpus);
+    void start(const EngineConfiguration& engine1_config,
+               const EngineConfiguration& engine2_config);
 
     /// @brief returns the match data, only valid after the match has finished
     [[nodiscard]] MatchData get() const { return data_; }
 
    private:
     void verifyPvLines(const Participant& us);
+
+    /// @brief Add opening moves to played moves
+    void prepareOpening();
 
     static void setDraw(Participant& us, Participant& them) noexcept;
     static void setWin(Participant& us, Participant& them) noexcept;
@@ -68,18 +69,19 @@ class Match {
     [[nodiscard]] static std::string convertChessReason(const std::string& engine_name,
                                                         chess::GameResultReason reason) noexcept;
 
-    MatchData data_                            = {};
-    cmd::TournamentOptions tournament_options_ = {};
-    chess::Board board_                        = chess::Board();
+    const cmd::TournamentOptions& tournament_options_;
+    const Opening& opening_;
+    const std::vector<int>& cpus_;
 
-    Opening opening_;
+    MatchData data_     = {};
+    chess::Board board_ = chess::Board();
+
+    DrawTacker draw_tracker_      = {};
+    ResignTracker resign_tracker_ = {};
 
     // start position, required for the uci position command
     // is either startpos or the fen of the opening
     std::string start_position_;
-
-    DrawTacker draw_tracker_      = {};
-    ResignTracker resign_tracker_ = {};
 
     inline static constexpr char INSUFFICIENT_MSG[]      = "Draw by insufficient material";
     inline static constexpr char REPETITION_MSG[]        = "Draw by 3-fold repetition";

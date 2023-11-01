@@ -58,16 +58,12 @@ void Match::addMoveData(Participant& player, int64_t measured_time) {
     data_.moves.push_back(move_data);
 }
 
-void Match::start(const EngineConfiguration& engine1_config,
-                  const EngineConfiguration& engine2_config, const std::vector<int>& cpus) {
+void Match::prepareOpening() {
     board_.set960(tournament_options_.variant == VariantType::FRC);
     board_.setFen(opening_.fen);
 
-    start_position_ = board_.getFen() == constants::STARTPOS ? "startpos" : board_.getFen();
+    start_position_ = board_.getFen() == chess::constants::STARTPOS ? "startpos" : board_.getFen();
 
-    data_ = MatchData(opening_.fen);
-
-    // Add opening moves to played moves
     const auto insert_move = [&](const auto& opening_move) {
         const auto move = uci::moveToUci(opening_move, board_.chess960());
         board_.makeMove(opening_move);
@@ -75,14 +71,21 @@ void Match::start(const EngineConfiguration& engine1_config,
         return MoveData(move, "0.00", 0, 0, 0, 0, 0);
     };
 
+    data_ = MatchData(opening_.fen);
+
     std::transform(opening_.moves.begin(), opening_.moves.end(), std::back_inserter(data_.moves),
                    insert_move);
+}
+
+void Match::start(const EngineConfiguration& engine1_config,
+                  const EngineConfiguration& engine2_config) {
+    prepareOpening();
 
     draw_tracker_   = DrawTacker();
     resign_tracker_ = ResignTracker();
 
-    Participant player_1 = Participant(engine1_config, cpus);
-    Participant player_2 = Participant(engine2_config, cpus);
+    Participant player_1 = Participant(engine1_config, cpus_);
+    Participant player_2 = Participant(engine2_config, cpus_);
 
     player_1.engine.startEngine();
     player_2.engine.startEngine();

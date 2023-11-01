@@ -1,9 +1,5 @@
 #include <matchmaking/result.hpp>
 
-#include <cassert>
-#include <chrono>
-#include <thread>
-
 #include "doctest/doctest.hpp"
 
 namespace fast_chess {

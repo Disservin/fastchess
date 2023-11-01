@@ -64,16 +64,16 @@ class Process : public IProcess {
         child_std_in_  = childStdInWr;
 
         // set process affinity
-        if (cpus.size()) {
+        if (!cpus.empty()) {
             affinity::set_affinity(cpus, pi_.hProcess);
         }
 
         fast_chess::pid_list.push(pi_.hProcess);
     }
 
-    bool timeout() const override { return timeout_; }
+    [[nodiscard]] bool timeout() const override { return timeout_; }
 
-    bool isAlive() const override {
+    [[nodiscard]] bool isAlive() const override {
         assert(is_initalized_);
         DWORD exitCode = 0;
         GetExitCodeProcess(pi_.hProcess, &exitCode);
@@ -184,8 +184,6 @@ class Process : public IProcess {
                 }
             }
         }
-
-        return;
     }
 
     void writeProcess(const std::string &input) override {

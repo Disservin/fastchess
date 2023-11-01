@@ -1,9 +1,5 @@
 #include <pgn_reader.hpp>
 
-#include <cassert>
-#include <chrono>
-#include <thread>
-
 #include <third_party/chess.hpp>
 #include "doctest/doctest.hpp"
 
@@ -29,7 +25,7 @@ TEST_SUITE("PGN Reader") {
         CHECK(games[4].moves.size() == 0);
         CHECK(games[5].moves.size() == 0);
 
-        auto convert = [](std::vector<std::string> moves) {
+        auto convert = [](const std::vector<std::string> &moves) {
             chess::Board board;
             std::vector<std::string> uci_moves;
             for (const auto& move : moves) {

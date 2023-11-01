@@ -16,9 +16,9 @@ class IProcess {
 
     /// @brief Returns true if the process is alive
     /// @return
-    virtual bool isAlive() const = 0;
+    [[nodiscard]] virtual bool isAlive() const = 0;
 
-    virtual bool timeout() const = 0;
+    [[nodiscard]] virtual bool timeout() const = 0;
 
    protected:
     /// @brief Read stdout until the line matches last_word or timeout is reached

@@ -41,7 +41,7 @@ void uci_line(Board &board, const std::string &line) {
                 if (tokens[i] == "moves") {
                     i++;
                     break;
-                };
+                }
                 fen += std::string(tokens[i]) + " ";
             }
 

@@ -25,7 +25,7 @@ Source: https://github.com/Disservin/chess-library
 */
 
 /*
-VERSION: 0.5.11
+VERSION: 0.5.13
 */
 
 #ifndef CHESS_HPP
@@ -1414,8 +1414,8 @@ class Board {
     [[nodiscard]] Color sideToMove() const { return side_to_move_; }
     [[nodiscard]] Square enpassantSq() const { return enpassant_sq_; }
     [[nodiscard]] CastlingRights castlingRights() const { return castling_rights_; }
-    [[nodiscard]] int halfMoveClock() const { return half_moves_; }
-    [[nodiscard]] int fullMoveNumber() const { return 1 + plies_played_ / 2; }
+    [[nodiscard]] std::uint32_t halfMoveClock() const { return half_moves_; }
+    [[nodiscard]] std::uint32_t fullMoveNumber() const { return 1 + plies_played_ / 2; }
 
     void set960(bool is960) {
         chess960_ = is960;
@@ -1661,31 +1661,29 @@ inline void Board::setFenInternal(std::string_view fen) {
 inline void Board::setFen(std::string_view fen) { setFenInternal(fen); }
 
 inline std::string Board::getFen(bool move_counters) const {
-    std::stringstream ss;
+    std::string ss;
+    ss.reserve(100);
 
     // Loop through the ranks of the board in reverse order
     for (int rank = 7; rank >= 0; rank--) {
-        int free_space = 0;
+        std::uint32_t free_space = 0;
 
         // Loop through the files of the board
         for (int file = 0; file < 8; file++) {
             // Calculate the square index
             const int sq = rank * 8 + file;
 
-            // Get the piece at the current square
-            const Piece piece = at(Square(sq));
-
             // If there is a piece at the current square
-            if (piece != Piece::NONE) {
+            if (Piece piece = at(Square(sq)); piece != Piece::NONE) {
                 // If there were any empty squares before this piece,
                 // append the number of empty squares to the FEN string
                 if (free_space) {
-                    ss << free_space;
+                    ss += std::to_string(free_space);
                     free_space = 0;
                 }
 
                 // Append the character representing the piece to the FEN string
-                ss << pieceToChar(piece);
+                ss += pieceToChar(piece);
             } else {
                 // If there is no piece at the current square, increment the
                 // counter for the number of empty squares
@@ -1696,32 +1694,41 @@ inline std::string Board::getFen(bool move_counters) const {
         // If there are any empty squares at the end of the rank,
         // append the number of empty squares to the FEN string
         if (free_space != 0) {
-            ss << free_space;
+            ss += std::to_string(free_space);
         }
 
         // Append a "/" character to the FEN string, unless this is the last rank
-        ss << (rank > 0 ? "/" : "");
+        ss += (rank > 0 ? "/" : "");
     }
 
     // Append " w " or " b " to the FEN string, depending on which player's turn it is
-    ss << (side_to_move_ == Color::WHITE ? " w " : " b ");
+    ss += ' ';
+    ss += (side_to_move_ == Color::WHITE ? 'w' : 'b');
+    ss += ' ';
 
     // Append the appropriate characters to the FEN string to indicate
     // whether castling is allowed for each player
-    ss << getCastleString();
-    if (castling_rights_.isEmpty()) ss << "-";
+    ss += getCastleString();
+    if (castling_rights_.isEmpty()) ss += '-';
 
     // Append information about the en passant square (if any)
     // and the half-move clock and full move number to the FEN string
     if (enpassant_sq_ == NO_SQ)
-        ss << " - ";
-    else
-        ss << " " << squareToString[enpassant_sq_] << " ";
+        ss += " - ";
+    else {
+        ss += ' ';
+        ss += squareToString[enpassant_sq_];
+        ss += ' ';
+    }
 
-    if (move_counters) ss << halfMoveClock() << " " << fullMoveNumber();
+    if (move_counters) {
+        ss += std::to_string(halfMoveClock());
+        ss += ' ';
+        ss += std::to_string(fullMoveNumber());
+    }
 
     // Return the resulting FEN string
-    return ss.str();
+    return ss;
 }
 
 inline U64 Board::zobrist() const {
@@ -1773,29 +1780,35 @@ inline std::ostream &operator<<(std::ostream &os, const Board &b) {
 }
 
 inline std::string Board::getCastleString() const {
-    std::stringstream ss;
+    std::string ss;
+
+    constexpr auto convert = [](Color c, File file) {
+        return c == Color::WHITE ? char(file) + 65 : char(file) + 97;
+    };
+
+    const auto get_file = [&](Color c, CastleSide side) {
+        return c == Color::WHITE
+                   ? convert(Color::WHITE, castling_rights_.getRookFile(Color::WHITE, side))
+                   : convert(Color::WHITE, castling_rights_.getRookFile(Color::BLACK, side));
+    };
 
     if (chess960_) {
         if (castling_rights_.hasCastlingRight(Color::WHITE, CastleSide::KING_SIDE))
-            ss << char(char(castling_rights_.getRookFile(Color::WHITE, CastleSide::KING_SIDE)) +
-                       65);
+            ss += get_file(Color::WHITE, CastleSide::KING_SIDE);
         if (castling_rights_.hasCastlingRight(Color::WHITE, CastleSide::QUEEN_SIDE))
-            ss << char(char(castling_rights_.getRookFile(Color::WHITE, CastleSide::QUEEN_SIDE)) +
-                       65);
+            ss += get_file(Color::WHITE, CastleSide::QUEEN_SIDE);
         if (castling_rights_.hasCastlingRight(Color::BLACK, CastleSide::KING_SIDE))
-            ss << char(char(castling_rights_.getRookFile(Color::BLACK, CastleSide::KING_SIDE)) +
-                       97);
+            ss += get_file(Color::BLACK, CastleSide::KING_SIDE);
         if (castling_rights_.hasCastlingRight(Color::BLACK, CastleSide::QUEEN_SIDE))
-            ss << char(char(castling_rights_.getRookFile(Color::BLACK, CastleSide::QUEEN_SIDE)) +
-                       97);
+            ss += get_file(Color::BLACK, CastleSide::QUEEN_SIDE);
     } else {
-        if (castling_rights_.hasCastlingRight(Color::WHITE, CastleSide::KING_SIDE)) ss << "K";
-        if (castling_rights_.hasCastlingRight(Color::WHITE, CastleSide::QUEEN_SIDE)) ss << "Q";
-        if (castling_rights_.hasCastlingRight(Color::BLACK, CastleSide::KING_SIDE)) ss << "k";
-        if (castling_rights_.hasCastlingRight(Color::BLACK, CastleSide::QUEEN_SIDE)) ss << "q";
+        if (castling_rights_.hasCastlingRight(Color::WHITE, CastleSide::KING_SIDE)) ss += 'K';
+        if (castling_rights_.hasCastlingRight(Color::WHITE, CastleSide::QUEEN_SIDE)) ss += 'Q';
+        if (castling_rights_.hasCastlingRight(Color::BLACK, CastleSide::KING_SIDE)) ss += 'k';
+        if (castling_rights_.hasCastlingRight(Color::BLACK, CastleSide::QUEEN_SIDE)) ss += 'q';
     }
 
-    return ss.str();
+    return ss;
 }
 
 inline bool Board::isRepetition(int count) const {
@@ -3226,42 +3239,39 @@ inline void parseSanInfo(SanMoveInformation &info, std::string_view san) noexcep
                (!info.castling_short && !info.castling_long));
     };
 
+    constexpr auto isRank = [](char c) { return c >= '1' && c <= '8'; };
+    constexpr auto isFile = [](char c) { return c >= 'a' && c <= 'h'; };
+
     // set to 1 to skip piece type offset
     std::size_t index = 1;
 
-    switch (san[0]) {
-        case 'N':
-            info.piece = PieceType::KNIGHT;
-            break;
-        case 'B':
-            info.piece = PieceType::BISHOP;
-            break;
-        case 'R':
-            info.piece = PieceType::ROOK;
-            break;
-        case 'Q':
-            info.piece = PieceType::QUEEN;
-            break;
-        case 'K':
-            info.piece = PieceType::KING;
-            break;
-        case 'O':
-            parse_castle(san, info, 'O');
-            return;
-
-        case '0':
-            parse_castle(san, info, '0');
-            return;
-
-        default:
-            // remove piece type offset
-            index--;
-            info.piece = PieceType::PAWN;
-            break;
+    if (san[0] == 'O' || san[0] == '0') {
+        parse_castle(san, info, san[0]);
+        return;
+    } else if (isFile(san[0])) {
+        index--;
+        info.piece = PieceType::PAWN;
+    } else {
+        switch (san[0]) {
+            case 'N':
+                info.piece = PieceType::KNIGHT;
+                break;
+            case 'B':
+                info.piece = PieceType::BISHOP;
+                break;
+            case 'R':
+                info.piece = PieceType::ROOK;
+                break;
+            case 'Q':
+                info.piece = PieceType::QUEEN;
+                break;
+            case 'K':
+                info.piece = PieceType::KING;
+                break;
+            default:
+                break;
+        }
     }
-
-    constexpr auto isRank = [](char c) { return c >= '1' && c <= '8'; };
-    constexpr auto isFile = [](char c) { return c >= 'a' && c <= 'h'; };
 
     File file_to = File::NO_FILE;
     Rank rank_to = Rank::NO_RANK;
@@ -3486,13 +3496,7 @@ class Visitor {
 
 class StreamParser {
    public:
-    StreamParser(std::istream &stream) : stream_buffer(stream) {
-        header.first.reserve(256);
-        header.second.reserve(256);
-
-        move.reserve(16);
-        comment.reserve(256);
-    }
+    StreamParser(std::istream &stream) : stream_buffer(stream) {}
 
     void readGames(Visitor &vis) {
         this->visitor = &vis;
@@ -3513,11 +3517,34 @@ class StreamParser {
                 return;
             }
 
-            processNextByte(c.value());
+            processNextByte(*c);
         }
     }
 
    private:
+    class LineBuffer {
+       public:
+        bool empty() const { return index_ == 0; }
+
+        void clear() { index_ = 0; }
+
+        std::string_view get() const { return std::string_view(buffer_.data(), index_); }
+
+        void operator+=(char c) {
+            if (index_ < N) {
+                buffer_[index_++] = c;
+            } else {
+                throw std::runtime_error("LineBuffer overflow");
+            }
+        }
+
+       private:
+        // PGN lines are limited to 255 characters
+        static constexpr int N      = 255;
+        std::array<char, N> buffer_ = {};
+        std::size_t index_          = 0;
+    };
+
     class StreamBuffer {
        private:
         static constexpr std::size_t N = 512;
@@ -3529,9 +3556,8 @@ class StreamParser {
         std::optional<char> get() {
             if (buffer_index_ == bytes_read_) {
                 const auto ret = fill();
-                return ret.has_value() && ret.value()
-                           ? std::optional<char>(buffer_[buffer_index_++])
-                           : std::nullopt;
+                return ret.has_value() && *ret ? std::optional<char>(buffer_[buffer_index_++])
+                                               : std::nullopt;
             }
 
             return buffer_[buffer_index_++];
@@ -3562,9 +3588,9 @@ class StreamParser {
                     return false;
                 }
 
-                if (ret.value() == open_delim) {
+                if (*ret == open_delim) {
                     stack++;
-                } else if (ret.value() == close_delim) {
+                } else if (*ret == close_delim) {
                     if (stack == 0) {
                         // Mismatched closing delimiter
                         return false;
@@ -3616,7 +3642,7 @@ class StreamParser {
 
     void callVisitorMoveFunction() {
         if (!move.empty()) {
-            if (!visitor->skip()) visitor->move(move, comment);
+            if (!visitor->skip()) visitor->move(move.get(), comment.get());
 
             move.clear();
             comment.clear();
@@ -3625,9 +3651,9 @@ class StreamParser {
 
     void processNextByte(const char c) {
         // save the last three characters across different buffers
-        cbuf[2] = cbuf[1];
-        cbuf[1] = cbuf[0];
-        cbuf[0] = c;
+        c3 = c2;
+        c2 = c1;
+        c1 = c;
 
         // skip carriage return
         if (c == '\r') {
@@ -3706,7 +3732,7 @@ class StreamParser {
                 reading_value = false;
                 in_header     = false;
 
-                if (!visitor->skip()) visitor->header(header.first, header.second);
+                if (!visitor->skip()) visitor->header(header.first.get(), header.second.get());
 
                 header.first.clear();
                 header.second.clear();
@@ -3745,13 +3771,15 @@ class StreamParser {
 
                 // O-O(-O) castling moves are caught by isLetter(c), and we need to distinguish
                 // 0-0(-0) castling moves from results like 1-0 and 0-1.
-                if (isLetter(c) || (c == '0' && cbuf[1] == '-' && cbuf[2] == '0')) {
+                if (isLetter(c) || (c == '0' && c2 == '-' && c3 == '0')) {
                     callVisitorMoveFunction();
 
                     reading_move = true;
 
                     if (c == '0') {
-                        move += "0-0";
+                        move += '0';
+                        move += '-';
+                        move += '0';
                     } else {
                         move += c;
                     }
@@ -3770,13 +3798,16 @@ class StreamParser {
     Visitor *visitor = nullptr;
 
     // one time allocations
-    std::pair<std::string, std::string> header;
+    std::pair<LineBuffer, LineBuffer> header;
 
-    std::string move;
-    std::string comment;
+    // std::string move;
+    LineBuffer move;
+    LineBuffer comment;
 
     // buffer for the last two characters, cbuf[0] is the current character
-    std::array<char, 3> cbuf = {'\0', '\0', '\0'};
+    char c3 = '\0';
+    char c2 = '\0';
+    char c1 = '\0';
 
     // State
 

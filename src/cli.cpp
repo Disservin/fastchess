@@ -296,7 +296,7 @@ class Config : public Option {
             if (key == "file") {
                 loadJson(argument_data, value);
             } else if (key == "discard" && value == "true") {
-                Logger::cout("Discarding config file");
+                Logger::log<Logger::Level::INFO>("Discarding config file");
                 argument_data.tournament_options = argument_data.old_tournament_options;
                 argument_data.configs            = argument_data.old_configs;
                 argument_data.stats.clear();
@@ -306,7 +306,7 @@ class Config : public Option {
 
    private:
     static void loadJson(ArgumentData &argument_data, const std::string &filename) {
-        std::cout << "Loading config file: " << filename << std::endl;
+        Logger::log<Logger::Level::INFO>("Loading config file: ", filename);
         std::ifstream f(filename);
         json jsonfile = json::parse(f);
 

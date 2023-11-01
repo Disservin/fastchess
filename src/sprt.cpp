@@ -19,9 +19,9 @@ SPRT::SPRT(double alpha, double beta, double elo0, double elo1) {
         elo0_ = elo0;
         elo1_ = elo1;
 
-        Logger::cout("Initialized valid SPRT configuration.");
+        Logger::log<Logger::Level::INFO>("Initialized valid SPRT configuration.");
     } else if (!(alpha == 0.0 && beta == 0.0 && elo0 == 0.0 && elo1 == 0.0)) {
-        Logger::cout("No valid SPRT configuration was found!");
+        Logger::log<Logger::Level::INFO>("No valid SPRT configuration was found!");
     }
 }
 

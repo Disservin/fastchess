@@ -171,7 +171,7 @@ class Process : public IProcess {
                 if (!currentLine.empty()) {
                     // logging will significantly slowdown the reading and lead to engine
                     // timeouts
-                    fast_chess::Logger::read(currentLine, std::this_thread::get_id(), log_name_);
+                    fast_chess::Logger::readFromEngine(currentLine, log_name_);
 
                     lines.emplace_back(currentLine);
 
@@ -189,7 +189,7 @@ class Process : public IProcess {
 
     void writeProcess(const std::string &input) override {
         assert(is_initalized_);
-        fast_chess::Logger::write(input, std::this_thread::get_id(), log_name_);
+        fast_chess::Logger::writeToEngine(input, log_name_);
 
         if (!isAlive()) {
             killProcess();

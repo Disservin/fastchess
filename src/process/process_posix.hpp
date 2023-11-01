@@ -211,8 +211,7 @@ class Process : public IProcess {
                     // currentLine
                     // dont add empty lines
                     if (!currentLine.empty()) {
-                        fast_chess::Logger::read(currentLine, std::this_thread::get_id(),
-                                                 log_name_);
+                        fast_chess::Logger::readFromEngine(currentLine, log_name_);
                         lines.emplace_back(currentLine);
 
                         if (currentLine.rfind(last_word, 0) == 0) {
@@ -228,7 +227,7 @@ class Process : public IProcess {
 
     void writeProcess(const std::string &input) override {
         assert(is_initalized_);
-        fast_chess::Logger::write(input, std::this_thread::get_id(), log_name_);
+        fast_chess::Logger::writeToEngine(input, log_name_);
 
         if (!isAlive()) {
             throw std::runtime_error("IProcess is not alive and write occured with message: " +

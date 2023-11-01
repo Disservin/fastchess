@@ -179,7 +179,7 @@ class Process : public IProcess {
         auto timeoutMillis = threshold;
         if (timeoutMillis.count() <= 0) {
             // wait indefinitely
-            timeoutMillis = std::chrono::duration_cast<std::chrono::milliseconds>(-1);
+            timeoutMillis = std::chrono::milliseconds(-1);
         }
 
         // Continue reading output lines until the line matches the specified line or a timeout

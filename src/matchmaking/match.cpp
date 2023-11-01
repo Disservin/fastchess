@@ -1,5 +1,7 @@
 #include <matchmaking/match.hpp>
 
+#include <algorithm>
+
 #include <helper.hpp>
 #include <util/logger.hpp>
 
@@ -25,7 +27,6 @@ void Match::addMoveData(Participant& player, int64_t measured_time) {
 
     if (player.engine.output().size() <= 1) {
         data_.moves.push_back(move_data);
-        played_moves_.push_back(best_move);
         return;
     }
 
@@ -55,7 +56,6 @@ void Match::addMoveData(Participant& player, int64_t measured_time) {
     verifyPvLines(player);
 
     data_.moves.push_back(move_data);
-    played_moves_.push_back(best_move);
 }
 
 void Match::start(const EngineConfiguration& engine1_config,
@@ -65,12 +65,6 @@ void Match::start(const EngineConfiguration& engine1_config,
 
     start_position_ = board_.getFen() == constants::STARTPOS ? "startpos" : board_.getFen();
 
-    std::vector<std::string> uci_moves;
-    for (const auto& move : opening_.moves) {
-        uci_moves.push_back(uci::moveToUci(move, board_.chess960()));
-        board_.makeMove(move);
-    }
-
     data_ = MatchData();
 
     data_.fen = opening_.fen;
@@ -78,16 +72,19 @@ void Match::start(const EngineConfiguration& engine1_config,
     data_.start_time = Logger::getDateTime("%Y-%m-%dT%H:%M:%S %z");
     data_.date       = Logger::getDateTime("%Y-%m-%d");
 
-    for (const auto& move : uci_moves) {
-        data_.moves.push_back(MoveData(move, "0.00", 0, 0, 0, 0, 0));
-    }
+    // Add opening moves to played moves
+    const auto insert_move = [&](const auto& opening_move) {
+        const auto move = uci::moveToUci(opening_move, board_.chess960());
+        board_.makeMove(opening_move);
+
+        return MoveData(move, "0.00", 0, 0, 0, 0, 0);
+    };
+
+    std::transform(opening_.moves.begin(), opening_.moves.end(), std::back_inserter(data_.moves),
+                   insert_move);
 
     draw_tracker_   = DrawTacker();
     resign_tracker_ = ResignTracker();
-
-    // Add opening moves to played moves
-    played_moves_.clear();
-    played_moves_.insert(played_moves_.end(), uci_moves.begin(), uci_moves.end());
 
     Participant player_1 = Participant(engine1_config, cpus);
     Participant player_2 = Participant(engine2_config, cpus);
@@ -160,7 +157,11 @@ bool Match::playMove(Participant& us, Participant& opponent) {
     }
 
     // write new uci position
-    us.engine.writeEngine(Participant::buildPositionInput(played_moves_, start_position_));
+    std::vector<std::string> uci_moves;
+    std::transform(data_.moves.begin(), data_.moves.end(), std::back_inserter(uci_moves),
+                   [](const MoveData& data) { return data.move; });
+
+    us.engine.writeEngine(Participant::buildPositionInput(uci_moves, start_position_));
     // write go command
     us.engine.writeEngine(us.buildGoInput(board_.sideToMove(), opponent.getTimeControl()));
 
@@ -263,7 +264,7 @@ void Match::setLose(Participant& us, Participant& them) {
 void Match::updateDrawTracker(const Participant& player) {
     const auto score = player.engine.lastScore();
 
-    if (played_moves_.size() >= tournament_options_.draw.move_number &&
+    if (data_.moves.size() >= tournament_options_.draw.move_number &&
         std::abs(score) <= tournament_options_.draw.score &&
         player.engine.lastScoreType() == "cp") {
         draw_tracker_.draw_moves++;

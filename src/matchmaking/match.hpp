@@ -78,10 +78,6 @@ class Match {
     // is either startpos or the fen of the opening
     std::string start_position_;
 
-    // keeps track of the moves played in the match, required for the
-    // uci position command
-    std::vector<std::string> played_moves_;
-
     DrawTacker draw_tracker_      = {};
     ResignTracker resign_tracker_ = {};
 

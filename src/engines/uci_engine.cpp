@@ -64,8 +64,8 @@ void UciEngine::readEngine(std::string_view last_word, int64_t threshold_ms) {
     try {
         readProcess(output_, last_word, threshold_ms);
     } catch (const std::exception &e) {
-        Logger::cout("Raised Exception in readProcess\nWarning; Engine", config_.name,
-                     "disconnects");
+        Logger::log<Logger::Level::ERR>("Raised Exception in readProcess\nWarning; Engine",
+                                        config_.name, "disconnects");
         throw e;
     }
 }
@@ -74,8 +74,8 @@ void UciEngine::writeEngine(const std::string &input) {
     try {
         writeProcess(input + "\n");
     } catch (const std::exception &e) {
-        Logger::cout("Raised Exception in writeProcess\nWarning; Engine", config_.name,
-                     "disconnects");
+        Logger::log<Logger::Level::ERR>("Raised Exception in writeProcess\nWarning; Engine",
+                                        config_.name, "disconnects");
 
         throw e;
     }
@@ -86,7 +86,7 @@ std::string UciEngine::bestmove() const {
                                                         "bestmove");
 
     if (!bm.has_value()) {
-        Logger::cout("Warning; Could not extract bestmove.");
+        Logger::log<Logger::Level::WARN>("Warning; Could not extract bestmove.");
         return "aaaa";
     }
 
@@ -95,8 +95,7 @@ std::string UciEngine::bestmove() const {
 
 std::vector<std::string> UciEngine::lastInfo() const {
     if (output_.size() < 2) {
-        // silence for now
-        // Logger::cout("Warning; Could not extract last uci info line.");
+        Logger::log<Logger::Level::WARN>("Warning; Could not extract last uci info line.");
         return {};
     }
 

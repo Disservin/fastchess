@@ -1,61 +1,50 @@
 #include <util/logger.hpp>
 
 #include <iomanip>
+#include <thread>
 
 namespace fast_chess {
 
 std::atomic_bool Logger::should_log_ = false;
 std::ofstream Logger::log_;
 std::mutex Logger::log_mutex_;
+Logger::Level Logger::level_ = Logger::Level::WARN;
 
 void Logger::openFile(const std::string &file) {
     Logger::log_.open(file, std::ios::app);
     Logger::should_log_ = true;
 }
 
-void Logger::write(const std::string &msg, std::thread::id thread, const std::string &name) {
-    if (!Logger::should_log_) {
+void Logger::setLevel(Level level) { Logger::level_ = level; }
+
+void Logger::writeToEngine(const std::string &msg, const std::string &name) {
+    if (!should_log_) {
         return;
     }
 
-    // Acquire the lock
-    const std::lock_guard<std::mutex> lock(Logger::log_mutex_);
-
     std::stringstream ss;
     ss << "[" << getDateTime("%H:%M:%S") << "] "
-       << " <" << std::setw(3) << thread << "> " << name << " <--- " << msg << std::endl;
+       << " <" << std::setw(3) << std::this_thread::get_id() << "> " << name << " <--- " << msg
+       << std::endl;
 
-    Logger::log_ << ss.str() << std::flush;
+    // Acquire the lock
+    const std::lock_guard<std::mutex> lock(log_mutex_);
+    log_ << ss.str() << std::flush;
 }
 
-void Logger::read(const std::string &msg, std::thread::id thread, const std::string &name) {
-    if (!Logger::should_log_) {
+void Logger::readFromEngine(const std::string &msg, const std::string &name) {
+    if (!should_log_) {
         return;
     }
 
-    // Acquire the lock
-    const std::lock_guard<std::mutex> lock(Logger::log_mutex_);
-
     std::stringstream ss;
     ss << "[" << getDateTime("%H:%M:%S") << "] "
-       << " <" << std::setw(3) << thread << "> " << name << " ---> " << msg << std::endl;
-
-    Logger::log_ << ss.str() << std::flush;
-}
-
-void Logger::error(const std::string &msg, std::thread::id thread, const std::string &name) {
-    if (!Logger::should_log_) {
-        return;
-    }
+       << " <" << std::setw(3) << std::this_thread::get_id() << "> " << name << " ---> " << msg
+       << std::endl;
 
     // Acquire the lock
-    const std::lock_guard<std::mutex> lock(Logger::log_mutex_);
-
-    std::stringstream ss;
-    ss << "[" << getDateTime("%H:%M:%S") << "] "
-       << " <" << std::setw(3) << thread << "> " << name << " !!! " << msg << std::endl;
-
-    Logger::log_ << ss.str() << std::flush;
+    const std::lock_guard<std::mutex> lock(log_mutex_);
+    log_ << ss.str() << std::flush;
 }
 
 std::string Logger::getDateTime(const std::string &format) {

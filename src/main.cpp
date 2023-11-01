@@ -34,22 +34,22 @@ void setCtrlCHandler();
 int main(int argc, char const *argv[]) {
     setCtrlCHandler();
 
-    Logger::debug("Reading options...");
+    Logger::log<Logger::Level::TRACE>("Reading options...");
     Options = std::make_unique<cmd::OptionsParser>(argc, argv);
 
-    Logger::debug("Creating tournament...");
+    Logger::log<Logger::Level::TRACE>("Creating tournament...");
     Tour = std::make_unique<Tournament>(Options->getGameOptions());
 
-    Logger::debug("Setting results...");
+    Logger::log<Logger::Level::TRACE>("Setting results...");
     Tour->roundRobin()->setResults(Options->getResults());
 
-    Logger::debug("Starting tournament...");
+    Logger::log<Logger::Level::TRACE>("Starting tournament...");
     Tour->start(Options->getEngineConfigs());
 
-    Logger::debug("Saving results...");
+    Logger::log<Logger::Level::TRACE>("Saving results...");
     Options->saveJson(Tour->getResults());
 
-    std::cout << "Saved results." << std::endl;
+    Logger::log("Saved results.");
 
     clear_processes();
 
@@ -74,7 +74,7 @@ void consoleHandlerAction() {
     Tour->stop();
     Options->saveJson(Tour->getResults());
     clear_processes();
-    std::cout << "Saved results" << std::endl;
+    Logger::log<Logger::Level::INFO>("Saved results.");
     std::exit(0);
 }
 
@@ -94,7 +94,8 @@ BOOL WINAPI handler(DWORD signal) {
 
 void setCtrlCHandler() {
     if (!SetConsoleCtrlHandler(handler, TRUE)) {
-        std::cout << "\nERROR: Could not set control handler\n";
+        Logger::log<Logger::Level::FATAL>("Could not set control handler.");
+        Logger::log<Logger::Level::INFO>("Saved results.");
     }
 }
 

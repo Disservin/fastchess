@@ -80,7 +80,7 @@ void RoundRobin::setupPgnOpeningBook() {
 }
 
 void RoundRobin::start(const std::vector<EngineConfiguration>& engine_configs) {
-    Logger::debug("Starting round robin tournament...");
+    Logger::log<Logger::Level::TRACE>("Starting round robin tournament...");
 
     create(engine_configs);
 
@@ -162,7 +162,9 @@ void RoundRobin::updateSprtStatus(const std::vector<EngineConfiguration>& engine
     if (sprt_.getResult(llr) != SPRT_CONTINUE || match_count_ == total_) {
         atomic::stop = true;
 
-        Logger::cout("SPRT test finished: " + sprt_.getBounds() + " " + sprt_.getElo());
+        Logger::log<Logger::Level::INFO>("SPRT test finished: " + sprt_.getBounds() + " " +
+                                         sprt_.getElo());
+
         output_->printElo(stats, engine_configs[0].name, engine_configs[1].name, match_count_);
         output_->endTournament();
 
@@ -191,8 +193,7 @@ void RoundRobin::playGame(const std::pair<EngineConfiguration, EngineConfigurati
             match.start(configs.first, configs.second, core.cpus);
         }
     } catch (const std::exception& e) {
-        Logger::cout("Exception: " + std::string(e.what()));
-        Logger::error(e.what(), std::this_thread::get_id(), "fast-chess::RoundRobin::playGame");
+        Logger::log<Logger::Level::ERR>("Exception RoundRobin::playGame: " + std::string(e.what()));
 
         cores_.put_back(core);
 

@@ -184,7 +184,7 @@ bool Match::playMove(Participant& us, Participant& opponent) {
         data_.termination = MatchTermination::TIMEOUT;
         data_.reason      = name + Match::TIMEOUT_MSG;
 
-        Logger::cout("Warning; Engine", name, "loses on time");
+        Logger::log<Logger::Level::WARN>("Warning; Engine", name, "loses on time");
 
         return false;
     }
@@ -207,7 +207,7 @@ bool Match::playMove(Participant& us, Participant& opponent) {
         data_.termination = MatchTermination::ILLEGAL_MOVE;
         data_.reason      = name + Match::ILLEGAL_MSG;
 
-        Logger::cout("Warning; Illegal move", best_move, "played by", name);
+        Logger::log<Logger::Level::WARN>("Warning; Illegal move", best_move, "played by", name);
 
         return false;
     }
@@ -228,7 +228,7 @@ void Match::verifyPvLines(const Participant& us) {
             movegen::legalmoves(moves, tmp);
 
             if (moves.find(uci::uciToMove(tmp, token)) == -1) {
-                Logger::cout("Warning; Illegal pv move ", token, "pv:", info);
+                Logger::log<Logger::Level::WARN>("Warning; Illegal pv move ", token, "pv:", info);
             }
 
             tmp.makeMove(uci::uciToMove(tmp, token));

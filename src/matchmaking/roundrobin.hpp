@@ -28,7 +28,7 @@ class RoundRobin {
     /// @brief forces the round robin to stop
     void stop() {
         atomic::stop = true;
-        Logger::cout("Stopped round robin!");
+        Logger::log<Logger::Level::TRACE>("Stopped round robin!");
         pool_.kill();
     }
 

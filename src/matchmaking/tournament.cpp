@@ -12,11 +12,11 @@ Tournament::Tournament(const cmd::TournamentOptions& game_config) noexcept
 void Tournament::start(std::vector<EngineConfiguration> engine_configs) {
     validateEngines(engine_configs);
 
-    Logger::cout("Starting tournament...");
+    Logger::log<Logger::Level::INFO>("Starting tournament...");
 
     round_robin_.start(engine_configs);
 
-    Logger::cout("Finished tournament\nSaving results...");
+    Logger::log<Logger::Level::INFO>("Finished tournament");
 }
 
 void Tournament::loadConfig(const cmd::TournamentOptions& game_config) {
@@ -36,16 +36,17 @@ void Tournament::loadConfig(const cmd::TournamentOptions& game_config) {
         tournament_options_.report_penta = false;
 
     if (game_config.opening.file.empty()) {
-        Logger::cout(
+        Logger::log<Logger::Level::WARN>(
             "Warning: No opening book specified! Consider using one, otherwise all games will be "
             "played from the starting position.");
     }
 
     if (game_config.opening.format != FormatType::EPD &&
         game_config.opening.format != FormatType::PGN) {
-        Logger::cout("Warning: Unknown opening format, " +
-                         std::to_string(int(tournament_options_.opening.format)) + ".",
-                     "All games will be played from the starting position.");
+        Logger::log<Logger::Level::WARN>(
+            "Warning: Unknown opening format, " +
+                std::to_string(int(tournament_options_.opening.format)) + ".",
+            "All games will be played from the starting position.");
     }
 
     round_robin_.setGameConfig(tournament_options_);

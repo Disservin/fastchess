@@ -70,9 +70,9 @@ struct EngineConfiguration {
     bool recover = false;
 
     template <typename T, typename Predicate>
-    std::optional<T> getOption(std::string_view name, Predicate transform) const {
+    std::optional<T> getOption(std::string_view option_name, Predicate transform) const {
         const auto it = std::find_if(options.begin(), options.end(),
-                                     [&name](const auto &option) { return option.first == name; });
+                                     [&option_name](const auto &option) { return option.first == option_name; });
 
         if (it != options.end()) {
             return std::optional<T>(transform(it->second));

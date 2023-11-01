@@ -1,7 +1,6 @@
 #include <types/engine_config.hpp>
 #include <engines/uci_engine.hpp>
 
-#include <cassert>
 #include <chrono>
 #include <thread>
 

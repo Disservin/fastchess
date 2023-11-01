@@ -62,7 +62,7 @@ struct MatchData {
 
     MatchData() = default;
 
-    MatchData(const std::string& fen) : fen(fen) {
+    explicit MatchData(std::string  fen) : fen(std::move(fen)) {
         start_time = Logger::getDateTime("%Y-%m-%dT%H:%M:%S %z");
         date       = Logger::getDateTime("%Y-%m-%d");
     }

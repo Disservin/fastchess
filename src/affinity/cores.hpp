@@ -38,7 +38,7 @@ class CoreHandler {
     // Same goes for HT_2. This is done to avoid putting two processes on the same
     // physical core. When all cores in HT_1 are used, HT_2 is used.
 
-    CoreHandler(bool use_affinity) {
+    explicit CoreHandler(bool use_affinity) {
         use_affinity_ = use_affinity;
 
         if (use_affinity_) {
@@ -85,7 +85,7 @@ class CoreHandler {
         return {0, Group::NONE, {}};
     }
 
-    void put_back(AffinityProcessor core) noexcept {
+    void put_back(const AffinityProcessor &core) noexcept {
         if (!use_affinity_) {
             return;
         }

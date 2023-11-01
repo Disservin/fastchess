@@ -1,7 +1,5 @@
 #include <cli.hpp>
 
-#include <cassert>
-
 #include "doctest/doctest.hpp"
 
 using namespace fast_chess;

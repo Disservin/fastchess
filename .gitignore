@@ -8,6 +8,10 @@ fast-chess*
 dummy_engine
 random_mover
 
+#Cmake
+cmake-build-debug
+cmake-build-release
+
 # IDE
 *.vscode
 .idea
@@ -22,3 +26,4 @@ tmp
 UHO*
 *.bat
 *.pgn
+

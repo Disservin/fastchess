@@ -7,21 +7,21 @@ class Elo {
    public:
     Elo(int wins, int losses, int draws);
 
-    [[nodiscard]] static double inverseError(double x);
+    [[nodiscard]] static double inverseError(double x) noexcept;
 
-    [[nodiscard]] static double phiInv(double p);
+    [[nodiscard]] static double phiInv(double p) noexcept;
 
-    [[nodiscard]] static double getDiff(double percentage);
+    [[nodiscard]] static double percToEloDiff(double percentage) noexcept;
 
-    [[nodiscard]] static double getDiff(int wins, int losses, int draws);
+    [[nodiscard]] static double getDiff(int wins, int losses, int draws) noexcept;
 
-    [[nodiscard]] static double getError(int wins, int losses, int draws);
+    [[nodiscard]] static double getError(int wins, int losses, int draws) noexcept;
 
-    [[nodiscard]] std::string getElo() const;
+    [[nodiscard]] std::string getElo() const noexcept;
 
-    [[nodiscard]] static std::string getLos(int wins, int losses);
+    [[nodiscard]] static std::string getLos(int wins, int losses) noexcept;
 
-    [[nodiscard]] static std::string getDrawRatio(int wins, int losses, int draws);
+    [[nodiscard]] static std::string getDrawRatio(int wins, int losses, int draws) noexcept;
 
    private:
     double diff_;

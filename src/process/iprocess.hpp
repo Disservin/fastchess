@@ -4,6 +4,7 @@
 #include <string_view>
 #include <vector>
 #include <cstdint>
+#include <chrono>
 
 class IProcess {
    public:
@@ -15,23 +16,18 @@ class IProcess {
 
     /// @brief Returns true if the process is alive
     /// @return
-    virtual bool isAlive() = 0;
+    virtual bool isAlive() const = 0;
 
-    bool timeout() const { return timeout_; }
+    virtual bool timeout() const = 0;
 
    protected:
     /// @brief Read stdout until the line matches last_word or timeout is reached
     /// @param lines
     /// @param last_word
-    /// @param threshold_ms 0 means no timeout
+    /// @param threshold 0 means no timeout
     virtual void readProcess(std::vector<std::string> &lines, std::string_view last_word,
-                             std::int64_t threshold_ms) = 0;
+                             std::chrono::milliseconds threshold) = 0;
 
     // Write input to the engine's stdin
     virtual void writeProcess(const std::string &input) = 0;
-
-    std::string log_name_;
-
-    bool is_initalized_ = false;
-    bool timeout_       = false;
 };

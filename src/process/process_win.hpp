@@ -71,7 +71,9 @@ class Process : public IProcess {
         fast_chess::pid_list.push(pi_.hProcess);
     }
 
-    bool isAlive() override {
+    bool timeout() const override { return timeout_; }
+
+    bool isAlive() const override {
         assert(is_initalized_);
         DWORD exitCode = 0;
         GetExitCodeProcess(pi_.hProcess, &exitCode);
@@ -105,9 +107,9 @@ class Process : public IProcess {
     /// @brief Read stdout until the line matches last_word or timeout is reached
     /// @param lines
     /// @param last_word
-    /// @param threshold_ms 0 means no timeout
+    /// @param threshold 0 means no timeout
     void readProcess(std::vector<std::string> &lines, std::string_view last_word,
-                     int64_t threshold_ms) override {
+                     std::chrono::milliseconds threshold) override {
         assert(is_initalized_);
 
         lines.clear();
@@ -128,7 +130,7 @@ class Process : public IProcess {
 
         while (true) {
             // Check if timeout milliseconds have elapsed
-            if (threshold_ms > 0 && checkTime-- == 0) {
+            if (threshold.count() > 0 && checkTime-- == 0) {
                 /* To achieve "non blocking" file reading on windows with anonymous pipes the only
                 solution that I found was using peeknamedpipe however it turns out this function is
                 terribly slow and leads to timeouts for the engines. Checking this only after n runs
@@ -140,8 +142,7 @@ class Process : public IProcess {
                 }
 
                 if (std::chrono::duration_cast<std::chrono::milliseconds>(
-                        std::chrono::high_resolution_clock::now() - start)
-                        .count() > threshold_ms) {
+                        std::chrono::high_resolution_clock::now() - start) > threshold) {
                     lines.emplace_back(currentLine);
                     timeout_ = true;
                     break;
@@ -151,7 +152,7 @@ class Process : public IProcess {
             }
 
             // no new bytes to read
-            if (threshold_ms > 0 && bytesAvail == 0) continue;
+            if (threshold.count() > 0 && bytesAvail == 0) continue;
 
             if (!ReadFile(child_std_out_, buffer, sizeof(buffer), &bytesRead, nullptr)) {
                 break;
@@ -202,7 +203,7 @@ class Process : public IProcess {
     }
 
    private:
-    void closeHandles() {
+    void closeHandles() const {
         assert(is_initalized_);
         try {
             CloseHandle(pi_.hThread);
@@ -214,6 +215,11 @@ class Process : public IProcess {
             std::cerr << e.what();
         }
     }
+
+    std::string log_name_;
+
+    bool is_initalized_ = false;
+    bool timeout_       = false;
 
     PROCESS_INFORMATION pi_;
     HANDLE child_std_out_;

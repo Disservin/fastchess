@@ -13,6 +13,7 @@
 
 namespace fast_chess {
 
+/// @brief @todo use std::chrono::milliseconds
 struct TimeControl {
     // go winc/binc, in milliseconds
     uint64_t increment = 0;

@@ -29,7 +29,7 @@ namespace fast_chess::str_utils {
 /// @param haystack
 /// @param needle
 /// @return
-[[nodiscard]] inline bool startsWith(std::string_view haystack, std::string_view needle) {
+[[nodiscard]] inline bool startsWith(std::string_view haystack, std::string_view needle) noexcept {
     if (needle.empty()) return false;
     return (haystack.rfind(needle, 0) != std::string::npos);
 }
@@ -47,7 +47,7 @@ namespace fast_chess::str_utils {
 /// @param haystack
 /// @param needle
 /// @return
-[[nodiscard]] inline bool contains(std::string_view haystack, std::string_view needle) {
+[[nodiscard]] inline bool contains(std::string_view haystack, std::string_view needle) noexcept {
     return haystack.find(needle) != std::string::npos;
 }
 
@@ -56,7 +56,7 @@ namespace fast_chess::str_utils {
 /// @param needle
 /// @return
 [[nodiscard]] inline bool contains(const std::vector<std::string> &haystack,
-                                   std::string_view needle) {
+                                   std::string_view needle) noexcept {
     return std::find(haystack.begin(), haystack.end(), needle) != haystack.end();
 }
 

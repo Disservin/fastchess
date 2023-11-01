@@ -25,9 +25,9 @@ SPRT::SPRT(double alpha, double beta, double elo0, double elo1) {
     }
 }
 
-double SPRT::getLL(double elo) { return 1.0 / (1.0 + std::pow(10.0, -elo / 400.0)); }
+double SPRT::getLL(double elo) noexcept { return 1.0 / (1.0 + std::pow(10.0, -elo / 400.0)); }
 
-double SPRT::getLLR(int win, int draw, int loss) const {
+double SPRT::getLLR(int win, int draw, int loss) const noexcept {
     if (win == 0 || draw == 0 || loss == 0 || !valid_) return 0.0;
 
     const double games = win + draw + loss;
@@ -39,7 +39,7 @@ double SPRT::getLLR(int win, int draw, int loss) const {
     return (s1_ - s0_) * (2 * a - s0_ - s1_) / var_s / 2.0;
 }
 
-SPRTResult SPRT::getResult(double llr) const {
+SPRTResult SPRT::getResult(double llr) const noexcept {
     if (!valid_) return SPRT_CONTINUE;
 
     if (llr > upper_)
@@ -50,14 +50,14 @@ SPRTResult SPRT::getResult(double llr) const {
         return SPRT_CONTINUE;
 }
 
-std::string SPRT::getBounds() const {
+std::string SPRT::getBounds() const noexcept {
     std::stringstream ss;
     ss << "(" << std::fixed << std::setprecision(2) << lower_ << ", " << std::fixed
        << std::setprecision(2) << upper_ << ")";
     return ss.str();
 }
 
-std::string SPRT::getElo() const {
+std::string SPRT::getElo() const noexcept {
     std::stringstream ss;
     ss << "[" << std::fixed << std::setprecision(2) << elo0_ << ", " << std::fixed
        << std::setprecision(2) << elo1_ << "]";
@@ -65,6 +65,6 @@ std::string SPRT::getElo() const {
     return ss.str();
 }
 
-bool SPRT::isValid() const { return valid_; }
+bool SPRT::isValid() const noexcept { return valid_; }
 
 }  // namespace fast_chess

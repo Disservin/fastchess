@@ -1,5 +1,7 @@
 #pragma once
 
+#include <chrono>
+
 #include <engines/uci_engine.hpp>
 #include <types/player_info.hpp>
 
@@ -18,12 +20,12 @@ class Participant {
     /// @brief The timeout threshold for the read engine command.
     /// This has nothing to do with the time control itself.
     /// @return time in ms
-    [[nodiscard]] int64_t getTimeoutThreshold() const {
+    [[nodiscard]] std::chrono::milliseconds getTimeoutThreshold() const {
         if (engine.getConfig().limit.nodes != 0 || engine.getConfig().limit.plies != 0 ||
             time_control_.fixed_time != 0) {
-            return 0;  // no timeout
+            return std::chrono::milliseconds(0);  // no timeout
         } else {
-            return time_control_.time + 100 /* margin*/;
+            return std::chrono::milliseconds(time_control_.time + 100) /* margin*/;
         }
     }
 

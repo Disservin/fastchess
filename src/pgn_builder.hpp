@@ -15,7 +15,7 @@ class PgnBuilder {
 
     /// @brief Get the newly created pgn
     /// @return
-    [[nodiscard]] std::string get() const { return pgn_.str() + "\n\n"; }
+    [[nodiscard]] std::string get() const noexcept { return pgn_.str() + "\n\n"; }
 
     static constexpr int LINE_LENGTH = 80;
 
@@ -24,16 +24,18 @@ class PgnBuilder {
     /// @param board
     /// @param move
     /// @return
-    [[nodiscard]] std::string moveNotation(chess::Board &board, const std::string &move) const;
+    [[nodiscard]] std::string moveNotation(chess::Board &board,
+                                           const std::string &move) const noexcept;
 
     /// @brief Adds a header to the pgn
     /// @tparam T
     /// @param name
     /// @param value
     template <typename T>
-    void addHeader(std::string_view name, const T &value);
+    void addHeader(std::string_view name, const T &value) noexcept;
 
-    void addMove(chess::Board &board, const MoveData &move, std::size_t move_number, bool illegal);
+    void addMove(chess::Board &board, const MoveData &move, std::size_t move_number,
+                 bool illegal) noexcept;
 
     /// @brief Adds a comment to the pgn. The comment is formatted as {first, args}
     /// @tparam First
@@ -61,9 +63,9 @@ class PgnBuilder {
         return ss.str();
     }
 
-    [[nodiscard]] static std::string getResultFromMatch(const MatchData &match);
+    [[nodiscard]] static std::string getResultFromMatch(const MatchData &match) noexcept;
 
-    [[nodiscard]] static std::string convertMatchTermination(const MatchTermination &res);
+    [[nodiscard]] static std::string convertMatchTermination(const MatchTermination &res) noexcept;
 
     MatchData match_;
 

@@ -30,7 +30,7 @@ inline bool set_affinity(const std::vector<int>& cpus, HANDLE process_handle) no
 
 #elif defined(__APPLE__)
 
-inline void set_affinity(const std::vector<int>& cpus) noexcept {
+inline void set_affinity(const std::vector<int>&) noexcept {
     // mach_port_t tid = pthread_mach_thread_np(pthread_self());
     // struct thread_affinity_policy policy;
     // policy.affinity_tag = affinity_mask;

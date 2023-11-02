@@ -92,7 +92,7 @@ endif
 all: $(TARGET)
 
 tests: $(TARGET)
-	$(CXX) $(CXXFLAGS) ./tests/data/engine/dummy_engine.cpp -o ./tests/data/engine/dummy_engine$(SUFFIX) $(LDFLAGS)
+	$(CXX) $(CXXFLAGS) ./tests/mock/engine/dummy_engine.cpp -o ./tests/mock/engine/dummy_engine$(SUFFIX) $(LDFLAGS)
 
 $(TARGET): $(OBJECTS)
 	$(CXX) $(CXXFLAGS) $(NATIVE) -MMD -MP -o $@ $^ $(LDFLAGS)

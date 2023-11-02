@@ -101,10 +101,10 @@ $(TMPDIR)/%.o: %.cpp | $(TMPDIR)
 	$(CXX) $(CXXFLAGS) $(NATIVE) -MMD -MP -c $< -o $@ $(LDFLAGS)
 
 $(TMPDIR):
-	$(MKDIR) "$(TMPDIR)" "$(TMPDIR)/src" "$(TMPDIR)/src/engines" "$(TMPDIR)/src/chess" "$(TMPDIR)/src/matchmaking" "$(TMPDIR)/src/util" "$(TMPDIR)/tests"
+	$(MKDIR) "$(TMPDIR)" "$(TMPDIR)/src" "$(TMPDIR)/src/engines" "$(TMPDIR)/src/matchmaking" "$(TMPDIR)/src/util" "$(TMPDIR)/tests"
 
 clean:
-	rm -rf $(TMPDIR)
+	rm -rf $(TMPDIR) $(TARGET) *.exe
 
 -include $(DEPENDS)
 

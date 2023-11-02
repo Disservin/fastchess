@@ -5,6 +5,9 @@
 namespace fast_chess {
 
 struct Stats {
+    Stats() = default;
+    Stats(int wins, int losses, int draws) : wins(wins), losses(losses), draws(draws) {}
+
     Stats &operator+=(const Stats &rhs) {
         wins += rhs.wins;
         losses += rhs.losses;

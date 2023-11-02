@@ -1,10 +1,14 @@
-CXX = g++
-CXXFLAGS = -O3 -std=c++17 -Wall -Wextra -DNDEBUG
-INCLUDES = -Isrc
-DEPFLAGS = -MMD -MP
-TMPDIR = tmp
+CXX      := g++
 
-# Detect Windows
+INCLUDES := -Isrc -Ithird_party
+CXXFLAGS := -O3 -std=c++17 -Wall -Wextra $(INCLUDES)
+DEPFLAGS := -MMD -MP
+TMPDIR   := tmp
+NATIVE 	 := -march=native
+
+SRC_FILES := $(wildcard src/*.cpp) $(wildcard src/*/*.cpp) $(wildcard src/*/*/*.cpp)
+TEST_SRC  := $(wildcard tests/*.cpp)
+
 ifeq ($(OS), Windows_NT)
 	MKDIR    := mkdir
 	uname_S  := Windows
@@ -23,36 +27,30 @@ else
 endif
 endif
 
-SRC_FILES := $(wildcard src/*.cpp) $(wildcard src/*/*.cpp) $(wildcard src/*/*/*.cpp)
-TEST_SRC  := $(wildcard tests/*.cpp)
-
 ifeq ($(MAKECMDGOALS),tests)
-	CXXFLAGS  := -O2 -std=c++17 $(INCLUDES) -g3 -fno-omit-frame-pointer -Wall -Wextra -DTESTS
+	CXXFLAGS  += -g3 -fno-omit-frame-pointer
 	SRC_FILES := $(filter-out src/main.cpp, $(SRC_FILES)) $(TEST_SRC)
-	OBJECTS   := $(patsubst %.cpp,$(TMPDIR)/%.o,$(SRC_FILES))
-	DEPENDS   := $(patsubst %.cpp,$(TMPDIR)/%.d,$(SRC_FILES))
 	TARGET    := fast-chess-tests
 else
-	CXXFLAGS  += $(INCLUDES)
-	NATIVE 	  := -march=native
-	OBJECTS   := $(patsubst %.cpp,$(TMPDIR)/%.o,$(SRC_FILES))
-	DEPENDS   := $(patsubst %.cpp,$(TMPDIR)/%.d,$(SRC_FILES))
+	CXXFLAGS  += -DNDEBUG
 	TARGET    := fast-chess
 endif
 
+OBJECTS   := $(patsubst %.cpp,$(TMPDIR)/%.o,$(SRC_FILES))
+DEPENDS   := $(patsubst %.cpp,$(TMPDIR)/%.d,$(SRC_FILES))
+
 ifeq ($(build), debug)
-	CXXFLAGS := -g3 -O3  $(INCLUDES) -std=c++17 -Wall -Wextra -pedantic
+	CXXFLAGS := -g3 -O3 -std=c++17 -Wall -Wextra -pedantic
 endif
 
 ifeq ($(build), release)
-	CXXFLAGS := -O3 -std=c++17  $(INCLUDES) -Wall -Wextra -pedantic -DNDEBUG
 	LDFLAGS  := -lpthread -static -static-libgcc -static-libstdc++ -Wl,--no-as-needed
 	NATIVE   := -march=x86-64
 endif
 
 # Different native flag for macOS
 ifeq ($(uname_S), Darwin)
-	NATIVE =	
+	NATIVE =
 	LDFLAGS =
 endif
 

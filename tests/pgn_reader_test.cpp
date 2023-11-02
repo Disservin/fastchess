@@ -1,6 +1,6 @@
 #include <pgn_reader.hpp>
 
-#include <third_party/chess.hpp>
+#include <chess.hpp>
 #include "doctest/doctest.hpp"
 
 namespace fast_chess {

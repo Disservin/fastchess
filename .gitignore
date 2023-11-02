@@ -1,16 +1,53 @@
-#C++ files
+# Prerequisites
 *.d
+
+# Compiled Object files
+*.slo
+*.lo
 *.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+
+# CMake
+**/cmake-build-debug
+**/CMakeCache.txt
+**/cmake_install.cmake
+**/install_manifest.txt
+**/CMakeFiles/
+**/CTestTestfile.cmake
+**/*.cbp
+**/CMakeScripts
+**/compile_commands.json
+Testing
+.cmake
 
 #Executable files
-*.exe
 fast-chess*
 dummy_engine
 random_mover
-
-#Cmake
-cmake-build-debug
-cmake-build-release
 
 # IDE
 *.vscode
@@ -26,4 +63,3 @@ tmp
 UHO*
 *.bat
 *.pgn
-

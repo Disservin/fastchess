@@ -13,7 +13,7 @@
 #include <affinity/cores_posix.hpp>
 #endif
 
-#include <third_party/chess.hpp>
+#include <chess.hpp>
 
 namespace affinity {
 class CoreHandler {

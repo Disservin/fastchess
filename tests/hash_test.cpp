@@ -1,5 +1,5 @@
 #include "doctest/doctest.hpp"
-#include "third_party/chess.hpp"
+#include "../third_party/chess.hpp"
 
 using namespace chess;
 

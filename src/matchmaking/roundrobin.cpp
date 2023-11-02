@@ -1,6 +1,6 @@
 #include <matchmaking/roundrobin.hpp>
 
-#include <third_party/chess.hpp>
+#include <chess.hpp>
 
 #include <matchmaking/output/output_factory.hpp>
 #include <pgn_builder.hpp>

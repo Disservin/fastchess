@@ -10,7 +10,7 @@
 #include <helper.hpp>
 #include <types/enums.hpp>
 
-#include <third_party/json.hpp>
+#include <json.hpp>
 
 namespace fast_chess {
 

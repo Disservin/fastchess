@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 
-#include <third_party/chess.hpp>
+#include <chess.hpp>
 
 namespace fast_chess {
 

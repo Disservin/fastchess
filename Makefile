@@ -28,7 +28,7 @@ endif
 endif
 
 ifeq ($(MAKECMDGOALS),tests)
-	CXXFLAGS  += -g3 -fno-omit-frame-pointer
+	CXXFLAGS  := -O2 -std=c++17 -Wall -Wextra -pedantic -Wuninitialized $(INCLUDES) -g3 -fno-omit-frame-pointer
 	SRC_FILES := $(filter-out src/main.cpp, $(SRC_FILES)) $(TEST_SRC)
 	TARGET    := fast-chess-tests
 else
@@ -40,7 +40,7 @@ OBJECTS   := $(patsubst %.cpp,$(TMPDIR)/%.o,$(SRC_FILES))
 DEPENDS   := $(patsubst %.cpp,$(TMPDIR)/%.d,$(SRC_FILES))
 
 ifeq ($(build), debug)
-	CXXFLAGS := -g3 -O3 -std=c++17 -Wall -Wextra -pedantic
+	CXXFLAGS := -O2 -std=c++17 -Wall -Wextra -pedantic -Wuninitialized -g3
 endif
 
 ifeq ($(build), release)

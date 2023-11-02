@@ -1,0 +1,70 @@
+[Event "?"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "1/2-1/2"]
+[ECO "C58"]
+[Annotator "depth=18 eval=+101"]
+[PlyCount "16"]
+
+1. e4 e5 2. Nf3 Nc6 3. Bc4 Nf6 4. Ng5 d5 5. exd5 Na5 6. d3 Nxc4 7. dxc4 h6 8.
+Nf3 e4 1/2-1/2
+
+[Event "?"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "1/2-1/2"]
+[ECO "A30"]
+[Annotator "depth=22 eval=+115"]
+[PlyCount "16"]
+
+1. c4 c5 2. Nf3 Nc6 3. d4 cxd4 4. Nxd4 Nxd4 5. Qxd4 d6 6. Nc3 e5 7. Qd3 Be7 8.
+g3 h6 1/2-1/2
+
+[Event "?"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "1/2-1/2"]
+[ECO "D09"]
+[Annotator "depth=18 eval=+107"]
+[PlyCount "16"]
+
+1. d4 d5 2. c4 e5 3. dxe5 d4 4. Nf3 Nc6 5. g3 Bg4 6. Bg2 Qd7 7. Nbd2 f6 8. exf6
+Nxf6 1/2-1/2
+
+[Event "?"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "1/2-1/2"]
+[ECO "E33"]
+[Annotator "depth=19 eval=+119"]
+[PlyCount "16"]
+
+1. d4 Nf6 2. c4 e6 3. Nc3 Bb4 4. Qc2 Nc6 5. e3 O-O 6. Bd3 e5 7. d5 Ne7 8. Nge2
+Ng6 1/2-1/2
+
+[Event "?"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "?"]
+[Black "?"]
+[Result "1/2-1/2"]
+[ECO "E87"]
+[Annotator "depth=19 eval=+112"]
+[PlyCount "16"]
+
+1. c4 Nf6 2. Nc3 g6 3. e4 d6 4. d4 Bg7 5. f3 O-O 6. Be3 e5 7. d5 Ne8 8. Qd2 f5
+1/2-1/2
+

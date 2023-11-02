@@ -1,6 +1,6 @@
 #pragma once
 
-#include <third_party/chess.hpp>
+#include <chess.hpp>
 
 #ifdef _WIN64
 #include <process/process_win.hpp>

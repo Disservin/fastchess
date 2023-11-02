@@ -1,20 +1,23 @@
-#include <types/engine_config.hpp>
 #include <engines/uci_engine.hpp>
+#include <types/engine_config.hpp>
 
 #include <chrono>
+#include <string_view>
 #include <thread>
 
 #include "doctest/doctest.hpp"
 
 using namespace fast_chess;
 
+const std::string path = "./tests/mock/engine/";
+
 TEST_SUITE("Uci Engine Communication Tests") {
     TEST_CASE("Testing the EngineProcess class") {
         EngineConfiguration config;
 #ifdef _WIN64
-        config.cmd = "./tests/data/engine/dummy_engine.exe";
+        config.cmd = path + "dummy_engine.exe";
 #else
-        config.cmd = "./tests/data/engine/dummy_engine";
+        config.cmd = path + "dummy_engine";
 #endif
         std::vector<int> cpus = {};
 
@@ -51,9 +54,9 @@ TEST_SUITE("Uci Engine Communication Tests") {
     TEST_CASE("Testing the EngineProcess class with lower level class functions") {
         EngineConfiguration config;
 #ifdef _WIN64
-        config.cmd = "./tests/data/engine/dummy_engine.exe";
+        config.cmd = path + "dummy_engine.exe";
 #else
-        config.cmd = "./tests/data/engine/dummy_engine";
+        config.cmd = path + "dummy_engine";
 #endif
         std::vector<int> cpus = {};
 

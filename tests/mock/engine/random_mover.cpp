@@ -1,6 +1,6 @@
 #include <random>
 
-#include "../../src/third_party/chess.hpp"
+#include "../../../third_party/chess.hpp"
 
 using namespace chess;
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <third_party/chess.hpp>
+#include <chess.hpp>
 
 #include <matchmaking/match.hpp>
 

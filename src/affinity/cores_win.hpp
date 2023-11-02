@@ -6,7 +6,7 @@
 #include <windows.h>
 #include <memory>
 
-#include <third_party/chess.hpp>
+#include <chess.hpp>
 
 namespace affinity {
 

@@ -31,6 +31,7 @@ ifeq ($(MAKECMDGOALS),tests)
 	CXXFLAGS  := -O2 -std=c++17 -Wall -Wextra -pedantic -Wuninitialized $(INCLUDES) -g3 -fno-omit-frame-pointer
 	SRC_FILES := $(filter-out src/main.cpp, $(SRC_FILES)) $(TEST_SRC)
 	TARGET    := fast-chess-tests
+	NATIVE    := 
 else
 	CXXFLAGS  += -DNDEBUG
 	TARGET    := fast-chess

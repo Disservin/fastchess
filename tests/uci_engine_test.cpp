@@ -12,7 +12,7 @@ TEST_SUITE("Uci Engine Communication Tests") {
     TEST_CASE("Testing the EngineProcess class") {
         EngineConfiguration config;
 #ifdef _WIN64
-        config.cmd = "./tests/data/engine/dummy_engine.exe";
+        config.cmd = "./tests/mock/engine/dummy_engine.exe";
 #else
         config.cmd = "./tests/data/engine/dummy_engine";
 #endif
@@ -51,7 +51,7 @@ TEST_SUITE("Uci Engine Communication Tests") {
     TEST_CASE("Testing the EngineProcess class with lower level class functions") {
         EngineConfiguration config;
 #ifdef _WIN64
-        config.cmd = "./tests/data/engine/dummy_engine.exe";
+        config.cmd = "./tests/mock/engine/dummy_engine.exe";
 #else
         config.cmd = "./tests/data/engine/dummy_engine";
 #endif

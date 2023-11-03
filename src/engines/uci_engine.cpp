@@ -13,8 +13,8 @@ bool UciEngine::isResponsive(std::chrono::milliseconds threshold) {
     if (!isAlive()) return false;
 
     writeEngine("isready");
-    readEngine("readyok", threshold);
-    return !timeout();
+    const auto res = readEngine("readyok", threshold);
+    return res == Process::ProcessStatus::OK;
 }
 
 bool UciEngine::sendUciNewGame() {
@@ -24,10 +24,7 @@ bool UciEngine::sendUciNewGame() {
 
 void UciEngine::sendUci() { writeEngine("uci"); }
 
-bool UciEngine::readUci() {
-    readEngine("uciok");
-    return !timeout();
-}
+bool UciEngine::readUci() { return readEngine("uciok") == Process::ProcessStatus::OK; }
 
 void UciEngine::loadConfig(const EngineConfiguration &config) { config_ = config; }
 
@@ -60,9 +57,10 @@ void UciEngine::startEngine() {
     }
 }
 
-void UciEngine::readEngine(std::string_view last_word, std::chrono::milliseconds threshold) {
+Process::ProcessStatus UciEngine::readEngine(std::string_view last_word,
+                                             std::chrono::milliseconds threshold) {
     try {
-        readProcess(output_, last_word, threshold);
+        return readProcess(output_, last_word, threshold);
     } catch (const std::exception &e) {
         Logger::log<Logger::Level::ERR>("Raised Exception in readProcess\nWarning; Engine",
                                         config_.name, "disconnects");
@@ -111,6 +109,4 @@ int UciEngine::lastScore() const {
 }
 
 const std::vector<std::string> &UciEngine::output() const { return output_; }
-
-bool UciEngine::timedout() const { return timeout(); }
 }  // namespace fast_chess

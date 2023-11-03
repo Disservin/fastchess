@@ -36,15 +36,13 @@ TEST_SUITE("Uci Engine Communication Tests") {
         CHECK(uciOutput[2] == "uciok");
         CHECK(uci_engine.isResponsive());
 
-        bool timedout = false;
+        uci_engine.writeEngine("sleep");
+        const auto res = uci_engine.readEngine("done", std::chrono::milliseconds(100));
+        CHECK(res == Process::ProcessStatus::TIMEOUT);
 
         uci_engine.writeEngine("sleep");
-        uci_engine.readEngine("done", std::chrono::milliseconds(100));
-        CHECK(uci_engine.timedout() == true);
-
-        uci_engine.writeEngine("sleep");
-        uci_engine.readEngine("done", std::chrono::milliseconds(5000));
-        CHECK(timedout == false);
+        const auto res2 = uci_engine.readEngine("done", std::chrono::milliseconds(5000));
+        CHECK(res2 == Process::ProcessStatus::OK);
         CHECK(uci_engine.output().size() == 1);
         CHECK(uci_engine.output()[0] == "done");
 
@@ -65,29 +63,29 @@ TEST_SUITE("Uci Engine Communication Tests") {
         uci_engine.startEngine();
 
         uci_engine.writeEngine("uci");
-        uci_engine.readEngine("uciok");
+        const auto res = uci_engine.readEngine("uciok");
 
-        CHECK(uci_engine.timedout() == false);
+        CHECK(res == Process::ProcessStatus::OK);
         CHECK(uci_engine.output().size() == 3);
         CHECK(uci_engine.output()[0] == "line0");
         CHECK(uci_engine.output()[1] == "line1");
         CHECK(uci_engine.output()[2] == "uciok");
 
         uci_engine.writeEngine("isready");
-        uci_engine.readEngine("readyok");
-        CHECK(uci_engine.timedout() == false);
+        const auto res2 = uci_engine.readEngine("readyok");
+        CHECK(res2 == Process::ProcessStatus::OK);
         CHECK(uci_engine.output().size() == 1);
         CHECK(uci_engine.output()[0] == "readyok");
 
         uci_engine.writeEngine("sleep");
-        uci_engine.readEngine("done", std::chrono::milliseconds(100));
-        CHECK(uci_engine.timedout() == true);
+        const auto res3 = uci_engine.readEngine("done", std::chrono::milliseconds(100));
+        CHECK(res3 == Process::ProcessStatus::TIMEOUT);
 
         std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
         uci_engine.writeEngine("sleep");
-        uci_engine.readEngine("done", std::chrono::milliseconds(5000));
-        CHECK(uci_engine.timedout() == false);
+        const auto res4 = uci_engine.readEngine("done", std::chrono::milliseconds(5000));
+        CHECK(res4 == Process::ProcessStatus::OK);
         CHECK(uci_engine.output().size() == 1);
         CHECK(uci_engine.output()[0] == "done");
 

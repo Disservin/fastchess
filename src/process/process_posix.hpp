@@ -22,9 +22,9 @@
 #include <sys/wait.h>
 #include <unistd.h>  // _exit, fork
 
-#include <util/logger.hpp>
 #include <affinity/affinity.hpp>
 #include <process/process_list.hpp>
+#include <util/logger.hpp>
 
 namespace fast_chess {
 extern ProcessList<pid_t> pid_list;
@@ -116,8 +116,6 @@ class Process : public IProcess {
         }
     }
 
-    bool timeout() const override { return timeout_; }
-
     bool isAlive() const override {
         assert(is_initalized_);
 
@@ -155,8 +153,8 @@ class Process : public IProcess {
     /// @param lines
     /// @param last_word
     /// @param threshold_ms 0 means no timeout
-    void readProcess(std::vector<std::string> &lines, std::string_view last_word,
-                     std::chrono::milliseconds threshold) override {
+    ProcessStatus readProcess(std::vector<std::string> &lines, std::string_view last_word,
+                              std::chrono::milliseconds threshold) override {
         assert(is_initalized_);
 
         // Disable blocking
@@ -169,7 +167,6 @@ class Process : public IProcess {
         currentLine.reserve(300);
 
         char buffer[4096];
-        timeout_ = false;
 
         struct pollfd pollfds[1];
         pollfds[0].fd     = in_pipe_[0];
@@ -192,8 +189,7 @@ class Process : public IProcess {
             } else if (ret == 0) {
                 // timeout
                 lines.emplace_back(currentLine);
-                timeout_ = true;
-                break;
+                return ProcessStatus::TIMEOUT;
             } else if (pollfds[0].revents & POLLIN) {
                 // input available on the pipe
                 const int bytesRead = read(in_pipe_[0], buffer, sizeof(buffer));
@@ -218,7 +214,7 @@ class Process : public IProcess {
                         lines.emplace_back(currentLine);
 
                         if (currentLine.rfind(last_word, 0) == 0) {
-                            return;
+                            return ProcessStatus::OK;
                         }
 
                         currentLine = "";
@@ -226,6 +222,7 @@ class Process : public IProcess {
                 }
             }
         }
+        return ProcessStatus::OK;
     }
 
     void writeProcess(const std::string &input) override {
@@ -247,7 +244,6 @@ class Process : public IProcess {
     std::string log_name_;
 
     bool is_initalized_ = false;
-    bool timeout_       = false;
 
     pid_t process_pid_;
     int in_pipe_[2], out_pipe_[2];

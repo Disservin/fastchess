@@ -1,13 +1,15 @@
 #pragma once
 
+#include <chrono>
+#include <cstdint>
 #include <string>
 #include <string_view>
 #include <vector>
-#include <cstdint>
-#include <chrono>
 
 class IProcess {
    public:
+    enum class ProcessStatus { OK, ERR, TIMEOUT };
+
     virtual ~IProcess() = default;
 
     // Initialize the process
@@ -18,15 +20,13 @@ class IProcess {
     /// @return
     [[nodiscard]] virtual bool isAlive() const = 0;
 
-    [[nodiscard]] virtual bool timeout() const = 0;
-
    protected:
     /// @brief Read stdout until the line matches last_word or timeout is reached
     /// @param lines
     /// @param last_word
     /// @param threshold 0 means no timeout
-    virtual void readProcess(std::vector<std::string> &lines, std::string_view last_word,
-                             std::chrono::milliseconds threshold) = 0;
+    virtual ProcessStatus readProcess(std::vector<std::string> &lines, std::string_view last_word,
+                                      std::chrono::milliseconds threshold) = 0;
 
     // Write input to the engine's stdin
     virtual void writeProcess(const std::string &input) = 0;

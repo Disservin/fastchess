@@ -1,10 +1,10 @@
 CXX      := g++
-
+CXXFLAGS := -O3 -std=c++17 -Wall -Wextra
 INCLUDES := -Isrc -Ithird_party
-CXXFLAGS := -O3 -std=c++17 -Wall -Wextra $(INCLUDES)
+NATIVE 	 := -march=native
+
 DEPFLAGS := -MMD -MP
 TMPDIR   := tmp
-NATIVE 	 := -march=native
 
 SRC_FILES := $(wildcard src/*.cpp) $(wildcard src/*/*.cpp) $(wildcard src/*/*/*.cpp)
 TEST_SRC  := $(wildcard tests/*.cpp)
@@ -28,7 +28,7 @@ endif
 endif
 
 ifeq ($(MAKECMDGOALS),tests)
-	CXXFLAGS  := -O2 -std=c++17 -Wall -Wextra -pedantic -Wuninitialized $(INCLUDES) -g3 -fno-omit-frame-pointer
+	CXXFLAGS  := -O2 -std=c++17 -Wall -Wextra -pedantic -Wuninitialized -g3 -fno-omit-frame-pointer
 	SRC_FILES := $(filter-out src/main.cpp, $(SRC_FILES)) $(TEST_SRC)
 	TARGET    := fast-chess-tests
 	NATIVE    := 
@@ -96,10 +96,10 @@ tests: $(TARGET)
 	$(CXX) $(CXXFLAGS) ./tests/mock/engine/dummy_engine.cpp -o ./tests/mock/engine/dummy_engine$(SUFFIX) $(LDFLAGS)
 
 $(TARGET): $(OBJECTS)
-	$(CXX) $(CXXFLAGS) $(NATIVE) -MMD -MP -o $@ $^ $(LDFLAGS)
+	$(CXX) $(CXXFLAGS) $(NATIVE) $(INCLUDES) -MMD -MP -o $@ $^ $(LDFLAGS)
 
 $(TMPDIR)/%.o: %.cpp | $(TMPDIR)
-	$(CXX) $(CXXFLAGS) $(NATIVE) -MMD -MP -c $< -o $@ $(LDFLAGS)
+	$(CXX) $(CXXFLAGS) $(NATIVE) $(INCLUDES) -MMD -MP -c $< -o $@ $(LDFLAGS)
 
 $(TMPDIR):
 	$(MKDIR) "$(TMPDIR)" "$(TMPDIR)/src" "$(TMPDIR)/src/engines" "$(TMPDIR)/src/matchmaking" "$(TMPDIR)/src/util" "$(TMPDIR)/tests"

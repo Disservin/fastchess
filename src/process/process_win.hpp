@@ -15,9 +15,9 @@
 
 #include <windows.h>
 
-#include <util/logger.hpp>
 #include <affinity/affinity.hpp>
 #include <process/process_list.hpp>
+#include <util/logger.hpp>
 
 namespace fast_chess {
 extern ProcessList<HANDLE> pid_list;
@@ -71,8 +71,6 @@ class Process : public IProcess {
         fast_chess::pid_list.push(pi_.hProcess);
     }
 
-    [[nodiscard]] bool timeout() const override { return timeout_; }
-
     [[nodiscard]] bool isAlive() const override {
         assert(is_initalized_);
         DWORD exitCode = 0;
@@ -108,8 +106,8 @@ class Process : public IProcess {
     /// @param lines
     /// @param last_word
     /// @param threshold 0 means no timeout
-    void readProcess(std::vector<std::string> &lines, std::string_view last_word,
-                     std::chrono::milliseconds threshold) override {
+    Status readProcess(std::vector<std::string> &lines, std::string_view last_word,
+                       std::chrono::milliseconds threshold) override {
         assert(is_initalized_);
 
         lines.clear();
@@ -124,8 +122,6 @@ class Process : public IProcess {
 
         int checkTime = 255;
 
-        timeout_ = false;
-
         const auto start = std::chrono::high_resolution_clock::now();
 
         while (true) {
@@ -138,14 +134,13 @@ class Process : public IProcess {
                 threshold_ms should probably be 0. Using the assumption that the engine works
                 rather clean and is able to send the last word.*/
                 if (!PeekNamedPipe(child_std_out_, nullptr, 0, nullptr, &bytesAvail, nullptr)) {
-                    break;
+                    return Status::ERR;
                 }
 
                 if (std::chrono::duration_cast<std::chrono::milliseconds>(
                         std::chrono::high_resolution_clock::now() - start) > threshold) {
                     lines.emplace_back(currentLine);
-                    timeout_ = true;
-                    break;
+                    return Status::TIMEOUT;
                 }
 
                 checkTime = 255;
@@ -155,7 +150,7 @@ class Process : public IProcess {
             if (threshold.count() > 0 && bytesAvail == 0) continue;
 
             if (!ReadFile(child_std_out_, buffer, sizeof(buffer), &bytesRead, nullptr)) {
-                break;
+                return Status::ERR;
             }
 
             // Iterate over each character in the buffer
@@ -177,13 +172,15 @@ class Process : public IProcess {
                     lines.emplace_back(currentLine);
 
                     if (currentLine.rfind(last_word, 0) == 0) {
-                        return;
+                        return Status::OK;
                     }
 
                     currentLine = "";
                 }
             }
         }
+
+        return Status::OK;
     }
 
     void writeProcess(const std::string &input) override {
@@ -217,7 +214,6 @@ class Process : public IProcess {
     std::string log_name_;
 
     bool is_initalized_ = false;
-    bool timeout_       = false;
 
     PROCESS_INFORMATION pi_;
     HANDLE child_std_out_;

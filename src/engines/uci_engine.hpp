@@ -50,7 +50,8 @@ class UciEngine : Process {
     /// @param last_word
     /// @param threshold 0 means no timeout
     /// @return
-    void readEngine(std::string_view last_word, std::chrono::milliseconds threshold = ping_time_);
+    Process::Status readEngine(std::string_view last_word,
+                               std::chrono::milliseconds threshold = ping_time_);
 
     /// @brief Writes the input to the engine. May throw if the write fails.
     /// @param input
@@ -74,10 +75,6 @@ class UciEngine : Process {
     [[nodiscard]] int lastScore() const;
 
     [[nodiscard]] const std::vector<std::string> &output() const;
-
-    /// @brief Check if the engine timed out.
-    /// @return
-    [[nodiscard]] bool timedout() const;
 
     /// @brief TODO: expose this to the user
     static constexpr std::chrono::milliseconds ping_time_ = std::chrono::milliseconds(60000);

@@ -38,11 +38,11 @@ TEST_SUITE("Uci Engine Communication Tests") {
 
         uci_engine.writeEngine("sleep");
         const auto res = uci_engine.readEngine("done", std::chrono::milliseconds(100));
-        CHECK(res == Process::ProcessStatus::TIMEOUT);
+        CHECK(res == Process::Status::TIMEOUT);
 
         uci_engine.writeEngine("sleep");
         const auto res2 = uci_engine.readEngine("done", std::chrono::milliseconds(5000));
-        CHECK(res2 == Process::ProcessStatus::OK);
+        CHECK(res2 == Process::Status::OK);
         CHECK(uci_engine.output().size() == 1);
         CHECK(uci_engine.output()[0] == "done");
 
@@ -65,7 +65,7 @@ TEST_SUITE("Uci Engine Communication Tests") {
         uci_engine.writeEngine("uci");
         const auto res = uci_engine.readEngine("uciok");
 
-        CHECK(res == Process::ProcessStatus::OK);
+        CHECK(res == Process::Status::OK);
         CHECK(uci_engine.output().size() == 3);
         CHECK(uci_engine.output()[0] == "line0");
         CHECK(uci_engine.output()[1] == "line1");
@@ -73,19 +73,19 @@ TEST_SUITE("Uci Engine Communication Tests") {
 
         uci_engine.writeEngine("isready");
         const auto res2 = uci_engine.readEngine("readyok");
-        CHECK(res2 == Process::ProcessStatus::OK);
+        CHECK(res2 == Process::Status::OK);
         CHECK(uci_engine.output().size() == 1);
         CHECK(uci_engine.output()[0] == "readyok");
 
         uci_engine.writeEngine("sleep");
         const auto res3 = uci_engine.readEngine("done", std::chrono::milliseconds(100));
-        CHECK(res3 == Process::ProcessStatus::TIMEOUT);
+        CHECK(res3 == Process::Status::TIMEOUT);
 
         std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
         uci_engine.writeEngine("sleep");
         const auto res4 = uci_engine.readEngine("done", std::chrono::milliseconds(5000));
-        CHECK(res4 == Process::ProcessStatus::OK);
+        CHECK(res4 == Process::Status::OK);
         CHECK(uci_engine.output().size() == 1);
         CHECK(uci_engine.output()[0] == "done");
 

@@ -50,8 +50,8 @@ class UciEngine : Process {
     /// @param last_word
     /// @param threshold 0 means no timeout
     /// @return
-    Process::ProcessStatus readEngine(std::string_view last_word,
-                                      std::chrono::milliseconds threshold = ping_time_);
+    Process::Status readEngine(std::string_view last_word,
+                               std::chrono::milliseconds threshold = ping_time_);
 
     /// @brief Writes the input to the engine. May throw if the write fails.
     /// @param input

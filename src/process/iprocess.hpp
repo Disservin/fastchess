@@ -8,7 +8,7 @@
 
 class IProcess {
    public:
-    enum class ProcessStatus { OK, ERR, TIMEOUT };
+    enum class Status { OK, ERR, TIMEOUT };
 
     virtual ~IProcess() = default;
 
@@ -25,8 +25,8 @@ class IProcess {
     /// @param lines
     /// @param last_word
     /// @param threshold 0 means no timeout
-    virtual ProcessStatus readProcess(std::vector<std::string> &lines, std::string_view last_word,
-                                      std::chrono::milliseconds threshold) = 0;
+    virtual Status readProcess(std::vector<std::string> &lines, std::string_view last_word,
+                               std::chrono::milliseconds threshold) = 0;
 
     // Write input to the engine's stdin
     virtual void writeProcess(const std::string &input) = 0;

@@ -106,8 +106,8 @@ class Process : public IProcess {
     /// @param lines
     /// @param last_word
     /// @param threshold 0 means no timeout
-    ProcessStatus readProcess(std::vector<std::string> &lines, std::string_view last_word,
-                              std::chrono::milliseconds threshold) override {
+    Status readProcess(std::vector<std::string> &lines, std::string_view last_word,
+                       std::chrono::milliseconds threshold) override {
         assert(is_initalized_);
 
         lines.clear();
@@ -134,13 +134,13 @@ class Process : public IProcess {
                 threshold_ms should probably be 0. Using the assumption that the engine works
                 rather clean and is able to send the last word.*/
                 if (!PeekNamedPipe(child_std_out_, nullptr, 0, nullptr, &bytesAvail, nullptr)) {
-                    return ProcessStatus::ERR;
+                    return Status::ERR;
                 }
 
                 if (std::chrono::duration_cast<std::chrono::milliseconds>(
                         std::chrono::high_resolution_clock::now() - start) > threshold) {
                     lines.emplace_back(currentLine);
-                    return ProcessStatus::TIMEOUT;
+                    return Status::TIMEOUT;
                 }
 
                 checkTime = 255;
@@ -150,7 +150,7 @@ class Process : public IProcess {
             if (threshold.count() > 0 && bytesAvail == 0) continue;
 
             if (!ReadFile(child_std_out_, buffer, sizeof(buffer), &bytesRead, nullptr)) {
-                return ProcessStatus::ERR;
+                return Status::ERR;
             }
 
             // Iterate over each character in the buffer
@@ -172,7 +172,7 @@ class Process : public IProcess {
                     lines.emplace_back(currentLine);
 
                     if (currentLine.rfind(last_word, 0) == 0) {
-                        return ProcessStatus::OK;
+                        return Status::OK;
                     }
 
                     currentLine = "";
@@ -180,7 +180,7 @@ class Process : public IProcess {
             }
         }
 
-        return ProcessStatus::OK;
+        return Status::OK;
     }
 
     void writeProcess(const std::string &input) override {

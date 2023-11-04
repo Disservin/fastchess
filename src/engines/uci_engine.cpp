@@ -14,7 +14,7 @@ bool UciEngine::isResponsive(std::chrono::milliseconds threshold) {
 
     writeEngine("isready");
     const auto res = readEngine("readyok", threshold);
-    return res == Process::ProcessStatus::OK;
+    return res == Process::Status::OK;
 }
 
 bool UciEngine::sendUciNewGame() {
@@ -24,7 +24,7 @@ bool UciEngine::sendUciNewGame() {
 
 void UciEngine::sendUci() { writeEngine("uci"); }
 
-bool UciEngine::readUci() { return readEngine("uciok") == Process::ProcessStatus::OK; }
+bool UciEngine::readUci() { return readEngine("uciok") == Process::Status::OK; }
 
 void UciEngine::loadConfig(const EngineConfiguration &config) { config_ = config; }
 
@@ -57,8 +57,8 @@ void UciEngine::startEngine() {
     }
 }
 
-Process::ProcessStatus UciEngine::readEngine(std::string_view last_word,
-                                             std::chrono::milliseconds threshold) {
+Process::Status UciEngine::readEngine(std::string_view last_word,
+                                      std::chrono::milliseconds threshold) {
     try {
         return readProcess(output_, last_word, threshold);
     } catch (const std::exception &e) {

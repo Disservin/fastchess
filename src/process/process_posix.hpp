@@ -153,8 +153,8 @@ class Process : public IProcess {
     /// @param lines
     /// @param last_word
     /// @param threshold_ms 0 means no timeout
-    ProcessStatus readProcess(std::vector<std::string> &lines, std::string_view last_word,
-                              std::chrono::milliseconds threshold) override {
+    Status readProcess(std::vector<std::string> &lines, std::string_view last_word,
+                       std::chrono::milliseconds threshold) override {
         assert(is_initalized_);
 
         // Disable blocking
@@ -189,7 +189,7 @@ class Process : public IProcess {
             } else if (ret == 0) {
                 // timeout
                 lines.emplace_back(currentLine);
-                return ProcessStatus::TIMEOUT;
+                return Status::TIMEOUT;
             } else if (pollfds[0].revents & POLLIN) {
                 // input available on the pipe
                 const int bytesRead = read(in_pipe_[0], buffer, sizeof(buffer));
@@ -214,7 +214,7 @@ class Process : public IProcess {
                         lines.emplace_back(currentLine);
 
                         if (currentLine.rfind(last_word, 0) == 0) {
-                            return ProcessStatus::OK;
+                            return Status::OK;
                         }
 
                         currentLine = "";
@@ -222,7 +222,7 @@ class Process : public IProcess {
                 }
             }
         }
-        return ProcessStatus::OK;
+        return Status::OK;
     }
 
     void writeProcess(const std::string &input) override {

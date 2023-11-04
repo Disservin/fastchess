@@ -20,6 +20,8 @@ class UciEngine : Process {
         startEngine();
     }
 
+    void setAffinity(const std::vector<int> &cpus) noexcept { cpus_ = cpus; }
+
     ~UciEngine() override { sendQuit(); }
 
     /// @brief Just writes "uci" to the engine
@@ -88,7 +90,7 @@ class UciEngine : Process {
 
     EngineConfiguration config_;
 
-    const std::vector<int> &cpus_;
+    std::vector<int> cpus_;
 
     std::vector<std::string> output_;
 };

@@ -33,8 +33,6 @@ OUTPUT_FILE_2=$(mktemp)
     -each tc=2+0.02s -rounds 5 -repeat -concurrency 2 \
     -openings file=tests/data/openings.pgn format=pgn order=random 2>&1 | tee $OUTPUT_FILE_2
 
-less $OUTPUT_FILE_2
-
 if grep -q "WARNING: ThreadSanitizer:" $OUTPUT_FILE_2; then
     echo "Data races detected."
     exit 1

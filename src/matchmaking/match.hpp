@@ -25,9 +25,8 @@ struct ResignTracker {
 
 class Match {
    public:
-    Match(const cmd::TournamentOptions& game_config, const Opening& opening,
-          const std::vector<int>& cpus)
-        : tournament_options_(game_config), opening_(opening), cpus_(cpus) {}
+    Match(const cmd::TournamentOptions& game_config, const Opening& opening)
+        : tournament_options_(game_config), opening_(opening) {}
 
     /// @brief starts the match
     void start(UciEngine& engine1, UciEngine& engine2);
@@ -72,7 +71,6 @@ class Match {
 
     const cmd::TournamentOptions& tournament_options_;
     const Opening& opening_;
-    const std::vector<int>& cpus_;
 
     MatchData data_     = {};
     chess::Board board_ = chess::Board();

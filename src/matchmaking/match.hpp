@@ -34,7 +34,7 @@ class Match {
                const EngineConfiguration& engine2_config);
 
     /// @brief returns the match data, only valid after the match has finished
-    [[nodiscard]] MatchData get() const { return data_; }
+    [[nodiscard]] const MatchData& get() const { return data_; }
 
    private:
     void verifyPvLines(const Participant& us);
@@ -48,8 +48,8 @@ class Match {
 
     /// @brief append the move data to the match data
     /// @param player
-    /// @param measured_time
-    void addMoveData(Participant& player, int64_t measured_time);
+    /// @param measured_time_ms
+    void addMoveData(const Participant& player, int64_t measured_time_ms);
 
     /// @brief returns false if the next move could not be played
     /// @param us
@@ -68,6 +68,8 @@ class Match {
 
     [[nodiscard]] static std::string convertChessReason(const std::string& engine_name,
                                                         chess::GameResultReason reason) noexcept;
+
+    bool isLegal(chess::Move move) const noexcept;
 
     const cmd::TournamentOptions& tournament_options_;
     const Opening& opening_;

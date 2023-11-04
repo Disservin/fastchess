@@ -20,10 +20,8 @@ using clock      = chrono::high_resolution_clock;
 
 using namespace chess;
 
-void Match::addMoveData(Participant& player, int64_t measured_time) {
-    const auto best_move = player.engine.bestmove();
-
-    MoveData move_data = MoveData(best_move, "0.00", measured_time, 0, 0, 0, 0);
+void Match::addMoveData(const Participant& player, int64_t measured_time_ms) {
+    MoveData move_data = MoveData(player.engine.bestmove(), "0.00", measured_time_ms, 0, 0, 0, 0);
 
     if (player.engine.output().size() <= 1) {
         data_.moves.push_back(move_data);
@@ -42,6 +40,7 @@ void Match::addMoveData(Participant& player, int64_t measured_time) {
 
     // Missing elements default to 0
     std::stringstream ss;
+
     if (score_type == "cp") {
         ss << (move_data.score >= 0 ? '+' : '-');
         ss << std::fixed << std::setprecision(2) << (float(std::abs(move_data.score)) / 100);
@@ -195,11 +194,7 @@ bool Match::playMove(Participant& us, Participant& opponent) {
     const auto best_move = us.engine.bestmove();
     const auto move      = uci::uciToMove(board_, best_move);
 
-    Movelist moves;
-    movegen::legalmoves(moves, board_);
-
-    // Illegal move
-    if (moves.find(move) == -1) {
+    if (!isLegal(move)) {
         setLose(us, opponent);
 
         data_.termination = MatchTermination::ILLEGAL_MOVE;
@@ -213,6 +208,13 @@ bool Match::playMove(Participant& us, Participant& opponent) {
     board_.makeMove(move);
 
     return !adjudicate(us, opponent);
+}
+
+bool Match::isLegal(Move move) const noexcept {
+    Movelist moves;
+    movegen::legalmoves(moves, board_);
+
+    return moves.find(move) > -1;
 }
 
 void Match::verifyPvLines(const Participant& us) {

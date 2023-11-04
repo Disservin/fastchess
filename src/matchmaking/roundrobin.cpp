@@ -31,12 +31,12 @@ RoundRobin::RoundRobin(const cmd::TournamentOptions& game_config)
     // Initialize the SPRT test
     sprt_ = SPRT(tournament_options_.sprt.alpha, tournament_options_.sprt.beta,
                  tournament_options_.sprt.elo0, tournament_options_.sprt.elo1);
+
+    // Set the seed for the random number generator
+    random::mersenne_rand.seed(tournament_options_.seed);
 }
 
 void RoundRobin::setupEpdOpeningBook() {
-    // Set the seed for the random number generator
-    random::mersenne_rand.seed(tournament_options_.seed);
-
     if (tournament_options_.opening.file.empty() ||
         tournament_options_.opening.format != FormatType::EPD) {
         return;

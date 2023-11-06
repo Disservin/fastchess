@@ -191,6 +191,10 @@ void RoundRobin::playGame(const std::pair<EngineConfiguration, EngineConfigurati
     cache_.save(configs.first.name, configs.first, core.cpus);
     cache_.save(configs.second.name, configs.second, core.cpus);
 
+    // update the affinity of the engines
+    cache_.get(configs.first.name).setAffinity(core.cpus);
+    cache_.get(configs.second.name).setAffinity(core.cpus);
+
     try {
         match.start(cache_.get(configs.first.name), cache_.get(configs.second.name));
 

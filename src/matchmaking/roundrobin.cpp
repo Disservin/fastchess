@@ -201,12 +201,12 @@ void RoundRobin::playGame(const std::pair<EngineConfiguration, EngineConfigurati
     } catch (const std::exception& e) {
         Logger::log<Logger::Level::ERR>("Exception RoundRobin::playGame: " + std::string(e.what()));
 
-        cores_.put_back(core);
+        // cores_.put_back(core);
 
         return;
     }
 
-    cores_.put_back(core);
+    // cores_.put_back(core);
 
     if (atomic::stop) return;
 

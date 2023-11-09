@@ -62,10 +62,7 @@ void clear_processes() {
 #endif
 }
 
-void consoleHandlerAction() {
-    Logger::log<Logger::Level::TRACE>("Caught signal, stopping...");
-    fast_chess::atomic::stop = true;
-}
+void consoleHandlerAction() { fast_chess::atomic::stop = true; }
 
 #ifdef _WIN64
 BOOL WINAPI handler(DWORD signal) {

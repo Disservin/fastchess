@@ -21,11 +21,6 @@ ProcessList<pid_t> pid_list;
 
 using namespace fast_chess;
 
-namespace {
-std::unique_ptr<cmd::OptionsParser> Options;
-std::unique_ptr<Tournament> Tour;
-}  // namespace
-
 void clear_processes();
 void setCtrlCHandler();
 
@@ -33,21 +28,20 @@ int main(int argc, char const *argv[]) {
     setCtrlCHandler();
 
     Logger::log<Logger::Level::TRACE>("Reading options...");
-    Options = std::make_unique<cmd::OptionsParser>(argc, argv);
+    auto options = cmd::OptionsParser(argc, argv);
 
-    Logger::log<Logger::Level::TRACE>("Creating tournament...");
-    Tour = std::make_unique<Tournament>(Options->getGameOptions());
+    {
+        Logger::log<Logger::Level::TRACE>("Creating tournament...");
+        auto tour = Tournament(options.getGameOptions());
 
-    Logger::log<Logger::Level::TRACE>("Setting results...");
-    Tour->roundRobin()->setResults(Options->getResults());
+        Logger::log<Logger::Level::TRACE>("Setting results...");
+        tour.roundRobin()->setResults(options.getResults());
 
-    Logger::log<Logger::Level::TRACE>("Starting tournament...");
-    Tour->start(Options->getEngineConfigs());
+        Logger::log<Logger::Level::TRACE>("Starting tournament...");
+        tour.start(options.getEngineConfigs());
 
-    Logger::log<Logger::Level::TRACE>("Saving results...");
-    Options->saveJson(Tour->getResults());
-
-    Logger::log("Saved results.");
+        Logger::log("Finished tournament");
+    }
 
     clear_processes();
 
@@ -69,11 +63,8 @@ void clear_processes() {
 }
 
 void consoleHandlerAction() {
-    Tour->stop();
-    Options->saveJson(Tour->getResults());
-    clear_processes();
-    Logger::log<Logger::Level::INFO>("Saved results.");
-    std::exit(0);
+    Logger::log<Logger::Level::TRACE>("Caught signal, stopping...");
+    fast_chess::atomic::stop = true;
 }
 
 #ifdef _WIN64
@@ -87,7 +78,7 @@ BOOL WINAPI handler(DWORD signal) {
         default:
             break;
     }
-    return FALSE;
+    return TRUE;
 }
 
 void setCtrlCHandler() {

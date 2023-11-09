@@ -140,15 +140,6 @@ class OptionsParser {
         std::exit(0);
     }
 
-    void saveJson(const stats_map &stats) const {
-        nlohmann::ordered_json jsonfile = argument_data_.tournament_options;
-        jsonfile["engines"]             = argument_data_.configs;
-        jsonfile["stats"]               = stats;
-
-        std::ofstream file("config.json");
-        file << std::setw(4) << jsonfile << std::endl;
-    }
-
     [[nodiscard]] std::vector<EngineConfiguration> getEngineConfigs() const {
         return argument_data_.configs;
     }

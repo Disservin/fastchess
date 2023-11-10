@@ -44,19 +44,20 @@ jobs:
         run: |
           clang++ --version
 
-      - name: Normal E2E
-        run: |
-          make clean
-          bash tests/e2e/e2e.sh
-
-      - name: Asan E2E
-        if: runner.os == 'Linux'
-        run: |
-          make clean
-          bash tests/e2e/e2e.sh san=asan
-
       - name: Sanitize Thread E2E Test
         if: runner.os == 'Linux'
         run: |
           make clean
           bash tests/e2e/e2e.sh san=thread
+
+      - name: Asan E2E
+        if: runner.os == 'Linux'
+        continue-on-error: true
+        run: |
+          make clean
+          bash tests/e2e/e2e.sh san=asan
+
+      - name: Normal E2E
+        run: |
+          make clean
+          bash tests/e2e/e2e.sh

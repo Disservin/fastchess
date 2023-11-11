@@ -35,9 +35,12 @@ class Process : public IProcess {
     ~Process() override { killProcess(); }
 
     void initProcess(const std::string &command, const std::string &args,
-                     const std::string &log_name, const std::vector<int> &cpus) override {
+                     const std::string &log_name) override {
+        command_  = command;
+        args_     = args;
+        log_name_ = log_name;
+
         is_initalized_ = true;
-        log_name_      = log_name;
 
         // Create input pipe
         if (pipe(in_pipe_) == -1) {
@@ -85,15 +88,6 @@ class Process : public IProcess {
             // remove trailing whitespaces
             rtrim(full_command);
 
-// Apple does not support setting the affinity of a pid, so we need to set the
-// affinity from within the process
-#if defined(__APPLE__)
-            // assign the process to specified core
-            if (cpus.size()) {
-                affinity::set_affinity(cpus);
-            }
-#endif
-
             // Execute the engine
             if (execl(command.c_str(), full_command.c_str(), (char *)NULL) == -1)
                 throw std::runtime_error("Failed to execute engine");
@@ -103,13 +97,6 @@ class Process : public IProcess {
         // This is the parent process
         else {
             process_pid_ = forkPid;
-
-#if !defined(__APPLE__)
-            // assign the process to specified core
-            if (cpus.size()) {
-                affinity::set_affinity(cpus, process_pid_);
-            }
-#endif
 
             // append the process to the list of running processes
             fast_chess::pid_list.push(process_pid_);
@@ -126,6 +113,17 @@ class Process : public IProcess {
             throw std::runtime_error("Error: waitpid() failed");
         } else {
             return r == 0;
+        }
+    }
+
+    void setAffinity(const std::vector<int> &cpus) override {
+        assert(is_initalized_);
+        if (!cpus.empty()) {
+#if defined(__APPLE__)
+// Apple does not support setting the affinity of a pid
+#else
+            affinity::set_affinity(cpus, process_pid_);
+#endif
         }
     }
 
@@ -146,6 +144,11 @@ class Process : public IProcess {
             kill(process_pid_, SIGKILL);
             wait(NULL);
         }
+    }
+
+    void restart() override {
+        killProcess();
+        initProcess(command_, args_, log_name_);
     }
 
    protected:
@@ -241,6 +244,8 @@ class Process : public IProcess {
     }
 
    private:
+    std::string command_;
+    std::string args_;
     std::string log_name_;
 
     bool is_initalized_ = false;

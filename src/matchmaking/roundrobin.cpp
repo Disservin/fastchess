@@ -184,15 +184,18 @@ void RoundRobin::playGame(const std::pair<EngineConfiguration, EngineConfigurati
     const auto max_threads_for_affinity = first_threads == second_threads ? first_threads : 0;
     const auto core                     = cores_.consume(max_threads_for_affinity);
 
-    auto match = Match(tournament_options_, opening, core.cpus);
+    auto engine_one = ScopeManager(engine_cache_.getEntry(configs.first.name, configs.first));
+    auto engine_two = ScopeManager(engine_cache_.getEntry(configs.second.name, configs.second));
 
     start();
 
+    auto match = Match(tournament_options_, opening);
+
     try {
-        match.start(configs.first, configs.second);
+        match.start(engine_one.get(), engine_two.get(), core.cpus);
 
         while (match.get().needs_restart) {
-            match.start(configs.first, configs.second);
+            match.start(engine_one.get(), engine_two.get(), core.cpus);
         }
 
     } catch (const std::exception& e) {

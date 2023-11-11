@@ -14,12 +14,14 @@ namespace fast_chess {
 
 class UciEngine : Process {
    public:
-    explicit UciEngine(const EngineConfiguration &config, const std::vector<int> &cpus)
-        : cpus_(cpus) {
+    explicit UciEngine(const EngineConfiguration &config) {
         loadConfig(config);
+        startEngine();
     }
 
     ~UciEngine() override { sendQuit(); }
+
+    void refreshUci();
 
     /// @brief Just writes "uci" to the engine
     void sendUci();
@@ -57,6 +59,8 @@ class UciEngine : Process {
     /// @param input
     void writeEngine(const std::string &input);
 
+    void setCpus(const std::vector<int> &cpus) { setAffinity(cpus); }
+
     /// @brief Get the bestmove from the last output.
     /// @return
     [[nodiscard]] std::string bestmove() const;
@@ -84,8 +88,6 @@ class UciEngine : Process {
     void sendSetoption(const std::string &name, const std::string &value);
 
     EngineConfiguration config_;
-
-    const std::vector<int> &cpus_;
 
     std::vector<std::string> output_;
 };

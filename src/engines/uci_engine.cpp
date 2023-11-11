@@ -35,13 +35,21 @@ void UciEngine::sendSetoption(const std::string &name, const std::string &value)
 }
 
 void UciEngine::startEngine() {
-    initProcess((config_.dir == "." ? "" : config_.dir) + config_.cmd, config_.args, config_.name,
-                cpus_);
+    Logger::log<Logger::Level::TRACE>("Starting engine", config_.name);
+    initProcess((config_.dir == "." ? "" : config_.dir) + config_.cmd, config_.args, config_.name);
+}
 
+void UciEngine::refreshUci() {
     sendUci();
 
     if (!readUci() && !isResponsive(std::chrono::milliseconds(60000))) {
-        throw std::runtime_error("Warning; Something went wrong when pinging the engine.");
+        // restart the engine
+        restart();
+        sendUci();
+
+        if (!readUci() && !isResponsive(std::chrono::milliseconds(60000))) {
+            throw std::runtime_error("Warning; Something went wrong when pinging the engine.");
+        }
     }
 
     for (const auto &option : config_.options) {

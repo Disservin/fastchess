@@ -10,6 +10,7 @@
 #include <affinity/cores.hpp>
 #include <util/rand.hpp>
 #include <types/tournament_options.hpp>
+#include <util/cache.hpp>
 
 namespace fast_chess {
 
@@ -95,6 +96,10 @@ class RoundRobin {
 
     cmd::TournamentOptions tournament_options_ = {};
 
+    affinity::CoreHandler cores_;
+
+    CachePool<UciEngine, std::string> engine_cache_ = CachePool<UciEngine, std::string>();
+
     /// @brief the file writer for the pgn file
     FileWriter file_writer_;
 
@@ -103,8 +108,6 @@ class RoundRobin {
     Result result_ = Result();
 
     SPRT sprt_ = SPRT();
-
-    affinity::CoreHandler cores_;
 
     std::vector<std::string> opening_book_epd_;
     std::vector<Opening> opening_book_pgn_;

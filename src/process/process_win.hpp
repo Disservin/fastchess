@@ -12,6 +12,7 @@
 #include <string>
 #include <thread>
 #include <vector>
+#include <future>
 
 #include <windows.h>
 
@@ -113,59 +114,36 @@ class Process : public IProcess {
         lines.clear();
         lines.reserve(30);
 
-        std::string currentLine;
-        currentLine.reserve(300);
+        auto readFuture = std::async(std::launch::async, [this, &last_word, &lines]() {
+            std::string currentLine;
 
-        char buffer[4096];
-        DWORD bytesRead;
-        DWORD bytesAvail = 0;
+            char buffer[4096];
+            DWORD bytesRead;
+            DWORD bytesAvail = 0;
 
-        int checkTime = 255;
-
-        const auto start = std::chrono::high_resolution_clock::now();
-
-        while (true) {
-            // Check if timeout milliseconds have elapsed
-            if (threshold.count() > 0 && checkTime-- == 0) {
-                /* To achieve "non blocking" file reading on windows with anonymous pipes the only
-                solution that I found was using peeknamedpipe however it turns out this function is
-                terribly slow and leads to timeouts for the engines. Checking this only after n runs
-                seems to reduce the impact of this. For high concurrency windows setups
-                threshold_ms should probably be 0. Using the assumption that the engine works
-                rather clean and is able to send the last word.*/
-                if (!PeekNamedPipe(child_std_out_, nullptr, 0, nullptr, &bytesAvail, nullptr)) {
+            while (true) {
+                if (!ReadFile(child_std_out_, buffer, sizeof(buffer), &bytesRead, nullptr)) {
                     return Status::ERR;
                 }
 
-                if (std::chrono::duration_cast<std::chrono::milliseconds>(
-                        std::chrono::high_resolution_clock::now() - start) > threshold) {
-                    lines.emplace_back(currentLine);
-                    return Status::TIMEOUT;
-                }
+                if (bytesRead <= 0) continue;
 
-                checkTime = 255;
-            }
+                bytesAvail += bytesRead;
 
-            // no new bytes to read
-            if (threshold.count() > 0 && bytesAvail == 0) continue;
+                // Iterate over each character in the buffer
+                for (DWORD i = 0; i < bytesRead; i++) {
+                    // If we encounter a newline, add the current line to the vector and reset
+                    // the currentLine on Windows newlines are \r\n. Otherwise, append the
+                    // character to the current line
+                    if (buffer[i] != '\n' && buffer[i] != '\r') {
+                        currentLine += buffer[i];
+                        continue;
+                    }
 
-            if (!ReadFile(child_std_out_, buffer, sizeof(buffer), &bytesRead, nullptr)) {
-                return Status::ERR;
-            }
+                    // don't add empty lines
+                    if (currentLine.empty()) continue;
 
-            // Iterate over each character in the buffer
-            for (DWORD i = 0; i < bytesRead; i++) {
-                // If we encounter a newline, add the current line to the vector and reset the
-                // currentLine on windows newlines are \r\n. Otherwise, append the character to the
-                // current line
-                if (buffer[i] != '\n' && buffer[i] != '\r') {
-                    currentLine += buffer[i];
-                    continue;
-                }
-
-                // dont add empty lines
-                if (!currentLine.empty()) {
-                    // logging will significantly slowdown the reading and lead to engine
+                    // logging will significantly slow down the reading and lead to engine
                     // timeouts
                     fast_chess::Logger::readFromEngine(currentLine, log_name_);
 
@@ -175,9 +153,16 @@ class Process : public IProcess {
                         return Status::OK;
                     }
 
-                    currentLine = "";
+                    currentLine.clear();
                 }
             }
+        });
+
+        // Check if the asynchronous operation is completed
+        const auto fut = readFuture.wait_for(threshold);
+
+        if (fut == std::future_status::timeout) {
+            return Status::TIMEOUT;
         }
 
         return Status::OK;

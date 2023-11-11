@@ -217,7 +217,7 @@ class Process : public IProcess {
                             return Status::OK;
                         }
 
-                        currentLine = "";
+                        currentLine.clear();
                     }
                 }
             }

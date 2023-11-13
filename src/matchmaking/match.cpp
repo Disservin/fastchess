@@ -88,11 +88,11 @@ void Match::start(UciEngine& engine1, UciEngine& engine2, const std::vector<int>
     player_1.info.color = board_.sideToMove();
     player_2.info.color = ~board_.sideToMove();
 
-    player_1.engine.refreshUci();
-    player_2.engine.refreshUci();
-
     player_1.engine.setCpus(cpus);
     player_2.engine.setCpus(cpus);
+
+    player_1.engine.refreshUci();
+    player_2.engine.refreshUci();
 
     const auto start = clock::now();
 

@@ -11,7 +11,7 @@ class ScopeGuard {
     ScopeGuard &operator=(const ScopeGuard &) = delete;
 
     [[nodiscard]] auto &get() noexcept { return entry_; }
-    [[nodiscard]] auto &get() noexcept const { return entry_; }
+    [[nodiscard]] auto &get() const noexcept { return entry_; }
 
    private:
     T &entry_;

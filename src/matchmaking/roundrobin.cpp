@@ -185,8 +185,8 @@ void RoundRobin::playGame(const std::pair<EngineConfiguration, EngineConfigurati
     const auto max_threads_for_affinity = first_threads == second_threads ? first_threads : 0;
     const auto core                     = cores_.consume(max_threads_for_affinity);
 
-    auto engine_one = ScopeGuard(engine_cache_.getEntry(configs.first.name, configs.first).get());
-    auto engine_two = ScopeGuard(engine_cache_.getEntry(configs.second.name, configs.second).get());
+    auto engine_one = ScopeGuard(engine_cache_.getEntry(configs.first.name, configs.first));
+    auto engine_two = ScopeGuard(engine_cache_.getEntry(configs.second.name, configs.second));
 
     start();
 

@@ -4,22 +4,6 @@
 #include <functional>
 #include <iostream>
 
-template <typename T>
-class ScopeManager {
-   public:
-    explicit ScopeManager(T &entry) : entry_(entry) {}
-
-    ~ScopeManager() { entry_.release(); }
-
-    ScopeManager(const ScopeManager &)            = delete;
-    ScopeManager &operator=(const ScopeManager &) = delete;
-
-    [[nodiscard]] auto &get() noexcept { return entry_.get(); }
-
-   private:
-    T &entry_;
-};
-
 template <typename T, typename ID>
 class CachedEntry {
    public:

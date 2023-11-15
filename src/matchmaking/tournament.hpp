@@ -12,7 +12,10 @@ class Tournament {
    public:
     explicit Tournament(const cmd::TournamentOptions &game_config) noexcept;
 
-    ~Tournament() { saveJson(); }
+    ~Tournament() {
+        stop();
+        saveJson();
+    }
 
     void start(std::vector<EngineConfiguration> engine_configs);
     void stop() { round_robin_.stop(); }

@@ -25,13 +25,11 @@ struct ResignTracker {
 
 class Match {
    public:
-    Match(const cmd::TournamentOptions& game_config, const Opening& opening,
-          const std::vector<int>& cpus)
-        : tournament_options_(game_config), opening_(opening), cpus_(cpus) {}
+    Match(const cmd::TournamentOptions& game_config, const Opening& opening)
+        : tournament_options_(game_config), opening_(opening) {}
 
     /// @brief starts the match
-    void start(const EngineConfiguration& engine1_config,
-               const EngineConfiguration& engine2_config);
+    void start(UciEngine& engine1, UciEngine& engine2, const std::vector<int>& cpus);
 
     /// @brief returns the match data, only valid after the match has finished
     [[nodiscard]] const MatchData& get() const { return data_; }
@@ -73,7 +71,6 @@ class Match {
 
     const cmd::TournamentOptions& tournament_options_;
     const Opening& opening_;
-    const std::vector<int>& cpus_;
 
     MatchData data_     = {};
     chess::Board board_ = chess::Board();

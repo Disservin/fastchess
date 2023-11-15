@@ -81,7 +81,6 @@ BOOL WINAPI handler(DWORD signal) {
 void setCtrlCHandler() {
     if (!SetConsoleCtrlHandler(handler, TRUE)) {
         Logger::log<Logger::Level::FATAL>("Could not set control handler.");
-        Logger::log<Logger::Level::INFO>("Saved results.");
     }
 }
 

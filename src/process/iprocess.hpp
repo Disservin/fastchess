@@ -14,11 +14,15 @@ class IProcess {
 
     // Initialize the process
     virtual void initProcess(const std::string &command, const std::string &args,
-                             const std::string &log_name, const std::vector<int> &cpus) = 0;
+                             const std::string &log_name) = 0;
 
     /// @brief Returns true if the process is alive
     /// @return
     [[nodiscard]] virtual bool isAlive() const = 0;
+
+    virtual void setAffinity(const std::vector<int> &cpus) = 0;
+
+    virtual void restart() = 0;
 
    protected:
     /// @brief Read stdout until the line matches last_word or timeout is reached

@@ -29,7 +29,9 @@ class Process : public IProcess {
     ~Process() override { killProcess(); }
 
     void initProcess(const std::string &command, const std::string &args,
-                     const std::string &log_name, const std::vector<int> &cpus) override {
+                     const std::string &log_name) override {
+        command_  = command;
+        args_     = args;
         log_name_ = log_name;
 
         pi_ = PROCESS_INFORMATION();
@@ -64,11 +66,6 @@ class Process : public IProcess {
         child_std_out_ = childStdOutRd;
         child_std_in_  = childStdInWr;
 
-        // set process affinity
-        if (!cpus.empty()) {
-            affinity::set_affinity(cpus, pi_.hProcess);
-        }
-
         fast_chess::pid_list.push(pi_.hProcess);
     }
 
@@ -77,6 +74,13 @@ class Process : public IProcess {
         DWORD exitCode = 0;
         GetExitCodeProcess(pi_.hProcess, &exitCode);
         return exitCode == STILL_ACTIVE;
+    }
+
+    void setAffinity(const std::vector<int> &cpus) override {
+        assert(is_initalized_);
+        if (!cpus.empty()) {
+            affinity::set_affinity(cpus, pi_.hProcess);
+        }
     }
 
     void killProcess() {
@@ -100,6 +104,11 @@ class Process : public IProcess {
         }
 
         is_initalized_ = false;
+    }
+
+    void restart() override {
+        killProcess();
+        initProcess(command_, args_, log_name_);
     }
 
    protected:
@@ -196,6 +205,8 @@ class Process : public IProcess {
         }
     }
 
+    std::string command_;
+    std::string args_;
     std::string log_name_;
 
     bool is_initalized_ = false;

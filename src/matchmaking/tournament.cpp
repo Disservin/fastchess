@@ -15,8 +15,6 @@ void Tournament::start(std::vector<EngineConfiguration> engine_configs) {
     Logger::log<Logger::Level::INFO>("Starting tournament...");
 
     round_robin_.start(engine_configs);
-
-    Logger::log<Logger::Level::INFO>("Finished tournament");
 }
 
 void Tournament::loadConfig(const cmd::TournamentOptions& game_config) {

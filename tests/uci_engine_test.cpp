@@ -19,9 +19,8 @@ TEST_SUITE("Uci Engine Communication Tests") {
 #else
         config.cmd = path + "dummy_engine";
 #endif
-        std::vector<int> cpus = {};
 
-        UciEngine uci_engine = UciEngine(config, cpus);
+        UciEngine uci_engine = UciEngine(config);
 
         uci_engine.startEngine();
 
@@ -56,9 +55,7 @@ TEST_SUITE("Uci Engine Communication Tests") {
 #else
         config.cmd = path + "dummy_engine";
 #endif
-        std::vector<int> cpus = {};
-
-        UciEngine uci_engine = UciEngine(config, cpus);
+        UciEngine uci_engine = UciEngine(config);
 
         uci_engine.startEngine();
 

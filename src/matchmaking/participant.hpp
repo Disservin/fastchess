@@ -9,9 +9,8 @@ namespace fast_chess {
 
 class Participant {
    public:
-    explicit Participant(const EngineConfiguration &config, const std::vector<int> &cpus)
-        : engine(config, cpus) {
-        info.config = config;
+    explicit Participant(UciEngine &uci_enigne) : engine(uci_enigne) {
+        info.config = engine.getConfig();
 
         // copy time control which will be updated later
         time_control_ = engine.getConfig().limit.tc;
@@ -103,7 +102,7 @@ class Participant {
 
     [[nodiscard]] const TimeControl &getTimeControl() const { return time_control_; }
 
-    UciEngine engine;
+    UciEngine &engine;
     PlayerInfo info;
 
    private:

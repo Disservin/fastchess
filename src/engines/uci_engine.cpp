@@ -7,8 +7,6 @@
 
 namespace fast_chess {
 
-EngineConfiguration UciEngine::getConfig() const { return config_; }
-
 bool UciEngine::isResponsive(std::chrono::milliseconds threshold) {
     if (!isAlive()) return false;
 
@@ -17,37 +15,37 @@ bool UciEngine::isResponsive(std::chrono::milliseconds threshold) {
     return res == Process::Status::OK;
 }
 
-bool UciEngine::sendUciNewGame() {
+bool UciEngine::ucinewgame() {
     writeEngine("ucinewgame");
     return isResponsive(ping_time_);
 }
 
-void UciEngine::sendUci() { writeEngine("uci"); }
+void UciEngine::uci() { writeEngine("uci"); }
 
-bool UciEngine::readUci() { return readEngine("uciok") == Process::Status::OK; }
+bool UciEngine::uciok() { return readEngine("uciok") == Process::Status::OK; }
 
 void UciEngine::loadConfig(const EngineConfiguration &config) { config_ = config; }
 
-void UciEngine::sendQuit() { writeEngine("quit"); }
+void UciEngine::quit() { writeEngine("quit"); }
 
 void UciEngine::sendSetoption(const std::string &name, const std::string &value) {
     writeEngine("setoption name " + name + " value " + value);
 }
 
-void UciEngine::startEngine() {
+void UciEngine::start() {
     Logger::log<Logger::Level::TRACE>("Starting engine", config_.name);
     initProcess((config_.dir == "." ? "" : config_.dir) + config_.cmd, config_.args, config_.name);
 }
 
 void UciEngine::refreshUci() {
-    sendUci();
+    uci();
 
-    if (!readUci() && !isResponsive(std::chrono::milliseconds(60000))) {
+    if (!uciok() && !isResponsive(std::chrono::milliseconds(60000))) {
         // restart the engine
         restart();
-        sendUci();
+        uci();
 
-        if (!readUci() && !isResponsive(std::chrono::milliseconds(60000))) {
+        if (!uciok() && !isResponsive(std::chrono::milliseconds(60000))) {
             throw std::runtime_error("Warning; Something went wrong when pinging the engine.");
         }
     }
@@ -60,7 +58,7 @@ void UciEngine::refreshUci() {
         sendSetoption("UCI_Chess960", "true");
     }
 
-    if (!sendUciNewGame()) {
+    if (!ucinewgame()) {
         throw std::runtime_error(config_.name + " failed to start.");
     }
 }
@@ -115,6 +113,4 @@ std::string UciEngine::lastScoreType() const {
 int UciEngine::lastScore() const {
     return str_utils::findElement<int>(lastInfo(), lastScoreType()).value_or(0);
 }
-
-const std::vector<std::string> &UciEngine::output() const { return output_; }
 }  // namespace fast_chess

@@ -21,11 +21,9 @@ TEST_SUITE("Uci Engine Communication Tests") {
 #endif
 
         UciEngine uci_engine = UciEngine(config);
-
-        uci_engine.startEngine();
-
-        uci_engine.sendUci();
-        auto uci       = uci_engine.readUci();
+        
+        uci_engine.uci();
+        auto uci       = uci_engine.uciok();
         auto uciOutput = uci_engine.output();
 
         CHECK(uci);
@@ -56,8 +54,6 @@ TEST_SUITE("Uci Engine Communication Tests") {
         config.cmd = path + "dummy_engine";
 #endif
         UciEngine uci_engine = UciEngine(config);
-
-        uci_engine.startEngine();
 
         uci_engine.writeEngine("uci");
         const auto res = uci_engine.readEngine("uciok");

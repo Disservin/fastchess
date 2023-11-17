@@ -4,7 +4,8 @@
 
 namespace fast_chess {
 
-struct Stats {
+class Stats {
+   public:
     Stats() = default;
     Stats(int wins, int losses, int draws) : wins(wins), losses(losses), draws(draws) {}
 

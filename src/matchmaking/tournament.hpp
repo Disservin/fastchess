@@ -40,7 +40,7 @@ class Tournament {
     void fixConfig();
     void validateEngines() const;
 
-    const std::vector<EngineConfiguration> &engine_configs_;
+    std::vector<EngineConfiguration> engine_configs_;
     cmd::TournamentOptions tournament_options_;
 
     RoundRobin round_robin_;

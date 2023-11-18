@@ -25,9 +25,7 @@ RoundRobin::RoundRobin(const cmd::TournamentOptions& game_config)
     setupEpdOpeningBook();
     setupPgnOpeningBook();
 
-    // Resize the thread pool, but don't go over the number of threads the system has
-    pool_.resize(std::min(static_cast<int>(std::thread::hardware_concurrency()),
-                          tournament_options_.concurrency));
+    pool_.resize(tournament_options_.concurrency);
 
     // Initialize the SPRT test
     sprt_ = SPRT(tournament_options_.sprt.alpha, tournament_options_.sprt.beta,

@@ -1,16 +1,16 @@
 #pragma once
 
+#include <affinity/cores.hpp>
 #include <matchmaking/match.hpp>
 #include <matchmaking/result.hpp>
-#include <util/file_writer.hpp>
-#include <util/threadpool.hpp>
 #include <pgn_reader.hpp>
 #include <sprt.hpp>
 #include <types/stats.hpp>
-#include <affinity/cores.hpp>
-#include <util/rand.hpp>
 #include <types/tournament_options.hpp>
 #include <util/cache.hpp>
+#include <util/file_writer.hpp>
+#include <util/rand.hpp>
+#include <util/threadpool.hpp>
 
 namespace fast_chess {
 
@@ -67,11 +67,6 @@ class RoundRobin {
     void playGame(const std::pair<EngineConfiguration, EngineConfiguration> &configs,
                   start_callback start, finished_callback finish, const Opening &opening,
                   std::size_t round_id);
-
-    /// @brief create the Stats object from the match data
-    /// @param match_data
-    /// @return
-    [[nodiscard]] static Stats extractStats(const MatchData &match_data);
 
     /// @brief fetches the next fen from a sequential read opening book or from a randomized
     /// opening book order

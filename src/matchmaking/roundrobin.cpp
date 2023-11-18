@@ -212,28 +212,13 @@ void RoundRobin::playGame(const std::pair<EngineConfiguration, EngineConfigurati
     if (atomic::stop) return;
 
     const auto match_data = match.get();
-    const auto result     = extractStats(match_data);
 
     // If the game was stopped, don't write the PGN
     if (match_data.termination != MatchTermination::INTERRUPT) {
         file_writer_.write(PgnBuilder(match_data, tournament_options_, game_id).get());
     }
 
-    finish(result, match_data.reason);
-}
-
-Stats RoundRobin::extractStats(const MatchData& match_data) {
-    Stats stats;
-
-    if (match_data.players.first.result == chess::GameResult::WIN) {
-        stats.wins++;
-    } else if (match_data.players.first.result == chess::GameResult::LOSE) {
-        stats.losses++;
-    } else {
-        stats.draws++;
-    }
-
-    return stats;
+    finish({match_data}, match_data.reason);
 }
 
 Opening RoundRobin::fetchNextOpening() {

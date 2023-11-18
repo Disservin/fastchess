@@ -68,8 +68,8 @@ Process::Status UciEngine::readEngine(std::string_view last_word,
     try {
         return readProcess(output_, last_word, threshold);
     } catch (const std::exception &e) {
-        Logger::log<Logger::Level::ERR>("Raised Exception in read\nWarning; Engine", config_.name,
-                                        "disconnects");
+        Logger::log<Logger::Level::ERR>("Raised Exception in readProcess\nWarning; Engine",
+                                        config_.name, "disconnects");
         throw e;
     }
 }
@@ -78,8 +78,8 @@ void UciEngine::writeEngine(const std::string &input) {
     try {
         writeProcess(input + "\n");
     } catch (const std::exception &e) {
-        Logger::log<Logger::Level::ERR>("Raised Exception in write\nWarning; Engine", config_.name,
-                                        "disconnects");
+        Logger::log<Logger::Level::ERR>("Raised Exception in writeProcess\nWarning; Engine",
+                                        config_.name, "disconnects");
 
         throw e;
     }

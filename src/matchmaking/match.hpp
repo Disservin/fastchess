@@ -30,7 +30,7 @@ class DrawTacker {
 
    private:
     /// @brief number of moves below the draw threshold
-    std::size_t draw_moves = 0;
+    int draw_moves = 0;
     /// @brief the score must be below this threshold to draw
     int draw_score = 0;
 
@@ -59,7 +59,7 @@ class ResignTracker {
 
    private:
     /// @brief number of moves above the resign threshold
-    std::size_t resign_moves = 0;
+    int resign_moves = 0;
 
     // config
     /// @brief the score muust be above this threshold to resign

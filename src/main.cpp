@@ -32,13 +32,13 @@ int main(int argc, char const *argv[]) {
 
     {
         Logger::log<Logger::Level::TRACE>("Creating tournament...");
-        auto tour = Tournament(options.getGameOptions());
+        auto tour = Tournament(options.getGameOptions(), options.getEngineConfigs());
 
         Logger::log<Logger::Level::TRACE>("Setting results...");
         tour.roundRobin()->setResults(options.getResults());
 
         Logger::log<Logger::Level::TRACE>("Starting tournament...");
-        tour.start(options.getEngineConfigs());
+        tour.start();
 
         Logger::log("Finished tournament");
     }

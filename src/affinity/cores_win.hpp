@@ -1,10 +1,11 @@
 #pragma once
 
-#include <vector>
-#include <array>
-#include <thread>
 #include <windows.h>
+#include <array>
+#include <map>
 #include <memory>
+#include <thread>
+#include <vector>
 
 #include <chess.hpp>
 

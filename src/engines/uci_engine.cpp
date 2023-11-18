@@ -8,7 +8,7 @@
 namespace fast_chess {
 
 bool UciEngine::isResponsive(std::chrono::milliseconds threshold) {
-    if (!isAlive()) return false;
+    if (!alive()) return false;
 
     writeEngine("isready");
     const auto res = readEngine("readyok", threshold);
@@ -34,7 +34,7 @@ void UciEngine::sendSetoption(const std::string &name, const std::string &value)
 
 void UciEngine::start() {
     Logger::log<Logger::Level::TRACE>("Starting engine", config_.name);
-    initProcess((config_.dir == "." ? "" : config_.dir) + config_.cmd, config_.args, config_.name);
+    init((config_.dir == "." ? "" : config_.dir) + config_.cmd, config_.args, config_.name);
 }
 
 void UciEngine::refreshUci() {
@@ -106,11 +106,21 @@ std::vector<std::string> UciEngine::lastInfo() const {
     return str_utils::splitString(output_[output_.size() - 2], ' ');
 }
 
-std::string UciEngine::lastScoreType() const {
-    return str_utils::findElement<std::string>(lastInfo(), "score").value_or("cp");
+ScoreType UciEngine::lastScoreType() const {
+    auto score = str_utils::findElement<std::string>(lastInfo(), "score").value_or("ERR");
+
+    return score == "ERR" ? ScoreType::ERR : score == "cp" ? ScoreType::CP : ScoreType::MATE;
 }
 
 int UciEngine::lastScore() const {
-    return str_utils::findElement<int>(lastInfo(), lastScoreType()).value_or(0);
+    const auto score = lastScoreType();
+
+    if (score == ScoreType::ERR) {
+        Logger::log<Logger::Level::WARN>("Warning; Could not extract last uci score.");
+        return 0;
+    }
+
+    return str_utils::findElement<int>(lastInfo(), lastScoreType() == ScoreType::CP ? "cp" : "mate")
+        .value_or(0);
 }
 }  // namespace fast_chess

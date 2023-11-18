@@ -13,12 +13,12 @@ class IProcess {
     virtual ~IProcess() = default;
 
     // Initialize the process
-    virtual void initProcess(const std::string &command, const std::string &args,
-                             const std::string &log_name) = 0;
+    virtual void init(const std::string &command, const std::string &args,
+                      const std::string &log_name) = 0;
 
     /// @brief Returns true if the process is alive
     /// @return
-    [[nodiscard]] virtual bool isAlive() const = 0;
+    [[nodiscard]] virtual bool alive() const = 0;
 
     virtual void setAffinity(const std::vector<int> &cpus) = 0;
 

@@ -34,8 +34,8 @@ class Process : public IProcess {
    public:
     ~Process() override { killProcess(); }
 
-    void initProcess(const std::string &command, const std::string &args,
-                     const std::string &log_name) override {
+    void init(const std::string &command, const std::string &args,
+              const std::string &log_name) override {
         command_  = command;
         args_     = args;
         log_name_ = log_name;
@@ -103,7 +103,7 @@ class Process : public IProcess {
         }
     }
 
-    bool isAlive() const override {
+    bool alive() const override {
         assert(is_initalized_);
 
         int status;
@@ -148,7 +148,7 @@ class Process : public IProcess {
 
     void restart() override {
         killProcess();
-        initProcess(command_, args_, log_name_);
+        init(command_, args_, log_name_);
     }
 
    protected:
@@ -232,7 +232,7 @@ class Process : public IProcess {
         assert(is_initalized_);
         fast_chess::Logger::writeToEngine(input, log_name_);
 
-        if (!isAlive()) {
+        if (!alive()) {
             throw std::runtime_error("IProcess is not alive and write occured with message: " +
                                      input);
         }

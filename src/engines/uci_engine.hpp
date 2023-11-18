@@ -12,6 +12,8 @@
 
 namespace fast_chess {
 
+enum class ScoreType { CP, MATE, ERR };
+
 class UciEngine : Process {
    public:
     explicit UciEngine(const EngineConfiguration &config) {
@@ -57,7 +59,7 @@ class UciEngine : Process {
 
     /// @brief Get the last score type from the last output. cp or mate.
     /// @return
-    [[nodiscard]] std::string lastScoreType() const;
+    [[nodiscard]] ScoreType lastScoreType() const;
 
     /// @brief Get the last score from the last output. Becareful, mate scores are not converted. So
     /// the score might 1, while it's actually mate 1. Always check lastScoreType() first.

@@ -9,18 +9,62 @@
 
 namespace fast_chess {
 
-struct DrawTacker {
+class DrawTacker {
+   public:
+    DrawTacker(const cmd::TournamentOptions& game_config) noexcept {
+        move_number_ = game_config.draw.move_number;
+        move_count_  = game_config.draw.move_count;
+        draw_score   = game_config.draw.score;
+    }
+
+    void update(const int score, const int move_count, ScoreType score_type) noexcept {
+        if (move_count >= move_number_ && std::abs(score) <= draw_score &&
+            score_type == ScoreType::CP) {
+            draw_moves++;
+        } else {
+            draw_moves = 0;
+        }
+    }
+
+    [[nodiscard]] bool adjudicatable() const noexcept { return draw_moves >= move_count_; }
+
+   private:
     /// @brief number of moves below the draw threshold
     std::size_t draw_moves = 0;
     /// @brief the score must be below this threshold to draw
     int draw_score = 0;
+
+    // config
+    int move_number_ = 0;
+    int move_count_  = 0;
+    int score_       = 0;
 };
 
-struct ResignTracker {
+class ResignTracker {
+   public:
+    ResignTracker(const cmd::TournamentOptions& game_config) noexcept {
+        resign_score = game_config.resign.score;
+        move_count_  = game_config.resign.move_count;
+    }
+
+    void update(const int score, ScoreType score_type) noexcept {
+        if (std::abs(score) >= resign_score && score_type == ScoreType::CP) {
+            resign_moves++;
+        } else {
+            resign_moves = 0;
+        }
+    }
+
+    [[nodiscard]] bool resignable() const noexcept { return resign_moves >= move_count_; }
+
+   private:
     /// @brief number of moves above the resign threshold
     std::size_t resign_moves = 0;
+
+    // config
     /// @brief the score muust be above this threshold to resign
     int resign_score = 0;
+    int move_count_  = 0;
 };
 
 class Match {
@@ -38,7 +82,7 @@ class Match {
     void verifyPvLines(const Participant& us);
 
     /// @brief Add opening moves to played moves
-    void prepareOpening();
+    void prepare();
 
     static void setDraw(Participant& us, Participant& them) noexcept;
     static void setWin(Participant& us, Participant& them) noexcept;
@@ -54,9 +98,6 @@ class Match {
     /// @param opponent
     /// @return
     [[nodiscard]] bool playMove(Participant& us, Participant& opponent);
-
-    void updateDrawTracker(const Participant& player) noexcept;
-    void updateResignTracker(const Participant& player) noexcept;
 
     /// @brief returns true if adjudicated
     /// @param us
@@ -75,8 +116,8 @@ class Match {
     MatchData data_     = {};
     chess::Board board_ = chess::Board();
 
-    DrawTacker draw_tracker_      = {};
-    ResignTracker resign_tracker_ = {};
+    DrawTacker draw_tracker_      = DrawTacker(tournament_options_);
+    ResignTracker resign_tracker_ = ResignTracker(tournament_options_);
 
     // start position, required for the uci position command
     // is either startpos or the fen of the opening

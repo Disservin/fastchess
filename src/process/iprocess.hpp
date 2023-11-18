@@ -13,12 +13,12 @@ class IProcess {
     virtual ~IProcess() = default;
 
     // Initialize the process
-    virtual void initProcess(const std::string &command, const std::string &args,
-                             const std::string &log_name) = 0;
+    virtual void init(const std::string &command, const std::string &args,
+                      const std::string &log_name) = 0;
 
     /// @brief Returns true if the process is alive
     /// @return
-    [[nodiscard]] virtual bool isAlive() const = 0;
+    [[nodiscard]] virtual bool alive() const = 0;
 
     virtual void setAffinity(const std::vector<int> &cpus) = 0;
 
@@ -29,9 +29,9 @@ class IProcess {
     /// @param lines
     /// @param last_word
     /// @param threshold 0 means no timeout
-    virtual Status readProcess(std::vector<std::string> &lines, std::string_view last_word,
-                               std::chrono::milliseconds threshold) = 0;
+    virtual Status read(std::vector<std::string> &lines, std::string_view last_word,
+                        std::chrono::milliseconds threshold) = 0;
 
     // Write input to the engine's stdin
-    virtual void writeProcess(const std::string &input) = 0;
+    virtual void write(const std::string &input) = 0;
 };

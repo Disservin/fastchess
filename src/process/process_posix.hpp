@@ -34,8 +34,8 @@ class Process : public IProcess {
    public:
     ~Process() override { killProcess(); }
 
-    void initProcess(const std::string &command, const std::string &args,
-                     const std::string &log_name) override {
+    void init(const std::string &command, const std::string &args,
+              const std::string &log_name) override {
         command_  = command;
         args_     = args;
         log_name_ = log_name;
@@ -103,7 +103,7 @@ class Process : public IProcess {
         }
     }
 
-    bool isAlive() const override {
+    bool alive() const override {
         assert(is_initalized_);
 
         int status;
@@ -148,7 +148,7 @@ class Process : public IProcess {
 
     void restart() override {
         killProcess();
-        initProcess(command_, args_, log_name_);
+        init(command_, args_, log_name_);
     }
 
    protected:
@@ -156,8 +156,8 @@ class Process : public IProcess {
     /// @param lines
     /// @param last_word
     /// @param threshold_ms 0 means no timeout
-    Status readProcess(std::vector<std::string> &lines, std::string_view last_word,
-                       std::chrono::milliseconds threshold) override {
+    Status read(std::vector<std::string> &lines, std::string_view last_word,
+                std::chrono::milliseconds threshold) override {
         assert(is_initalized_);
 
         // Disable blocking
@@ -228,11 +228,11 @@ class Process : public IProcess {
         return Status::OK;
     }
 
-    void writeProcess(const std::string &input) override {
+    void write(const std::string &input) override {
         assert(is_initalized_);
         fast_chess::Logger::writeToEngine(input, log_name_);
 
-        if (!isAlive()) {
+        if (!alive()) {
             throw std::runtime_error("IProcess is not alive and write occured with message: " +
                                      input);
         }

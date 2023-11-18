@@ -156,8 +156,8 @@ class Process : public IProcess {
     /// @param lines
     /// @param last_word
     /// @param threshold_ms 0 means no timeout
-    Status read(std::vector<std::string> &lines, std::string_view last_word,
-                std::chrono::milliseconds threshold) override {
+    Status readProcess(std::vector<std::string> &lines, std::string_view last_word,
+                       std::chrono::milliseconds threshold) override {
         assert(is_initalized_);
 
         // Disable blocking
@@ -228,7 +228,7 @@ class Process : public IProcess {
         return Status::OK;
     }
 
-    void write(const std::string &input) override {
+    void writeProcess(const std::string &input) override {
         assert(is_initalized_);
         fast_chess::Logger::writeToEngine(input, log_name_);
 

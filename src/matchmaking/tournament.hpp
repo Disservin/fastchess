@@ -10,20 +10,20 @@ namespace fast_chess {
 /// different tournament types
 class Tournament {
    public:
-    explicit Tournament(const cmd::TournamentOptions &game_config) noexcept;
+    explicit Tournament(const cmd::TournamentOptions &game_config,
+                        const std::vector<EngineConfiguration> &engine_configs);
 
     ~Tournament() {
         stop();
         saveJson();
     }
 
-    void start(std::vector<EngineConfiguration> engine_configs);
+    void start();
     void stop() { round_robin_.stop(); }
-
-    [[nodiscard]] stats_map getResults() noexcept { return round_robin_.getResults(); }
 
     [[nodiscard]] RoundRobin *roundRobin() { return &round_robin_; }
 
+   private:
     void saveJson() {
         nlohmann::ordered_json jsonfile = tournament_options_;
         jsonfile["engines"]             = engine_configs_;
@@ -37,15 +37,13 @@ class Tournament {
         Logger::log("Saved results.");
     }
 
-   private:
-    void loadConfig(const cmd::TournamentOptions &game_config);
+    void fixConfig();
+    void validateEngines() const;
 
-    static void validateEngines(std::vector<EngineConfiguration> &configs);
+    const std::vector<EngineConfiguration> &engine_configs_;
+    cmd::TournamentOptions tournament_options_;
 
     RoundRobin round_robin_;
-
-    cmd::TournamentOptions tournament_options_;
-    std::vector<EngineConfiguration> engine_configs_;
 };
 
 }  // namespace fast_chess

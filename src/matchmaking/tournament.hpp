@@ -10,8 +10,8 @@ namespace fast_chess {
 /// different tournament types
 class Tournament {
    public:
-    explicit Tournament(const cmd::TournamentOptions &game_config,
-                        const std::vector<EngineConfiguration> &engine_configs);
+    Tournament(const cmd::TournamentOptions &game_config,
+               const std::vector<EngineConfiguration> &engine_configs);
 
     ~Tournament() {
         stop();

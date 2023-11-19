@@ -16,8 +16,7 @@ void OpeningBook::setup(const std::string& file, FormatType type) {
     }
 
     if (type == FormatType::PGN) {
-        const PgnReader pgn_reader = PgnReader(file);
-        book_                      = pgn_reader.getPgns();
+        book_ = PgnReader(file).getPgns();
 
         if (std::get<pgn_book>(book_).empty()) {
             throw std::runtime_error("No openings found in PGN file: " + file);

@@ -13,17 +13,17 @@ namespace fast_chess {
 RoundRobin::RoundRobin(const cmd::TournamentOptions& game_config)
     : output_(getNewOutput(game_config.output)),
       tournament_options_(game_config),
-      cores_(game_config.affinity) {
+      cores_(game_config.affinity),
+      book_(game_config.opening.file, game_config.opening.format, game_config.opening.start) {
     auto filename = (game_config.pgn.file.empty() ? "fast-chess" : game_config.pgn.file);
 
     if (game_config.output == OutputType::FASTCHESS) {
         filename += ".pgn";
     }
 
-    file_writer_.open(filename);
+    if (tournament_options_.opening.order == OrderType::RANDOM) book_.shuffle();
 
-    setupEpdOpeningBook();
-    setupPgnOpeningBook();
+    file_writer_.open(filename);
 
     pool_.resize(tournament_options_.concurrency);
 
@@ -33,49 +33,6 @@ RoundRobin::RoundRobin(const cmd::TournamentOptions& game_config)
 
     // Set the seed for the random number generator
     random::mersenne_rand.seed(tournament_options_.seed);
-}
-
-void RoundRobin::setupEpdOpeningBook() {
-    if (tournament_options_.opening.file.empty() ||
-        tournament_options_.opening.format != FormatType::EPD) {
-        return;
-    }
-
-    // Read the opening book from file
-    std::ifstream openingFile;
-    openingFile.open(tournament_options_.opening.file);
-
-    std::string line;
-    while (std::getline(openingFile, line)) {
-        opening_book_epd_.emplace_back(line);
-    }
-
-    openingFile.close();
-
-    if (opening_book_epd_.empty()) {
-        throw std::runtime_error("No openings found in EPD file: " +
-                                 tournament_options_.opening.file);
-    }
-
-    shuffle(opening_book_epd_);
-}
-
-void RoundRobin::setupPgnOpeningBook() {
-    // Read the opening book from file
-    if (tournament_options_.opening.file.empty() ||
-        tournament_options_.opening.format != FormatType::PGN) {
-        return;
-    }
-
-    const PgnReader pgn_reader = PgnReader(tournament_options_.opening.file);
-    opening_book_pgn_          = pgn_reader.getPgns();
-
-    if (opening_book_pgn_.empty()) {
-        throw std::runtime_error("No openings found in PGN file: " +
-                                 tournament_options_.opening.file);
-    }
-
-    shuffle(opening_book_pgn_);
 }
 
 void RoundRobin::start(const std::vector<EngineConfiguration>& engine_configs) {
@@ -95,7 +52,7 @@ void RoundRobin::create(const std::vector<EngineConfiguration>& engine_configs) 
     const auto create_match = [this, &engine_configs](std::size_t i, std::size_t j,
                                                       std::size_t round_id) {
         // both players get the same opening
-        const auto opening = fetchNextOpening();
+        const auto opening = book_.fetch();
         const auto first   = engine_configs[i];
         const auto second  = engine_configs[j];
 
@@ -217,24 +174,6 @@ void RoundRobin::playGame(const std::pair<EngineConfiguration, EngineConfigurati
     }
 
     finish({match_data}, match_data.reason);
-}
-
-Opening RoundRobin::fetchNextOpening() {
-    static uint64_t opening_index = 0;
-
-    const auto idx = tournament_options_.opening.start + opening_index++;
-
-    if (tournament_options_.opening.format == FormatType::PGN) {
-        return opening_book_pgn_[idx % opening_book_pgn_.size()];
-    } else if (tournament_options_.opening.format == FormatType::EPD) {
-        Opening opening;
-
-        opening.fen = opening_book_epd_[idx % opening_book_epd_.size()];
-
-        return opening;
-    }
-
-    return {chess::constants::STARTPOS, {}};
 }
 
 }  // namespace fast_chess

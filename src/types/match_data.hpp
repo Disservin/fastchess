@@ -11,15 +11,6 @@
 namespace fast_chess {
 
 struct MoveData {
-    std::string move;
-    std::string score_string;
-    int64_t elapsed_millis = 0;
-    uint64_t nodes         = 0;
-    int seldepth           = 0;
-    int depth              = 0;
-    int score              = 0;
-    int nps                = 0;
-
     MoveData(std::string _move, std::string _score_string, int64_t _elapsed_millis, int _depth,
              int _seldepth, int _score, int _nodes)
         : move(std::move(_move)),
@@ -29,6 +20,15 @@ struct MoveData {
           seldepth(_seldepth),
           depth(_depth),
           score(_score) {}
+
+    std::string move;
+    std::string score_string;
+    int64_t elapsed_millis = 0;
+    uint64_t nodes         = 0;
+    int seldepth           = 0;
+    int depth              = 0;
+    int score              = 0;
+    int nps                = 0;
 };
 
 enum class MatchTermination {
@@ -41,6 +41,13 @@ enum class MatchTermination {
 };
 
 struct MatchData {
+    MatchData() = default;
+
+    explicit MatchData(std::string fen) : fen(std::move(fen)) {
+        start_time = Logger::getDateTime("%Y-%m-%dT%H:%M:%S %z");
+        date       = Logger::getDateTime("%Y-%m-%d");
+    }
+
     std::pair<PlayerInfo, PlayerInfo> players;
 
     std::string start_time;
@@ -60,13 +67,6 @@ struct MatchData {
     MatchTermination termination = MatchTermination::None;
 
     bool needs_restart = false;
-
-    MatchData() = default;
-
-    explicit MatchData(std::string fen) : fen(std::move(fen)) {
-        start_time = Logger::getDateTime("%Y-%m-%dT%H:%M:%S %z");
-        date       = Logger::getDateTime("%Y-%m-%d");
-    }
 };
 
 }  // namespace fast_chess

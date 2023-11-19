@@ -1,5 +1,6 @@
 #pragma once
 
+#include <matchmaking/opening_book.h>
 #include <affinity/cores.hpp>
 #include <matchmaking/match.hpp>
 #include <matchmaking/result.hpp>
@@ -41,11 +42,6 @@ class RoundRobin {
     }
 
    private:
-    /// @brief load an pgn opening book
-    void setupPgnOpeningBook();
-    /// @brief load an epd opening book
-    void setupEpdOpeningBook();
-
     /// @brief creates the matches
     /// @param engine_configs
     /// @param results
@@ -68,24 +64,6 @@ class RoundRobin {
                   start_callback start, finished_callback finish, const Opening &opening,
                   std::size_t round_id);
 
-    /// @brief fetches the next fen from a sequential read opening book or from a randomized
-    /// opening book order
-    /// @return
-    [[nodiscard]] Opening fetchNextOpening();
-
-    /// @brief Fisher-Yates / Knuth shuffle
-    /// @tparam T
-    /// @param vec
-    template <typename T>
-    void shuffle(std::vector<T> &vec) {
-        if (tournament_options_.opening.order == OrderType::RANDOM) {
-            for (std::size_t i = 0; i + 2 <= vec.size(); i++) {
-                std::size_t j = i + (random::mersenne_rand() % (vec.size() - i));
-                std::swap(vec[i], vec[j]);
-            }
-        }
-    }
-
     /// @brief Outputs the current state of the round robin to the console
     std::unique_ptr<IOutput> output_;
 
@@ -104,8 +82,7 @@ class RoundRobin {
 
     SPRT sprt_ = SPRT();
 
-    std::vector<std::string> opening_book_epd_;
-    std::vector<Opening> opening_book_pgn_;
+    OpeningBook book_;
 
     /// @brief number of games played
     std::atomic<uint64_t> match_count_ = 0;

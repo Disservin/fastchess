@@ -67,7 +67,7 @@ opposite effect._
 fast-chess supports many other command-line options:
 
 - `-config file=NAME [discard=true]`  
-   After a CTRL+C event or finishing all games the current config is
+  After a CTRL+C event or finishing all games the current config is
   automatically saved. You can restart fast-chess using this argument. This can
   be used to conveniently load engine configurations or/and to resume from a
   previous stop. In case you want to discard the saved game results you can
@@ -76,22 +76,21 @@ fast-chess supports many other command-line options:
 - `-concurrency N`
   <br/>
 - `-draw movenumber=NUMBER movecount=COUNT score=SCORE`
-
   - `NUMBER` - number of moves to make before checking for a draw
   - `COUNT` - number of moves to be below the score threshold to adjudicate a
-    draw
+      draw
   - `SCORE` - score threshold
-    <br/>
+      <br/>
 
 - `-engine OPTIONS`
 
-  - `OPTIONS` - apply [OPTIONS](#Options) to the next engine.
-    <br/>
+  - `OPTIONS` - apply [OPTIONS](#options) to the next engine.
+      <br/>
 
 - `-each OPTIONS`
 
-  - `OPTIONS` - apply [OPTIONS](#Options) to both engines.
-    <br/>
+  - `OPTIONS` - apply [OPTIONS](#options) to both engines.
+      <br/>
 
 - `-site SITE`
   <br/>
@@ -100,8 +99,8 @@ fast-chess supports many other command-line options:
 - `-games N`
 
   - `N` - number of games to play
-    This should be set to 1 or 2, each round will play n games with, setting this
-    higher than 2 does not really make sense.
+      This should be set to 1 or 2, each round will play n games with, setting this
+      higher than 2 does not really make sense.
 
 - `-openings file=NAME format=FORMAT [order=ORDER] [plies=PLIES] [start=START]`
   If no opening book is specified, every game will start from the standard
@@ -117,20 +116,20 @@ fast-chess supports many other command-line options:
   - `PLIES` - number of plies to use
   - `START` - starting offset
 
-    <br/>
+      <br/>
 
 - `-output format=FORMAT`
 
   - `FORMAT`
     - `cutechess` - Cute-Chess output format
     - `fastchess` - fast-chess output format
-      <br/>
+          <br/>
 
 - `-resign movecount=COUNT score=SCORE`
 
   - `COUNT` - number of moves to make before resigning
   - `SCORE` - score threshold to resign at
-    <br/>
+      <br/>
 
 - `-repeat`
   This has the same effect as -games 2 and is the default.
@@ -138,7 +137,7 @@ fast-chess supports many other command-line options:
 - `-rounds N`
 
   - `N` - number of rounds to play
-    <br/>
+      <br/>
 
 - `-sprt elo0=ELO0 elo1=ELO1 alpha=ALPHA beta=BETA`
   <br/>
@@ -157,32 +156,41 @@ fast-chess supports many other command-line options:
   - `nodes` - defaults to `false`, track node count
   - `seldepth` - defaults to `false`, track seldepth
   - `nps` - defaults to `false`, track nps
-- `-log file=NAME`
-  <br/>
+- `-log file=NAME level=LEVLE`
+  - `NAME` - name of the log file
+  - `LEVEL` - log level
+    - `warn`, default
+    - `info`
+    - `err`
+    - `fatal`
+          <br/>
 - `-quick cmd=ENGINE1 cmd=ENGINE2 book=BOOK`  
-   This is a shortcut for
+  This is a shortcut for
+
   ````
   -engine cmd=ENGINE1 -engine cmd=ENGINE1 -engine cmd=ENGINE2 -each tc=10+0.1 -rounds 25000 -repeat -concurrency max - 2 -openings file=BOOK format=epd order=random -draw movecount=8 score=8 movenumber=30```
   ````
+
   <br/>
 
 - `-no-affinity`
-    Disables thread affinity. This is useful if you want to run multiple instances of fast-chess in parallel.
+  Disables thread affinity. This is useful if you want to run multiple instances of fast-chess in parallel.
   <br/>
-
 
 ### Options
 
 - `cmd=COMMAND`
 - `args="ARGS"`
   If you want to pass multiple arguments, you can use `args="ARG1 ARG2 ARG3"`.
-  Please keep in mind that double quotes inside the string must be escaped. 
+  Please keep in mind that double quotes inside the string must be escaped.
   i.e. `args="single words \"multiple words\""` -> your engine will receive
+
   ```
   single
   words
   multiple words
   ```
+
 - `[name=NAME]`
 - `[tc=TC]`
   TC uses the same format as Cute-Chess. For example 10+0.1 would be 10

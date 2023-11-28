@@ -49,7 +49,7 @@ class CoreHandler {
         }
 
         if (use_affinity_) {
-            cpu_info = getPhysicalCores();
+            cpu_info = getCpuInfo();
 
             setupCores();
         }

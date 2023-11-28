@@ -14,7 +14,7 @@
 
 namespace affinity {
 
-inline CpuInfo getPhysicalCores() {
+inline CpuInfo getCpuInfo() {
     std::ifstream cpuinfo("/proc/cpuinfo");
 
     std::string line;

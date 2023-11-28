@@ -12,7 +12,7 @@ namespace affinity {
 
 /// @brief Some dumb code for macOS, setting the affinity is not supported.
 /// @return
-inline CpuInfo getPhysicalCores() noexcept {
+inline CpuInfo getCpuInfo() noexcept {
     std::vector<CpuInfo::PhysicalCpu::Core::Processor> procs;
 
     procs.resize(std::thread::hardware_concurrency());

@@ -46,11 +46,11 @@ inline CpuInfo getCpuInfo() noexcept(false) {
      */
 
     // @todo Make this work for multiple physical cpu's (multiple sockets and > 64 threads)
+    int idx         = 0;
+    int physical_id = 0;
 
-    CpuInfo::PhysicalCpu physical_cpu;
-    physical_cpu.physical_id = 0;
-
-    int idx = 0;
+    CpuInfo cpu_info;
+    cpu_info.physical_cpus[physical_id].physical_id = 0;
 
     while (offset < byte_length) {
         if (ptr->Relationship == RelationProcessorCore) {
@@ -58,17 +58,11 @@ inline CpuInfo getCpuInfo() noexcept(false) {
             // member is always 1.
             ULONG_PTR mask = ptr->Processor.GroupMask[0].Mask;
 
-            CpuInfo::PhysicalCpu::Core core;
-
-            // proper way to get this?
-            core.core_id = idx;
-
             while (mask) {
                 const int processor = chess::builtin::poplsb(mask);
-                core.processors.push_back({processor});
+                // proper way to get this idx?
+                cpu_info.physical_cpus[physical_id].cores[idx].processors.emplace_back(processor);
             }
-
-            physical_cpu.cores[core.core_id] = core;
 
             idx++;
         }
@@ -77,9 +71,6 @@ inline CpuInfo getCpuInfo() noexcept(false) {
 
         ptr = PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX(buffer.get() + offset);
     }
-
-    CpuInfo cpu_info;
-    cpu_info.physical_cpus[physical_cpu.physical_id] = physical_cpu;
 
     return cpu_info;
 }

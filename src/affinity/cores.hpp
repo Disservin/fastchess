@@ -38,68 +38,81 @@ class CoreHandler {
     // Same goes for HT_2. This is done to avoid putting two processes on the same
     // physical core. When all cores in HT_1 are used, HT_2 is used.
 
-    explicit CoreHandler(bool use_affinity) {
+    /// @brief
+    /// @param use_affinity
+    /// @param tpe threads per engine
+    CoreHandler(bool use_affinity, int tpe) {
         use_affinity_ = use_affinity;
+
+        if (tpe > 1) {
+            use_affinity_ = false;
+        }
 
         if (use_affinity_) {
             available_hardware_ = getPhysicalCores();
+
+            setupCores();
         }
     }
 
-    /// @brief Get a core from the pool of available cores.
-    ///
-    /// @param threads 0 if no affinity is used, otherwise the number of threads.
-    /// @return
-    [[nodiscard]] AffinityProcessor consume(std::size_t threads) noexcept(false) {
-        if (!use_affinity_) {
-            return {0, Group::NONE, {}};
-        }
-
-        if (threads > 1) {
-            return {0, Group::NONE, {}};
-        }
-
+    /// @brief Setup the cores for the affinity, later entries from the core pool will be just
+    /// picked up.
+    void setupCores() {
         std::lock_guard<std::mutex> lock(core_mutex_);
 
         // physical_id is the id for the physical cpu, will be 0 for single cpu systems
         // cores is array of two vectors, each vector contains distinct processors which are
         // not on the same physical core. We distribute the workload first over all cores
         // in HT_1, then over all cores in HT_2.
-        std::vector<int> cpus;
 
         /// @todo: fix logic for multiple threads and multiple concurrencies
 
         for (std::size_t i = 0; i < 2; i++) {
             for (auto& [physical_id, bins] : available_hardware_) {
-                if (!bins[i].empty()) {
+                while (!bins[i].empty()) {
                     const auto processor = bins[i].back();
                     bins[i].pop_back();
 
-                    cpus.push_back(processor);
-
-                    return {physical_id, static_cast<Group>(i), cpus};
+                    cores_.emplace_back(physical_id, static_cast<Group>(i), std::vector{processor});
                 }
             }
         }
-
-        return {0, Group::NONE, {}};
     }
 
-    void put_back(const AffinityProcessor &core) noexcept {
+    /// @brief Get a core from the pool of available cores.
+    ///
+    /// @return
+    [[nodiscard]] AffinityProcessor consume() {
+        if (!use_affinity_) {
+            return {0, Group::NONE, {}};
+        }
+
+        std::lock_guard<std::mutex> lock(core_mutex_);
+
+        if (cores_.empty()) {
+            throw std::runtime_error("No cores available");
+        }
+
+        const auto core = cores_.back();
+        cores_.pop_back();
+
+        return core;
+    }
+
+    void put_back(const AffinityProcessor& core) noexcept {
         if (!use_affinity_) {
             return;
         }
 
         std::lock_guard<std::mutex> lock(core_mutex_);
 
-        // extract the cores back
-        for (std::size_t i = 0; i < core.cpus.size(); i++) {
-            available_hardware_[core.physical_id][core.group].push_back(core.cpus[i]);
-        }
+        cores_.push_back(core);
     }
 
    private:
     bool use_affinity_ = false;
+
+    std::vector<AffinityProcessor> cores_;
 
     std::map<int, std::array<std::vector<int>, 2>> available_hardware_;
     std::mutex core_mutex_;

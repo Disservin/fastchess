@@ -42,6 +42,28 @@ class RoundRobin {
     }
 
    private:
+    int getMaxAffinity(const std::vector<EngineConfiguration> &configs) const noexcept {
+        constexpr auto transform = [](const auto &val) { return std::stoi(val); };
+
+        // const auto first_threads  = configs.first.getOption<int>("Threads",
+        // transform).value_or(1); const auto second_threads =
+        // configs.second.getOption<int>("Threads", transform).value_or(1);
+
+        const auto first_threads = configs[0].getOption<int>("Threads", transform).value_or(1);
+
+        for (const auto &config : configs) {
+            const auto threads = config.getOption<int>("Threads", transform).value_or(1);
+
+            // thread count in all configs has to be the same for affinity to work,
+            // otherwise we set it to 0 and affinity is disabled
+            if (threads != first_threads) {
+                return 0;
+            }
+        }
+
+        return first_threads;
+    }
+
     /// @brief creates the matches
     /// @param engine_configs
     /// @param results
@@ -69,7 +91,7 @@ class RoundRobin {
 
     cmd::TournamentOptions tournament_options_ = {};
 
-    affinity::CoreHandler cores_;
+    std::unique_ptr<affinity::CoreHandler> cores_;
 
     CachePool<UciEngine, std::string> engine_cache_ = CachePool<UciEngine, std::string>();
 

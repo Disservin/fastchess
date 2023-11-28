@@ -15,7 +15,7 @@ namespace affinity {
 inline CpuInfo getCpuInfo() noexcept {
     std::vector<CpuInfo::PhysicalCpu::Core::Processor> procs;
 
-    procs.resize(std::thread::hardware_concurrency());
+    procs.resize(std::thread::hardware_concurrency(), {0});
 
     // Just put all cores in ht_1
     std::iota(procs.begin(), procs.end(), 0);

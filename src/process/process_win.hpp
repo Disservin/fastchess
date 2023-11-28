@@ -80,7 +80,7 @@ class Process : public IProcess {
     void setAffinity(const std::vector<int> &cpus) override {
         assert(is_initalized_);
         if (!cpus.empty()) {
-            affinity::set_affinity(cpus, pi_.hProcess);
+            affinity::setAffinity(cpus, pi_.hProcess);
         }
     }
 

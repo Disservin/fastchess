@@ -122,7 +122,7 @@ class Process : public IProcess {
 #if defined(__APPLE__)
 // Apple does not support setting the affinity of a pid
 #else
-            affinity::set_affinity(cpus, process_pid_);
+            affinity::setAffinity(cpus, process_pid_);
 #endif
         }
     }

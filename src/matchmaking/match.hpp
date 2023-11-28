@@ -37,7 +37,6 @@ class DrawTacker {
     // config
     int move_number_ = 0;
     int move_count_  = 0;
-    int score_       = 0;
 };
 
 class ResignTracker {

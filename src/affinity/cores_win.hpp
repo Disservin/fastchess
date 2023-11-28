@@ -50,7 +50,7 @@ inline CpuInfo getCpuInfo() noexcept(false) {
     int physical_id = 0;
 
     CpuInfo cpu_info;
-    cpu_info.physical_cpus[physical_id].physical_id = 0;
+    cpu_info.physical_cpus[physical_id].physical_id = physical_id;
 
     while (offset < byte_length) {
         if (ptr->Relationship == RelationProcessorCore) {

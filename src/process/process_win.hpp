@@ -17,11 +17,11 @@
 #include <windows.h>
 
 #include <affinity/affinity.hpp>
-#include <process/process_list.hpp>
+#include <util/thread_vector.hpp>
 #include <util/logger.hpp>
 
 namespace fast_chess {
-extern ProcessList<HANDLE> pid_list;
+extern ThreadVector<HANDLE> pid_list;
 }  // namespace fast_chess
 
 class Process : public IProcess {

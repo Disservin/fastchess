@@ -1,7 +1,7 @@
 #define DOCTEST_CONFIG_IMPLEMENT
 #include "doctest/doctest.hpp"
 
-#include <process/process_list.hpp>
+#include <util/thread_vector.hpp>
 
 namespace fast_chess {
 namespace atomic {
@@ -13,10 +13,10 @@ namespace fast_chess {
 
 #ifdef _WIN64
 #include <windows.h>
-ProcessList<HANDLE> pid_list;
+ThreadVector<HANDLE> pid_list;
 #else
 #include <unistd.h>
-ProcessList<pid_t> pid_list;
+ThreadVector<pid_t> pid_list;
 #endif
 }  // namespace fast_chess
 

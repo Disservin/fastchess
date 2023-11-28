@@ -2,7 +2,7 @@
 
 #include <cli.hpp>
 #include <matchmaking/tournament.hpp>
-#include <process/process_list.hpp>
+#include <util/thread_vector.hpp>
 
 namespace fast_chess::atomic {
 std::atomic_bool stop = false;
@@ -12,10 +12,10 @@ namespace fast_chess {
 
 #ifdef _WIN64
 #include <windows.h>
-ProcessList<HANDLE> pid_list;
+ThreadVector<HANDLE> pid_list;
 #else
 #include <unistd.h>
-ProcessList<pid_t> pid_list;
+ThreadVector<pid_t> pid_list;
 #endif
 }  // namespace fast_chess
 

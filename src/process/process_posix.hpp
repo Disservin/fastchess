@@ -23,11 +23,11 @@
 #include <unistd.h>  // _exit, fork
 
 #include <affinity/affinity.hpp>
-#include <process/process_list.hpp>
+#include <util/thread_vector.hpp>
 #include <util/logger.hpp>
 
 namespace fast_chess {
-extern ProcessList<pid_t> pid_list;
+extern ThreadVector<pid_t> pid_list;
 }  // namespace fast_chess
 
 class Process : public IProcess {

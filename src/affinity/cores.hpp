@@ -17,19 +17,9 @@
 
 namespace affinity {
 class CoreHandler {
-    enum Group {
-        NONE = -1,
-        HT_1,
-        HT_2,
-    };
-
     struct AffinityProcessor {
-        int physical_id;
-        Group group;
         std::vector<int> cpus;
-
-        AffinityProcessor(int physical_id, Group group, const std::vector<int>& cpus)
-            : physical_id(physical_id), group(group), cpus(cpus) {}
+        AffinityProcessor(const std::vector<int>& cpus) : cpus(cpus) {}
     };
 
    public:
@@ -73,7 +63,7 @@ class CoreHandler {
                     const auto processor = bins[i].back();
                     bins[i].pop_back();
 
-                    cores_.emplace_back(physical_id, static_cast<Group>(i), std::vector{processor});
+                    cores_.emplace_back(std::vector{processor});
                 }
             }
         }
@@ -84,7 +74,7 @@ class CoreHandler {
     /// @return
     [[nodiscard]] AffinityProcessor consume() {
         if (!use_affinity_) {
-            return {0, Group::NONE, {}};
+            return {{}};
         }
 
         std::lock_guard<std::mutex> lock(core_mutex_);

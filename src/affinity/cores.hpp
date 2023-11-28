@@ -5,6 +5,8 @@
 #include <sstream>
 #include <stack>
 
+#include <chess.hpp>
+
 #ifdef _WIN32
 #include <affinity/cores_win.hpp>
 #elif defined(__APPLE__)
@@ -13,13 +15,21 @@
 #include <affinity/cores_posix.hpp>
 #endif
 
-#include <chess.hpp>
+#include <affinity/cpu_info.hpp>
 
 namespace affinity {
 class CoreHandler {
+    enum Group {
+        NONE = -1,
+        HT_1,
+        HT_2,
+    };
+
     struct AffinityProcessor {
+        AffinityProcessor(const std::vector<int>& cpus, Group group) : cpus(cpus), group(group) {}
+
         std::vector<int> cpus;
-        AffinityProcessor(const std::vector<int>& cpus) : cpus(cpus) {}
+        Group group;
     };
 
    public:
@@ -39,7 +49,7 @@ class CoreHandler {
         }
 
         if (use_affinity_) {
-            available_hardware_ = getPhysicalCores();
+            cpu_info = getCpuInfo();
 
             setupCores();
         }
@@ -57,13 +67,15 @@ class CoreHandler {
 
         /// @todo: fix logic for multiple threads and multiple concurrencies
 
-        for (std::size_t i = 0; i < 2; i++) {
-            for (auto& [physical_id, bins] : available_hardware_) {
-                while (!bins[i].empty()) {
-                    const auto processor = bins[i].back();
-                    bins[i].pop_back();
+        for (const auto& physical_cpu : cpu_info.physical_cpus) {
+            for (const auto& core : physical_cpu.second.cores) {
+                int idx = 0;
+                for (const auto& processor : core.second.processors) {
+                    Group group = idx % 2 == 0 ? HT_1 : HT_2;
 
-                    cores_.emplace_back(std::vector{processor});
+                    cores_[group].emplace_back(std::vector{processor.processor_id}, group);
+
+                    idx++;
                 }
             }
         }
@@ -74,17 +86,19 @@ class CoreHandler {
     /// @return
     [[nodiscard]] AffinityProcessor consume() {
         if (!use_affinity_) {
-            return {{}};
+            return {{}, NONE};
         }
 
         std::lock_guard<std::mutex> lock(core_mutex_);
 
-        if (cores_.empty()) {
+        if (cores_[HT_1].empty() && cores_[HT_2].empty()) {
             throw std::runtime_error("No cores available");
         }
 
-        const auto core = cores_.back();
-        cores_.pop_back();
+        Group group = !cores_[HT_1].empty() ? HT_1 : HT_2;
+
+        const auto core = cores_[group].back();
+        cores_[group].pop_back();
 
         return core;
     }
@@ -96,16 +110,14 @@ class CoreHandler {
 
         std::lock_guard<std::mutex> lock(core_mutex_);
 
-        cores_.push_back(core);
+        cores_[core.group].push_back(core);
     }
 
    private:
-    bool use_affinity_ = false;
-
-    std::vector<AffinityProcessor> cores_;
-
-    std::map<int, std::array<std::vector<int>, 2>> available_hardware_;
+    CpuInfo cpu_info;
+    std::array<std::vector<AffinityProcessor>, 2> cores_;
     std::mutex core_mutex_;
+    bool use_affinity_ = false;
 };
 
 }  // namespace affinity

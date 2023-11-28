@@ -34,7 +34,7 @@ class Tournament {
         std::ofstream file("config.json");
         file << std::setw(4) << jsonfile << std::endl;
 
-        Logger::log("Saved results.");
+        Logger::log<Logger::Level::INFO>("Saved results.");
     }
 
     void fixConfig();

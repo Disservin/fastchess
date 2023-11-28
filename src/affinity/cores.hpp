@@ -26,10 +26,10 @@ class CoreHandler {
     };
 
     struct AffinityProcessor {
+        AffinityProcessor(const std::vector<int>& cpus, Group group) : cpus(cpus), group(group) {}
+
         std::vector<int> cpus;
         Group group;
-
-        AffinityProcessor(const std::vector<int>& cpus, Group group) : cpus(cpus), group(group) {}
     };
 
    public:

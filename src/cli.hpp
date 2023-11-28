@@ -35,15 +35,9 @@ struct ArgumentData {
     std::vector<EngineConfiguration> old_configs;
 };
 
-/// @brief Base class for all options
-class Option {
-   public:
-    virtual void parse(int &i, int argc, char const *argv[], ArgumentData &argument_data) = 0;
-
-    virtual ~Option() = default;
-};
-
 class OptionsParser {
+    using parseFunc = std::function<void(int &, int, char const *[], ArgumentData &)>;
+
    public:
     OptionsParser(int argc, char const *argv[]);
 
@@ -153,8 +147,8 @@ class OptionsParser {
     /// @brief Adds an option to the parser
     /// @param optionName
     /// @param option
-    void addOption(const std::string &optionName, Option *option) {
-        options_.insert(std::make_pair("-" + optionName, std::unique_ptr<Option>(option)));
+    void addOption(const std::string &optionName, parseFunc func) {
+        options_.insert(std::make_pair("-" + optionName, func));
     }
 
     /// @brief Parses the command line arguments and calls the corresponding option. Parse will
@@ -165,7 +159,7 @@ class OptionsParser {
         for (int i = 1; i < argc; i++) {
             const std::string arg = argv[i];
             if (options_.count(arg) > 0) {
-                options_[arg]->parse(i, argc, argv, argument_data_);
+                options_[arg](i, argc, argv, argument_data_);
             } else {
                 throw std::runtime_error("Unrecognized option: " + arg + " parsing failed.");
             }
@@ -174,32 +168,7 @@ class OptionsParser {
 
     ArgumentData argument_data_;
 
-    std::map<std::string, std::unique_ptr<Option>> options_;
+    std::map<std::string, parseFunc> options_;
 };
-
-/// @brief Parse a standalone value after a dash command. i.e -concurrency 10
-/// @tparam T
-/// @param i
-/// @param argc
-/// @param argv
-/// @param optionValue
-template <typename T>
-void parseValue(int &i, int argc, const char *argv[], T &optionValue) {
-    i++;
-    if (i < argc && argv[i][0] != '-') {
-        if constexpr (std::is_same_v<T, int>)
-            optionValue = std::stoi(argv[i]);
-        else if constexpr (std::is_same_v<T, uint32_t>)
-            optionValue = std::stoul(argv[i]);
-        else if constexpr (std::is_same_v<T, float>)
-            optionValue = std::stof(argv[i]);
-        else if constexpr (std::is_same_v<T, double>)
-            optionValue = std::stod(argv[i]);
-        else if constexpr (std::is_same_v<T, bool>)
-            optionValue = std::string(argv[i]) == "true";
-        else
-            optionValue = argv[i];
-    }
-}
 
 }  // namespace fast_chess::cmd

@@ -40,9 +40,8 @@ class CoreHandler {
 
     /// @brief
     /// @param use_affinity
-    /// @param concurrency
     /// @param tpe threads per engine
-    CoreHandler(bool use_affinity, int concurrency, int tpe) {
+    CoreHandler(bool use_affinity, int tpe) {
         use_affinity_ = use_affinity;
 
         if (tpe > 1) {
@@ -52,15 +51,13 @@ class CoreHandler {
         if (use_affinity_) {
             available_hardware_ = getPhysicalCores();
 
-            setupCores(concurrency, tpe);
+            setupCores();
         }
     }
 
     /// @brief Setup the cores for the affinity, later entries from the core pool will be just
     /// picked up.
-    /// @param concurrency
-    /// @param tpe threads per engine
-    void setupCores(int concurrency, int tpe) {
+    void setupCores() {
         std::lock_guard<std::mutex> lock(core_mutex_);
 
         // physical_id is the id for the physical cpu, will be 0 for single cpu systems
@@ -85,7 +82,7 @@ class CoreHandler {
     /// @brief Get a core from the pool of available cores.
     ///
     /// @return
-    [[nodiscard]] AffinityProcessor consume() noexcept(false) {
+    [[nodiscard]] AffinityProcessor consume() {
         if (!use_affinity_) {
             return {0, Group::NONE, {}};
         }

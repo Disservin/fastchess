@@ -38,11 +38,10 @@ RoundRobin::RoundRobin(const cmd::TournamentOptions& game_config)
 void RoundRobin::start(const std::vector<EngineConfiguration>& engine_configs) {
     Logger::log<Logger::Level::TRACE>("Starting round robin tournament...");
 
-    create(engine_configs);
-
     cores_ = std::make_unique<affinity::CoreHandler>(tournament_options_.affinity,
-                                                     tournament_options_.concurrency,
                                                      getMaxAffinity(engine_configs));
+
+    create(engine_configs);
 
     // Wait for games to finish
     while (match_count_ < total_ && !atomic::stop) {

@@ -13,10 +13,10 @@ namespace fast_chess {
 
 #ifdef _WIN64
 #include <windows.h>
-ThreadVector<HANDLE> pid_list;
+ThreadVector<HANDLE> process_list;
 #else
 #include <unistd.h>
-ThreadVector<pid_t> pid_list;
+ThreadVector<pid_t> process_list;
 #endif
 }  // namespace fast_chess
 

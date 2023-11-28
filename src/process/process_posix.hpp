@@ -27,7 +27,7 @@
 #include <util/logger.hpp>
 
 namespace fast_chess {
-extern ThreadVector<pid_t> pid_list;
+extern ThreadVector<pid_t> process_list;
 }  // namespace fast_chess
 
 class Process : public IProcess {
@@ -99,7 +99,7 @@ class Process : public IProcess {
             process_pid_ = forkPid;
 
             // append the process to the list of running processes
-            fast_chess::pid_list.push(process_pid_);
+            fast_chess::process_list.push(process_pid_);
         }
     }
 
@@ -128,7 +128,7 @@ class Process : public IProcess {
     }
 
     void killProcess() {
-        fast_chess::pid_list.remove(process_pid_);
+        fast_chess::process_list.remove(process_pid_);
 
         if (!is_initalized_) return;
 

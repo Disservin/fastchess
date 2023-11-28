@@ -21,7 +21,7 @@
 #include <util/logger.hpp>
 
 namespace fast_chess {
-extern ThreadVector<HANDLE> pid_list;
+extern ThreadVector<HANDLE> process_list;
 }  // namespace fast_chess
 
 class Process : public IProcess {
@@ -66,7 +66,7 @@ class Process : public IProcess {
         child_std_out_ = child_stdout_read;
         child_std_in_  = child_stdin_write;
 
-        fast_chess::pid_list.push(pi_.hProcess);
+        fast_chess::process_list.push(pi_.hProcess);
         is_initalized_ = true;
     }
 
@@ -85,7 +85,7 @@ class Process : public IProcess {
     }
 
     void killProcess() {
-        fast_chess::pid_list.remove(pi_.hProcess);
+        fast_chess::process_list.remove(pi_.hProcess);
 
         if (!is_initalized_) return;
 

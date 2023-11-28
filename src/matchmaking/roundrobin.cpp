@@ -13,7 +13,7 @@ namespace fast_chess {
 RoundRobin::RoundRobin(const cmd::TournamentOptions& game_config)
     : output_(getNewOutput(game_config.output)),
       tournament_options_(game_config),
-      cores_(game_config.affinity),
+
       book_(game_config.opening.file, game_config.opening.format, game_config.opening.start) {
     auto filename = (game_config.pgn.file.empty() ? "fast-chess" : game_config.pgn.file);
 
@@ -39,6 +39,10 @@ void RoundRobin::start(const std::vector<EngineConfiguration>& engine_configs) {
     Logger::log<Logger::Level::TRACE>("Starting round robin tournament...");
 
     create(engine_configs);
+
+    cores_ = std::make_unique<affinity::CoreHandler>(tournament_options_.affinity,
+                                                     tournament_options_.concurrency,
+                                                     getMaxAffinity(engine_configs));
 
     // Wait for games to finish
     while (match_count_ < total_ && !atomic::stop) {
@@ -131,14 +135,7 @@ void RoundRobin::updateSprtStatus(const std::vector<EngineConfiguration>& engine
 void RoundRobin::playGame(const std::pair<EngineConfiguration, EngineConfiguration>& configs,
                           start_callback start, finished_callback finish, const Opening& opening,
                           std::size_t game_id) {
-    constexpr auto transform  = [](const auto& val) { return std::stoi(val); };
-    const auto first_threads  = configs.first.getOption<int>("Threads", transform).value_or(1);
-    const auto second_threads = configs.second.getOption<int>("Threads", transform).value_or(1);
-
-    // thread count in both configs has to be the same for affinity to work,
-    // otherwise we set it to 0 and affinity is disabled
-    const auto max_threads_for_affinity = first_threads == second_threads ? first_threads : 0;
-    const auto core                     = cores_.consume(max_threads_for_affinity);
+    const auto core = cores_->consume();
 
     auto engine_one = ScopeGuard(engine_cache_.getEntry(configs.first.name, configs.first));
     auto engine_two = ScopeGuard(engine_cache_.getEntry(configs.second.name, configs.second));
@@ -157,12 +154,12 @@ void RoundRobin::playGame(const std::pair<EngineConfiguration, EngineConfigurati
     } catch (const std::exception& e) {
         Logger::log<Logger::Level::ERR>("Exception RoundRobin::playGame: " + std::string(e.what()));
 
-        cores_.put_back(core);
+        cores_->put_back(core);
 
         return;
     }
 
-    cores_.put_back(core);
+    cores_->put_back(core);
 
     if (atomic::stop) return;
 

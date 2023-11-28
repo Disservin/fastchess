@@ -10,15 +10,13 @@
 #include <map>
 #include <vector>
 
+#include <affinity/cpu_info.hpp>
+
 namespace affinity {
 
-/// @brief [physical id][2][processor id's] @todo: better return type
-/// @return
-inline std::map<int, std::array<std::vector<int>, 2>> getPhysicalCores() noexcept(false) {
+inline CpuInfo getPhysicalCores() {
     std::ifstream cpuinfo("/proc/cpuinfo");
 
-    // [physical id][core id][2][processor id's]
-    std::map<int, std::map<int, std::vector<int>>> cpus;
     std::string line;
 
     int processorId = -1;
@@ -34,6 +32,8 @@ inline std::map<int, std::array<std::vector<int>, 2>> getPhysicalCores() noexcep
         return -1;
     };
 
+    CpuInfo cpu_info;
+
     while (std::getline(cpuinfo, line)) {
         if (line.find("processor") != std::string::npos) {
             processorId = extract_value(line);
@@ -44,7 +44,7 @@ inline std::map<int, std::array<std::vector<int>, 2>> getPhysicalCores() noexcep
         }
 
         if (coreId != -1 && processorId != -1 && physicalId != -1) {
-            cpus[physicalId][coreId].push_back(processorId);
+            cpu_info.physical_cpus[physicalId].cores[coreId].processors.emplace_back(processorId);
 
             coreId      = -1;
             processorId = -1;
@@ -52,29 +52,7 @@ inline std::map<int, std::array<std::vector<int>, 2>> getPhysicalCores() noexcep
         }
     }
 
-    cpuinfo.close();
-
-    // [physical id][2][processor id's]
-    std::map<int, std::array<std::vector<int>, 2>> core_map;
-
-    for (const auto& [physical_id, cores] : cpus) {
-        std::vector<int> ht_1;
-        std::vector<int> ht_2;
-
-        for (const auto& [core_id, processor_ids] : cores) {
-            for (size_t i = 0; i < processor_ids.size(); i++) {
-                if (i % 2 == 0) {
-                    ht_1.push_back(processor_ids[i]);
-                } else {
-                    ht_2.push_back(processor_ids[i]);
-                }
-            }
-        }
-
-        core_map[physical_id] = {ht_1, ht_2};
-    }
-
-    return core_map;
+    return cpu_info;
 }
 
 }  // namespace affinity

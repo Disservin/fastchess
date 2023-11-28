@@ -6,20 +6,25 @@
 #include <numeric>
 #include <map>
 
+#include <affinity/cpu_info.hpp>
+
 namespace affinity {
 
 /// @brief Some dumb code for macOS, setting the affinity is not supported.
 /// @return
-inline std::map<int, std::array<std::vector<int>, 2>> getPhysicalCores() noexcept {
-    std::vector<int> ht_1;
+inline CpuInfo getPhysicalCores() noexcept {
+    std::vector<CpuInfo::PhysicalCpu::Core::Processor> procs;
 
-    ht_1.resize(std::thread::hardware_concurrency());
+    procs.resize(std::thread::hardware_concurrency());
 
     // Just put all cores in ht_1
-    std::iota(ht_1.begin(), ht_1.end(), 0);
+    std::iota(procs.begin(), procs.end(), 0);
 
     // limited to one physical cpui
-    return {{0, {ht_1, std::vector<int>()}}};
+    CpuInfo cpu_info;
+    cpu_info.physical_cpus[0].cores[0].processors = procs;
+
+    return cpu_info;
 }
 
 }  // namespace affinity

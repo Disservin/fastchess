@@ -4,11 +4,11 @@
 #include <matchmaking/tournament.hpp>
 #include <util/thread_vector.hpp>
 
-namespace fast_chess::atomic {
-std::atomic_bool stop = false;
-}  // namespace fast_chess::atomic
-
 namespace fast_chess {
+
+namespace atomic {
+std::atomic_bool stop = false;
+}
 
 #ifdef _WIN64
 #include <windows.h>

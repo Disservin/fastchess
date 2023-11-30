@@ -8,17 +8,17 @@
 #include <chess.hpp>
 
 #ifdef _WIN32
-#include <affinity/cores_win.hpp>
+#include <affinity/cpuinfo_win.hpp>
 #elif defined(__APPLE__)
-#include <affinity/cores_mac.hpp>
+#include <affinity/cpuinfo_mac.hpp>
 #else
-#include <affinity/cores_posix.hpp>
+#include <affinity/cpuinfo_posix.hpp>
 #endif
 
 #include <affinity/cpu_info.hpp>
 
 namespace affinity {
-class CoreHandler {
+class AffinityManager {
     enum Group {
         NONE = -1,
         HT_1,
@@ -41,7 +41,7 @@ class CoreHandler {
     /// @brief
     /// @param use_affinity
     /// @param tpe threads per engine
-    CoreHandler(bool use_affinity, int tpe) {
+    AffinityManager(bool use_affinity, int tpe) {
         use_affinity_ = use_affinity;
 
         if (tpe > 1) {

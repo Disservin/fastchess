@@ -1,7 +1,7 @@
 #pragma once
 
 #include <matchmaking/opening_book.h>
-#include <affinity/cores.hpp>
+#include <affinity/affinity_manager.hpp>
 #include <matchmaking/match.hpp>
 #include <matchmaking/result.hpp>
 #include <pgn_reader.hpp>
@@ -91,7 +91,7 @@ class RoundRobin {
 
     cmd::TournamentOptions tournament_options_ = {};
 
-    std::unique_ptr<affinity::CoreHandler> cores_;
+    std::unique_ptr<affinity::AffinityManager> cores_;
 
     CachePool<UciEngine, std::string> engine_cache_ = CachePool<UciEngine, std::string>();
 

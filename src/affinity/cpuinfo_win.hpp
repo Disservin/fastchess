@@ -7,7 +7,7 @@
 #include <thread>
 #include <vector>
 
-#include <chess.hpp>
+#include <chess.hpp>  // poplsb
 
 #include <affinity/cpu_info.hpp>
 

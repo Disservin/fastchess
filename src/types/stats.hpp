@@ -1,6 +1,6 @@
 #pragma once
 
-#include <helper.hpp>
+#include <util/helper.hpp>
 #include <types/match_data.hpp>
 
 namespace fast_chess {

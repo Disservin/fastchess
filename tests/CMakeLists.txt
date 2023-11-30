@@ -1,5 +1,5 @@
 file(GLOB TEST_SOURCES "*.cpp")
-file(GLOB SOURCES "${CMAKE_CURRENT_LIST_DIR}/../src/*.cpp" "${CMAKE_CURRENT_LIST_DIR}/../src/*/*.cpp" "${CMAKE_CURRENT_LIST_DIR}/../src/*/*/*.cpp")
+file(GLOB_RECURSE SOURCES "${CMAKE_CURRENT_LIST_DIR}/../src/*.cpp")
 
 list(REMOVE_ITEM SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/../src/main.cpp)
 

@@ -37,7 +37,7 @@ endif
 
 ifeq ($(MAKECMDGOALS),$(TESTDIR))
 	CXXFLAGS  := -O2 -std=c++17 -Wall -Wextra -pedantic -Wuninitialized -g3 -fno-omit-frame-pointer
-	SRC_FILES := $(filter-out src/main.cpp, $(SRC_FILES)) $(SRC_TFILES)
+	SRC_FILES := $(filter-out src/main.cpp, $(SRC_FILES)) $(SRC_TEST_FILES)
 	TARGET    := $(TARGET)-tests
 	NATIVE    := 
 else

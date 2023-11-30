@@ -19,13 +19,13 @@ SRC_TEST_FILES   := $(shell find $(TESTDIR) -maxdepth 1 -name "*.cpp")
 NATIVE 	         := -march=native
 
 ifeq ($(OS), Windows_NT)
-	MKDIR    := mkdir
+	MKDIR    := mkdir -p
 	uname_S  := Windows
 	SUFFIX   := .exe
 	LDFLAGS  := -static -static-libgcc -static-libstdc++ -Wl,--no-as-needed
 else
 ifeq ($(COMP), MINGW)
-	MKDIR    := mkdir
+	MKDIR    := mkdir -p
 	uname_S  := Windows
 	SUFFIX   := .exe
 else
@@ -110,11 +110,11 @@ tests: $(TARGET)
 $(TARGET): $(OBJECTS)
 	$(CXX) $(CXXFLAGS) $(NATIVE) $(INC) $(DEPFLAGS) -o $@ $^ $(LDFLAGS)
 
-$(BUILDDIR)/%.o: %.cpp | $(BUILDDIR)
+$(BUILDDIR)/%.o: %.cpp | build_directories
 	$(CXX) $(CXXFLAGS) $(NATIVE) $(INC) $(DEPFLAGS) -c $< -o $@ $(LDFLAGS)
 
-$(BUILDDIR):
-	$(MKDIR) $(BUILDDIR)
+build_directories:
+	@$(MKDIR) $(BUILDDIR)
 	@find src -type d -exec $(MKDIR) $(BUILDDIR)/{} \;
 	@find tests -type d -exec $(MKDIR) $(BUILDDIR)/{} \;
 

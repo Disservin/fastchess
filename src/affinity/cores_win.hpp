@@ -19,17 +19,11 @@ inline CpuInfo getCpuInfo() noexcept(false) {
     GetLogicalProcessorInformationEx(RelationProcessorCore, nullptr, &byte_length);
 
     std::unique_ptr<char[]> buffer(new char[byte_length]);
+    auto ptr = PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX(buffer.get());
 
-    if (!GetLogicalProcessorInformationEx(RelationProcessorCore,
-                                          PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX(buffer.get()),
-                                          &byte_length)) {
+    if (!GetLogicalProcessorInformationEx(RelationProcessorCore, ptr, &byte_length)) {
         std::cerr << "GetLogicalProcessorInformationEx failed." << std::endl;
     }
-
-    PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX ptr =
-        PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX(buffer.get());
-
-    DWORD offset = 0;
 
     /*
      SMT Support = yes
@@ -52,6 +46,7 @@ inline CpuInfo getCpuInfo() noexcept(false) {
     CpuInfo cpu_info;
     cpu_info.physical_cpus[physical_id].physical_id = physical_id;
 
+    DWORD offset = 0;
     while (offset < byte_length) {
         if (ptr->Relationship == RelationProcessorCore) {
             // If the PROCESSOR_RELATIONSHIP structure represents a processor core, the GroupCount

@@ -3,7 +3,7 @@
 #include <chess.hpp>
 
 #include <matchmaking/output/output_factory.hpp>
-#include <pgn_builder.hpp>
+#include <pgn/pgn_builder.hpp>
 #include <util/logger.hpp>
 #include <util/rand.hpp>
 #include <util/scope_guard.hpp>

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <elo.hpp>
+#include <matchmaking/elo/elo.hpp>
 #include <matchmaking/output/output.hpp>
 #include <util/logger.hpp>
 

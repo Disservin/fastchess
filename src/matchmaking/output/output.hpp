@@ -3,7 +3,7 @@
 #include <string>
 
 #include <cli.hpp>
-#include <sprt.hpp>
+#include <matchmaking/sprt/sprt.hpp>
 #include <types/engine_config.hpp>
 #include <types/enums.hpp>
 #include <types/match_data.hpp>

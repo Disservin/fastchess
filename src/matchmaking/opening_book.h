@@ -4,7 +4,7 @@
 #include <variant>
 #include <vector>
 
-#include <pgn_reader.hpp>
+#include <pgn/pgn_reader.hpp>
 #include <types/enums.hpp>
 #include <util/rand.hpp>
 

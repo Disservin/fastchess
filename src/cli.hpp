@@ -15,7 +15,6 @@
 
 #include <types/engine_config.hpp>
 #include <util/logger.hpp>
-
 #include <types/tournament_options.hpp>
 
 namespace fast_chess::cmd {

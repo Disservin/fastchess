@@ -64,7 +64,7 @@ void parseValue(int &i, int argc, const char *argv[], T &optionValue) {
     return result.erase(result.size() - 1);
 }
 
-namespace Engine {
+namespace engine {
 TimeControl parseTc(const std::string &tcString) {
     if (tcString == "infinite" || tcString == "inf") {
         return {};
@@ -145,22 +145,22 @@ void validateEnginePath(std::string dir, std::string &cmd) {
     }
 }
 
-}  // namespace Engine
-
 void parseEngine(int &i, int argc, char const *argv[], ArgumentData &argument_data) {
     argument_data.configs.emplace_back();
 
     parseDashOptions(i, argc, argv, [&](const std::string &key, const std::string &value) {
-        Engine::parseEngineKeyValues(argument_data.configs.back(), key, value);
+        engine::parseEngineKeyValues(argument_data.configs.back(), key, value);
     });
 
-    Engine::validateEnginePath(argument_data.configs.back().dir, argument_data.configs.back().cmd);
+    engine::validateEnginePath(argument_data.configs.back().dir, argument_data.configs.back().cmd);
 }
+
+}  // namespace engine
 
 void parseEach(int &i, int argc, char const *argv[], ArgumentData &argument_data) {
     parseDashOptions(i, argc, argv, [&](const std::string &key, const std::string &value) {
         for (auto &config : argument_data.configs) {
-            Engine::parseEngineKeyValues(config, key, value);
+            engine::parseEngineKeyValues(config, key, value);
         }
     });
 }
@@ -307,6 +307,7 @@ void parseLog(int &i, int argc, char const *argv[], ArgumentData &) {
     });
 }
 
+namespace config {
 void loadJson(ArgumentData &argument_data, const std::string &filename) {
     Logger::log<Logger::Level::INFO>("Loading config file: ", filename);
     std::ifstream f(filename);
@@ -338,6 +339,7 @@ void parseConfig(int &i, int argc, char const *argv[], ArgumentData &argument_da
         }
     });
 }
+}  // namespace config
 
 void parseReport(int &i, int argc, char const *argv[], ArgumentData &argument_data) {
     parseDashOptions(i, argc, argv, [&](const std::string &key, const std::string &value) {
@@ -382,7 +384,7 @@ void parseRounds(int &i, int argc, char const *argv[], ArgumentData &argument_da
 
 void parseRatinginterval(int &i, int argc, char const *argv[], ArgumentData &argument_data) {
     parseValue(i, argc, argv, argument_data.tournament_options.ratinginterval);
-};
+}
 
 void parseSRand(int &i, int argc, char const *argv[], ArgumentData &argument_data) {
     parseValue(i, argc, argv, argument_data.tournament_options.seed);
@@ -432,7 +434,7 @@ void parseQuick(int &i, int argc, char const *argv[], ArgumentData &argument_dat
 
             argument_data.configs.back().recover = true;
 
-            Engine::validateEnginePath(argument_data.configs.back().dir,
+            engine::validateEnginePath(argument_data.configs.back().dir,
                                        argument_data.configs.back().cmd);
         } else if (key == "book") {
             argument_data.tournament_options.opening.file   = value;
@@ -477,7 +479,7 @@ OptionsParser::OptionsParser(int argc, char const *argv[]) {
         printHelp();
     }
 
-    addOption("engine", parseEngine);
+    addOption("engine", engine::parseEngine);
     addOption("each", parseEach);
     addOption("pgnout", parsePgnOut);
     addOption("openings", parseOpening);
@@ -485,7 +487,7 @@ OptionsParser::OptionsParser(int argc, char const *argv[]) {
     addOption("draw", parseDraw);
     addOption("resign", parseResign);
     addOption("log", parseLog);
-    addOption("config", parseConfig);
+    addOption("config", config::parseConfig);
     addOption("report", parseReport);
     addOption("output", parseOutput);
     addOption("concurrency", parseConcurrency);

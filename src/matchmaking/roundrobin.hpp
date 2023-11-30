@@ -4,7 +4,7 @@
 #include <affinity/affinity_manager.hpp>
 #include <matchmaking/match.hpp>
 #include <matchmaking/result.hpp>
-#include <pgn_reader.hpp>
+#include <pgn/pgn_reader.hpp>
 #include <matchmaking/sprt/sprt.hpp>
 #include <types/stats.hpp>
 #include <types/tournament_options.hpp>

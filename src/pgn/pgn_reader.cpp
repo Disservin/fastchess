@@ -1,4 +1,4 @@
-#include <pgn_reader.hpp>
+#include <pgn/pgn_reader.hpp>
 
 #include <iostream>
 #include <memory>

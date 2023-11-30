@@ -1,4 +1,4 @@
-#include <pgn_builder.hpp>
+#include <pgn/pgn_builder.hpp>
 
 #include <sstream>
 

@@ -6,7 +6,7 @@
 
 namespace fast_chess {
 
-/// @brief Used to write the pgns to a file
+/// @brief Writes to a file in a thread safe manner.
 class FileWriter {
    public:
     void open(const std::string &filename) { file_.open(filename, std::ios::app); }

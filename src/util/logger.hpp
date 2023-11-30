@@ -8,6 +8,8 @@
 #include <string>
 #include <thread>
 
+#include <util/date.hpp>
+
 namespace fast_chess {
 
 /// @brief
@@ -44,7 +46,7 @@ class Logger {
         const std::lock_guard<std::mutex> lock(log_mutex_);
 
         std::stringstream file_ss;
-        file_ss << "[" << getDateTime("%H:%M:%S") << "] "
+        file_ss << "[" << time::datetime("%H:%M:%S") << "] "
                 << "<fastchess>" << ss.str() << std::endl;
 
         log_ << file_ss.str() << std::flush;
@@ -53,10 +55,6 @@ class Logger {
     static void writeToEngine(const std::string &msg, const std::string &name);
 
     static void readFromEngine(const std::string &msg, const std::string &name);
-
-    [[nodiscard]] static std::string getDateTime(const std::string &format);
-
-    [[nodiscard]] static std::string formatDuration(std::chrono::seconds duration);
 
     static std::atomic_bool should_log_;
 

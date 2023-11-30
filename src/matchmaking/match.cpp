@@ -4,8 +4,8 @@
 
 #include <helper.hpp>
 #include <util/logger.hpp>
-
 #include <types/tournament_options.hpp>
+#include <util/date.hpp>
 
 namespace fast_chess {
 
@@ -122,8 +122,8 @@ void Match::start(UciEngine& engine1, UciEngine& engine2, const std::vector<int>
 
     const auto end = clock::now();
 
-    data_.end_time = Logger::getDateTime("%Y-%m-%dT%H:%M:%S %z");
-    data_.duration = Logger::formatDuration(chrono::duration_cast<chrono::seconds>(end - start));
+    data_.end_time = time::datetime("%Y-%m-%dT%H:%M:%S %z");
+    data_.duration = time::duration(chrono::duration_cast<chrono::seconds>(end - start));
 
     data_.players = std::make_pair(player_1.info, player_2.info);
 }

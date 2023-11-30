@@ -58,9 +58,9 @@ random_mover
 .DS_Store
 
 # Misc
-*.txt
 *.json
-tmp
-UHO*
 *.bat
 *.pgn
+tmp
+UHO*
+log.txt

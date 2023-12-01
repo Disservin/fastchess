@@ -10,42 +10,42 @@ BUILDDIR         := tmp
 INCDIR           := src
 
 #Flags, Libraries and Includes
-CXXFLAGS         := -O3 -std=c++17 -Wall -Wextra
+CXXFLAGS         := -O3 -std=c++17 -Wall -Wextra -DNDEBUG
+CXXFLAGS_TEST	 := -O2 -std=c++17 -Wall -Wextra -pedantic -Wuninitialized -g3 -fno-omit-frame-pointer
 INC              := -I$(INCDIR) -Ithird_party
 
 SRC_FILES        := $(shell find $(SRCDIR) -name "*.cpp")
-SRC_TEST_FILES   := $(shell find $(TESTDIR) -maxdepth 1 -name "*.cpp")
+SRC_FILES_TEST   := $(shell find $(TESTDIR) -maxdepth 1 -name "*.cpp")
+
+# Windows file extension
+SUFFIX           := .exe
 
 NATIVE 	         := -march=native
 
-ifeq ($(OS), Windows_NT)
-	MKDIR    := mkdir -p
-	uname_S  := Windows
-	SUFFIX   := .exe
-	LDFLAGS  := -static -static-libgcc -static-libstdc++ -Wl,--no-as-needed
-else
-ifeq ($(COMP), MINGW)
-	MKDIR    := mkdir -p
-	uname_S  := Windows
-	SUFFIX   := .exe
-else
-	MKDIR   := mkdir -p
-	LDFLAGS := -pthread
-	uname_S := $(shell uname -s)
-endif
-endif
-
 ifeq ($(MAKECMDGOALS),$(TESTDIR))
-	CXXFLAGS  := -O2 -std=c++17 -Wall -Wextra -pedantic -Wuninitialized -g3 -fno-omit-frame-pointer
-	SRC_FILES := $(filter-out src/main.cpp, $(SRC_FILES)) $(SRC_TEST_FILES)
+	CXXFLAGS  := $(CXXFLAGS_TEST)
+	SRC_FILES := $(filter-out src/main.cpp, $(SRC_FILES)) $(SRC_FILES_TEST)
 	TARGET    := $(TARGET)-tests
 	NATIVE    := 
-else
-	CXXFLAGS  += -DNDEBUG
 endif
 
 OBJECTS   := $(patsubst %.cpp,$(BUILDDIR)/%.o,$(SRC_FILES))
 DEPENDS   := $(patsubst %.cpp,$(BUILDDIR)/%.d,$(SRC_FILES))
+DEPFLAGS  := -MMD -MP
+MKDIR	  := mkdir -p
+
+ifeq ($(OS), Windows_NT)
+	uname_S  := Windows
+	LDFLAGS  := -static -static-libgcc -static-libstdc++ -Wl,--no-as-needed
+else
+ifeq ($(COMP), MINGW)
+	uname_S  := Windows
+else
+	SUFFIX  :=
+	LDFLAGS := -pthread
+	uname_S := $(shell uname -s)
+endif
+endif
 
 ifeq ($(build), debug)
 	CXXFLAGS := -O2 -std=c++17 -Wall -Wextra -pedantic -Wuninitialized -g3
@@ -99,8 +99,6 @@ ifeq ($(USE_CUTE), true)
 endif
 
 .PHONY: clean all tests FORCE
-
-DEPFLAGS         := -MMD -MP
 
 all: $(TARGET)
 

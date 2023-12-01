@@ -11,7 +11,7 @@ class CachedEntry : public ScopeEntry {
    public:
     template <typename... ARGS>
     CachedEntry(const ID &identifier, ARGS &&...arg)
-        : entry_(std::forward<ARGS>(arg)...), id(identifier) {}
+        : ScopeEntry(false), entry_(std::forward<ARGS>(arg)...), id(identifier) {}
 
     [[nodiscard]] T &get() noexcept { return entry_; }
 

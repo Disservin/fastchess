@@ -29,7 +29,7 @@ class AffinityManager {
 
     class AffinityProcessor : public ScopeEntry {
        public:
-        AffinityProcessor(const std::vector<int>& cpus) : cpus(cpus) {}
+        AffinityProcessor(const std::vector<int>& cpus) : ScopeEntry(true), cpus(cpus) {}
 
         std::vector<int> cpus;
 

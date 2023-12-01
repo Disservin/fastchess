@@ -5,7 +5,7 @@
 
 class ScopeEntry {
    public:
-    ScopeEntry() : available_(true) {}
+    ScopeEntry(bool available) : available_(available) {}
 
     void release() noexcept { available_ = true; }
 

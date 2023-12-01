@@ -17,6 +17,7 @@
 #endif
 
 #include <affinity/cpuinfo/cpu_info.hpp>
+#include <util/scope_guard.hpp>
 
 namespace affinity {
 class AffinityManager {
@@ -26,18 +27,13 @@ class AffinityManager {
         HT_2,
     };
 
-    class AffinityProcessor {
+    class AffinityProcessor : public ScopeEntry {
        public:
         AffinityProcessor(const std::vector<int>& cpus) : cpus(cpus) {}
-
-        void release() noexcept { available = true; }
 
         std::vector<int> cpus;
 
         friend class AffinityManager;
-
-       private:
-        std::atomic<bool> available = true;
     };
 
    public:
@@ -106,8 +102,8 @@ class AffinityManager {
         // find first available core
         for (const auto grp : {HT_1, HT_2}) {
             for (auto& core : cores_[grp]) {
-                if (core.available) {
-                    core.available = false;
+                if (core.available_) {
+                    core.available_ = false;
                     return core;
                 }
             }

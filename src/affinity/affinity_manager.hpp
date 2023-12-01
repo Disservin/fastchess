@@ -4,6 +4,7 @@
 #include <mutex>
 #include <sstream>
 #include <stack>
+#include <atomic>
 
 #include <chess.hpp>
 
@@ -16,6 +17,7 @@
 #endif
 
 #include <affinity/cpuinfo/cpu_info.hpp>
+#include <util/scope_guard.hpp>
 
 namespace affinity {
 class AffinityManager {
@@ -25,11 +27,13 @@ class AffinityManager {
         HT_2,
     };
 
-    struct AffinityProcessor {
-        AffinityProcessor(const std::vector<int>& cpus, Group group) : cpus(cpus), group(group) {}
+    class AffinityProcessor : public ScopeEntry {
+       public:
+        AffinityProcessor(const std::vector<int>& cpus) : ScopeEntry(true), cpus(cpus) {}
 
         std::vector<int> cpus;
-        Group group;
+
+        friend class AffinityManager;
     };
 
    public:
@@ -55,6 +59,34 @@ class AffinityManager {
         }
     }
 
+    /// @brief Get a core from the pool of available cores.
+    ///
+    /// @return
+    [[nodiscard]] AffinityProcessor& consume() {
+        if (!use_affinity_) {
+            return null_core_;
+        }
+
+        std::lock_guard<std::mutex> lock(core_mutex_);
+
+        if (cores_[HT_1].empty() && cores_[HT_2].empty()) {
+            throw std::runtime_error("No cores available");
+        }
+
+        // find first available core
+        for (const auto grp : {HT_1, HT_2}) {
+            for (auto& core : cores_[grp]) {
+                if (core.available_) {
+                    core.available_ = false;
+                    return core;
+                }
+            }
+        }
+
+        throw std::runtime_error("No cores available");
+    }
+
+   private:
     /// @brief Setup the cores for the affinity, later entries from the core pool will be just
     /// picked up.
     void setupCores() {
@@ -73,7 +105,7 @@ class AffinityManager {
                 for (const auto& processor : core.second.processors) {
                     Group group = idx % 2 == 0 ? HT_1 : HT_2;
 
-                    cores_[group].emplace_back(std::vector{processor.processor_id}, group);
+                    cores_[group].emplace_back(std::vector{processor.processor_id});
 
                     idx++;
                 }
@@ -81,42 +113,12 @@ class AffinityManager {
         }
     }
 
-    /// @brief Get a core from the pool of available cores.
-    ///
-    /// @return
-    [[nodiscard]] AffinityProcessor consume() {
-        if (!use_affinity_) {
-            return {{}, NONE};
-        }
-
-        std::lock_guard<std::mutex> lock(core_mutex_);
-
-        if (cores_[HT_1].empty() && cores_[HT_2].empty()) {
-            throw std::runtime_error("No cores available");
-        }
-
-        Group group = !cores_[HT_1].empty() ? HT_1 : HT_2;
-
-        const auto core = cores_[group].back();
-        cores_[group].pop_back();
-
-        return core;
-    }
-
-    void put_back(const AffinityProcessor& core) noexcept {
-        if (!use_affinity_) {
-            return;
-        }
-
-        std::lock_guard<std::mutex> lock(core_mutex_);
-
-        cores_[core.group].push_back(core);
-    }
-
-   private:
     CpuInfo cpu_info;
-    std::array<std::vector<AffinityProcessor>, 2> cores_;
+    std::array<std::deque<AffinityProcessor>, 2> cores_;
     std::mutex core_mutex_;
+
+    AffinityProcessor null_core_ = {{}};
+
     bool use_affinity_ = false;
 };
 

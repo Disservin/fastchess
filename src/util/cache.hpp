@@ -4,21 +4,20 @@
 #include <iostream>
 #include <mutex>
 
+#include <util/scope_guard.hpp>
+
 template <typename T, typename ID>
-class CachedEntry {
+class CachedEntry : public ScopeEntry {
    public:
     template <typename... ARGS>
     CachedEntry(const ID &identifier, ARGS &&...arg)
-        : entry_(std::forward<ARGS>(arg)...), id(identifier), available_(false) {}
+        : ScopeEntry(false), entry_(std::forward<ARGS>(arg)...), id(identifier) {}
 
     [[nodiscard]] T &get() noexcept { return entry_; }
-
-    void release() noexcept { available_ = true; }
 
    private:
     T entry_;
     ID id;
-    std::atomic<bool> available_;
 
     template <typename TT, typename II>
     friend class CachePool;

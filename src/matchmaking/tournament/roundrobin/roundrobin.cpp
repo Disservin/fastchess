@@ -134,7 +134,7 @@ void RoundRobin::updateSprtStatus(const std::vector<EngineConfiguration>& engine
 void RoundRobin::playGame(const std::pair<EngineConfiguration, EngineConfiguration>& configs,
                           start_callback start, finished_callback finish, const Opening& opening,
                           std::size_t game_id) {
-    const auto core = cores_->consume();
+    const auto core = ScopeGuard(cores_->consume());
 
     auto engine_one = ScopeGuard(engine_cache_.getEntry(configs.first.name, configs.first));
     auto engine_two = ScopeGuard(engine_cache_.getEntry(configs.second.name, configs.second));
@@ -144,21 +144,17 @@ void RoundRobin::playGame(const std::pair<EngineConfiguration, EngineConfigurati
     auto match = Match(tournament_options_, opening);
 
     try {
-        match.start(engine_one.get().get(), engine_two.get().get(), core.cpus);
+        match.start(engine_one.get().get(), engine_two.get().get(), core.get().cpus);
 
         while (match.get().needs_restart) {
-            match.start(engine_one.get().get(), engine_two.get().get(), core.cpus);
+            match.start(engine_one.get().get(), engine_two.get().get(), core.get().cpus);
         }
 
     } catch (const std::exception& e) {
         Logger::log<Logger::Level::ERR>("Exception RoundRobin::playGame: " + std::string(e.what()));
 
-        cores_->put_back(core);
-
         return;
     }
-
-    cores_->put_back(core);
 
     if (atomic::stop) return;
 

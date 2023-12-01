@@ -1,10 +1,10 @@
 #pragma once
 
-#include <string>
 #include <chrono>
+#include <ctime>
 #include <iomanip>
 #include <sstream>
-#include <ctime>
+#include <string>
 
 namespace fast_chess {
 

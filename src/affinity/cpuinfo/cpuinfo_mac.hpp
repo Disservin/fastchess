@@ -1,10 +1,10 @@
 #pragma once
 
-#include <vector>
 #include <array>
-#include <thread>
-#include <numeric>
 #include <map>
+#include <numeric>
+#include <thread>
+#include <vector>
 
 #include <affinity/cpuinfo/cpu_info.hpp>
 

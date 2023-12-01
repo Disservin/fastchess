@@ -2,13 +2,13 @@
 
 #include <cstdint>
 #include <iostream>
+#include <optional>
 #include <string>
 #include <tuple>
 #include <vector>
-#include <optional>
 
-#include <util/helper.hpp>
 #include <types/enums.hpp>
+#include <util/helper.hpp>
 
 #include <json.hpp>
 
@@ -71,8 +71,9 @@ struct EngineConfiguration {
 
     template <typename T, typename Predicate>
     std::optional<T> getOption(std::string_view option_name, Predicate transform) const {
-        const auto it = std::find_if(options.begin(), options.end(),
-                                     [&option_name](const auto &option) { return option.first == option_name; });
+        const auto it = std::find_if(
+            options.begin(), options.end(),
+            [&option_name](const auto &option) { return option.first == option_name; });
 
         if (it != options.end()) {
             return std::optional<T>(transform(it->second));

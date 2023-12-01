@@ -5,7 +5,6 @@
 #elif defined(__APPLE__)
 #include <mach/thread_act.h>
 #include <mach/thread_policy.h>
-#include <mach/thread_act.h>
 #include <pthread.h>
 #else
 #include <sched.h>

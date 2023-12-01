@@ -2,10 +2,10 @@
 
 #include <algorithm>
 
-#include <util/helper.hpp>
-#include <util/logger.hpp>
 #include <types/tournament_options.hpp>
 #include <util/date.hpp>
+#include <util/helper.hpp>
+#include <util/logger.hpp>
 
 namespace fast_chess {
 

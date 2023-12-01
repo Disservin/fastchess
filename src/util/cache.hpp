@@ -1,8 +1,8 @@
-#include <deque>
-#include <mutex>
 #include <atomic>
+#include <deque>
 #include <functional>
 #include <iostream>
+#include <mutex>
 
 template <typename T, typename ID>
 class CachedEntry {

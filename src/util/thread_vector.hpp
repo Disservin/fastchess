@@ -1,7 +1,7 @@
 #pragma once
 
-#include <vector>
 #include <mutex>
+#include <vector>
 
 template <typename T>
 class ThreadVector {

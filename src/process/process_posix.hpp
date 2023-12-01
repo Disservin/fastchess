@@ -23,8 +23,8 @@
 #include <unistd.h>  // _exit, fork
 
 #include <affinity/affinity.hpp>
-#include <util/thread_vector.hpp>
 #include <util/logger.hpp>
+#include <util/thread_vector.hpp>
 
 namespace fast_chess {
 extern ThreadVector<pid_t> process_list;

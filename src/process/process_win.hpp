@@ -17,8 +17,8 @@
 #include <windows.h>
 
 #include <affinity/affinity.hpp>
-#include <util/thread_vector.hpp>
 #include <util/logger.hpp>
+#include <util/thread_vector.hpp>
 
 namespace fast_chess {
 extern ThreadVector<HANDLE> process_list;

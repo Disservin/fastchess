@@ -1,7 +1,7 @@
 #pragma once
 
-#include <util/helper.hpp>
 #include <types/match_data.hpp>
+#include <util/helper.hpp>
 
 namespace fast_chess {
 

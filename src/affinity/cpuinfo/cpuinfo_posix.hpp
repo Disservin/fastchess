@@ -1,13 +1,12 @@
 #pragma once
 
-#include <vector>
 #include <array>
-#include <thread>
-#include <iostream>
 #include <fstream>
-#include <string>
-#include <unordered_map>
+#include <iostream>
 #include <map>
+#include <string>
+#include <thread>
+#include <unordered_map>
 #include <vector>
 
 #include <affinity/cpuinfo/cpu_info.hpp>

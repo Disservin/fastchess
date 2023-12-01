@@ -2,7 +2,7 @@
 
 #include <string>
 
-#include <cli.hpp>
+#include <cli/cli.hpp>
 #include <matchmaking/sprt/sprt.hpp>
 #include <types/engine_config.hpp>
 #include <types/enums.hpp>

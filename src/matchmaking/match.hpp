@@ -2,7 +2,7 @@
 
 #include <chess.hpp>
 
-#include <cli.hpp>
+#include <cli/cli.hpp>
 #include <matchmaking/participant.hpp>
 #include <pgn/pgn_reader.hpp>
 #include <types/match_data.hpp>

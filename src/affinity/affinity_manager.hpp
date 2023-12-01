@@ -8,14 +8,14 @@
 #include <chess.hpp>
 
 #ifdef _WIN32
-#include <affinity/cpuinfo_win.hpp>
+#include <affinity/cpuinfo/cpuinfo_win.hpp>
 #elif defined(__APPLE__)
-#include <affinity/cpuinfo_mac.hpp>
+#include <affinity/cpuinfo/cpuinfo_mac.hpp>
 #else
-#include <affinity/cpuinfo_posix.hpp>
+#include <affinity/cpuinfo/cpuinfo_posix.hpp>
 #endif
 
-#include <affinity/cpu_info.hpp>
+#include <affinity/cpuinfo/cpu_info.hpp>
 
 namespace affinity {
 class AffinityManager {

@@ -1,7 +1,7 @@
 #include <thread>
 
-#include <cli.hpp>
-#include <matchmaking/tournament.hpp>
+#include <cli/cli.hpp>
+#include <matchmaking/tournament/tournament.hpp>
 #include <util/thread_vector.hpp>
 
 namespace fast_chess {

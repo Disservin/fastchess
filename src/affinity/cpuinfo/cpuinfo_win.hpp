@@ -9,7 +9,7 @@
 
 #include <chess.hpp>  // poplsb
 
-#include <affinity/cpu_info.hpp>
+#include <affinity/cpuinfo/cpu_info.hpp>
 
 namespace affinity {
 

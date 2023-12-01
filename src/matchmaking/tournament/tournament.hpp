@@ -1,6 +1,6 @@
 #pragma once
 
-#include <matchmaking/roundrobin.hpp>
+#include <matchmaking/tournament/roundrobin/roundrobin.hpp>
 
 #include <types/tournament_options.hpp>
 

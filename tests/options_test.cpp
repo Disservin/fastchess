@@ -1,4 +1,4 @@
-#include <cli.hpp>
+#include <cli/cli.hpp>
 
 #include "doctest/doctest.hpp"
 

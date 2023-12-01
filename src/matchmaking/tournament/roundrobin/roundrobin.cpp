@@ -1,4 +1,4 @@
-#include <matchmaking/roundrobin.hpp>
+#include <matchmaking/tournament/roundrobin/roundrobin.hpp>
 
 #include <chess.hpp>
 
@@ -39,7 +39,7 @@ void RoundRobin::start(const std::vector<EngineConfiguration>& engine_configs) {
     Logger::log<Logger::Level::TRACE>("Starting round robin tournament...");
 
     cores_ = std::make_unique<affinity::AffinityManager>(tournament_options_.affinity,
-                                                     getMaxAffinity(engine_configs));
+                                                         getMaxAffinity(engine_configs));
 
     create(engine_configs);
 

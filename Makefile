@@ -16,6 +16,7 @@ INC              := -I$(INCDIR) -Ithird_party
 
 SRC_FILES        := $(shell find $(SRCDIR) -name "*.cpp")
 SRC_FILES_TEST   := $(shell find $(TESTDIR) -maxdepth 1 -name "*.cpp")
+HEADERS          := $(shell find $(SRCDIR) -name "*.hpp") $(shell find $(TESTDIR) -maxdepth 1 -name "*.hpp")
 
 # Windows file extension
 SUFFIX           := .exe
@@ -104,6 +105,9 @@ all: $(TARGET)
 
 tests: $(TARGET)
 	$(CXX) $(CXXFLAGS) ./tests/mock/engine/dummy_engine.cpp -o ./tests/mock/engine/dummy_engine$(SUFFIX) $(LDFLAGS)
+
+format: $(SRC_FILES) $(HEADERS)
+	clang-format -i $^
 
 $(TARGET): $(OBJECTS)
 	$(CXX) $(CXXFLAGS) $(NATIVE) $(INC) $(DEPFLAGS) -o $@ $^ $(LDFLAGS)

@@ -117,7 +117,7 @@ build_directories:
 	@find tests -type d -exec $(MKDIR) $(BUILDDIR)/{} \;
 
 clean:
-	rm -rf $(BUILDDIR) $(TARGET) *.exe
+	rm -rf $(BUILDDIR) $(TARGET) $(TARGET).exe
 
 -include $(DEPENDS)
 

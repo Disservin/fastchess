@@ -14,6 +14,8 @@ struct CpuInfo {
                 int processor_id;
             };
 
+            Core() = default;
+
             Core(int core_id, const std::vector<Processor>& processor_ids)
                 : processors(processor_ids), core_id(core_id) {}
 

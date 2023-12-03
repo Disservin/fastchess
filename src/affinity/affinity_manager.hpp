@@ -53,14 +53,11 @@ class AffinityManager {
         }
 
         if (use_affinity_) {
-            cpu_info = getCpuInfo();
-
-            setupCores();
+            setupCores(getCpuInfo());
         }
     }
 
     /// @brief Get a core from the pool of available cores.
-    ///
     /// @return
     [[nodiscard]] AffinityProcessor& consume() {
         if (!use_affinity_) {
@@ -89,13 +86,8 @@ class AffinityManager {
    private:
     /// @brief Setup the cores for the affinity, later entries from the core pool will be just
     /// picked up.
-    void setupCores() {
+    void setupCores(const CpuInfo& cpu_info) {
         std::lock_guard<std::mutex> lock(core_mutex_);
-
-        // physical_id is the id for the physical cpu, will be 0 for single cpu systems
-        // cores is array of two vectors, each vector contains distinct processors which are
-        // not on the same physical core. We distribute the workload first over all cores
-        // in HT_1, then over all cores in HT_2.
 
         /// @todo: fix logic for multiple threads and multiple concurrencies
 
@@ -113,10 +105,10 @@ class AffinityManager {
         }
     }
 
-    CpuInfo cpu_info;
     std::array<std::deque<AffinityProcessor>, 2> cores_;
     std::mutex core_mutex_;
 
+    /// @brief This is a dummy core which is returned when affinity is disabled.
     AffinityProcessor null_core_ = {{}};
 
     bool use_affinity_ = false;

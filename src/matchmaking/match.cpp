@@ -85,8 +85,8 @@ void Match::start(UciEngine& engine1, UciEngine& engine2, const std::vector<int>
     Participant player_1 = Participant(engine1);
     Participant player_2 = Participant(engine2);
 
-    player_1.info.color = board_.sideToMove();
-    player_2.info.color = ~board_.sideToMove();
+    player_1.color = board_.sideToMove();
+    player_2.color = ~board_.sideToMove();
 
     player_1.engine.setCpus(cpus);
     player_2.engine.setCpus(cpus);
@@ -125,7 +125,9 @@ void Match::start(UciEngine& engine1, UciEngine& engine2, const std::vector<int>
     data_.end_time = time::datetime("%Y-%m-%dT%H:%M:%S %z");
     data_.duration = time::duration(chrono::duration_cast<chrono::seconds>(end - start));
 
-    data_.players = std::make_pair(player_1.info, player_2.info);
+    data_.players =
+        std::make_pair(MatchData::PlayerInfo{engine1.getConfig(), player_1.result, player_1.color},
+                       MatchData::PlayerInfo{engine2.getConfig(), player_2.result, player_2.color});
 }
 
 bool Match::playMove(Participant& us, Participant& opponent) {
@@ -248,18 +250,18 @@ void Match::verifyPvLines(const Participant& us) {
 }
 
 void Match::setDraw(Participant& us, Participant& them) noexcept {
-    us.info.result   = GameResult::DRAW;
-    them.info.result = GameResult::DRAW;
+    us.result   = GameResult::DRAW;
+    them.result = GameResult::DRAW;
 }
 
 void Match::setWin(Participant& us, Participant& them) noexcept {
-    us.info.result   = GameResult::WIN;
-    them.info.result = GameResult::LOSE;
+    us.result   = GameResult::WIN;
+    them.result = GameResult::LOSE;
 }
 
 void Match::setLose(Participant& us, Participant& them) noexcept {
-    us.info.result   = GameResult::LOSE;
-    them.info.result = GameResult::WIN;
+    us.result   = GameResult::LOSE;
+    them.result = GameResult::WIN;
 }
 
 bool Match::adjudicate(Participant& us, Participant& them) noexcept {

@@ -3,15 +3,12 @@
 #include <chrono>
 
 #include <engines/uci_engine.hpp>
-#include <types/player_info.hpp>
 
 namespace fast_chess {
 
 class Participant {
    public:
     explicit Participant(UciEngine &uci_enigne) : engine(uci_enigne) {
-        info.config = engine.getConfig();
-
         // copy time control which will be updated later
         time_control_ = engine.getConfig().limit.tc;
     }
@@ -103,7 +100,9 @@ class Participant {
     [[nodiscard]] const TimeControl &getTimeControl() const { return time_control_; }
 
     UciEngine &engine;
-    PlayerInfo info;
+
+    chess::Color color       = chess::Color::NONE;
+    chess::GameResult result = chess::GameResult::NONE;
 
    private:
     /// @brief updated time control after each move

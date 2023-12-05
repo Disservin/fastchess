@@ -5,7 +5,8 @@
 #include <utility>
 #include <vector>
 
-#include <types/player_info.hpp>
+#include <chess.hpp>
+
 #include <util/date.hpp>
 
 namespace fast_chess {
@@ -41,7 +42,13 @@ enum class MatchTermination {
 };
 
 struct MatchData {
-    MatchData() = default;
+    struct PlayerInfo {
+        EngineConfiguration config;
+        chess::GameResult result = chess::GameResult::NONE;
+        chess::Color color       = chess::Color::NONE;
+    };
+
+    MatchData() {}
 
     explicit MatchData(std::string fen) : fen(std::move(fen)) {
         start_time = time::datetime("%Y-%m-%dT%H:%M:%S %z");

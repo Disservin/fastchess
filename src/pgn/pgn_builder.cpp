@@ -11,15 +11,12 @@ PgnBuilder::PgnBuilder(const MatchData &match, const cmd::TournamentOptions &tou
     match_        = match;
     game_options_ = tournament_options;
 
-    PlayerInfo white_player, black_player;
-
-    if (match.players.first.color == chess::Color::WHITE) {
-        white_player = match.players.first;
-        black_player = match.players.second;
-    } else {
-        white_player = match.players.second;
-        black_player = match.players.first;
-    }
+    const auto white_player = match.players.first.color == chess::Color::WHITE
+                                  ? match.players.first
+                                  : match.players.second;
+    const auto black_player = match.players.first.color == chess::Color::BLACK
+                                  ? match.players.first
+                                  : match.players.second;
 
     addHeader("Event", tournament_options.event_name);
     addHeader("Site", game_options_.site);

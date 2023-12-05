@@ -18,6 +18,7 @@ PgnBuilder::PgnBuilder(const MatchData &match, const cmd::TournamentOptions &tou
                                   ? match.players.first
                                   : match.players.second;
 
+    addHeader("Event", tournament_options.event_name);
     addHeader("Site", game_options_.site);
     addHeader("Round", std::to_string(round_id));
     addHeader("White", white_player.config.name);

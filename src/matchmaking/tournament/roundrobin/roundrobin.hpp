@@ -1,8 +1,8 @@
 #pragma once
 
-#include <matchmaking/opening_book.h>
 #include <affinity/affinity_manager.hpp>
 #include <matchmaking/match.hpp>
+#include <matchmaking/opening_book.hpp>
 #include <matchmaking/result.hpp>
 #include <matchmaking/sprt/sprt.hpp>
 #include <pgn/pgn_reader.hpp>
@@ -12,6 +12,7 @@
 #include <util/file_writer.hpp>
 #include <util/rand.hpp>
 #include <util/threadpool.hpp>
+#include <matchmaking/output/output.hpp>
 
 namespace fast_chess {
 
@@ -82,9 +83,8 @@ class RoundRobin {
     /// @param round_id
     /// @param start
     /// @param finish
-    void playGame(const std::pair<EngineConfiguration, EngineConfiguration> &configs,
-                  start_callback start, finished_callback finish, const Opening &opening,
-                  std::size_t round_id);
+    void playGame(
+        std::tuple<std::pair<EngineConfiguration, EngineConfiguration>, Opening, std::size_t> data);
 
     /// @brief Outputs the current state of the round robin to the console
     std::unique_ptr<IOutput> output_;

@@ -1,4 +1,4 @@
-#include "opening_book.h"
+#include "opening_book.hpp"
 
 #include <fstream>
 #include <string>

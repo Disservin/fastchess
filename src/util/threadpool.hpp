@@ -12,6 +12,8 @@
 #include <type_traits>
 #include <vector>
 
+#include <util/iterator.hpp>
+
 namespace fast_chess {
 
 class ThreadPool {
@@ -31,6 +33,14 @@ class ThreadPool {
             tasks_.emplace([task]() { (*task)(); });
         }
         condition_.notify_one();
+    }
+
+    template <class F, typename T, class... Args>
+    void consumeIterator(F &&func, T iterator, Args &&...args) {
+        while (iterator.hasNext()) {
+            // create a task with func and args and then pass the iterator next value to it
+            enqueue(func, std::forward<Args>(args)..., iterator.next().value());
+        }
     }
 
     void resize(std::size_t num_threads) {

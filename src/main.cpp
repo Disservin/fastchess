@@ -2,7 +2,7 @@
 
 #include <cli/cli.hpp>
 #include <globals/globals.hpp>
-#include <matchmaking/tournament/tournament.hpp>
+#include <matchmaking/tournament/tournament_manager.hpp>
 
 using namespace fast_chess;
 

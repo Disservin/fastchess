@@ -1,4 +1,4 @@
-#include <matchmaking/tournament/tournament.hpp>
+#include <matchmaking/tournament/tournament_manager.hpp>
 
 #include <util/logger.hpp>
 

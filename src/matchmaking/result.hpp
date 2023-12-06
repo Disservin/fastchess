@@ -3,6 +3,7 @@
 #include <mutex>
 #include <string>
 #include <unordered_map>
+#include <utility>
 
 #include <types/engine_config.hpp>
 #include <types/stats.hpp>

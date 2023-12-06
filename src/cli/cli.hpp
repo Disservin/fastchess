@@ -13,9 +13,9 @@
 #include <unordered_map>
 #include <vector>
 
+#include <matchmaking/result.hpp>
 #include <types/engine_config.hpp>
 #include <types/tournament_options.hpp>
-#include <util/logger.hpp>
 
 namespace fast_chess::cli {
 

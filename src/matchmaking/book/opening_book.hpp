@@ -6,8 +6,8 @@
 
 #include <pgn/pgn_reader.hpp>
 #include <types/enums.hpp>
-#include <util/rand.hpp>
 #include <types/tournament_options.hpp>
+#include <util/rand.hpp>
 
 namespace fast_chess {
 

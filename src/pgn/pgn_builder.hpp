@@ -1,5 +1,11 @@
 #pragma once
 
+#include <iomanip>
+#include <sstream>
+#include <string>
+#include <string_view>
+#include <vector>
+
 #include <chess.hpp>
 
 #include <matchmaking/match/match.hpp>

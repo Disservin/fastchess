@@ -1,5 +1,8 @@
 #pragma once
 
+#include <string>
+#include <vector>
+
 #include <chess.hpp>
 
 #ifdef _WIN64

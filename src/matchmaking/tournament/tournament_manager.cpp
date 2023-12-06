@@ -1,6 +1,6 @@
 #include <matchmaking/tournament/tournament_manager.hpp>
 
-#include <util/logger.hpp>
+#include <util/logger/logger.hpp>
 
 namespace fast_chess {
 

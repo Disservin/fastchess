@@ -1,6 +1,10 @@
 #include <pgn/pgn_builder.hpp>
 
+#include <iomanip>
 #include <sstream>
+#include <string>
+#include <string_view>
+#include <vector>
 
 #include <matchmaking/output/output.hpp>
 

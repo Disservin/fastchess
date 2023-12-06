@@ -4,7 +4,9 @@
 
 #include <matchmaking/output/output_factory.hpp>
 #include <matchmaking/result.hpp>
-#include <util/logger.hpp>
+#include <types/engine_config.hpp>
+#include <types/tournament_options.hpp>
+#include <util/logger/logger.hpp>
 
 namespace fast_chess::cli {
 using json = nlohmann::json;

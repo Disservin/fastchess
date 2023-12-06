@@ -23,7 +23,7 @@
 #include <unistd.h>  // _exit, fork
 
 #include <affinity/affinity.hpp>
-#include <util/logger.hpp>
+#include <util/logger/logger.hpp>
 #include <util/thread_vector.hpp>
 
 namespace fast_chess {

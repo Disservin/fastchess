@@ -2,7 +2,7 @@
 
 #include <matchmaking/elo/elo.hpp>
 #include <matchmaking/output/output.hpp>
-#include <util/logger.hpp>
+#include <util/logger/logger.hpp>
 
 namespace fast_chess {
 

@@ -17,7 +17,7 @@
 #include <windows.h>
 
 #include <affinity/affinity.hpp>
-#include <util/logger.hpp>
+#include <util/logger/logger.hpp>
 #include <util/thread_vector.hpp>
 
 namespace fast_chess {

@@ -2,16 +2,16 @@
 
 #include <vector>
 
-#include <matchmaking/book/opening_book.hpp>
 #include <affinity/affinity_manager.hpp>
 #include <engines/uci_engine.hpp>
+#include <matchmaking/book/opening_book.hpp>
+#include <matchmaking/output/output_factory.hpp>
 #include <matchmaking/result.hpp>
 #include <types/tournament_options.hpp>
 #include <util/cache.hpp>
 #include <util/file_writer.hpp>
-#include <util/logger.hpp>
+#include <util/logger/logger.hpp>
 #include <util/threadpool.hpp>
-#include <matchmaking/output/output_factory.hpp>
 
 namespace fast_chess {
 
@@ -22,7 +22,7 @@ extern std::atomic_bool stop;
 class BaseTournament {
    public:
     BaseTournament(const options::Tournament &config,
-                const std::vector<EngineConfiguration> &engine_configs)
+                   const std::vector<EngineConfiguration> &engine_configs)
         : output_(getNewOutput(config.output)),
           tournament_options_(config),
           engine_configs_(engine_configs),

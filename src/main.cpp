@@ -1,8 +1,8 @@
 #include <thread>
 
 #include <cli/cli.hpp>
-#include <matchmaking/tournament/tournament.hpp>
 #include <globals/globals.hpp>
+#include <matchmaking/tournament/tournament.hpp>
 
 using namespace fast_chess;
 

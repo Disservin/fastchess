@@ -7,12 +7,13 @@
 #include <pgn/pgn_reader.hpp>
 #include <types/enums.hpp>
 #include <util/rand.hpp>
+#include <types/tournament_options.hpp>
 
 namespace fast_chess {
 
 class OpeningBook {
    public:
-    OpeningBook(const std::string& file, FormatType type, std::size_t start = 0);
+    OpeningBook(const options::Opening& opening);
 
     /// @brief Fisher-Yates / Knuth shuffle
     void shuffle() noexcept {

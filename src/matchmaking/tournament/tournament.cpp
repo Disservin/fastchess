@@ -6,7 +6,9 @@ namespace fast_chess {
 
 TournamentManager::TournamentManager(const options::Tournament& tournament_config,
                                      const std::vector<EngineConfiguration>& engine_configs)
-    : engine_configs_(engine_configs), tournament_options_(tournament_config), round_robin_(tournament_config) {
+    : engine_configs_(engine_configs),
+      tournament_options_(tournament_config),
+      round_robin_(tournament_config) {
     validateEngines();
     fixConfig();
 

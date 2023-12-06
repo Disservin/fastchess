@@ -1,7 +1,7 @@
 #include <globals/globals.hpp>
 
-#include <util/thread_vector.hpp>
 #include <util/logger.hpp>
+#include <util/thread_vector.hpp>
 
 namespace fast_chess {
 
@@ -15,8 +15,8 @@ std::atomic_bool stop = false;
 #include <windows.h>
 ThreadVector<HANDLE> process_list;
 #else
-#include <unistd.h>
 #include <signal.h>
+#include <unistd.h>
 #include <cstdlib>
 ThreadVector<pid_t> process_list;
 #endif

@@ -1,6 +1,5 @@
 #pragma once
 
-#include <matchmaking/opening_book.h>
 #include <affinity/affinity_manager.hpp>
 #include <matchmaking/match.hpp>
 #include <matchmaking/result.hpp>

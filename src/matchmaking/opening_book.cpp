@@ -1,13 +1,13 @@
-#include "opening_book.h"
+#include <matchmaking/opening_book.hpp>
 
 #include <fstream>
 #include <string>
 
 namespace fast_chess {
 
-OpeningBook::OpeningBook(const std::string& file, FormatType type, std::size_t start) {
-    start_ = start;
-    setup(file, type);
+OpeningBook::OpeningBook(const options::Opening& opening) {
+    start_ = opening.start;
+    setup(opening.file, opening.format);
 }
 
 void OpeningBook::setup(const std::string& file, FormatType type) {

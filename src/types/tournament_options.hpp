@@ -2,7 +2,6 @@
 
 #include <string>
 
-#include <matchmaking/output/output_factory.hpp>
 #include <matchmaking/result.hpp>
 #include <types/engine_config.hpp>
 #include <types/enums.hpp>

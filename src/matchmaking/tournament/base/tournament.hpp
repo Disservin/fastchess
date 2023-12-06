@@ -2,15 +2,16 @@
 
 #include <vector>
 
-#include <types/tournament_options.hpp>
-#include <matchmaking/result.hpp>
+#include <matchmaking/opening_book.hpp>
 #include <affinity/affinity_manager.hpp>
-#include <util/cache.hpp>
 #include <engines/uci_engine.hpp>
-#include <matchmaking/opening_book.h>
-#include <util/threadpool.hpp>
+#include <matchmaking/result.hpp>
+#include <types/tournament_options.hpp>
+#include <util/cache.hpp>
 #include <util/file_writer.hpp>
 #include <util/logger.hpp>
+#include <util/threadpool.hpp>
+#include <matchmaking/output/output_factory.hpp>
 
 namespace fast_chess {
 
@@ -21,10 +22,7 @@ extern std::atomic_bool stop;
 class ITournament {
    public:
     ITournament(const options::Tournament &config)
-        : output_(getNewOutput(config.output)),
-          tournament_options_(config),
-
-          book_(config.opening.file, config.opening.format, config.opening.start) {
+        : output_(getNewOutput(config.output)), tournament_options_(config), book_(config.opening) {
         auto filename = (config.pgn.file.empty() ? "fast-chess" : config.pgn.file);
 
         if (config.output == OutputType::FASTCHESS) {
@@ -68,10 +66,9 @@ class ITournament {
     virtual void create(const std::vector<EngineConfiguration> &engine_configs) = 0;
 
     std::unique_ptr<IOutput> output_;
-
-    options::Tournament tournament_options_;
     std::unique_ptr<affinity::AffinityManager> cores_;
 
+    options::Tournament tournament_options_;
     OpeningBook book_;
 
     FileWriter file_writer_                         = FileWriter();

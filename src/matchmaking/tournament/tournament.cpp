@@ -6,15 +6,20 @@ namespace fast_chess {
 
 Tournament::Tournament(const cmd::TournamentOptions& game_config,
                        const std::vector<EngineConfiguration>& engine_configs)
-    : engine_configs_(engine_configs), tournament_options_(game_config), round_robin_(game_config) {
+    : engine_configs_(engine_configs), tournament_options_(game_config) {
     validateEngines();
     fixConfig();
+
+    // Set the seed for the random number generator
+    random::mersenne_rand.seed(tournament_options_.seed);
+
+    round_robin_ = std::make_unique<RoundRobin>(tournament_options_);
 }
 
 void Tournament::start() {
     Logger::log<Logger::Level::INFO>("Starting tournament...");
 
-    round_robin_.start(engine_configs_);
+    round_robin_->start(engine_configs_);
 }
 
 void Tournament::fixConfig() {
@@ -46,7 +51,7 @@ void Tournament::fixConfig() {
     }
 
     // update with fixed config
-    round_robin_.setGameConfig(tournament_options_);
+    round_robin_->setGameConfig(tournament_options_);
 }
 
 void Tournament::validateEngines() const {

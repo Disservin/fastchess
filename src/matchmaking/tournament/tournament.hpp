@@ -19,15 +19,15 @@ class Tournament {
     }
 
     void start();
-    void stop() { round_robin_->stop(); }
+    void stop() { round_robin_.stop(); }
 
-    [[nodiscard]] RoundRobin *roundRobin() { return &(*round_robin_); }
+    [[nodiscard]] RoundRobin *roundRobin() { return &round_robin_; }
 
    private:
     void saveJson() {
         nlohmann::ordered_json jsonfile = tournament_options_;
         jsonfile["engines"]             = engine_configs_;
-        jsonfile["stats"]               = round_robin_->getResults();
+        jsonfile["stats"]               = round_robin_.getResults();
 
         Logger::log<Logger::Level::TRACE>("Saving results...");
 
@@ -43,7 +43,7 @@ class Tournament {
     std::vector<EngineConfiguration> engine_configs_;
     cmd::TournamentOptions tournament_options_;
 
-    std::unique_ptr<RoundRobin> round_robin_;
+    RoundRobin round_robin_;
 };
 
 }  // namespace fast_chess

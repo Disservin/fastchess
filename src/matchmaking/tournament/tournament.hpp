@@ -8,12 +8,12 @@ namespace fast_chess {
 
 /// @brief Manages the tournament, currenlty wraps round robin but can be extended to support
 /// different tournament types
-class Tournament {
+class TournamentManager {
    public:
-    Tournament(const cmd::TournamentOptions &game_config,
-               const std::vector<EngineConfiguration> &engine_configs);
+    TournamentManager(const cmd::TournamentOptions &game_config,
+                      const std::vector<EngineConfiguration> &engine_configs);
 
-    ~Tournament() {
+    ~TournamentManager() {
         stop();
         saveJson();
     }

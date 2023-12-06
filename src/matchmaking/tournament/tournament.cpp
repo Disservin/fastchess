@@ -4,8 +4,8 @@
 
 namespace fast_chess {
 
-Tournament::Tournament(const cmd::TournamentOptions& game_config,
-                       const std::vector<EngineConfiguration>& engine_configs)
+TournamentManager::TournamentManager(const cmd::TournamentOptions& game_config,
+                                     const std::vector<EngineConfiguration>& engine_configs)
     : engine_configs_(engine_configs), tournament_options_(game_config), round_robin_(game_config) {
     validateEngines();
     fixConfig();
@@ -14,13 +14,13 @@ Tournament::Tournament(const cmd::TournamentOptions& game_config,
     random::mersenne_rand.seed(tournament_options_.seed);
 }
 
-void Tournament::start() {
+void TournamentManager::start() {
     Logger::log<Logger::Level::INFO>("Starting tournament...");
 
     round_robin_.start(engine_configs_);
 }
 
-void Tournament::fixConfig() {
+void TournamentManager::fixConfig() {
     if (tournament_options_.games > 2) {
         // wrong config, lets try to fix it
         std::swap(tournament_options_.games, tournament_options_.rounds);
@@ -52,7 +52,7 @@ void Tournament::fixConfig() {
     round_robin_.setGameConfig(tournament_options_);
 }
 
-void Tournament::validateEngines() const {
+void TournamentManager::validateEngines() const {
     if (engine_configs_.size() < 2) {
         throw std::runtime_error("Error: Need at least two engines to start!");
     }

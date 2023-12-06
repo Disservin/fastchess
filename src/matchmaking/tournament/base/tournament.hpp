@@ -20,7 +20,7 @@ extern std::atomic_bool stop;
 
 class ITournament {
    public:
-    ITournament(const cmd::TournamentOptions &config)
+    ITournament(const options::Tournament &config)
         : output_(getNewOutput(config.output)),
           tournament_options_(config),
 
@@ -57,8 +57,8 @@ class ITournament {
     [[nodiscard]] stats_map getResults() noexcept { return result_.getResults(); }
     void setResults(const stats_map &results) noexcept { result_.setResults(results); }
 
-    void setGameConfig(const cmd::TournamentOptions &game_config) noexcept {
-        tournament_options_ = game_config;
+    void setGameConfig(const options::Tournament &tournament_config) noexcept {
+        tournament_options_ = tournament_config;
     }
 
    protected:
@@ -69,7 +69,7 @@ class ITournament {
 
     std::unique_ptr<IOutput> output_;
 
-    cmd::TournamentOptions tournament_options_;
+    options::Tournament tournament_options_;
     std::unique_ptr<affinity::AffinityManager> cores_;
 
     OpeningBook book_;

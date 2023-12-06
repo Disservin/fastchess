@@ -23,7 +23,7 @@ extern std::atomic_bool stop;
 
 class RoundRobin : public ITournament {
    public:
-    explicit RoundRobin(const cmd::TournamentOptions &game_config);
+    explicit RoundRobin(const options::Tournament &tournament_config);
 
     /// @brief starts the round robin
     /// @param engine_configs

@@ -33,7 +33,7 @@ TEST_SUITE("Option Parsing Tests") {
                               "-pgnout",
                               "file=PGNs/Alexandria-EA649FED_vs_Alexandria-27E42728"};
 
-        cmd::OptionsParser options = cmd::OptionsParser(26, argv);
+        cli::OptionsParser options = cli::OptionsParser(26, argv);
 
         auto configs = options.getEngineConfigs();
 
@@ -84,7 +84,7 @@ TEST_SUITE("Option Parsing Tests") {
                                       "plies=16",
                                       "-pgnout",
                                       "file=PGNs/Alexandria-EA649FED_vs_Alexandria-27E42728"};
-        cmd::OptionsParser options = cmd::OptionsParser(21, argv);
+        cli::OptionsParser options = cli::OptionsParser(21, argv);
         auto gameOptions           = options.getGameOptions();
 
         // Test proper cli settings

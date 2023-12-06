@@ -10,7 +10,7 @@
 
 namespace fast_chess {
 
-RoundRobin::RoundRobin(const cmd::TournamentOptions& game_config) : ITournament(game_config) {
+RoundRobin::RoundRobin(const options::Tournament& tournament_config) : ITournament(tournament_config) {
     // Initialize the SPRT test
     sprt_ = SPRT(tournament_options_.sprt.alpha, tournament_options_.sprt.beta,
                  tournament_options_.sprt.elo0, tournament_options_.sprt.elo1);

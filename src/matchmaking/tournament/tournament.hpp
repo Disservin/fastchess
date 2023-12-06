@@ -10,7 +10,7 @@ namespace fast_chess {
 /// different tournament types
 class TournamentManager {
    public:
-    TournamentManager(const cmd::TournamentOptions &game_config,
+    TournamentManager(const options::Tournament &tournament_config,
                       const std::vector<EngineConfiguration> &engine_configs);
 
     ~TournamentManager() {
@@ -41,7 +41,7 @@ class TournamentManager {
     void validateEngines() const;
 
     std::vector<EngineConfiguration> engine_configs_;
-    cmd::TournamentOptions tournament_options_;
+    options::Tournament tournament_options_;
 
     RoundRobin round_robin_;
 };

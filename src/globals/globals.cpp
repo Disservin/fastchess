@@ -16,7 +16,7 @@ std::atomic_bool stop = false;
 ThreadVector<HANDLE> process_list;
 #else
 #include <unistd.h>
-#include <csignal>
+#include <signal.h>
 ThreadVector<pid_t> process_list;
 #endif
 

@@ -13,61 +13,27 @@
 #include <util/rand.hpp>
 #include <util/threadpool.hpp>
 
+#include <matchmaking/tournament/base/tournament.hpp>
+
 namespace fast_chess {
 
 namespace atomic {
 extern std::atomic_bool stop;
 }  // namespace atomic
 
-class RoundRobin {
+class RoundRobin : public ITournament {
    public:
     explicit RoundRobin(const cmd::TournamentOptions &game_config);
 
     /// @brief starts the round robin
     /// @param engine_configs
-    void start(const std::vector<EngineConfiguration> &engine_configs);
-
-    /// @brief forces the round robin to stop
-    void stop() {
-        atomic::stop = true;
-        Logger::log<Logger::Level::TRACE>("Stopped round robin!");
-        pool_.kill();
-    }
-
-    [[nodiscard]] stats_map getResults() noexcept { return result_.getResults(); }
-    void setResults(const stats_map &results) noexcept { result_.setResults(results); }
-
-    void setGameConfig(const cmd::TournamentOptions &game_config) noexcept {
-        tournament_options_ = game_config;
-    }
+    void start(const std::vector<EngineConfiguration> &engine_configs) override;
 
    private:
-    int getMaxAffinity(const std::vector<EngineConfiguration> &configs) const noexcept {
-        constexpr auto transform = [](const auto &val) { return std::stoi(val); };
-
-        // const auto first_threads  = configs.first.getOption<int>("Threads",
-        // transform).value_or(1); const auto second_threads =
-        // configs.second.getOption<int>("Threads", transform).value_or(1);
-
-        const auto first_threads = configs[0].getOption<int>("Threads", transform).value_or(1);
-
-        for (const auto &config : configs) {
-            const auto threads = config.getOption<int>("Threads", transform).value_or(1);
-
-            // thread count in all configs has to be the same for affinity to work,
-            // otherwise we set it to 0 and affinity is disabled
-            if (threads != first_threads) {
-                return 0;
-            }
-        }
-
-        return first_threads;
-    }
-
     /// @brief creates the matches
     /// @param engine_configs
     /// @param results
-    void create(const std::vector<EngineConfiguration> &engine_configs);
+    void create(const std::vector<EngineConfiguration> &engine_configs) override;
 
     /// @brief update the current running sprt. SPRT Config has to be valid.
     /// @param engine_configs
@@ -86,25 +52,7 @@ class RoundRobin {
                   start_callback start, finished_callback finish, const Opening &opening,
                   std::size_t round_id);
 
-    /// @brief Outputs the current state of the round robin to the console
-    std::unique_ptr<IOutput> output_;
-
-    cmd::TournamentOptions tournament_options_ = {};
-
-    std::unique_ptr<affinity::AffinityManager> cores_;
-
-    CachePool<UciEngine, std::string> engine_cache_ = CachePool<UciEngine, std::string>();
-
-    /// @brief the file writer for the pgn file
-    FileWriter file_writer_;
-
-    ThreadPool pool_ = ThreadPool(1);
-
-    Result result_ = Result();
-
     SPRT sprt_ = SPRT();
-
-    OpeningBook book_;
 
     /// @brief number of games played
     std::atomic<uint64_t> match_count_ = 0;

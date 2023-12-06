@@ -10,38 +10,14 @@
 
 namespace fast_chess {
 
-RoundRobin::RoundRobin(const cmd::TournamentOptions& game_config)
-    : output_(getNewOutput(game_config.output)),
-      tournament_options_(game_config),
-
-      book_(game_config.opening.file, game_config.opening.format, game_config.opening.start) {
-    auto filename = (game_config.pgn.file.empty() ? "fast-chess" : game_config.pgn.file);
-
-    if (game_config.output == OutputType::FASTCHESS) {
-        filename += ".pgn";
-    }
-
-    if (tournament_options_.opening.order == OrderType::RANDOM) book_.shuffle();
-
-    file_writer_.open(filename);
-
-    pool_.resize(tournament_options_.concurrency);
-
+RoundRobin::RoundRobin(const cmd::TournamentOptions& game_config) : ITournament(game_config) {
     // Initialize the SPRT test
     sprt_ = SPRT(tournament_options_.sprt.alpha, tournament_options_.sprt.beta,
                  tournament_options_.sprt.elo0, tournament_options_.sprt.elo1);
-
-    // Set the seed for the random number generator
-    random::mersenne_rand.seed(tournament_options_.seed);
 }
 
 void RoundRobin::start(const std::vector<EngineConfiguration>& engine_configs) {
-    Logger::log<Logger::Level::TRACE>("Starting round robin tournament...");
-
-    cores_ = std::make_unique<affinity::AffinityManager>(tournament_options_.affinity,
-                                                         getMaxAffinity(engine_configs));
-
-    create(engine_configs);
+    ITournament::start(engine_configs);
 
     // Wait for games to finish
     while (match_count_ < total_ && !atomic::stop) {

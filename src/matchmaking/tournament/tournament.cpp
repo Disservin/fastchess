@@ -9,6 +9,9 @@ Tournament::Tournament(const cmd::TournamentOptions& game_config,
     : engine_configs_(engine_configs), tournament_options_(game_config), round_robin_(game_config) {
     validateEngines();
     fixConfig();
+
+    // Set the seed for the random number generator
+    random::mersenne_rand.seed(tournament_options_.seed);
 }
 
 void Tournament::start() {

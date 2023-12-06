@@ -14,7 +14,7 @@
 namespace fast_chess {
 class ITournament {
    public:
-    ITournament(cmd::TournamentOptions config)
+    ITournament(const cmd::TournamentOptions &config)
         : output_(getNewOutput(config.output)),
           tournament_options_(config),
 
@@ -45,7 +45,7 @@ class ITournament {
    protected:
     std::unique_ptr<IOutput> output_;
 
-    cmd::TournamentOptions &tournament_options_;
+    cmd::TournamentOptions tournament_options_;
     std::unique_ptr<affinity::AffinityManager> cores_;
 
     OpeningBook book_;

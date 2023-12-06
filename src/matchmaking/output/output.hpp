@@ -11,8 +11,6 @@
 
 namespace fast_chess {
 
-class Tournament;  // forward declaration
-
 using pair_config = std::pair<fast_chess::EngineConfiguration, fast_chess::EngineConfiguration>;
 
 /// @brief Interface for outputting current tournament state to the user.

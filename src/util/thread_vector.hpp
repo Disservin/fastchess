@@ -2,6 +2,7 @@
 
 #include <mutex>
 #include <vector>
+#include <algorithm>
 
 template <typename T>
 class ThreadVector {

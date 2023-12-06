@@ -21,8 +21,12 @@ extern std::atomic_bool stop;
 
 class ITournament {
    public:
-    ITournament(const options::Tournament &config)
-        : output_(getNewOutput(config.output)), tournament_options_(config), book_(config.opening) {
+    ITournament(const options::Tournament &config,
+                const std::vector<EngineConfiguration> &engine_configs)
+        : output_(getNewOutput(config.output)),
+          tournament_options_(config),
+          engine_configs_(engine_configs),
+          book_(config.opening) {
         auto filename = (config.pgn.file.empty() ? "fast-chess" : config.pgn.file);
 
         if (config.output == OutputType::FASTCHESS) {
@@ -36,13 +40,13 @@ class ITournament {
 
     virtual ~ITournament() = default;
 
-    virtual void start(const std::vector<EngineConfiguration> &engine_configs) {
+    virtual void start() {
         Logger::log<Logger::Level::TRACE>("Starting...");
 
         cores_ = std::make_unique<affinity::AffinityManager>(tournament_options_.affinity,
-                                                             getMaxAffinity(engine_configs));
+                                                             getMaxAffinity(engine_configs_));
 
-        create(engine_configs);
+        create();
     }
 
     /// @brief forces the tournament to stop
@@ -61,14 +65,13 @@ class ITournament {
 
    protected:
     /// @brief creates the matches
-    /// @param engine_configs
-    /// @param results
-    virtual void create(const std::vector<EngineConfiguration> &engine_configs) = 0;
+    virtual void create() = 0;
 
     std::unique_ptr<IOutput> output_;
     std::unique_ptr<affinity::AffinityManager> cores_;
 
     options::Tournament tournament_options_;
+    std::vector<EngineConfiguration> engine_configs_;
     OpeningBook book_;
 
     FileWriter file_writer_                         = FileWriter();

@@ -10,33 +10,33 @@
 
 namespace fast_chess {
 
-RoundRobin::RoundRobin(const options::Tournament& tournament_config)
-    : ITournament(tournament_config) {
+RoundRobin::RoundRobin(const options::Tournament& tournament_config,
+                       const std::vector<EngineConfiguration>& engine_configs)
+    : ITournament(tournament_config, engine_configs) {
     // Initialize the SPRT test
     sprt_ = SPRT(tournament_options_.sprt.alpha, tournament_options_.sprt.beta,
                  tournament_options_.sprt.elo0, tournament_options_.sprt.elo1);
 }
 
-void RoundRobin::start(const std::vector<EngineConfiguration>& engine_configs) {
-    ITournament::start(engine_configs);
+void RoundRobin::start() {
+    ITournament::start();
 
     // Wait for games to finish
     while (match_count_ < total_ && !atomic::stop) {
     }
 }
 
-void RoundRobin::create(const std::vector<EngineConfiguration>& engine_configs) {
-    total_ = (engine_configs.size() * (engine_configs.size() - 1) / 2) *
+void RoundRobin::create() {
+    total_ = (engine_configs_.size() * (engine_configs_.size() - 1) / 2) *
              tournament_options_.rounds * tournament_options_.games;
 
-    const auto create_match = [this, &engine_configs](std::size_t i, std::size_t j,
-                                                      std::size_t round_id) {
+    const auto create_match = [this](std::size_t i, std::size_t j, std::size_t round_id) {
         // both players get the same opening
         const auto opening = book_.fetch();
-        const auto first   = engine_configs[i];
-        const auto second  = engine_configs[j];
+        const auto first   = engine_configs_[i];
+        const auto second  = engine_configs_[j];
 
-        auto configs = std::pair{engine_configs[i], engine_configs[j]};
+        auto configs = std::pair{engine_configs_[i], engine_configs_[j]};
 
         for (int g = 0; g < tournament_options_.games; g++) {
             const std::size_t game_id = round_id * tournament_options_.games + (g + 1);
@@ -80,8 +80,8 @@ void RoundRobin::create(const std::vector<EngineConfiguration>& engine_configs) 
         }
     };
 
-    for (std::size_t i = 0; i < engine_configs.size(); i++) {
-        for (std::size_t j = i + 1; j < engine_configs.size(); j++) {
+    for (std::size_t i = 0; i < engine_configs_.size(); i++) {
+        for (std::size_t j = i + 1; j < engine_configs_.size(); j++) {
             for (int k = 0; k < tournament_options_.rounds; k++) {
                 create_match(i, j, k);
             }

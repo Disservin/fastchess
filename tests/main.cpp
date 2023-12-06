@@ -1,8 +1,6 @@
 #define DOCTEST_CONFIG_IMPLEMENT
 #include "doctest/doctest.hpp"
 
-#include <util/thread_vector.hpp>
-
 int main(int argc, char **argv) {
     doctest::Context ctx;
 

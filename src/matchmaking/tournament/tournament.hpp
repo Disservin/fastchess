@@ -6,7 +6,7 @@
 
 namespace fast_chess {
 
-/// @brief Manages the tournament, currenlty wraps round robin but can be extended to support
+/// @brief Manages the tournament, currently wraps round robin but can be extended to support
 /// different tournament types
 class TournamentManager {
    public:

@@ -12,14 +12,14 @@ namespace fast_chess {
 
 RoundRobin::RoundRobin(const options::Tournament& tournament_config,
                        const std::vector<EngineConfiguration>& engine_configs)
-    : ITournament(tournament_config, engine_configs) {
+    : BaseTournament(tournament_config, engine_configs) {
     // Initialize the SPRT test
     sprt_ = SPRT(tournament_options_.sprt.alpha, tournament_options_.sprt.beta,
                  tournament_options_.sprt.elo0, tournament_options_.sprt.elo1);
 }
 
 void RoundRobin::start() {
-    ITournament::start();
+    BaseTournament::start();
 
     // Wait for games to finish
     while (match_count_ < total_ && !atomic::stop) {

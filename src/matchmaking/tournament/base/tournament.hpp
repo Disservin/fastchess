@@ -19,9 +19,9 @@ namespace atomic {
 extern std::atomic_bool stop;
 }  // namespace atomic
 
-class ITournament {
+class BaseTournament {
    public:
-    ITournament(const options::Tournament &config,
+    BaseTournament(const options::Tournament &config,
                 const std::vector<EngineConfiguration> &engine_configs)
         : output_(getNewOutput(config.output)),
           tournament_options_(config),
@@ -38,7 +38,7 @@ class ITournament {
         pool_.resize(tournament_options_.concurrency);
     }
 
-    virtual ~ITournament() = default;
+    virtual ~BaseTournament() = default;
 
     virtual void start() {
         Logger::log<Logger::Level::TRACE>("Starting...");

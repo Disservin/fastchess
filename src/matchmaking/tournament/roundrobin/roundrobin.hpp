@@ -20,7 +20,7 @@ namespace atomic {
 extern std::atomic_bool stop;
 }  // namespace atomic
 
-class RoundRobin : public ITournament {
+class RoundRobin : public BaseTournament {
    public:
     explicit RoundRobin(const options::Tournament &tournament_config,
                         const std::vector<EngineConfiguration> &engine_configs);

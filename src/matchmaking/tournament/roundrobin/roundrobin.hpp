@@ -1,7 +1,7 @@
 #pragma once
 
 #include <affinity/affinity_manager.hpp>
-#include <matchmaking/match.hpp>
+#include <matchmaking/match/match.hpp>
 #include <matchmaking/result.hpp>
 #include <matchmaking/sprt/sprt.hpp>
 #include <pgn/pgn_reader.hpp>

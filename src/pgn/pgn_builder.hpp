@@ -2,7 +2,7 @@
 
 #include <chess.hpp>
 
-#include <matchmaking/match.hpp>
+#include <matchmaking/match/match.hpp>
 
 #include <types/tournament_options.hpp>
 

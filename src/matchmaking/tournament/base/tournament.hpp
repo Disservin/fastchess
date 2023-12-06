@@ -2,7 +2,7 @@
 
 #include <vector>
 
-#include <matchmaking/opening_book.hpp>
+#include <matchmaking/book/opening_book.hpp>
 #include <affinity/affinity_manager.hpp>
 #include <engines/uci_engine.hpp>
 #include <matchmaking/result.hpp>

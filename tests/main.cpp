@@ -3,23 +3,6 @@
 
 #include <util/thread_vector.hpp>
 
-namespace fast_chess {
-namespace atomic {
-std::atomic_bool stop = false;
-}  // namespace atomic
-}  // namespace fast_chess
-
-namespace fast_chess {
-
-#ifdef _WIN64
-#include <windows.h>
-ThreadVector<HANDLE> process_list;
-#else
-#include <unistd.h>
-ThreadVector<pid_t> process_list;
-#endif
-}  // namespace fast_chess
-
 int main(int argc, char **argv) {
     doctest::Context ctx;
 

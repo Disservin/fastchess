@@ -17,6 +17,7 @@ ThreadVector<HANDLE> process_list;
 #else
 #include <unistd.h>
 #include <signal.h>
+#include <cstdlib>
 ThreadVector<pid_t> process_list;
 #endif
 

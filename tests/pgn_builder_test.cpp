@@ -23,7 +23,7 @@ TEST_SUITE("PGN Builder Tests") {
 
         match_data.reason = "engine2 got checkmated";
 
-        cmd::TournamentOptions options;
+        options::Tournament options;
         options.site = "localhost";
 
         PgnBuilder pgn_builder = PgnBuilder(match_data, options, 1);
@@ -55,7 +55,7 @@ TEST_SUITE("PGN Builder Tests") {
 
         match_data.reason = "engine1 got checkmated";
 
-        cmd::TournamentOptions options;
+        options::Tournament options;
         options.site = "localhost";
 
         PgnBuilder pgn_builder = PgnBuilder(match_data, options, 1);

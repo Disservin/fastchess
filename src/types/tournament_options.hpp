@@ -7,34 +7,34 @@
 #include <types/engine_config.hpp>
 #include <types/enums.hpp>
 
-namespace fast_chess::cmd {
+namespace fast_chess::options {
 
-struct OpeningOptions {
+struct Opening {
     std::string file;
     FormatType format = FormatType::NONE;
     OrderType order   = OrderType::RANDOM;
     int plies         = 0;
     int start         = 0;
 };
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(OpeningOptions, file, format, order, plies, start)
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(Opening, file, format, order, plies, start)
 
-struct PgnOptions {
+struct Pgn {
     std::string file;
     NotationType notation = NotationType::SAN;
     bool track_nodes      = false;
     bool track_seldepth   = false;
     bool track_nps        = false;
 };
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(PgnOptions, file, notation, track_nodes,
-                                                track_seldepth, track_nps)
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(Pgn, file, notation, track_nodes, track_seldepth,
+                                                track_nps)
 
-struct SprtOptions {
+struct Sprt {
     double alpha = 0.0;
     double beta  = 0.0;
     double elo0  = 0.0;
     double elo1  = 0.0;
 };
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(SprtOptions, alpha, beta, elo0, elo1)
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(Sprt, alpha, beta, elo0, elo1)
 
 struct DrawAdjudication {
     int move_number = 0;
@@ -54,11 +54,11 @@ struct ResignAdjudication {
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(ResignAdjudication, move_count, score, enabled)
 
-struct TournamentOptions {
-    OpeningOptions opening = {};
-    PgnOptions pgn         = {};
+struct Tournament {
+    Opening opening = {};
+    Pgn pgn         = {};
 
-    SprtOptions sprt = {};
+    Sprt sprt = {};
 
     std::string event_name = "Fast Chess";
     std::string site       = "?";
@@ -89,9 +89,9 @@ struct TournamentOptions {
     bool report_penta = true;
     bool affinity     = true;
 };
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(TournamentOptions, resign, draw, opening, pgn, sprt,
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(Tournament, resign, draw, opening, pgn, sprt,
                                                 event_name, site, output, seed, variant,
                                                 ratinginterval, games, rounds, concurrency,
                                                 overhead, recover, report_penta)
 
-}  // namespace fast_chess::cmd
+}  // namespace fast_chess::options

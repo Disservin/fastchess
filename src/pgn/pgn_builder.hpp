@@ -10,7 +10,7 @@ namespace fast_chess {
 
 class PgnBuilder {
    public:
-    PgnBuilder(const MatchData &match, const cmd::TournamentOptions &tournament_options,
+    PgnBuilder(const MatchData &match, const options::Tournament &tournament_options,
                std::size_t round_id);
 
     /// @brief Get the newly created pgn
@@ -71,7 +71,7 @@ class PgnBuilder {
 
     std::stringstream pgn_;
 
-    cmd::TournamentOptions game_options_;
+    options::Tournament game_options_;
 
     /// @brief The moves of the game, a move is not only the move itself but also includes
     /// the comment

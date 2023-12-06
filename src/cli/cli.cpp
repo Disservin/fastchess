@@ -316,7 +316,7 @@ void loadJson(ArgumentData &argument_data, const std::string &filename) {
     argument_data.old_configs            = argument_data.configs;
     argument_data.old_tournament_options = argument_data.tournament_options;
 
-    argument_data.tournament_options = jsonfile.get<TournamentOptions>();
+    argument_data.tournament_options = jsonfile.get<options::Tournament>();
 
     argument_data.configs.clear();
 

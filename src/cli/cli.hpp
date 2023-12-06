@@ -22,9 +22,9 @@ namespace fast_chess::cmd {
 /// @brief Holds the data of the OptionParser
 struct ArgumentData {
     // Holds all the relevant settings for the handling of the games
-    TournamentOptions tournament_options;
+    options::Tournament tournament_options;
     /*previous olded values before config*/
-    TournamentOptions old_tournament_options;
+    options::Tournament old_tournament_options;
 
     stats_map stats;
 
@@ -136,7 +136,7 @@ class OptionsParser {
         return argument_data_.configs;
     }
 
-    [[nodiscard]] TournamentOptions getGameOptions() const {
+    [[nodiscard]] options::Tournament getGameOptions() const {
         return argument_data_.tournament_options;
     }
 

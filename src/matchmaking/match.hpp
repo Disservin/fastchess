@@ -11,10 +11,10 @@ namespace fast_chess {
 
 class DrawTacker {
    public:
-    DrawTacker(const cmd::TournamentOptions& game_config) noexcept {
-        move_number_ = game_config.draw.move_number;
-        move_count_  = game_config.draw.move_count;
-        draw_score   = game_config.draw.score;
+    DrawTacker(const options::Tournament& tournament_config) noexcept {
+        move_number_ = tournament_config.draw.move_number;
+        move_count_  = tournament_config.draw.move_count;
+        draw_score   = tournament_config.draw.score;
     }
 
     void update(const int score, const int move_count, ScoreType score_type) noexcept {
@@ -41,9 +41,9 @@ class DrawTacker {
 
 class ResignTracker {
    public:
-    ResignTracker(const cmd::TournamentOptions& game_config) noexcept {
-        resign_score = game_config.resign.score;
-        move_count_  = game_config.resign.move_count;
+    ResignTracker(const options::Tournament& tournament_config) noexcept {
+        resign_score = tournament_config.resign.score;
+        move_count_  = tournament_config.resign.move_count;
     }
 
     void update(const int score, ScoreType score_type) noexcept {
@@ -68,8 +68,8 @@ class ResignTracker {
 
 class Match {
    public:
-    Match(const cmd::TournamentOptions& game_config, const Opening& opening)
-        : tournament_options_(game_config), opening_(opening) {}
+    Match(const options::Tournament& tournament_config, const Opening& opening)
+        : tournament_options_(tournament_config), opening_(opening) {}
 
     /// @brief starts the match
     void start(UciEngine& engine1, UciEngine& engine2, const std::vector<int>& cpus);
@@ -109,7 +109,7 @@ class Match {
 
     bool isLegal(chess::Move move) const noexcept;
 
-    const cmd::TournamentOptions& tournament_options_;
+    const options::Tournament& tournament_options_;
     const Opening& opening_;
 
     MatchData data_     = {};

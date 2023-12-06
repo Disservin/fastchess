@@ -6,7 +6,7 @@
 
 namespace fast_chess {
 
-PgnBuilder::PgnBuilder(const MatchData &match, const cmd::TournamentOptions &tournament_options,
+PgnBuilder::PgnBuilder(const MatchData &match, const options::Tournament &tournament_options,
                        std::size_t round_id) {
     match_        = match;
     game_options_ = tournament_options;

@@ -13,6 +13,11 @@
 #include <util/logger.hpp>
 
 namespace fast_chess {
+
+namespace atomic {
+extern std::atomic_bool stop;
+}  // namespace atomic
+
 class ITournament {
    public:
     ITournament(const cmd::TournamentOptions &config)

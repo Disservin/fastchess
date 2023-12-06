@@ -46,23 +46,22 @@ class PGNVisitor : public chess::pgn::Visitor {
 
    private:
     std::vector<Opening>& pgns_;
-
     Opening pgn_;
-
     chess::Board board_;
 };
 
-PgnReader::PgnReader(const std::string& pgn_file_path) {
-    pgn_file_.open(pgn_file_path);
-    analyseFile();
-}
+PgnReader::PgnReader(const std::string& pgn_file_path) { pgn_file_.open(pgn_file_path); }
 
-std::vector<Opening> PgnReader::getPgns() const { return pgns_; }
+std::vector<Opening> PgnReader::getOpenings() { return analyseFile(); }
 
-void PgnReader::analyseFile() {
+std::vector<Opening> PgnReader::analyseFile() {
+    std::vector<Opening> pgns_;
+
     auto vis = std::make_unique<PGNVisitor>(pgns_);
     chess::pgn::StreamParser parser(pgn_file_);
     parser.readGames(*vis);
+
+    return pgns_;
 }
 
 }  // namespace fast_chess

@@ -7,7 +7,7 @@ namespace fast_chess {
 TEST_SUITE("PGN Reader") {
     TEST_CASE("Read PGN file") {
         PgnReader reader("tests/data/test.pgn");
-        const auto games = reader.getPgns();
+        const auto games = reader.getOpenings();
 
         CHECK(games.size() == 6);
 

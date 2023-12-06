@@ -40,13 +40,15 @@ PgnBuilder::PgnBuilder(const MatchData &match, const options::Tournament &tourna
     chess::Board board      = chess::Board(match_.fen);
     std::size_t move_number = 0;
 
+    std::vector<std::string> moves;
+
     while (move_number < match_.moves.size()) {
         const auto illegal = match_.termination == MatchTermination::ILLEGAL_MOVE &&
                              move_number == match_.moves.size() - 1;
 
         const auto move = match_.moves[move_number];
 
-        addMove(board, move, move_number + 1, illegal);
+        addMove(moves, board, move, move_number + 1, illegal);
 
         if (illegal) {
             break;
@@ -62,7 +64,7 @@ PgnBuilder::PgnBuilder(const MatchData &match, const options::Tournament &tourna
     // create the pgn lines and assert that the line length is below 80 characters
     // otherwise move the move onto the next line
     std::size_t line_length = 0;
-    for (auto &pgn_move : moves_) {
+    for (auto &pgn_move : moves) {
         if (line_length + pgn_move.size() > LINE_LENGTH) {
             pgn_ << "\n";
             line_length = 0;
@@ -94,8 +96,8 @@ std::string PgnBuilder::moveNotation(chess::Board &board, const std::string &mov
     }
 }
 
-void PgnBuilder::addMove(chess::Board &board, const MoveData &move, std::size_t move_number,
-                         bool illegal) noexcept {
+void PgnBuilder::addMove(std::vector<std::string> &moves, chess::Board &board, const MoveData &move,
+                         std::size_t move_number, bool illegal) noexcept {
     std::stringstream ss;
 
     ss << (move_number % 2 == 1 ? std::to_string(move_number / 2 + 1) + ". " : "");
@@ -110,7 +112,7 @@ void PgnBuilder::addMove(chess::Board &board, const MoveData &move, std::size_t 
         match_.moves.size() == move_number ? match_.reason : ""                                //
     );
 
-    moves_.emplace_back(ss.str());
+    moves.emplace_back(ss.str());
 }
 
 std::string PgnBuilder::getResultFromMatch(const MatchData &match) noexcept {

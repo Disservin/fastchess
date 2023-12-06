@@ -40,8 +40,8 @@ class PgnBuilder {
     template <typename T>
     void addHeader(std::string_view name, const T &value) noexcept;
 
-    void addMove(chess::Board &board, const MoveData &move, std::size_t move_number,
-                 bool illegal) noexcept;
+    void addMove(std::vector<std::string> &moves, chess::Board &board, const MoveData &move,
+                 std::size_t move_number, bool illegal) noexcept;
 
     /// @brief Adds a comment to the pgn. The comment is formatted as {first, args}
     /// @tparam First
@@ -74,14 +74,9 @@ class PgnBuilder {
     [[nodiscard]] static std::string convertMatchTermination(const MatchTermination &res) noexcept;
 
     MatchData match_;
-
-    std::stringstream pgn_;
-
     options::Tournament game_options_;
 
-    /// @brief The moves of the game, a move is not only the move itself but also includes
-    /// the comment
-    std::vector<std::string> moves_;
+    std::stringstream pgn_;
 };
 
 }  // namespace fast_chess

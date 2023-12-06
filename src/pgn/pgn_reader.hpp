@@ -23,14 +23,14 @@ class PgnReader {
 
     /// @brief
     /// @return
-    [[nodiscard]] std::vector<Opening> getPgns() const;
+    [[nodiscard]] std::vector<Opening> getOpenings();
 
    private:
-    /// @brief Extracts all pgns from the file and stores them in pgns_
-    void analyseFile();
+    /// @brief Extracts all pgns from the file
+    /// @return
+    std::vector<Opening> analyseFile();
 
     std::ifstream pgn_file_;
-    std::vector<Opening> pgns_;
 };
 
 }  // namespace fast_chess

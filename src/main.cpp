@@ -10,7 +10,7 @@ int main(int argc, char const *argv[]) {
     setCtrlCHandler();
 
     Logger::log<Logger::Level::TRACE>("Reading options...");
-    auto options = cmd::OptionsParser(argc, argv);
+    auto options = cli::OptionsParser(argc, argv);
 
     {
         Logger::log<Logger::Level::TRACE>("Creating tournament...");

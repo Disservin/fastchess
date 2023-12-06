@@ -17,7 +17,7 @@
 #include <types/tournament_options.hpp>
 #include <util/logger.hpp>
 
-namespace fast_chess::cmd {
+namespace fast_chess::cli {
 
 /// @brief Holds the data of the OptionParser
 struct ArgumentData {
@@ -170,4 +170,4 @@ class OptionsParser {
     std::map<std::string, parseFunc> options_;
 };
 
-}  // namespace fast_chess::cmd
+}  // namespace fast_chess::cli

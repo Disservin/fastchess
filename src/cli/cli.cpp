@@ -6,7 +6,7 @@
 #include <matchmaking/result.hpp>
 #include <util/logger.hpp>
 
-namespace fast_chess::cmd {
+namespace fast_chess::cli {
 using json = nlohmann::json;
 
 /// @brief Parse -name key=value key=value
@@ -518,4 +518,4 @@ OptionsParser::OptionsParser(int argc, char const *argv[]) {
     }
 }
 
-}  // namespace fast_chess::cmd
+}  // namespace fast_chess::cli

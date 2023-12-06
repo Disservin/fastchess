@@ -22,17 +22,15 @@ extern std::atomic_bool stop;
 
 class RoundRobin : public ITournament {
    public:
-    explicit RoundRobin(const options::Tournament &tournament_config);
+    explicit RoundRobin(const options::Tournament &tournament_config,
+                        const std::vector<EngineConfiguration> &engine_configs);
 
     /// @brief starts the round robin
-    /// @param engine_configs
-    void start(const std::vector<EngineConfiguration> &engine_configs) override;
+    void start() override;
 
    private:
     /// @brief creates the matches
-    /// @param engine_configs
-    /// @param results
-    void create(const std::vector<EngineConfiguration> &engine_configs) override;
+    void create() override;
 
     /// @brief update the current running sprt. SPRT Config has to be valid.
     /// @param engine_configs

@@ -10,6 +10,7 @@
 #include <matchmaking/opening_book.h>
 #include <util/threadpool.hpp>
 #include <util/file_writer.hpp>
+#include <util/logger.hpp>
 
 namespace fast_chess {
 class ITournament {
@@ -33,16 +34,34 @@ class ITournament {
     virtual ~ITournament() = default;
 
     virtual void start(const std::vector<EngineConfiguration> &engine_configs) {
+        Logger::log<Logger::Level::TRACE>("Starting...");
+
         cores_ = std::make_unique<affinity::AffinityManager>(tournament_options_.affinity,
                                                              getMaxAffinity(engine_configs));
+
+        create(engine_configs);
     }
 
-    virtual void stop() = 0;
+    /// @brief forces the tournament to stop
+    virtual void stop() {
+        Logger::log<Logger::Level::TRACE>("Stopped!");
+        atomic::stop = true;
+        pool_.kill();
+    }
 
-    virtual void setResults(const stats_map &results) noexcept                     = 0;
-    virtual void setGameConfig(const cmd::TournamentOptions &game_config) noexcept = 0;
+    [[nodiscard]] stats_map getResults() noexcept { return result_.getResults(); }
+    void setResults(const stats_map &results) noexcept { result_.setResults(results); }
+
+    void setGameConfig(const cmd::TournamentOptions &game_config) noexcept {
+        tournament_options_ = game_config;
+    }
 
    protected:
+    /// @brief creates the matches
+    /// @param engine_configs
+    /// @param results
+    virtual void create(const std::vector<EngineConfiguration> &engine_configs) = 0;
+
     std::unique_ptr<IOutput> output_;
 
     cmd::TournamentOptions tournament_options_;

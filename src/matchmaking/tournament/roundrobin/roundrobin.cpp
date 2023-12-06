@@ -17,11 +17,7 @@ RoundRobin::RoundRobin(const cmd::TournamentOptions& game_config) : ITournament(
 }
 
 void RoundRobin::start(const std::vector<EngineConfiguration>& engine_configs) {
-    Logger::log<Logger::Level::TRACE>("Starting round robin tournament...");
-
     ITournament::start(engine_configs);
-
-    create(engine_configs);
 
     // Wait for games to finish
     while (match_count_ < total_ && !atomic::stop) {

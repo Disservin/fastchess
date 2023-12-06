@@ -29,25 +29,11 @@ class RoundRobin : public ITournament {
     /// @param engine_configs
     void start(const std::vector<EngineConfiguration> &engine_configs) override;
 
-    /// @brief forces the round robin to stop
-    void stop() override {
-        atomic::stop = true;
-        Logger::log<Logger::Level::TRACE>("Stopped round robin!");
-        pool_.kill();
-    }
-
-    [[nodiscard]] stats_map getResults() noexcept { return result_.getResults(); }
-    void setResults(const stats_map &results) noexcept override { result_.setResults(results); }
-
-    void setGameConfig(const cmd::TournamentOptions &game_config) noexcept override {
-        tournament_options_ = game_config;
-    }
-
    private:
     /// @brief creates the matches
     /// @param engine_configs
     /// @param results
-    void create(const std::vector<EngineConfiguration> &engine_configs);
+    void create(const std::vector<EngineConfiguration> &engine_configs) override;
 
     /// @brief update the current running sprt. SPRT Config has to be valid.
     /// @param engine_configs

@@ -108,41 +108,4 @@ void RoundRobin::updateSprtStatus(const std::vector<EngineConfiguration>& engine
     }
 }
 
-void RoundRobin::playGame(const std::pair<EngineConfiguration, EngineConfiguration>& configs,
-                          start_callback start, finished_callback finish, const Opening& opening,
-                          std::size_t game_id) {
-    const auto core = ScopeGuard(cores_->consume());
-
-    auto engine_one = ScopeGuard(engine_cache_.getEntry(configs.first.name, configs.first));
-    auto engine_two = ScopeGuard(engine_cache_.getEntry(configs.second.name, configs.second));
-
-    start();
-
-    auto match = Match(tournament_options_, opening);
-
-    try {
-        match.start(engine_one.get().get(), engine_two.get().get(), core.get().cpus);
-
-        while (match.get().needs_restart) {
-            match.start(engine_one.get().get(), engine_two.get().get(), core.get().cpus);
-        }
-
-    } catch (const std::exception& e) {
-        Logger::log<Logger::Level::ERR>("Exception RoundRobin::playGame: " + std::string(e.what()));
-
-        return;
-    }
-
-    if (atomic::stop) return;
-
-    const auto match_data = match.get();
-
-    // If the game was stopped, don't write the PGN
-    if (match_data.termination != MatchTermination::INTERRUPT) {
-        file_writer_.write(PgnBuilder(match_data, tournament_options_, game_id).get());
-    }
-
-    finish({match_data}, match_data.reason);
-}
-
 }  // namespace fast_chess

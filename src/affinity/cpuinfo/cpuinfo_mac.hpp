@@ -15,7 +15,7 @@ namespace affinity {
 inline CpuInfo getCpuInfo() noexcept {
     CpuInfo cpu_info;
 
-    for (std::size_t i = 0; i < std::thread::hardware_concurrency(); ++i) {
+    for (int i = 0; i < static_cast<int>(std::thread::hardware_concurrency()); ++i) {
         CpuInfo::PhysicalCpu::Core core = {i, {i}};
 
         cpu_info.physical_cpus[0].cores[i] = core;

@@ -40,8 +40,8 @@ class PgnBuilder {
     template <typename T>
     void addHeader(std::string_view name, const T &value) noexcept;
 
-    void addMove(std::vector<std::string> &moves, chess::Board &board, const MoveData &move,
-                 std::size_t move_number, bool illegal) noexcept;
+    std::string addMove(chess::Board &board, const MoveData &move, std::size_t move_number,
+                        bool illegal) noexcept;
 
     /// @brief Adds a comment to the pgn. The comment is formatted as {first, args}
     /// @tparam First

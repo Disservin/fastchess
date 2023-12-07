@@ -90,7 +90,8 @@ class Match {
     /// @brief append the move data to the match data
     /// @param player
     /// @param measured_time_ms
-    void addMoveData(const Player& player, int64_t measured_time_ms);
+    /// @param legal
+    void addMoveData(const Player& player, int64_t measured_time_ms, bool legal);
 
     /// @brief returns false if the next move could not be played
     /// @param us

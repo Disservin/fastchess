@@ -20,8 +20,9 @@ using clock      = chrono::high_resolution_clock;
 
 using namespace chess;
 
-void Match::addMoveData(const Player& player, int64_t measured_time_ms) {
-    MoveData move_data = MoveData(player.engine.bestmove(), "0.00", measured_time_ms, 0, 0, 0, 0);
+void Match::addMoveData(const Player& player, int64_t measured_time_ms, bool legal) {
+    MoveData move_data =
+        MoveData(player.engine.bestmove(), "0.00", measured_time_ms, 0, 0, 0, 0, legal);
 
     if (player.engine.output().size() <= 1) {
         data_.moves.push_back(move_data);
@@ -193,12 +194,13 @@ bool Match::playMove(Player& us, Player& opponent) {
     draw_tracker_.update(us.engine.lastScore(), data_.moves.size(), us.engine.lastScoreType());
     resign_tracker_.update(us.engine.lastScore(), us.engine.lastScoreType());
 
-    addMoveData(us, elapsed_millis);
-
     const auto best_move = us.engine.bestmove();
     const auto move      = uci::uciToMove(board_, best_move);
+    const auto legal     = isLegal(move);
 
-    if (!isLegal(move)) {
+    addMoveData(us, elapsed_millis, legal);
+
+    if (!legal) {
         setLose(us, opponent);
 
         data_.termination = MatchTermination::ILLEGAL_MOVE;

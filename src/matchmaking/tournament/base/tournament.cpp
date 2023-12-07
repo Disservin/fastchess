@@ -17,16 +17,15 @@
 namespace fast_chess {
 
 BaseTournament::BaseTournament(const options::Tournament &config,
-                               const std::vector<EngineConfiguration> &engine_configs)
-    : output_(getNewOutput(config.output)),
-      tournament_options_(config),
-      engine_configs_(engine_configs),
-      book_(config.opening) {
-    auto filename = (config.pgn.file.empty() ? "fast-chess" : config.pgn.file);
+                               const std::vector<EngineConfiguration> &engine_configs) {
+    output_             = getNewOutput(config.output);
+    cores_              = std::make_unique<affinity::AffinityManager>(tournament_options_.affinity,
+                                                         getMaxAffinity(engine_configs_));
+    tournament_options_ = config;
+    engine_configs_     = engine_configs;
+    book_               = OpeningBook(config.opening);
 
-    if (config.output == OutputType::FASTCHESS) {
-        filename += ".pgn";
-    }
+    const auto filename = (config.pgn.file.empty() ? "fast-chess.pgn" : config.pgn.file);
 
     file_writer_.open(filename);
 
@@ -35,9 +34,6 @@ BaseTournament::BaseTournament(const options::Tournament &config,
 
 void BaseTournament::start() {
     Logger::log<Logger::Level::TRACE>("Starting...");
-
-    cores_ = std::make_unique<affinity::AffinityManager>(tournament_options_.affinity,
-                                                         getMaxAffinity(engine_configs_));
 
     create();
 }
@@ -87,11 +83,6 @@ void BaseTournament::playGame(const std::pair<EngineConfiguration, EngineConfigu
 
 int BaseTournament::getMaxAffinity(const std::vector<EngineConfiguration> &configs) const noexcept {
     constexpr auto transform = [](const auto &val) { return std::stoi(val); };
-
-    // const auto first_threads  = configs.first.getOption<int>("Threads",
-    // transform).value_or(1); const auto second_threads =
-    // configs.second.getOption<int>("Threads", transform).value_or(1);
-
     const auto first_threads = configs[0].getOption<int>("Threads", transform).value_or(1);
 
     for (const auto &config : configs) {

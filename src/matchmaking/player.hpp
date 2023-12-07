@@ -17,12 +17,14 @@ class Player {
     /// This has nothing to do with the time control itself.
     /// @return time in ms
     [[nodiscard]] std::chrono::milliseconds getTimeoutThreshold() const {
-        if (engine.getConfig().limit.nodes != 0 || engine.getConfig().limit.plies != 0 ||
-            time_control_.fixed_time != 0) {
-            return std::chrono::milliseconds(0);  // no timeout
-        } else {
-            return std::chrono::milliseconds(time_control_.time + 100) /* margin*/;
+        if (engine.getConfig().limit.nodes != 0     //
+            || engine.getConfig().limit.plies != 0  //
+            || time_control_.fixed_time != 0) {
+            // no timeout
+            return std::chrono::milliseconds(0);
         }
+
+        return std::chrono::milliseconds(time_control_.time + 100) /* margin*/;
     }
 
     /// @brief remove the elapsed time from the participant's time

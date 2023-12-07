@@ -44,7 +44,7 @@ Download the latest release from our [release page](https://github.com/Disservin
 
 Here's an example of how to use fast-chess:
 
-```
+```bash
 fast-chess.exe -engine cmd=Engine1.exe name=Engine1 -engine cmd=Engine2.exe
 name=Engine2 -each tc=10+0.1 -rounds 200 -repeat -concurrency 4
 ```
@@ -72,40 +72,26 @@ fast-chess supports many other command-line options:
   be used to conveniently load engine configurations or/and to resume from a
   previous stop. In case you want to discard the saved game results you can
   specify `discard`. Note that this must be specified after and only after file.
-  <br/>
 - `-concurrency N`
-  <br/>
+
 - `-draw movenumber=NUMBER movecount=COUNT score=SCORE`
   - `NUMBER` - number of moves to make before checking for a draw
   - `COUNT` - number of moves to be below the score threshold to adjudicate a
       draw
   - `SCORE` - score threshold
-      <br/>
-
 - `-engine OPTIONS`
-
   - `OPTIONS` - apply [OPTIONS](#options) to the next engine.
-      <br/>
-
 - `-each OPTIONS`
-
   - `OPTIONS` - apply [OPTIONS](#options) to both engines.
-      <br/>
-
 - `-site SITE`
-  <br/>
 - `-event NAME`
-  <br/>
 - `-games N`
-
   - `N` - number of games to play
       This should be set to 1 or 2, each round will play n games with, setting this
       higher than 2 does not really make sense.
-
 - `-openings file=NAME format=FORMAT [order=ORDER] [plies=PLIES] [start=START]`
   If no opening book is specified, every game will start from the standard
   position.
-
   - `NAME` - name of the file containing the openings
   - `FORMAT` - format of the file
     - `epd` - EPD format
@@ -115,38 +101,20 @@ fast-chess supports many other command-line options:
     - `random` - random order
   - `PLIES` - number of plies to use
   - `START` - starting offset
-
-      <br/>
-
 - `-output format=FORMAT`
-
   - `FORMAT`
     - `cutechess` - Cute-Chess output format
     - `fastchess` - fast-chess output format
-          <br/>
-
 - `-resign movecount=COUNT score=SCORE`
-
   - `COUNT` - number of moves to make before resigning
   - `SCORE` - score threshold to resign at
-      <br/>
-
 - `-repeat`
   This has the same effect as -games 2 and is the default.
-  <br/>
 - `-rounds N`
-
   - `N` - number of rounds to play
-      <br/>
-
 - `-sprt elo0=ELO0 elo1=ELO1 alpha=ALPHA beta=BETA`
-  <br/>
 - `-srand SEED`
-
   - `SEED` - seed for the random number generator
-
-  <br/>
-
 - `-pgnout notation=NOTATION file=FILE [nodes=true] [seldepth=true] [nps=true]`
   - `NOTATION`
     - `san` - Standard Algebraic Notation
@@ -163,19 +131,18 @@ fast-chess supports many other command-line options:
     - `info`
     - `err`
     - `fatal`
-          <br/>
 - `-quick cmd=ENGINE1 cmd=ENGINE2 book=BOOK`  
   This is a shortcut for
 
-  ````
-  -engine cmd=ENGINE1 -engine cmd=ENGINE1 -engine cmd=ENGINE2 -each tc=10+0.1 -rounds 25000 -repeat -concurrency max - 2 -openings file=BOOK format=epd order=random -draw movecount=8 score=8 movenumber=30```
-  ````
+  ```bash
+  -engine cmd=ENGINE1 -engine cmd=ENGINE1 -engine cmd=ENGINE2 -each tc=10+0.1 -rounds 25000 -repeat \
+  -concurrency N -openings file=BOOK format=epd order=random -draw movecount=8 score=8 movenumber=30
+  ```
 
-  <br/>
+  N being the number of available threads - 2.
 
 - `-no-affinity`
   Disables thread affinity. This is useful if you want to run multiple instances of fast-chess in parallel.
-  <br/>
 
 ### Options
 

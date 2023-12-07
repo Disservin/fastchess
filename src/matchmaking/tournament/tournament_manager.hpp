@@ -36,7 +36,7 @@ class TournamentManager {
         Logger::log<Logger::Level::INFO>("Saved results.");
     }
 
-    void fixConfig();
+    options::Tournament fixConfig(options::Tournament config);
     void validateEngines() const;
 
     std::vector<EngineConfiguration> engine_configs_;

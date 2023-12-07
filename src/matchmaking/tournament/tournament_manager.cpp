@@ -8,9 +8,8 @@ TournamentManager::TournamentManager(const options::Tournament& tournament_confi
                                      const std::vector<EngineConfiguration>& engine_configs)
     : engine_configs_(engine_configs),
       tournament_options_(tournament_config),
-      round_robin_(tournament_config, engine_configs) {
+      round_robin_(fixConfig(tournament_options_), engine_configs_) {
     validateEngines();
-    fixConfig();
 
     // Set the seed for the random number generator
     random::mersenne_rand.seed(tournament_options_.seed);
@@ -22,36 +21,32 @@ void TournamentManager::start() {
     round_robin_.start();
 }
 
-void TournamentManager::fixConfig() {
-    if (tournament_options_.games > 2) {
+options::Tournament TournamentManager::fixConfig(options::Tournament config) {
+    if (config.games > 2) {
         // wrong config, lets try to fix it
-        std::swap(tournament_options_.games, tournament_options_.rounds);
+        std::swap(config.games, config.rounds);
 
-        if (tournament_options_.games > 2) {
+        if (config.games > 2) {
             throw std::runtime_error("Error: Exceeded -game limit! Must be less than 2");
         }
     }
 
     // fix wrong config
-    if (tournament_options_.report_penta && tournament_options_.output == OutputType::CUTECHESS)
-        tournament_options_.report_penta = false;
+    if (config.report_penta && config.output == OutputType::CUTECHESS) config.report_penta = false;
 
-    if (tournament_options_.opening.file.empty()) {
+    if (config.opening.file.empty()) {
         Logger::log<Logger::Level::WARN>(
             "Warning: No opening book specified! Consider using one, otherwise all games will be "
             "played from the starting position.");
     }
 
-    if (tournament_options_.opening.format != FormatType::EPD &&
-        tournament_options_.opening.format != FormatType::PGN) {
+    if (config.opening.format != FormatType::EPD && config.opening.format != FormatType::PGN) {
         Logger::log<Logger::Level::WARN>(
-            "Warning: Unknown opening format, " +
-                std::to_string(int(tournament_options_.opening.format)) + ".",
+            "Warning: Unknown opening format, " + std::to_string(int(config.opening.format)) + ".",
             "All games will be played from the starting position.");
     }
 
-    // update with fixed config
-    round_robin_.setGameConfig(tournament_options_);
+    return config;
 }
 
 void TournamentManager::validateEngines() const {

@@ -59,9 +59,9 @@ class BaseTournament {
     std::unique_ptr<affinity::AffinityManager> cores_;
     std::unique_ptr<FileWriter> file_writer_;
 
+    OpeningBook book_;
     options::Tournament tournament_options_;
     std::vector<EngineConfiguration> engine_configs_;
-    OpeningBook book_;
 
     CachePool<UciEngine, std::string> engine_cache_ = CachePool<UciEngine, std::string>();
     Result result_                                  = Result();

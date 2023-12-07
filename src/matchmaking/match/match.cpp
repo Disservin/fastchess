@@ -20,7 +20,7 @@ using clock      = chrono::high_resolution_clock;
 
 using namespace chess;
 
-void Match::addMoveData(const Participant& player, int64_t measured_time_ms) {
+void Match::addMoveData(const Player& player, int64_t measured_time_ms) {
     MoveData move_data = MoveData(player.engine.bestmove(), "0.00", measured_time_ms, 0, 0, 0, 0);
 
     if (player.engine.output().size() <= 1) {
@@ -82,8 +82,8 @@ void Match::prepare() {
 void Match::start(UciEngine& engine1, UciEngine& engine2, const std::vector<int>& cpus) {
     prepare();
 
-    Participant player_1 = Participant(engine1);
-    Participant player_2 = Participant(engine2);
+    Player player_1 = Player(engine1);
+    Player player_2 = Player(engine2);
 
     player_1.color = board_.sideToMove();
     player_2.color = ~board_.sideToMove();
@@ -130,7 +130,7 @@ void Match::start(UciEngine& engine1, UciEngine& engine2, const std::vector<int>
                        MatchData::PlayerInfo{engine2.getConfig(), player_2.result, player_2.color});
 }
 
-bool Match::playMove(Participant& us, Participant& opponent) {
+bool Match::playMove(Player& us, Player& opponent) {
     const auto gameover = board_.isGameOver();
     const auto name     = us.engine.getConfig().name;
 
@@ -162,7 +162,7 @@ bool Match::playMove(Participant& us, Participant& opponent) {
     std::transform(data_.moves.begin(), data_.moves.end(), std::back_inserter(uci_moves),
                    [](const MoveData& data) { return data.move; });
 
-    us.engine.writeEngine(Participant::buildPositionInput(uci_moves, start_position_));
+    us.engine.writeEngine(Player::buildPositionInput(uci_moves, start_position_));
     // write go command
     us.engine.writeEngine(us.buildGoInput(board_.sideToMove(), opponent.getTimeControl()));
 
@@ -221,7 +221,7 @@ bool Match::isLegal(Move move) const noexcept {
     return moves.find(move) > -1;
 }
 
-void Match::verifyPvLines(const Participant& us) {
+void Match::verifyPvLines(const Player& us) {
     const auto verifyPv = [&](const std::vector<std::string>& tokens, std::string_view info) {
         auto tmp = board_;
         auto it  = std::find(tokens.begin(), tokens.end(), "pv") + 1;
@@ -249,22 +249,22 @@ void Match::verifyPvLines(const Participant& us) {
     }
 }
 
-void Match::setDraw(Participant& us, Participant& them) noexcept {
+void Match::setDraw(Player& us, Player& them) noexcept {
     us.result   = GameResult::DRAW;
     them.result = GameResult::DRAW;
 }
 
-void Match::setWin(Participant& us, Participant& them) noexcept {
+void Match::setWin(Player& us, Player& them) noexcept {
     us.result   = GameResult::WIN;
     them.result = GameResult::LOSE;
 }
 
-void Match::setLose(Participant& us, Participant& them) noexcept {
+void Match::setLose(Player& us, Player& them) noexcept {
     us.result   = GameResult::LOSE;
     them.result = GameResult::WIN;
 }
 
-bool Match::adjudicate(Participant& us, Participant& them) noexcept {
+bool Match::adjudicate(Player& us, Player& them) noexcept {
     if (tournament_options_.draw.enabled && draw_tracker_.adjudicatable()) {
         setDraw(us, them);
 

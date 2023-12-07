@@ -6,9 +6,9 @@
 
 namespace fast_chess {
 
-class Participant {
+class Player {
    public:
-    explicit Participant(UciEngine &uci_enigne) : engine(uci_enigne) {
+    explicit Player(UciEngine &uci_enigne) : engine(uci_enigne) {
         // copy time control which will be updated later
         time_control_ = engine.getConfig().limit.tc;
     }

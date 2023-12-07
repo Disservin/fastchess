@@ -3,7 +3,7 @@
 #include <chess.hpp>
 
 #include <cli/cli.hpp>
-#include <matchmaking/participant.hpp>
+#include <matchmaking/player.hpp>
 #include <pgn/pgn_reader.hpp>
 #include <types/match_data.hpp>
 
@@ -78,31 +78,31 @@ class Match {
     [[nodiscard]] const MatchData& get() const { return data_; }
 
    private:
-    void verifyPvLines(const Participant& us);
+    void verifyPvLines(const Player& us);
 
     /// @brief Add opening moves to played moves
     void prepare();
 
-    static void setDraw(Participant& us, Participant& them) noexcept;
-    static void setWin(Participant& us, Participant& them) noexcept;
-    static void setLose(Participant& us, Participant& them) noexcept;
+    static void setDraw(Player& us, Player& them) noexcept;
+    static void setWin(Player& us, Player& them) noexcept;
+    static void setLose(Player& us, Player& them) noexcept;
 
     /// @brief append the move data to the match data
     /// @param player
     /// @param measured_time_ms
-    void addMoveData(const Participant& player, int64_t measured_time_ms);
+    void addMoveData(const Player& player, int64_t measured_time_ms);
 
     /// @brief returns false if the next move could not be played
     /// @param us
     /// @param opponent
     /// @return
-    [[nodiscard]] bool playMove(Participant& us, Participant& opponent);
+    [[nodiscard]] bool playMove(Player& us, Player& opponent);
 
     /// @brief returns true if adjudicated
     /// @param us
     /// @param them
     /// @return
-    [[nodiscard]] bool adjudicate(Participant& us, Participant& them) noexcept;
+    [[nodiscard]] bool adjudicate(Player& us, Player& them) noexcept;
 
     [[nodiscard]] static std::string convertChessReason(const std::string& engine_name,
                                                         chess::GameResultReason reason) noexcept;

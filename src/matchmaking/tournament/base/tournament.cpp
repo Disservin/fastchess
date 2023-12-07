@@ -18,18 +18,18 @@ namespace fast_chess {
 
 BaseTournament::BaseTournament(const options::Tournament &config,
                                const std::vector<EngineConfiguration> &engine_configs) {
-    output_             = getNewOutput(config.output);
-    cores_              = std::make_unique<affinity::AffinityManager>(tournament_options_.affinity,
-                                                         getMaxAffinity(engine_configs_));
     tournament_options_ = config;
     engine_configs_     = engine_configs;
+    output_             = getNewOutput(config.output);
     book_               = OpeningBook(config.opening);
+    cores_              = std::make_unique<affinity::AffinityManager>(config.affinity,
+                                                         getMaxAffinity(engine_configs));
 
     const auto filename = (config.pgn.file.empty() ? "fast-chess.pgn" : config.pgn.file);
 
     file_writer_.open(filename);
 
-    pool_.resize(tournament_options_.concurrency);
+    pool_.resize(config.concurrency);
 }
 
 void BaseTournament::start() {

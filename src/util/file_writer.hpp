@@ -9,7 +9,7 @@ namespace fast_chess {
 /// @brief Writes to a file in a thread safe manner.
 class FileWriter {
    public:
-    void open(const std::string &filename) { file_.open(filename, std::ios::app); }
+    FileWriter(const std::string &filename) { file_.open(filename, std::ios::app); }
 
     void write(const std::string &data) {
         std::lock_guard<std::mutex> lock(file_mutex_);

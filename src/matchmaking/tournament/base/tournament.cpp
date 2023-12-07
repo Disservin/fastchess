@@ -27,7 +27,7 @@ BaseTournament::BaseTournament(const options::Tournament &config,
 
     const auto filename = (config.pgn.file.empty() ? "fast-chess.pgn" : config.pgn.file);
 
-    file_writer_.open(filename);
+    file_writer_ = std::make_unique<FileWriter>(filename);
 
     pool_.resize(config.concurrency);
 }
@@ -75,7 +75,7 @@ void BaseTournament::playGame(const std::pair<EngineConfiguration, EngineConfigu
 
     // If the game was stopped, don't write the PGN
     if (match_data.termination != MatchTermination::INTERRUPT) {
-        file_writer_.write(PgnBuilder(match_data, tournament_options_, game_id).get());
+        file_writer_->write(PgnBuilder(match_data, tournament_options_, game_id).get());
     }
 
     finish({match_data}, match_data.reason);

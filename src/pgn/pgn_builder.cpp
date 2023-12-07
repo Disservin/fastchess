@@ -37,18 +37,18 @@ PgnBuilder::PgnBuilder(const MatchData &match, const options::Tournament &tourna
     addHeader("Termination", convertMatchTermination(match_.termination));
     addHeader("TimeControl", white_player.config.limit.tc);
 
-    chess::Board board      = chess::Board(match_.fen);
+    pgn_ << "\n";
+    // add body
+
+    // create the pgn lines and assert that the line length is below 80 characters
+    // otherwise move the move onto the next line
+    std::size_t line_length = 0;
     std::size_t move_number = 0;
+    chess::Board board      = chess::Board(match_.fen);
 
-    std::vector<std::string> moves;
-
-    while (move_number < match_.moves.size()) {
-        const auto illegal = match_.termination == MatchTermination::ILLEGAL_MOVE &&
-                             move_number == match_.moves.size() - 1;
-
-        const auto move = match_.moves[move_number];
-
-        addMove(moves, board, move, move_number + 1, illegal);
+    for (const auto &move : match_.moves) {
+        const auto illegal  = !move.legal;
+        const auto move_str = addMove(board, move, move_number + 1, illegal);
 
         if (illegal) {
             break;
@@ -57,21 +57,15 @@ PgnBuilder::PgnBuilder(const MatchData &match, const options::Tournament &tourna
         board.makeMove(chess::uci::uciToMove(board, move.move));
 
         move_number++;
-    }
 
-    pgn_ << "\n";
-
-    // create the pgn lines and assert that the line length is below 80 characters
-    // otherwise move the move onto the next line
-    std::size_t line_length = 0;
-    for (auto &pgn_move : moves) {
-        if (line_length + pgn_move.size() > LINE_LENGTH) {
+        if (line_length + move_str.size() > LINE_LENGTH) {
             pgn_ << "\n";
             line_length = 0;
         }
+
         // note: the move length might be larger than LINE_LENGTH
-        pgn_ << (line_length == 0 ? "" : " ") << pgn_move;
-        line_length += pgn_move.size();
+        pgn_ << (line_length == 0 ? "" : " ") << move_str;
+        line_length += move_str.size();
     }
 }
 
@@ -96,8 +90,8 @@ std::string PgnBuilder::moveNotation(chess::Board &board, const std::string &mov
     }
 }
 
-void PgnBuilder::addMove(std::vector<std::string> &moves, chess::Board &board, const MoveData &move,
-                         std::size_t move_number, bool illegal) noexcept {
+std::string PgnBuilder::addMove(chess::Board &board, const MoveData &move, std::size_t move_number,
+                                bool illegal) noexcept {
     std::stringstream ss;
 
     ss << (move_number % 2 == 1 ? std::to_string(move_number / 2 + 1) + ". " : "");
@@ -112,7 +106,7 @@ void PgnBuilder::addMove(std::vector<std::string> &moves, chess::Board &board, c
         match_.moves.size() == move_number ? match_.reason : ""                                //
     );
 
-    moves.emplace_back(ss.str());
+    return ss.str();
 }
 
 std::string PgnBuilder::getResultFromMatch(const MatchData &match) noexcept {

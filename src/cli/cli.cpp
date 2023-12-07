@@ -356,7 +356,7 @@ void parseReport(int &i, int argc, char const *argv[], ArgumentData &argument_da
 void parseOutput(int &i, int argc, char const *argv[], ArgumentData &argument_data) {
     parseDashOptions(i, argc, argv, [&](const std::string &key, const std::string &value) {
         if (key == "format") {
-            argument_data.tournament_options.output = getOutputType(value);
+            argument_data.tournament_options.output = OutputFactory::getType(value);
             if (value == "cutechess") argument_data.tournament_options.report_penta = false;
         } else {
             OptionsParser::throwMissing("output", key, value);

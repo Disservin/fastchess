@@ -20,7 +20,7 @@ BaseTournament::BaseTournament(const options::Tournament &config,
                                const std::vector<EngineConfiguration> &engine_configs) {
     tournament_options_ = config;
     engine_configs_     = engine_configs;
-    output_             = getNewOutput(config.output);
+    output_             = OutputFactory::create(config.output);
     book_               = OpeningBook(config.opening);
     cores_              = std::make_unique<affinity::AffinityManager>(config.affinity,
                                                          getMaxAffinity(engine_configs));

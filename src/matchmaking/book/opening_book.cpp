@@ -47,6 +47,14 @@ Opening OpeningBook::fetch() noexcept {
 
     const auto idx = start_ + opening_index++;
 
+    const auto book_size = std::holds_alternative<epd_book>(book_)
+                               ? std::get<epd_book>(book_).size()
+                               : std::get<pgn_book>(book_).size();
+
+    if (book_size == 0) {
+        return {chess::constants::STARTPOS, {}};
+    }
+
     if (std::holds_alternative<epd_book>(book_)) {
         return {std::get<epd_book>(book_)[idx % std::get<epd_book>(book_).size()], {}};
     } else if (std::holds_alternative<pgn_book>(book_)) {

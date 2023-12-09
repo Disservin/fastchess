@@ -49,123 +49,14 @@ fast-chess.exe -engine cmd=Engine1.exe name=Engine1 -engine cmd=Engine2.exe
 name=Engine2 -each tc=10+0.1 -rounds 200 -repeat -concurrency 4
 ```
 
-In this command, we've added two engines using `-engine`, specified their names
-and executables, and set common options like time control (10 seconds with
-0.1-second increment) and hash size using `-each`.
-
-We're running 200 rounds with each engine playing two games per round via
-`-rounds` and `-repeat`, respectively.
-
-Finally, we've set the concurrency to 4 threads with `-concurrency`.
-
 _Note that setting concurrency higher than your CPU core/thread
 count may not yield significant performance gains and could potentially have the
-opposite effect._
+opposite effect. Also it is highly encouraged to use an opening book._
+
 
 ## Command line options
 
-fast-chess supports many other command-line options:
-
-- `-config file=NAME [discard=true]`  
-  After a CTRL+C event or finishing all games the current config is
-  automatically saved. You can restart fast-chess using this argument. This can
-  be used to conveniently load engine configurations or/and to resume from a
-  previous stop. In case you want to discard the saved game results you can
-  specify `discard`. Note that this must be specified after and only after file.
-- `-concurrency N`
-
-- `-draw movenumber=NUMBER movecount=COUNT score=SCORE`
-  - `NUMBER` - number of moves to make before checking for a draw
-  - `COUNT` - number of moves to be below the score threshold to adjudicate a
-      draw
-  - `SCORE` - score threshold
-- `-engine OPTIONS`
-  - `OPTIONS` - apply [OPTIONS](#options) to the next engine.
-- `-each OPTIONS`
-  - `OPTIONS` - apply [OPTIONS](#options) to both engines.
-- `-site SITE`
-- `-event NAME`
-- `-games N`
-  - `N` - number of games to play
-      This should be set to 1 or 2, each round will play n games with, setting this
-      higher than 2 does not really make sense.
-- `-openings file=NAME format=FORMAT [order=ORDER] [plies=PLIES] [start=START]`
-  If no opening book is specified, every game will start from the standard
-  position.
-  - `NAME` - name of the file containing the openings
-  - `FORMAT` - format of the file
-    - `epd` - EPD format
-    - `pgn` - PGN format
-  - `ORDER` - order of the openings
-    - `sequential` - sequential order
-    - `random` - random order
-  - `PLIES` - number of plies to use
-  - `START` - starting offset
-- `-output format=FORMAT`
-  - `FORMAT`
-    - `cutechess` - Cute-Chess output format
-    - `fastchess` - fast-chess output format
-- `-resign movecount=COUNT score=SCORE`
-  - `COUNT` - number of moves to make before resigning
-  - `SCORE` - score threshold to resign at
-- `-repeat`
-  This has the same effect as -games 2 and is the default.
-- `-rounds N`
-  - `N` - number of rounds to play
-- `-sprt elo0=ELO0 elo1=ELO1 alpha=ALPHA beta=BETA`
-- `-srand SEED`
-  - `SEED` - seed for the random number generator
-- `-pgnout notation=NOTATION file=FILE [nodes=true] [seldepth=true] [nps=true]`
-  - `NOTATION`
-    - `san` - Standard Algebraic Notation
-    - `lan` - Long Algebraic Notation
-    - `uci` - Universal Chess Interface
-  - `FILE` - defaults to fast-chess.pgn
-  - `nodes` - defaults to `false`, track node count
-  - `seldepth` - defaults to `false`, track seldepth
-  - `nps` - defaults to `false`, track nps
-- `-log file=NAME level=LEVLE`
-  - `NAME` - name of the log file
-  - `LEVEL` - log level
-    - `warn`, default
-    - `info`
-    - `err`
-    - `fatal`
-- `-quick cmd=ENGINE1 cmd=ENGINE2 book=BOOK`  
-  This is a shortcut for
-
-  ```bash
-  -engine cmd=ENGINE1 -engine cmd=ENGINE1 -engine cmd=ENGINE2 -each tc=10+0.1 -rounds 25000 -repeat \
-  -concurrency N -openings file=BOOK format=epd order=random -draw movecount=8 score=8 movenumber=30
-  ```
-
-  N being the number of available threads - 2.
-
-- `-no-affinity`
-  Disables thread affinity. This is useful if you want to run multiple instances of fast-chess in parallel.
-
-### Options
-
-- `cmd=COMMAND`
-- `args="ARGS"`
-  If you want to pass multiple arguments, you can use `args="ARG1 ARG2 ARG3"`.
-  Please keep in mind that double quotes inside the string must be escaped.
-  i.e. `args="single words \"multiple words\""` -> your engine will receive
-
-  ```
-  single
-  words
-  multiple words
-  ```
-
-- `[name=NAME]`
-- `[tc=TC]`
-  TC uses the same format as Cute-Chess. For example 10+0.1 would be 10
-  seconds with 100 millisecond increments.
-- `[option.name=VALUE]`
-  This can be used to set engine options. Note that the engine must support
-  the option. For example, to set the hash size to 128MB, you can use
-  `option.Hash=128 option`. Note that the option name is case sensitive.
+See [man](man.md) for a detailed description of all command line options.
 
 ## Contributing
 

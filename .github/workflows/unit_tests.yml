@@ -53,6 +53,12 @@ jobs:
           make -j2 tests
           ./fast-chess-tests*
 
+      - name: Valgrind
+        if: runner.os == 'Linux'
+        run: |
+          make -j2 tests
+          valgrind --error-exitcode=1 --errors-for-leak-kinds=all --leak-check=full ./fast-chess-tests* -tse="*PERFT*"
+
       - name: Running fsanitize=address unit test
         if: runner.os != 'Windows'
         run: |
@@ -81,9 +87,4 @@ jobs:
           make -j2 tests san=asan CXX=clang++
           ./fast-chess-tests*
 
-      - name: Valgrind
-        if: runner.os == 'Linux'
-        run: |
-          make clean
-          make -j2 tests CXX=g++
-          valgrind --error-exitcode=1 --errors-for-leak-kinds=all --leak-check=full ./fast-chess-tests* -tse="*PERFT*"
+

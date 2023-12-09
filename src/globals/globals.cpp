@@ -24,6 +24,7 @@ ThreadVector<pid_t> process_list;
 /// @brief Make sure that all processes are stopped, and no zombie processes are left after the
 /// program exits.
 void stopProcesses() {
+    process_list.lock();
 #ifdef _WIN64
     for (const auto &pid : process_list) {
         TerminateProcess(pid, 1);
@@ -35,6 +36,7 @@ void stopProcesses() {
         kill(pid, SIGKILL);
     }
 #endif
+    process_list.unlock();
 }
 
 void consoleHandlerAction() { fast_chess::atomic::stop = true; }

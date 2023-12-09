@@ -41,15 +41,16 @@ class ThreadVector {
         vec_.erase(std::remove(vec_.begin(), vec_.end(), element), vec_.end());
     }
 
-    auto begin() noexcept {
-        std::lock_guard<std::mutex> lock(mutex_);
-        return vec_.begin();
-    }
+    /// @brief Not thread safe!
+    /// @return
+    auto begin() noexcept { return vec_.begin(); }
 
-    auto end() noexcept {
-        std::lock_guard<std::mutex> lock(mutex_);
-        return vec_.end();
-    }
+    /// @brief Not thread safe!
+    /// @return
+    auto end() noexcept { return vec_.end(); }
+
+    void lock() { mutex_.lock(); }
+    void unlock() { mutex_.unlock(); }
 
    private:
     std::mutex mutex_;

@@ -233,7 +233,7 @@ bool Match::isUciMove(const std::string& move) noexcept {
     };
 
     // assert that the move is in uci format, [abcdefgh][0-9][abcdefgh][0-9][nbrq]
-    if (move.size() == 4) {
+    if (move.size() >= 4) {
         is_uci = is_file(move[0]) && is_digit(move[1]) && is_file(move[2]) && is_digit(move[3]);
     }
 

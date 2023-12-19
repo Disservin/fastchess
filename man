@@ -108,6 +108,18 @@ OPTIONS
             [tc=TC] 
                 TC uses the same format as Cute-Chess. For example,
                 10+0.1 would be 10 seconds with 100 millisecond increments.
+            
+            [st=ST]
+                Movetime for the engine in seconds.
+            
+            [nodes=NODES]
+                Maximum number of nodes to search. If supported.
+            
+            [plies=PLIES]
+                Plies (depth) to search. If supported.
+            
+            [dir=DIR]
+                Working directory for the engine.
 
             [option.name=VALUE]
                 This can be used to set engine options. Note that the engine must support the option.

@@ -27,6 +27,9 @@ OPTIONS
         -games N
             Play N games in each round. This should be set to 1 or 2; each round will play N games.
             Setting this higher than 2 does not provide meaningful results.
+        
+        -repeat
+            Sets the number of games to 2. This is equivalent to -games 2.
 
         -each OPTIONS
             Apply specified OPTIONS to both engines.

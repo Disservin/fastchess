@@ -56,7 +56,7 @@ opposite effect. Also it is highly encouraged to use an opening book._
 
 ## Command line options
 
-See [man](man.md) for a detailed description of all command line options.
+See [man](man) for a detailed description of all command line options.
 
 ## Contributing
 

@@ -67,6 +67,9 @@ PgnBuilder::PgnBuilder(const MatchData &match, const options::Tournament &tourna
         pgn_ << (line_length == 0 ? "" : " ") << move_str;
         line_length += move_str.size();
     }
+
+    // 8.2.6: Game Termination Markers
+    pgn_ << " " << getResultFromMatch(match_);
 }
 
 template <typename T>

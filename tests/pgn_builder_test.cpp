@@ -33,7 +33,7 @@ TEST_SUITE("PGN Builder Tests") {
             "\"engine1\"]\n[Black \"engine2\"]\n[Result \"1-0\"]\n[FEN "
             "\"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1\"]\n[PlyCount "
             "\"4\"]\n[TimeControl \"0\"]\n\n1. e4 {+1.00/15, 1.321s} e5 {+1.23/15, 0.430s} 2. Nf3 "
-            "{+1.45/16, 0.310s}\nNf6 {+10.15/18, 1.821s, engine2 got checkmated}\n\n");
+            "{+1.45/16, 0.310s}\nNf6 {+10.15/18, 1.821s, engine2 got checkmated} 1-0\n\n");
     }
 
     TEST_CASE("PGN Creation Black Win") {
@@ -65,7 +65,7 @@ TEST_SUITE("PGN Builder Tests") {
             "\"engine1\"]\n[Black \"engine2\"]\n[Result \"0-1\"]\n[FEN "
             "\"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1\"]\n[PlyCount "
             "\"4\"]\n[TimeControl \"0\"]\n\n1. e4 {+1.00/15, 1.321s} e5 {+1.23/15, 0.430s} 2. Nf3 "
-            "{+1.45/16, 0.310s}\nNf6 {+10.15/18, 1.821s, engine1 got checkmated}\n\n");
+            "{+1.45/16, 0.310s}\nNf6 {+10.15/18, 1.821s, engine1 got checkmated} 0-1\n\n");
     }
 }
 }  // namespace fast_chess

@@ -78,6 +78,7 @@ class Match {
     [[nodiscard]] const MatchData& get() const { return data_; }
 
    private:
+    static bool isUciMove(const std::string& move) noexcept;
     void verifyPvLines(const Player& us);
 
     /// @brief Add opening moves to played moves

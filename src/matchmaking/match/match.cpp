@@ -223,14 +223,37 @@ bool Match::isLegal(Move move) const noexcept {
     return moves.find(move) > -1;
 }
 
+bool Match::isUciMove(const std::string& move) noexcept {
+    bool is_uci = false;
+
+    constexpr auto is_digit     = [](char c) { return c >= '0' && c <= '9'; };
+    constexpr auto is_file      = [](char c) { return c >= 'a' && c <= 'h'; };
+    constexpr auto is_promotion = [](char c) {
+        return c == 'n' || c == 'b' || c == 'r' || c == 'q';
+    };
+
+    // assert that the move is in uci format, [abcdefgh][0-9][abcdefgh][0-9][nbrq]
+    if (move.size() == 4) {
+        is_uci = is_file(move[0]) && is_digit(move[1]) && is_file(move[2]) && is_digit(move[3]);
+    }
+
+    if (move.size() == 5) {
+        is_uci = is_uci && is_promotion(move[4]);
+    }
+
+    return is_uci;
+}
+
 void Match::verifyPvLines(const Player& us) {
     const auto verifyPv = [&](const std::vector<std::string>& tokens, std::string_view info) {
-        auto tmp = board_;
-        auto it  = std::find(tokens.begin(), tokens.end(), "pv") + 1;
+        auto tmp      = board_;
+        auto it_start = std::find(tokens.begin(), tokens.end(), "pv") + 1;
+        auto it_end   = std::find_if(it_start, tokens.end(),
+                                     [](const auto& token) { return !isUciMove(token); });
 
         Movelist moves;
 
-        std::for_each(it, tokens.end(), [&](const auto& token) {
+        std::for_each(it_start, it_end, [&](const auto& token) {
             movegen::legalmoves(moves, tmp);
 
             if (moves.find(uci::uciToMove(tmp, token)) == -1) {

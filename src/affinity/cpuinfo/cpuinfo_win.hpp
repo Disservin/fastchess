@@ -54,7 +54,7 @@ inline CpuInfo getCpuInfo() noexcept(false) {
             ULONG_PTR mask = ptr->Processor.GroupMask[0].Mask;
 
             while (mask) {
-                const int processor = chess::builtin::poplsb(mask);
+                const int processor = chess::Bitboard(mask).pop();
                 // proper way to get this idx?
                 cpu_info.physical_cpus[physical_id].cores[idx].processors.emplace_back(processor);
             }

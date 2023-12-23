@@ -51,7 +51,7 @@ inline CpuInfo getCpuInfo() noexcept(false) {
         if (ptr->Relationship == RelationProcessorCore) {
             // If the PROCESSOR_RELATIONSHIP structure represents a processor core, the GroupCount
             // member is always 1.
-            chess::Bitboard mask = chess::Bitboard(ptr->Processor.GroupMask[0].Mask).pop();
+            chess::Bitboard mask = chess::Bitboard(ptr->Processor.GroupMask[0].Mask);
 
             while (mask) {
                 const int processor = mask.pop();

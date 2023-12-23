@@ -25,7 +25,7 @@ THIS FILE IS AUTO GENERATED DO NOT CHANGE MANUALLY.
 
 Source: https://github.com/Disservin/chess-library
 
-VERSION: 0.6.6
+VERSION: 0.6.7
 */
 
 #ifndef CHESS_HPP
@@ -3563,8 +3563,7 @@ class uci {
 
         // promotion
         if (piece == PieceType::PAWN && uci.length() == 5 && Square::back_rank(target, ~board.sideToMove())) {
-            std::string_view promotion = uci.substr(4, 1);
-            return Move::make<Move::PROMOTION>(source, target, PieceType(promotion));
+            return Move::make<Move::PROMOTION>(source, target, PieceType(uci.substr(4, 1)));
         }
 
         switch (uci.length()) {

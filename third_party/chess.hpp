@@ -25,7 +25,7 @@ THIS FILE IS AUTO GENERATED DO NOT CHANGE MANUALLY.
 
 Source: https://github.com/Disservin/chess-library
 
-VERSION: 0.6.4
+VERSION: 0.6.6
 */
 
 #ifndef CHESS_HPP
@@ -1575,16 +1575,16 @@ class Board {
 
    private:
     struct State {
-        CastlingRights castling;
         U64 hash;
+        CastlingRights castling;
         Square enpassant;
         uint8_t half_moves;
         Piece captured_piece;
 
         State(const U64 &hash, const CastlingRights &castling, const Square &enpassant, const uint8_t &half_moves,
               const Piece &captured_piece)
-            : castling(castling),
-              hash(hash),
+            : hash(hash),
+              castling(castling),
               enpassant(enpassant),
               half_moves(half_moves),
               captured_piece(captured_piece) {}

@@ -51,10 +51,10 @@ inline CpuInfo getCpuInfo() noexcept(false) {
         if (ptr->Relationship == RelationProcessorCore) {
             // If the PROCESSOR_RELATIONSHIP structure represents a processor core, the GroupCount
             // member is always 1.
-            ULONG_PTR mask = ptr->Processor.GroupMask[0].Mask;
+            chess::Bitboard mask = chess::Bitboard(ptr->Processor.GroupMask[0].Mask).pop();
 
             while (mask) {
-                const int processor = chess::Bitboard(mask).pop();
+                const int processor = mask.pop();
                 // proper way to get this idx?
                 cpu_info.physical_cpus[physical_id].cores[idx].processors.emplace_back(processor);
             }

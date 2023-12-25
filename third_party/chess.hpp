@@ -25,7 +25,7 @@ THIS FILE IS AUTO GENERATED DO NOT CHANGE MANUALLY.
 
 Source: https://github.com/Disservin/chess-library
 
-VERSION: 0.6.7
+VERSION: 0.6.8
 */
 
 #ifndef CHESS_HPP
@@ -36,7 +36,9 @@ VERSION: 0.6.7
 #include <functional>
 
 
+#if __cplusplus >= 202002L
 #include <bit>
+#endif
 #include <string>
 #include <bitset>
 #include <algorithm>

@@ -124,7 +124,3 @@ clean:
 	rm -rf $(BUILDDIR) $(TARGET) $(TARGET).exe
 
 -include $(DEPENDS)
-
-# Force rebuild of options.o for accurate versioning
-tmp/src/options.o: FORCE
-FORCE:

@@ -47,6 +47,8 @@ void BaseTournament::stop() {
 void BaseTournament::playGame(const std::pair<EngineConfiguration, EngineConfiguration> &configs,
                               start_callback start, finished_callback finish,
                               const Opening &opening, std::size_t game_id) {
+    if (atomic::stop) return;
+
     const auto core = ScopeGuard(cores_->consume());
 
     auto engine_one = ScopeGuard(engine_cache_.getEntry(configs.first.name, configs.first));

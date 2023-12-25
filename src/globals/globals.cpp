@@ -60,10 +60,7 @@ void setCtrlCHandler() {
 }
 
 #else
-void handler(int param) {
-    consoleHandlerAction();
-    std::exit(param);
-}
+void handler(int) { consoleHandlerAction(); }
 
 void setCtrlCHandler() { signal(SIGINT, handler); }
 #endif

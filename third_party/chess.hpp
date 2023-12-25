@@ -25,7 +25,7 @@ THIS FILE IS AUTO GENERATED DO NOT CHANGE MANUALLY.
 
 Source: https://github.com/Disservin/chess-library
 
-VERSION: 0.6.8
+VERSION: 0.6.9
 */
 
 #ifndef CHESS_HPP
@@ -587,8 +587,8 @@ inline std::ostream& operator<<(std::ostream& os, const Bitboard& bb) {
     return os;
 }
 
-inline constexpr Bitboard operator&(std::uint64_t lhs, const Bitboard& rhs) { return rhs & lhs; }
-inline constexpr Bitboard operator|(std::uint64_t lhs, const Bitboard& rhs) { return rhs | lhs; }
+constexpr Bitboard operator&(std::uint64_t lhs, const Bitboard& rhs) { return rhs & lhs; }
+constexpr Bitboard operator|(std::uint64_t lhs, const Bitboard& rhs) { return rhs | lhs; }
 }  // namespace chess
 
 namespace chess {
@@ -1144,8 +1144,8 @@ class Move {
     [[nodiscard]] constexpr std::uint16_t move() const noexcept { return move_; }
     [[nodiscard]] constexpr std::int16_t score() const noexcept { return score_; }
 
-    bool operator==(const Move &rhs) const noexcept { return move_ == rhs.move_; }
-    bool operator!=(const Move &rhs) const noexcept { return move_ != rhs.move_; }
+    constexpr bool operator==(const Move &rhs) const noexcept { return move_ == rhs.move_; }
+    constexpr bool operator!=(const Move &rhs) const noexcept { return move_ != rhs.move_; }
 
     static constexpr std::uint16_t NO_MOVE   = 0;
     static constexpr std::uint16_t NULL_MOVE = 65;

@@ -37,17 +37,16 @@ void UciEngine::sendSetoption(const std::string &name, const std::string &value)
 void UciEngine::start() {
     Logger::log<Logger::Level::TRACE>("Starting engine", config_.name);
     init((config_.dir == "." ? "" : config_.dir) + config_.cmd, config_.args, config_.name);
+    uci();
 }
 
 void UciEngine::refreshUci() {
-    uci();
-
-    if (!uciok() && !isResponsive(std::chrono::milliseconds(60000))) {
+    if (!ucinewgame() && !isResponsive(std::chrono::milliseconds(60000))) {
         // restart the engine
         restart();
         uci();
 
-        if (!uciok() && !isResponsive(std::chrono::milliseconds(60000))) {
+        if (!ucinewgame() && !isResponsive(std::chrono::milliseconds(60000))) {
             throw std::runtime_error("Warning; Something went wrong when pinging the engine.");
         }
     }

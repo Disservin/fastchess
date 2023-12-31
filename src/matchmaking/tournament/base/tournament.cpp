@@ -41,6 +41,7 @@ void BaseTournament::start() {
 void BaseTournament::stop() {
     Logger::log<Logger::Level::TRACE>("Stopped!");
     atomic::stop = true;
+    Logger::log<Logger::Level::TRACE>("Stopping threads...");
     pool_.kill();
 }
 
@@ -62,6 +63,7 @@ void BaseTournament::playGame(const std::pair<EngineConfiguration, EngineConfigu
         match.start(engine_one.get().get(), engine_two.get().get(), core.get().cpus);
 
         while (match.get().needs_restart) {
+            if (atomic::stop) return;
             match.start(engine_one.get().get(), engine_two.get().get(), core.get().cpus);
         }
 

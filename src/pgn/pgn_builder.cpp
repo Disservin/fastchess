@@ -28,7 +28,7 @@ PgnBuilder::PgnBuilder(const MatchData &match, const options::Tournament &tourna
     addHeader("White", white_player.config.name);
     addHeader("Black", black_player.config.name);
     addHeader("Date", match_.date);
-    addHeader("Result", getResultFromMatch(match_));
+    addHeader("Result", getResultFromMatch(white_player, black_player));
 
     if (match_.fen != chess::constants::STARTPOS ||
         match_.players.first.config.variant == VariantType::FRC) {
@@ -75,7 +75,7 @@ PgnBuilder::PgnBuilder(const MatchData &match, const options::Tournament &tourna
     }
 
     // 8.2.6: Game Termination Markers
-    pgn_ << " " << getResultFromMatch(match_);
+    pgn_ << " " << getResultFromMatch(white_player, black_player);
 }
 
 template <typename T>
@@ -118,10 +118,11 @@ std::string PgnBuilder::addMove(chess::Board &board, const MoveData &move, std::
     return ss.str();
 }
 
-std::string PgnBuilder::getResultFromMatch(const MatchData &match) noexcept {
-    if (match.players.first.result == chess::GameResult::WIN) {
+std::string PgnBuilder::getResultFromMatch(const MatchData::PlayerInfo &white,
+                                           const MatchData::PlayerInfo &black) noexcept {
+    if (white.result == chess::GameResult::WIN) {
         return "1-0";
-    } else if (match.players.second.result == chess::GameResult::WIN) {
+    } else if (black.result == chess::GameResult::WIN) {
         return "0-1";
     } else {
         return "1/2-1/2";

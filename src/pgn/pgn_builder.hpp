@@ -69,7 +69,8 @@ class PgnBuilder {
         return ss.str();
     }
 
-    [[nodiscard]] static std::string getResultFromMatch(const MatchData &match) noexcept;
+    [[nodiscard]] static std::string getResultFromMatch(
+        const MatchData::PlayerInfo &white, const MatchData::PlayerInfo &black) noexcept;
 
     [[nodiscard]] static std::string convertMatchTermination(const MatchTermination &res) noexcept;
 

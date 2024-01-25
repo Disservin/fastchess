@@ -29,6 +29,12 @@ PgnBuilder::PgnBuilder(const MatchData &match, const options::Tournament &tourna
     addHeader("Black", black_player.config.name);
     addHeader("Date", match_.date);
     addHeader("Result", getResultFromMatch(match_));
+
+    if (match_.fen != chess::constants::STARTPOS ||
+        match_.players.first.config.variant == VariantType::FRC) {
+        addHeader("SetUp", "1");
+    }
+
     addHeader("FEN", match_.fen);
     addHeader("GameDuration", match_.duration);
     addHeader("GameStartTime", match_.start_time);

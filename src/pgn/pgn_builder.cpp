@@ -48,19 +48,23 @@ PgnBuilder::PgnBuilder(const MatchData &match, const options::Tournament &tourna
 
     // create the pgn lines and assert that the line length is below 80 characters
     // otherwise move the move onto the next line
-    std::size_t line_length = 0;
-    std::size_t move_number = 0;
-    chess::Board board      = chess::Board(match_.fen);
 
-    for (const auto &move : match_.moves) {
-        const auto illegal  = !move.legal;
-        const auto move_str = addMove(board, move, move_number + 1, illegal);
+    chess::Board board      = chess::Board(match_.fen);
+    std::size_t move_number = int(board.sideToMove() == chess::Color::BLACK) + 1;
+    std::size_t line_length = 0;
+    bool first_move         = true;
+
+    for (auto it = match_.moves.begin(); it != match_.moves.end(); ++it) {
+        const auto illegal  = !it->legal;
+        const auto n_dots   = first_move && board.sideToMove() == chess::Color::BLACK ? 3 : 1;
+        const auto last     = std::next(it) == match_.moves.end();
+        const auto move_str = addMove(board, *it, move_number, n_dots, illegal, last);
 
         if (illegal) {
             break;
         }
 
-        board.makeMove(chess::uci::uciToMove(board, move.move));
+        board.makeMove(chess::uci::uciToMove(board, it->move));
 
         move_number++;
 
@@ -72,6 +76,8 @@ PgnBuilder::PgnBuilder(const MatchData &match, const options::Tournament &tourna
         // note: the move length might be larger than LINE_LENGTH
         pgn_ << (line_length == 0 ? "" : " ") << move_str;
         line_length += move_str.size();
+
+        first_move = false;
     }
 
     // 8.2.6: Game Termination Markers
@@ -100,10 +106,12 @@ std::string PgnBuilder::moveNotation(chess::Board &board, const std::string &mov
 }
 
 std::string PgnBuilder::addMove(chess::Board &board, const MoveData &move, std::size_t move_number,
-                                bool illegal) noexcept {
+                                int dots, bool illegal, bool last) noexcept {
     std::stringstream ss;
 
-    ss << (move_number % 2 == 1 ? std::to_string(move_number / 2 + 1) + ". " : "");
+    ss << (dots == 3 || move_number % 2 == 1
+               ? std::to_string((move_number + 1) / 2) + std::string(dots, '.') + ' '
+               : "");
     ss << (illegal ? move.move : moveNotation(board, move.move));
 
     ss << addComment(
@@ -112,7 +120,7 @@ std::string PgnBuilder::addMove(chess::Board &board, const MoveData &move, std::
         game_options_.pgn.track_nodes ? "n=" + std::to_string(move.nodes) : "",         //
         game_options_.pgn.track_seldepth ? "sd=" + std::to_string(move.seldepth) : "",  //
         game_options_.pgn.track_nps ? "nps=" + std::to_string(move.nps) : "",           //
-        match_.moves.size() == move_number ? match_.reason : ""                         //
+        last ? match_.reason : ""                                                       //
     );
 
     return ss.str();
@@ -124,8 +132,10 @@ std::string PgnBuilder::getResultFromMatch(const MatchData::PlayerInfo &white,
         return "1-0";
     } else if (black.result == chess::GameResult::WIN) {
         return "0-1";
-    } else {
+    } else if (white.result == chess::GameResult::DRAW) {
         return "1/2-1/2";
+    } else {
+        return "*";
     }
 }
 

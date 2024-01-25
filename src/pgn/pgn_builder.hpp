@@ -41,7 +41,7 @@ class PgnBuilder {
     void addHeader(std::string_view name, const T &value) noexcept;
 
     std::string addMove(chess::Board &board, const MoveData &move, std::size_t move_number,
-                        bool illegal) noexcept;
+                        int dots, bool illegal, bool last) noexcept;
 
     /// @brief Adds a comment to the pgn. The comment is formatted as {first, args}
     /// @tparam First

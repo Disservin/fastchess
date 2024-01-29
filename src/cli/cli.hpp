@@ -16,6 +16,7 @@
 #include <matchmaking/result.hpp>
 #include <types/engine_config.hpp>
 #include <types/tournament_options.hpp>
+#include <cli/man.hpp>
 
 namespace fast_chess::cli {
 
@@ -83,51 +84,7 @@ class OptionsParser {
     }
 
     static void printHelp() {
-        // clang-format off
-        std::cout << "Fast-Chess is a command-line tool designed for creating chess engine tournaments.\n"
-                  << "Homepage: https://github.com/Disservin/fast-chess\n\n";
-        std::cout << "Options:\n";
-
-        std::cout << "  -engine OPTIONS                        View the Readme for the usage of OPTIONS.\n"
-                  << "  -each OPTIONS                          OPTIONS to apply for both engines.\n"
-                  << "  -pgnout notation=NOTATION file=FILE    The played games will be exported into FILE with pgn format. NOTATION can\n"
-                  << "          nodes=true seldepth=true         be \"san\" (default), \"lan\" and \"uci\". Extra pgn comments can be turned off with\n"
-                  << "          nps=true                         nodes/seldepth/nps = false.\n"
-                  << "  -openings file=FILE format=FORMAT      Use openings from FILE with FORMAT=epd/pgn. \"pgn\" format is experimental.\n"
-                  << "            order=ORDER plies=PLIES        ORDER=random/sequential sets the order in which the openings will be played starting\n"
-                  << "            start=START                    with an offset of START.\n"
-                  << "  -sprt elo0=ELO0 elo1=ELO1              Starts a SPRT test between the engines with the given parameters.\n"
-                  << "        alpha=ALPHA beta=BETA                       \n"
-                  << "  -draw movenumber=NUMBER                After NUMBER of moves into a game both engine's evaluation is below SCORE for COUNT\n"
-                  << "        movecount=COUNT score=SCORE        consecutive moves the game is declared draw.\n"
-                  << "  -resign movecount=COUNT score=SCORE    If an engine's evaluation is over SCORE for COUNT moves, it resigns.\n"
-                  << "  -log file=NAME level=LEVEL             Debug information will be logged into NAME. LEVEL can be \"ALL\", \"trace\", \"warn\", \"info\", \"err\" or \"fatal\".\n"
-                  << "                                           The default LEVEL is \"warn\", it will log warnings, info, errors and fatal.\n"
-                  << "  -config file=NAME discard=true         Read fast-chess settings from a config json file. Discard prevents the current one from being\n"
-                  << "                                           overwritten.\n"
-                  << "  -report penta=PENTA                    PENTA should be a boolean value, to signal which report output should be used.\n"
-                  << "  -output format=FORMAT                  FORMAT can be \"cutechess\" or \"fastchess\" (default) change this if you have scripts\n"
-                  << "                                           that only parse cutechess like output. This is experimental as of now.\n"
-                  << "  -concurrency N                         Number of games to run simultaneously.\n"
-                  << "  -event VALUE                           Set the event header tag in the pgn.\n"
-                  << "  -site VALUE                            Set the site header tag in the pgn.\n"
-                  << "  -games                                 This should be set to 1 or 2, each round will play n games with,\n"
-                  << "                                           setting this higher than 2 does not really make sense.\n"
-                  << "  -rounds N                              Sets the number of rounds to be played to N.\n"
-                  << "  -ratinginterval N                      Print rating updates every N. When Penta reporting is activated this counts game pairs.\n"
-                  << "  -srand SEED                            Sets the random seed to SEED.\n"
-                  << "  -version                               Prints version and exits. Same as -v.\n"
-                  << "  -help                                  Prints this help and exit.\n"
-                  << "  -recover                               Don't crash when an engine plays an illegal move or crashes. Give a warning and countinue\n"
-                  << "                                           with the tournament.\n"
-                  << "  -repeat                                This has the same effect as -games 2 and is the default.\n"
-                  << "  -quick                                 This is a shortcut for\n"
-                  << "                                           -engine cmd=ENGINE1 -engine cmd=ENGINE2 -each tc=10+0.1 -rounds 25000 -repeat -concurrency max - 2\n"
-                  << "                                           -openings file=BOOK format=epd order=random -draw movecount=8 score=8 movenumber=30\n"
-                  << "  -variant VALUE                         VALUE is either `standard` (default) or `fischerandom`.\n"
-                  << "  -no-affinity                           Disables the affinity setting for the engines.\n"
-                  << std::flush;
-        // clang-format on
+        std::cout << std::string(man::man, man::man_len) << std::flush;
 
         std::exit(0);
     }

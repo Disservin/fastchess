@@ -14,7 +14,17 @@ DESCRIPTION
 OPTIONS
         The following options are available:
 
-        -config file=NAME [discard=true]
+        -quick cmd=ENGINE1 cmd=ENGINE2 book=BOOK
+            Shortcut for predefined game settings involving two engines, time controls,
+            rounds, and concurrency.
+
+        -event NAME
+            Set the event name for the PGN header.
+
+        -site NAME
+            Set the site name for the PGN header.
+
+        -config file=NAME [discard=(true|false)]
             Save or load engine configurations to resume games from previous sessions.
             Use 'discard=true' to discard saved game results.
 
@@ -27,12 +37,16 @@ OPTIONS
         -games N
             Play N games in each round. This should be set to 1 or 2; each round will play N games.
             Setting this higher than 2 does not provide meaningful results.
-        
+
+        -variant VARIANT
+            fischerandom - play Fischer Random Chess
+
         -repeat
             Sets the number of games to 2. This is equivalent to -games 2.
 
-        -each OPTIONS
-            Apply specified OPTIONS to both engines.
+        -recover
+            Recover from a crash. This will attempt to recover the engine after a crash, to continue with 
+            the tournament.
 
         -draw movenumber=NUMBER movecount=COUNT score=SCORE
             Set conditions for a draw based on the number of moves, move count, and score threshold.
@@ -47,10 +61,10 @@ OPTIONS
                 COUNT - the number of moves to make before resigning.
                 SCORE - the score threshold to resign at.
 
-        -openings file=NAME format=FORMAT [order=ORDER] [plies=PLIES] [start=START]
+        -openings file=NAME format=(epd|pgn) [order=ORDER] [plies=PLIES] [start=START]
             Specify an opening book file and its format for game starting positions.
 
-                FORMAT - the file format, either epd or pgn.
+                format - the file format, either epd or pgn.
                 ORDER  - the order of moves to be played, either random or sequential.
                 PLIES  - the number of plies to use.
                 START  - the starting offset.
@@ -58,10 +72,10 @@ OPTIONS
         -output format=FORMAT
             Choose the output format for game results (cutechess or fastchess).
 
-        -pgnout notation=NOTATION file=FILE [nodes=true] [seldepth=true] [nps=true]
+        -pgnout notation=(san|lan|uci) file=FILE [nodes=(true|false)] [seldepth=(true|false)] [nps=(true|false)]
             Export games in PGN format with specified notations and optional tracking of nodes, seldepth, and nps.
 
-                NOTATION
+                notation
                     san - Standard Algebraic Notation
                     lan - Long Algebraic Notation
                     uci - Universal Chess Interface
@@ -71,9 +85,8 @@ OPTIONS
                 seldepth - defaults to false, track seldepth.
                 nps - defaults to false, track nps.
 
-        -quick cmd=ENGINE1 cmd=ENGINE2 book=BOOK
-            Shortcut for predefined game settings involving two engines, time controls,
-            rounds, and concurrency.
+        -ratinginterval N
+            Set the rating interval for the rating report. For penta reports, this is reports per N game pair.
 
         -sprt elo0=ELO0 elo1=ELO1 alpha=ALPHA beta=BETA
             Set parameters for the Sequential Probability Ratio Test (SPRT).
@@ -82,10 +95,28 @@ OPTIONS
             Set the seed for the random number generator.
 
         -log file=NAME level=LEVEL
-            Specify a log file with a specific log level (warn, info, err, fatal).
+            Specify a log file with a specific log level.
+
+            LEVEL
+                trace
+                warn (default)
+                info 
+                err
+                fatal
 
         -no-affinity
             Disable thread affinity for running multiple instances of fast-chess in parallel.
+
+        -report penta=(true|false)
+
+        -version
+            Print the version number and exit.
+        
+        -help
+            Print a help message and exit.
+
+        -each OPTIONS
+            Apply specified OPTIONS to both engines.
 
         -engine OPTIONS
             Apply specified OPTIONS to the next engine.
@@ -117,6 +148,9 @@ OPTIONS
             
             [plies=PLIES]
                 Plies (depth) to search. If supported.
+            
+            [depth=DEPTH]
+                Depth to search. If supported. Does the same as plies.
             
             [dir=DIR]
                 Working directory for the engine.

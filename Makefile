@@ -103,6 +103,15 @@ endif
 
 all: $(TARGET)
 
+update_help: man
+	xxd -i man | sed 's/unsigned char/inline char/g' | sed 's/unsigned int/inline unsigned int/g' > temp.hpp
+	printf '/* Generate with make update_help*/\n#pragma once\n' > ./src/cli/man.hpp
+	echo 'namespace fast_chess::man {' >> ./src/cli/man.hpp
+	cat temp.hpp >> ./src/cli/man.hpp
+	echo '}' >> ./src/cli/man.hpp
+	rm temp.hpp
+	clang-format -i ./src/cli/man.hpp
+
 tests: $(TARGET)
 	$(CXX) $(CXXFLAGS) ./tests/mock/engine/dummy_engine.cpp -o ./tests/mock/engine/dummy_engine$(SUFFIX) $(LDFLAGS)
 

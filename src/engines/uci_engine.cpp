@@ -137,6 +137,12 @@ ScoreType UciEngine::lastScoreType() const {
     return score == "ERR" ? ScoreType::ERR : score == "cp" ? ScoreType::CP : ScoreType::MATE;
 }
 
+std::chrono::milliseconds UciEngine::lastTime() const {
+    const auto time = str_utils::findElement<int>(lastInfo(), "time").value_or(0);
+
+    return std::chrono::milliseconds(time);
+}
+
 int UciEngine::lastScore() const {
     const auto score = lastScoreType();
 

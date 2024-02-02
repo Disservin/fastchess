@@ -180,9 +180,18 @@ bool Match::playMove(Player& us, Player& opponent) {
         return false;
     }
 
+    // calculate latency
+    const auto ns = chrono::duration_cast<chrono::nanoseconds>(t1 - t0);
+    std::cout << "latency: "
+              << ns.count() -
+                     chrono::duration_cast<chrono::nanoseconds>(us.engine.lastTime()).count()
+              << " "
+              << chrono::duration_cast<chrono::milliseconds>(ns).count() -
+                     us.engine.lastTime().count()
+              << std::endl;
+
     // Time forfeit
-    const auto elapsed_millis = chrono::duration_cast<chrono::milliseconds>(t1 - t0).count();
-    if (!us.updateTime(elapsed_millis)) {
+    if (!us.updateTime(t1 - t0)) {
         setLose(us, opponent);
 
         data_.termination = MatchTermination::TIMEOUT;
@@ -196,9 +205,10 @@ bool Match::playMove(Player& us, Player& opponent) {
     draw_tracker_.update(us.engine.lastScore(), data_.moves.size(), us.engine.lastScoreType());
     resign_tracker_.update(us.engine.lastScore(), us.engine.lastScoreType());
 
-    const auto best_move = us.engine.bestmove();
-    const auto move      = uci::uciToMove(board_, best_move);
-    const auto legal     = isLegal(move);
+    const auto best_move      = us.engine.bestmove();
+    const auto move           = uci::uciToMove(board_, best_move);
+    const auto legal          = isLegal(move);
+    const auto elapsed_millis = chrono::duration_cast<chrono::milliseconds>(t1 - t0).count();
 
     addMoveData(us, elapsed_millis, legal);
 

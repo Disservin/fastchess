@@ -7,10 +7,28 @@
 namespace fast_chess {
 
 class Player {
+    struct PreciseTime {
+        std::chrono::nanoseconds time;
+        std::chrono::nanoseconds increment;
+        std::chrono::nanoseconds fixed_time;
+        int moves;
+
+        PreciseTime() = default;
+
+        PreciseTime(uint64_t time, uint64_t increment, uint64_t fixed_time, int moves)
+            : time(std::chrono::milliseconds(time)),
+              increment(std::chrono::milliseconds(increment)),
+              fixed_time(std::chrono::milliseconds(fixed_time)),
+              moves(moves) {}
+    };
+
    public:
     explicit Player(UciEngine &uci_enigne) : engine(uci_enigne) {
         // copy time control which will be updated later
-        time_control_ = engine.getConfig().limit.tc;
+        // time_control_ = engine.getConfig().limit.tc;
+        const auto config = engine.getConfig();
+        time_control_     = PreciseTime(config.limit.tc.time, config.limit.tc.increment,
+                                        config.limit.tc.fixed_time, config.limit.tc.moves);
     }
 
     /// @brief The timeout threshold for the read engine command.
@@ -19,25 +37,25 @@ class Player {
     [[nodiscard]] std::chrono::milliseconds getTimeoutThreshold() const {
         if (engine.getConfig().limit.nodes != 0     //
             || engine.getConfig().limit.plies != 0  //
-            || time_control_.fixed_time != 0) {
+            || time_control_.fixed_time.count() != 0) {
             // no timeout
             return std::chrono::milliseconds(0);
         }
 
-        return std::chrono::milliseconds(time_control_.time + 100) /* margin*/;
+        return std::chrono::milliseconds(time_control_.time.count() + 100) /* margin*/;
     }
 
     /// @brief remove the elapsed time from the participant's time
     /// @param elapsed_millis
     /// @return `false` when out of time
-    [[nodiscard]] bool updateTime(const int64_t elapsed_millis) {
+    [[nodiscard]] bool updateTime(std::chrono::nanoseconds used_time) {
         if (engine.getConfig().limit.tc.time == 0) {
             return true;
         }
 
-        time_control_.time -= elapsed_millis;
+        time_control_.time -= used_time;
 
-        if (time_control_.time < 0) {
+        if (time_control_.time.count() < 0) {
             return false;
         }
 
@@ -68,7 +86,7 @@ class Player {
     /// @param stm
     /// @param enemy_tc
     /// @return
-    [[nodiscard]] std::string buildGoInput(chess::Color stm, const TimeControl &enemy_tc) const {
+    [[nodiscard]] std::string buildGoInput(chess::Color stm, const PreciseTime &enemy_tc) const {
         std::stringstream input;
         input << "go";
 
@@ -79,16 +97,27 @@ class Player {
             input << " depth " << engine.getConfig().limit.plies;
 
         // We cannot use st and tc together
-        if (time_control_.fixed_time != 0) {
-            input << " movetime " << time_control_.fixed_time;
-        } else if (time_control_.time != 0 && enemy_tc.time != 0) {
+        if (time_control_.fixed_time.count() != 0) {
+            const auto mt =
+                std::chrono::duration_cast<std::chrono::milliseconds>(time_control_.fixed_time)
+                    .count();
+            input << " movetime " << mt;
+        } else if (time_control_.time.count() != 0 && enemy_tc.time.count() != 0) {
             auto white = stm == chess::Color::WHITE ? time_control_ : enemy_tc;
             auto black = stm == chess::Color::WHITE ? enemy_tc : time_control_;
 
-            input << " wtime " << white.time << " btime " << black.time;
+            input << " wtime "
+                  << std::chrono::duration_cast<std::chrono::milliseconds>(white.time).count()
+                  << " btime "
+                  << std::chrono::duration_cast<std::chrono::milliseconds>(black.time).count();
 
-            if (time_control_.increment != 0) {
-                input << " winc " << white.increment << " binc " << black.increment;
+            if (time_control_.increment.count() != 0) {
+                input << " winc "
+                      << std::chrono::duration_cast<std::chrono::milliseconds>(white.increment)
+                             .count()
+                      << " binc "
+                      << std::chrono::duration_cast<std::chrono::milliseconds>(black.increment)
+                             .count();
             }
 
             if (time_control_.moves != 0) {
@@ -99,7 +128,7 @@ class Player {
         return input.str();
     }
 
-    [[nodiscard]] const TimeControl &getTimeControl() const { return time_control_; }
+    [[nodiscard]] const PreciseTime &getTimeControl() const { return time_control_; }
 
     UciEngine &engine;
 
@@ -108,7 +137,7 @@ class Player {
 
    private:
     /// @brief updated time control after each move
-    TimeControl time_control_;
+    PreciseTime time_control_;
 };
 
 }  // namespace fast_chess

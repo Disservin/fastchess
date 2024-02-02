@@ -2,6 +2,7 @@
 
 #include <string>
 #include <vector>
+#include <chrono>
 
 #include <chess.hpp>
 
@@ -65,6 +66,8 @@ class UciEngine : Process {
     /// @brief Get the last score type from the last output. cp or mate.
     /// @return
     [[nodiscard]] ScoreType lastScoreType() const;
+
+    [[nodiscard]] std::chrono::milliseconds lastTime() const;
 
     /// @brief Get the last score from the last output. Becareful, mate scores are not converted. So
     /// the score might 1, while it's actually mate 1. Always check lastScoreType() first.

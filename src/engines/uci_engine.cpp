@@ -74,12 +74,26 @@ void UciEngine::refreshUci() {
 
 Process::Status UciEngine::readEngine(std::string_view last_word,
                                       std::chrono::milliseconds threshold) {
+    last_info_.clear();
+
     try {
         return readProcess(output_, last_word, threshold);
     } catch (const std::exception &e) {
         Logger::log<Logger::Level::ERR>("Raised Exception in readProcess\nWarning; Engine",
                                         config_.name, "disconnects");
         throw e;
+    }
+}
+
+void UciEngine::saveLastInfo() {
+    // iterate backwards over the output and save the first line
+    // that contains "info depth" and score
+    for (auto it = output_.rbegin(); it != output_.rend(); ++it) {
+        if (it->find("info depth") != std::string::npos &&
+            it->find(" score ") != std::string::npos) {
+            last_info_ = *it;
+            return;
+        }
     }
 }
 
@@ -107,12 +121,12 @@ std::string UciEngine::bestmove() const {
 }
 
 std::vector<std::string> UciEngine::lastInfo() const {
-    if (output_.size() < 2) {
+    if (last_info_.empty()) {
         Logger::log<Logger::Level::WARN>("Warning; Could not extract last uci info line.");
         return {};
     }
 
-    return str_utils::splitString(output_[output_.size() - 2], ' ');
+    return str_utils::splitString(last_info_, ' ');
 }
 
 ScoreType UciEngine::lastScoreType() const {

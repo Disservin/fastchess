@@ -46,6 +46,8 @@ class UciEngine : Process {
     Process::Status readEngine(std::string_view last_word,
                                std::chrono::milliseconds threshold = ping_time_);
 
+    void saveLastInfo();
+
     /// @brief Writes the input to the engine. May throw if the write fails.
     /// @param input
     void writeEngine(const std::string &input);
@@ -85,5 +87,7 @@ class UciEngine : Process {
     EngineConfiguration config_;
 
     std::vector<std::string> output_;
+
+    std::string last_info_;
 };
 }  // namespace fast_chess

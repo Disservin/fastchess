@@ -172,6 +172,8 @@ bool Match::playMove(Player& us, Player& opponent) {
     us.engine.readEngine("bestmove", us.getTimeoutThreshold());
     const auto t1 = clock::now();
 
+    us.engine.saveLastInfo();
+
     if (atomic::stop) {
         data_.termination = MatchTermination::INTERRUPT;
 

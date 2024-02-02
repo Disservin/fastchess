@@ -51,17 +51,17 @@ void RoundRobin::create() {
                                     const Stats& stats, const std::string& reason) {
                 output_->endGame(configs, stats, reason, game_id);
 
-                bool complete_pair = false;
+                bool report = true;
 
                 if (tournament_options_.report_penta) {
-                    complete_pair = result_.updatePairStats(configs, first.name, stats, round_id);
+                    report = result_.updatePairStats(configs, first.name, stats, round_id);
                 } else {
                     result_.updateStats(configs, stats);
                 }
 
                 // Only print the interval if the pair is complete or we are not tracking
                 // penta stats.
-                if (!tournament_options_.report_penta || complete_pair) {
+                if (report) {
                     const auto updated_stats = result_.getStats(first.name, second.name);
 
                     output_->printInterval(sprt_, updated_stats, first.name, second.name,

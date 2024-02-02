@@ -74,6 +74,8 @@ void UciEngine::refreshUci() {
 
 Process::Status UciEngine::readEngine(std::string_view last_word,
                                       std::chrono::milliseconds threshold) {
+    last_info_.clear();
+
     try {
         return readProcess(output_, last_word, threshold);
     } catch (const std::exception &e) {

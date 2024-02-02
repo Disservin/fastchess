@@ -31,8 +31,30 @@ void RoundRobin::create() {
              tournament_options_.rounds * tournament_options_.games;
 
     const auto create_match = [this](std::size_t i, std::size_t j, std::size_t round_id) {
+        // swap players if the opening is for black, to ensure that
+        // reporting the result is always white vs black
+        constexpr auto normalize_stm_configs = [](const pair_config& configs,
+                                                  const chess::Color stm) {
+            if (stm == chess::Color::BLACK) {
+                return std::pair{configs.second, configs.first};
+            }
+
+            return configs;
+        };
+
+        // swap stats if the opening is for black, to ensure that
+        // reporting the result is always white vs black
+        constexpr auto normalize_stats = [](const Stats& stats, const chess::Color stm) {
+            if (stm == chess::Color::BLACK) {
+                return ~stats;
+            }
+
+            return stats;
+        };
+
         // both players get the same opening
         const auto opening = book_.fetch();
+        const auto stm     = opening.stm;
         const auto first   = engine_configs_[i];
         const auto second  = engine_configs_[j];
 
@@ -42,14 +64,17 @@ void RoundRobin::create() {
             const std::size_t game_id = round_id * tournament_options_.games + (g + 1);
 
             // callback functions, do not capture by reference
-            const auto start = [this, configs, game_id]() {
-                output_->startGame(configs, game_id, total_);
+            const auto start = [this, configs, game_id, stm]() {
+                output_->startGame(normalize_stm_configs(configs, stm), game_id, total_);
             };
 
             // callback functions, do not capture by reference
-            const auto finish = [this, configs, first, second, game_id, round_id](
+            const auto finish = [this, configs, first, second, game_id, round_id, stm](
                                     const Stats& stats, const std::string& reason) {
-                output_->endGame(configs, stats, reason, game_id);
+                const auto normalized_configs = normalize_stm_configs(configs, stm);
+                const auto normalized_stats   = normalize_stats(stats, stm);
+
+                output_->endGame(normalized_configs, normalized_stats, reason, game_id);
 
                 bool complete_pair = false;
 

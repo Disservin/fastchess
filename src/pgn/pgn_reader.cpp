@@ -42,7 +42,10 @@ class PGNVisitor : public chess::pgn::Visitor {
         board_.makeMove(move_i);
     }
 
-    void endPgn() { pgns_.push_back(pgn_); }
+    void endPgn() {
+        pgn_.stm = board_.sideToMove();
+        pgns_.push_back(pgn_);
+    }
 
    private:
     std::vector<Opening>& pgns_;

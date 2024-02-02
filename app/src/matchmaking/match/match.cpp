@@ -240,6 +240,12 @@ bool Match::playMove(Player& us, Player& them) {
     auto status = us.engine.readEngineLowLat("bestmove", us.getTimeoutThreshold());
     auto t1     = clock::now();
 
+    // calculate latency
+    const auto ns = chrono::duration_cast<chrono::nanoseconds>(t1 - t0);
+    std::cout << "latency: " << ns.count() - chrono::duration_cast<chrono::nanoseconds>(us.engine.lastTime()).count()
+              << " " << chrono::duration_cast<chrono::milliseconds>(ns).count() - us.engine.lastTime().count()
+              << std::endl;
+
     Logger::trace<true>("Engine {} is done thinking", name);
 
     if (!config::TournamentConfig.get().log.realtime) {

@@ -345,6 +345,7 @@ bool UciEngine::refreshUci() {
 }
 
 process::Status UciEngine::readEngine(std::string_view last_word, std::chrono::milliseconds threshold) {
+    last_info_.clear();
     setupReadEngine();
     return process_.readOutput(output_, last_word, threshold);
 }
@@ -414,6 +415,12 @@ ScoreType UciEngine::lastScoreType() const {
     if (score == "mate") return ScoreType::MATE;
 
     return ScoreType::ERR;
+}
+
+std::chrono::milliseconds UciEngine::lastTime() const {
+    const auto time = str_utils::findElement<int>(lastInfo(), "time").value_or(0);
+
+    return std::chrono::milliseconds(time);
 }
 
 int UciEngine::lastScore() const {

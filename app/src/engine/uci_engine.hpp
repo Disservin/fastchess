@@ -1,5 +1,6 @@
 #pragma once
 
+#include <chrono>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -89,6 +90,8 @@ class UciEngine {
     // Get the last score type from the last output. cp or mate.
     [[nodiscard]] ScoreType lastScoreType() const;
 
+    [[nodiscard]] std::chrono::milliseconds lastTime() const;
+
     // Get the last score from the last output. Becareful, mate scores are not converted. So
     // the score might 1, while it's actually mate 1. Always check lastScoreType() first.
     [[nodiscard]] int lastScore() const;
@@ -118,6 +121,8 @@ class UciEngine {
     EngineConfiguration config_;
 
     std::vector<process::Line> output_;
+
+    std::string last_info_;
 
     // init on first use
     bool initialized_ = false;

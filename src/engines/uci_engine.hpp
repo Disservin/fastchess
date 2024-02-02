@@ -46,6 +46,8 @@ class UciEngine : Process {
     Process::Status readEngine(std::string_view last_word,
                                std::chrono::milliseconds threshold = ping_time_);
 
+   [[nodiscard]] std::string lastInfoLine() const;
+
     /// @brief Writes the input to the engine. May throw if the write fails.
     /// @param input
     void writeEngine(const std::string &input);

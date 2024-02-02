@@ -164,7 +164,6 @@ class Process : public IProcess {
         fcntl(in_pipe_[0], F_SETFL, fcntl(in_pipe_[0], F_GETFL) | O_NONBLOCK);
 
         lines.clear();
-        lines.reserve(30);
 
         std::string currentLine;
         currentLine.reserve(300);

@@ -92,6 +92,8 @@ std::string UciEngine::lastInfoLine() const {
             return *it;
         }
     }
+
+    return {};
 }
 
 void UciEngine::writeEngine(const std::string &input) {

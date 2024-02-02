@@ -54,7 +54,8 @@ Opening OpeningBook::fetch() noexcept {
     }
 
     if (std::holds_alternative<epd_book>(book_)) {
-        return {std::get<epd_book>(book_)[idx % std::get<epd_book>(book_).size()], {}};
+        const auto fen = std::get<epd_book>(book_)[idx % std::get<epd_book>(book_).size()];
+        return {fen, {}, chess::Board(fen).sideToMove()};
     } else if (std::holds_alternative<pgn_book>(book_)) {
         return std::get<pgn_book>(book_)[idx % std::get<pgn_book>(book_).size()];
     }

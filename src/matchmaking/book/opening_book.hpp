@@ -18,14 +18,14 @@ class OpeningBook {
 
     /// @brief Fisher-Yates / Knuth shuffle
     void shuffle() noexcept {
-        std::visit(
-            [](auto& vec) {
-                for (std::size_t i = 0; i + 2 <= vec.size(); i++) {
-                    std::size_t j = i + (random::mersenne_rand() % (vec.size() - i));
-                    std::swap(vec[i], vec[j]);
-                }
-            },
-            book_);
+        constexpr auto shuffle = [](auto& vec) {
+            for (std::size_t i = 0; i + 2 <= vec.size(); i++) {
+                std::size_t j = i + (random::mersenne_rand() % (vec.size() - i));
+                std::swap(vec[i], vec[j]);
+            }
+        };
+
+        std::visit(shuffle, book_);
     }
 
     [[nodiscard]] Opening fetch() noexcept;

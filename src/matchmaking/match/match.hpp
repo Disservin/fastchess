@@ -26,7 +26,7 @@ class DrawTacker {
         }
     }
 
-    [[nodiscard]] bool adjudicatable() const noexcept { return draw_moves >= move_count_; }
+    [[nodiscard]] bool adjudicatable() const noexcept { return draw_moves >= move_count_ * 2; }
 
    private:
     /// @brief number of moves below the draw threshold
@@ -54,7 +54,7 @@ class ResignTracker {
         }
     }
 
-    [[nodiscard]] bool resignable() const noexcept { return resign_moves >= move_count_; }
+    [[nodiscard]] bool resignable() const noexcept { return resign_moves >= move_count_ * 2; }
 
    private:
     /// @brief number of moves above the resign threshold

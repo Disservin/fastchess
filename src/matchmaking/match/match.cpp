@@ -191,7 +191,7 @@ bool Match::playMove(Player& us, Player& opponent) {
         return false;
     }
 
-    draw_tracker_.update(us.engine.lastScore(), data_.moves.size(), us.engine.lastScoreType());
+    draw_tracker_.update(us.engine.lastScore(), data_.moves.size() / 2, us.engine.lastScoreType());
     resign_tracker_.update(us.engine.lastScore(), us.engine.lastScoreType());
 
     const auto best_move = us.engine.bestmove();

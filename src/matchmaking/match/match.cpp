@@ -220,7 +220,7 @@ bool Match::isLegal(Move move) const noexcept {
     Movelist moves;
     movegen::legalmoves(moves, board_);
 
-    return moves.find(move) > -1;
+    return std::find(moves.begin(), moves.end(), move) != moves.end();
 }
 
 bool Match::isUciMove(const std::string& move) noexcept {
@@ -256,7 +256,7 @@ void Match::verifyPvLines(const Player& us) {
         std::for_each(it_start, it_end, [&](const auto& token) {
             movegen::legalmoves(moves, tmp);
 
-            if (moves.find(uci::uciToMove(tmp, token)) == -1) {
+            if (std::find(moves.begin(), moves.end(), uci::uciToMove(tmp, token)) == moves.end()) {
                 Logger::log<Logger::Level::WARN>("Warning; Illegal pv move ", token, "pv:", info);
             }
 

@@ -25,7 +25,7 @@ THIS FILE IS AUTO GENERATED DO NOT CHANGE MANUALLY.
 
 Source: https://github.com/Disservin/chess-library
 
-VERSION: 0.6.32
+VERSION: 0.6.33
 */
 
 #ifndef CHESS_HPP
@@ -3642,7 +3642,7 @@ class StreamParser {
         this https://github.com/Disservin/chess-library/issues/68
         */
         stream_buffer.loop([this, &is_termination_symbol](char c) {
-            if (is_space(c) || is_digit(c)) {
+            if (c == ' ' || is_digit(c)) {
                 stream_buffer.advance();
                 return false;
             } else if (c == '-' || c == '*' || c == '/') {

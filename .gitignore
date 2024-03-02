@@ -57,10 +57,19 @@ random_mover
 # Mac
 .DS_Store
 
-# Misc
+# Config files
 *.json
+
+# Scripts
 *.bat
+
+# Chess related
 *.pgn
-tmp
+*.epd
 UHO*
+
+# Build
+tmp
+
+#
 log.txt

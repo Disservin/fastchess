@@ -25,7 +25,7 @@ THIS FILE IS AUTO GENERATED DO NOT CHANGE MANUALLY.
 
 Source: https://github.com/Disservin/chess-library
 
-VERSION: 0.6.33
+VERSION: 0.6.34
 */
 
 #ifndef CHESS_HPP
@@ -3949,9 +3949,15 @@ class uci {
         Square target   = Square(uci.substr(2, 2));
         PieceType piece = board.at(source).type();
 
+        // castling in chess960
+        if (board.chess960() && piece == PieceType::KING && board.at(target).type() == PieceType::ROOK &&
+            board.at(target).color() == board.sideToMove()) {
+            return Move::make<Move::CASTLING>(source, target);
+        }
+
         // convert to king captures rook
         // in chess960 the move should be sent as king captures rook already!
-        if (piece == PieceType::KING && Square::distance(target, source) == 2) {
+        if (!board.chess960() && piece == PieceType::KING && Square::distance(target, source) == 2) {
             target = Square(target > source ? File::FILE_H : File::FILE_A, source.rank());
             return Move::make<Move::CASTLING>(source, target);
         }

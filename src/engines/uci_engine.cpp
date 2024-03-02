@@ -87,8 +87,7 @@ std::string UciEngine::lastInfoLine() const {
     // iterate backwards over the output and save the first line
     // that contains "info depth" and score
     for (auto it = output_.rbegin(); it != output_.rend(); ++it) {
-        if (it->find("info depth") != std::string::npos &&
-            it->find(" score ") != std::string::npos) {
+        if (it->find("info") != std::string::npos && it->find(" score ") != std::string::npos) {
             return *it;
         }
     }

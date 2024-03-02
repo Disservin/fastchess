@@ -35,6 +35,10 @@ PgnBuilder::PgnBuilder(const MatchData &match, const options::Tournament &tourna
         addHeader("SetUp", "1");
     }
 
+    if (game_options_.variant == VariantType::FRC) {
+        addHeader("Variant", "Chess960");
+    }
+
     addHeader("FEN", match_.fen);
     addHeader("GameDuration", match_.duration);
     addHeader("GameStartTime", match_.start_time);
@@ -49,7 +53,10 @@ PgnBuilder::PgnBuilder(const MatchData &match, const options::Tournament &tourna
     // create the pgn lines and assert that the line length is below 80 characters
     // otherwise move the move onto the next line
 
-    chess::Board board      = chess::Board(match_.fen);
+    chess::Board board = chess::Board();
+    board.set960(game_options_.variant == VariantType::FRC);
+    board.setFen(match_.fen);
+
     std::size_t move_number = int(board.sideToMove() == chess::Color::BLACK) + 1;
     std::size_t line_length = 0;
     bool first_move         = true;

@@ -13,10 +13,10 @@
 #include <unordered_map>
 #include <vector>
 
+#include <cli/man.hpp>
 #include <matchmaking/result.hpp>
 #include <types/engine_config.hpp>
 #include <types/tournament_options.hpp>
-#include <cli/man.hpp>
 
 namespace fast_chess::cli {
 
@@ -64,7 +64,7 @@ class OptionsParser {
         std::string month, day, year;
         std::stringstream ss, date(__DATE__);  // {month} {date} {year}
 
-        ss << "fast-chess alpha-0.6.3-";
+        ss << "fast-chess alpha-0.7.0-";
 #ifdef GIT_DATE
         ss << GIT_DATE;
 #else

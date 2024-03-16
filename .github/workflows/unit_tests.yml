@@ -33,6 +33,8 @@ jobs:
           clang++ --version
           g++ --version
 
+          sudo sysctl -w vm.mmap_rnd_bits=28
+
       - name: Install windows make
         if: runner.os == 'Windows'
         uses: msys2/setup-msys2@v2

@@ -2,7 +2,7 @@ name: Upload Artifacts
 
 on:
   workflow_call:
-    
+
 jobs:
   Archive:
     name: ${{ matrix.config.name }}
@@ -85,6 +85,11 @@ jobs:
           path: |
             src
             tests
+            third_party
+            .clang-format
+            config.json
+            Makefile
+            man
             README.md
             LICENSE
             fast-chess-${{ matrix.config.os }}${{ matrix.config.ext }}

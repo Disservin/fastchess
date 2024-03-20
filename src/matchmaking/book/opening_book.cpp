@@ -3,6 +3,8 @@
 #include <fstream>
 #include <string>
 
+#include <util/safe_getline.hpp>
+
 namespace fast_chess {
 
 OpeningBook::OpeningBook(const options::Opening& opening) {
@@ -28,7 +30,7 @@ void OpeningBook::setup(const std::string& file, FormatType type) {
         std::string line;
         std::vector<std::string> epd;
 
-        while (std::getline(openingFile, line)) {
+        while (safeGetline(openingFile, line)) {
             epd.emplace_back(line);
         }
 

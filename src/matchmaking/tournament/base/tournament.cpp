@@ -25,9 +25,7 @@ BaseTournament::BaseTournament(const options::Tournament &config,
     cores_              = std::make_unique<affinity::AffinityManager>(config.affinity,
                                                          getMaxAffinity(engine_configs));
 
-    const auto filename = (config.pgn.file.empty() ? "fast-chess.pgn" : config.pgn.file);
-
-    file_writer_ = std::make_unique<FileWriter>(filename);
+    if (!config.pgn.file.empty()) file_writer_ = std::make_unique<FileWriter>(config.pgn.file);
 
     pool_.resize(config.concurrency);
 }
@@ -78,7 +76,8 @@ void BaseTournament::playGame(const std::pair<EngineConfiguration, EngineConfigu
     const auto match_data = match.get();
 
     // If the game was stopped, don't write the PGN
-    if (match_data.termination != MatchTermination::INTERRUPT) {
+    if (match_data.termination != MatchTermination::INTERRUPT &&
+        !tournament_options_.pgn.file.empty()) {
         file_writer_->write(PgnBuilder(match_data, tournament_options_, game_id).get());
     }
 

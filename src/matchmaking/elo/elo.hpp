@@ -23,6 +23,8 @@ class Elo {
 
     [[nodiscard]] static std::string getDrawRatio(int wins, int losses, int draws) noexcept;
 
+    [[nodiscard]] static std::string getScoreRatio(int wins, int losses, int draws) noexcept;
+
    private:
     double diff_;
     double error_;

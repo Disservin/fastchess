@@ -19,18 +19,20 @@ class Cutechess : public IOutput {
         const Elo elo(stats.wins, stats.losses, stats.draws);
 
         std::stringstream ss;
-        ss << "Score of "         //
-           << first               //
-           << " vs "              //
-           << second              //
-           << ": "                //
-           << stats.wins          //
-           << " - "               //
-           << stats.losses        //
-           << " - "               //
-           << stats.draws         //
-           << " [] "              //
-           << current_game_count  //
+        ss << "Score of "                                                //
+           << first                                                      //
+           << " vs "                                                     //
+           << second                                                     //
+           << ": "                                                       //
+           << stats.wins                                                 //
+           << " - "                                                      //
+           << stats.losses                                               //
+           << " - "                                                      //
+           << stats.draws                                                //
+           << " ["                                                       //
+           << Elo::getScoreRatio(stats.wins, stats.losses, stats.draws)  //
+           << "] "                                                       //
+           << current_game_count                                         //
            << "\n";
 
         ss << "Elo difference: "                                        //

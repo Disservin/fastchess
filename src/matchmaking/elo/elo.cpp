@@ -83,7 +83,7 @@ std::string Elo::getScoreRatio(int wins, int losses, int draws) noexcept {
     const auto scoreRatio = double(wins * 2 + draws) / (n * 2);
 
     std::stringstream ss;
-    ss << std::fixed << std::setprecision(2) << scoreRatio;
+    ss << std::fixed << std::setprecision(3) << scoreRatio;
     return ss.str();
 }
 

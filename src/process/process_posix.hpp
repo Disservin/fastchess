@@ -110,6 +110,7 @@ class Process : public IProcess {
         const pid_t r = waitpid(process_pid_, &status, WNOHANG);
 
         if (r == -1) {
+            fast_chess::Logger::log<fast_chess::Logger::Level::TRACE>("Error: waitpid() failed");
             throw std::runtime_error("Error: waitpid() failed");
         } else {
             return r == 0;
@@ -125,12 +126,22 @@ class Process : public IProcess {
             affinity::setAffinity(cpus, process_pid_);
 #endif
         }
+
+        fast_chess::Logger::log<fast_chess::Logger::Level::TRACE>(
+            "Finished setting affinity mask for process");
     }
 
     void killProcess() {
+        fast_chess::Logger::log<fast_chess::Logger::Level::TRACE>("Killing process", process_pid_);
+
         fast_chess::process_list.remove(process_pid_);
 
-        if (!is_initalized_) return;
+        if (!is_initalized_) {
+            fast_chess::Logger::log<fast_chess::Logger::Level::TRACE>(
+                "Killed process was not initialized", process_pid_);
+
+            return;
+        }
 
         close(in_pipe_[0]);
         close(in_pipe_[1]);
@@ -232,12 +243,17 @@ class Process : public IProcess {
         fast_chess::Logger::writeToEngine(input, log_name_);
 
         if (!alive()) {
+            fast_chess::Logger::log<fast_chess::Logger::Level::TRACE>(
+                "Process is not alive and write occured with message:", input);
+
             throw std::runtime_error("IProcess is not alive and write occured with message: " +
                                      input);
         }
 
         // Write the input and a newline to the output pipe
         if (write(out_pipe_[1], input.c_str(), input.size()) == -1) {
+            fast_chess::Logger::log<fast_chess::Logger::Level::TRACE>("Failed to write to pipe");
+
             throw std::runtime_error("Failed to write to pipe");
         }
     }

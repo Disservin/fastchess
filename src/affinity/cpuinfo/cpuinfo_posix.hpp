@@ -10,10 +10,13 @@
 #include <vector>
 
 #include <affinity/cpuinfo/cpu_info.hpp>
+#include <util/logger/logger.hpp>
 
 namespace affinity {
 
 inline CpuInfo getCpuInfo() {
+    fast_chess::Logger::log<Logger::Level::TRACE>("Fetching CPU info...");
+
     std::ifstream cpuinfo("/proc/cpuinfo");
 
     std::string line;
@@ -50,6 +53,8 @@ inline CpuInfo getCpuInfo() {
             physicalId  = -1;
         }
     }
+
+    fast_chess::Logger::log<Logger::Level::TRACE>("Finished fetching CPU info...");
 
     return cpu_info;
 }

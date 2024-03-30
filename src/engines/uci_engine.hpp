@@ -53,7 +53,9 @@ class UciEngine : Process {
     /// @param input
     void writeEngine(const std::string &input);
 
-    void setCpus(const std::vector<int> &cpus) { setAffinity(cpus); }
+    void setCpus(const std::vector<int> &cpus) {
+        setAffinity(cpus);
+    }
 
     /// @brief Get the bestmove from the last output.
     /// @return

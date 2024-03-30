@@ -1,5 +1,7 @@
 #pragma once
 
+#include <util/logger/logger.hpp>
+
 #ifdef _WIN64
 #include <windows.h>
 #elif defined(__APPLE__)
@@ -15,6 +17,9 @@ namespace affinity {
 #ifdef _WIN64
 
 inline bool setAffinity(const std::vector<int>& cpus, HANDLE process_handle) noexcept {
+    fast_chess::Logger::log<fast_chess::Logger::Level::TRACE>("Setting affinity mask for process",
+                                                              process_handle);
+
     DWORD_PTR affinity_mask = 0;
 
     for (const auto& cpu : cpus) {
@@ -42,6 +47,9 @@ inline void setAffinity(const std::vector<int>&) noexcept {
 #else
 
 inline bool setAffinity(const std::vector<int>& cpus, pid_t process_pid) noexcept {
+    fast_chess::Logger::log<fast_chess::Logger::Level::TRACE>("Setting affinity mask for process",
+                                                              process_pid);
+
     cpu_set_t mask;
     CPU_ZERO(&mask);
 

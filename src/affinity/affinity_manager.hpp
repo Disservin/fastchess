@@ -18,6 +18,7 @@
 
 #include <affinity/cpuinfo/cpu_info.hpp>
 #include <util/scope_guard.hpp>
+#include <util/logger/logger.hpp>
 
 namespace affinity {
 class AffinityManager {
@@ -53,6 +54,8 @@ class AffinityManager {
         }
 
         if (use_affinity_) {
+            fast_chess::Logger::log<fast_chess::Logger::Level::TRACE>("Using affinity");
+
             setupCores(getCpuInfo());
         }
     }
@@ -67,6 +70,8 @@ class AffinityManager {
         std::lock_guard<std::mutex> lock(core_mutex_);
 
         if (cores_[HT_1].empty() && cores_[HT_2].empty()) {
+            fast_chess::Logger::log<fast_chess::Logger::Level::TRACE>("No cores available");
+
             throw std::runtime_error("No cores available");
         }
 
@@ -75,11 +80,16 @@ class AffinityManager {
             for (auto& core : cores_[grp]) {
                 if (core.available_) {
                     core.available_ = false;
+                    fast_chess::Logger::log<fast_chess::Logger::Level::TRACE>(
+                        "Found available affinity core");
+
                     return core;
                 }
             }
         }
 
+        fast_chess::Logger::log<fast_chess::Logger::Level::TRACE>(
+            "No cores available, all are in use");
         throw std::runtime_error("No cores available");
     }
 
@@ -87,6 +97,8 @@ class AffinityManager {
     /// @brief Setup the cores for the affinity, later entries from the core pool will be just
     /// picked up.
     void setupCores(const CpuInfo& cpu_info) {
+        fast_chess::Logger::log<fast_chess::Logger::Level::TRACE>("Setup cores for affinity");
+
         std::lock_guard<std::mutex> lock(core_mutex_);
 
         /// @todo: fix logic for multiple threads and multiple concurrencies

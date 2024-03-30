@@ -89,11 +89,18 @@ void Match::start(UciEngine& engine1, UciEngine& engine2, const std::vector<int>
     player_1.color = board_.sideToMove();
     player_2.color = ~board_.sideToMove();
 
+    Logger::log<Logger::Level::TRACE>("Setting CPU affinity for match");
+
     player_1.engine.setCpus(cpus);
     player_2.engine.setCpus(cpus);
 
+    Logger::log<Logger::Level::TRACE>("Finished CPU affinity for match");
+    Logger::log<Logger::Level::TRACE>("UCI refreshing engines");
+
     player_1.engine.refreshUci();
     player_2.engine.refreshUci();
+
+    Logger::log<Logger::Level::TRACE>("Finished UCI refresh");
 
     const auto start = clock::now();
 

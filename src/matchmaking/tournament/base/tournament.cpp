@@ -48,7 +48,9 @@ void BaseTournament::playGame(const std::pair<EngineConfiguration, EngineConfigu
                               const Opening &opening, std::size_t game_id) {
     if (atomic::stop) return;
 
+    Logger::log<Logger::Level::TRACE>("Fetching cores...");
     const auto core = ScopeGuard(cores_->consume());
+    Logger::log<Logger::Level::TRACE>("Finished fetching cores...");
 
     auto engine_one = ScopeGuard(engine_cache_.getEntry(configs.first.name, configs.first));
     auto engine_two = ScopeGuard(engine_cache_.getEntry(configs.second.name, configs.second));

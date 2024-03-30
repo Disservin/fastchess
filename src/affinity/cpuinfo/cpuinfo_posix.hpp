@@ -15,7 +15,7 @@
 namespace affinity {
 
 inline CpuInfo getCpuInfo() {
-    fast_chess::Logger::log<Logger::Level::TRACE>("Fetching CPU info...");
+    fast_chess::Logger::log<fast_chess::Logger::Level::TRACE>("Fetching CPU info...");
 
     std::ifstream cpuinfo("/proc/cpuinfo");
 
@@ -54,7 +54,7 @@ inline CpuInfo getCpuInfo() {
         }
     }
 
-    fast_chess::Logger::log<Logger::Level::TRACE>("Finished fetching CPU info...");
+    fast_chess::Logger::log<fast_chess::Logger::Level::TRACE>("Finished fetching CPU info...");
 
     return cpu_info;
 }

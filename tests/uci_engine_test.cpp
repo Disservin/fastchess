@@ -19,9 +19,15 @@ TEST_SUITE("Uci Engine Communication Tests") {
 #else
         config.cmd = path + "dummy_engine";
 #endif
+        config.args = "arg1 arg2 arg3";
 
         UciEngine uci_engine = UciEngine(config);
-        
+
+        CHECK(uci_engine.output().size() == 6);
+        CHECK(uci_engine.output()[0] == "argv[1]: arg1");
+        CHECK(uci_engine.output()[1] == "argv[2]: arg2");
+        CHECK(uci_engine.output()[2] == "argv[3]: arg3");
+
         uci_engine.uci();
         auto uci       = uci_engine.uciok();
         auto uciOutput = uci_engine.output();

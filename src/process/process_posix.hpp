@@ -25,6 +25,7 @@
 #include <affinity/affinity.hpp>
 #include <util/logger/logger.hpp>
 #include <util/thread_vector.hpp>
+#include <util/argv_split.hpp>
 
 namespace fast_chess {
 extern ThreadVector<pid_t> process_list;
@@ -83,13 +84,13 @@ class Process : public IProcess {
                         s.end());
             };
 
-            auto full_command = command + " " + args;
+            auto argv = argv_split(command);
+            argv.parse(args);
 
-            // remove trailing whitespaces
-            rtrim(full_command);
+            char *const *execv_argv = (char *const *)argv.argv();
 
             // Execute the engine
-            if (execl(command.c_str(), full_command.c_str(), (char *)NULL) == -1)
+            if (execv(command.c_str(), execv_argv) == -1)
                 throw std::runtime_error("Failed to execute engine");
 
             _exit(0); /* Note that we do not use exit() */

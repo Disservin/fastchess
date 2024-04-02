@@ -10,9 +10,15 @@ bool contains(std::string_view haystack, std::string_view needle) {
 
 using namespace std;
 
-int main() {
+int main(int argc, char const *argv[]) {
     std::vector<std::string> moves = {"f2f3", "e7e5", "g2g4", "d8h4"};
     int moveIndex                  = 0;
+
+    if (argc > 1) {
+        for (int i = 1; i < argc; i++) {
+            std::cout << "argv[" << i << "]: " << argv[i] << std::endl;
+        }
+    }
 
     while (true) {
         string cmd;

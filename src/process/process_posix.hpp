@@ -87,9 +87,6 @@ class Process : public IProcess {
             auto argv = argv_split(command);
             argv.parse(args);
 
-            // remove trailing whitespaces
-            rtrim(full_command);
-
             // Execute the engine
             if (execv(command.c_str(), argv.argv()) == -1)
                 throw std::runtime_error("Failed to execute engine");

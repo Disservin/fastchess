@@ -87,7 +87,7 @@ class Process : public IProcess {
             auto argv = argv_split(command);
             argv.parse(args);
 
-            const char *const execv_argv = &argv.argv();
+            char *const *execv_argv = (char *const *)argv.argv();
 
             // Execute the engine
             if (execv(command.c_str(), execv_argv) == -1)

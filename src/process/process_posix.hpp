@@ -84,7 +84,8 @@ class Process : public IProcess {
                         s.end());
             };
 
-            auto argv = argv_split(command) argv.parse(args);
+            auto argv = argv_split(command);
+            argv.parse(args);
 
             // remove trailing whitespaces
             rtrim(full_command);

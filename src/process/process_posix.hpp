@@ -83,13 +83,13 @@ class Process : public IProcess {
                         s.end());
             };
 
-            auto full_command = command + " " + args;
+            auto argv = argv_split(command) argv.parse(args);
 
             // remove trailing whitespaces
             rtrim(full_command);
 
             // Execute the engine
-            if (execl(command.c_str(), full_command.c_str(), (char *)NULL) == -1)
+            if (execv(command.c_str(), argv.argv()) == -1)
                 throw std::runtime_error("Failed to execute engine");
 
             _exit(0); /* Note that we do not use exit() */

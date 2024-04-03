@@ -23,6 +23,10 @@ TEST_SUITE("Uci Engine Communication Tests") {
 
         UciEngine uci_engine = UciEngine(config);
 
+        for (const auto& line : uci_engine.output()) {
+            std::cout << line << std::endl;
+        }
+
         CHECK(uci_engine.output().size() == 6);
         CHECK(uci_engine.output()[0] == "argv[1]: arg1");
         CHECK(uci_engine.output()[1] == "argv[2]: arg2");

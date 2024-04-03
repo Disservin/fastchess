@@ -48,8 +48,6 @@ TEST_SUITE("Uci Engine Communication Tests") {
         CHECK(res2 == Process::Status::OK);
         CHECK(uci_engine.output().size() == 1);
         CHECK(uci_engine.output()[0] == "done");
-
-        uci_engine.writeEngine("quit");
     }
 
     TEST_CASE("Testing the EngineProcess class with lower level class functions") {
@@ -87,7 +85,5 @@ TEST_SUITE("Uci Engine Communication Tests") {
         CHECK(res4 == Process::Status::OK);
         CHECK(uci_engine.output().size() == 1);
         CHECK(uci_engine.output()[0] == "done");
-
-        uci_engine.writeEngine("quit");
     }
 }

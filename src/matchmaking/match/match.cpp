@@ -188,6 +188,14 @@ bool Match::playMove(Player& us, Player& opponent) {
 
         Logger::log<Logger::Level::WARN>("Warning; Engine", name, "loses on time");
 
+        // we send a stop command to the engine to prevent it from thinking
+        // and wait for a bestmove to appear
+
+        us.engine.writeEngine("stop");
+
+        // wait for bestmove, indefinitely
+        us.engine.readEngine("bestmove", 0ms);
+
         return false;
     }
 

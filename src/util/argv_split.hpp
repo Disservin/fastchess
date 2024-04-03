@@ -119,16 +119,13 @@ private:
 			
 			// find last whitespace before quote
 			w_front = cmdlinestr.find_last_of(space, q_front);
-			// none found?
-			if ( w_front == std::string::npos )
-				w_front = - 1;
 
 			pre_quoted_str = cmdlinestr.substr( w_front + 1, q_front - w_front - 1 );
 
 		}
 
 		// split by whitespace in [0, w_front[
-		if(w_front != -1 && w_front != std::string::npos)
+		if(w_front != std::string::npos)
 			splitStrToVectorBy(cmdlinestr.substr(0, w_front), SPACE_HEX_CODE, arguments);
 		
 		//add qouted string and surrounding
@@ -140,7 +137,7 @@ private:
 	}
 
 public:
-	argv_split() : quotes{ SGLQUOTE_HEX_CODE, DBLQUOTE_HEX_CODE, NULL}, space{ SPACE_HEX_CODE, NULL }, prependProgname(false) {}
+	argv_split() : prependProgname(false), quotes{ SGLQUOTE_HEX_CODE, DBLQUOTE_HEX_CODE, '\0'}, space{ SPACE_HEX_CODE, '\0' } {}
 
 	argv_split(std::string progname) : argv_split()
 	{

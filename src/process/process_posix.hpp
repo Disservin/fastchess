@@ -23,9 +23,9 @@
 #include <unistd.h>  // _exit, fork
 
 #include <affinity/affinity.hpp>
+#include <util/argv_split.hpp>
 #include <util/logger/logger.hpp>
 #include <util/thread_vector.hpp>
-#include <util/argv_split.hpp>
 
 namespace fast_chess {
 extern ThreadVector<pid_t> process_list;
@@ -76,13 +76,6 @@ class Process : public IProcess {
             if (dup2(in_pipe_[1], 1) == -1) throw std::runtime_error("Failed to duplicate inpipe");
 
             if (close(in_pipe_[1]) == -1) throw std::runtime_error("Failed to close inpipe");
-
-            constexpr auto rtrim = [](std::string &s) {
-                s.erase(std::find_if(s.rbegin(), s.rend(),
-                                     [](unsigned char ch) { return !std::isspace(ch); })
-                            .base(),
-                        s.end());
-            };
 
             auto argv = argv_split(command);
             argv.parse(args);

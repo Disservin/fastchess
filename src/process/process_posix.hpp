@@ -21,9 +21,9 @@
 #include <sys/types.h>  // pid_t
 #include <sys/wait.h>
 #include <unistd.h>  // _exit, fork
+#include <wordexp.h>
 
 #include <affinity/affinity.hpp>
-#include <util/argv_split.hpp>
 #include <util/logger/logger.hpp>
 #include <util/thread_vector.hpp>
 
@@ -77,14 +77,23 @@ class Process : public IProcess {
 
             if (close(in_pipe_[1]) == -1) throw std::runtime_error("Failed to close inpipe");
 
-            auto argv = argv_split(command);
-            argv.parse(args);
+            char *exec_path = strdup(command.c_str());
 
-            char *const *execv_argv = (char *const *)argv.argv();
+            // Split the arguments string into an array of arguments
+
+            wordexp_t p;
+            p.we_offs = 1;
+            wordexp(args.c_str(), &p, WRDE_DOOFFS);
+
+            // Set the first element of the word vector to the command
+            p.we_wordv[0] = exec_path;
 
             // Execute the engine
-            if (execv(command.c_str(), execv_argv) == -1)
+            if (execv(command.c_str(), p.we_wordv) == -1)
                 throw std::runtime_error("Failed to execute engine");
+
+            wordfree(&p);
+            delete exec_path;
 
             _exit(0); /* Note that we do not use exit() */
         }

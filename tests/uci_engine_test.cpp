@@ -31,8 +31,6 @@ TEST_SUITE("Uci Engine Communication Tests") {
         CHECK(uci_engine.output()[0] == "argv[1]: arg1");
         CHECK(uci_engine.output()[1] == "argv[2]: arg2");
         CHECK(uci_engine.output()[2] == "argv[3]: arg3");
-
-        uci_engine.writeEngine("quit");
     }
 
     TEST_CASE("Test UciEngine Args Complex") {
@@ -62,8 +60,6 @@ TEST_SUITE("Uci Engine Communication Tests") {
         CHECK(uci_engine.output()[3] == "argv[4]: --minibatch-size=132");
         CHECK(uci_engine.output()[4] == "argv[5]: --nncache=50000000");
         CHECK(uci_engine.output()[5] == "argv[6]: --threads=5");
-
-        uci_engine.writeEngine("quit");
     }
 
     TEST_CASE("Testing the EngineProcess class") {

@@ -25,7 +25,7 @@ THIS FILE IS AUTO GENERATED DO NOT CHANGE MANUALLY.
 
 Source: https://github.com/Disservin/chess-library
 
-VERSION: 0.6.34
+VERSION: 0.6.39
 */
 
 #ifndef CHESS_HPP
@@ -1265,24 +1265,11 @@ class Movelist {
 
     // Iterators
 
-    [[nodiscard]] constexpr iterator begin() noexcept { return moves_.begin(); }
-    [[nodiscard]] constexpr const_iterator begin() const noexcept { return moves_.begin(); }
+    [[nodiscard]] constexpr iterator begin() noexcept { return &moves_[0]; }
+    [[nodiscard]] constexpr const_iterator begin() const noexcept { return &moves_[0]; }
 
-    [[nodiscard]] constexpr auto end() noexcept { return moves_.begin() + size_; }
-    [[nodiscard]] constexpr const_iterator end() const noexcept { return moves_.begin() + size_; }
-
-    [[nodiscard]] constexpr reverse_iterator rbegin() noexcept {
-        return moves_.rbegin() + (constants::MAX_MOVES - size_);
-    }
-
-    [[nodiscard]] constexpr const_reverse_iterator rbegin() const noexcept {
-        return moves_.rbegin() + (constants::MAX_MOVES - size_);
-    }
-
-    [[nodiscard]] constexpr reverse_iterator rend() noexcept { return moves_.rbegin() + constants::MAX_MOVES; }
-    [[nodiscard]] constexpr const_reverse_iterator rend() const noexcept {
-        return moves_.rbegin() + constants::MAX_MOVES;
-    }
+    [[nodiscard]] constexpr iterator end() noexcept { return &moves_[0] + size_; }
+    [[nodiscard]] constexpr const_iterator end() const noexcept { return &moves_[0] + size_; }
 
     // Capacity
 
@@ -3454,6 +3441,11 @@ class StreamParser {
                 while (buffer_index_ < bytes_read_) {
                     const auto c = buffer_[buffer_index_];
 
+                    if (c == '\r') {
+                        buffer_index_++;
+                        continue;
+                    }
+
                     if constexpr (std::is_same_v<decltype(f(c)), bool>) {
                         const auto res = f(c);
 
@@ -3604,6 +3596,12 @@ class StreamParser {
                         }
                     });
 
+                    // manually skip carriage return, otherwise we would be in the body
+                    // ideally we should completely skip all carriage returns and newlines to avoid this
+                    if (stream_buffer.current() == '\r') {
+                        stream_buffer.advance();
+                    }
+
                     header.second.remove_suffix(1);
 
                     if (!visitor->skip()) visitor->header(header.first.get(), header.second.get());
@@ -3619,9 +3617,6 @@ class StreamParser {
 
                     if (!visitor->skip()) visitor->startMoves();
 
-                    stream_buffer.advance();
-                    stream_buffer.advance();
-
                     return true;
                 default:
                     break;
@@ -3634,14 +3629,16 @@ class StreamParser {
 
     void processBody() {
         auto is_termination_symbol = false;
+        auto has_comment           = false;
 
+    start:
         /*
         Skip first move number or game termination
         Also skip - * / to fix games
         which directly start with a game termination
         this https://github.com/Disservin/chess-library/issues/68
         */
-        stream_buffer.loop([this, &is_termination_symbol](char c) {
+        stream_buffer.loop([this, &is_termination_symbol, &has_comment](char c) {
             if (c == ' ' || is_digit(c)) {
                 stream_buffer.advance();
                 return false;
@@ -3649,10 +3646,36 @@ class StreamParser {
                 is_termination_symbol = true;
                 stream_buffer.advance();
                 return false;
+            } else if (c == '{') {
+                has_comment = true;
+
+                // reading comment
+                stream_buffer.advance();
+                stream_buffer.loop([this](char c) {
+                    stream_buffer.advance();
+
+                    if (c == '}') return true;
+
+                    comment += c;
+
+                    return false;
+                });
+
+                // the game has no moves, but a comment followed by a game termination
+                if (!visitor->skip()) {
+                    visitor->move("", comment.get());
+
+                    comment.clear();
+                }
             }
 
             return true;
         });
+
+        // we need to reparse the termination symbol
+        if (has_comment && !is_termination_symbol) {
+            goto start;
+        }
 
         // game had no moves, so we can skip it and call endPgn
         if (is_termination_symbol) {
@@ -4028,6 +4051,10 @@ class uci {
 
     template <bool PEDANTIC = false>
     [[nodiscard]] static Move parseSan(const Board &board, std::string_view san, Movelist &moves) noexcept(false) {
+        if (san.empty()) {
+            return Move::NO_MOVE;
+        }
+
         constexpr auto pt_to_pgt      = [](PieceType pt) { return 1 << (pt); };
         const SanMoveInformation info = parseSanInfo<PEDANTIC>(san);
 

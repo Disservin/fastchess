@@ -12,6 +12,56 @@ using namespace fast_chess;
 const std::string path = "./tests/mock/engine/";
 
 TEST_SUITE("Uci Engine Communication Tests") {
+    TEST_CASE("Test UciEngine Args Simple") {
+        EngineConfiguration config;
+#ifdef _WIN64
+        config.cmd = path + "dummy_engine.exe";
+#else
+        config.cmd = path + "dummy_engine";
+#endif
+        config.args = "arg1 arg2 arg3";
+
+        UciEngine uci_engine = UciEngine(config);
+
+        for (const auto& line : uci_engine.output()) {
+            std::cout << line << std::endl;
+        }
+
+        CHECK(uci_engine.output().size() == 6);
+        CHECK(uci_engine.output()[0] == "argv[1]: arg1");
+        CHECK(uci_engine.output()[1] == "argv[2]: arg2");
+        CHECK(uci_engine.output()[2] == "argv[3]: arg3");
+    }
+
+    TEST_CASE("Test UciEngine Args Complex") {
+        EngineConfiguration config;
+#ifdef _WIN64
+        config.cmd = path + "dummy_engine.exe";
+#else
+        config.cmd = path + "dummy_engine";
+#endif
+        config.args =
+            "--backend=multiplexing "
+            "--backend-opts=\"backend=cuda-fp16,(gpu=0),(gpu=1),(gpu=2),(gpu=3)\" "
+            "--weights=lc0/BT4-1024x15x32h-swa-6147500.pb.gz --minibatch-size=132 "
+            "--nncache=50000000 --threads=5";
+
+        UciEngine uci_engine = UciEngine(config);
+
+        for (const auto& line : uci_engine.output()) {
+            std::cout << line << std::endl;
+        }
+
+        CHECK(uci_engine.output().size() == 9);
+        CHECK(uci_engine.output()[0] == "argv[1]: --backend=multiplexing");
+        CHECK(uci_engine.output()[1] ==
+              "argv[2]: --backend-opts=backend=cuda-fp16,(gpu=0),(gpu=1),(gpu=2),(gpu=3)");
+        CHECK(uci_engine.output()[2] == "argv[3]: --weights=lc0/BT4-1024x15x32h-swa-6147500.pb.gz");
+        CHECK(uci_engine.output()[3] == "argv[4]: --minibatch-size=132");
+        CHECK(uci_engine.output()[4] == "argv[5]: --nncache=50000000");
+        CHECK(uci_engine.output()[5] == "argv[6]: --threads=5");
+    }
+
     TEST_CASE("Testing the EngineProcess class") {
         EngineConfiguration config;
 #ifdef _WIN64

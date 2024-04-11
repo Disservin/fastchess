@@ -23,7 +23,9 @@ SPRT::SPRT(double alpha, double beta, double elo0, double elo1) {
     }
 }
 
-double SPRT::neloToScore(double nelo, double stdDeviation) noexcept { return nelo * (std::sqrt(2.0) * stdDeviation) / (800.0 / std::log(10)) + 0.5; }
+double SPRT::neloToScore(double nelo, double stdDeviation) noexcept {
+    return nelo * (std::sqrt(2.0) * stdDeviation) / (800.0 / std::log(10)) + 0.5;
+}
 
 double SPRT::getLLR(int win, int draw, int loss) const noexcept {
     if (!valid_) return 0.0;
@@ -31,40 +33,41 @@ double SPRT::getLLR(int win, int draw, int loss) const noexcept {
     const double games = win + draw + loss;
     if (games == 0) return 0.0;
     const double W = double(win) / games, D = double(draw) / games;
-    const double a     = W + D / 2;
-    const double b     = W + D / 4;
-    const double var   = b - std::pow(a, 2);
+    const double a   = W + D / 2;
+    const double b   = W + D / 4;
+    const double var = b - std::pow(a, 2);
     if (var == 0) return 0.0;
     const double stdDeviation = std::sqrt(var);
-    const double var_s = var / games;
-    const double score0 = neloToScore(elo0_, stdDeviation);
-    const double score1 = neloToScore(elo1_, stdDeviation);
+    const double var_s        = var / games;
+    const double score0       = neloToScore(elo0_, stdDeviation);
+    const double score1       = neloToScore(elo1_, stdDeviation);
     return (score1 - score0) * (2 * a - score0 - score1) / var_s / 2.0;
 }
 
-double SPRT::getLLR(int penta_WW, int penta_WD, int penta_WL, int penta_DD, int penta_LD, int penta_LL) const noexcept {
+double SPRT::getLLR(int penta_WW, int penta_WD, int penta_WL, int penta_DD, int penta_LD,
+                    int penta_LL) const noexcept {
     if (!valid_) return 0.0;
 
     const double pairs = penta_WW + penta_WD + penta_WL + penta_DD + penta_LD + penta_LL;
     if (pairs == 0) return 0.0;
-    const double WW = double(penta_WW) / pairs; 
-    const double WD = double(penta_WD) / pairs; 
-    const double WL = double(penta_WL) / pairs; 
-    const double DD = double(penta_DD) / pairs;
-    const double LD = double(penta_LD) / pairs;
-    const double LL = double(penta_LL) / pairs;
-    const double a = WW + 0.75 * WD + 0.5 * (WL + DD) + 0.25 * LD;
-    const double WW_dev = WW * std::pow((1 - a), 2);
-    const double WD_dev = WD * std::pow((0.75 - a), 2);
-    const double WLDD_dev = (WL + DD) * std::pow((0.5 - a), 2);
-    const double LD_dev = LD * std::pow((0.25 - a), 2);
-    const double LL_dev = LL * std::pow((0 - a), 2);
-    const double var_penta   = WW_dev + WD_dev + WLDD_dev + LD_dev + LL_dev;
+    const double WW        = double(penta_WW) / pairs;
+    const double WD        = double(penta_WD) / pairs;
+    const double WL        = double(penta_WL) / pairs;
+    const double DD        = double(penta_DD) / pairs;
+    const double LD        = double(penta_LD) / pairs;
+    const double LL        = double(penta_LL) / pairs;
+    const double a         = WW + 0.75 * WD + 0.5 * (WL + DD) + 0.25 * LD;
+    const double WW_dev    = WW * std::pow((1 - a), 2);
+    const double WD_dev    = WD * std::pow((0.75 - a), 2);
+    const double WLDD_dev  = (WL + DD) * std::pow((0.5 - a), 2);
+    const double LD_dev    = LD * std::pow((0.25 - a), 2);
+    const double LL_dev    = LL * std::pow((0 - a), 2);
+    const double var_penta = WW_dev + WD_dev + WLDD_dev + LD_dev + LL_dev;
     if (var_penta == 0) return 0.0;
     const double stdDeviation_penta = std::sqrt(var_penta);
-    const double var_s_penta = var_penta / pairs;
-    const double score0 = neloToScore(elo0_, stdDeviation_penta);
-    const double score1 = neloToScore(elo1_, stdDeviation_penta);
+    const double var_s_penta        = var_penta / pairs;
+    const double score0             = neloToScore(elo0_, stdDeviation_penta);
+    const double score1             = neloToScore(elo1_, stdDeviation_penta);
     return (score1 - score0) * (2 * a - score0 - score1) / var_s_penta / 2.0;
 }
 

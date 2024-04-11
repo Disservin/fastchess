@@ -11,6 +11,11 @@ Elo::Elo(int wins, int losses, int draws) {
     error_ = getError(wins, losses, draws);
 }
 
+Elo::Elo(int penta_WW, int penta_WD, int penta_WL, int penta_DD, int penta_LD, int penta_LL) {
+    diff_  = getDiff(penta_WW, penta_WD, penta_WL, penta_DD, penta_LD, penta_LL);
+    error_ = getError(penta_WW, penta_WD, penta_WL, penta_DD, penta_LD, penta_LL);
+}
+
 double Elo::percToEloDiff(double percentage) noexcept {
     return -400.0 * std::log10(1.0 / percentage - 1.0);
 }
@@ -47,10 +52,44 @@ double Elo::getError(int wins, int losses, int draws) noexcept {
     return (percToEloDiff(devMax) - percToEloDiff(devMin)) / 2.0;
 }
 
+double Elo::getError(int penta_WW, int penta_WD, int penta_WL, int penta_DD, int penta_LD, int penta_LL) noexcept {
+    const double pairs    = penta_WW + penta_WD + penta_WL + penta_DD + penta_LD + penta_LL;
+    const double WW = double(penta_WW) / pairs; 
+    const double WD = double(penta_WD) / pairs; 
+    const double WL = double(penta_WL) / pairs; 
+    const double DD = double(penta_DD) / pairs;
+    const double LD = double(penta_LD) / pairs;
+    const double LL = double(penta_LL) / pairs;
+    const double a = WW + 0.75 * WD + 0.5 * (WL + DD) + 0.25 * LD;
+    const double WW_dev = WW * std::pow((1 - a), 2);
+    const double WD_dev = WD * std::pow((0.75 - a), 2);
+    const double WLDD_dev = (WL + DD) * std::pow((0.5 - a), 2);
+    const double LD_dev = LD * std::pow((0.25 - a), 2);
+    const double LL_dev = LL * std::pow((0 - a), 2);
+    const double stdev = std::sqrt(WW_dev + WD_dev + WLDD_dev + LD_dev + LL_dev) / std::sqrt(pairs);
+
+    const double devMin = perc + phiInv(0.025) * stdev;
+    const double devMax = perc + phiInv(0.975) * stdev;
+    return (percToEloDiff(devMax) - percToEloDiff(devMin)) / 2.0;
+}
+
 double Elo::getDiff(int wins, int losses, int draws) noexcept {
     const double n          = wins + losses + draws;
     const double score      = wins + draws / 2.0;
     const double percentage = (score / n);
+
+    return percToEloDiff(percentage);
+}
+
+double Elo::getDiff(int penta_WW, int penta_WD, int penta_WL, int penta_DD, int penta_LD, int penta_LL) noexcept {
+    const double pairs          = penta_WW + penta_WD + penta_WL + penta_DD + penta_LD + penta_LL;
+    const double WW = double(penta_WW) / pairs; 
+    const double WD = double(penta_WD) / pairs; 
+    const double WL = double(penta_WL) / pairs; 
+    const double DD = double(penta_DD) / pairs;
+    const double LD = double(penta_LD) / pairs;
+    const double LL = double(penta_LL) / pairs;
+    const double percentage = WW + 0.75 * WD + 0.5 * (WL + DD) + 0.25 * LD;
 
     return percToEloDiff(percentage);
 }
@@ -71,6 +110,28 @@ std::string Elo::getLos(int wins, int losses) noexcept {
     return ss.str();
 }
 
+std::string Elo::getLos(int penta_WW, int penta_WD, int penta_WL, int penta_DD, int penta_LD, int penta_LL) noexcept {
+    const double pairs    = penta_WW + penta_WD + penta_WL + penta_DD + penta_LD + penta_LL;
+    const double WW = double(penta_WW) / pairs; 
+    const double WD = double(penta_WD) / pairs; 
+    const double WL = double(penta_WL) / pairs; 
+    const double DD = double(penta_DD) / pairs;
+    const double LD = double(penta_LD) / pairs;
+    const double LL = double(penta_LL) / pairs;
+    const double a = WW + 0.75 * WD + 0.5 * (WL + DD) + 0.25 * LD;
+    const double WW_dev = WW * std::pow((1 - a), 2);
+    const double WD_dev = WD * std::pow((0.75 - a), 2);
+    const double WLDD_dev = (WL + DD) * std::pow((0.5 - a), 2);
+    const double LD_dev = LD * std::pow((0.25 - a), 2);
+    const double LL_dev = LL * std::pow((0 - a), 2);
+    const double stdev = std::sqrt(WW_dev + WD_dev + WLDD_dev + LD_dev + LL_dev) / std::sqrt(pairs);
+
+    const double los = (1 - std::erf(-(a-0.5) / (std::sqrt(2.0) * stdev))) / 2.0;
+    std::stringstream ss;
+    ss << std::fixed << std::setprecision(2) << los * 100.0 << " %";
+    return ss.str();
+}
+
 std::string Elo::getDrawRatio(int wins, int losses, int draws) noexcept {
     const double n = wins + losses + draws;
     std::stringstream ss;
@@ -78,9 +139,31 @@ std::string Elo::getDrawRatio(int wins, int losses, int draws) noexcept {
     return ss.str();
 }
 
+std::string Elo::getDrawRatio(int penta_WW, int penta_WD, int penta_WL, int penta_DD, int penta_LD, int penta_LL) noexcept {
+    const double pairs    = penta_WW + penta_WD + penta_WL + penta_DD + penta_LD + penta_LL;
+    std::stringstream ss;
+    ss << std::fixed << std::setprecision(2) << ((penta_WL + penta_DD) / pairs) * 100.0 << " %";
+    return ss.str();
+}
+
 std::string Elo::getScoreRatio(int wins, int losses, int draws) noexcept {
     const double n        = wins + losses + draws;
     const auto scoreRatio = double(wins * 2 + draws) / (n * 2);
+
+    std::stringstream ss;
+    ss << std::fixed << std::setprecision(3) << scoreRatio;
+    return ss.str();
+}
+
+std::string Elo::getScoreRatio(int penta_WW, int penta_WD, int penta_WL, int penta_DD, int penta_LD, int penta_LL) noexcept {
+    const double pairs    = penta_WW + penta_WD + penta_WL + penta_DD + penta_LD + penta_LL;
+    const double WW = double(penta_WW) / pairs; 
+    const double WD = double(penta_WD) / pairs; 
+    const double WL = double(penta_WL) / pairs; 
+    const double DD = double(penta_DD) / pairs;
+    const double LD = double(penta_LD) / pairs;
+    const double LL = double(penta_LL) / pairs;
+    const double scoreRatio = WW + 0.75 * WD + 0.5 * (WL + DD) + 0.25 * LD;
 
     std::stringstream ss;
     ss << std::fixed << std::setprecision(3) << scoreRatio;

@@ -41,7 +41,7 @@ double SPRT::getLLR(int win, int draw, int loss) const noexcept {
     return (s1_ - s0_) * (2 * a - s0_ - s1_) / var_s / 2.0;
 }
 
-double SPRT::getPentaLLR(int penta_WW, int penta_WD, int penta_WL, int penta_DD, int penta_LD, int penta_LL) const noexcept {
+double SPRT::getLLR(int penta_WW, int penta_WD, int penta_WL, int penta_DD, int penta_LD, int penta_LL) const noexcept {
     if (!valid_) return 0.0;
 
     const double pairs = penta_WW + penta_WD + penta_WL + penta_DD + penta_LD + penta_LL;

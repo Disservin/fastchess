@@ -14,8 +14,9 @@ class SPRT {
 
     [[nodiscard]] bool isValid() const noexcept;
 
-    [[nodiscard]] static double getLL(double elo) noexcept;
+    [[nodiscard]] static double neloToScore(double nelo, double stdDeviation) noexcept;
     [[nodiscard]] double getLLR(int win, int draw, int loss) const noexcept;
+    [[nodiscard]] double getLLR(int penta_WW, int penta_WD, int penta_WL, int penta_DD, int penta_LD, int penta_LL) const noexcept;
 
     [[nodiscard]] SPRTResult getResult(double llr) const noexcept;
     [[nodiscard]] std::string getBounds() const noexcept;
@@ -24,8 +25,6 @@ class SPRT {
    private:
     double lower_ = 0.0;
     double upper_ = 0.0;
-    double s0_    = 0.0;
-    double s1_    = 0.0;
 
     double elo0_ = 0.0;
     double elo1_ = 0.0;

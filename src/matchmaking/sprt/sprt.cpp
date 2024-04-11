@@ -58,10 +58,10 @@ double SPRT::getPentaLLR(int penta_WW, int penta_WD, int penta_WL, int penta_DD,
     const double WLDD_dev = (WL + DD) * std::pow((0.5 - a), 2);
     const double LD_dev = LD * std::pow((0.25 - a), 2);
     const double LL_dev = LL * std::pow((0 - a), 2);
-    const double var   = WW_dev + WD_dev + WLDD_dev + LD_dev + LL_dev;
-    if (var == 0) return 0.0;
-    const double var_s = var / pairs;
-    return (s1_ - s0_) * (2 * a - s0_ - s1_) / var_s / 2.0;
+    const double var_penta   = WW_dev + WD_dev + WLDD_dev + LD_dev + LL_dev;
+    if (var_penta == 0) return 0.0;
+    const double var_s_penta = var_penta / pairs;
+    return (s1_ - s0_) * (2 * a - s0_ - s1_) / var_s_penta / 2.0;
 }
 
 SPRTResult SPRT::getResult(double llr) const noexcept {

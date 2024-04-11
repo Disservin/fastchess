@@ -13,8 +13,6 @@ SPRT::SPRT(double alpha, double beta, double elo0, double elo1) {
     if (isValid()) {
         lower_ = std::log(beta / (1 - alpha));
         upper_ = std::log((1 - beta) / alpha);
-        s0_    = getLL(elo0);
-        s1_    = getLL(elo1);
 
         elo0_ = elo0;
         elo1_ = elo1;
@@ -25,7 +23,7 @@ SPRT::SPRT(double alpha, double beta, double elo0, double elo1) {
     }
 }
 
-double SPRT::getLL(double elo) noexcept { return 1.0 / (1.0 + std::pow(10.0, -elo / 400.0)); }
+double SPRT::neloToScore(double nelo, double stdDeviation) noexcept { return nelo * (std::sqrt(2.0) * stdDeviation) / (800.0 / std::log(10)) + 0.5; }
 
 double SPRT::getLLR(int win, int draw, int loss) const noexcept {
     if (!valid_) return 0.0;
@@ -37,8 +35,11 @@ double SPRT::getLLR(int win, int draw, int loss) const noexcept {
     const double b     = W + D / 4;
     const double var   = b - std::pow(a, 2);
     if (var == 0) return 0.0;
+    const double stdDeviation = std::sqrt(var);
     const double var_s = var / games;
-    return (s1_ - s0_) * (2 * a - s0_ - s1_) / var_s / 2.0;
+    const double score0 = neloToScore(elo0_, stdDeviation);
+    const double score1 = neloToScore(elo1_, stdDeviation);
+    return (score1 - score0) * (2 * a - score0 - score1) / var_s / 2.0;
 }
 
 double SPRT::getPentaLLR(int penta_WW, int penta_WD, int penta_WL, int penta_DD, int penta_LD, int penta_LL) const noexcept {
@@ -60,8 +61,11 @@ double SPRT::getPentaLLR(int penta_WW, int penta_WD, int penta_WL, int penta_DD,
     const double LL_dev = LL * std::pow((0 - a), 2);
     const double var_penta   = WW_dev + WD_dev + WLDD_dev + LD_dev + LL_dev;
     if (var_penta == 0) return 0.0;
+    const double stdDeviation_penta = std::sqrt(var_penta);
     const double var_s_penta = var_penta / pairs;
-    return (s1_ - s0_) * (2 * a - s0_ - s1_) / var_s_penta / 2.0;
+    const double score0 = neloToScore(elo0_, stdDeviation_penta);
+    const double score1 = neloToScore(elo1_, stdDeviation_penta);
+    return (score1 - score0) * (2 * a - score0 - score1) / var_s_penta / 2.0;
 }
 
 SPRTResult SPRT::getResult(double llr) const noexcept {

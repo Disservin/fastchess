@@ -14,7 +14,7 @@ class SPRT {
 
     [[nodiscard]] bool isValid() const noexcept;
 
-    [[nodiscard]] static double getLL(double elo) noexcept;
+    [[nodiscard]] static double neloToScore(double nelo, double stdDeviation) noexcept;
     [[nodiscard]] double getLLR(int win, int draw, int loss) const noexcept;
     [[nodiscard]] double getPentaLLR(int penta_WW, int penta_WD, int penta_WL, int penta_DD, int penta_LD, int penta_LL) const noexcept;
 

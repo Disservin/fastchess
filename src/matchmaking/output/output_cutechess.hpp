@@ -53,7 +53,7 @@ class Cutechess : public IOutput {
             std::stringstream ss;
 
             ss << "LLR: " << std::fixed << std::setprecision(2)
-               << sprt.getLLR(stats.wins, stats.draws, stats.losses) << " " << sprt.getBounds()
+               << sprt.getLLR(stats.penta_WW, stats.penta_WD, stats.penta_WL, stats.penta_DD, stats.penta_LD, stats.penta_LL) << " " << sprt.getBounds()
                << " " << sprt.getElo() << "\n";
             std::cout << ss.str() << std::flush;
         }

@@ -23,7 +23,9 @@ SPRT::SPRT(double alpha, double beta, double elo0, double elo1) {
     }
 }
 
-double SPRT::neloToScore(double nelo, double stdDeviation) noexcept { return nelo * (std::sqrt(2.0) * stdDeviation) / (800.0 / std::log(10)) + 0.5; }
+double SPRT::neloToScoreWDL(double nelo, double stdDeviation) noexcept { return nelo * stdDeviation / (800.0 / std::log(10)) + 0.5; }
+
+double SPRT::neloToScorePenta(double nelo, double stdDeviation) noexcept { return nelo * (std::sqrt(2.0) * stdDeviation) / (800.0 / std::log(10)) + 0.5; }
 
 double SPRT::getLLR(int win, int draw, int loss) const noexcept {
     if (!valid_) return 0.0;

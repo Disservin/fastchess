@@ -19,7 +19,7 @@ class Fastchess : public IOutput {
 
     void printElo(const Stats& stats, const std::string& first, const std::string& second,
                   std::size_t current_game_count) override {
-        const Elo elo(stats.wins, stats.losses, stats.draws);
+        const Elo elo(stats.penta_WW, stats.penta_WD, stats.penta_WL, stats.penta_DD, stats.penta_LD, stats.penta_LL);
 
         std::stringstream ss;
         ss << "Score of "                                                //
@@ -33,7 +33,7 @@ class Fastchess : public IOutput {
            << " - "                                                      //
            << stats.draws                                                //
            << " ["                                                       //
-           << Elo::getScoreRatio(stats.wins, stats.losses, stats.draws)  //
+           << Elo::getScoreRatio(stats.penta_WW, stats.penta_WD, stats.penta_WL, stats.penta_DD, stats.penta_LD, stats.penta_LL)  //
            << "] "                                                       //
            << current_game_count                                         //
            << "\n";
@@ -42,10 +42,10 @@ class Fastchess : public IOutput {
            << elo.getElo()                                              //
            << ", "                                                      //
            << "LOS: "                                                   //
-           << Elo::getLos(stats.wins, stats.losses)                     //
+           << Elo::getLos(stats.penta_WW, stats.penta_WD, stats.penta_WL, stats.penta_DD, stats.penta_LD, stats.penta_LL)        //
            << ", "                                                      //
-           << "DrawRatio: "                                             //
-           << Elo::getDrawRatio(stats.wins, stats.losses, stats.draws)  //
+           << "PairDrawRatio: "                                         //
+           << Elo::getDrawRatio(stats.penta_WW, stats.penta_WD, stats.penta_WL, stats.penta_DD, stats.penta_LD, stats.penta_LL)  //
            << "\n";
 
         std::cout << ss.str() << std::flush;

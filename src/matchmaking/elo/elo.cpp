@@ -9,6 +9,8 @@ namespace fast_chess {
 Elo::Elo(int wins, int losses, int draws) {
     diff_  = getDiff(wins, losses, draws);
     error_ = getError(wins, losses, draws);
+    nelodiff_  = getneloDiff(wins, losses, draws);
+    neloerror_ = getneloError(wins, losses, draws);
 }
 
 Elo::Elo(int penta_WW, int penta_WD, int penta_WL, int penta_DD, int penta_LD, int penta_LL) {
@@ -26,6 +28,10 @@ double Elo::percToNeloDiff(double percentage, double stdev) noexcept {
     return (perc - 0.5) / (std::sqrt(2) * stdev) * (800 / std::log(10));
 }
 
+double Elo::percToNeloDiffWDL(double percentage, double stdev) noexcept {
+    return (perc - 0.5) / stdev * (800 / std::log(10));
+}
+
 double Elo::getError(int wins, int losses, int draws) noexcept {
     const double n    = wins + losses + draws;
     const double w    = wins / n;
@@ -41,6 +47,23 @@ double Elo::getError(int wins, int losses, int draws) noexcept {
     const double devMin = perc - 1.959963984540054 * stdev;
     const double devMax = perc + 1.959963984540054 * stdev;
     return (percToEloDiff(devMax) - percToEloDiff(devMin)) / 2.0;
+}
+
+double Elo::getneloError(int wins, int losses, int draws) noexcept {
+    const double n    = wins + losses + draws;
+    const double w    = wins / n;
+    const double l    = losses / n;
+    const double d    = draws / n;
+    const double perc = w + d / 2.0;
+
+    const double devW  = w * std::pow(1.0 - perc, 2.0);
+    const double devL  = l * std::pow(0.0 - perc, 2.0);
+    const double devD  = d * std::pow(0.5 - perc, 2.0);
+    const double stdev = std::sqrt(devW + devL + devD) / std::sqrt(n);
+
+    const double devMin = perc - 1.959963984540054 * stdev;
+    const double devMax = perc + 1.959963984540054 * stdev;
+    return (percToNeloDiffWDL(devMax, stdev * std::sqrt(n)) - percToNeloDiffWDL(devMin, stdev * std::sqrt(n))) / 2.0;
 }
 
 double Elo::getError(int penta_WW, int penta_WD, int penta_WL, int penta_DD, int penta_LD, int penta_LL) noexcept {
@@ -91,6 +114,20 @@ double Elo::getDiff(int wins, int losses, int draws) noexcept {
     const double percentage = (score / n);
 
     return percToEloDiff(percentage);
+}
+
+double Elo::getneloDiff(int wins, int losses, int draws) noexcept {
+    const double n    = wins + losses + draws;
+    const double w    = wins / n;
+    const double l    = losses / n;
+    const double d    = draws / n;
+    const double perc = w + d / 2.0;
+
+    const double devW  = w * std::pow(1.0 - perc, 2.0);
+    const double devL  = l * std::pow(0.0 - perc, 2.0);
+    const double devD  = d * std::pow(0.5 - perc, 2.0);
+    const double stdev = std::sqrt(devW + devL + devD) / std::sqrt(n);
+    return percToNeloDiffWDL(perc, stdev * std::sqrt(n));
 }
 
 double Elo::getDiff(int penta_WW, int penta_WD, int penta_WL, int penta_DD, int penta_LD, int penta_LL) noexcept {

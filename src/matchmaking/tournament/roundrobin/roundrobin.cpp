@@ -118,7 +118,7 @@ void RoundRobin::updateSprtStatus(const std::vector<EngineConfiguration>& engine
     if (!sprt_.isValid()) return;
 
     const auto stats = result_.getStats(engine_configs[0].name, engine_configs[1].name);
-    const auto llr   = sprt_.getLLR(stats.wins, stats.draws, stats.losses);
+    const auto llr   = sprt_.getLLR(stats.penta_WW, stats.penta_WD, stats.penta_WL, stats.penta_DD, stats.penta_LD, stats.penta_LL);
 
     if (sprt_.getResult(llr) != SPRT_CONTINUE || match_count_ == total_) {
         atomic::stop = true;

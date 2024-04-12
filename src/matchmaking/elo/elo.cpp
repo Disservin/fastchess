@@ -158,7 +158,7 @@ double Elo::getneloDiff(int penta_WW, int penta_WD, int penta_WL, int penta_DD, 
     const double LL_dev = LL * std::pow((0 - a), 2);
     const double stdev = std::sqrt(WW_dev + WD_dev + WLDD_dev + LD_dev + LL_dev) / std::sqrt(pairs);
 
-    return percToNeloDiff(percentage, stdev * std::sqrt(pairs));
+    return percToNeloDiff(a, stdev * std::sqrt(pairs));
 }
 
 std::string Elo::getElo() const noexcept {

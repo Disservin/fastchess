@@ -9,10 +9,6 @@ class Elo {
 
     Elo(int penta_WW, int penta_WD, int penta_WL, int penta_DD, int penta_LD, int penta_LL);
 
-    [[nodiscard]] static double inverseError(double x) noexcept;
-
-    [[nodiscard]] static double phiInv(double p) noexcept;
-
     [[nodiscard]] static double percToEloDiff(double percentage) noexcept;
 
     [[nodiscard]] static double getDiff(int wins, int losses, int draws) noexcept;
@@ -25,7 +21,7 @@ class Elo {
 
     [[nodiscard]] std::string getElo() const noexcept;
 
-    [[nodiscard]] static std::string getLos(int wins, int losses) noexcept;
+    [[nodiscard]] static std::string getLos(int wins, int losses, int draws) noexcept;
 
     [[nodiscard]] static std::string getLos(int penta_WW, int penta_WD, int penta_WL, int penta_DD, int penta_LD, int penta_LL) noexcept;
 

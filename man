@@ -89,7 +89,7 @@ OPTIONS
             Set the rating interval for the rating report. For penta reports, this is reports per N game pair.
 
         -sprt elo0=ELO0 elo1=ELO1 alpha=ALPHA beta=BETA
-            Set parameters for the Sequential Probability Ratio Test (SPRT). elo0 and elo1 is in the form of normalized elo (nElo).
+            Set parameters for the Sequential Probability Ratio Test (SPRT).
 
         -srand SEED
             Set the seed for the random number generator.

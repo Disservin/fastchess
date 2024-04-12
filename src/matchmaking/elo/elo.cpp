@@ -25,11 +25,11 @@ double Elo::percToEloDiff(double percentage) noexcept {
 }
 
 double Elo::percToNeloDiff(double percentage, double stdev) noexcept {
-    return (perc - 0.5) / (std::sqrt(2) * stdev) * (800 / std::log(10));
+    return (percentage - 0.5) / (std::sqrt(2) * stdev) * (800 / std::log(10));
 }
 
 double Elo::percToNeloDiffWDL(double percentage, double stdev) noexcept {
-    return (perc - 0.5) / stdev * (800 / std::log(10));
+    return (percentage - 0.5) / stdev * (800 / std::log(10));
 }
 
 double Elo::getError(int wins, int losses, int draws) noexcept {

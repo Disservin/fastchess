@@ -13,15 +13,21 @@ class Elo {
 
     [[nodiscard]] static double percToNeloDiff(double percentage, double stdev) noexcept;
 
+    [[nodiscard]] static double percToNeloDiffWDL(double percentage, double stdev) noexcept;
+
     [[nodiscard]] static double getDiff(int wins, int losses, int draws) noexcept;
 
     [[nodiscard]] static double getDiff(int penta_WW, int penta_WD, int penta_WL, int penta_DD, int penta_LD, int penta_LL) noexcept;
+
+    [[nodiscard]] static double getneloDiff(int wins, int losses, int draws) noexcept;
 
     [[nodiscard]] static double getneloDiff(int penta_WW, int penta_WD, int penta_WL, int penta_DD, int penta_LD, int penta_LL) noexcept;
 
     [[nodiscard]] static double getError(int wins, int losses, int draws) noexcept;
 
     [[nodiscard]] static double getError(int penta_WW, int penta_WD, int penta_WL, int penta_DD, int penta_LD, int penta_LL) noexcept;
+
+    [[nodiscard]] static double getneloError(int wins, int losses, int draws) noexcept;
 
     [[nodiscard]] static double getneloError(int penta_WW, int penta_WD, int penta_WL, int penta_DD, int penta_LD, int penta_LL) noexcept;
 

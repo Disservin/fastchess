@@ -41,7 +41,7 @@ class Cutechess : public IOutput {
            << "LOS: "                                                   //
            << Elo::getLos(stats.wins, stats.losses, stats.draws)        //
            << ", "                                                      //
-           << "DrawRatio: "                                         //
+           << "DrawRatio: "                                             //
            << Elo::getDrawRatio(stats.wins, stats.losses, stats.draws)  //
            << "\n";
 

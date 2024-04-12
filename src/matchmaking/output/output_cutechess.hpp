@@ -16,7 +16,7 @@ class Cutechess : public IOutput {
 
     void printElo(const Stats& stats, const std::string& first, const std::string& second,
                   std::size_t current_game_count) override {
-        const Elo elo(stats.penta_WW, stats.penta_WD, stats.penta_WL, stats.penta_DD, stats.penta_LD, stats.penta_LL);
+        const Elo elo(stats.wins, stats.losses, stats.draws);
 
         std::stringstream ss;
         ss << "Score of "                                                //
@@ -30,7 +30,7 @@ class Cutechess : public IOutput {
            << " - "                                                      //
            << stats.draws                                                //
            << " ["                                                       //
-           << Elo::getScoreRatio(stats.penta_WW, stats.penta_WD, stats.penta_WL, stats.penta_DD, stats.penta_LD, stats.penta_LL)  //
+           << Elo::getScoreRatio(stats.wins, stats.losses, stats.draws)  //
            << "] "                                                       //
            << current_game_count                                         //
            << "\n";
@@ -39,10 +39,10 @@ class Cutechess : public IOutput {
            << elo.getElo()                                              //
            << ", "                                                      //
            << "LOS: "                                                   //
-           << Elo::getLos(stats.penta_WW, stats.penta_WD, stats.penta_WL, stats.penta_DD, stats.penta_LD, stats.penta_LL)        //
+           << Elo::getLos(stats.wins, stats.losses, stats.draws)        //
            << ", "                                                      //
-           << "PairDrawRatio: "                                         //
-           << Elo::getDrawRatio(stats.penta_WW, stats.penta_WD, stats.penta_WL, stats.penta_DD, stats.penta_LD, stats.penta_LL)  //
+           << "DrawRatio: "                                         //
+           << Elo::getDrawRatio(stats.wins, stats.losses, stats.draws)  //
            << "\n";
 
         std::cout << ss.str() << std::flush;

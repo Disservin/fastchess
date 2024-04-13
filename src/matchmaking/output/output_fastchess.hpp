@@ -136,6 +136,7 @@ class Fastchess : public IOutput {
            std::stringstream ss;
            ss << "";
         }
+        std::stringstream ss;
         std::cout << ss.str() << std::flush;
     }
 

@@ -30,6 +30,8 @@ class EloNormalized : public EloBase {
     [[nodiscard]] static double error(const Stats& stats) noexcept;
 
     [[nodiscard]] static double nEloError(const Stats& stats) noexcept;
+
+    [[nodiscard]] static std::size_t total(const Stats& stats) noexcept;
 };
 
 }  // namespace fast_chess

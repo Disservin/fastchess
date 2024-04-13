@@ -26,8 +26,7 @@ double EloNormalized::percToNeloDiffWDL(double percentage, double stdev) noexcep
 }
 
 double EloNormalized::error(const Stats& stats) noexcept {
-    const double pairs = stats.penta_WW + stats.penta_WD + stats.penta_WL + stats.penta_DD +
-                         stats.penta_LD + stats.penta_LL;
+    const double pairs    = total(stats);
     const double WW       = double(stats.penta_WW) / pairs;
     const double WD       = double(stats.penta_WD) / pairs;
     const double WL       = double(stats.penta_WL) / pairs;
@@ -48,8 +47,7 @@ double EloNormalized::error(const Stats& stats) noexcept {
 }
 
 double EloNormalized::nEloError(const Stats& stats) noexcept {
-    const double pairs = stats.penta_WW + stats.penta_WD + stats.penta_WL + stats.penta_DD +
-                         stats.penta_LD + stats.penta_LL;
+    const double pairs    = total(stats);
     const double WW       = double(stats.penta_WW) / pairs;
     const double WD       = double(stats.penta_WD) / pairs;
     const double WL       = double(stats.penta_WL) / pairs;
@@ -72,8 +70,7 @@ double EloNormalized::nEloError(const Stats& stats) noexcept {
 }
 
 double EloNormalized::diff(const Stats& stats) noexcept {
-    const double pairs = stats.penta_WW + stats.penta_WD + stats.penta_WL + stats.penta_DD +
-                         stats.penta_LD + stats.penta_LL;
+    const double pairs      = total(stats);
     const double WW         = double(stats.penta_WW) / pairs;
     const double WD         = double(stats.penta_WD) / pairs;
     const double WL         = double(stats.penta_WL) / pairs;
@@ -85,8 +82,7 @@ double EloNormalized::diff(const Stats& stats) noexcept {
 }
 
 double EloNormalized::nEloDiff(const Stats& stats) noexcept {
-    const double pairs = stats.penta_WW + stats.penta_WD + stats.penta_WL + stats.penta_DD +
-                         stats.penta_LD + stats.penta_LL;
+    const double pairs    = total(stats);
     const double WW       = double(stats.penta_WW) / pairs;
     const double WD       = double(stats.penta_WD) / pairs;
     const double WL       = double(stats.penta_WL) / pairs;
@@ -114,8 +110,7 @@ std::string EloNormalized::nElo() const noexcept {
 }
 
 std::string EloNormalized::los(const Stats& stats) const noexcept {
-    const double pairs = stats.penta_WW + stats.penta_WD + stats.penta_WL + stats.penta_DD +
-                         stats.penta_LD + stats.penta_LL;
+    const double pairs    = total(stats);
     const double WW       = double(stats.penta_WW) / pairs;
     const double WD       = double(stats.penta_WD) / pairs;
     const double WL       = double(stats.penta_WL) / pairs;
@@ -137,8 +132,7 @@ std::string EloNormalized::los(const Stats& stats) const noexcept {
 }
 
 std::string EloNormalized::drawRatio(const Stats& stats) const noexcept {
-    const double pairs = stats.penta_WW + stats.penta_WD + stats.penta_WL + stats.penta_DD +
-                         stats.penta_LD + stats.penta_LL;
+    const double pairs = total(stats);
     std::stringstream ss;
     ss << std::fixed << std::setprecision(2) << ((stats.penta_WL + stats.penta_DD) / pairs) * 100.0
        << " %";
@@ -146,8 +140,7 @@ std::string EloNormalized::drawRatio(const Stats& stats) const noexcept {
 }
 
 std::string EloNormalized::scoreRatio(const Stats& stats) const noexcept {
-    const double pairs = stats.penta_WW + stats.penta_WD + stats.penta_WL + stats.penta_DD +
-                         stats.penta_LD + stats.penta_LL;
+    const double pairs      = total(stats);
     const double WW         = double(stats.penta_WW) / pairs;
     const double WD         = double(stats.penta_WD) / pairs;
     const double WL         = double(stats.penta_WL) / pairs;
@@ -160,4 +153,8 @@ std::string EloNormalized::scoreRatio(const Stats& stats) const noexcept {
     return ss.str();
 }
 
+std::size_t EloNormalized::total(const Stats& stats) noexcept {
+    return stats.penta_WW + stats.penta_WD + stats.penta_WL + stats.penta_DD + stats.penta_LD +
+           stats.penta_LL;
+}
 }  // namespace fast_chess

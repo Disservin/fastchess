@@ -56,7 +56,7 @@ class Fastchess : public IOutput {
             std::stringstream ss;
 
             ss << "LLR: " << std::fixed << std::setprecision(2)
-               << sprt.getLLR(stats.wins, stats.draws, stats.losses) << " " << sprt.getBounds()
+               << sprt.getLLR(stats.penta_WW, stats.penta_WD, stats.penta_WL, stats.penta_DD, stats.penta_LD, stats.penta_LL) << " " << sprt.getBounds()
                << " " << sprt.getElo() << "\n";
             std::cout << ss.str() << std::flush;
         }
@@ -66,18 +66,18 @@ class Fastchess : public IOutput {
         std::stringstream ss;
 
         ss << "Ptnml:   " << std::right << std::setw(7)  //
-           << "WW" << std::right << std::setw(7)         //
-           << "WD" << std::right << std::setw(7)         //
-           << "DD/WL" << std::right << std::setw(7)      //
+           << "LL" << std::right << std::setw(7)         //
            << "LD" << std::right << std::setw(7)         //
-           << "LL"
+           << "DD/WL" << std::right << std::setw(7)      //
+           << "WD" << std::right << std::setw(7)         //
+           << "WW"
            << "\n"
            << "Distr:   " << std::right << std::setw(7)                      //
-           << stats.penta_WW << std::right << std::setw(7)                   //
-           << stats.penta_WD << std::right << std::setw(7)                   //
-           << stats.penta_WL + stats.penta_DD << std::right << std::setw(7)  //
+           << stats.penta_LL << std::right << std::setw(7)                   //
            << stats.penta_LD << std::right << std::setw(7)                   //
-           << stats.penta_LL << "\n";
+           << stats.penta_WL + stats.penta_DD << std::right << std::setw(7)  //
+           << stats.penta_WD << std::right << std::setw(7)                   //
+           << stats.penta_WW << "\n";
         std::cout << ss.str() << std::flush;
     }
 

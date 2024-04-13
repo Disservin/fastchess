@@ -7,6 +7,7 @@
 
 #include <chess.hpp>
 
+#include <types/engine_config.hpp>
 #include <util/date.hpp>
 
 namespace fast_chess {

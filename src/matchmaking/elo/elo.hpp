@@ -2,61 +2,27 @@
 
 #include <string>
 
+#include <types/stats.hpp>
+
 namespace fast_chess {
-class Elo {
+
+class EloBase {
    public:
-    Elo(int wins, int losses, int draws);
+    EloBase() = default;
 
-    Elo(int penta_WW, int penta_WD, int penta_WL, int penta_DD, int penta_LD, int penta_LL);
-
-    [[nodiscard]] static double percToEloDiff(double percentage) noexcept;
-
-    [[nodiscard]] static double percToNeloDiff(double percentage, double stdev) noexcept;
-
-    [[nodiscard]] static double percToNeloDiffWDL(double percentage, double stdev) noexcept;
-
-    [[nodiscard]] static double getDiff(int wins, int losses, int draws) noexcept;
-
-    [[nodiscard]] static double getDiff(int penta_WW, int penta_WD, int penta_WL, int penta_DD,
-                                        int penta_LD, int penta_LL) noexcept;
-
-    [[nodiscard]] static double getneloDiff(int wins, int losses, int draws) noexcept;
-
-    [[nodiscard]] static double getneloDiff(int penta_WW, int penta_WD, int penta_WL, int penta_DD,
-                                            int penta_LD, int penta_LL) noexcept;
-
-    [[nodiscard]] static double getError(int wins, int losses, int draws) noexcept;
-
-    [[nodiscard]] static double getError(int penta_WW, int penta_WD, int penta_WL, int penta_DD,
-                                         int penta_LD, int penta_LL) noexcept;
-
-    [[nodiscard]] static double getneloError(int wins, int losses, int draws) noexcept;
-
-    [[nodiscard]] static double getneloError(int penta_WW, int penta_WD, int penta_WL, int penta_DD,
-                                             int penta_LD, int penta_LL) noexcept;
+    virtual ~EloBase() = default;
 
     [[nodiscard]] std::string getElo() const noexcept;
+    [[nodiscard]] virtual std::string getLos(const Stats& stats) const noexcept        = 0;
+    [[nodiscard]] virtual std::string getDrawRatio(const Stats& stats) const noexcept  = 0;
+    [[nodiscard]] virtual std::string getScoreRatio(const Stats& stats) const noexcept = 0;
+    [[nodiscard]] virtual std::string getnElo() const noexcept                         = 0;
 
-    [[nodiscard]] std::string getnElo() const noexcept;
+    double percToEloDiff(double percentage) noexcept {
+        return -400.0 * std::log10(1.0 / percentage - 1.0);
+    }
 
-    [[nodiscard]] static std::string getLos(int wins, int losses, int draws) noexcept;
-
-    [[nodiscard]] static std::string getLos(int penta_WW, int penta_WD, int penta_WL, int penta_DD,
-                                            int penta_LD, int penta_LL) noexcept;
-
-    [[nodiscard]] static std::string getDrawRatio(int wins, int losses, int draws) noexcept;
-
-    [[nodiscard]] static std::string getDrawRatio(int penta_WW, int penta_WD, int penta_WL,
-                                                  int penta_DD, int penta_LD,
-                                                  int penta_LL) noexcept;
-
-    [[nodiscard]] static std::string getScoreRatio(int wins, int losses, int draws) noexcept;
-
-    [[nodiscard]] static std::string getScoreRatio(int penta_WW, int penta_WD, int penta_WL,
-                                                   int penta_DD, int penta_LD,
-                                                   int penta_LL) noexcept;
-
-   private:
+   protected:
     double diff_;
     double error_;
     double nelodiff_;

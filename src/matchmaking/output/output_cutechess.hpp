@@ -1,6 +1,6 @@
 #pragma once
 
-#include <matchmaking/elo/elo.hpp>
+#include <matchmaking/elo/elo_logistic.hpp>
 #include <matchmaking/output/output.hpp>
 #include <util/logger/logger.hpp>
 
@@ -16,33 +16,33 @@ class Cutechess : public IOutput {
 
     void printElo(const Stats& stats, const std::string& first, const std::string& second,
                   std::size_t current_game_count) override {
-        const Elo elo(stats.wins, stats.losses, stats.draws);
+        const EloLogistic elo(stats);
 
         std::stringstream ss;
-        ss << "Score of "                                                //
-           << first                                                      //
-           << " vs "                                                     //
-           << second                                                     //
-           << ": "                                                       //
-           << stats.wins                                                 //
-           << " - "                                                      //
-           << stats.losses                                               //
-           << " - "                                                      //
-           << stats.draws                                                //
-           << " ["                                                       //
-           << Elo::getScoreRatio(stats.wins, stats.losses, stats.draws)  //
-           << "] "                                                       //
-           << current_game_count                                         //
+        ss << "Score of "               //
+           << first                     //
+           << " vs "                    //
+           << second                    //
+           << ": "                      //
+           << stats.wins                //
+           << " - "                     //
+           << stats.losses              //
+           << " - "                     //
+           << stats.draws               //
+           << " ["                      //
+           << elo.getScoreRatio(stats)  //
+           << "] "                      //
+           << current_game_count        //
            << "\n";
 
-        ss << "Elo difference: "                                        //
-           << elo.getElo()                                              //
-           << ", "                                                      //
-           << "LOS: "                                                   //
-           << Elo::getLos(stats.wins, stats.losses, stats.draws)        //
-           << ", "                                                      //
-           << "DrawRatio: "                                             //
-           << Elo::getDrawRatio(stats.wins, stats.losses, stats.draws)  //
+        ss << "Elo difference: "       //
+           << elo.getElo()             //
+           << ", "                     //
+           << "LOS: "                  //
+           << elo.getLos(stats)        //
+           << ", "                     //
+           << "DrawRatio: "            //
+           << elo.getDrawRatio(stats)  //
            << "\n";
 
         std::cout << ss.str() << std::flush;

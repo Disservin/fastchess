@@ -33,47 +33,47 @@ class Fastchess : public IOutput {
         }
 
         std::stringstream ss;
-        ss << "Score of "                //
-           << first                      //
-           << " vs "                     //
-           << second                     //
-           << ": "                       //
-           << stats.wins                 //
-           << "W - "                     //
-           << stats.losses               //
-           << "L - "                     //
-           << stats.draws                //
-           << "D ["                      //
-           << elo->getScoreRatio(stats)  //
-           << "] "                       //
-           << current_game_count         //
+        ss << "Score of "             //
+           << first                   //
+           << " vs "                  //
+           << second                  //
+           << ": "                    //
+           << stats.wins              //
+           << "W - "                  //
+           << stats.losses            //
+           << "L - "                  //
+           << stats.draws             //
+           << "D ["                   //
+           << elo->scoreRatio(stats)  //
+           << "] "                    //
+           << current_game_count      //
            << "\n";
 
         if (report_penta_) {
-            ss << "Elo difference: "        //
-               << elo->getElo()             //
-               << ", "                      //
-               << "nElo difference: "       //
-               << elo->getnElo()            //
-               << ", "                      //
-               << "LOS: "                   //
-               << elo->getLos(stats)        //
-               << ", "                      //
-               << "PairDrawRatio: "         //
-               << elo->getDrawRatio(stats)  //
+            ss << "Elo difference: "     //
+               << elo->getElo()          //
+               << ", "                   //
+               << "nElo difference: "    //
+               << elo->nElo()            //
+               << ", "                   //
+               << "LOS: "                //
+               << elo->los(stats)        //
+               << ", "                   //
+               << "PairDrawRatio: "      //
+               << elo->drawRatio(stats)  //
                << "\n";
         } else {
-            ss << "Elo difference: "        //
-               << elo->getElo()             //
-               << ", "                      //
-               << "nElo difference: "       //
-               << elo->getnElo()            //
-               << ", "                      //
-               << "LOS: "                   //
-               << elo->getLos(stats)        //
-               << ", "                      //
-               << "DrawRatio: "             //
-               << elo->getDrawRatio(stats)  //
+            ss << "Elo difference: "     //
+               << elo->getElo()          //
+               << ", "                   //
+               << "nElo difference: "    //
+               << elo->nElo()            //
+               << ", "                   //
+               << "LOS: "                //
+               << elo->los(stats)        //
+               << ", "                   //
+               << "DrawRatio: "          //
+               << elo->drawRatio(stats)  //
                << "\n";
         }
         std::cout << ss.str() << std::flush;

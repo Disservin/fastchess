@@ -7,10 +7,10 @@
 namespace fast_chess {
 
 EloNormalized::EloNormalized(const Stats& stats) {
-    diff_      = getDiff(stats);
-    error_     = getError(stats);
-    nelodiff_  = getneloDiff(stats);
-    neloerror_ = getneloError(stats);
+    diff_      = diff(stats);
+    error_     = error(stats);
+    nelodiff_  = nEloDiff(stats);
+    neloerror_ = nEloError(stats);
 }
 
 double EloNormalized::percToEloDiff(double percentage) noexcept {
@@ -25,7 +25,7 @@ double EloNormalized::percToNeloDiffWDL(double percentage, double stdev) noexcep
     return (percentage - 0.5) / stdev * (800 / std::log(10));
 }
 
-double EloNormalized::getError(const Stats& stats) noexcept {
+double EloNormalized::error(const Stats& stats) noexcept {
     const double pairs = stats.penta_WW + stats.penta_WD + stats.penta_WL + stats.penta_DD +
                          stats.penta_LD + stats.penta_LL;
     const double WW       = double(stats.penta_WW) / pairs;
@@ -47,7 +47,7 @@ double EloNormalized::getError(const Stats& stats) noexcept {
     return (percToEloDiff(devMax) - percToEloDiff(devMin)) / 2.0;
 }
 
-double EloNormalized::getneloError(const Stats& stats) noexcept {
+double EloNormalized::nEloError(const Stats& stats) noexcept {
     const double pairs = stats.penta_WW + stats.penta_WD + stats.penta_WL + stats.penta_DD +
                          stats.penta_LD + stats.penta_LL;
     const double WW       = double(stats.penta_WW) / pairs;
@@ -71,7 +71,7 @@ double EloNormalized::getneloError(const Stats& stats) noexcept {
            2.0;
 }
 
-double EloNormalized::getDiff(const Stats& stats) noexcept {
+double EloNormalized::diff(const Stats& stats) noexcept {
     const double pairs = stats.penta_WW + stats.penta_WD + stats.penta_WL + stats.penta_DD +
                          stats.penta_LD + stats.penta_LL;
     const double WW         = double(stats.penta_WW) / pairs;
@@ -84,7 +84,7 @@ double EloNormalized::getDiff(const Stats& stats) noexcept {
     return percToEloDiff(percentage);
 }
 
-double EloNormalized::getneloDiff(const Stats& stats) noexcept {
+double EloNormalized::nEloDiff(const Stats& stats) noexcept {
     const double pairs = stats.penta_WW + stats.penta_WD + stats.penta_WL + stats.penta_DD +
                          stats.penta_LD + stats.penta_LL;
     const double WW       = double(stats.penta_WW) / pairs;
@@ -104,7 +104,7 @@ double EloNormalized::getneloDiff(const Stats& stats) noexcept {
     return percToNeloDiff(a, stdev * std::sqrt(pairs));
 }
 
-std::string EloNormalized::getnElo() const noexcept {
+std::string EloNormalized::nElo() const noexcept {
     std::stringstream ss;
 
     ss << std::fixed << std::setprecision(2) << nelodiff_;
@@ -113,7 +113,7 @@ std::string EloNormalized::getnElo() const noexcept {
     return ss.str();
 }
 
-std::string EloNormalized::getLos(const Stats& stats) const noexcept {
+std::string EloNormalized::los(const Stats& stats) const noexcept {
     const double pairs = stats.penta_WW + stats.penta_WD + stats.penta_WL + stats.penta_DD +
                          stats.penta_LD + stats.penta_LL;
     const double WW       = double(stats.penta_WW) / pairs;
@@ -136,7 +136,7 @@ std::string EloNormalized::getLos(const Stats& stats) const noexcept {
     return ss.str();
 }
 
-std::string EloNormalized::getDrawRatio(const Stats& stats) const noexcept {
+std::string EloNormalized::drawRatio(const Stats& stats) const noexcept {
     const double pairs = stats.penta_WW + stats.penta_WD + stats.penta_WL + stats.penta_DD +
                          stats.penta_LD + stats.penta_LL;
     std::stringstream ss;
@@ -145,7 +145,7 @@ std::string EloNormalized::getDrawRatio(const Stats& stats) const noexcept {
     return ss.str();
 }
 
-std::string EloNormalized::getScoreRatio(const Stats& stats) const noexcept {
+std::string EloNormalized::scoreRatio(const Stats& stats) const noexcept {
     const double pairs = stats.penta_WW + stats.penta_WD + stats.penta_WL + stats.penta_DD +
                          stats.penta_LD + stats.penta_LL;
     const double WW         = double(stats.penta_WW) / pairs;

@@ -19,30 +19,30 @@ class Cutechess : public IOutput {
         const EloLogistic elo(stats);
 
         std::stringstream ss;
-        ss << "Score of "               //
-           << first                     //
-           << " vs "                    //
-           << second                    //
-           << ": "                      //
-           << stats.wins                //
-           << " - "                     //
-           << stats.losses              //
-           << " - "                     //
-           << stats.draws               //
-           << " ["                      //
-           << elo.getScoreRatio(stats)  //
-           << "] "                      //
-           << current_game_count        //
+        ss << "Score of "            //
+           << first                  //
+           << " vs "                 //
+           << second                 //
+           << ": "                   //
+           << stats.wins             //
+           << " - "                  //
+           << stats.losses           //
+           << " - "                  //
+           << stats.draws            //
+           << " ["                   //
+           << elo.scoreRatio(stats)  //
+           << "] "                   //
+           << current_game_count     //
            << "\n";
 
-        ss << "Elo difference: "       //
-           << elo.getElo()             //
-           << ", "                     //
-           << "LOS: "                  //
-           << elo.getLos(stats)        //
-           << ", "                     //
-           << "DrawRatio: "            //
-           << elo.getDrawRatio(stats)  //
+        ss << "Elo difference: "    //
+           << elo.getElo()          //
+           << ", "                  //
+           << "LOS: "               //
+           << elo.los(stats)        //
+           << ", "                  //
+           << "DrawRatio: "         //
+           << elo.drawRatio(stats)  //
            << "\n";
 
         std::cout << ss.str() << std::flush;

@@ -16,10 +16,10 @@ std::string EloBase::getElo() const noexcept {
 }
 
 EloLogistic::EloLogistic(const Stats& stats) {
-    diff_      = getDiff(stats);
-    error_     = getError(stats);
-    nelodiff_  = getneloDiff(stats);
-    neloerror_ = getneloError(stats);
+    diff_      = diff(stats);
+    error_     = error(stats);
+    nelodiff_  = nEloDiff(stats);
+    neloerror_ = nEloError(stats);
 }
 
 double EloLogistic::percToEloDiff(double percentage) noexcept {
@@ -34,7 +34,7 @@ double EloLogistic::percToNeloDiffWDL(double percentage, double stdev) noexcept 
     return (percentage - 0.5) / stdev * (800 / std::log(10));
 }
 
-double EloLogistic::getError(const Stats& stats) noexcept {
+double EloLogistic::error(const Stats& stats) noexcept {
     const double n    = stats.wins + stats.losses + stats.draws;
     const double w    = stats.wins / n;
     const double l    = stats.losses / n;
@@ -51,7 +51,7 @@ double EloLogistic::getError(const Stats& stats) noexcept {
     return (percToEloDiff(devMax) - percToEloDiff(devMin)) / 2.0;
 }
 
-double EloLogistic::getneloError(const Stats& stats) noexcept {
+double EloLogistic::nEloError(const Stats& stats) noexcept {
     const double n    = stats.wins + stats.losses + stats.draws;
     const double w    = stats.wins / n;
     const double l    = stats.losses / n;
@@ -70,7 +70,7 @@ double EloLogistic::getneloError(const Stats& stats) noexcept {
            2.0;
 }
 
-double EloLogistic::getDiff(const Stats& stats) noexcept {
+double EloLogistic::diff(const Stats& stats) noexcept {
     const double n          = stats.wins + stats.losses + stats.draws;
     const double score      = stats.wins + stats.draws / 2.0;
     const double percentage = (score / n);
@@ -78,7 +78,7 @@ double EloLogistic::getDiff(const Stats& stats) noexcept {
     return percToEloDiff(percentage);
 }
 
-double EloLogistic::getneloDiff(const Stats& stats) noexcept {
+double EloLogistic::nEloDiff(const Stats& stats) noexcept {
     const double n    = stats.wins + stats.losses + stats.draws;
     const double w    = stats.wins / n;
     const double l    = stats.losses / n;
@@ -92,7 +92,7 @@ double EloLogistic::getneloDiff(const Stats& stats) noexcept {
     return percToNeloDiffWDL(perc, stdev * std::sqrt(n));
 }
 
-std::string EloLogistic::getnElo() const noexcept {
+std::string EloLogistic::nElo() const noexcept {
     std::stringstream ss;
 
     ss << std::fixed << std::setprecision(2) << nelodiff_;
@@ -101,7 +101,7 @@ std::string EloLogistic::getnElo() const noexcept {
     return ss.str();
 }
 
-std::string EloLogistic::getLos(const Stats& stats) const noexcept {
+std::string EloLogistic::los(const Stats& stats) const noexcept {
     const double games = stats.wins + stats.losses + stats.draws;
     const double W     = double(stats.wins) / games;
     const double D     = double(stats.draws) / games;
@@ -118,14 +118,14 @@ std::string EloLogistic::getLos(const Stats& stats) const noexcept {
     return ss.str();
 }
 
-std::string EloLogistic::getDrawRatio(const Stats& stats) const noexcept {
+std::string EloLogistic::drawRatio(const Stats& stats) const noexcept {
     const double n = stats.wins + stats.losses + stats.draws;
     std::stringstream ss;
     ss << std::fixed << std::setprecision(2) << (stats.draws / n) * 100.0 << " %";
     return ss.str();
 }
 
-std::string EloLogistic::getScoreRatio(const Stats& stats) const noexcept {
+std::string EloLogistic::scoreRatio(const Stats& stats) const noexcept {
     const double n        = stats.wins + stats.losses + stats.draws;
     const auto scoreRatio = double(stats.wins * 2 + stats.draws) / (n * 2);
 

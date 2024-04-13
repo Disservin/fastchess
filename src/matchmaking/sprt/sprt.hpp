@@ -33,6 +33,7 @@ class SPRT {
     double elo1_ = 0.0;
 
     bool valid_ = false;
+    bool logisticBounds_ = false;
 };
 
 }  // namespace fast_chess

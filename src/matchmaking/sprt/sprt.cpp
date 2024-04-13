@@ -85,13 +85,15 @@ double SPRT::getLLR(int penta_WW, int penta_WD, int penta_WL, int penta_DD, int 
     if (var_penta == 0) return 0.0;
     const double stdDeviation_penta = std::sqrt(var_penta);
     const double var_s_penta        = var_penta / pairs;
+    const double score0;
+    const double score1;
     if (bounds == "normalized") {
-        const double score0       = neloToScorePenta(elo0_, stdDeviation_penta);
-        const double score1       = neloToScorePenta(elo1_, stdDeviation_penta);
+        score0       = neloToScorePenta(elo0_, stdDeviation_penta);
+        score1       = neloToScorePenta(elo1_, stdDeviation_penta);
     }
     else if (bounds== "logistic") {
-        const double score0       = leloToScore(elo0_, stdDeviation_penta);
-        const double score1       = leloToScore(elo1_, stdDeviation_penta);
+        score0       = leloToScore(elo0_);
+        score1       = leloToScore(elo1_);
     }
     else {
         return 0.0;

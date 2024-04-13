@@ -31,8 +31,9 @@ struct Sprt {
     double beta  = 0.0;
     double elo0  = 0.0;
     double elo1  = 0.0;
+    bool bounds = false;
 };
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(Sprt, alpha, beta, elo0, elo1)
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(Sprt, alpha, beta, elo0, elo1, bounds)
 
 struct DrawAdjudication {
     int move_number = 0;

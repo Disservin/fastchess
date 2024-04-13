@@ -10,7 +10,7 @@ class SPRT {
    public:
     SPRT() = default;
 
-    SPRT(double alpha, double beta, double elo0, double elo1);
+    SPRT(double alpha, double beta, double elo0, double elo1, bool bounds);
 
     [[nodiscard]] bool isValid() const noexcept;
 

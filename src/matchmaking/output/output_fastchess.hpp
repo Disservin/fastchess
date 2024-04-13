@@ -1,6 +1,7 @@
 #pragma once
 
-#include <matchmaking/elo/elo.hpp>
+#include <matchmaking/elo/elo_logistic.hpp>
+#include <matchmaking/elo/elo_norm.hpp>
 #include <matchmaking/output/output.hpp>
 #include <util/logger/logger.hpp>
 
@@ -23,54 +24,56 @@ class Fastchess : public IOutput {
 
     void printElo(const Stats& stats, const std::string& first, const std::string& second,
                   std::size_t current_game_count) override {
-        const Elo elo = (report_penta_) ? Elo(stats.penta_WW, stats.penta_WD, stats.penta_WL,
-                                              stats.penta_DD, stats.penta_LD, stats.penta_LL)
-                                        : Elo(stats.wins, stats.losses, stats.draws);
+        std::unique_ptr<EloBase> elo;
+
+        if (report_penta_) {
+            elo = std::make_unique<EloNormalized>(stats);
+        } else {
+            elo = std::make_unique<EloLogistic>(stats);
+        }
 
         std::stringstream ss;
-        ss << "Score of "                                                //
-           << first                                                      //
-           << " vs "                                                     //
-           << second                                                     //
-           << ": "                                                       //
-           << stats.wins                                                 //
-           << "W - "                                                     //
-           << stats.losses                                               //
-           << "L - "                                                     //
-           << stats.draws                                                //
-           << "D ["                                                      //
-           << Elo::getScoreRatio(stats.wins, stats.losses, stats.draws)  //
-           << "] "                                                       //
-           << current_game_count                                         //
+        ss << "Score of "             //
+           << first                   //
+           << " vs "                  //
+           << second                  //
+           << ": "                    //
+           << stats.wins              //
+           << "W - "                  //
+           << stats.losses            //
+           << "L - "                  //
+           << stats.draws             //
+           << "D ["                   //
+           << elo->scoreRatio(stats)  //
+           << "] "                    //
+           << current_game_count      //
            << "\n";
 
         if (report_penta_) {
-            ss << "Elo difference: "   //
-               << elo.getElo()         //
-               << ", "                 //
-               << "nElo difference: "  //
-               << elo.getnElo()        //
-               << ", "                 //
-               << "LOS: "              //
-               << Elo::getLos(stats.penta_WW, stats.penta_WD, stats.penta_WL, stats.penta_DD,
-                              stats.penta_LD, stats.penta_LL)  //
-               << ", "                                         //
-               << "PairDrawRatio: "                            //
-               << Elo::getDrawRatio(stats.penta_WW, stats.penta_WD, stats.penta_WL, stats.penta_DD,
-                                    stats.penta_LD, stats.penta_LL)  //
+            ss << "Elo difference: "     //
+               << elo->getElo()          //
+               << ", "                   //
+               << "nElo difference: "    //
+               << elo->nElo()            //
+               << ", "                   //
+               << "LOS: "                //
+               << elo->los(stats)        //
+               << ", "                   //
+               << "PairDrawRatio: "      //
+               << elo->drawRatio(stats)  //
                << "\n";
         } else {
-            ss << "Elo difference: "                                        //
-               << elo.getElo()                                              //
-               << ", "                                                      //
-               << "nElo difference: "                                       //
-               << elo.getnElo()                                             //
-               << ", "                                                      //
-               << "LOS: "                                                   //
-               << Elo::getLos(stats.wins, stats.losses, stats.draws)        //
-               << ", "                                                      //
-               << "DrawRatio: "                                             //
-               << Elo::getDrawRatio(stats.wins, stats.losses, stats.draws)  //
+            ss << "Elo difference: "     //
+               << elo->getElo()          //
+               << ", "                   //
+               << "nElo difference: "    //
+               << elo->nElo()            //
+               << ", "                   //
+               << "LOS: "                //
+               << elo->los(stats)        //
+               << ", "                   //
+               << "DrawRatio: "          //
+               << elo->drawRatio(stats)  //
                << "\n";
         }
         std::cout << ss.str() << std::flush;

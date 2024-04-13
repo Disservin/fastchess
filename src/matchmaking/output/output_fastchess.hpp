@@ -78,7 +78,7 @@ class Fastchess : public IOutput {
     void printSprt(const SPRT& sprt, const Stats& stats) override {
         if (sprt.isValid()) {
             std::stringstream ss;
-            const double llr;
+            double llr;
             if (report_penta_ == true)
                llr = sprt.getLLR(stats.penta_WW, stats.penta_WD, stats.penta_WL, stats.penta_DD, stats.penta_LD, stats.penta_LL)
             else

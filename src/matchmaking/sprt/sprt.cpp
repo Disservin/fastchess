@@ -49,13 +49,15 @@ double SPRT::getLLR(int win, int draw, int loss) const noexcept {
     if (var == 0) return 0.0;
     const double stdDeviation = std::sqrt(var);
     const double var_s        = var / games;
+    const double score0;
+    const double score1;
     if (logisticBounds_ == false) {
-        const double score0       = neloToScoreWDL(elo0_, stdDeviation);
-        const double score1       = neloToScoreWDL(elo1_, stdDeviation);
+        score0       = neloToScoreWDL(elo0_, stdDeviation);
+        score1       = neloToScoreWDL(elo1_, stdDeviation);
     }
     else if (logisticBounds_ == true) {
-        const double score0       = leloToScore(elo0_, stdDeviation);
-        const double score1       = leloToScore(elo1_, stdDeviation);
+        score0       = leloToScore(elo0_);
+        score1       = leloToScore(elo1_);
     }
     else {
         return 0.0;
@@ -87,11 +89,11 @@ double SPRT::getLLR(int penta_WW, int penta_WD, int penta_WL, int penta_DD, int 
     const double var_s_penta        = var_penta / pairs;
     const double score0;
     const double score1;
-    if (bounds == "normalized") {
+    if (logisticBounds_ == false) {
         score0       = neloToScorePenta(elo0_, stdDeviation_penta);
         score1       = neloToScorePenta(elo1_, stdDeviation_penta);
     }
-    else if (bounds== "logistic") {
+    else if (logisticBounds_ == true) {
         score0       = leloToScore(elo0_);
         score1       = leloToScore(elo1_);
     }

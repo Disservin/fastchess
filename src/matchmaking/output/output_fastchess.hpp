@@ -19,73 +19,121 @@ class Fastchess : public IOutput {
 
     void printElo(const Stats& stats, const std::string& first, const std::string& second,
                   std::size_t current_game_count) override {
-        const Elo elo(stats.penta_WW, stats.penta_WD, stats.penta_WL, stats.penta_DD,
-                      stats.penta_LD, stats.penta_LL);
-
-        std::stringstream ss;
-        ss << "Score of "   //
-           << first         //
-           << " vs "        //
-           << second        //
-           << ": "          //
-           << stats.wins    //
-           << "W - "        //
-           << stats.losses  //
-           << "L - "        //
-           << stats.draws   //
-           << "D ["         //
-           << Elo::getScoreRatio(stats.penta_WW, stats.penta_WD, stats.penta_WL, stats.penta_DD,
-                                 stats.penta_LD, stats.penta_LL)  //
-           << "] "                                                //
-           << current_game_count                                  //
-           << "\n";
-
-        ss << "Elo difference: "   //
-           << elo.getElo()         //
-           << ", "                 //
-           << "nElo difference: "  //
-           << elo.getnElo()        //
-           << ", "                 //
-           << "LOS: "              //
-           << Elo::getLos(stats.penta_WW, stats.penta_WD, stats.penta_WL, stats.penta_DD,
-                          stats.penta_LD, stats.penta_LL)  //
-           << ", "                                         //
-           << "PairDrawRatio: "                            //
-           << Elo::getDrawRatio(stats.penta_WW, stats.penta_WD, stats.penta_WL, stats.penta_DD,
-                                stats.penta_LD, stats.penta_LL)  //
-           << "\n";
-
-        std::cout << ss.str() << std::flush;
+        if (report_penta == true){
+           const Elo elo(stats.penta_WW, stats.penta_WD, stats.penta_WL, stats.penta_DD,
+                         stats.penta_LD, stats.penta_LL);
+   
+           std::stringstream ss;
+           ss << "Score of "   //
+              << first         //
+              << " vs "        //
+              << second        //
+              << ": "          //
+              << stats.wins    //
+              << "W - "        //
+              << stats.losses  //
+              << "L - "        //
+              << stats.draws   //
+              << "D ["         //
+              << Elo::getScoreRatio(stats.penta_WW, stats.penta_WD, stats.penta_WL, stats.penta_DD,
+                                    stats.penta_LD, stats.penta_LL)  //
+              << "] "                                                //
+              << current_game_count                                  //
+              << "\n";
+   
+           ss << "Elo difference: "   //
+              << elo.getElo()         //
+              << ", "                 //
+              << "nElo difference: "  //
+              << elo.getnElo()        //
+              << ", "                 //
+              << "LOS: "              //
+              << Elo::getLos(stats.penta_WW, stats.penta_WD, stats.penta_WL, stats.penta_DD,
+                             stats.penta_LD, stats.penta_LL)  //
+              << ", "                                         //
+              << "PairDrawRatio: "                            //
+              << Elo::getDrawRatio(stats.penta_WW, stats.penta_WD, stats.penta_WL, stats.penta_DD,
+                                   stats.penta_LD, stats.penta_LL)  //
+              << "\n";
+   
+           std::cout << ss.str() << std::flush;
+        } else {
+           const Elo elo(stats.wins, stats.losses, stats.draws);
+   
+           std::stringstream ss;
+           ss << "Score of "   //
+              << first         //
+              << " vs "        //
+              << second        //
+              << ": "          //
+              << stats.wins    //
+              << "W - "        //
+              << stats.losses  //
+              << "L - "        //
+              << stats.draws   //
+              << "D ["         //
+              << Elo::getScoreRatio(stats.wins, stats.losses, stats.draws)  //
+              << "] "                                                //
+              << current_game_count                                  //
+              << "\n";
+   
+           ss << "Elo difference: "   //
+              << elo.getElo()         //
+              << ", "                 //
+              << "nElo difference: "  //
+              << elo.getnElo()        //
+              << ", "                 //
+              << "LOS: "              //
+              << Elo::getLos(stats.wins, stats.losses, stats.draws)  //
+              << ", "                                         //
+              << "DrawRatio: "                            //
+              << Elo::getDrawRatio(stats.wins, stats.losses, stats.draws)  //
+              << "\n";
+   
+           std::cout << ss.str() << std::flush;
+        }
     }
 
     void printSprt(const SPRT& sprt, const Stats& stats) override {
         if (sprt.isValid()) {
-            std::stringstream ss;
-
-            ss << "LLR: " << std::fixed << std::setprecision(2)
-               << sprt.getLLR(stats.penta_WW, stats.penta_WD, stats.penta_WL, stats.penta_DD,
-                              stats.penta_LD, stats.penta_LL)
-               << " " << sprt.getBounds() << " " << sprt.getElo() << "\n";
-            std::cout << ss.str() << std::flush;
+            if(report_penta == true) {
+               std::stringstream ss;
+   
+               ss << "LLR: " << std::fixed << std::setprecision(2)
+                  << sprt.getLLR(stats.penta_WW, stats.penta_WD, stats.penta_WL, stats.penta_DD,
+                                 stats.penta_LD, stats.penta_LL)
+                  << " " << sprt.getBounds() << " " << sprt.getElo() << "\n";
+               std::cout << ss.str() << std::flush;
+            } else {
+               std::stringstream ss;
+   
+               ss << "LLR: " << std::fixed << std::setprecision(2)
+                  << sprt.getLLR(stats.wins, stats.losses, stats.draws)
+                  << " " << sprt.getBounds() << " " << sprt.getElo() << "\n";
+               std::cout << ss.str() << std::flush;
+            }
         }
     };
 
     static void printPenta(const Stats& stats) {
-        std::stringstream ss;
-
-        ss << "Ptnml:   " << std::right << std::setw(7)  //
-           << "LL" << std::right << std::setw(7)         //
-           << "LD" << std::right << std::setw(7)         //
-           << "DD/WL" << std::right << std::setw(7)      //
-           << "WD" << std::right << std::setw(7)         //
-           << "WW"
-           << "\n"
-           << "Distr:   " << std::right << std::setw(7)                      //
-           << stats.penta_LL << std::right << std::setw(7)                   //
-           << stats.penta_LD << std::right << std::setw(7)                   //
-           << stats.penta_WL + stats.penta_DD << std::right << std::setw(7)  //
-           << stats.penta_WD << std::right << std::setw(7)                   //
-           << stats.penta_WW << "\n";
+        if (report_penta == true){
+           std::stringstream ss;
+   
+           ss << "Ptnml:   " << std::right << std::setw(7)  //
+              << "LL" << std::right << std::setw(7)         //
+              << "LD" << std::right << std::setw(7)         //
+              << "DD/WL" << std::right << std::setw(7)      //
+              << "WD" << std::right << std::setw(7)         //
+              << "WW"
+              << "\n"
+              << "Distr:   " << std::right << std::setw(7)                      //
+              << stats.penta_LL << std::right << std::setw(7)                   //
+              << stats.penta_LD << std::right << std::setw(7)                   //
+              << stats.penta_WL + stats.penta_DD << std::right << std::setw(7)  //
+              << stats.penta_WD << std::right << std::setw(7)                   //
+              << stats.penta_WW << "\n";
+        }
+        else ss << "";
         std::cout << ss.str() << std::flush;
     }
 

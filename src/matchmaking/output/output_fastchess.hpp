@@ -15,7 +15,7 @@ class Fastchess : public IOutput {
         std::cout << "--------------------------------------------------\n";
         printElo(stats, first, second, current_game_count);
         printSprt(sprt, stats);
-        if (report_penta_ == true){printPenta(stats);}
+        if (report_penta_){printPenta(stats);}
         std::cout << "--------------------------------------------------\n";
     };
 
@@ -41,7 +41,7 @@ class Fastchess : public IOutput {
            << current_game_count                                  //
            << "\n";
        
-        if (report_penta_ == true){
+        if (report_penta_){
            ss << "Elo difference: "   //
               << elo.getElo()         //
               << ", "                 //
@@ -77,7 +77,7 @@ class Fastchess : public IOutput {
         if (sprt.isValid()) {
             std::stringstream ss;
             double llr;
-            if (report_penta_ == true)
+            if (report_penta_)
                llr = sprt.getLLR(stats.penta_WW, stats.penta_WD, stats.penta_WL, stats.penta_DD, stats.penta_LD, stats.penta_LL);
             else
                llr = sprt.getLLR(stats.wins, stats.draws, stats.losses);

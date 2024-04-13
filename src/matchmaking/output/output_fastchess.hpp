@@ -78,17 +78,13 @@ class Fastchess : public IOutput {
     void printSprt(const SPRT& sprt, const Stats& stats) override {
         if (sprt.isValid()) {
             std::stringstream ss;
-
-            if (report_penta_ == true){
-               ss << "LLR: " << std::fixed << std::setprecision(2)
-                  << sprt.getLLR(stats.penta_WW, stats.penta_WD, stats.penta_WL, stats.penta_DD,
-                                 stats.penta_LD, stats.penta_LL)
-                  << " " << sprt.getBounds() << " " << sprt.getElo() << "\n";
-            } else {
-               ss << "LLR: " << std::fixed << std::setprecision(2)
-                  << sprt.getLLR(stats.wins, stats.draws, stats.losses)
-                  << " " << sprt.getBounds() << " " << sprt.getElo() << "\n";
-            }
+            const double llr;
+            if (report_penta_ == true)
+               llr = sprt.getLLR(stats.penta_WW, stats.penta_WD, stats.penta_WL, stats.penta_DD, stats.penta_LD, stats.penta_LL)
+            else
+               llr = sprt.getLLR(stats.wins, stats.draws, stats.losses)
+            ss << "LLR: " << std::fixed << std::setprecision(2)
+               << llr << " " << sprt.getBounds() << " " << sprt.getElo() << "\n";
             std::cout << ss.str() << std::flush;
         }
     };

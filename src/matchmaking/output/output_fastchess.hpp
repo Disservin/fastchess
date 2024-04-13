@@ -3,6 +3,7 @@
 #include <matchmaking/elo/elo.hpp>
 #include <matchmaking/output/output.hpp>
 #include <util/logger/logger.hpp>
+#include <types/tournament_options.hpp>
 
 namespace fast_chess {
 

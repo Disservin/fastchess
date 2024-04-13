@@ -18,16 +18,14 @@ SPRT::SPRT(double alpha, double beta, double elo0, double elo1, bool bounds) {
         elo1_ = elo1;
 
         logisticBounds_ = bounds;
-        
+
         Logger::log<Logger::Level::INFO>("Initialized valid SPRT configuration.");
     } else if (!(alpha == 0.0 && beta == 0.0 && elo0 == 0.0 && elo1 == 0.0)) {
         Logger::log<Logger::Level::INFO>("No valid SPRT configuration was found!");
     }
 }
 
-double SPRT::leloToScore(double lelo) noexcept {
-    return 1 / (1 + std::pow(10, (-lelo / 400)));
-}
+double SPRT::leloToScore(double lelo) noexcept { return 1 / (1 + std::pow(10, (-lelo / 400))); }
 
 double SPRT::neloToScoreWDL(double nelo, double stdDeviation) noexcept {
     return nelo * stdDeviation / (800.0 / std::log(10)) + 0.5;
@@ -52,14 +50,12 @@ double SPRT::getLLR(int win, int draw, int loss) const noexcept {
     double score0;
     double score1;
     if (logisticBounds_ == false) {
-        score0       = neloToScoreWDL(elo0_, stdDeviation);
-        score1       = neloToScoreWDL(elo1_, stdDeviation);
-    }
-    else if (logisticBounds_ == true) {
-        score0       = leloToScore(elo0_);
-        score1       = leloToScore(elo1_);
-    }
-    else {
+        score0 = neloToScoreWDL(elo0_, stdDeviation);
+        score1 = neloToScoreWDL(elo1_, stdDeviation);
+    } else if (logisticBounds_ == true) {
+        score0 = leloToScore(elo0_);
+        score1 = leloToScore(elo1_);
+    } else {
         return 0.0;
     }
     return (score1 - score0) * (2 * a - score0 - score1) / var_s / 2.0;
@@ -90,14 +86,12 @@ double SPRT::getLLR(int penta_WW, int penta_WD, int penta_WL, int penta_DD, int 
     double score0;
     double score1;
     if (logisticBounds_ == false) {
-        score0       = neloToScorePenta(elo0_, stdDeviation_penta);
-        score1       = neloToScorePenta(elo1_, stdDeviation_penta);
-    }
-    else if (logisticBounds_ == true) {
-        score0       = leloToScore(elo0_);
-        score1       = leloToScore(elo1_);
-    }
-    else {
+        score0 = neloToScorePenta(elo0_, stdDeviation_penta);
+        score1 = neloToScorePenta(elo1_, stdDeviation_penta);
+    } else if (logisticBounds_ == true) {
+        score0 = leloToScore(elo0_);
+        score1 = leloToScore(elo1_);
+    } else {
         return 0.0;
     }
     return (score1 - score0) * (2 * a - score0 - score1) / var_s_penta / 2.0;

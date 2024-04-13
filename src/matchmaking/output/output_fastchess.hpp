@@ -8,67 +8,70 @@ namespace fast_chess {
 
 class Fastchess : public IOutput {
    public:
-        Fastchess(bool report_penta = true) : report_penta_(report_penta) {}
+    Fastchess(bool report_penta = true) : report_penta_(report_penta) {}
 
-        void printInterval(const SPRT& sprt, const Stats& stats, const std::string& first,
+    void printInterval(const SPRT& sprt, const Stats& stats, const std::string& first,
                        const std::string& second, int current_game_count) override {
         std::cout << "--------------------------------------------------\n";
         printElo(stats, first, second, current_game_count);
         printSprt(sprt, stats);
-        if (report_penta_){printPenta(stats);}
+        if (report_penta_) {
+            printPenta(stats);
+        }
         std::cout << "--------------------------------------------------\n";
     };
 
     void printElo(const Stats& stats, const std::string& first, const std::string& second,
                   std::size_t current_game_count) override {
-        const Elo elo = (report_penta_) ? Elo(stats.penta_WW, stats.penta_WD, stats.penta_WL, stats.penta_DD, stats.penta_LD, stats.penta_LL)
+        const Elo elo = (report_penta_) ? Elo(stats.penta_WW, stats.penta_WD, stats.penta_WL,
+                                              stats.penta_DD, stats.penta_LD, stats.penta_LL)
                                         : Elo(stats.wins, stats.losses, stats.draws);
 
         std::stringstream ss;
-        ss << "Score of "   //
-           << first         //
-           << " vs "        //
-           << second        //
-           << ": "          //
-           << stats.wins    //
-           << "W - "        //
-           << stats.losses  //
-           << "L - "        //
-           << stats.draws   //
-           << "D ["         //
+        ss << "Score of "                                                //
+           << first                                                      //
+           << " vs "                                                     //
+           << second                                                     //
+           << ": "                                                       //
+           << stats.wins                                                 //
+           << "W - "                                                     //
+           << stats.losses                                               //
+           << "L - "                                                     //
+           << stats.draws                                                //
+           << "D ["                                                      //
            << Elo::getScoreRatio(stats.wins, stats.losses, stats.draws)  //
-           << "] "                                                //
-           << current_game_count                                  //
+           << "] "                                                       //
+           << current_game_count                                         //
            << "\n";
-       
-        if (report_penta_){
-           ss << "Elo difference: "   //
-              << elo.getElo()         //
-              << ", "                 //
-              << "nElo difference: "  //
-              << elo.getnElo()        //
-              << ", "                 //
-              << "LOS: "              //
-              << Elo::getLos(stats.penta_WW, stats.penta_WD, stats.penta_WL, stats.penta_DD,
-                             stats.penta_LD, stats.penta_LL)  //
-              << ", "                                         //
-              << "PairDrawRatio: "                            //
-              << Elo::getDrawRatio(stats.penta_WW, stats.penta_WD, stats.penta_WL, stats.penta_DD,
-                                   stats.penta_LD, stats.penta_LL)  //
-              << "\n";
+
+        if (report_penta_) {
+            ss << "Elo difference: "   //
+               << elo.getElo()         //
+               << ", "                 //
+               << "nElo difference: "  //
+               << elo.getnElo()        //
+               << ", "                 //
+               << "LOS: "              //
+               << Elo::getLos(stats.penta_WW, stats.penta_WD, stats.penta_WL, stats.penta_DD,
+                              stats.penta_LD, stats.penta_LL)  //
+               << ", "                                         //
+               << "PairDrawRatio: "                            //
+               << Elo::getDrawRatio(stats.penta_WW, stats.penta_WD, stats.penta_WL, stats.penta_DD,
+                                    stats.penta_LD, stats.penta_LL)  //
+               << "\n";
         } else {
-           ss << "Elo difference: "   //
-              << elo.getElo()         //
-              << ", "                 //
-              << "nElo difference: "  //
-              << elo.getnElo()        //
-              << ", "                 //
-              << "LOS: "              //
-              << Elo::getLos(stats.wins, stats.losses, stats.draws)  //
-              << ", "                                         //
-              << "DrawRatio: "                            //
-              << Elo::getDrawRatio(stats.wins, stats.losses, stats.draws)  //
-              << "\n";
+            ss << "Elo difference: "                                        //
+               << elo.getElo()                                              //
+               << ", "                                                      //
+               << "nElo difference: "                                       //
+               << elo.getnElo()                                             //
+               << ", "                                                      //
+               << "LOS: "                                                   //
+               << Elo::getLos(stats.wins, stats.losses, stats.draws)        //
+               << ", "                                                      //
+               << "DrawRatio: "                                             //
+               << Elo::getDrawRatio(stats.wins, stats.losses, stats.draws)  //
+               << "\n";
         }
         std::cout << ss.str() << std::flush;
     }
@@ -78,11 +81,12 @@ class Fastchess : public IOutput {
             std::stringstream ss;
             double llr;
             if (report_penta_)
-               llr = sprt.getLLR(stats.penta_WW, stats.penta_WD, stats.penta_WL, stats.penta_DD, stats.penta_LD, stats.penta_LL);
+                llr = sprt.getLLR(stats.penta_WW, stats.penta_WD, stats.penta_WL, stats.penta_DD,
+                                  stats.penta_LD, stats.penta_LL);
             else
-               llr = sprt.getLLR(stats.wins, stats.draws, stats.losses);
-            ss << "LLR: " << std::fixed << std::setprecision(2)
-               << llr << " " << sprt.getBounds() << " " << sprt.getElo() << "\n";
+                llr = sprt.getLLR(stats.wins, stats.draws, stats.losses);
+            ss << "LLR: " << std::fixed << std::setprecision(2) << llr << " " << sprt.getBounds()
+               << " " << sprt.getElo() << "\n";
             std::cout << ss.str() << std::flush;
         }
     };
@@ -145,6 +149,7 @@ class Fastchess : public IOutput {
     }
 
     void endTournament() override { std::cout << "Tournament finished" << std::endl; }
+
    private:
     bool report_penta_;
 };

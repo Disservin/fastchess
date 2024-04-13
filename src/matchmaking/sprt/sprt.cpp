@@ -23,6 +23,10 @@ SPRT::SPRT(double alpha, double beta, double elo0, double elo1) {
     }
 }
 
+double SPRT::leloToScore(double lelo) noexcept {
+    return 1 / (1 + std::pow(10, (-lelo / 400)));
+}
+
 double SPRT::neloToScoreWDL(double nelo, double stdDeviation) noexcept {
     return nelo * stdDeviation / (800.0 / std::log(10)) + 0.5;
 }
@@ -43,8 +47,17 @@ double SPRT::getLLR(int win, int draw, int loss) const noexcept {
     if (var == 0) return 0.0;
     const double stdDeviation = std::sqrt(var);
     const double var_s        = var / games;
-    const double score0       = neloToScoreWDL(elo0_, stdDeviation);
-    const double score1       = neloToScoreWDL(elo1_, stdDeviation);
+    if (bounds == "normalized") {
+        const double score0       = neloToScoreWDL(elo0_, stdDeviation);
+        const double score1       = neloToScoreWDL(elo1_, stdDeviation);
+    }
+    else if (bounds== "logistic") {
+        const double score0       = leloToScore(elo0_, stdDeviation);
+        const double score1       = leloToScore(elo1_, stdDeviation);
+    }
+    else {
+        return 0.0;
+    }
     return (score1 - score0) * (2 * a - score0 - score1) / var_s / 2.0;
 }
 
@@ -70,8 +83,17 @@ double SPRT::getLLR(int penta_WW, int penta_WD, int penta_WL, int penta_DD, int 
     if (var_penta == 0) return 0.0;
     const double stdDeviation_penta = std::sqrt(var_penta);
     const double var_s_penta        = var_penta / pairs;
-    const double score0             = neloToScorePenta(elo0_, stdDeviation_penta);
-    const double score1             = neloToScorePenta(elo1_, stdDeviation_penta);
+    if (bounds == "normalized") {
+        const double score0       = neloToScorePenta(elo0_, stdDeviation_penta);
+        const double score1       = neloToScorePenta(elo1_, stdDeviation_penta);
+    }
+    else if (bounds== "logistic") {
+        const double score0       = leloToScore(elo0_, stdDeviation_penta);
+        const double score1       = leloToScore(elo1_, stdDeviation_penta);
+    }
+    else {
+        return 0.0;
+    }
     return (score1 - score0) * (2 * a - score0 - score1) / var_s_penta / 2.0;
 }
 

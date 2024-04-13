@@ -20,7 +20,7 @@ class Fastchess : public IOutput {
 
     void printElo(const Stats& stats, const std::string& first, const std::string& second,
                   std::size_t current_game_count) override {
-        options::Tournament tournament
+        options::Tournament tournament;
         if (tournament.report_penta == true){
            const Elo elo(stats.penta_WW, stats.penta_WD, stats.penta_WL, stats.penta_DD,
                          stats.penta_LD, stats.penta_LL);
@@ -98,7 +98,7 @@ class Fastchess : public IOutput {
 
     void printSprt(const SPRT& sprt, const Stats& stats) override {
         if (sprt.isValid()) {
-            options::Tournament tournament
+            options::Tournament tournament;
             if(tournament.report_penta == true) {
                std::stringstream ss;
    
@@ -119,7 +119,7 @@ class Fastchess : public IOutput {
     };
 
     static void printPenta(const Stats& stats) {
-        options::tournament tournament
+        options::tournament tournament;
         if (tournament.report_penta == true){
            std::stringstream ss;
    

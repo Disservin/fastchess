@@ -8,7 +8,9 @@ namespace fast_chess {
 
 class Fastchess : public IOutput {
    public:
-    void printInterval(const SPRT& sprt, const Stats& stats, const std::string& first,
+        Fastchess(bool report_penta = true) : report_penta_(report_penta) {}
+
+        void printInterval(const SPRT& sprt, const Stats& stats, const std::string& first,
                        const std::string& second, int current_game_count) override {
         std::cout << "--------------------------------------------------\n";
         printElo(stats, first, second, current_game_count);
@@ -128,6 +130,8 @@ class Fastchess : public IOutput {
     }
 
     void endTournament() override { std::cout << "Tournament finished" << std::endl; }
+   private:
+    bool report_penta_;
 };
 
 }  // namespace fast_chess

@@ -8,7 +8,7 @@
 
 namespace fast_chess {
 
-SPRT::SPRT(double alpha, double beta, double elo0, double elo1) {
+SPRT::SPRT(double alpha, double beta, double elo0, double elo1, bool bounds) {
     valid_ = alpha != 0.0 && beta != 0.0 && elo0 < elo1;
     if (isValid()) {
         lower_ = std::log(beta / (1 - alpha));
@@ -17,6 +17,8 @@ SPRT::SPRT(double alpha, double beta, double elo0, double elo1) {
         elo0_ = elo0;
         elo1_ = elo1;
 
+        logisticBounds_ = bounds;
+        
         Logger::log<Logger::Level::INFO>("Initialized valid SPRT configuration.");
     } else if (!(alpha == 0.0 && beta == 0.0 && elo0 == 0.0 && elo1 == 0.0)) {
         Logger::log<Logger::Level::INFO>("No valid SPRT configuration was found!");
@@ -47,11 +49,11 @@ double SPRT::getLLR(int win, int draw, int loss) const noexcept {
     if (var == 0) return 0.0;
     const double stdDeviation = std::sqrt(var);
     const double var_s        = var / games;
-    if (bounds == "normalized") {
+    if (logisticBounds_ == false) {
         const double score0       = neloToScoreWDL(elo0_, stdDeviation);
         const double score1       = neloToScoreWDL(elo1_, stdDeviation);
     }
-    else if (bounds== "logistic") {
+    else if (logisticBounds_ == true) {
         const double score0       = leloToScore(elo0_, stdDeviation);
         const double score1       = leloToScore(elo1_, stdDeviation);
     }

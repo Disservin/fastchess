@@ -19,36 +19,40 @@ class Fastchess : public IOutput {
 
     void printElo(const Stats& stats, const std::string& first, const std::string& second,
                   std::size_t current_game_count) override {
-        const Elo elo(stats.penta_WW, stats.penta_WD, stats.penta_WL, stats.penta_DD, stats.penta_LD, stats.penta_LL);
+        const Elo elo(stats.penta_WW, stats.penta_WD, stats.penta_WL, stats.penta_DD,
+                      stats.penta_LD, stats.penta_LL);
 
         std::stringstream ss;
-        ss << "Score of "                                                //
-           << first                                                      //
-           << " vs "                                                     //
-           << second                                                     //
-           << ": "                                                       //
-           << stats.wins                                                 //
-           << "W - "                                                      //
-           << stats.losses                                               //
-           << "L - "                                                      //
-           << stats.draws                                                //
-           << "D ["                                                       //
-           << Elo::getScoreRatio(stats.penta_WW, stats.penta_WD, stats.penta_WL, stats.penta_DD, stats.penta_LD, stats.penta_LL)  //
-           << "] "                                                       //
-           << current_game_count                                         //
+        ss << "Score of "   //
+           << first         //
+           << " vs "        //
+           << second        //
+           << ": "          //
+           << stats.wins    //
+           << "W - "        //
+           << stats.losses  //
+           << "L - "        //
+           << stats.draws   //
+           << "D ["         //
+           << Elo::getScoreRatio(stats.penta_WW, stats.penta_WD, stats.penta_WL, stats.penta_DD,
+                                 stats.penta_LD, stats.penta_LL)  //
+           << "] "                                                //
+           << current_game_count                                  //
            << "\n";
 
-        ss << "Elo difference: "                                        //
-           << elo.getElo()                                              //
-           << ", "                                                      //
-           << "nElo difference: "                                       //
-           << elo.getnElo()                                             //
-           << ", "                                                      //
-           << "LOS: "                                                   //
-           << Elo::getLos(stats.penta_WW, stats.penta_WD, stats.penta_WL, stats.penta_DD, stats.penta_LD, stats.penta_LL)        //
-           << ", "                                                      //
-           << "PairDrawRatio: "                                         //
-           << Elo::getDrawRatio(stats.penta_WW, stats.penta_WD, stats.penta_WL, stats.penta_DD, stats.penta_LD, stats.penta_LL)  //
+        ss << "Elo difference: "   //
+           << elo.getElo()         //
+           << ", "                 //
+           << "nElo difference: "  //
+           << elo.getnElo()        //
+           << ", "                 //
+           << "LOS: "              //
+           << Elo::getLos(stats.penta_WW, stats.penta_WD, stats.penta_WL, stats.penta_DD,
+                          stats.penta_LD, stats.penta_LL)  //
+           << ", "                                         //
+           << "PairDrawRatio: "                            //
+           << Elo::getDrawRatio(stats.penta_WW, stats.penta_WD, stats.penta_WL, stats.penta_DD,
+                                stats.penta_LD, stats.penta_LL)  //
            << "\n";
 
         std::cout << ss.str() << std::flush;
@@ -59,8 +63,9 @@ class Fastchess : public IOutput {
             std::stringstream ss;
 
             ss << "LLR: " << std::fixed << std::setprecision(2)
-               << sprt.getLLR(stats.penta_WW, stats.penta_WD, stats.penta_WL, stats.penta_DD, stats.penta_LD, stats.penta_LL) << " " << sprt.getBounds()
-               << " " << sprt.getElo() << "\n";
+               << sprt.getLLR(stats.penta_WW, stats.penta_WD, stats.penta_WL, stats.penta_DD,
+                              stats.penta_LD, stats.penta_LL)
+               << " " << sprt.getBounds() << " " << sprt.getElo() << "\n";
             std::cout << ss.str() << std::flush;
         }
     };

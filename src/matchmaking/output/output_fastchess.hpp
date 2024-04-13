@@ -28,11 +28,11 @@ class Fastchess : public IOutput {
            << second                                                     //
            << ": "                                                       //
            << stats.wins                                                 //
-           << " - "                                                      //
+           << "W - "                                                      //
            << stats.losses                                               //
-           << " - "                                                      //
+           << "L - "                                                      //
            << stats.draws                                                //
-           << " ["                                                       //
+           << "D ["                                                       //
            << Elo::getScoreRatio(stats.penta_WW, stats.penta_WD, stats.penta_WL, stats.penta_DD, stats.penta_LD, stats.penta_LL)  //
            << "] "                                                       //
            << current_game_count                                         //
@@ -40,6 +40,9 @@ class Fastchess : public IOutput {
 
         ss << "Elo difference: "                                        //
            << elo.getElo()                                              //
+           << ", "                                                      //
+           << "nElo difference: "                                       //
+           << elo.getnElo()                                             //
            << ", "                                                      //
            << "LOS: "                                                   //
            << Elo::getLos(stats.penta_WW, stats.penta_WD, stats.penta_WL, stats.penta_DD, stats.penta_LD, stats.penta_LL)        //

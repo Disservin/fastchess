@@ -80,9 +80,9 @@ class Fastchess : public IOutput {
             std::stringstream ss;
             double llr;
             if (report_penta_ == true)
-               llr = sprt.getLLR(stats.penta_WW, stats.penta_WD, stats.penta_WL, stats.penta_DD, stats.penta_LD, stats.penta_LL)
+               llr = sprt.getLLR(stats.penta_WW, stats.penta_WD, stats.penta_WL, stats.penta_DD, stats.penta_LD, stats.penta_LL);
             else
-               llr = sprt.getLLR(stats.wins, stats.draws, stats.losses)
+               llr = sprt.getLLR(stats.wins, stats.draws, stats.losses);
             ss << "LLR: " << std::fixed << std::setprecision(2)
                << llr << " " << sprt.getBounds() << " " << sprt.getElo() << "\n";
             std::cout << ss.str() << std::flush;

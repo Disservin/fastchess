@@ -14,10 +14,10 @@ Elo::Elo(int wins, int losses, int draws) {
 }
 
 Elo::Elo(int penta_WW, int penta_WD, int penta_WL, int penta_DD, int penta_LD, int penta_LL) {
-    diff_      = getDiff(penta_WW, penta_WD, penta_WL, penta_DD, penta_LD, penta_LL);
-    error_     = getError(penta_WW, penta_WD, penta_WL, penta_DD, penta_LD, penta_LL);
-    nelodiff_  = getneloDiff(penta_WW, penta_WD, penta_WL, penta_DD, penta_LD, penta_LL);
-    neloerror_ = getneloError(penta_WW, penta_WD, penta_WL, penta_DD, penta_LD, penta_LL);
+    diffPenta_      = getDiff(penta_WW, penta_WD, penta_WL, penta_DD, penta_LD, penta_LL);
+    errorPenta_     = getError(penta_WW, penta_WD, penta_WL, penta_DD, penta_LD, penta_LL);
+    nelodiffPenta_  = getneloDiff(penta_WW, penta_WD, penta_WL, penta_DD, penta_LD, penta_LL);
+    neloerrorPenta_ = getneloError(penta_WW, penta_WD, penta_WL, penta_DD, penta_LD, penta_LL);
 }
 
 double Elo::percToEloDiff(double percentage) noexcept {
@@ -178,12 +178,30 @@ std::string Elo::getElo() const noexcept {
     return ss.str();
 }
 
+std::string Elo::getEloPenta() const noexcept {
+    std::stringstream ss;
+
+    ss << std::fixed << std::setprecision(2) << diffPenta_;
+    ss << " +/- ";
+    ss << std::fixed << std::setprecision(2) << errorPenta_;
+    return ss.str();
+}
+
 std::string Elo::getnElo() const noexcept {
     std::stringstream ss;
 
     ss << std::fixed << std::setprecision(2) << nelodiff_;
     ss << " +/- ";
     ss << std::fixed << std::setprecision(2) << neloerror_;
+    return ss.str();
+}
+
+std::string Elo::getnEloPenta() const noexcept {
+    std::stringstream ss;
+
+    ss << std::fixed << std::setprecision(2) << nelodiffPenta_;
+    ss << " +/- ";
+    ss << std::fixed << std::setprecision(2) << neloerrorPenta_;
     return ss.str();
 }
 

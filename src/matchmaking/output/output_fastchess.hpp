@@ -21,13 +21,10 @@ class Fastchess : public IOutput {
 
     void printElo(const Stats& stats, const std::string& first, const std::string& second,
                   std::size_t current_game_count) override {
-        Elo elo;
-        if(report_penta_ == false){
-           elo = Elo(stats.wins, stats.losses, stats.draws);
-        } else {
-           elo = Elo(stats.penta_WW, stats.penta_WD, stats.penta_WL, stats.penta_DD,
+
+        const Elo elo(stats.wins, stats.losses, stats.draws);
+        const Elo eloPenta(stats.penta_WW, stats.penta_WD, stats.penta_WL, stats.penta_DD,
                      stats.penta_LD, stats.penta_LL);
-        }
 
         std::stringstream ss;
         ss << "Score of "   //
@@ -48,10 +45,10 @@ class Fastchess : public IOutput {
        
         if (report_penta_ == true){
            ss << "Elo difference: "   //
-              << elo.getElo()         //
+              << eloPenta.getElo()         //
               << ", "                 //
               << "nElo difference: "  //
-              << elo.getnElo()        //
+              << eloPenta.getnElo()        //
               << ", "                 //
               << "LOS: "              //
               << Elo::getLos(stats.penta_WW, stats.penta_WD, stats.penta_WL, stats.penta_DD,

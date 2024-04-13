@@ -39,10 +39,6 @@ class Elo {
 
     [[nodiscard]] std::string getnElo() const noexcept;
 
-    [[nodiscard]] std::string getEloPenta() const noexcept;
-
-    [[nodiscard]] std::string getnEloPenta() const noexcept;
-
     [[nodiscard]] static std::string getLos(int wins, int losses, int draws) noexcept;
 
     [[nodiscard]] static std::string getLos(int penta_WW, int penta_WD, int penta_WL, int penta_DD,
@@ -65,10 +61,6 @@ class Elo {
     double error_;
     double nelodiff_;
     double neloerror_;
-    double diffPenta_;
-    double errorPenta_;
-    double nelodiffPenta_;
-    double neloerrorPenta_;
 };
 
 }  // namespace fast_chess

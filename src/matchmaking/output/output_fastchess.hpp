@@ -132,8 +132,10 @@ class Fastchess : public IOutput {
               << stats.penta_WL + stats.penta_DD << std::right << std::setw(7)  //
               << stats.penta_WD << std::right << std::setw(7)                   //
               << stats.penta_WW << "\n";
+        } else {
+           std::stringstream ss;
+           ss << "";
         }
-        else ss << "";
         std::cout << ss.str() << std::flush;
     }
 

@@ -49,8 +49,8 @@ double SPRT::getLLR(int win, int draw, int loss) const noexcept {
     if (var == 0) return 0.0;
     const double stdDeviation = std::sqrt(var);
     const double var_s        = var / games;
-    const double score0;
-    const double score1;
+    double score0;
+    double score1;
     if (logisticBounds_ == false) {
         score0       = neloToScoreWDL(elo0_, stdDeviation);
         score1       = neloToScoreWDL(elo1_, stdDeviation);
@@ -87,8 +87,8 @@ double SPRT::getLLR(int penta_WW, int penta_WD, int penta_WL, int penta_DD, int 
     if (var_penta == 0) return 0.0;
     const double stdDeviation_penta = std::sqrt(var_penta);
     const double var_s_penta        = var_penta / pairs;
-    const double score0;
-    const double score1;
+    double score0;
+    double score1;
     if (logisticBounds_ == false) {
         score0       = neloToScorePenta(elo0_, stdDeviation_penta);
         score1       = neloToScorePenta(elo1_, stdDeviation_penta);

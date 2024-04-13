@@ -67,7 +67,7 @@ class Fastchess : public IOutput {
               << "LOS: "              //
               << Elo::getLos(stats.wins, stats.losses, stats.draws)  //
               << ", "                                         //
-              << "PairDrawRatio: "                            //
+              << "DrawRatio: "                            //
               << Elo::getDrawRatio(stats.wins, stats.losses, stats.draws)  //
               << "\n";
         }

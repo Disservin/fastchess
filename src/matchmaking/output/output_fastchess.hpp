@@ -119,7 +119,7 @@ class Fastchess : public IOutput {
     };
 
     static void printPenta(const Stats& stats) {
-        options::tournament tournament;
+        options::Tournament tournament;
         if (tournament.report_penta == true){
            std::stringstream ss;
    

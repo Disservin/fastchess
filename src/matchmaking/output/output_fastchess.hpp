@@ -21,13 +21,8 @@ class Fastchess : public IOutput {
 
     void printElo(const Stats& stats, const std::string& first, const std::string& second,
                   std::size_t current_game_count) override {
-
-        //const Elo elo(stats.wins, stats.losses, stats.draws);
-        //const Elo eloPenta(stats.penta_WW, stats.penta_WD, stats.penta_WL, stats.penta_DD,
-                     //stats.penta_LD, stats.penta_LL);
-
-       const Elo elo = (report_penta_) ? Elo(stats.penta_WW, stats.penta_WD, stats.penta_WL, stats.penta_DD, stats.penta_LD, stats.penta_LL)
-                                  : Elo(stats.wins, stats.losses, stats.draws);
+        const Elo elo = (report_penta_) ? Elo(stats.penta_WW, stats.penta_WD, stats.penta_WL, stats.penta_DD, stats.penta_LD, stats.penta_LL)
+                                        : Elo(stats.wins, stats.losses, stats.draws);
 
         std::stringstream ss;
         ss << "Score of "   //

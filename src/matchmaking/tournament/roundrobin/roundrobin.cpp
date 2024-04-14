@@ -16,7 +16,7 @@ RoundRobin::RoundRobin(const options::Tournament& tournament_config,
     // Initialize the SPRT test
     sprt_ = SPRT(tournament_options_.sprt.alpha, tournament_options_.sprt.beta,
                  tournament_options_.sprt.elo0, tournament_options_.sprt.elo1,
-                 tournament_options_.sprt.logisticbounds);
+                 tournament_options_.sprt.logistic_bounds);
 }
 
 void RoundRobin::start() {

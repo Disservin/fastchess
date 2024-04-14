@@ -358,6 +358,9 @@ void parseReport(int &i, int argc, char const *argv[], ArgumentData &argument_da
         } else {
             OptionsParser::throwMissing("report", key, value);
         }
+        if (argument_data.tournament_options.games != 2){
+          throw std::runtime_error("Cannot set report penta=true when games is not equal to 2");
+        }
     });
 }
 

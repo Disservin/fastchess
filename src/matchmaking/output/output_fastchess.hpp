@@ -50,6 +50,7 @@ class Fastchess : public IOutput {
         const double pairsRatio = static_cast<double>(stats.penta_WW + stats.penta_WD) / (stats.penta_LD + stats.penta_LL);
         if (report_penta_){
            ss << ", PairsRatio: "
+              << std::setprecision(2)
               << pairsRatio
               << "\n";
         } else {
@@ -67,6 +68,7 @@ class Fastchess : public IOutput {
             << ", Points: "            //
             << stats.wins + 0.5 * stats.draws          //
             << " ("                   //
+            << std::setprecision(2)
             << std::stod(elo->scoreRatio(stats)) * 100 //
             << " %)\n";
 

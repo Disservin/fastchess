@@ -39,7 +39,7 @@ class Fastchess : public IOutput {
         ss << "Elo: "                 //
            << elo->getElo()           //
            << " nElo: "               //
-           << elo->getnElo()          //
+           << elo->nElo()          //
            << "\n";                   //
    
         ss << "LOS: "                 //

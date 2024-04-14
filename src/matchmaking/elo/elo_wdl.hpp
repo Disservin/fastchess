@@ -7,9 +7,9 @@
 
 namespace fast_chess {
 
-class EloLogistic : public EloBase {
+class EloWDL : public EloBase {
    public:
-    EloLogistic(const Stats& stats);
+    EloWDL(const Stats& stats);
 
     [[nodiscard]] std::string los(const Stats& stats) const noexcept override;
     [[nodiscard]] std::string drawRatio(const Stats& stats) const noexcept override;

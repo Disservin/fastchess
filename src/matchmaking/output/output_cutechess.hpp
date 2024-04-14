@@ -1,6 +1,6 @@
 #pragma once
 
-#include <matchmaking/elo/elo_logistic.hpp>
+#include <matchmaking/elo/elo_wdl.hpp>
 #include <matchmaking/output/output.hpp>
 #include <util/logger/logger.hpp>
 
@@ -16,7 +16,7 @@ class Cutechess : public IOutput {
 
     void printElo(const Stats& stats, const std::string& first, const std::string& second,
                   std::size_t current_game_count) override {
-        const EloLogistic elo(stats);
+        const EloWDL elo(stats);
 
         std::stringstream ss;
         ss << "Score of "            //

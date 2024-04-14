@@ -1,4 +1,4 @@
-#include <matchmaking/elo/elo_logistic.hpp>
+#include <matchmaking/elo/elo_wdl.hpp>
 
 #include <cmath>
 #include <iomanip>
@@ -15,26 +15,26 @@ std::string EloBase::getElo() const noexcept {
     return ss.str();
 }
 
-EloLogistic::EloLogistic(const Stats& stats) {
+EloWDL::EloWDL(const Stats& stats) {
     diff_      = diff(stats);
     error_     = error(stats);
     nelodiff_  = nEloDiff(stats);
     neloerror_ = nEloError(stats);
 }
 
-double EloLogistic::percToEloDiff(double percentage) noexcept {
+double EloWDL::percToEloDiff(double percentage) noexcept {
     return -400.0 * std::log10(1.0 / percentage - 1.0);
 }
 
-double EloLogistic::percToNeloDiff(double percentage, double stdev) noexcept {
+double EloWDL::percToNeloDiff(double percentage, double stdev) noexcept {
     return (percentage - 0.5) / (std::sqrt(2) * stdev) * (800 / std::log(10));
 }
 
-double EloLogistic::percToNeloDiffWDL(double percentage, double stdev) noexcept {
+double EloWDL::percToNeloDiffWDL(double percentage, double stdev) noexcept {
     return (percentage - 0.5) / stdev * (800 / std::log(10));
 }
 
-double EloLogistic::error(const Stats& stats) noexcept {
+double EloWDL::error(const Stats& stats) noexcept {
     const double n    = total(stats);
     const double w    = stats.wins / n;
     const double l    = stats.losses / n;
@@ -51,7 +51,7 @@ double EloLogistic::error(const Stats& stats) noexcept {
     return (percToEloDiff(devMax) - percToEloDiff(devMin)) / 2.0;
 }
 
-double EloLogistic::nEloError(const Stats& stats) noexcept {
+double EloWDL::nEloError(const Stats& stats) noexcept {
     const double n    = total(stats);
     const double w    = stats.wins / n;
     const double l    = stats.losses / n;
@@ -70,7 +70,7 @@ double EloLogistic::nEloError(const Stats& stats) noexcept {
            2.0;
 }
 
-double EloLogistic::diff(const Stats& stats) noexcept {
+double EloWDL::diff(const Stats& stats) noexcept {
     const double n          = total(stats);
     const double score      = stats.wins + stats.draws / 2.0;
     const double percentage = (score / n);
@@ -78,7 +78,7 @@ double EloLogistic::diff(const Stats& stats) noexcept {
     return percToEloDiff(percentage);
 }
 
-double EloLogistic::nEloDiff(const Stats& stats) noexcept {
+double EloWDL::nEloDiff(const Stats& stats) noexcept {
     const double n    = total(stats);
     const double w    = stats.wins / n;
     const double l    = stats.losses / n;
@@ -92,7 +92,7 @@ double EloLogistic::nEloDiff(const Stats& stats) noexcept {
     return percToNeloDiffWDL(perc, stdev * std::sqrt(n));
 }
 
-std::string EloLogistic::nElo() const noexcept {
+std::string EloWDL::nElo() const noexcept {
     std::stringstream ss;
 
     ss << std::fixed << std::setprecision(2) << nelodiff_;
@@ -101,7 +101,7 @@ std::string EloLogistic::nElo() const noexcept {
     return ss.str();
 }
 
-std::string EloLogistic::los(const Stats& stats) const noexcept {
+std::string EloWDL::los(const Stats& stats) const noexcept {
     const double games = total(stats);
     const double W     = double(stats.wins) / games;
     const double D     = double(stats.draws) / games;
@@ -118,14 +118,14 @@ std::string EloLogistic::los(const Stats& stats) const noexcept {
     return ss.str();
 }
 
-std::string EloLogistic::drawRatio(const Stats& stats) const noexcept {
+std::string EloWDL::drawRatio(const Stats& stats) const noexcept {
     const double n = total(stats);
     std::stringstream ss;
     ss << std::fixed << std::setprecision(2) << (stats.draws / n) * 100.0 << " %";
     return ss.str();
 }
 
-std::string EloLogistic::scoreRatio(const Stats& stats) const noexcept {
+std::string EloWDL::scoreRatio(const Stats& stats) const noexcept {
     const double n        = total(stats);
     const auto scoreRatio = double(stats.wins * 2 + stats.draws) / (n * 2);
 
@@ -134,7 +134,7 @@ std::string EloLogistic::scoreRatio(const Stats& stats) const noexcept {
     return ss.str();
 }
 
-std::size_t EloLogistic::total(const Stats& stats) noexcept {
+std::size_t EloWDL::total(const Stats& stats) noexcept {
     return stats.wins + stats.losses + stats.draws;
 }
 }  // namespace fast_chess

@@ -68,6 +68,8 @@ class Fastchess : public IOutput {
             << ", Draws: "                 //
             << stats.draws            //
             << ", Points: "            //
+            << std::fixed
+            << std::setprecision(1)
             << points          //
             << " ("                   //
             << std::fixed

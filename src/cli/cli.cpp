@@ -413,7 +413,6 @@ void parseRecover(int &, int, char const *[], ArgumentData &argument_data) {
 
 void parseRepeat(int &, int, char const *[], ArgumentData &argument_data) {
     argument_data.tournament_options.games = 2;
-    argument_data.tournament_options.report_penta = false;
 }
 
 void parseVariant(int &i, int argc, char const *argv[], ArgumentData &argument_data) {

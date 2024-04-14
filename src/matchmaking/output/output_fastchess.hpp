@@ -68,7 +68,7 @@ class Fastchess : public IOutput {
             << ", Points: "            //
             << stats.wins + 0.5 * stats.draws          //
             << " ("                   //
-            << std::setprecision(2)
+            << std::setprecision(1)
             << std::stod(elo->scoreRatio(stats)) * 100 //
             << " %)\n";
 

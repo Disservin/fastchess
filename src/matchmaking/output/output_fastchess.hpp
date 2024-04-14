@@ -67,8 +67,9 @@ class Fastchess : public IOutput {
             << " Points: "            //
             << stats.penta_WW + stats.penta_WD + stats.penta_WL + stats.penta_DD + stats.penta_LD + stats.penta_LL          //
             << " ("                   //
-            << elo->scoreRatio(stats) //
-            << ")\n";
+            << std::setprecision(1)
+            << std::stod(elo->scoreRatio(stats)) * 100 //
+            << "%)\n";
 
          if (report_penta_){
             ss << "Ptnml(0-2): "

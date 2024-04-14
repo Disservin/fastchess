@@ -69,7 +69,7 @@ class Fastchess : public IOutput {
             << ", Points: "            //
             << points          //
             << " ("                   //
-            << std::setprecision(2)
+            << std::setprecision(4)
             << points / (stats.wins + stats.losses + stats.draws) * 100 //
             << " %)\n";
 

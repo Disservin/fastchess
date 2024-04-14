@@ -70,7 +70,7 @@ class Fastchess : public IOutput {
             << points          //
             << " ("                   //
             << std::setprecision(2)
-            << points / (stats.win + stats.losses + stats.draws) * 100 //
+            << points / (stats.wins + stats.losses + stats.draws) * 100 //
             << " %)\n";
 
          if (report_penta_){

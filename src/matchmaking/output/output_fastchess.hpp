@@ -57,6 +57,7 @@ class Fastchess : public IOutput {
            ss << "\n";
         }
 
+         double points = stats.wins + 0.5 * stats.draws;
          ss << "Games: "              //
             << current_game_count     //
             << ", Wins: "                 //
@@ -66,9 +67,10 @@ class Fastchess : public IOutput {
             << ", Draws: "                 //
             << stats.draws            //
             << ", Points: "            //
-            << stats.wins + 0.5 * stats.draws          //
+            << points          //
             << " ("                   //
-            << std::stod(elo->scoreRatio(stats)) * 100 //
+            << std::setprecision(2)
+            << points / (stats.win + stats.losses + stats.draws) * 100 //
             << " %)\n";
 
          if (report_penta_){

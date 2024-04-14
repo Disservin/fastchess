@@ -1,7 +1,7 @@
 #pragma once
 
-#include <matchmaking/elo/elo_logistic.hpp>
-#include <matchmaking/elo/elo_norm.hpp>
+#include <matchmaking/elo/elo_wdl.hpp>
+#include <matchmaking/elo/elo_pentanomial.hpp>
 #include <matchmaking/output/output.hpp>
 #include <util/logger/logger.hpp>
 
@@ -27,9 +27,9 @@ class Fastchess : public IOutput {
         std::unique_ptr<EloBase> elo;
 
         if (report_penta_) {
-            elo = std::make_unique<EloNormalized>(stats);
+            elo = std::make_unique<EloPentanomial>(stats);
         } else {
-            elo = std::make_unique<EloLogistic>(stats);
+            elo = std::make_unique<EloWDL>(stats);
         }
 
         std::stringstream ss;

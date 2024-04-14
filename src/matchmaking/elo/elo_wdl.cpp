@@ -130,7 +130,7 @@ std::string EloWDL::scoreRatio(const Stats& stats) const noexcept {
     const auto scoreRatio = double(stats.wins * 2 + stats.draws) / (n * 2);
 
     std::stringstream ss;
-    ss << std::fixed << std::setprecision(3) << scoreRatio;
+    ss << std::fixed << std::setprecision(1) << scoreRatio * 100;
     return ss.str();
 }
 

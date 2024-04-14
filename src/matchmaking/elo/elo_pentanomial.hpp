@@ -7,9 +7,9 @@
 
 namespace fast_chess {
 
-class EloNormalized : public EloBase {
+class EloPentanomial : public EloBase {
    public:
-    EloNormalized(const Stats& stats);
+    EloPentanomial(const Stats& stats);
 
     [[nodiscard]] std::string los(const Stats& stats) const noexcept override;
     [[nodiscard]] std::string drawRatio(const Stats& stats) const noexcept override;

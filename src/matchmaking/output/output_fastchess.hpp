@@ -38,18 +38,18 @@ class Fastchess : public IOutput {
 
         ss << "Elo: "                 //
            << elo->getElo()           //
-           << " nElo: "               //
+           << ", nElo: "               //
            << elo->nElo()          //
            << "\n";                   //
    
         ss << "LOS: "                 //
            << elo->los(stats)         //
-           << " DrawRatio: "          //
+           << ", DrawRatio: "          //
            << elo->drawRatio(stats);  //
 
         const double pairsRatio = static_cast<double>(stats.penta_WW + stats.penta_WD) / (stats.penta_LD + stats.penta_LL);
         if (report_penta_){
-           ss << "PairsRatio: "
+           ss << ", PairsRatio: "
               << pairsRatio
               << "\n";
         } else {
@@ -58,17 +58,17 @@ class Fastchess : public IOutput {
 
          ss << "Games: "              //
             << current_game_count     //
-            << " W: "                 //
+            << ", Wins: "                 //
             << stats.wins             //
-            << " L: "                 //
+            << ", Losses: "                 //
             << stats.losses           //
-            << " D: "                 //
+            << ", Draws: "                 //
             << stats.draws            //
-            << " Points: "            //
+            << ", Points: "            //
             << stats.wins + 0.5 * stats.draws          //
             << " ("                   //
             << std::stod(elo->scoreRatio(stats)) * 100 //
-            << "%)\n";
+            << " %)\n";
 
          if (report_penta_){
             ss << "Ptnml(0-2): "

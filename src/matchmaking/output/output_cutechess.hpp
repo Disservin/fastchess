@@ -1,6 +1,6 @@
 #pragma once
 
-#include <matchmaking/elo/elo_logistic.hpp>
+#include <matchmaking/elo/elo_wdl.hpp>
 #include <matchmaking/output/output.hpp>
 #include <util/logger/logger.hpp>
 

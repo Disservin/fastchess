@@ -8,7 +8,7 @@
 
 namespace fast_chess {
 
-SPRT::SPRT(double alpha, double beta, double elo0, double elo1, bool logisticBounds) {
+SPRT::SPRT(double alpha, double beta, double elo0, double elo1, bool logistic_bounds) {
     valid_ = alpha != 0.0 && beta != 0.0 && elo0 < elo1;
     if (isValid()) {
         lower_ = std::log(beta / (1 - alpha));
@@ -17,7 +17,7 @@ SPRT::SPRT(double alpha, double beta, double elo0, double elo1, bool logisticBou
         elo0_ = elo0;
         elo1_ = elo1;
 
-        logisticBounds_ = logisticBounds;
+        logisticBounds_ = logistic_bounds;
 
         Logger::log<Logger::Level::INFO>("Initialized valid SPRT configuration.");
     } else if (!(alpha == 0.0 && beta == 0.0 && elo0 == 0.0 && elo1 == 0.0)) {

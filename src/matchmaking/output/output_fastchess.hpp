@@ -57,7 +57,7 @@ class Fastchess : public IOutput {
            ss << "\n";
         }
 
-         double points = stats.wins + 0.5 * stats.draws;
+         const double points = stats.wins + 0.5 * stats.draws;
          ss << "Games: "              //
             << current_game_count     //
             << ", Wins: "                 //

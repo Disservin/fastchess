@@ -149,7 +149,7 @@ std::string EloPentanomial::scoreRatio(const Stats& stats) const noexcept {
     const double scoreRatio = WW + 0.75 * WD + 0.5 * (WL + DD) + 0.25 * LD;
 
     std::stringstream ss;
-    ss << std::fixed << std::setprecision(1) << scoreRatio * 100;
+    ss << std::fixed << std::setprecision(3) << scoreRatio;
     return ss.str();
 }
 

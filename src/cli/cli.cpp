@@ -249,11 +249,11 @@ void parseSprt(int &i, int argc, char const *argv[], ArgumentData &argument_data
             argument_data.tournament_options.sprt.alpha = std::stod(value);
         } else if (key == "beta") {
             argument_data.tournament_options.sprt.beta = std::stod(value);
-        } else if (key == "bounds") {
+        } else if (key == "model") {
             if (value == "logistic") {
-                argument_data.tournament_options.sprt.bounds = true;
+                argument_data.tournament_options.sprt.logisticbounds = true;
             } else if (value == "normalized") {
-                argument_data.tournament_options.sprt.bounds = false;
+                argument_data.tournament_options.sprt.logisticbounds = false;
             } else {
                 OptionsParser::throwMissing("sprt", key, value);
             }

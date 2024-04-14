@@ -65,7 +65,7 @@ class Fastchess : public IOutput {
             << " D: "                 //
             << stats.draws            //
             << " Points: "            //
-            << stats.penta_WW + stats.penta_WD + stats.penta_WL + stats.penta_DD + stats.penta_LD + stats.penta_LL          //
+            << stats.wins + 0.5 * stats.draws          //
             << " ("                   //
             << std::stod(elo->scoreRatio(stats)) * 100 //
             << "%)\n";

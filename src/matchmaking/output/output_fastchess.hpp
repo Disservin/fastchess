@@ -47,7 +47,7 @@ class Fastchess : public IOutput {
            << " DrawRatio: "          //
            << elo->drawRatio(stats);  //
 
-        const double pairsRatio = static_cast<double>(stats.penta_WW + stats.penta_WD) / (stats.penta_LD + stats.penta_LL)
+        const double pairsRatio = static_cast<double>(stats.penta_WW + stats.penta_WD) / (stats.penta_LD + stats.penta_LL);
         if (report_penta_){
            ss << "PairsRatio: "
               << pairsRatio

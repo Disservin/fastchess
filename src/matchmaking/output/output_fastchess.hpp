@@ -73,15 +73,15 @@ class Fastchess : public IOutput {
          if (report_penta_){
             ss << "Ptnml(0-2): "
                << "["
-               << stats.penta_WW
-               << ", "
-               << stats.penta_WD
-               << ", "
-               << stats.penta_WL + stats.penta_DD
+               << stats.penta_LL
                << ", "
                << stats.penta_LD
                << ", "
-               << stats.penta_LL
+               << stats.penta_WL + stats.penta_DD
+               << ", "
+               << stats.penta_WD
+               << ", "
+               << stats.penta_WW
                << "]\n";
          }
         std::cout << ss.str() << std::flush;

@@ -358,7 +358,7 @@ void parseReport(int &i, int argc, char const *argv[], ArgumentData &argument_da
         } else {
             OptionsParser::throwMissing("report", key, value);
         }
-        if (argument_data.tournament_options.games != 2){
+        if (argument_data.tournament_options.report_penta == true && argument_data.tournament_options.games != 2){
           throw std::runtime_error("Cannot report pentanomial when games is less than 2");
         }
     });

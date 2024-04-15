@@ -30,10 +30,6 @@ EloWDL::EloWDL(const Stats& stats) {
                          - scoreToNeloDiff(scoreLowerBound_, variance_)) / 2.0;
 }
 
-double EloWDL::scoreToEloDiff(double score) noexcept {
-    return -400.0 * std::log10(1.0 / score - 1.0);
-}
-
 double EloWDL::scoreToNeloDiff(double score, double variance) noexcept {
     return (score - 0.5) / std::sqrt(variance) * (800 / std::log(10));
 }

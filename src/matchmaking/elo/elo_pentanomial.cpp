@@ -69,8 +69,8 @@ double EloPentanomial::error(const Stats& stats) noexcept {
 
 double EloPentanomial::nEloError(const Stats& stats) noexcept {
     const double variance = calcVariance(stats);
-    return (scoreToNeloDiff(scoreUpperBound(stats), std::sqrt(variance)) -
-            scoreToNeloDiff(scoreLowerBound(stats), std::sqrt(variance))) /
+    return (scoreToNeloDiff(scoreUpperBound(stats), variance) -
+            scoreToNeloDiff(scoreLowerBound(stats), variance)) /
             2.0;
 }
 
@@ -79,7 +79,7 @@ double EloPentanomial::diff(const Stats& stats) noexcept {
 }
 
 double EloPentanomial::nEloDiff(const Stats& stats) noexcept {
-    return scoreToNeloDiff(calcScore(stats), std::sqrt(calcVariance(stats)));
+    return scoreToNeloDiff(calcScore(stats), calcVariance(stats));
 }
 
 std::string EloPentanomial::nElo() const noexcept {

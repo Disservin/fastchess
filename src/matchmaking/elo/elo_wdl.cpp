@@ -22,73 +22,76 @@ EloWDL::EloWDL(const Stats& stats) {
     neloerror_ = nEloError(stats);
 }
 
-double EloWDL::percToEloDiff(double percentage) noexcept {
-    return -400.0 * std::log10(1.0 / percentage - 1.0);
+double EloPentanomial::scoreToEloDiff(double score) noexcept {
+    return -400.0 * std::log10(1.0 / score - 1.0);
 }
 
-double EloWDL::percToNeloDiff(double percentage, double stdev) noexcept {
-    return (percentage - 0.5) / stdev * (800 / std::log(10));
+double EloPentanomial::scoreToNeloDiff(double score, double variance) noexcept {
+    return (score - 0.5) / std::sqrt(2 * variance) * (800 / std::log(10));
 }
 
-double EloWDL::error(const Stats& stats) noexcept {
-    const double n    = total(stats);
-    const double w    = stats.wins / n;
-    const double l    = stats.losses / n;
-    const double d    = stats.draws / n;
-    const double perc = w + d / 2.0;
-
-    const double devW  = w * std::pow(1.0 - perc, 2.0);
-    const double devL  = l * std::pow(0.0 - perc, 2.0);
-    const double devD  = d * std::pow(0.5 - perc, 2.0);
-    const double stdev = std::sqrt(devW + devL + devD) / std::sqrt(n);
-
-    const double devMin = perc - 1.959963984540054 * stdev;
-    const double devMax = perc + 1.959963984540054 * stdev;
-    return (percToEloDiff(devMax) - percToEloDiff(devMin)) / 2.0;
+double EloPentanomial::calcScore(const Stats& stats) noexcept {
+    const double pairs    = total(stats);
+    const double WW       = double(stats.penta_WW) / pairs;
+    const double WD       = double(stats.penta_WD) / pairs;
+    const double WL       = double(stats.penta_WL) / pairs;
+    const double DD       = double(stats.penta_DD) / pairs;
+    const double LD       = double(stats.penta_LD) / pairs;
+    return WW + 0.75 * WD + 0.5 * (WL + DD) + 0.25 * LD;
 }
 
-double EloWDL::nEloError(const Stats& stats) noexcept {
-    const double n    = total(stats);
-    const double w    = stats.wins / n;
-    const double l    = stats.losses / n;
-    const double d    = stats.draws / n;
-    const double perc = w + d / 2.0;
-
-    const double devW  = w * std::pow(1.0 - perc, 2.0);
-    const double devL  = l * std::pow(0.0 - perc, 2.0);
-    const double devD  = d * std::pow(0.5 - perc, 2.0);
-    const double stdev = std::sqrt(devW + devL + devD) / std::sqrt(n);
-
-    const double devMin = perc - 1.959963984540054 * stdev;
-    const double devMax = perc + 1.959963984540054 * stdev;
-    return (percToNeloDiff(devMax, stdev * std::sqrt(n)) -
-            percToNeloDiff(devMin, stdev * std::sqrt(n))) /
-           2.0;
+double EloPentanomial::calcVariance(const Stats& stats) noexcept {
+    const double score    = calcScore(stats);
+    const double pairs    = total(stats);
+    const double WW       = double(stats.penta_WW) / pairs;
+    const double WD       = double(stats.penta_WD) / pairs;
+    const double WL       = double(stats.penta_WL) / pairs;
+    const double DD       = double(stats.penta_DD) / pairs;
+    const double LD       = double(stats.penta_LD) / pairs;
+    const double LL       = double(stats.penta_LL) / pairs;
+    const double WW_dev   = WW * std::pow((1 - score), 2);
+    const double WD_dev   = WD * std::pow((0.75 - score), 2);
+    const double WLDD_dev = (WL + DD) * std::pow((0.5 - score), 2);
+    const double LD_dev   = LD * std::pow((0.25 - score), 2);
+    const double LL_dev   = LL * std::pow((0 - score), 2);
+    const double variance = WW_dev + WD_dev + WLDD_dev + LD_dev + LL_dev;
+    return variance;
 }
 
-double EloWDL::diff(const Stats& stats) noexcept {
-    const double n          = total(stats);
-    const double score      = stats.wins + stats.draws / 2.0;
-    const double percentage = (score / n);
-
-    return percToEloDiff(percentage);
+double EloPentanomial::variancePerGame(const Stats& stats) noexcept {
+    return calcVariance(stats) / total(stats);
 }
 
-double EloWDL::nEloDiff(const Stats& stats) noexcept {
-    const double n    = total(stats);
-    const double w    = stats.wins / n;
-    const double l    = stats.losses / n;
-    const double d    = stats.draws / n;
-    const double perc = w + d / 2.0;
-
-    const double devW  = w * std::pow(1.0 - perc, 2.0);
-    const double devL  = l * std::pow(0.0 - perc, 2.0);
-    const double devD  = d * std::pow(0.5 - perc, 2.0);
-    const double stdev = std::sqrt(devW + devL + devD) / std::sqrt(n);
-    return percToNeloDiff(perc, stdev * std::sqrt(n));
+double EloPentanomial::scoreUpperBound(const Stats& stats) noexcept {
+    const double CI95zscore = 1.959963984540054;
+    return calcScore(stats) + CI95zscore * std::sqrt(variancePerGame(stats));
 }
 
-std::string EloWDL::nElo() const noexcept {
+double EloPentanomial::scoreLowerBound(const Stats& stats) noexcept {
+    const double CI95zscore = 1.959963984540054;
+    return calcScore(stats) - CI95zscore * std::sqrt(variancePerGame(stats));
+}
+
+double EloPentanomial::error(const Stats& stats) noexcept {
+    return (scoreToEloDiff(scoreUpperBound(stats)) - scoreToEloDiff(scoreLowerBound(stats))) / 2.0;
+}
+
+double EloPentanomial::nEloError(const Stats& stats) noexcept {
+    const double variance = calcVariance(stats);
+    return (scoreToNeloDiff(scoreUpperBound(stats), std::sqrt(variance)) -
+            scoreToNeloDiff(scoreLowerBound(stats), std::sqrt(variance))) /
+            2.0;
+}
+
+double EloPentanomial::diff(const Stats& stats) noexcept {
+    return scoreToEloDiff(calcScore(stats));
+}
+
+double EloPentanomial::nEloDiff(const Stats& stats) noexcept {
+    return scoreToNeloDiff(calcScore(stats), std::sqrt(calcVariance(stats)));
+}
+
+std::string EloPentanomial::nElo() const noexcept {
     std::stringstream ss;
 
     ss << std::fixed << std::setprecision(2) << nelodiff_;
@@ -97,40 +100,29 @@ std::string EloWDL::nElo() const noexcept {
     return ss.str();
 }
 
-std::string EloWDL::los(const Stats& stats) const noexcept {
-    const double games = total(stats);
-    const double W     = double(stats.wins) / games;
-    const double D     = double(stats.draws) / games;
-    const double L     = double(stats.losses) / games;
-    const double a     = W + 0.5 * D;
-    const double W_dev = W * std::pow((1 - a), 2);
-    const double D_dev = D * std::pow((0.5 - a), 2);
-    const double L_dev = L * std::pow((0 - a), 2);
-    const double stdev = std::sqrt(W_dev + D_dev + L_dev) / std::sqrt(games);
-
-    const double los = (1 - std::erf(-(a - 0.5) / (std::sqrt(2.0) * stdev))) / 2.0;
+std::string EloPentanomial::los(const Stats& stats) const noexcept {
+    const double los = (1 - std::erf(-(calcScore(stats) - 0.5) / std::sqrt(2.0 * variancePerGame(stats)))) / 2.0;
     std::stringstream ss;
     ss << std::fixed << std::setprecision(2) << los * 100.0 << " %";
     return ss.str();
 }
 
-std::string EloWDL::drawRatio(const Stats& stats) const noexcept {
-    const double n = total(stats);
+std::string EloPentanomial::drawRatio(const Stats& stats) const noexcept {
+    const double pairs = total(stats);
     std::stringstream ss;
-    ss << std::fixed << std::setprecision(2) << (stats.draws / n) * 100.0 << " %";
+    ss << std::fixed << std::setprecision(2) << ((stats.penta_WL + stats.penta_DD) / pairs) * 100.0
+       << " %";
     return ss.str();
 }
 
-std::string EloWDL::scoreRatio(const Stats& stats) const noexcept {
-    const double n        = total(stats);
-    const auto scoreRatio = double(stats.wins * 2 + stats.draws) / (n * 2);
-
+std::string EloPentanomial::scoreRatio(const Stats& stats) const noexcept {
     std::stringstream ss;
-    ss << std::fixed << std::setprecision(3) << scoreRatio;
+    ss << std::fixed << std::setprecision(3) << calcScore(stats);
     return ss.str();
 }
 
-std::size_t EloWDL::total(const Stats& stats) noexcept {
-    return stats.wins + stats.losses + stats.draws;
+std::size_t EloPentanomial::total(const Stats& stats) noexcept {
+    return stats.penta_WW + stats.penta_WD + stats.penta_WL + stats.penta_DD + stats.penta_LD +
+           stats.penta_LL;
 }
 }  // namespace fast_chess

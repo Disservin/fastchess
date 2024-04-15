@@ -17,8 +17,8 @@ double EloPentanomial::percToEloDiff(double percentage) noexcept {
     return -400.0 * std::log10(1.0 / percentage - 1.0);
 }
 
-double EloPentanomial::percToNeloDiffWDL(double percentage, double stdev) noexcept {
-    return (percentage - 0.5) / stdev * (800 / std::log(10));
+double EloPentanomial::percToNeloDiff(double percentage, double stdev) noexcept {
+    return (percentage - 0.5) / (std::sqrt(2) * stdev) * (800 / std::log(10));
 }
 
 double EloPentanomial::error(const Stats& stats) noexcept {

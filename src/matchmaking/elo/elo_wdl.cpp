@@ -27,10 +27,6 @@ double EloWDL::percToEloDiff(double percentage) noexcept {
 }
 
 double EloWDL::percToNeloDiff(double percentage, double stdev) noexcept {
-    return (percentage - 0.5) / (std::sqrt(2) * stdev) * (800 / std::log(10));
-}
-
-double EloWDL::percToNeloDiffWDL(double percentage, double stdev) noexcept {
     return (percentage - 0.5) / stdev * (800 / std::log(10));
 }
 
@@ -65,8 +61,8 @@ double EloWDL::nEloError(const Stats& stats) noexcept {
 
     const double devMin = perc - 1.959963984540054 * stdev;
     const double devMax = perc + 1.959963984540054 * stdev;
-    return (percToNeloDiffWDL(devMax, stdev * std::sqrt(n)) -
-            percToNeloDiffWDL(devMin, stdev * std::sqrt(n))) /
+    return (percToNeloDiff(devMax, stdev * std::sqrt(n)) -
+            percToNeloDiff(devMin, stdev * std::sqrt(n))) /
            2.0;
 }
 
@@ -89,7 +85,7 @@ double EloWDL::nEloDiff(const Stats& stats) noexcept {
     const double devL  = l * std::pow(0.0 - perc, 2.0);
     const double devD  = d * std::pow(0.5 - perc, 2.0);
     const double stdev = std::sqrt(devW + devL + devD) / std::sqrt(n);
-    return percToNeloDiffWDL(perc, stdev * std::sqrt(n));
+    return percToNeloDiff(perc, stdev * std::sqrt(n));
 }
 
 std::string EloWDL::nElo() const noexcept {

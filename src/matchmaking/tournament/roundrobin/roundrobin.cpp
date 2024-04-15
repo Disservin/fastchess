@@ -90,8 +90,7 @@ void RoundRobin::create() {
                 if (report) {
                     const auto updated_stats = result_.getStats(first.name, second.name);
 
-                    output_->printInterval(sprt_, updated_stats, first.name, second.name,
-                                           match_count_ + 1);
+                    output_->printInterval(sprt_, updated_stats, first.name, second.name);
                 }
 
                 updateSprtStatus({first, second});
@@ -130,7 +129,7 @@ void RoundRobin::updateSprtStatus(const std::vector<EngineConfiguration>& engine
         Logger::log<Logger::Level::INFO>("SPRT test finished: " + sprt_.getBounds() + " " +
                                          sprt_.getElo());
 
-        output_->printElo(stats, engine_configs[0].name, engine_configs[1].name, match_count_);
+        output_->printElo(stats, engine_configs[0].name, engine_configs[1].name);
         output_->endTournament();
 
         stop();

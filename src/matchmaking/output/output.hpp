@@ -24,11 +24,10 @@ class IOutput {
     /// @param stats
     /// @param first
     /// @param second
-    /// @param current_game_count
     virtual void printInterval(const SPRT& sprt, const Stats& stats, const std::string& first,
-                               const std::string& second, int current_game_count) {
+                               const std::string& second) {
         std::cout << "--------------------------------------------------\n";
-        printElo(stats, first, second, current_game_count);
+        printElo(stats, first, second);
         printSprt(sprt, stats);
         std::cout << "--------------------------------------------------\n";
     };
@@ -37,9 +36,8 @@ class IOutput {
     /// @param stats
     /// @param first
     /// @param second
-    /// @param current_game_count
-    virtual void printElo(const Stats& stats, const std::string& first, const std::string& second,
-                          std::size_t current_game_count) = 0;
+    virtual void printElo(const Stats& stats, const std::string& first,
+                          const std::string& second) = 0;
 
     /// @brief Print current SPRT stats.
     /// @param sprt

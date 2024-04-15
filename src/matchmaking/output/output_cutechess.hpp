@@ -9,13 +9,13 @@ namespace fast_chess {
 class Cutechess : public IOutput {
    public:
     void printInterval(const SPRT& sprt, const Stats& stats, const std::string& first,
-                       const std::string& second, int current_game_count) override {
-        printElo(stats, first, second, current_game_count);
+                       const std::string& second) override {
+        printElo(stats, first, second);
         printSprt(sprt, stats);
     };
 
-    void printElo(const Stats& stats, const std::string& first, const std::string& second,
-                  std::size_t current_game_count) override {
+    void printElo(const Stats& stats, const std::string& first,
+                  const std::string& second) override {
         const EloWDL elo(stats);
 
         std::stringstream ss;

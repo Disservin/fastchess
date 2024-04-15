@@ -12,15 +12,15 @@ class Fastchess : public IOutput {
     Fastchess(bool report_penta = true) : report_penta_(report_penta) {}
 
     void printInterval(const SPRT& sprt, const Stats& stats, const std::string& first,
-                       const std::string& second, int current_game_count) override {
+                       const std::string& second) override {
         std::cout << "--------------------------------------------------\n";
-        printElo(stats, first, second, current_game_count);
+        printElo(stats, first, second);
         printSprt(sprt, stats);
         std::cout << "--------------------------------------------------\n";
     };
 
-    void printElo(const Stats& stats, const std::string& first, const std::string& second,
-                  std::size_t current_game_count) override {
+    void printElo(const Stats& stats, const std::string& first,
+                  const std::string& second) override {
         std::unique_ptr<EloBase> elo;
 
         if (report_penta_) {

@@ -82,7 +82,7 @@ double SPRT::getLLR(int penta_WW, int penta_WD, int penta_WL, int penta_DD, int 
     const double LL_dev    = LL * std::pow((0 - score), 2);
     const double variance  = WW_dev + WD_dev + WLDD_dev + LD_dev + LL_dev;
     if (variance == 0) return 0.0;
-    const double variance_per_game  = variance / pairs;
+    const double variance_per_pair  = variance / pairs;
     double score0;
     double score1;
     if (logistic_bounds_ == false) {
@@ -92,7 +92,7 @@ double SPRT::getLLR(int penta_WW, int penta_WD, int penta_WL, int penta_DD, int 
         score0 = leloToScore(elo0_);
         score1 = leloToScore(elo1_);
     }
-    return (score1 - score0) * (2 * score - score0 - score1) / (2 * variance_per_game);
+    return (score1 - score0) * (2 * score - score0 - score1) / (2 * variance_per_pair);
 }
 
 SPRTResult SPRT::getResult(double llr) const noexcept {

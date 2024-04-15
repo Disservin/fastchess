@@ -25,12 +25,6 @@ class EloWDL : public EloBase {
 
     [[nodiscard]] static double calcVariance(const Stats& stats) noexcept;
 
-    [[nodiscard]] static double variancePerGame(const Stats& stats) noexcept;
-
-    [[nodiscard]] static double scoreUpperBound(const Stats& stats) noexcept;
-
-    [[nodiscard]] static double scoreLowerBound(const Stats& stats) noexcept;
-
     [[nodiscard]] static double diff(const Stats& stats) noexcept;
 
     [[nodiscard]] static double nEloDiff(const Stats& stats) noexcept;

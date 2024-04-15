@@ -14,14 +14,22 @@ class EloWDL : public EloBase {
     [[nodiscard]] std::string los(const Stats& stats) const noexcept override;
     [[nodiscard]] std::string drawRatio(const Stats& stats) const noexcept override;
     [[nodiscard]] std::string scoreRatio(const Stats& stats) const noexcept override;
-    [[nodiscard]] std::string nElo() const noexcept;
+    [[nodiscard]] std::string nElo() const noexcept override;
 
    private:
-    [[nodiscard]] static double percToEloDiff(double percentage) noexcept;
+    [[nodiscard]] static double scoreToEloDiff(double score) noexcept;
 
-    [[nodiscard]] static double percToNeloDiff(double percentage, double stdev) noexcept;
+    [[nodiscard]] static double scoreToNeloDiff(double score, double variance) noexcept;
 
-    [[nodiscard]] static double percToNeloDiffWDL(double percentage, double stdev) noexcept;
+    [[nodiscard]] static double calcScore(const Stats& stats) noexcept;
+
+    [[nodiscard]] static double calcVariance(const Stats& stats) noexcept;
+
+    [[nodiscard]] static double variancePerGame(const Stats& stats) noexcept;
+
+    [[nodiscard]] static double scoreUpperBound(const Stats& stats) noexcept;
+
+    [[nodiscard]] static double scoreLowerBound(const Stats& stats) noexcept;
 
     [[nodiscard]] static double diff(const Stats& stats) noexcept;
 

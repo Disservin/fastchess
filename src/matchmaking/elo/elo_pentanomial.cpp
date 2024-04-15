@@ -79,7 +79,7 @@ double EloPentanomial::diff(const Stats& stats) noexcept {
 }
 
 double EloPentanomial::nEloDiff(const Stats& stats) noexcept {
-    return scoreToNeloDiff(score(stats), std::sqrt(variance(stats));
+    return scoreToNeloDiff(score(stats), std::sqrt(variance(stats)));
 }
 
 std::string EloPentanomial::nElo() const noexcept {

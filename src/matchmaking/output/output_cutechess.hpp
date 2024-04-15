@@ -32,7 +32,7 @@ class Cutechess : public IOutput {
            << " ["                   //
            << elo.scoreRatio(stats)  //
            << "] "                   //
-           << current_game_count     //
+           << stats.wins + stats.losses + stats.draws     //
            << "\n";
 
         ss << "Elo difference: "    //

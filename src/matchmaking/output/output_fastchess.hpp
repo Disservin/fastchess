@@ -16,9 +16,6 @@ class Fastchess : public IOutput {
         std::cout << "--------------------------------------------------\n";
         printElo(stats, first, second, current_game_count);
         printSprt(sprt, stats);
-        if (report_penta_) {
-            printPenta(stats);
-        }
         std::cout << "--------------------------------------------------\n";
     };
 
@@ -33,49 +30,65 @@ class Fastchess : public IOutput {
         }
 
         std::stringstream ss;
-        ss << "Score of "             //
+        ss << "Results of "           //
            << first                   //
            << " vs "                  //
            << second                  //
-           << ": "                    //
-           << stats.wins              //
-           << "W - "                  //
-           << stats.losses            //
-           << "L - "                  //
-           << stats.draws             //
-           << "D ["                   //
-           << elo->scoreRatio(stats)  //
-           << "] "                    //
-           << current_game_count      //
-           << "\n";
+           << ": \n";                 
 
-        if (report_penta_) {
-            ss << "Elo difference: "     //
-               << elo->getElo()          //
-               << ", "                   //
-               << "nElo difference: "    //
-               << elo->nElo()            //
-               << ", "                   //
-               << "LOS: "                //
-               << elo->los(stats)        //
-               << ", "                   //
-               << "PairDrawRatio: "      //
-               << elo->drawRatio(stats)  //
-               << "\n";
+        ss << "Elo: "                 //
+           << elo->getElo()           //
+           << ", nElo: "               //
+           << elo->nElo()          //
+           << "\n";                   //
+   
+        ss << "LOS: "                 //
+           << elo->los(stats)         //
+           << ", DrawRatio: "          //
+           << elo->drawRatio(stats);  //
+
+        const double pairsRatio = static_cast<double>(stats.penta_WW + stats.penta_WD) / (stats.penta_LD + stats.penta_LL);
+        if (report_penta_){
+           ss << ", PairsRatio: "
+              << std::fixed
+              << std::setprecision(2)
+              << pairsRatio
+              << "\n";
         } else {
-            ss << "Elo difference: "     //
-               << elo->getElo()          //
-               << ", "                   //
-               << "nElo difference: "    //
-               << elo->nElo()            //
-               << ", "                   //
-               << "LOS: "                //
-               << elo->los(stats)        //
-               << ", "                   //
-               << "DrawRatio: "          //
-               << elo->drawRatio(stats)  //
-               << "\n";
+           ss << "\n";
         }
+
+         const double points = stats.wins + 0.5 * stats.draws;
+         ss << "Games: "              //
+            << stats.wins + stats.losses + stats.draws     //
+            << ", Wins: "                 //
+            << stats.wins             //
+            << ", Losses: "                 //
+            << stats.losses           //
+            << ", Draws: "                 //
+            << stats.draws            //
+            << ", Points: "            //
+            << points          //
+            << " ("                   //
+            << std::fixed
+            << std::setprecision(2)
+            << points / (stats.wins + stats.losses + stats.draws) * 100 //
+            << " %)\n";
+
+         if (report_penta_){
+            ss << "Ptnml(0-2): "
+               << "["
+               << stats.penta_LL
+               << ", "
+               << stats.penta_LD
+               << ", "
+               << stats.penta_WL + stats.penta_DD
+               << ", "
+               << stats.penta_WD
+               << ", "
+               << stats.penta_WW
+               << "]\n";
+         }
         std::cout << ss.str() << std::flush;
     }
 
@@ -92,25 +105,6 @@ class Fastchess : public IOutput {
                << " " << sprt.getElo() << "\n";
             std::cout << ss.str() << std::flush;
         }
-    };
-
-    static void printPenta(const Stats& stats) {
-        std::stringstream ss;
-
-        ss << "Ptnml:   " << std::right << std::setw(7)  //
-           << "LL" << std::right << std::setw(7)         //
-           << "LD" << std::right << std::setw(7)         //
-           << "DD/WL" << std::right << std::setw(7)      //
-           << "WD" << std::right << std::setw(7)         //
-           << "WW"
-           << "\n"
-           << "Distr:   " << std::right << std::setw(7)                      //
-           << stats.penta_LL << std::right << std::setw(7)                   //
-           << stats.penta_LD << std::right << std::setw(7)                   //
-           << stats.penta_WL + stats.penta_DD << std::right << std::setw(7)  //
-           << stats.penta_WD << std::right << std::setw(7)                   //
-           << stats.penta_WW << "\n";
-        std::cout << ss.str() << std::flush;
     }
 
     void startGame(const pair_config& configs, std::size_t current_game_count,

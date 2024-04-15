@@ -6,6 +6,7 @@
 #include <string_view>
 #include <vector>
 
+namespace fast_chess {
 class IProcess {
    public:
     enum class Status { OK, ERR, TIMEOUT };
@@ -35,3 +36,5 @@ class IProcess {
     // Write input to the engine's stdin
     virtual void writeProcess(const std::string &input) = 0;
 };
+
+}  // namespace fast_chess

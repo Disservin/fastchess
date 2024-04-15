@@ -19,6 +19,8 @@
 #include <affinity/cpuinfo/cpu_info.hpp>
 #include <util/scope_guard.hpp>
 
+namespace fast_chess {
+
 namespace affinity {
 class AffinityManager {
     enum Group {
@@ -115,3 +117,4 @@ class AffinityManager {
 };
 
 }  // namespace affinity
+}  // namespace fast_chess

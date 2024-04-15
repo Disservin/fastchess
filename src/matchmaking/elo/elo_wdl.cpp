@@ -59,7 +59,7 @@ std::string EloWDL::nElo() const noexcept {
     return ss.str();
 }
 
-std::string EloWDL::los(const Stats& stats) const noexcept {
+std::string EloWDL::los() const noexcept {
     const double los =
         (1 - std::erf(-(score_ - 0.5) / std::sqrt(2.0 * variance_per_game_))) / 2.0;
     std::stringstream ss;

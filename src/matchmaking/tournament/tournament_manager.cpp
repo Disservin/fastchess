@@ -34,6 +34,8 @@ options::Tournament TournamentManager::fixConfig(options::Tournament config) {
     // fix wrong config
     if (config.report_penta && config.output == OutputType::CUTECHESS) config.report_penta = false;
 
+    if (config.report_penta && config.games != 2) config.report_penta = false;
+
     if (config.opening.file.empty()) {
         Logger::log<Logger::Level::WARN>(
             "Warning: No opening book specified! Consider using one, otherwise all games will be "

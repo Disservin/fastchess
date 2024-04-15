@@ -121,7 +121,7 @@ std::string EloWDL::drawRatio(const Stats& stats) const noexcept {
     return ss.str();
 }
 
-std::string EloWDL::printScore(const Stats& stats) const noexcept {
+std::string EloWDL::scoreRatio(const Stats& stats) const noexcept {
     const double n        = total(stats);
     const auto scoreRatio = double(stats.wins * 2 + stats.draws) / (n * 2);
 

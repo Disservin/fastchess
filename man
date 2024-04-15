@@ -88,8 +88,14 @@ OPTIONS
         -ratinginterval N
             Set the rating interval for the rating report. For penta reports, this is reports per N game pair.
 
-        -sprt elo0=ELO0 elo1=ELO1 alpha=ALPHA beta=BETA
+        -sprt elo0=ELO0 elo1=ELO1 alpha=ALPHA beta=BETA model=MODEL
             Set parameters for the Sequential Probability Ratio Test (SPRT).
+            For more information see https://tests.stockfishchess.org/sprt_calc?elo-model=Normalized&elo-0=0&elo-1=2&draw-ratio=0.49&rms-bias=191
+
+            -model=MODEL
+                Specify the model to use.
+                    - logistic
+                    - normalized
 
         -srand SEED
             Set the seed for the random number generator.

@@ -7,16 +7,16 @@
 namespace fast_chess {
 
 EloPentanomial::EloPentanomial(const Stats& stats) {
-    diff_              = diff(stats);
-    error_             = error(stats);
-    nelodiff_          = nEloDiff(stats);
-    neloerror_         = nEloError(stats);
     pairs_             = total(stats);
     score_             = calcScore(stats);
     variance_          = calcVariance(stats);
     variance_per_pair_ = variance_/pairs_;
     scoreUpperBound_    = score_ + CI95zscore_ * std::sqrt(variance_per_pair_);
     scoreLowerBound_    = score_ + CI95zscore_ * std::sqrt(variance_per_pair_);
+    diff_              = diff(stats);
+    error_             = error(stats);
+    nelodiff_          = nEloDiff(stats);
+    neloerror_         = nEloError(stats);
 }
 
 double EloPentanomial::scoreToEloDiff(double score) noexcept {

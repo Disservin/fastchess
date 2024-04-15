@@ -17,8 +17,6 @@ class EloPentanomial : public EloBase {
     [[nodiscard]] std::string nElo() const noexcept override;
 
    private:
-    [[nodiscard]] static double scoreToEloDiff(double score) noexcept;
-
     [[nodiscard]] static double scoreToNeloDiff(double score, double variance) noexcept;
 
     [[nodiscard]] double calcScore(const Stats& stats) noexcept;

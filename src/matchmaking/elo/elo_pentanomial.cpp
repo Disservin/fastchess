@@ -28,7 +28,6 @@ double EloPentanomial::score(const Stats& stats) noexcept {
     const double WL       = double(stats.penta_WL) / pairs;
     const double DD       = double(stats.penta_DD) / pairs;
     const double LD       = double(stats.penta_LD) / pairs;
-    const double LL       = double(stats.penta_LL) / pairs;
     return WW + 0.75 * WD + 0.5 * (WL + DD) + 0.25 * LD;
 }
 

@@ -30,7 +30,7 @@ class Cutechess : public IOutput {
            << " - "                                    //
            << stats.draws                              //
            << " ["                                     //
-           << elo.scoreRatio(stats)                    //
+           << elo.scoreRatio()                         //
            << "] "                                     //
            << stats.wins + stats.losses + stats.draws  //
            << "\n";

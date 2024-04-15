@@ -3,6 +3,7 @@
 #include <atomic>
 #include <type_traits>
 
+namespace fast_chess {
 class ScopeEntry {
    public:
     ScopeEntry(bool available) : available_(available) {}
@@ -33,3 +34,5 @@ class ScopeGuard {
    private:
     T &entry_;
 };
+
+}  // namespace fast_chess

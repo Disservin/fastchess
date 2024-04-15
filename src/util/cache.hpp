@@ -8,6 +8,8 @@
 
 #include <util/scope_guard.hpp>
 
+namespace fast_chess {
+
 template <typename T, typename ID>
 class CachedEntry : public ScopeEntry {
    public:
@@ -51,3 +53,5 @@ class CachePool {
     std::deque<CachedEntry<T, ID>> cache_;
     std::mutex access_mutex_;
 };
+
+}  // namespace fast_chess

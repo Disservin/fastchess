@@ -11,6 +11,7 @@
 
 #include <affinity/cpuinfo/cpu_info.hpp>
 
+namespace fast_chess {
 namespace affinity {
 
 inline CpuInfo getCpuInfo() noexcept(false) {
@@ -71,3 +72,4 @@ inline CpuInfo getCpuInfo() noexcept(false) {
 }
 
 }  // namespace affinity
+}  // namespace fast_chess

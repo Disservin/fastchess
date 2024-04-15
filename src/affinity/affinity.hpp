@@ -10,6 +10,8 @@
 #include <sched.h>
 #endif
 
+namespace fast_chess {
+
 namespace affinity {
 
 #ifdef _WIN64
@@ -54,3 +56,5 @@ inline bool setAffinity(const std::vector<int>& cpus, pid_t process_pid) noexcep
 
 #endif
 }  // namespace affinity
+
+}  // namespace fast_chess

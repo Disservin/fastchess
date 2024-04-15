@@ -22,7 +22,6 @@
 
 namespace fast_chess {
 extern ThreadVector<HANDLE> process_list;
-}  // namespace fast_chess
 
 class Process : public IProcess {
    public:
@@ -216,5 +215,7 @@ class Process : public IProcess {
     HANDLE child_std_out_;
     HANDLE child_std_in_;
 };
+
+}  // namespace fast_chess
 
 #endif

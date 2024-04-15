@@ -4,6 +4,8 @@
 #include <mutex>
 #include <vector>
 
+namespace fast_chess {
+
 template <typename T>
 class ThreadVector {
    public:
@@ -56,3 +58,5 @@ class ThreadVector {
     std::mutex mutex_;
     std::vector<T> vec_;
 };
+
+}  // namespace fast_chess

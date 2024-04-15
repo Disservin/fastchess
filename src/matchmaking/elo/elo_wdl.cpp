@@ -22,7 +22,7 @@ EloWDL::EloWDL(const Stats& stats) {
     variance_per_game_ = variance_/games_;
     CI95zscore_        = 1.959963984540054;
     scoreUpperBound_   = score_ + CI95zscore_ * std::sqrt(variance_per_game_);
-    scoreLowerBound_   = score_ + CI95zscore_ * std::sqrt(variance_per_game_);
+    scoreLowerBound_   = score_ - CI95zscore_ * std::sqrt(variance_per_game_);
     diff_              = scoreToEloDiff(score_);
     error_             = (scoreToEloDiff(scoreUpperBound_) - scoreToEloDiff(scoreLowerBound_)) / 2.0;
     nelodiff_          = scoreToNeloDiff(score_, variance_);

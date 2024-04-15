@@ -34,6 +34,12 @@ double EloPentanomial::score(const Stats& stats) noexcept {
 
 double EloPentanomial::variance(const Stats& stats) noexcept {
     const double score    = score(stats);
+    const double WW       = double(stats.penta_WW) / pairs;
+    const double WD       = double(stats.penta_WD) / pairs;
+    const double WL       = double(stats.penta_WL) / pairs;
+    const double DD       = double(stats.penta_DD) / pairs;
+    const double LD       = double(stats.penta_LD) / pairs;
+    const double LL       = double(stats.penta_LL) / pairs;
     const double WW_dev   = WW * std::pow((1 - score), 2);
     const double WD_dev   = WD * std::pow((0.75 - score), 2);
     const double WLDD_dev = (WL + DD) * std::pow((0.5 - score), 2);

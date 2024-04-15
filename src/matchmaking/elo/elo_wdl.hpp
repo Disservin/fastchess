@@ -21,8 +21,6 @@ class EloWDL : public EloBase {
 
     [[nodiscard]] static double percToNeloDiff(double percentage, double stdev) noexcept;
 
-    [[nodiscard]] static double percToNeloDiffWDL(double percentage, double stdev) noexcept;
-
     [[nodiscard]] static double diff(const Stats& stats) noexcept;
 
     [[nodiscard]] static double nEloDiff(const Stats& stats) noexcept;

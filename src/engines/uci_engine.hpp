@@ -72,6 +72,8 @@ class UciEngine : Process {
     /// @return
     [[nodiscard]] int lastScore() const;
 
+    [[nodiscard]] bool outputIncludesBestmove() const;
+
     [[nodiscard]] const std::vector<std::string> &output() const noexcept { return output_; }
     [[nodiscard]] const EngineConfiguration &getConfig() const noexcept { return config_; }
 

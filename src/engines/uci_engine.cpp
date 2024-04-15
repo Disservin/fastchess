@@ -145,4 +145,11 @@ int UciEngine::lastScore() const {
     return str_utils::findElement<int>(lastInfo(), lastScoreType() == ScoreType::CP ? "cp" : "mate")
         .value_or(0);
 }
+
+bool UciEngine::outputIncludesBestmove() const {
+    for (const auto &line : output_) {
+        if (line.find("bestmove") != std::string::npos) return true;
+    }
+}
+
 }  // namespace fast_chess

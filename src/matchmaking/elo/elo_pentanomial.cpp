@@ -22,12 +22,12 @@ double EloPentanomial::scoreToNeloDiff(double score, double variance) noexcept {
 }
 
 double EloPentanomial::calcScore(const Stats& stats) noexcept {
-    const double pairs    = total(stats);
-    const double WW       = double(stats.penta_WW) / pairs;
-    const double WD       = double(stats.penta_WD) / pairs;
-    const double WL       = double(stats.penta_WL) / pairs;
-    const double DD       = double(stats.penta_DD) / pairs;
-    const double LD       = double(stats.penta_LD) / pairs;
+    const double pairs = total(stats);
+    const double WW    = double(stats.penta_WW) / pairs;
+    const double WD    = double(stats.penta_WD) / pairs;
+    const double WL    = double(stats.penta_WL) / pairs;
+    const double DD    = double(stats.penta_DD) / pairs;
+    const double LD    = double(stats.penta_LD) / pairs;
     return WW + 0.75 * WD + 0.5 * (WL + DD) + 0.25 * LD;
 }
 
@@ -71,7 +71,7 @@ double EloPentanomial::nEloError(const Stats& stats) noexcept {
     const double variance = calcVariance(stats);
     return (scoreToNeloDiff(scoreUpperBound(stats), variance) -
             scoreToNeloDiff(scoreLowerBound(stats), variance)) /
-            2.0;
+           2.0;
 }
 
 double EloPentanomial::diff(const Stats& stats) noexcept {
@@ -92,7 +92,8 @@ std::string EloPentanomial::nElo() const noexcept {
 }
 
 std::string EloPentanomial::los(const Stats& stats) const noexcept {
-    const double los = (1 - std::erf(-(calcScore(stats) - 0.5) / std::sqrt(2.0 * variancePerPair(stats)))) / 2.0;
+    const double los =
+        (1 - std::erf(-(calcScore(stats) - 0.5) / std::sqrt(2.0 * variancePerPair(stats)))) / 2.0;
     std::stringstream ss;
     ss << std::fixed << std::setprecision(2) << los * 100.0 << " %";
     return ss.str();

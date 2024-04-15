@@ -27,11 +27,11 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(Pgn, file, notation, track_nodes
                                                 track_nps)
 
 struct Sprt {
-    double alpha = 0.0;
-    double beta  = 0.0;
-    double elo0  = 0.0;
-    double elo1  = 0.0;
-    bool logistic_bounds  = false;
+    double alpha         = 0.0;
+    double beta          = 0.0;
+    double elo0          = 0.0;
+    double elo1          = 0.0;
+    bool logistic_bounds = false;
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(Sprt, alpha, beta, elo0, elo1, logistic_bounds)
 

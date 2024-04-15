@@ -31,21 +31,21 @@ double EloWDL::scoreToNeloDiff(double score, double variance) noexcept {
 }
 
 double EloWDL::calcScore(const Stats& stats) noexcept {
-    const double games    = total(stats);
-    const double W       = double(stats.wins) / games;
-    const double D       = double(stats.draws) / games;
+    const double games = total(stats);
+    const double W     = double(stats.wins) / games;
+    const double D     = double(stats.draws) / games;
     return W + 0.5 * D;
 }
 
 double EloWDL::calcVariance(const Stats& stats) noexcept {
     const double score    = calcScore(stats);
     const double games    = total(stats);
-    const double W       = double(stats.wins) / games;
-    const double D       = double(stats.draws) / games;
-    const double L       = double(stats.losses) / games;
-    const double W_dev   = W * std::pow((1 - score), 2);
-    const double D_dev   = D * std::pow((0.5 - score), 2);
-    const double L_dev   = L * std::pow((0 - score), 2);
+    const double W        = double(stats.wins) / games;
+    const double D        = double(stats.draws) / games;
+    const double L        = double(stats.losses) / games;
+    const double W_dev    = W * std::pow((1 - score), 2);
+    const double D_dev    = D * std::pow((0.5 - score), 2);
+    const double L_dev    = L * std::pow((0 - score), 2);
     const double variance = W_dev + D_dev + L_dev;
     return variance;
 }
@@ -72,12 +72,10 @@ double EloWDL::nEloError(const Stats& stats) noexcept {
     const double variance = calcVariance(stats);
     return (scoreToNeloDiff(scoreUpperBound(stats), variance) -
             scoreToNeloDiff(scoreLowerBound(stats), variance)) /
-            2.0;
+           2.0;
 }
 
-double EloWDL::diff(const Stats& stats) noexcept {
-    return scoreToEloDiff(calcScore(stats));
-}
+double EloWDL::diff(const Stats& stats) noexcept { return scoreToEloDiff(calcScore(stats)); }
 
 double EloWDL::nEloDiff(const Stats& stats) noexcept {
     return scoreToNeloDiff(calcScore(stats), calcVariance(stats));
@@ -93,7 +91,8 @@ std::string EloWDL::nElo() const noexcept {
 }
 
 std::string EloWDL::los(const Stats& stats) const noexcept {
-    const double los = (1 - std::erf(-(calcScore(stats) - 0.5) / std::sqrt(2.0 * variancePerGame(stats)))) / 2.0;
+    const double los =
+        (1 - std::erf(-(calcScore(stats) - 0.5) / std::sqrt(2.0 * variancePerGame(stats)))) / 2.0;
     std::stringstream ss;
     ss << std::fixed << std::setprecision(2) << los * 100.0 << " %";
     return ss.str();
@@ -102,8 +101,7 @@ std::string EloWDL::los(const Stats& stats) const noexcept {
 std::string EloWDL::drawRatio(const Stats& stats) const noexcept {
     const double games = total(stats);
     std::stringstream ss;
-    ss << std::fixed << std::setprecision(2) << ((stats.draws) / games) * 100.0
-       << " %";
+    ss << std::fixed << std::setprecision(2) << ((stats.draws) / games) * 100.0 << " %";
     return ss.str();
 }
 

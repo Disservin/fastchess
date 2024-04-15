@@ -19,20 +19,20 @@ class Cutechess : public IOutput {
         const EloWDL elo(stats);
 
         std::stringstream ss;
-        ss << "Score of "            //
-           << first                  //
-           << " vs "                 //
-           << second                 //
-           << ": "                   //
-           << stats.wins             //
-           << " - "                  //
-           << stats.losses           //
-           << " - "                  //
-           << stats.draws            //
-           << " ["                   //
-           << elo.scoreRatio(stats)  //
-           << "] "                   //
-           << stats.wins + stats.losses + stats.draws     //
+        ss << "Score of "                              //
+           << first                                    //
+           << " vs "                                   //
+           << second                                   //
+           << ": "                                     //
+           << stats.wins                               //
+           << " - "                                    //
+           << stats.losses                             //
+           << " - "                                    //
+           << stats.draws                              //
+           << " ["                                     //
+           << elo.scoreRatio(stats)                    //
+           << "] "                                     //
+           << stats.wins + stats.losses + stats.draws  //
            << "\n";
 
         ss << "Elo difference: "    //

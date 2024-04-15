@@ -1,7 +1,7 @@
 #pragma once
 
-#include <matchmaking/elo/elo_wdl.hpp>
 #include <matchmaking/elo/elo_pentanomial.hpp>
+#include <matchmaking/elo/elo_wdl.hpp>
 #include <matchmaking/output/output.hpp>
 #include <util/logger/logger.hpp>
 
@@ -30,65 +30,53 @@ class Fastchess : public IOutput {
         }
 
         std::stringstream ss;
-        ss << "Results of "           //
-           << first                   //
-           << " vs "                  //
-           << second                  //
-           << ": \n";                 
+        ss << "Results of "  //
+           << first          //
+           << " vs "         //
+           << second         //
+           << ": \n";
 
-        ss << "Elo: "                 //
-           << elo->getElo()           //
-           << ", nElo: "               //
-           << elo->nElo()          //
-           << "\n";                   //
-   
+        ss << "Elo: "        //
+           << elo->getElo()  //
+           << ", nElo: "     //
+           << elo->nElo()    //
+           << "\n";          //
+
         ss << "LOS: "                 //
            << elo->los(stats)         //
-           << ", DrawRatio: "          //
+           << ", DrawRatio: "         //
            << elo->drawRatio(stats);  //
 
-        const double pairsRatio = static_cast<double>(stats.penta_WW + stats.penta_WD) / (stats.penta_LD + stats.penta_LL);
-        if (report_penta_){
-           ss << ", PairsRatio: "
-              << std::fixed
-              << std::setprecision(2)
-              << pairsRatio
-              << "\n";
+        const double pairsRatio = static_cast<double>(stats.penta_WW + stats.penta_WD) /
+                                  (stats.penta_LD + stats.penta_LL);
+        if (report_penta_) {
+            ss << ", PairsRatio: " << std::fixed << std::setprecision(2) << pairsRatio << "\n";
         } else {
-           ss << "\n";
+            ss << "\n";
         }
 
-         const double points = stats.wins + 0.5 * stats.draws;
-         ss << "Games: "              //
-            << stats.wins + stats.losses + stats.draws     //
-            << ", Wins: "                 //
-            << stats.wins             //
-            << ", Losses: "                 //
-            << stats.losses           //
-            << ", Draws: "                 //
-            << stats.draws            //
-            << ", Points: "            //
-            << points          //
-            << " ("                   //
-            << std::fixed
-            << std::setprecision(2)
-            << points / (stats.wins + stats.losses + stats.draws) * 100 //
-            << " %)\n";
+        const double points = stats.wins + 0.5 * stats.draws;
+        ss << "Games: "                                //
+           << stats.wins + stats.losses + stats.draws  //
+           << ", Wins: "                               //
+           << stats.wins                               //
+           << ", Losses: "                             //
+           << stats.losses                             //
+           << ", Draws: "                              //
+           << stats.draws                              //
+           << ", Points: "                             //
+           << points                                   //
+           << " ("                                     //
+           << std::fixed << std::setprecision(2)
+           << points / (stats.wins + stats.losses + stats.draws) * 100  //
+           << " %)\n";
 
-         if (report_penta_){
+        if (report_penta_) {
             ss << "Ptnml(0-2): "
-               << "["
-               << stats.penta_LL
-               << ", "
-               << stats.penta_LD
-               << ", "
-               << stats.penta_WL + stats.penta_DD
-               << ", "
-               << stats.penta_WD
-               << ", "
-               << stats.penta_WW
-               << "]\n";
-         }
+               << "[" << stats.penta_LL << ", " << stats.penta_LD << ", "
+               << stats.penta_WL + stats.penta_DD << ", " << stats.penta_WD << ", "
+               << stats.penta_WW << "]\n";
+        }
         std::cout << ss.str() << std::flush;
     }
 

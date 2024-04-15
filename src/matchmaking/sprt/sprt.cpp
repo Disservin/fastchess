@@ -40,16 +40,16 @@ double SPRT::getLLR(int win, int draw, int loss) const noexcept {
 
     const double games = win + draw + loss;
     if (games == 0) return 0.0;
-    const double W         = double(win) / games;
-    const double D         = double(draw) / games;
-    const double L         = double(loss) / games;
-    const double score     = W + 0.5 * D;
-    const double W_dev     = W * std::pow((1 - score), 2);
-    const double D_dev     = D * std::pow((0.5 - score), 2);
-    const double L_dev     = L * std::pow((0 - score), 2);
-    const double variance  = W_dev + D_dev + L_dev;
+    const double W        = double(win) / games;
+    const double D        = double(draw) / games;
+    const double L        = double(loss) / games;
+    const double score    = W + 0.5 * D;
+    const double W_dev    = W * std::pow((1 - score), 2);
+    const double D_dev    = D * std::pow((0.5 - score), 2);
+    const double L_dev    = L * std::pow((0 - score), 2);
+    const double variance = W_dev + D_dev + L_dev;
     if (variance == 0) return 0.0;
-    const double variance_per_game  = variance / games;
+    const double variance_per_game = variance / games;
     double score0;
     double score1;
     if (logistic_bounds_ == false) {
@@ -68,21 +68,21 @@ double SPRT::getLLR(int penta_WW, int penta_WD, int penta_WL, int penta_DD, int 
 
     const double pairs = penta_WW + penta_WD + penta_WL + penta_DD + penta_LD + penta_LL;
     if (pairs == 0) return 0.0;
-    const double WW        = double(penta_WW) / pairs;
-    const double WD        = double(penta_WD) / pairs;
-    const double WL        = double(penta_WL) / pairs;
-    const double DD        = double(penta_DD) / pairs;
-    const double LD        = double(penta_LD) / pairs;
-    const double LL        = double(penta_LL) / pairs;
-    const double score     = WW + 0.75 * WD + 0.5 * (WL + DD) + 0.25 * LD;
-    const double WW_dev    = WW * std::pow((1 - score), 2);
-    const double WD_dev    = WD * std::pow((0.75 - score), 2);
-    const double WLDD_dev  = (WL + DD) * std::pow((0.5 - score), 2);
-    const double LD_dev    = LD * std::pow((0.25 - score), 2);
-    const double LL_dev    = LL * std::pow((0 - score), 2);
-    const double variance  = WW_dev + WD_dev + WLDD_dev + LD_dev + LL_dev;
+    const double WW       = double(penta_WW) / pairs;
+    const double WD       = double(penta_WD) / pairs;
+    const double WL       = double(penta_WL) / pairs;
+    const double DD       = double(penta_DD) / pairs;
+    const double LD       = double(penta_LD) / pairs;
+    const double LL       = double(penta_LL) / pairs;
+    const double score    = WW + 0.75 * WD + 0.5 * (WL + DD) + 0.25 * LD;
+    const double WW_dev   = WW * std::pow((1 - score), 2);
+    const double WD_dev   = WD * std::pow((0.75 - score), 2);
+    const double WLDD_dev = (WL + DD) * std::pow((0.5 - score), 2);
+    const double LD_dev   = LD * std::pow((0.25 - score), 2);
+    const double LL_dev   = LL * std::pow((0 - score), 2);
+    const double variance = WW_dev + WD_dev + WLDD_dev + LD_dev + LL_dev;
     if (variance == 0) return 0.0;
-    const double variance_per_pair  = variance / pairs;
+    const double variance_per_pair = variance / pairs;
     double score0;
     double score1;
     if (logistic_bounds_ == false) {

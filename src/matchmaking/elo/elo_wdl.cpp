@@ -19,7 +19,7 @@ EloWDL::EloWDL(const Stats& stats) {
     games_             = total(stats);
     score_             = calcScore(stats);
     variance_          = calcVariance(stats);
-    variance_per_game_ = variance_/games_;
+    variance_per_game_ = variance_ / games_;
     CI95zscore_        = 1.959963984540054;
     scoreUpperBound_   = score_ + CI95zscore_ * std::sqrt(variance_per_game_);
     scoreLowerBound_   = score_ - CI95zscore_ * std::sqrt(variance_per_game_);

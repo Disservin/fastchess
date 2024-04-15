@@ -23,6 +23,13 @@ class EloBase {
     double error_;
     double nelodiff_;
     double neloerror_;
+    double games_;
+    double pairs_;
+    double score_;
+    double variance_;
+    double variance_per_pair_;
+    double scoreUpperBound_;
+    double scoreLowerBound_;
 };
 
 }  // namespace fast_chess

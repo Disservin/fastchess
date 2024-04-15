@@ -30,12 +30,11 @@ double EloPentanomial::scoreToNeloDiff(double score, double variance) noexcept {
 }
 
 double EloPentanomial::calcScore(const Stats& stats) noexcept {
-    const double pairs = total(stats);
-    const double WW    = double(stats.penta_WW) / pairs;
-    const double WD    = double(stats.penta_WD) / pairs;
-    const double WL    = double(stats.penta_WL) / pairs;
-    const double DD    = double(stats.penta_DD) / pairs;
-    const double LD    = double(stats.penta_LD) / pairs;
+    const double WW    = double(stats.penta_WW) / pairs_;
+    const double WD    = double(stats.penta_WD) / pairs_;
+    const double WL    = double(stats.penta_WL) / pairs_;
+    const double DD    = double(stats.penta_DD) / pairs_;
+    const double LD    = double(stats.penta_LD) / pairs_;
     return WW + 0.75 * WD + 0.5 * (WL + DD) + 0.25 * LD;
 }
 

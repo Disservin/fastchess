@@ -30,7 +30,6 @@
 
 namespace fast_chess {
 extern ThreadVector<pid_t> process_list;
-}  // namespace fast_chess
 
 struct ArgvDeleter {
     void operator()(char **argv) {
@@ -275,5 +274,7 @@ class Process : public IProcess {
     // exec
     std::unique_ptr<char *[], ArgvDeleter> unique_argv_;
 };
+
+}  // namespace fast_chess
 
 #endif

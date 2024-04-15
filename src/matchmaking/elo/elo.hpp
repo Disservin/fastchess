@@ -18,10 +18,6 @@ class EloBase {
     [[nodiscard]] virtual std::string scoreRatio(const Stats& stats) const noexcept = 0;
     [[nodiscard]] virtual std::string nElo() const noexcept                         = 0;
 
-    double percToEloDiff(double percentage) noexcept {
-        return -400.0 * std::log10(1.0 / percentage - 1.0);
-    }
-
    protected:
     double diff_;
     double error_;

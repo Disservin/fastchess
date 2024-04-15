@@ -13,7 +13,7 @@ class EloBase {
     virtual ~EloBase() = default;
 
     [[nodiscard]] std::string getElo() const noexcept;
-    [[nodiscard]] virtual std::string los(const Stats& stats) const noexcept        = 0;
+    [[nodiscard]] virtual std::string los() const noexcept        = 0;
     [[nodiscard]] virtual std::string drawRatio(const Stats& stats) const noexcept  = 0;
     [[nodiscard]] virtual std::string printScore() const noexcept = 0;
     [[nodiscard]] virtual std::string nElo() const noexcept                         = 0;

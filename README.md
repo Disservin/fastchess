@@ -73,6 +73,9 @@ ability to run the Makefile. You can locally test your changes by running
 `make -j tests`, followed by executing the `./fast-chess-tests` executable to
 verify your changes pass the tests.
 
+You can format the code with clang-format by running `make format`.
+After making changes to the man file, you need to run `make man`.
+
 ## Maintainers
 
 The following people have push access to the repository:

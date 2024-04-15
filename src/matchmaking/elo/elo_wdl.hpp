@@ -21,9 +21,9 @@ class EloWDL : public EloBase {
 
     [[nodiscard]] static double scoreToNeloDiff(double score, double variance) noexcept;
 
-    [[nodiscard]] static double calcScore(const Stats& stats) noexcept;
+    [[nodiscard]] double calcScore(const Stats& stats) noexcept;
 
-    [[nodiscard]] static double calcVariance(const Stats& stats) noexcept;
+    [[nodiscard]] double calcVariance(const Stats& stats) noexcept;
 
     [[nodiscard]] static std::size_t total(const Stats& stats) noexcept;
 };

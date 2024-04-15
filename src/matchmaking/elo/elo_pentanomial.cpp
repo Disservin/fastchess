@@ -13,10 +13,11 @@ EloPentanomial::EloPentanomial(const Stats& stats) {
     variance_per_pair_ = variance_/pairs_;
     scoreUpperBound_   = score_ + CI95zscore_ * std::sqrt(variance_per_pair_);
     scoreLowerBound_   = score_ + CI95zscore_ * std::sqrt(variance_per_pair_);
-    diff_              = diff(stats);
-    error_             = error(stats);
-    nelodiff_          = nEloDiff(stats);
-    neloerror_         = nEloError(stats);
+    diff_              = scoreToEloDiff(score_);
+    error_             = (scoreToEloDiff(scoreUpperBound_) - scoreToEloDiff(scoreLowerBound_)) / 2.0;
+    nelodiff_          = scoreToNeloDiff(score_, variance_);
+    neloerror_         = (scoreToNeloDiff(scoreUpperBound_, variance_) 
+                         - scoreToNeloDiff(scoreLowerBound_, variance_)) / 2.0;
 }
 
 double EloPentanomial::scoreToEloDiff(double score) noexcept {
@@ -50,24 +51,6 @@ double EloPentanomial::calcVariance(const Stats& stats) noexcept {
     const double LD_dev   = LD * std::pow((0.25 - score_), 2);
     const double LL_dev   = LL * std::pow((0 - score_), 2);
     return WW_dev + WD_dev + WLDD_dev + LD_dev + LL_dev;
-}
-
-double EloPentanomial::error(const Stats& stats) noexcept {
-    return (scoreToEloDiff(scoreUpperBound_) - scoreToEloDiff(scoreLowerBound_)) / 2.0;
-}
-
-double EloPentanomial::nEloError(const Stats& stats) noexcept {
-    return (scoreToNeloDiff(scoreUpperBound_, variance_) -
-            scoreToNeloDiff(scoreLowerBound_, variance_)) /
-           2.0;
-}
-
-double EloPentanomial::diff(const Stats& stats) noexcept {
-    return scoreToEloDiff(score_);
-}
-
-double EloPentanomial::nEloDiff(const Stats& stats) noexcept {
-    return scoreToNeloDiff(score_, variance_);
 }
 
 std::string EloPentanomial::nElo() const noexcept {

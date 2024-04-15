@@ -17,9 +17,19 @@ class EloWDL : public EloBase {
     [[nodiscard]] std::string nElo() const noexcept override;
 
    private:
-    [[nodiscard]] static double percToEloDiff(double percentage) noexcept;
+    [[nodiscard]] static double scoreToEloDiff(double scoreentage) noexcept;
 
-    [[nodiscard]] static double percToNeloDiff(double percentage, double stdev) noexcept;
+    [[nodiscard]] static double scoreToNeloDiff(double scoreentage, double stdev) noexcept;
+
+    [[nodiscard]] static double calcScore(const Stats& stats) noexcept;
+
+    [[nodiscard]] static double calcVariance(const Stats& stats) noexcept;
+
+    [[nodiscard]] static double variancePerGame(const Stats& stats) noexcept;
+
+    [[nodiscard]] static double scoreUpperBound(const Stats& stats) noexcept;
+
+    [[nodiscard]] static double scoreLowerBound(const Stats& stats) noexcept;
 
     [[nodiscard]] static double diff(const Stats& stats) noexcept;
 

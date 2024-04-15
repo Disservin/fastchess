@@ -11,7 +11,7 @@ class EloPentanomial : public EloBase {
    public:
     EloPentanomial(const Stats& stats);
 
-    [[nodiscard]] std::string los(const Stats& stats) const noexcept override;
+    [[nodiscard]] std::string los() const noexcept override;
     [[nodiscard]] std::string drawRatio(const Stats& stats) const noexcept override;
     [[nodiscard]] std::string printScore() const noexcept override;
     [[nodiscard]] std::string nElo() const noexcept override;

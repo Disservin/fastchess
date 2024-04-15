@@ -100,7 +100,7 @@ std::string EloPentanomial::drawRatio(const Stats& stats) const noexcept {
     return ss.str();
 }
 
-std::string EloPentanomial::printScore(const Stats& stats) const noexcept {
+std::string EloPentanomial::scoreRatio(const Stats& stats) const noexcept {
     std::stringstream ss;
     ss << std::fixed << std::setprecision(3) << score(stats);
     return ss.str();

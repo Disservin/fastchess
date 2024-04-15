@@ -73,7 +73,7 @@ std::string EloWDL::drawRatio(const Stats& stats) const noexcept {
     return ss.str();
 }
 
-std::string EloWDL::scoreRatio(const Stats& stats) const noexcept {
+std::string EloWDL::scoreRatio() const noexcept {
     std::stringstream ss;
     ss << std::fixed << std::setprecision(3) << score_;
     return ss.str();

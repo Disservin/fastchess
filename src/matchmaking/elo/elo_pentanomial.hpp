@@ -21,6 +21,16 @@ class EloPentanomial : public EloBase {
 
     [[nodiscard]] static double scoreToNeloDiff(double scoreentage, double stdev) noexcept;
 
+    [[nodiscard]] static double score(const Stats& stats) noexcept;
+
+    [[nodiscard]] static double variance(const Stats& stats) noexcept;
+
+    [[nodiscard]] static double variancePerGame(const Stats& stats) noexcept;
+
+    [[nodiscard]] static double scoreUpperBound(const Stats& stats) noexcept;
+
+    [[nodiscard]] static double scoreLowerBound(const Stats& stats) noexcept;
+
     [[nodiscard]] static double diff(const Stats& stats) noexcept;
 
     [[nodiscard]] static double nEloDiff(const Stats& stats) noexcept;

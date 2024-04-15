@@ -49,18 +49,18 @@ double EloPentanomial::calcVariance(const Stats& stats) noexcept {
     return variance;
 }
 
-double EloPentanomial::variancePerGame(const Stats& stats) noexcept {
+double EloPentanomial::variancePerPair(const Stats& stats) noexcept {
     return calcVariance(stats) / total(stats);
 }
 
 double EloPentanomial::scoreUpperBound(const Stats& stats) noexcept {
     const double CI95zscore = 1.959963984540054;
-    return calcScore(stats) + CI95zscore * std::sqrt(variancePerGame(stats));
+    return calcScore(stats) + CI95zscore * std::sqrt(variancePerPair(stats));
 }
 
 double EloPentanomial::scoreLowerBound(const Stats& stats) noexcept {
     const double CI95zscore = 1.959963984540054;
-    return calcScore(stats) - CI95zscore * std::sqrt(variancePerGame(stats));
+    return calcScore(stats) - CI95zscore * std::sqrt(variancePerPair(stats));
 }
 
 double EloPentanomial::error(const Stats& stats) noexcept {
@@ -92,7 +92,7 @@ std::string EloPentanomial::nElo() const noexcept {
 }
 
 std::string EloPentanomial::los(const Stats& stats) const noexcept {
-    const double los = (1 - std::erf(-(calcScore(stats) - 0.5) / std::sqrt(2.0 * variancePerGame(stats)))) / 2.0;
+    const double los = (1 - std::erf(-(calcScore(stats) - 0.5) / std::sqrt(2.0 * variancePerPair(stats)))) / 2.0;
     std::stringstream ss;
     ss << std::fixed << std::setprecision(2) << los * 100.0 << " %";
     return ss.str();

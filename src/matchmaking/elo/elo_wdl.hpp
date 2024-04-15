@@ -13,7 +13,7 @@ class EloWDL : public EloBase {
 
     [[nodiscard]] std::string los(const Stats& stats) const noexcept override;
     [[nodiscard]] std::string drawRatio(const Stats& stats) const noexcept override;
-    [[nodiscard]] std::string scoreRatio() const noexcept override;
+    [[nodiscard]] std::string printScore() const noexcept override;
     [[nodiscard]] std::string nElo() const noexcept override;
 
    private:

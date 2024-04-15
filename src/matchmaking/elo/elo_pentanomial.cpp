@@ -13,7 +13,7 @@ EloPentanomial::EloPentanomial(const Stats& stats) {
     variance_per_pair_ = variance_ / pairs_;
     CI95zscore_        = 1.959963984540054;
     scoreUpperBound_   = score_ + CI95zscore_ * std::sqrt(variance_per_pair_);
-    scoreLowerBound_   = score_ + CI95zscore_ * std::sqrt(variance_per_pair_);
+    scoreLowerBound_   = score_ - CI95zscore_ * std::sqrt(variance_per_pair_);
     diff_              = scoreToEloDiff(score_);
     error_             = (scoreToEloDiff(scoreUpperBound_) - scoreToEloDiff(scoreLowerBound_)) / 2.0;
     nelodiff_          = scoreToNeloDiff(score_, variance_);

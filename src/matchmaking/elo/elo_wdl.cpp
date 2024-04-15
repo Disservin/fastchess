@@ -20,6 +20,12 @@ EloWDL::EloWDL(const Stats& stats) {
     error_     = error(stats);
     nelodiff_  = nEloDiff(stats);
     neloerror_ = nEloError(stats);
+    games_             = total(stats);
+    score_             = calcScore(stats);
+    variance_          = calcVariance(stats);
+    variance_per_game_ = variance_/games_;
+    scoreUpperBound_    = score_ + CI95zscore_ * std::sqrt(variance_per_game_);
+    scoreLowerBound_    = score_ + CI95zscore_ * std::sqrt(variance_per_game_);
 }
 
 double EloWDL::scoreToEloDiff(double score) noexcept {
@@ -46,22 +52,7 @@ double EloWDL::calcVariance(const Stats& stats) noexcept {
     const double W_dev    = W * std::pow((1 - score), 2);
     const double D_dev    = D * std::pow((0.5 - score), 2);
     const double L_dev    = L * std::pow((0 - score), 2);
-    const double variance = W_dev + D_dev + L_dev;
-    return variance;
-}
-
-double EloWDL::variancePerGame(const Stats& stats) noexcept {
-    return calcVariance(stats) / total(stats);
-}
-
-double EloWDL::scoreUpperBound(const Stats& stats) noexcept {
-    const double CI95zscore = 1.959963984540054;
-    return calcScore(stats) + CI95zscore * std::sqrt(variancePerGame(stats));
-}
-
-double EloWDL::scoreLowerBound(const Stats& stats) noexcept {
-    const double CI95zscore = 1.959963984540054;
-    return calcScore(stats) - CI95zscore * std::sqrt(variancePerGame(stats));
+    return W_dev + D_dev + L_dev;
 }
 
 double EloWDL::error(const Stats& stats) noexcept {

@@ -43,17 +43,20 @@ void BaseTournament::stop() {
     pool_.kill();
 }
 
-void BaseTournament::playGame(const std::pair<EngineConfiguration, EngineConfiguration> &configs,
-                              start_callback start, finished_callback finish,
-                              const Opening &opening, std::size_t game_id) {
+void BaseTournament::playGame(
+    std::tuple<std::pair<EngineConfiguration, EngineConfiguration>, Opening, std::size_t> data) {
     if (atomic::stop) return;
+
+    const auto &configs = std::get<0>(data);
+    const auto &opening = std::get<1>(data);
+    const auto &game_id = std::get<2>(data);
 
     const auto core = ScopeGuard(cores_->consume());
 
     auto engine_one = ScopeGuard(engine_cache_.getEntry(configs.first.name, configs.first));
     auto engine_two = ScopeGuard(engine_cache_.getEntry(configs.second.name, configs.second));
 
-    start();
+    // start();
 
     auto match = Match(tournament_options_, opening);
 
@@ -81,7 +84,7 @@ void BaseTournament::playGame(const std::pair<EngineConfiguration, EngineConfigu
         file_writer_->write(PgnBuilder(match_data, tournament_options_, game_id).get());
     }
 
-    finish({match_data}, match_data.reason);
+    // finish({match_data}, match_data.reason);
 }
 
 int BaseTournament::getMaxAffinity(const std::vector<EngineConfiguration> &configs) const noexcept {

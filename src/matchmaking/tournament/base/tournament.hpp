@@ -51,9 +51,8 @@ class BaseTournament {
     /// @param finish
     /// @param opening
     /// @param game_id
-    void playGame(const std::pair<EngineConfiguration, EngineConfiguration> &configs,
-                  start_callback start, finished_callback finish, const Opening &opening,
-                  std::size_t game_id);
+    void playGame(
+        std::tuple<std::pair<EngineConfiguration, EngineConfiguration>, Opening, std::size_t> data);
 
     std::unique_ptr<IOutput> output_;
     std::unique_ptr<affinity::AffinityManager> cores_;

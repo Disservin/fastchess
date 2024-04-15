@@ -3,6 +3,7 @@
 #include <chess.hpp>
 
 #include <matchmaking/output/output_factory.hpp>
+#include <matchmaking/tournament/roundrobin/iterator.hpp>
 #include <pgn/pgn_builder.hpp>
 #include <util/logger/logger.hpp>
 #include <util/rand.hpp>
@@ -31,87 +32,9 @@ void RoundRobin::create() {
     total_ = (engine_configs_.size() * (engine_configs_.size() - 1) / 2) *
              tournament_options_.rounds * tournament_options_.games;
 
-    const auto create_match = [this](std::size_t i, std::size_t j, std::size_t round_id) {
-        constexpr auto normalize_stm_configs = [](const pair_config& configs,
-                                                  const chess::Color stm) {
-            // swap players if the opening is for black, to ensure that
-            // reporting the result is always white vs black
-            if (stm == chess::Color::BLACK) {
-                return std::pair{configs.second, configs.first};
-            }
-
-            return configs;
-        };
-
-        constexpr auto normalize_stats = [](const Stats& stats, const chess::Color stm) {
-            // swap stats if the opening is for black, to ensure that
-            // reporting the result is always white vs black
-            if (stm == chess::Color::BLACK) {
-                return ~stats;
-            }
-
-            return stats;
-        };
-
-        // both players get the same opening
-        const auto opening = book_.fetch();
-        const auto stm     = opening.stm;
-        const auto first   = engine_configs_[i];
-        const auto second  = engine_configs_[j];
-        auto configs       = std::pair{engine_configs_[i], engine_configs_[j]};
-
-        for (int g = 0; g < tournament_options_.games; g++) {
-            const std::size_t game_id = round_id * tournament_options_.games + (g + 1);
-
-            // callback functions, do not capture by reference
-            const auto start = [this, configs, game_id, stm, normalize_stm_configs]() {
-                output_->startGame(normalize_stm_configs(configs, stm), game_id, total_);
-            };
-
-            // callback functions, do not capture by reference
-            const auto finish = [this, configs, first, second, game_id, round_id, stm,
-                                 normalize_stm_configs,
-                                 normalize_stats](const Stats& stats, const std::string& reason) {
-                const auto normalized_configs = normalize_stm_configs(configs, stm);
-                const auto normalized_stats   = normalize_stats(stats, stm);
-
-                output_->endGame(normalized_configs, normalized_stats, reason, game_id);
-
-                bool report = true;
-
-                if (tournament_options_.report_penta) {
-                    report = result_.updatePairStats(configs, first.name, stats, round_id);
-                } else {
-                    result_.updateStats(configs, stats);
-                }
-
-                // Only print the interval if the pair is complete or we are not tracking
-                // penta stats.
-                if (report) {
-                    const auto updated_stats = result_.getStats(first.name, second.name);
-
-                    output_->printInterval(sprt_, updated_stats, first.name, second.name);
-                }
-
-                updateSprtStatus({first, second});
-
-                match_count_++;
-            };
-
-            pool_.enqueue(&RoundRobin::playGame, this, configs, start, finish, opening, round_id);
-
-            // swap players
-            std::swap(configs.first, configs.second);
-        }
-    };
-
-    for (std::size_t i = 0; i < engine_configs_.size(); i++) {
-        for (std::size_t j = i + 1; j < engine_configs_.size(); j++) {
-            for (int k = 0; k < tournament_options_.rounds; k++) {
-                create_match(i, j, k);
-            }
-        }
-    }
+    pool_.consumeIterator(&RoundRobin::playGame,
+                          RoundRobinIterator(tournament_options_, engine_configs_, book_, *output_),
+                          this);
 }
 
 void RoundRobin::updateSprtStatus(const std::vector<EngineConfiguration>& engine_configs) {

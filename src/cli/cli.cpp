@@ -48,6 +48,8 @@ void parseValue(int &i, int argc, const char *argv[], T &optionValue) {
             optionValue = std::stod(argv[i]);
         else if constexpr (std::is_same_v<T, bool>)
             optionValue = std::string(argv[i]) == "true";
+        else if constexpr (std::is_same_v<T, std::size_t>)
+            optionValue = std::stoull(argv[i]);
         else
             optionValue = argv[i];
     }

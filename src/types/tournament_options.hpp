@@ -79,10 +79,10 @@ struct Tournament {
 
     int ratinginterval = 10;
 
-    int games       = 2;
-    int rounds      = 2;
-    int concurrency = 1;
-    int overhead    = 0;
+    std::size_t games  = 2;
+    std::size_t rounds = 2;
+    int concurrency    = 1;
+    int overhead       = 0;
 
     bool recover      = false;
     bool report_penta = true;

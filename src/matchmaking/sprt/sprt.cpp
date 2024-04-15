@@ -53,8 +53,8 @@ double SPRT::getLLR(int win, int draw, int loss) const noexcept {
     double score0;
     double score1;
     if (logistic_bounds_ == false) {
-        score0 = neloToScorePenta(elo0_, variance);
-        score1 = neloToScorePenta(elo1_, variance);
+        score0 = neloToScoreWDL(elo0_, variance);
+        score1 = neloToScoreWDL(elo1_, variance);
     } else {
         score0 = leloToScore(elo0_);
         score1 = leloToScore(elo1_);

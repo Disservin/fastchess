@@ -150,6 +150,8 @@ bool UciEngine::outputIncludesBestmove() const {
     for (const auto &line : output_) {
         if (line.find("bestmove") != std::string::npos) return true;
     }
+
+    return false;
 }
 
 }  // namespace fast_chess

@@ -44,7 +44,7 @@ class Fastchess : public IOutput {
            << "L - "                  //
            << stats.draws             //
            << "D ["                   //
-           << elo->printScore(stats)  //
+           << elo->scoreRatio(stats)  //
            << "] "                    //
            << current_game_count      //
            << "\n";

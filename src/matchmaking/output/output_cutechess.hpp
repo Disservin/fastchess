@@ -39,7 +39,7 @@ class Cutechess : public IOutput {
            << elo.getElo()          //
            << ", "                  //
            << "LOS: "               //
-           << elo.los(stats)        //
+           << elo.los()             //
            << ", "                  //
            << "DrawRatio: "         //
            << elo.drawRatio(stats)  //

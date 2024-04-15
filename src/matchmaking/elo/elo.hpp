@@ -27,6 +27,7 @@ class EloBase {
     double pairs_;
     double score_;
     double variance_;
+    double variance_per_game_;
     double variance_per_pair_;
     double scoreUpperBound_;
     double scoreLowerBound_;

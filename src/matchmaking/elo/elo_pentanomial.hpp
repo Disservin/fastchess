@@ -25,14 +25,6 @@ class EloPentanomial : public EloBase {
 
     [[nodiscard]] static double calcVariance(const Stats& stats) noexcept;
 
-    [[nodiscard]] static double diff(const Stats& stats) noexcept;
-
-    [[nodiscard]] static double nEloDiff(const Stats& stats) noexcept;
-
-    [[nodiscard]] static double error(const Stats& stats) noexcept;
-
-    [[nodiscard]] static double nEloError(const Stats& stats) noexcept;
-
     [[nodiscard]] static std::size_t total(const Stats& stats) noexcept;
 };
 

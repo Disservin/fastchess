@@ -27,12 +27,12 @@ SPRT::SPRT(double alpha, double beta, double elo0, double elo1, bool logistic_bo
 
 double SPRT::leloToScore(double lelo) noexcept { return 1 / (1 + std::pow(10, (-lelo / 400))); }
 
-double SPRT::neloToScoreWDL(double nelo, double stdDeviation) noexcept {
-    return nelo * stdDeviation / (800.0 / std::log(10)) + 0.5;
+double SPRT::neloToScoreWDL(double nelo, double variance) noexcept {
+    return nelo * std::sqrt(variance) / (800.0 / std::log(10)) + 0.5;
 }
 
-double SPRT::neloToScorePenta(double nelo, double stdDeviation) noexcept {
-    return nelo * (std::sqrt(2.0) * stdDeviation) / (800.0 / std::log(10)) + 0.5;
+double SPRT::neloToScorePenta(double nelo, double variance) noexcept {
+    return nelo * std::sqrt(2.0 * variance) / (800.0 / std::log(10)) + 0.5;
 }
 
 double SPRT::getLLR(int win, int draw, int loss) const noexcept {
@@ -49,12 +49,12 @@ double SPRT::getLLR(int win, int draw, int loss) const noexcept {
     const double L_dev     = L * std::pow((0 - score), 2);
     const double variance  = W_dev + D_dev + L_dev;
     if (variance == 0) return 0.0;
-    const double variance_per_game  = variance / pairs;
+    const double variance_per_game  = variance / games;
     double score0;
     double score1;
     if (logistic_bounds_ == false) {
-        score0 = neloToScorePenta(elo0_, std::sqrt(variance));
-        score1 = neloToScorePenta(elo1_, std::sqrt(variance);
+        score0 = neloToScorePenta(elo0_, variance);
+        score1 = neloToScorePenta(elo1_, variance);
     } else if (logistic_bounds_ == true) {
         score0 = leloToScore(elo0_);
         score1 = leloToScore(elo1_);
@@ -88,8 +88,8 @@ double SPRT::getLLR(int penta_WW, int penta_WD, int penta_WL, int penta_DD, int 
     double score0;
     double score1;
     if (logistic_bounds_ == false) {
-        score0 = neloToScorePenta(elo0_, std::sqrt(variance));
-        score1 = neloToScorePenta(elo1_, std::sqrt(variance);
+        score0 = neloToScorePenta(elo0_, variance);
+        score1 = neloToScorePenta(elo1_, variance);
     } else if (logistic_bounds_ == true) {
         score0 = leloToScore(elo0_);
         score1 = leloToScore(elo1_);

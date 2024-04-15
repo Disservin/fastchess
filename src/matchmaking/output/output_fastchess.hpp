@@ -43,7 +43,7 @@ class Fastchess : public IOutput {
            << "\n";          //
 
         ss << "LOS: "                 //
-           << elo->los(stats)         //
+           << elo->los()              //
            << ", DrawRatio: "         //
            << elo->drawRatio(stats);  //
 

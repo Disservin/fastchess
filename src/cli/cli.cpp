@@ -358,9 +358,6 @@ void parseReport(int &i, int argc, char const *argv[], ArgumentData &argument_da
         } else {
             OptionsParser::throwMissing("report", key, value);
         }
-        if (argument_data.tournament_options.games != 2){
-          argument_data.tournament_options.report_penta = false;
-        }
     });
 }
 

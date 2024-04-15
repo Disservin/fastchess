@@ -386,9 +386,6 @@ void parseSite(int &i, int argc, char const *argv[], ArgumentData &argument_data
 
 void parseGames(int &i, int argc, char const *argv[], ArgumentData &argument_data) {
     parseValue(i, argc, argv, argument_data.tournament_options.games);
-    if(argument_data.tournament_options.games != 2){
-        argument_data.tournament_options.report_penta = false;
-    }
 }
 
 void parseRounds(int &i, int argc, char const *argv[], ArgumentData &argument_data) {

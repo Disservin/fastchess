@@ -55,11 +55,9 @@ double SPRT::getLLR(int win, int draw, int loss) const noexcept {
     if (logistic_bounds_ == false) {
         score0 = neloToScorePenta(elo0_, variance);
         score1 = neloToScorePenta(elo1_, variance);
-    } else if (logistic_bounds_ == true) {
+    } else {
         score0 = leloToScore(elo0_);
         score1 = leloToScore(elo1_);
-    } else {
-        return 0.0;
     }
     return (score1 - score0) * (2 * score - score0 - score1) / (2 * variance_per_game);
 }
@@ -90,11 +88,9 @@ double SPRT::getLLR(int penta_WW, int penta_WD, int penta_WL, int penta_DD, int 
     if (logistic_bounds_ == false) {
         score0 = neloToScorePenta(elo0_, variance);
         score1 = neloToScorePenta(elo1_, variance);
-    } else if (logistic_bounds_ == true) {
+    } else {
         score0 = leloToScore(elo0_);
         score1 = leloToScore(elo1_);
-    } else {
-        return 0.0;
     }
     return (score1 - score0) * (2 * score - score0 - score1) / (2 * variance_per_game);
 }

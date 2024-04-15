@@ -58,7 +58,7 @@ std::string EloPentanomial::nElo() const noexcept {
     return ss.str();
 }
 
-std::string EloPentanomial::los(const Stats& stats) const noexcept {
+std::string EloPentanomial::los() const noexcept {
     const double los =
         (1 - std::erf(-(score_ - 0.5) / std::sqrt(2.0 * variance_per_pair_))) / 2.0;
     std::stringstream ss;
@@ -67,9 +67,8 @@ std::string EloPentanomial::los(const Stats& stats) const noexcept {
 }
 
 std::string EloPentanomial::drawRatio(const Stats& stats) const noexcept {
-    const double pairs = total(stats);
     std::stringstream ss;
-    ss << std::fixed << std::setprecision(2) << ((stats.penta_WL + stats.penta_DD) / pairs) * 100.0
+    ss << std::fixed << std::setprecision(2) << ((stats.penta_WL + stats.penta_DD) / pairs_) * 100.0
        << " %";
     return ss.str();
 }

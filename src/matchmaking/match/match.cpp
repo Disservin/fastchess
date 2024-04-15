@@ -193,7 +193,7 @@ bool Match::playMove(Player& us, Player& opponent) {
 
         us.engine.writeEngine("stop");
 
-        if (us.engine.outputIncludesBestmove()) {
+        if (!us.engine.outputIncludesBestmove()) {
             // wait for bestmove, indefinitely
             us.engine.readEngine("bestmove", 0ms);
         }

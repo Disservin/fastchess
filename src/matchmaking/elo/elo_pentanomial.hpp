@@ -25,7 +25,7 @@ class EloPentanomial : public EloBase {
 
     [[nodiscard]] static double calcVariance(const Stats& stats) noexcept;
 
-    [[nodiscard]] static double variancePerGame(const Stats& stats) noexcept;
+    [[nodiscard]] static double variancePerPair(const Stats& stats) noexcept;
 
     [[nodiscard]] static double scoreUpperBound(const Stats& stats) noexcept;
 

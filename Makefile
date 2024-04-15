@@ -103,7 +103,7 @@ endif
 
 all: $(TARGET)
 
-man: man
+update-man: man
 	xxd -i man | sed 's/unsigned char/inline char/g' | sed 's/unsigned int/inline unsigned int/g' > temp.hpp
 	printf '/* Generate with make update_help*/\n#pragma once\n' > ./src/cli/man.hpp
 	echo 'namespace fast_chess::man {' >> ./src/cli/man.hpp

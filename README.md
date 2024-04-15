@@ -74,7 +74,7 @@ ability to run the Makefile. You can locally test your changes by running
 verify your changes pass the tests.
 
 You can format the code with clang-format by running `make format`.
-After making changes to the man file, you need to run `make man`.
+After making changes to the man file, you need to run `make update-man`.
 
 ## Maintainers
 

@@ -98,9 +98,9 @@ double SPRT::getLLR(int penta_WW, int penta_WD, int penta_WL, int penta_DD, int 
 SPRTResult SPRT::getResult(double llr) const noexcept {
     if (!valid_) return SPRT_CONTINUE;
 
-    if (llr > upper_)
+    if (llr >= upper_)
         return SPRT_H0;
-    else if (llr < lower_)
+    else if (llr <= lower_)
         return SPRT_H1;
     else
         return SPRT_CONTINUE;

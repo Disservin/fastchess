@@ -1,6 +1,7 @@
 #include <matchmaking/book/opening_book.hpp>
 
 #include <fstream>
+#include <sstream>
 #include <string>
 
 #include <util/safe_getline.hpp>
@@ -10,6 +11,17 @@ namespace fast_chess {
 OpeningBook::OpeningBook(const options::Opening& opening) {
     start_ = opening.start;
     setup(opening.file, opening.format);
+}
+
+// Function to split a string by space
+std::vector<std::string> split(const std::string& s, char delimiter) {
+    std::vector<std::string> tokens;
+    std::string token;
+    std::istringstream tokenStream(s);
+    while (std::getline(tokenStream, token, delimiter)) {
+        tokens.push_back(token);
+    }
+    return tokens;
 }
 
 void OpeningBook::setup(const std::string& file, FormatType type) {

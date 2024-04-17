@@ -70,7 +70,8 @@ void OpeningBook::setup(const std::string& file, FormatType type) {
             std::string first_four_fen = line.substr(0, posspace);
     
             // Default values for hmvc and fmvn
-            int hmvc = 0, fmvn = 1;
+            int hmvc = 0;
+            int fmvn = 1;
     
             // Extract hmvc and fmvn values from the remaining parts
             if (pos != std::string::npos) {

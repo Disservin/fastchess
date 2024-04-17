@@ -79,7 +79,8 @@ void OpeningBook::setup(const std::string& file, FormatType type) {
                     if (part.find("hmvc") != std::string::npos) {
                         std::istringstream iss(part.substr(part.find("hmvc") + 4));
                         iss >> hmvc; // Reading the integer value after "hmvc"
-                    } else if (part.find("fmvn") != std::string::npos) {
+                    }
+                    if (part.find("fmvn") != std::string::npos) {
                         std::istringstream iss(part.substr(part.find("fmvn") + 4));
                         iss >> fmvn; // Reading the integer value after "fmvn"
                     }

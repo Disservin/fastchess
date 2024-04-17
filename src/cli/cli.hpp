@@ -12,6 +12,7 @@
 #include <type_traits>
 #include <unordered_map>
 #include <vector>
+#include <cmath>
 
 #include <cli/man.hpp>
 #include <matchmaking/result.hpp>

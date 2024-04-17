@@ -43,7 +43,7 @@ class Fastchess : public IOutput {
            << "\n";          //
 
         ss << "LOS: "                 //
-           << elo->los(stats)         //
+           << elo->los()              //
            << ", DrawRatio: "         //
            << elo->drawRatio(stats);  //
 
@@ -64,6 +64,7 @@ class Fastchess : public IOutput {
            << stats.losses                             //
            << ", Draws: "                              //
            << stats.draws                              //
+           << std::fixed << std::setprecision(1)
            << ", Points: "                             //
            << points                                   //
            << " ("                                     //

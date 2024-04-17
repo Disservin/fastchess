@@ -56,7 +56,7 @@ void OpeningBook::setup(const std::string& file, FormatType type) {
             
             // Find the position of the 4th space
             size_t posspace = std::string::npos;
-            for (int i = 0, spaceCount = 0; i < line.size(); ++i) {
+            for (std::string::size_type i = 0, spaceCount = 0; i < line.size(); ++i) {
                 if (line[i] == ' ') {
                     ++spaceCount;
                     if (spaceCount == 4) {

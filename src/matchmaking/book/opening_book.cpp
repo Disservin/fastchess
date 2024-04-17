@@ -35,8 +35,58 @@ void OpeningBook::setup(const std::string& file, FormatType type) {
         }
 
         openingFile.close();
-
-        book_ = epd;
+        
+        std::vector<std::pair<std::string, std::pair<int, int>>> fenData;
+    
+        for (const auto& line : epd) {
+            // Find the position of the first semicolon
+            size_t pos = line.find(';');
+            
+            // Find the position of the 4th space
+            size_t posspace = std::string::npos;
+            for (int i = 0, spaceCount = 0; i < line.size(); ++i) {
+                if (line[i] == ' ') {
+                    ++spaceCount;
+                    if (spaceCount == 4) {
+                        posspace = i;
+                        break;
+                    }
+                }
+            }
+    
+            // Extract first four FEN fields
+            std::string first_four_fen = line.substr(0, posspace);
+    
+            // Default values for hmvc and fmvn
+            int hmvc = 0, fmvn = 1;
+    
+            // Extract hmvc and fmvn values from the remaining parts
+            if (pos != std::string::npos) {
+                auto parts = split(line.substr(pos + 1), ';');
+                for (const auto& part : parts) {
+                    if (part.find("hmvc") != std::string::npos) {
+                        std::istringstream iss(part.substr(part.find("hmvc") + 4));
+                        iss >> hmvc; // Reading the integer value after "hmvc"
+                    } else if (part.find("fmvn") != std::string::npos) {
+                        std::istringstream iss(part.substr(part.find("fmvn") + 4));
+                        iss >> fmvn; // Reading the integer value after "fmvn"
+                    }
+                }
+            }
+    
+            // Store in the vector
+            fenData.push_back({first_four_fen, {hmvc, fmvn}});
+        }
+    
+        std::vector<std::string> fen;
+    
+        for (const auto& data : fenData) {
+            std::ostringstream oss;
+            oss << data.first << " " << data.second.first << " " << data.second.second;
+            fen.push_back(oss.str());
+        }
+        
+        book_ = fen;
 
         if (std::get<epd_book>(book_).empty()) {
             throw std::runtime_error("No openings found in EPD file: " + file);

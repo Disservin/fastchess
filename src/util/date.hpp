@@ -20,9 +20,9 @@ namespace time {
     struct tm buf {};
 
 #ifdef _WIN32
-    auto res = gmtime_s(&buf, &time_t_now);
+    auto res = localtime_s(&buf, &time_t_now);
     if (res != 0) {
-        throw std::runtime_error("Warning; gmtime_s failed");
+        throw std::runtime_error("Warning; localtime_s failed");
     }
 
     // Format the time as an ISO 8601 string
@@ -30,7 +30,7 @@ namespace time {
     ss << std::put_time(&buf, format.c_str());
     return ss.str();
 #else
-    const auto res = gmtime_r(&time_t_now, &buf);
+    const auto res = localtime_r(&time_t_now, &buf);
 
     // Format the time as an ISO 8601 string
     std::stringstream ss;

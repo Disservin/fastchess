@@ -1,6 +1,7 @@
 #include <matchmaking/match/match.hpp>
 
 #include <algorithm>
+#include <sstream>
 
 #include <types/tournament_options.hpp>
 #include <util/date.hpp>

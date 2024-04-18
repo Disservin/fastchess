@@ -12,6 +12,23 @@ class PGNVisitor : public chess::pgn::Visitor {
     PGNVisitor(std::vector<Opening>& pgns) : pgns_(pgns) {}
     virtual ~PGNVisitor() {}
 
+    bool isFen(const std::string_view line) {
+        std::istringstream iss(std::string(line));
+        std::string part;
+        int count = 0;
+    
+        while (iss >> part) {
+            count++;
+        }
+    
+        // Check the number of parts
+        if (count == 6 && line.find(';') == std::string::npos) {
+            return true;
+        } else {
+            return false
+        }
+    }
+
     void startPgn() {
         board_.setFen(chess::constants::STARTPOS);
 
@@ -21,8 +38,12 @@ class PGNVisitor : public chess::pgn::Visitor {
 
     void header(std::string_view key, std::string_view value) {
         if (key == "FEN") {
-            board_.setFen(value);
-            pgn_.fen = value;
+            if (isFen(value)){
+               board_.setFen(value);
+            } else {
+               board_.setEpd(value);
+            }
+            pgn_.fen = board_.getFen();
         }
     }
 

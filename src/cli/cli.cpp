@@ -272,7 +272,11 @@ void parseDraw(int &i, int argc, char const *argv[], ArgumentData &argument_data
         } else if (key == "movecount") {
             argument_data.tournament_options.draw.move_count = std::stoi(value);
         } else if (key == "score") {
-            argument_data.tournament_options.draw.score = std::stoi(value);
+            if (std::stoi(value) >= 0) {
+              argument_data.tournament_options.draw.score = std::stoi(value);
+            } else{
+              throw std::runtime_error("Score cannot be negative");
+            }
         } else {
             OptionsParser::throwMissing("draw", key, value);
         }
@@ -286,7 +290,11 @@ void parseResign(int &i, int argc, char const *argv[], ArgumentData &argument_da
         if (key == "movecount") {
             argument_data.tournament_options.resign.move_count = std::stoi(value);
         } else if (key == "score") {
-            argument_data.tournament_options.resign.score = std::stoi(value);
+            if (std::stoi(value) >= 0) {
+              argument_data.tournament_options.draw.score = std::stoi(value);
+            } else{
+              throw std::runtime_error("Score cannot be negative");
+            }
         } else {
             OptionsParser::throwMissing("resign", key, value);
         }

@@ -70,16 +70,21 @@ void OpeningBook::setup(const std::string& file, FormatType type) {
             std::string first_four_fen = line.substr(0, posspace);
     
             // Default values for hmvc and fmvn
-            int hmvc = 0, fmvn = 1;
+            int hmvc = 0;
+            int fmvn = 1;
     
             // Extract hmvc and fmvn values from the remaining parts
-            auto parts = split(line.substr(pos + 1), ';');
-            for (const auto& part : parts) {
-                    std::istringstream iss(part.substr(part.find("hmvc") + 4));
-                    iss >> hmvc; // Reading the integer value after "hmvc"
-                    
-                    std::istringstream iss(part.substr(part.find("fmvn") + 4));
-                    iss >> fmvn; // Reading the integer value after "fmvn"
+            if (pos != std::string::npos) {
+                auto parts = split(line.substr(pos + 1), ';');
+                for (const auto& part : parts) {
+                    if (part.find("hmvc") != std::string::npos) {
+                        std::istringstream iss(part.substr(part.find("hmvc") + 4));
+                        iss >> hmvc; // Reading the integer value after "hmvc"
+                    } else if (part.find("fmvn") != std::string::npos) {
+                        std::istringstream iss(part.substr(part.find("fmvn") + 4));
+                        iss >> fmvn; // Reading the integer value after "fmvn"
+                    }
+                }
             }
     
             // Store in the vector

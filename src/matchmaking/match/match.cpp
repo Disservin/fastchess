@@ -71,7 +71,7 @@ void Match::prepare() {
         return MoveData(move, "0.00", 0, 0, 0, 0, 0);
     };
 
-    data_ = MatchData(opening_.fen);
+    data_ = MatchData(board_.getFen());
 
     std::transform(opening_.moves.begin(), opening_.moves.end(), std::back_inserter(data_.moves),
                    insert_move);

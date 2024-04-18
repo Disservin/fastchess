@@ -34,8 +34,23 @@ class BaseTournament {
     [[nodiscard]] stats_map getResults() noexcept { return result_.getResults(); }
     void setResults(const stats_map &results) noexcept { 
        result_.setResults(results); 
-       const auto &stats = result_.getResults();
-       match_count_ = stats.wins + stats.losses + stats.draws;
+       uint64_t total_wins = 0;
+       uint64_t total_losses = 0;
+       uint64_t total_draws = 0;
+   
+       // Iterate over the outer map
+       for (const auto &pair1 : result_.getResults()) {
+           const auto &inner_map = pair1.second;
+           // Iterate over the inner map
+           for (const auto &pair2 : inner_map) {
+               const Stats &stats = pair2.second;
+               total_wins += stats.wins;
+               total_losses += stats.losses;
+               total_draws += stats.draws;
+           }
+       }
+
+       match_count_ = total_wins + total_losses + total_draws;
     }
 
     void setGameConfig(const options::Tournament &tournament_config) noexcept {

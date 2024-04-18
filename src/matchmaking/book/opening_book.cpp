@@ -73,7 +73,6 @@ void OpeningBook::setup(const std::string& file, FormatType type) {
             int hmvc = 0, fmvn = 1;
     
             // Extract hmvc and fmvn values from the remaining parts
-
             auto parts = split(line.substr(pos + 1), ';');
             for (const auto& part : parts) {
                     std::istringstream iss(part.substr(part.find("hmvc") + 4));

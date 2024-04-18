@@ -34,7 +34,8 @@ class BaseTournament {
     [[nodiscard]] stats_map getResults() noexcept { return result_.getResults(); }
     void setResults(const stats_map &results) noexcept { 
        result_.setResults(results); 
-       match_count_ = result_.getResults().wins + result_.getResults().losses + result_.getResults().draws;
+       const auto &stats = result_.getResults();
+       match_count_ = stats.wins + stats.losses + stats.draws;
     }
 
     void setGameConfig(const options::Tournament &tournament_config) noexcept {

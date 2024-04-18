@@ -49,7 +49,7 @@ void OpeningBook::setup(const std::string& file, FormatType type) {
         openingFile.close();
         
         std::vector<std::pair<std::string, std::pair<int, int>>> fenData;
-    
+        
         for (const auto& line : epd) {
             // Find the position of the first semicolon
             size_t pos = line.find(';');
@@ -65,34 +65,36 @@ void OpeningBook::setup(const std::string& file, FormatType type) {
                     }
                 }
             }
-    
+        
             // Extract first four FEN fields
             std::string first_four_fen = line.substr(0, posspace);
-    
+        
             // Default values for hmvc and fmvn
             int hmvc = 0;
             int fmvn = 1;
-    
-            // Extract hmvc and fmvn values from the remaining parts
+        
+            // Extract hmvc and fmvn values before the first semicolon
             if (pos != std::string::npos) {
-                auto parts = split(line.substr(pos + 1), ';');
-                for (const auto& part : parts) {
+                std::istringstream iss(line.substr(pos + 1));  // Start from after the first semicolon
+                std::string part;
+                while (std::getline(iss, part, ';')) {
                     if (part.find("hmvc") != std::string::npos) {
-                        std::istringstream iss(part.substr(part.find("hmvc") + 4));
-                        iss >> hmvc; // Reading the integer value after "hmvc"
-                    } else if (part.find("fmvn") != std::string::npos) {
-                        std::istringstream iss(part.substr(part.find("fmvn") + 4));
-                        iss >> fmvn; // Reading the integer value after "fmvn"
+                        std::istringstream part_iss(part.substr(part.find("hmvc") + 4));
+                        part_iss >> hmvc; // Reading the integer value after "hmvc"
+                    }
+                    if (part.find("fmvn") != std::string::npos) {
+                        std::istringstream part_iss(part.substr(part.find("fmvn") + 4));
+                        part_iss >> fmvn; // Reading the integer value after "fmvn"
                     }
                 }
             }
-    
+        
             // Store in the vector
             fenData.push_back({first_four_fen, {hmvc, fmvn}});
         }
-    
+        
         std::vector<std::string> fen;
-    
+        
         for (const auto& data : fenData) {
             std::ostringstream oss;
             oss << data.first << " " << data.second.first << " " << data.second.second;

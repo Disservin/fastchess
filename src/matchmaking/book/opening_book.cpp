@@ -74,18 +74,26 @@ void OpeningBook::setup(const std::string& file, FormatType type) {
             int fmvn = 1;
         
             // Extract hmvc and fmvn values before the first semicolon
+            std::string before_semicolon = line.substr(0, pos);
+            if (before_semicolon.find("hmvc") != std::string::npos) {
+                std::istringstream iss(before_semicolon.substr(before_semicolon.find("hmvc") + 4));
+                iss >> hmvc; // Reading the integer value after "hmvc"
+            }
+            if (before_semicolon.find("fmvn") != std::string::npos) {
+                std::istringstream iss(before_semicolon.substr(before_semicolon.find("fmvn") + 4));
+                iss >> fmvn; // Reading the integer value after "fmvn"
+            }
+        
+            // Extract hmvc and fmvn values after the first semicolon
             if (pos != std::string::npos) {
-                std::istringstream iss(line.substr(pos + 1));  // Start from after the first semicolon
-                std::string part;
-                while (std::getline(iss, part, ';')) {
-                    if (part.find("hmvc") != std::string::npos) {
-                        std::istringstream part_iss(part.substr(part.find("hmvc") + 4));
-                        part_iss >> hmvc; // Reading the integer value after "hmvc"
-                    }
-                    if (part.find("fmvn") != std::string::npos) {
-                        std::istringstream part_iss(part.substr(part.find("fmvn") + 4));
-                        part_iss >> fmvn; // Reading the integer value after "fmvn"
-                    }
+                std::string after_semicolon = line.substr(pos + 1);
+                if (after_semicolon.find("hmvc") != std::string::npos) {
+                    std::istringstream iss(after_semicolon.substr(after_semicolon.find("hmvc") + 4));
+                    iss >> hmvc; // Reading the integer value after "hmvc"
+                }
+                if (after_semicolon.find("fmvn") != std::string::npos) {
+                    std::istringstream iss(after_semicolon.substr(after_semicolon.find("fmvn") + 4));
+                    iss >> fmvn; // Reading the integer value after "fmvn"
                 }
             }
         

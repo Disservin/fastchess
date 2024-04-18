@@ -58,9 +58,30 @@ void Match::addMoveData(const Player& player, int64_t measured_time_ms, bool leg
     data_.moves.push_back(move_data);
 }
 
+bool isFen(const std::string_view line) {
+    std::istringstream iss(std::string(line));
+    std::string part;
+    int count = 0;
+    
+    while (iss >> part) {
+        count++;
+    }
+    
+    // Check the number of parts
+    if (count == 6 && line.find(';') == std::string::npos) {
+        return true;
+    } else {
+         return false
+    }
+}
+
 void Match::prepare() {
     board_.set960(tournament_options_.variant == VariantType::FRC);
-    board_.setFen(opening_.fen);
+    if (isFen(value)){
+        board_.setFen(opening_.fen);
+    } else {
+        board_.setEpd(opening_.fen);
+    }
 
     start_position_ = board_.getFen() == chess::constants::STARTPOS ? "startpos" : board_.getFen();
 

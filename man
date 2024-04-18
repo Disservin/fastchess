@@ -29,14 +29,14 @@ OPTIONS
             Use 'discard=true' to discard saved game results.
 
         -concurrency N
-            Set the concurrency level to N.
+            Set the concurrency level to N. Default value is 1.
 
         -rounds N
-            Play N rounds of games.
+            Play N rounds of games. Default value is 2.
 
         -games N
-            Play N games in each round. This should be set to 1 or 2; each round will play N games.
-            Setting this higher than 2 does not provide meaningful results.
+            Play N games in each round. Default value is 2. 
+            This should be set to 1 or 2, setting this higher than 2 does not provide meaningful results.
 
         -variant VARIANT
             fischerandom - play Fischer Random Chess
@@ -51,26 +51,26 @@ OPTIONS
         -draw movenumber=NUMBER movecount=COUNT score=SCORE
             Set conditions for a draw based on the number of moves, move count, and score threshold.
               
-                NUMBER - the number of moves before checking for a draw.
-                COUNT  - the number of moves below the score threshold to adjudicate a draw.
-                SCORE  - the score threshold for a draw.
+                NUMBER - the number of moves before checking for a draw. Default value is 0.
+                COUNT  - the number of moves below the score threshold to adjudicate a draw. Default value is 1.
+                SCORE  - the score threshold (in centipawns) for a draw.
 
         -resign movecount=COUNT score=SCORE
             Configure when the engine should resign based on move count and score threshold.
 
-                COUNT - the number of moves to make before resigning.
-                SCORE - the score threshold to resign at.
+                COUNT - the number of moves to make before resigning. Default value is 1.
+                SCORE - the score threshold (in centipawns) to resign at.
 
         -openings file=NAME format=(epd|pgn) [order=ORDER] [plies=PLIES] [start=START]
             Specify an opening book file and its format for game starting positions.
 
                 format - the file format, either epd or pgn.
-                ORDER  - the order of moves to be played, either random or sequential.
+                ORDER  - the order of moves to be played, either random or sequential. Default is random.
                 PLIES  - the number of plies to use.
                 START  - the starting offset.
 
         -output format=FORMAT
-            Choose the output format for game results (cutechess or fastchess).
+            Choose the output format for game results (cutechess or fastchess). Default is fastchess.
 
         -pgnout notation=(san|lan|uci) file=FILE [nodes=(true|false)] [seldepth=(true|false)] [nps=(true|false)]
             Export games in PGN format with specified notations and optional tracking of nodes, seldepth, and nps.
@@ -80,7 +80,7 @@ OPTIONS
                     lan - Long Algebraic Notation
                     uci - Universal Chess Interface
 
-                FILE - defaults to fast-chess.pgn
+                FILE - filename.
                 nodes - defaults to false, track node count.
                 seldepth - defaults to false, track seldepth.
                 nps - defaults to false, track nps.
@@ -95,7 +95,7 @@ OPTIONS
             -model=MODEL
                 Specify the model to use.
                     - logistic
-                    - normalized
+                    - normalized (default)
 
         -srand SEED
             Set the seed for the random number generator.
@@ -114,6 +114,7 @@ OPTIONS
             Disable thread affinity for running multiple instances of fast-chess in parallel.
 
         -report penta=(true|false)
+            Reports pentanomial statistics (only for fastchess output). Default is true.
 
         -version
             Print the version number and exit.

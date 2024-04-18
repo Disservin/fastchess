@@ -25,7 +25,7 @@ class PGNVisitor : public chess::pgn::Visitor {
         if (count == 6 && line.find(';') == std::string::npos) {
             return true;
         } else {
-            return false
+            return false;
         }
     }
 

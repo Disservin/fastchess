@@ -32,13 +32,19 @@ class BaseTournament {
     virtual void stop();
 
     [[nodiscard]] stats_map getResults() noexcept { return result_.getResults(); }
-    void setResults(const stats_map &results) noexcept { result_.setResults(results); }
+    void setResults(const stats_map &results) noexcept { 
+       result_.setResults(results); 
+       match_count_ = result_.getResults().wins + result_.getResults().losses + result_.getResults().draws;
+    }
 
     void setGameConfig(const options::Tournament &tournament_config) noexcept {
         tournament_options_ = tournament_config;
     }
 
    protected:
+    /// @brief number of games played
+    std::atomic<uint64_t> match_count_ = 0;
+
     /// @brief creates the matches
     virtual void create() = 0;
 

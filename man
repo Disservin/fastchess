@@ -80,7 +80,7 @@ OPTIONS
                     lan - Long Algebraic Notation
                     uci - Universal Chess Interface
 
-                FILE - defaults to fast-chess.pgn
+                FILE - filename.
                 nodes - defaults to false, track node count.
                 seldepth - defaults to false, track seldepth.
                 nps - defaults to false, track nps.

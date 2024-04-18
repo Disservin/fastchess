@@ -58,13 +58,8 @@ void Match::addMoveData(const Player& player, int64_t measured_time_ms, bool leg
     data_.moves.push_back(move_data);
 }
 
-bool isFen(const std::string line) {
-    // Check the number of parts
-    if (line.find(';') == std::string::npos) {
-        return true;
-    } else {
-         return false;
-    }
+bool isFen(const std::string& line) {
+    return line.find(';') == std::string::npos;
 }
 
 void Match::prepare() {

@@ -58,9 +58,17 @@ void Match::addMoveData(const Player& player, int64_t measured_time_ms, bool leg
     data_.moves.push_back(move_data);
 }
 
+bool isFen(const std::string& line) {
+    return line.find(';') == std::string::npos;
+}
+
 void Match::prepare() {
     board_.set960(tournament_options_.variant == VariantType::FRC);
-    board_.setFen(opening_.fen);
+    if (isFen(opening_.fen)){
+        board_.setFen(opening_.fen);
+    } else {
+        board_.setEpd(opening_.fen);
+    }
 
     start_position_ = board_.getFen() == chess::constants::STARTPOS ? "startpos" : board_.getFen();
 
@@ -71,7 +79,7 @@ void Match::prepare() {
         return MoveData(move, "0.00", 0, 0, 0, 0, 0);
     };
 
-    data_ = MatchData(opening_.fen);
+    data_ = MatchData(board_.getFen());
 
     std::transform(opening_.moves.begin(), opening_.moves.end(), std::back_inserter(data_.moves),
                    insert_move);

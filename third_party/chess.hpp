@@ -25,7 +25,7 @@ THIS FILE IS AUTO GENERATED DO NOT CHANGE MANUALLY.
 
 Source: https://github.com/Disservin/chess-library
 
-VERSION: 0.6.39
+VERSION: 0.6.43
 */
 
 #ifndef CHESS_HPP
@@ -1104,13 +1104,12 @@ class Piece {
     constexpr operator int() const noexcept { return static_cast<int>(piece); }
 
     [[nodiscard]] constexpr PieceType type() const noexcept {
+        if (piece == NONE) return PieceType::NONE;
         return static_cast<PieceType::underlying>(int(piece) % 6);
     }
 
     [[nodiscard]] constexpr Color color() const noexcept {
-        if (piece == NONE) {
-            return Color::NONE;
-        }
+        if (piece == NONE) return Color::NONE;
         return static_cast<Color>(static_cast<int>(piece) / 6);
     }
 
@@ -1774,6 +1773,43 @@ class Board {
     explicit Board(std::string_view fen = constants::STARTPOS) { setFenInternal(fen); }
     virtual void setFen(std::string_view fen) { setFenInternal(fen); }
 
+    static Board fromFen(std::string_view fen) { return Board(fen); }
+    static Board fromEpd(std::string_view epd) {
+        Board board;
+        board.setEpd(epd);
+        return board;
+    }
+
+    void setEpd(const std::string_view epd) {
+        auto parts = utils::splitString(epd, ' ');
+
+        if (parts.size() < 1) throw std::runtime_error("Invalid EPD");
+
+        int hm = 0;
+        int fm = 1;
+
+        if (auto it = std::find(parts.begin(), parts.end(), "hmvc"); it != parts.end()) {
+            auto num = *(it + 1);
+            auto max = num.size() - 1;
+
+            auto [p, ec] = std::from_chars(num.data(), num.data() + max, hm);
+            if (ec != std::errc()) throw std::runtime_error("Invalid EPD");
+        }
+
+        if (auto it = std::find(parts.begin(), parts.end(), "fmvn"); it != parts.end()) {
+            auto num     = *(it + 1);
+            auto max     = num.size() - 1;
+            auto [p, ec] = std::from_chars(num.data(), num.data() + max, fm);
+
+            if (ec != std::errc()) throw std::runtime_error("Invalid EPD");
+        }
+
+        auto fen = std::string(parts[0]) + " " + std::string(parts[1]) + " " + std::string(parts[2]) + " " +
+                   std::string(parts[3]) + " " + std::to_string(hm) + " " + std::to_string(fm);
+
+        setFen(fen);
+    }
+
     /// @brief Get the current FEN string.
     /// @return
     [[nodiscard]] std::string getFen(bool move_counters = true) const {
@@ -2339,17 +2375,33 @@ class Board {
     virtual void placePiece(Piece piece, Square sq) {
         assert(board_[sq.index()] == Piece::NONE);
 
-        pieces_bb_[piece.type()].set(sq.index());
-        occ_bb_[piece.color()].set(sq.index());
-        board_[sq.index()] = piece;
+        auto type  = piece.type();
+        auto color = piece.color();
+        auto index = sq.index();
+
+        assert(type != PieceType::NONE);
+        assert(color != Color::NONE);
+        assert(index >= 0 && index < 64);
+
+        pieces_bb_[type].set(index);
+        occ_bb_[color].set(index);
+        board_[index] = piece;
     }
 
     virtual void removePiece(Piece piece, Square sq) {
         assert(board_[sq.index()] == piece && piece != Piece::NONE);
 
-        pieces_bb_[piece.type()].clear(sq.index());
-        occ_bb_[piece.color()].clear(sq.index());
-        board_[sq.index()] = Piece::NONE;
+        auto type  = piece.type();
+        auto color = piece.color();
+        auto index = sq.index();
+
+        assert(type != PieceType::NONE);
+        assert(color != Color::NONE);
+        assert(index >= 0 && index < 64);
+
+        pieces_bb_[type].clear(index);
+        occ_bb_[color].clear(index);
+        board_[index] = Piece::NONE;
     }
 
     std::vector<State> prev_states_;
@@ -3357,7 +3409,13 @@ class Visitor {
     bool skip_ = false;
 };
 
-template <std::size_t BUFFER_SIZE = 1024>
+template <std::size_t BUFFER_SIZE =
+#ifdef __unix__
+              1024
+#else
+              256
+#endif
+          >
 class StreamParser {
    public:
     StreamParser(std::istream &stream) : stream_buffer(stream) {}

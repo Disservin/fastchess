@@ -60,16 +60,8 @@ void Match::addMoveData(const Player& player, int64_t measured_time_ms, bool leg
 }
 
 bool isFen(const std::string_view line) {
-    std::istringstream iss(std::string(line));
-    std::string part;
-    int count = 0;
-    
-    while (iss >> part) {
-        count++;
-    }
-    
     // Check the number of parts
-    if (count == 6 && line.find(';') == std::string::npos) {
+    if (line.find(';') == std::string::npos) {
         return true;
     } else {
          return false;

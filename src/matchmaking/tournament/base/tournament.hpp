@@ -61,7 +61,7 @@ class BaseTournament {
    protected:
     /// @brief number of games played
     std::atomic<uint64_t> match_count_;
-    std::atomic<uint64_t> initial_id_;
+    uint64_t initial_id_;
 
     /// @brief creates the matches
     virtual void create() = 0;

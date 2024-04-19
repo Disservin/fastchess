@@ -29,7 +29,7 @@ TEST_SUITE("PGN Builder Tests") {
         PgnBuilder pgn_builder = PgnBuilder(match_data, options, 1);
         CHECK(
             pgn_builder.get() ==
-            "[Event \"Fast Chess\"]\n[Site \"localhost\"]\n[Round \"1\"]\n[White "
+            "[Event \"Fast Chess\"]\n[Site \"localhost\"]\n[Round \"2\"]\n[White "
             "\"engine1\"]\n[Black \"engine2\"]\n[Result \"1-0\"]\n[FEN "
             "\"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1\"]\n[PlyCount "
             "\"4\"]\n[TimeControl \"0\"]\n\n1. e4 {+1.00/15, 1.321s} e5 {+1.23/15, 0.430s} 2. Nf3 "
@@ -61,7 +61,7 @@ TEST_SUITE("PGN Builder Tests") {
         PgnBuilder pgn_builder = PgnBuilder(match_data, options, 1);
         CHECK(
             pgn_builder.get() ==
-            "[Event \"Fast Chess\"]\n[Site \"localhost\"]\n[Round \"1\"]\n[White "
+            "[Event \"Fast Chess\"]\n[Site \"localhost\"]\n[Round \"2\"]\n[White "
             "\"engine1\"]\n[Black \"engine2\"]\n[Result \"0-1\"]\n[FEN "
             "\"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1\"]\n[PlyCount "
             "\"4\"]\n[TimeControl \"0\"]\n\n1. e4 {+1.00/15, 1.321s} e5 {+1.23/15, 0.430s} 2. Nf3 "
@@ -92,7 +92,7 @@ TEST_SUITE("PGN Builder Tests") {
         PgnBuilder pgn_builder = PgnBuilder(match_data, options, 1);
         CHECK(
             pgn_builder.get() ==
-            "[Event \"Fast Chess\"]\n[Site \"localhost\"]\n[Round \"1\"]\n[White "
+            "[Event \"Fast Chess\"]\n[Site \"localhost\"]\n[Round \"2\"]\n[White "
             "\"engine2\"]\n[Black \"engine1\"]\n[Result \"*\"]\n[SetUp \"1\"]\n[FEN "
             "\"r2qk2r/1bpp2pp/n3pn2/p2P1p2/1bP5/2N1BNP1/1PQ1PPBP/R3K2R b KQkq - 0 1\"]\n[PlyCount "
             "\"3\"]\n[TimeControl \"0\"]\n\n1... O-O {+1.00/15, 1.321s} 2. O-O {+1.23/15, "

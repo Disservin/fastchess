@@ -38,8 +38,8 @@ class OpeningBook {
 
     std::size_t start_ = 0;
     OrderType order_;
-    int rounds;
-    int games;
+    int rounds_;
+    int games_;
     std::variant<epd_book, pgn_book> book_;
 };
 

@@ -37,6 +37,7 @@ class OpeningBook {
     using pgn_book = std::vector<Opening>;
 
     std::size_t start_ = 0;
+    OrderType order_;
     std::variant<epd_book, pgn_book> book_;
 };
 

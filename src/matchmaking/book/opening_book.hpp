@@ -14,7 +14,7 @@ namespace fast_chess {
 class OpeningBook {
    public:
     OpeningBook() = default;
-    explicit OpeningBook(const options::Opening& opening, options::Tournament& tournament);
+    explicit OpeningBook(const options::Opening& opening, const options::Tournament& tournament);
 
     /// @brief Fisher-Yates / Knuth shuffle
     void shuffle() noexcept {

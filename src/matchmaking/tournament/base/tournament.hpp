@@ -51,6 +51,7 @@ class BaseTournament {
            }
        }
        match_count_ = total_wins + total_losses + total_draws;
+       initial_id_  = match_count_;
     }
 
     void setGameConfig(const options::Tournament &tournament_config) noexcept {
@@ -60,6 +61,7 @@ class BaseTournament {
    protected:
     /// @brief number of games played
     std::atomic<uint64_t> match_count_;
+    std::atomic<uint64_t> initial_id_;
 
     /// @brief creates the matches
     virtual void create() = 0;

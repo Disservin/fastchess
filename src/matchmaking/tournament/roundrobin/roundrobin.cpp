@@ -32,7 +32,6 @@ void RoundRobin::create() {
              tournament_options_.rounds * tournament_options_.games;
 
     const auto create_match = [this](std::size_t i, std::size_t j, std::size_t round_id) {
-        round_id += initial_id_ / tournament_options_.games;
         constexpr auto normalize_stm_configs = [](const pair_config& configs,
                                                   const chess::Color stm) {
             // swap players if the opening is for black, to ensure that
@@ -108,7 +107,7 @@ void RoundRobin::create() {
 
     for (std::size_t i = 0; i < engine_configs_.size(); i++) {
         for (std::size_t j = i + 1; j < engine_configs_.size(); j++) {
-            for (int k = 0; k < tournament_options_.rounds; k++) {
+            for (int k = initial_id_ / tournament_options_.games; k < tournament_options_.rounds; k++) {
                 create_match(i, j, k);
             }
         }

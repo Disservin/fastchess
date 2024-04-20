@@ -19,6 +19,8 @@ class Result {
     /// @param engine1
     /// @param engine2
     /// @param stats
+    stats_map results_;
+
     void updateStats(const pair_config& configs, const Stats& stats) noexcept {
         std::lock_guard<std::mutex> lock(results_mutex_);
         results_[configs.first.name][configs.second.name] += stats;
@@ -93,7 +95,7 @@ class Result {
 
    private:
     /// @brief tracks the engine results
-    stats_map results_;
+
     std::mutex results_mutex_;
 
     std::unordered_map<uint64_t, Stats> game_pair_cache_;

@@ -32,26 +32,20 @@ class BaseTournament {
     virtual void stop();
 
     [[nodiscard]] stats_map getResults() noexcept { return result_.getResults(); }
-    void setResults(const stats_map &results) noexcept { 
-       result_.setResults(results);
+    void setResults(const stats_map &results) noexcept {
+        result_.setResults(results);
 
-       uint64_t total_wins = 0;
-       uint64_t total_losses = 0;
-       uint64_t total_draws = 0;
-       
-       // Iterate over the outer map
-       for (const auto &pair1 : result_.getResults()) {
-           const auto &inner_map = pair1.second;
-           // Iterate over the inner map
-           for (const auto &pair2 : inner_map) {
-               const Stats &stats = pair2.second;
-               total_wins += stats.wins;
-               total_losses += stats.losses;
-               total_draws += stats.draws;
-           }
-       }
-       match_count_ = total_wins + total_losses + total_draws;
-       initial_id_  = match_count_;
+        match_count_ = 0;
+
+        for (const auto &pair1 : result_.getResults()) {
+            const auto &inner_map = pair1.second;
+            for (const auto &pair2 : inner_map) {
+                const auto &stats = pair2.second;
+                match_count_ += stats.wins + stats.losses + stats.draws;
+            }
+        }
+
+        initial_id_ = match_count_;
     }
 
     void setGameConfig(const options::Tournament &tournament_config) noexcept {
@@ -60,8 +54,8 @@ class BaseTournament {
 
    protected:
     /// @brief number of games played
-    std::atomic<uint64_t> match_count_;
-    uint64_t initial_id_;
+    std::atomic<std::uint64_t> match_count_;
+    std::uint64_t initial_id_;
 
     /// @brief creates the matches
     virtual void create() = 0;

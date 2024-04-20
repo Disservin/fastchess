@@ -43,7 +43,8 @@ void OpeningBook::setup(const std::string& file, FormatType type) {
             throw std::runtime_error("No openings found in EPD file: " + file);
         }
     }
-    if (order_ == OrderType::RANDOM && type != FormatType::NONE){shuffle();}
+
+    if (order_ == OrderType::RANDOM && type != FormatType::NONE) shuffle();
 }
 
 Opening OpeningBook::fetch() noexcept {
@@ -58,10 +59,10 @@ Opening OpeningBook::fetch() noexcept {
     }
 
     if (std::holds_alternative<epd_book>(book_)) {
-        const auto fen = std::get<epd_book>(book_)[idx % std::get<epd_book>(book_).size()];
+        const auto fen = std::get<epd_book>(book_)[idx % book_size];
         return {fen, {}, chess::Board(fen).sideToMove()};
     } else if (std::holds_alternative<pgn_book>(book_)) {
-        return std::get<pgn_book>(book_)[idx % std::get<pgn_book>(book_).size()];
+        return std::get<pgn_book>(book_)[idx % book_size];
     }
 
     return {chess::constants::STARTPOS, {}};

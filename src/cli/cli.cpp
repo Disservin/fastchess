@@ -228,7 +228,7 @@ void parseOpening(int &i, int argc, char const *argv[], ArgumentData &argument_d
         } else if (key == "plies") {
             argument_data.tournament_options.opening.plies = std::stoi(value);
         } else if (key == "start") {
-            const auto stats = result_.getStats(argument_data.configs[0].name, argument_data.configs[1].name);
+            const auto stats = Result.getStats(argument_data.configs[0].name, argument_data.configs[1].name);
             argument_data.tournament_options.opening.start = std::stoi(value) + stats.wins + stats.losses + stats.draws;
         } else {
             OptionsParser::throwMissing("openings", key, value);

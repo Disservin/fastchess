@@ -9,6 +9,14 @@ class Stats {
    public:
     Stats() = default;
     Stats(int wins, int losses, int draws) : wins(wins), losses(losses), draws(draws) {}
+    Stats(int ll, int ld, int wl, int dd, int wd, int ww) {
+        penta_LL = ll;
+        penta_LD = ld;
+        penta_WL = wl;
+        penta_DD = dd;
+        penta_WD = wd;
+        penta_WW = ww;
+    }
     Stats(const MatchData &match_data) {
         if (match_data.players.first.result == chess::GameResult::WIN) {
             wins++;

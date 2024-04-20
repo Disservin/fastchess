@@ -20,6 +20,12 @@ class EloBase {
 
     double scoreToEloDiff(double score) noexcept { return -400.0 * std::log10(1.0 / score - 1.0); }
 
+    double nEloDiff() const noexcept { return nelodiff_; }
+    double nEloError() const noexcept { return neloerror_; }
+
+    double diff() const noexcept { return diff_; }
+    double error() const noexcept { return error_; }
+
    protected:
     double games_;
     double pairs_;

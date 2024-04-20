@@ -58,13 +58,11 @@ void Match::addMoveData(const Player& player, int64_t measured_time_ms, bool leg
     data_.moves.push_back(move_data);
 }
 
-bool isFen(const std::string& line) {
-    return line.find(';') == std::string::npos;
-}
+bool isFen(const std::string& line) { return line.find(';') == std::string::npos; }
 
 void Match::prepare() {
     board_.set960(tournament_options_.variant == VariantType::FRC);
-    if (isFen(opening_.fen)){
+    if (isFen(opening_.fen)) {
         board_.setFen(opening_.fen);
     } else {
         board_.setEpd(opening_.fen);

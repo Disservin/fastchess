@@ -15,10 +15,11 @@ EloPentanomial::EloPentanomial(const Stats& stats) {
     scoreUpperBound_   = score_ + CI95zscore_ * std::sqrt(variance_per_pair_);
     scoreLowerBound_   = score_ - CI95zscore_ * std::sqrt(variance_per_pair_);
     diff_              = scoreToEloDiff(score_);
-    error_             = (scoreToEloDiff(scoreUpperBound_) - scoreToEloDiff(scoreLowerBound_)) / 2.0;
-    nelodiff_          = scoreToNeloDiff(score_, variance_);
-    neloerror_         = (scoreToNeloDiff(scoreUpperBound_, variance_) 
-                         - scoreToNeloDiff(scoreLowerBound_, variance_)) / 2.0;
+    error_     = (scoreToEloDiff(scoreUpperBound_) - scoreToEloDiff(scoreLowerBound_)) / 2.0;
+    nelodiff_  = scoreToNeloDiff(score_, variance_);
+    neloerror_ = (scoreToNeloDiff(scoreUpperBound_, variance_) -
+                  scoreToNeloDiff(scoreLowerBound_, variance_)) /
+                 2.0;
 }
 
 double EloPentanomial::scoreToNeloDiff(double score, double variance) noexcept {
@@ -26,11 +27,11 @@ double EloPentanomial::scoreToNeloDiff(double score, double variance) noexcept {
 }
 
 double EloPentanomial::calcScore(const Stats& stats) noexcept {
-    const double WW    = double(stats.penta_WW) / pairs_;
-    const double WD    = double(stats.penta_WD) / pairs_;
-    const double WL    = double(stats.penta_WL) / pairs_;
-    const double DD    = double(stats.penta_DD) / pairs_;
-    const double LD    = double(stats.penta_LD) / pairs_;
+    const double WW = double(stats.penta_WW) / pairs_;
+    const double WD = double(stats.penta_WD) / pairs_;
+    const double WL = double(stats.penta_WL) / pairs_;
+    const double DD = double(stats.penta_DD) / pairs_;
+    const double LD = double(stats.penta_LD) / pairs_;
     return WW + 0.75 * WD + 0.5 * (WL + DD) + 0.25 * LD;
 }
 
@@ -59,8 +60,7 @@ std::string EloPentanomial::nElo() const noexcept {
 }
 
 std::string EloPentanomial::los() const noexcept {
-    const double los =
-        (1 - std::erf(-(score_ - 0.5) / std::sqrt(2.0 * variance_per_pair_))) / 2.0;
+    const double los = (1 - std::erf(-(score_ - 0.5) / std::sqrt(2.0 * variance_per_pair_))) / 2.0;
     std::stringstream ss;
     ss << std::fixed << std::setprecision(2) << los * 100.0 << " %";
     return ss.str();

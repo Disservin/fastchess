@@ -56,18 +56,17 @@ class Fastchess : public IOutput {
         }
 
         const double points = stats.wins + 0.5 * stats.draws;
-        ss << "Games: "                                //
-           << stats.wins + stats.losses + stats.draws  //
-           << ", Wins: "                               //
-           << stats.wins                               //
-           << ", Losses: "                             //
-           << stats.losses                             //
-           << ", Draws: "                              //
-           << stats.draws                              //
-           << std::fixed << std::setprecision(1)
-           << ", Points: "                             //
-           << points                                   //
-           << " ("                                     //
+        ss << "Games: "                                           //
+           << stats.wins + stats.losses + stats.draws             //
+           << ", Wins: "                                          //
+           << stats.wins                                          //
+           << ", Losses: "                                        //
+           << stats.losses                                        //
+           << ", Draws: "                                         //
+           << stats.draws                                         //
+           << std::fixed << std::setprecision(1) << ", Points: "  //
+           << points                                              //
+           << " ("                                                //
            << std::fixed << std::setprecision(2)
            << points / (stats.wins + stats.losses + stats.draws) * 100  //
            << " %)\n";

@@ -43,7 +43,7 @@ void OpeningBook::setup(const std::string& file, FormatType type) {
             throw std::runtime_error("No openings found in EPD file: " + file);
         }
     }
-    if (order_ == OrderType::RANDOM){shuffle();}
+    if (order_ == OrderType::RANDOM && type != FormatType::NONE){shuffle();}
 }
 
 Opening OpeningBook::fetch() noexcept {

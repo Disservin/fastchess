@@ -1,4 +1,4 @@
-/* Generate with make update_help*/
+/* Generate with make update-man*/
 #pragma once
 namespace fast_chess::man {
 inline char man[] = {

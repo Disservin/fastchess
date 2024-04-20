@@ -13,11 +13,14 @@ namespace atomic {
 extern std::atomic_bool stop;
 }  // namespace atomic
 
-using namespace std::literals;
+namespace {
+bool isFen(const std::string& line) { return line.find(';') == std::string::npos; }
+}  // namespace
 
 namespace chrono = std::chrono;
-using clock      = chrono::high_resolution_clock;
 
+using clock = chrono::high_resolution_clock;
+using namespace std::literals;
 using namespace chess;
 
 void Match::addMoveData(const Player& player, int64_t measured_time_ms, bool legal) {
@@ -57,8 +60,6 @@ void Match::addMoveData(const Player& player, int64_t measured_time_ms, bool leg
 
     data_.moves.push_back(move_data);
 }
-
-bool isFen(const std::string& line) { return line.find(';') == std::string::npos; }
 
 void Match::prepare() {
     board_.set960(tournament_options_.variant == VariantType::FRC);

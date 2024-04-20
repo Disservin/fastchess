@@ -39,8 +39,6 @@ class RoundRobin : public BaseTournament {
 
     SPRT sprt_ = SPRT();
 
-    /// @brief number of games played
-    std::atomic<uint64_t> match_count_ = 0;
     /// @brief number of games to be played
     std::atomic<uint64_t> total_ = 0;
 };

@@ -78,7 +78,7 @@ void BaseTournament::playGame(const std::pair<EngineConfiguration, EngineConfigu
     // If the game was stopped, don't write the PGN
     if (match_data.termination != MatchTermination::INTERRUPT &&
         !tournament_options_.pgn.file.empty()) {
-        file_writer_->write(PgnBuilder(match_data, tournament_options_, game_id).get());
+        file_writer_->write(PgnBuilder(match_data, tournament_options_, game_id + 1).get());
     }
 
     finish({match_data}, match_data.reason);

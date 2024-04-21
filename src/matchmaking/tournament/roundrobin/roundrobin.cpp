@@ -110,7 +110,7 @@ void RoundRobin::create() {
 
     for (std::size_t i = 0; i < engine_configs_.size(); i++) {
         for (std::size_t j = i + 1; j < engine_configs_.size(); j++) {
-            for (int k = initial_id_ / tournament_options_.games; k < tournament_options_.rounds;
+            for (int k = initial_matchcount_ / tournament_options_.games; k < tournament_options_.rounds;
                  k++) {
                 create_match(i, j, k);
             }

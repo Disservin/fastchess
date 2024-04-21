@@ -11,6 +11,7 @@ OpeningBook::OpeningBook(const options::Tournament& tournament) {
     start_ = tournament.opening.start;
     games_ = tournament.games;
     order_ = tournament.opening.order;
+    plies_ = tournament.opening.plies;
     setup(tournament.opening.file, tournament.opening.format);
 }
 
@@ -20,7 +21,7 @@ void OpeningBook::setup(const std::string& file, FormatType type) {
     }
 
     if (type == FormatType::PGN) {
-        book_ = PgnReader(file, opening_.plies).getOpenings();
+        book_ = PgnReader(file, plies_).getOpenings();
 
         if (std::get<pgn_book>(book_).empty()) {
             throw std::runtime_error("No openings found in PGN file: " + file);

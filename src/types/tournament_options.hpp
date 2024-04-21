@@ -79,7 +79,7 @@ struct Tournament {
     std::mt19937 gen{rd()}; // Standard mersenne_twister_engine seeded with rd()
 
     // Define the range for the random number
-    std::uniform_int_distribution<> distrib{0U, 4294967294U};
+    std::uniform_int_distribution<uint32_t> distrib{0U, 4294967294U};
 
     // Generate a random number
     uint32_t seed = distrib(gen);

@@ -26,7 +26,7 @@ OPTIONS
 
         -config file=NAME [discard=(true|false)]
             Load engine configurations to resume games from previous sessions.
-            Use 'discard=true' to discard saved game results.
+            Use 'discard=true' to discard saved game results. defaults to false.
 
         -concurrency N
             Plays N matches concurrently. Default value is 1.
@@ -53,13 +53,13 @@ OPTIONS
               
                 NUMBER - the number of moves before checking for a draw. Default value is 0.
                 COUNT  - the number of moves below the score threshold to adjudicate a draw. Default value is 1.
-                SCORE  - the score threshold (in centipawns) for a draw.
+                SCORE  - the score threshold (in centipawns) for a draw. Default value is 0.
 
         -resign movecount=COUNT score=SCORE
             Configure when the engine should resign based on move count and score threshold.
 
                 COUNT - the number of moves to make before resigning. Default value is 1.
-                SCORE - the score threshold (in centipawns) to resign at.
+                SCORE - the score threshold (in centipawns) to resign at. Default value is 0.
 
         -openings file=NAME format=(epd|pgn) [order=ORDER] [plies=PLIES] [start=START]
             Specify an opening book file and its format for game starting positions.
@@ -85,7 +85,7 @@ OPTIONS
                 nps - defaults to false, track nps.
 
         -ratinginterval N
-            Set the rating interval for the rating report. For penta reports, this is reports per N game pair.
+            Set the rating interval for the rating report. For penta reports, this is reports per N game pair. Default value is 1.
 
         -sprt elo0=ELO0 elo1=ELO1 alpha=ALPHA beta=BETA model=MODEL
             Set parameters for the Sequential Probability Ratio Test (SPRT).

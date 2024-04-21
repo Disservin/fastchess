@@ -25,7 +25,7 @@ OPTIONS
             Set the site name for the PGN header.
 
         -config file=NAME [discard=(true|false)]
-            Save or load engine configurations to resume games from previous sessions.
+            Load engine configurations to resume games from previous sessions.
             Use 'discard=true' to discard saved game results.
 
         -concurrency N
@@ -66,7 +66,7 @@ OPTIONS
 
                 format - the file format, either epd or pgn.
                 ORDER  - the order of moves to be played, either random or sequential. Default is random.
-                PLIES  - the number of plies to use (for pgn only). If not specified, uses the maximum number of plies.
+                PLIES  - the number of plies to use (for pgn only).
                 START  - the starting offset (number of openings to skip). Default value is 0.
 
         -output format=FORMAT
@@ -173,7 +173,7 @@ EXAMPLES
               name=Engine2 -each tc=10+0.1 -rounds 200 -repeat -concurrency 4
 
         To resume a game from a saved configuration:
-            $ fast-chess -config file=saved_game.conf
+            $ fast-chess -config file=config.json
 
 AUTHOR
         fast-chess was written by Disservin, Szil and PGG106.

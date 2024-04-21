@@ -20,7 +20,8 @@ class OpeningBook {
     void shuffle() noexcept {
         constexpr auto shuffle = [](auto& vec) {
             for (std::size_t i = 0; i + 2 <= vec.size(); i++) {
-                std::size_t j = i + (random::mersenne_rand() % (vec.size() - i));
+                auto rand     = random::mersenne_rand();
+                std::size_t j = i + (rand % (vec.size() - i));
                 std::swap(vec[i], vec[j]);
             }
         };

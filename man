@@ -97,7 +97,7 @@ OPTIONS
                     - normalized (default)
 
         -srand SEED
-            Set the seed for the random number generator. Default seed is 951356066.
+            Set the seed for opening book randomization. Default seed is 951356066.
 
         -log file=NAME level=LEVEL
             Specify a log file with a specific log level.

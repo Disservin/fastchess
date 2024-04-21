@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <random>
 
 #include <types/engine_config.hpp>
 #include <types/enums.hpp>
@@ -74,8 +75,14 @@ struct Tournament {
     /// @brief output format, fastchess or cutechess
     OutputType output = OutputType::FASTCHESS;
 #endif
+    std::random_device rd;  // Will be used to obtain a seed for the random number engine
+    std::mt19937 gen(rd()); // Standard mersenne_twister_engine seeded with rd()
 
-    uint32_t seed = 951356066;
+    // Define the range for the random number
+    std::uniform_int_distribution<> distrib(0, 4294967294);
+
+    // Generate a random number
+    uint32_t seed = distrib(gen);
 
     int ratinginterval = 10;
 

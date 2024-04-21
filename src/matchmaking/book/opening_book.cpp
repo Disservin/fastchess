@@ -9,7 +9,6 @@ namespace fast_chess {
 
 OpeningBook::OpeningBook(const options::Tournament& tournament) {
     start_ = tournament.opening.start;
-    order_ = tournament.opening.order;
     games_ = tournament.games;
     setup(tournament.opening.file, tournament.opening.format);
 }

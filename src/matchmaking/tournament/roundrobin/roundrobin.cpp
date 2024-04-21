@@ -85,7 +85,8 @@ void RoundRobin::create() {
                     result_.updateStats(configs, stats);
                 }
 
-                auto interval_index = tournament_options_.report_penta ? round_id : game_id;
+                // game_id starts 1 and round_id starts 0
+                auto interval_index = tournament_options_.report_penta ? round_id + 1 : game_id;
 
                 // Only print the interval if the pair is complete or we are not tracking
                 // penta stats.

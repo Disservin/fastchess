@@ -7,9 +7,11 @@
 
 namespace fast_chess {
 
-OpeningBook::OpeningBook(const options::Opening& opening) : opening_(opening) {
-    start_ = opening.start;
-    setup(opening.file, opening.format);
+OpeningBook::OpeningBook(const options::Tournament& tournament) {
+    start_ = tournament.opening.start;
+    order_ = tournament.opening.order;
+    games_ = tournament.games;
+    setup(tournament.opening.file, tournament.opening.format);
 }
 
 void OpeningBook::setup(const std::string& file, FormatType type) {
@@ -48,7 +50,7 @@ void OpeningBook::setup(const std::string& file, FormatType type) {
 
 Opening OpeningBook::fetch() noexcept {
     static uint64_t opening_index = 0;
-    const auto idx                = start_ + opening_index++;
+    const auto idx                = start_ + opening_index++ + matchcount_ / games_;
     const auto book_size          = std::holds_alternative<epd_book>(book_)
                                         ? std::get<epd_book>(book_).size()
                                         : std::get<pgn_book>(book_).size();

@@ -44,7 +44,6 @@ class OpeningBook {
     int games_;
     int plies_;
     OrderType order_;
-    options::Opening opening_;
     std::variant<epd_book, pgn_book> book_;
 };
 

@@ -66,7 +66,7 @@ OPTIONS
 
                 format - the file format, either epd or pgn.
                 ORDER  - the order of moves to be played, either random or sequential. Default is random.
-                PLIES  - the number of plies to use (for pgn only).
+                PLIES  - the number of plies to use (for pgn only). Default value is 0.
                 START  - the starting offset (number of openings to skip). Default value is 0.
 
         -output format=FORMAT

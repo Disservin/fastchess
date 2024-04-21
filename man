@@ -29,7 +29,7 @@ OPTIONS
             Use 'discard=true' to discard saved game results.
 
         -concurrency N
-            Set the concurrency level to N. Default value is 1.
+            Plays N matches concurrently. Default value is 1.
 
         -rounds N
             Play N rounds of games. Default value is 2.
@@ -66,21 +66,20 @@ OPTIONS
 
                 format - the file format, either epd or pgn.
                 ORDER  - the order of moves to be played, either random or sequential. Default is random.
-                PLIES  - the number of plies to use.
-                START  - the starting offset.
+                PLIES  - the number of plies to use (for pgn only). If not specified, uses the maximum number of plies.
+                START  - the starting offset (number of openings to skip). Default value is 0.
 
         -output format=FORMAT
             Choose the output format for game results (cutechess or fastchess). Default is fastchess.
 
-        -pgnout notation=(san|lan|uci) file=FILE [nodes=(true|false)] [seldepth=(true|false)] [nps=(true|false)]
+        -pgnout notation=(san|lan|uci) file=NAME [nodes=(true|false)] [seldepth=(true|false)] [nps=(true|false)]
             Export games in PGN format with specified notations and optional tracking of nodes, seldepth, and nps.
 
                 notation
-                    san - Standard Algebraic Notation
+                    san - Standard Algebraic Notation (default)
                     lan - Long Algebraic Notation
                     uci - Universal Chess Interface
 
-                FILE - filename.
                 nodes - defaults to false, track node count.
                 seldepth - defaults to false, track seldepth.
                 nps - defaults to false, track nps.
@@ -92,13 +91,13 @@ OPTIONS
             Set parameters for the Sequential Probability Ratio Test (SPRT).
             For more information see https://tests.stockfishchess.org/sprt_calc?elo-model=Normalized&elo-0=0&elo-1=2&draw-ratio=0.49&rms-bias=191
 
-            -model=MODEL
+            MODEL
                 Specify the model to use.
                     - logistic
                     - normalized (default)
 
         -srand SEED
-            Set the seed for the random number generator.
+            Set the seed for the random number generator. Default seed is 951356066.
 
         -log file=NAME level=LEVEL
             Specify a log file with a specific log level.
@@ -114,7 +113,8 @@ OPTIONS
             Disable thread affinity for running multiple instances of fast-chess in parallel.
 
         -report penta=(true|false)
-            Reports pentanomial statistics (only for fastchess output). Default is true.
+            Reports pentanomial statistics (only for fastchess output). Defaults to true.
+            For more information see https://www.chessprogramming.org/Match_Statistics
 
         -version
             Print the version number and exit.

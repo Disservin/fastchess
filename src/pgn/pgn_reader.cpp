@@ -9,7 +9,8 @@ namespace fast_chess {
 
 class PGNVisitor : public chess::pgn::Visitor {
    public:
-    PGNVisitor(std::vector<Opening>& pgns) : pgns_(pgns) {}
+    PGNVisitor(std::vector<Opening>& pgns, int plies_limit)
+        : pgns_(pgns), plies_limit_(plies_limit) {}
     virtual ~PGNVisitor() {}
 
     void startPgn() {
@@ -17,6 +18,7 @@ class PGNVisitor : public chess::pgn::Visitor {
 
         pgn_.fen = chess::constants::STARTPOS;
         pgn_.moves.clear();
+        plie_count_ = 0;
     }
 
     void header(std::string_view key, std::string_view value) {
@@ -38,8 +40,10 @@ class PGNVisitor : public chess::pgn::Visitor {
             return;
         }
 
-        pgn_.moves.push_back(move_i);
-        board_.makeMove(move_i);
+        if (plie_count_++ < plies_limit_ || plies_limit_ == -1) {
+            pgn_.moves.push_back(move_i);
+            board_.makeMove(move_i);
+        }
     }
 
     void endPgn() {
@@ -51,16 +55,21 @@ class PGNVisitor : public chess::pgn::Visitor {
     std::vector<Opening>& pgns_;
     Opening pgn_;
     chess::Board board_;
+    const int plies_limit_;
+    int plie_count_ = 0;
 };
 
-PgnReader::PgnReader(const std::string& pgn_file_path) { pgn_file_.open(pgn_file_path); }
+PgnReader::PgnReader(const std::string& pgn_file_path, int plies_limit)
+    : plies_limit_(plies_limit) {
+    pgn_file_.open(pgn_file_path);
+}
 
 std::vector<Opening> PgnReader::getOpenings() { return analyseFile(); }
 
 std::vector<Opening> PgnReader::analyseFile() {
     std::vector<Opening> pgns_;
 
-    auto vis = std::make_unique<PGNVisitor>(pgns_);
+    auto vis = std::make_unique<PGNVisitor>(pgns_, plies_limit_);
     chess::pgn::StreamParser parser(pgn_file_);
     parser.readGames(*vis);
 

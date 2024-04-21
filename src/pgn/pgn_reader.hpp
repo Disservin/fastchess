@@ -21,7 +21,7 @@ struct Opening {
 
 class PgnReader {
    public:
-    explicit PgnReader(const std::string& pgn_file_path);
+    explicit PgnReader(const std::string& pgn_file_path, int plies_limit = -1);
 
     /// @brief
     /// @return
@@ -33,6 +33,7 @@ class PgnReader {
     std::vector<Opening> analyseFile();
 
     std::ifstream pgn_file_;
+    int plies_limit_;
 };
 
 }  // namespace fast_chess

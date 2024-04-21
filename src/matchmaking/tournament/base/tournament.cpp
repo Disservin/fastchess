@@ -21,7 +21,7 @@ BaseTournament::BaseTournament(const options::Tournament &config,
     tournament_options_ = config;
     engine_configs_     = engine_configs;
     output_             = OutputFactory::create(config);
-    book_               = OpeningBook(config.opening);
+    book_               = OpeningBook(config);
     cores_              = std::make_unique<affinity::AffinityManager>(config.affinity,
                                                          getMaxAffinity(engine_configs));
 

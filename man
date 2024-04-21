@@ -45,18 +45,18 @@ OPTIONS
             Sets the number of games to 2. This is equivalent to -games 2.
 
         -recover
-            Recover from a crash. This will attempt to recover the engine after a crash, to continue with 
+            Enables crash recovery. This will attempt to recover the engine after a crash, to continue with 
             the tournament.
 
         -draw movenumber=NUMBER movecount=COUNT score=SCORE
-            Set conditions for a draw based on the number of moves, move count, and score threshold.
+            Enables draw adjudication. Set conditions for a draw based on the number of moves, move count, and score threshold.
               
                 NUMBER - the number of moves before checking for a draw. Default value is 0.
                 COUNT  - the number of moves below the score threshold to adjudicate a draw. Default value is 1.
                 SCORE  - the score threshold (in centipawns) for a draw. Default value is 0.
 
         -resign movecount=COUNT score=SCORE
-            Configure when the engine should resign based on move count and score threshold.
+            Enables engine resignation. Configure when the engine should resign based on move count and score threshold.
 
                 COUNT - the number of moves to make before resigning. Default value is 1.
                 SCORE - the score threshold (in centipawns) to resign at. Default value is 0.

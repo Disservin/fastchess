@@ -82,7 +82,10 @@ struct Tournament {
     std::uniform_int_distribution<uint32_t> distrib{0U, 4294967294U};
 
     // Generate a random number
-    uint32_t seed = distrib(gen);
+    uint32_t seed;;
+    Tournament() : rd(), gen(rd()), distrib(0U, 4294967294U) {
+        seed = distrib(gen);
+    }
 
     int ratinginterval = 10;
 

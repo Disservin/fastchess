@@ -14,7 +14,7 @@ namespace fast_chess {
 class OpeningBook {
    public:
     OpeningBook() = default;
-    explicit OpeningBook(const options::Opening& opening);
+    explicit OpeningBook(const options::Tournament& tournament);
 
     /// @brief Fisher-Yates / Knuth shuffle
     void shuffle() {
@@ -31,6 +31,8 @@ class OpeningBook {
 
     [[nodiscard]] Opening fetch() noexcept;
 
+    void setInternalOffset(std::size_t offset) noexcept { matchcount_ = offset; }
+
    private:
     void setup(const std::string& file, FormatType type);
 
@@ -38,6 +40,8 @@ class OpeningBook {
     using pgn_book = std::vector<Opening>;
 
     std::size_t start_ = 0;
+    std::size_t matchcount_ = 0;
+    int games_;
     options::Opening opening_;
     std::variant<epd_book, pgn_book> book_;
 };

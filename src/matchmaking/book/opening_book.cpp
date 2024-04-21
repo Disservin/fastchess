@@ -10,6 +10,7 @@ namespace fast_chess {
 OpeningBook::OpeningBook(const options::Tournament& tournament) {
     start_ = tournament.opening.start;
     games_ = tournament.games;
+    order_ = tournament.opening.order;
     setup(tournament.opening.file, tournament.opening.format);
 }
 
@@ -44,7 +45,7 @@ void OpeningBook::setup(const std::string& file, FormatType type) {
         }
     }
 
-    if (opening_.order == OrderType::RANDOM && type != FormatType::NONE) shuffle();
+    if (order_ == OrderType::RANDOM && type != FormatType::NONE) shuffle();
 }
 
 Opening OpeningBook::fetch() noexcept {

@@ -7,9 +7,8 @@
 
 namespace fast_chess {
 
-OpeningBook::OpeningBook(const options::Opening& opening) {
+OpeningBook::OpeningBook(const options::Opening& opening) : opening_(opening) {
     start_ = opening.start;
-    order_ = opening.order;
     setup(opening.file, opening.format);
 }
 
@@ -19,7 +18,7 @@ void OpeningBook::setup(const std::string& file, FormatType type) {
     }
 
     if (type == FormatType::PGN) {
-        book_ = PgnReader(file).getOpenings();
+        book_ = PgnReader(file, opening_.plies).getOpenings();
 
         if (std::get<pgn_book>(book_).empty()) {
             throw std::runtime_error("No openings found in PGN file: " + file);
@@ -44,7 +43,7 @@ void OpeningBook::setup(const std::string& file, FormatType type) {
         }
     }
 
-    if (order_ == OrderType::RANDOM && type != FormatType::NONE) shuffle();
+    if (opening_.order == OrderType::RANDOM && type != FormatType::NONE) shuffle();
 }
 
 Opening OpeningBook::fetch() noexcept {

@@ -17,8 +17,8 @@ class OpeningBook {
     explicit OpeningBook(const options::Opening& opening);
 
     /// @brief Fisher-Yates / Knuth shuffle
-    void shuffle() noexcept {
-        constexpr auto shuffle = [](auto& vec) {
+    void shuffle() {
+        const auto shuffle = [](auto& vec) {
             for (std::size_t i = 0; i + 2 <= vec.size(); i++) {
                 auto rand     = random::mersenne_rand();
                 std::size_t j = i + (rand % (vec.size() - i));
@@ -38,7 +38,7 @@ class OpeningBook {
     using pgn_book = std::vector<Opening>;
 
     std::size_t start_ = 0;
-    OrderType order_;
+    options::Opening opening_;
     std::variant<epd_book, pgn_book> book_;
 };
 

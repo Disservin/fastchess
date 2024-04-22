@@ -7,9 +7,12 @@
 
 namespace fast_chess {
 
-OpeningBook::OpeningBook(const options::Opening& opening) : opening_(opening) {
-    start_ = opening.start;
-    setup(opening.file, opening.format);
+OpeningBook::OpeningBook(const options::Tournament& tournament) {
+    start_ = tournament.opening.start;
+    games_ = tournament.games;
+    order_ = tournament.opening.order;
+    plies_ = tournament.opening.plies;
+    setup(tournament.opening.file, tournament.opening.format);
 }
 
 void OpeningBook::setup(const std::string& file, FormatType type) {
@@ -18,7 +21,7 @@ void OpeningBook::setup(const std::string& file, FormatType type) {
     }
 
     if (type == FormatType::PGN) {
-        book_ = PgnReader(file, opening_.plies).getOpenings();
+        book_ = PgnReader(file, plies_).getOpenings();
 
         if (std::get<pgn_book>(book_).empty()) {
             throw std::runtime_error("No openings found in PGN file: " + file);
@@ -43,12 +46,12 @@ void OpeningBook::setup(const std::string& file, FormatType type) {
         }
     }
 
-    if (opening_.order == OrderType::RANDOM && type != FormatType::NONE) shuffle();
+    if (order_ == OrderType::RANDOM && type != FormatType::NONE) shuffle();
 }
 
 Opening OpeningBook::fetch() noexcept {
     static uint64_t opening_index = 0;
-    const auto idx                = start_ + opening_index++;
+    const auto idx                = start_ + opening_index++ + matchcount_ / games_;
     const auto book_size          = std::holds_alternative<epd_book>(book_)
                                         ? std::get<epd_book>(book_).size()
                                         : std::get<pgn_book>(book_).size();

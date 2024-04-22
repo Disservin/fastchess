@@ -90,7 +90,9 @@ void RoundRobin::create() {
 
                 // Only print the interval if the pair is complete or we are not tracking
                 // penta stats. Also print the interval if tournament is finished.
-                bool end_of_tournament= tournament_options_.rounds == round_id + 1;
+                const auto stats = result_.getStats(engine_configs[0].name, engine_configs[1].name);
+                bool end_of_tournament= tournament_options_.rounds == (stats.wins + stats.losses + stats.draws)
+                                                                       / tournament_options_.games;
                 if (report && (interval_index % tournament_options_.ratinginterval == 0 || end_of_tournament)) {
                     const auto updated_stats = result_.getStats(first.name, second.name);
 

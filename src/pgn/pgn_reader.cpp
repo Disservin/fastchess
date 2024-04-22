@@ -31,6 +31,8 @@ class PGNVisitor : public chess::pgn::Visitor {
     void startMoves() {}
 
     void move(std::string_view move, std::string_view) {
+        if (plie_count_++ >= plies_limit_ && plies_limit_ != -1) return;
+
         chess::Move move_i;
 
         try {
@@ -40,10 +42,8 @@ class PGNVisitor : public chess::pgn::Visitor {
             return;
         }
 
-        if (plie_count_++ < plies_limit_ || plies_limit_ == -1) {
-            pgn_.moves.push_back(move_i);
-            board_.makeMove(move_i);
-        }
+        pgn_.moves.push_back(move_i);
+        board_.makeMove(move_i);
     }
 
     void endPgn() {

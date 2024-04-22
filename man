@@ -25,11 +25,11 @@ OPTIONS
             Set the site name for the PGN header.
 
         -config file=NAME [discard=(true|false)]
-            Save or load engine configurations to resume games from previous sessions.
-            Use 'discard=true' to discard saved game results.
+            Load engine configurations to resume games from previous sessions.
+            Use 'discard=true' to discard saved game results. defaults to false.
 
         -concurrency N
-            Set the concurrency level to N. Default value is 1.
+            Plays N matches concurrently. Default value is 1.
 
         -rounds N
             Play N rounds of games. Default value is 2.
@@ -45,60 +45,59 @@ OPTIONS
             Sets the number of games to 2. This is equivalent to -games 2.
 
         -recover
-            Recover from a crash. This will attempt to recover the engine after a crash, to continue with 
+            Enables crash recovery. This will attempt to recover the engine after a crash, to continue with 
             the tournament.
 
         -draw movenumber=NUMBER movecount=COUNT score=SCORE
-            Set conditions for a draw based on the number of moves, move count, and score threshold.
+            Enables draw adjudication. Set conditions for a draw based on the number of moves, move count, and score threshold.
               
                 NUMBER - the number of moves before checking for a draw. Default value is 0.
                 COUNT  - the number of moves below the score threshold to adjudicate a draw. Default value is 1.
-                SCORE  - the score threshold (in centipawns) for a draw.
+                SCORE  - the score threshold (in centipawns) for a draw. Default value is 0.
 
         -resign movecount=COUNT score=SCORE
-            Configure when the engine should resign based on move count and score threshold.
+            Enables engine resignation. Configure when the engine should resign based on move count and score threshold.
 
                 COUNT - the number of moves to make before resigning. Default value is 1.
-                SCORE - the score threshold (in centipawns) to resign at.
+                SCORE - the score threshold (in centipawns) to resign at. Default value is 0.
 
         -openings file=NAME format=(epd|pgn) [order=ORDER] [plies=PLIES] [start=START]
             Specify an opening book file and its format for game starting positions.
 
                 format - the file format, either epd or pgn.
                 ORDER  - the order of moves to be played, either random or sequential. Default is random.
-                PLIES  - the number of plies to use.
-                START  - the starting offset.
+                PLIES  - the number of plies to use (for pgn only). Default value is 0.
+                START  - the starting offset (number of openings to skip). Default value is 0.
 
         -output format=FORMAT
             Choose the output format for game results (cutechess or fastchess). Default is fastchess.
 
-        -pgnout notation=(san|lan|uci) file=FILE [nodes=(true|false)] [seldepth=(true|false)] [nps=(true|false)]
+        -pgnout notation=(san|lan|uci) file=NAME [nodes=(true|false)] [seldepth=(true|false)] [nps=(true|false)]
             Export games in PGN format with specified notations and optional tracking of nodes, seldepth, and nps.
 
                 notation
-                    san - Standard Algebraic Notation
+                    san - Standard Algebraic Notation (default)
                     lan - Long Algebraic Notation
                     uci - Universal Chess Interface
 
-                FILE - filename.
                 nodes - defaults to false, track node count.
                 seldepth - defaults to false, track seldepth.
                 nps - defaults to false, track nps.
 
         -ratinginterval N
-            Set the rating interval for the rating report. For penta reports, this is reports per N game pair.
+            Set the rating interval for the rating report. For penta reports, this is reports per N game pair. Default value is 10.
 
         -sprt elo0=ELO0 elo1=ELO1 alpha=ALPHA beta=BETA model=MODEL
             Set parameters for the Sequential Probability Ratio Test (SPRT).
             For more information see https://tests.stockfishchess.org/sprt_calc?elo-model=Normalized&elo-0=0&elo-1=2&draw-ratio=0.49&rms-bias=191
 
-            -model=MODEL
+            MODEL
                 Specify the model to use.
                     - logistic
                     - normalized (default)
 
         -srand SEED
-            Set the seed for the random number generator.
+            Set the seed for opening book randomization. Default seed is 951356066.
 
         -log file=NAME level=LEVEL
             Specify a log file with a specific log level.
@@ -114,7 +113,8 @@ OPTIONS
             Disable thread affinity for running multiple instances of fast-chess in parallel.
 
         -report penta=(true|false)
-            Reports pentanomial statistics (only for fastchess output). Default is true.
+            Reports pentanomial statistics (only for fastchess output). Defaults to true.
+            For more information see https://www.chessprogramming.org/Match_Statistics
 
         -version
             Print the version number and exit.
@@ -173,7 +173,7 @@ EXAMPLES
               name=Engine2 -each tc=10+0.1 -rounds 200 -repeat -concurrency 4
 
         To resume a game from a saved configuration:
-            $ fast-chess -config file=saved_game.conf
+            $ fast-chess -config file=config.json
 
 AUTHOR
         fast-chess was written by Disservin, Szil and PGG106.

@@ -89,8 +89,9 @@ void RoundRobin::create() {
                 auto interval_index = tournament_options_.report_penta ? round_id + 1 : game_id;
 
                 // Only print the interval if the pair is complete or we are not tracking
-                // penta stats.
-                if (report && interval_index % tournament_options_.ratinginterval == 0) {
+                // penta stats. Also print the interval if tournament is finished.
+                bool end_of_tournament= tournament_options_.rounds == round_id + 1;
+                if (report && (interval_index % tournament_options_.ratinginterval == 0 || end_of_tournament)) {
                     const auto updated_stats = result_.getStats(first.name, second.name);
 
                     output_->printInterval(sprt_, updated_stats, first.name, second.name);

@@ -133,7 +133,7 @@ void RoundRobin::updateSprtStatus(const std::vector<EngineConfiguration>& engine
         Logger::log<Logger::Level::INFO>("SPRT test finished: " + sprt_.getBounds() + " " +
                                          sprt_.getElo());
 
-        output_->printElo(stats, engine_configs[0].name, engine_configs[1].name);
+        output_->printInterval(sprt_, stats, engine_configs[0].name, engine_configs[1].name);
         output_->endTournament();
 
         stop();

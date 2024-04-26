@@ -39,7 +39,7 @@ class OpeningBook {
     using epd_book = std::vector<std::string>;
     using pgn_book = std::vector<Opening>;
 
-    std::size_t start_ = 0;
+    std::size_t start_      = 0;
     std::size_t matchcount_ = 0;
     int games_;
     int plies_;

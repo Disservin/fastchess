@@ -31,7 +31,7 @@ void RoundRobin::create() {
     total_ = (engine_configs_.size() * (engine_configs_.size() - 1) / 2) *
              tournament_options_.rounds * tournament_options_.games;
 
-    const auto create_match = [this](std::size_t i, std::size_t j, std::size_t round_id) {
+    const auto create_match = [this](std::size_t i, std::size_t j, std::size_t round_id, int g) {
         constexpr auto normalize_stm_configs = [](const pair_config& configs,
                                                   const chess::Color stm) {
             // swap players if the opening is for black, to ensure that
@@ -60,59 +60,61 @@ void RoundRobin::create() {
         const auto second  = engine_configs_[j];
         auto configs       = std::pair{engine_configs_[i], engine_configs_[j]};
 
-        for (int g = 0; g < tournament_options_.games; g++) {
-            const std::size_t game_id = round_id * tournament_options_.games + (g + 1);
-
-            // callback functions, do not capture by reference
-            const auto start = [this, configs, game_id, stm, normalize_stm_configs]() {
-                output_->startGame(normalize_stm_configs(configs, stm), game_id, total_);
-            };
-
-            // callback functions, do not capture by reference
-            const auto finish = [this, configs, first, second, game_id, round_id, stm,
-                                 normalize_stm_configs,
-                                 normalize_stats](const Stats& stats, const std::string& reason) {
-                const auto normalized_configs = normalize_stm_configs(configs, stm);
-                const auto normalized_stats   = normalize_stats(stats, stm);
-
-                output_->endGame(normalized_configs, normalized_stats, reason, game_id);
-
-                bool report = true;
-
-                if (tournament_options_.report_penta) {
-                    report = result_.updatePairStats(configs, first.name, stats, round_id);
-                } else {
-                    result_.updateStats(configs, stats);
-                }
-
-                // game_id starts 1 and round_id starts 0
-                auto interval_index = tournament_options_.report_penta ? round_id + 1 : game_id;
-
-                // Only print the interval if the pair is complete or we are not tracking
-                // penta stats.
-                if (report && interval_index % tournament_options_.ratinginterval == 0) {
-                    const auto updated_stats = result_.getStats(first.name, second.name);
-
-                    output_->printInterval(sprt_, updated_stats, first.name, second.name);
-                }
-
-                updateSprtStatus({first, second});
-
-                match_count_++;
-            };
-
-            pool_.enqueue(&RoundRobin::playGame, this, configs, start, finish, opening, round_id);
-
-            // swap players
+        assert(g < 2);
+        if (g == 1) {
             std::swap(configs.first, configs.second);
         }
+
+        const std::size_t game_id = round_id * tournament_options_.games + (g + 1);
+
+        // callback functions, do not capture by reference
+        const auto start = [this, configs, game_id, stm, normalize_stm_configs]() {
+            output_->startGame(normalize_stm_configs(configs, stm), game_id, total_);
+        };
+
+        // callback functions, do not capture by reference
+        const auto finish = [this, configs, first, second, game_id, round_id, stm,
+                             normalize_stm_configs,
+                             normalize_stats](const Stats& stats, const std::string& reason) {
+            const auto normalized_configs = normalize_stm_configs(configs, stm);
+            const auto normalized_stats   = normalize_stats(stats, stm);
+
+            output_->endGame(normalized_configs, normalized_stats, reason, game_id);
+
+            bool report = true;
+
+            if (tournament_options_.report_penta) {
+                report = result_.updatePairStats(configs, first.name, stats, round_id);
+            } else {
+                result_.updateStats(configs, stats);
+            }
+
+            // game_id starts 1 and round_id starts 0
+            auto interval_index = tournament_options_.report_penta ? round_id + 1 : game_id;
+
+            // Only print the interval if the pair is complete or we are not tracking
+            // penta stats.
+            if (report && interval_index % tournament_options_.ratinginterval == 0) {
+                const auto updated_stats = result_.getStats(first.name, second.name);
+
+                output_->printInterval(sprt_, updated_stats, first.name, second.name);
+            }
+
+            updateSprtStatus({first, second});
+
+            match_count_++;
+        };
+
+        playGame(configs, start, finish, opening, round_id);
     };
 
     for (std::size_t i = 0; i < engine_configs_.size(); i++) {
         for (std::size_t j = i + 1; j < engine_configs_.size(); j++) {
-            for (int k = initial_matchcount_ / tournament_options_.games;
-                 k < tournament_options_.rounds; k++) {
-                create_match(i, j, k);
+            auto offset = initial_matchcount_ / tournament_options_.games;
+            for (int k = offset; k < tournament_options_.rounds; k++) {
+                for (int g = 0; g < tournament_options_.games; g++) {
+                    pool_.enqueue(create_match, i, j, k, g);
+                }
             }
         }
     }

@@ -31,7 +31,8 @@ void RoundRobin::create() {
     total_ = (engine_configs_.size() * (engine_configs_.size() - 1) / 2) *
              tournament_options_.rounds * tournament_options_.games;
 
-    const auto create_match = [this](std::size_t i, std::size_t j, std::size_t round_id, int g) {
+    const auto create_match = [this](std::size_t i, std::size_t j, std::size_t round_id, int g,
+                                     Opening opening) {
         constexpr auto normalize_stm_configs = [](const pair_config& configs,
                                                   const chess::Color stm) {
             // swap players if the opening is for black, to ensure that
@@ -53,12 +54,10 @@ void RoundRobin::create() {
             return stats;
         };
 
-        // both players get the same opening
-        const auto opening = book_.fetch();
-        const auto stm     = opening.stm;
-        const auto first   = engine_configs_[i];
-        const auto second  = engine_configs_[j];
-        auto configs       = std::pair{engine_configs_[i], engine_configs_[j]};
+        const auto stm    = opening.stm;
+        const auto first  = engine_configs_[i];
+        const auto second = engine_configs_[j];
+        auto configs      = std::pair{engine_configs_[i], engine_configs_[j]};
 
         assert(g < 2);
         if (g == 1) {
@@ -112,8 +111,11 @@ void RoundRobin::create() {
         for (std::size_t j = i + 1; j < engine_configs_.size(); j++) {
             auto offset = initial_matchcount_ / tournament_options_.games;
             for (int k = offset; k < tournament_options_.rounds; k++) {
+                // both players get the same opening
+                const auto opening = book_.fetch();
+
                 for (int g = 0; g < tournament_options_.games; g++) {
-                    pool_.enqueue(create_match, i, j, k, g);
+                    pool_.enqueue(create_match, i, j, k, g, opening);
                 }
             }
         }

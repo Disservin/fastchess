@@ -37,10 +37,14 @@ class Player {
 
         time_control_.time -= elapsed_millis;
 
-        if (time_control_.time < 0) {
+        if (time_control_.time < -timemargin) {
             return false;
         }
 
+        if (time_control_.time < 0) {
+            time_control_.time = 0;
+        }
+       
         time_control_.time += time_control_.increment;
 
         return true;

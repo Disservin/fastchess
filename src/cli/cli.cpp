@@ -430,6 +430,7 @@ void parseVariant(int &i, int argc, char const *argv[], ArgumentData &argument_d
     parseValue(i, argc, argv, val);
 
     if (val == "fischerandom") argument_data.tournament_options.variant = VariantType::FRC;
+    if (val != "fischerandom" && val != "standard") throw std::runtime_error("Error; Unknown variant");
 }
 
 void parseTournament(int &i, int argc, char const *argv[], ArgumentData &) {

@@ -22,14 +22,14 @@ class EpdBuilder {
         board.set960(tournament_options.variant == VariantType::FRC);
         board.setFen(match.fen);
 
-        for (auto it = match.moves.begin(); it != match.moves.end(); ++it) {
-            const auto illegal = !it->legal;
+        for (const auto &move : match.moves) {
+            const auto illegal = !move.legal;
 
             if (illegal) {
                 break;
             }
 
-            board.makeMove(chess::uci::uciToMove(board, it->move));
+            board.makeMove(chess::uci::uciToMove(board, move.move));
         }
 
         epd << board.getEpd() << "\n";

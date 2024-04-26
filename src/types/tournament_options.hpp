@@ -92,6 +92,7 @@ struct Tournament {
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(Tournament, resign, draw, opening, pgn, sprt,
                                                 event_name, site, output, seed, variant,
                                                 ratinginterval, games, rounds, concurrency,
-                                                overhead, recover, report_penta)
+                                                overhead, recover, report_penta, affinity,
+                                                randomseed)
 
 }  // namespace fast_chess::options

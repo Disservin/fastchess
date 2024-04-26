@@ -84,6 +84,8 @@ struct Tournament {
     int concurrency = 1;
     int overhead    = 0;
 
+    int timemargin  = 0;
+
     bool recover      = false;
     bool report_penta = true;
     bool affinity     = true;
@@ -92,7 +94,7 @@ struct Tournament {
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(Tournament, resign, draw, opening, pgn, sprt,
                                                 event_name, site, output, seed, variant,
                                                 ratinginterval, games, rounds, concurrency,
-                                                overhead, recover, report_penta, affinity,
-                                                randomseed)
+                                                overhead, timemargin, recover, report_penta, 
+                                                affinity, randomseed)
 
 }  // namespace fast_chess::options

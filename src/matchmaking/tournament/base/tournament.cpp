@@ -2,6 +2,7 @@
 
 #include <affinity/affinity_manager.hpp>
 #include <engines/uci_engine.hpp>
+#include <epd/epd_builder.hpp>
 #include <matchmaking/book/opening_book.hpp>
 #include <matchmaking/match/match.hpp>
 #include <matchmaking/output/output.hpp>
@@ -75,10 +76,12 @@ void BaseTournament::playGame(const std::pair<EngineConfiguration, EngineConfigu
 
     const auto match_data = match.get();
 
-    // If the game was stopped, don't write the PGN
-    if (match_data.termination != MatchTermination::INTERRUPT &&
-        !tournament_options_.pgn.file.empty()) {
-        file_writer_->write(PgnBuilder(match_data, tournament_options_, game_id + 1).get());
+    // If the game was interrupted(didn't completely finish)
+    if (match_data.termination != MatchTermination::INTERRUPT) {
+        if (!tournament_options_.pgn.file.empty())
+            file_writer_->write(PgnBuilder(match_data, tournament_options_, game_id + 1).get());
+        if (!tournament_options_.epd.file.empty())
+            file_writer_->write(EpdBuilder(match_data, tournament_options_, game_id + 1).get());
     }
 
     finish({match_data}, match_data.reason);

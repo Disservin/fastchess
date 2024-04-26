@@ -26,7 +26,8 @@ BaseTournament::BaseTournament(const options::Tournament &config,
     cores_              = std::make_unique<affinity::AffinityManager>(config.affinity,
                                                          getMaxAffinity(engine_configs));
 
-    if (!config.pgn.file.empty()) file_writer_ = std::make_unique<FileWriter>(config.pgn.file);
+    if (!config.pgn.file.empty()) file_writer_pgn = std::make_unique<FileWriter>(config.pgn.file);
+    if (!config.epd.file.empty()) file_writer_epd = std::make_unique<FileWriter>(config.epd.file);
 
     pool_.resize(config.concurrency);
 }
@@ -79,9 +80,9 @@ void BaseTournament::playGame(const std::pair<EngineConfiguration, EngineConfigu
     // If the game was interrupted(didn't completely finish)
     if (match_data.termination != MatchTermination::INTERRUPT) {
         if (!tournament_options_.pgn.file.empty())
-            file_writer_->write(PgnBuilder(match_data, tournament_options_, game_id + 1).get());
+            file_writer_pgn->write(PgnBuilder(match_data, tournament_options_, game_id + 1).get());
         if (!tournament_options_.epd.file.empty())
-            file_writer_->write(EpdBuilder(match_data, tournament_options_, game_id + 1).get());
+            file_writer_epd->write(EpdBuilder(match_data, tournament_options_).get());
     }
 
     finish({match_data}, match_data.reason);

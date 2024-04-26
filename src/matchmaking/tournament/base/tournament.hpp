@@ -77,7 +77,8 @@ class BaseTournament {
 
     std::unique_ptr<IOutput> output_;
     std::unique_ptr<affinity::AffinityManager> cores_;
-    std::unique_ptr<FileWriter> file_writer_;
+    std::unique_ptr<FileWriter> file_writer_pgn;
+    std::unique_ptr<FileWriter> file_writer_epd;
 
     OpeningBook book_;
     options::Tournament tournament_options_;

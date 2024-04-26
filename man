@@ -6,10 +6,10 @@ NAME
 SYNOPSIS
        fast-chess [OPTIONS]
 
-DESCRIPTION 
-        Fast-chess is a command-line tool designed to manage and orchestrate chess games between engines.
-        It provides a range of options to configure game settings,
-        engine parameters, concurrency, and output formats.
+DESCRIPTION
+        Fast-chess is a command-line tool designed to manage and orchestrate
+        chess games between engines. It provides a range of options to configure
+        game settings, engine parameters, concurrency, and output formats.
 
 OPTIONS
         The following options are available:
@@ -36,7 +36,8 @@ OPTIONS
 
         -games N
             Play N games in each round. Default value is 2. 
-            This should be set to 1 or 2, setting this higher than 2 does not provide meaningful results.
+            This should be set to 1 or 2, setting this higher than 2 does not
+            provide meaningful results.
 
         -variant VARIANT
             fischerandom - play Fischer Random Chess
@@ -45,18 +46,23 @@ OPTIONS
             Sets the number of games to 2. This is equivalent to -games 2.
 
         -recover
-            Enables crash recovery. This will attempt to recover the engine after a crash, to continue with 
-            the tournament.
+            Enables crash recovery. This will attempt to recover the engine after a crash,
+            to continue with the tournament.
 
         -draw movenumber=NUMBER movecount=COUNT score=SCORE
-            Enables draw adjudication. Set conditions for a draw based on the number of moves, move count, and score threshold.
+            Enables draw adjudication. Set conditions for a draw based on the number of moves,
+            move count, and score threshold.
               
-                NUMBER - the number of moves before checking for a draw. Default value is 0.
-                COUNT  - the number of moves below the score threshold to adjudicate a draw. Default value is 1.
-                SCORE  - the score threshold (in centipawns) for a draw. Default value is 0.
+                NUMBER - the number of moves before checking for a draw.
+                         Default value is 0.
+                COUNT  - the number of moves below the score threshold to adjudicate a draw.
+                         Default value is 1.
+                SCORE  - the score threshold (in centipawns) for a draw.
+                         Default value is 0.
 
         -resign movecount=COUNT score=SCORE
-            Enables engine resignation. Configure when the engine should resign based on move count and score threshold.
+            Enables engine resignation. Configure when the engine should resign based on move
+            count and score threshold.
 
                 COUNT - the number of moves to make before resigning. Default value is 1.
                 SCORE - the score threshold (in centipawns) to resign at. Default value is 0.
@@ -65,12 +71,16 @@ OPTIONS
             Specify an opening book file and its format for game starting positions.
 
                 format - the file format, either epd or pgn.
-                ORDER  - the order of moves to be played, either random or sequential. Default is random.
-                PLIES  - the number of plies to use (for pgn only). Default value is 0.
-                START  - the starting offset (number of openings to skip). Default value is 0.
+                ORDER  - the order of moves to be played, either random or sequential.
+                         Default is random.
+                PLIES  - the number of plies to use (for pgn only).
+                         Default value is 0.
+                START  - the starting offset (number of openings to skip).
+                         Default value is 0.
 
         -output format=FORMAT
-            Choose the output format for game results (cutechess or fastchess). Default is fastchess.
+            Choose the output format for game results (cutechess or fastchess).
+            Default is fastchess.
 
         -pgnout notation=(san|lan|uci) file=NAME [nodes=(true|false)] [seldepth=(true|false)] [nps=(true|false)]
             Export games in PGN format with specified notations and optional tracking of nodes, seldepth, and nps.
@@ -85,11 +95,13 @@ OPTIONS
                 nps - defaults to false, track nps.
 
         -ratinginterval N
-            Set the rating interval for the rating report. For penta reports, this is reports per N game pair. Default value is 10.
+            Set the rating interval for the rating report.
+            For penta reports, this is reports per N game pair. Default value is 10.
 
         -sprt elo0=ELO0 elo1=ELO1 alpha=ALPHA beta=BETA model=MODEL
             Set parameters for the Sequential Probability Ratio Test (SPRT).
-            For more information see https://tests.stockfishchess.org/sprt_calc?elo-model=Normalized&elo-0=0&elo-1=2&draw-ratio=0.49&rms-bias=191
+            For more information see
+            https://tests.stockfishchess.org/sprt_calc
 
             MODEL
                 Specify the model to use.
@@ -97,10 +109,12 @@ OPTIONS
                     - normalized (default)
 
         -srand SEED
-            Set the seed for opening book randomization. Default seed is 951356066.
+            Set the seed for opening book randomization.
+            Default seed is 951356066.
 
         -randomseed
-            Automatically picks a random seed value between 0 and (2^32 - 1) for opening book randomization.
+            Automatically picks a random seed value between 0 and (2^32 - 1)
+            for opening book randomization.
 
         -log file=NAME level=LEVEL
             Specify a log file with a specific log level.

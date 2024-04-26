@@ -25,7 +25,7 @@ THIS FILE IS AUTO GENERATED DO NOT CHANGE MANUALLY.
 
 Source: https://github.com/Disservin/chess-library
 
-VERSION: 0.6.43
+VERSION: 0.6.44
 */
 
 #ifndef CHESS_HPP
@@ -1883,6 +1883,19 @@ class Board {
         }
 
         // Return the resulting FEN string
+        return ss;
+    }
+
+    [[nodiscard]] std::string getEpd() const {
+        std::string ss;
+        ss.reserve(100);
+
+        ss += getFen(false);
+        ss += " hmvc ";
+        ss += std::to_string(halfMoveClock()) + ";";
+        ss += " fmvn ";
+        ss += std::to_string(fullMoveNumber()) + ";";
+
         return ss;
     }
 

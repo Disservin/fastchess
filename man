@@ -119,10 +119,6 @@ OPTIONS
             Automatically picks a random seed value between 0 and (2^32 - 1)
             for opening book randomization.
 
-        -timemargin N
-            Allows the engines to exceed the time limit by N milliseconds.
-            Default value is 0.
-
         -log file=NAME level=LEVEL
             Specify a log file with a specific log level.
 
@@ -171,6 +167,10 @@ OPTIONS
                 TC uses the same format as Cute-Chess. For example,
                 10+0.1 would be 10 seconds with 100 millisecond increments.
             
+            [timemargin=N]
+                Allows the engines to exceed the time limit by N milliseconds.
+                Default value is 0.
+
             [st=ST]
                 Movetime for the engine in seconds.
             

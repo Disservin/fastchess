@@ -109,9 +109,12 @@ void parseEngineKeyValues(EngineConfiguration &engineConfig, const std::string &
         engineConfig.limit.tc = parseTc(value);
     else if (key == "st")
         engineConfig.limit.tc.fixed_time = static_cast<int64_t>(std::stod(value) * 1000);
-    else if (key == "timemargin")
+    else if (key == "timemargin") {
         engineConfig.limit.tc.timemargin = std::stoi(value);
-    else if (key == "nodes")
+        if (engineConfig.limit.tc.timemargin < 0) {
+            throw std::runtime_error("Error; timemargin cannot be a negative number");
+        }
+    } else if (key == "nodes")
         engineConfig.limit.nodes = std::stoll(value);
     else if (key == "plies" || key == "depth")
         engineConfig.limit.plies = std::stoll(value);
@@ -416,10 +419,6 @@ void parseRatinginterval(int &i, int argc, char const *argv[], ArgumentData &arg
     parseValue(i, argc, argv, argument_data.tournament_options.ratinginterval);
 }
 
-void parseTimemargin(int &i, int argc, char const *argv[], ArgumentData &argument_data) {
-    parseValue(i, argc, argv, argument_data.tournament_options.timemargin);
-}
-
 void parseSRand(int &i, int argc, char const *argv[], ArgumentData &argument_data) {
     parseValue(i, argc, argv, argument_data.tournament_options.seed);
 }
@@ -537,7 +536,6 @@ OptionsParser::OptionsParser(int argc, char const *argv[]) {
     addOption("games", parseGames);
     addOption("rounds", parseRounds);
     addOption("ratinginterval", parseRatinginterval);
-    addOption("timemargin", parseTimemargin);
     addOption("srand", parseSRand);
     addOption("version", parseVersion);
     addOption("-version", parseVersion);

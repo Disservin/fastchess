@@ -45,10 +45,6 @@ options::Tournament TournamentManager::fixConfig(options::Tournament config) {
 
     if (config.report_penta && config.games != 2) config.report_penta = false;
 
-    if (config.timemargin < 0) {
-        throw std::runtime_error("Error: timemargin cannot be a negative number");
-    }
-
     if (config.opening.file.empty()) {
         Logger::log<Logger::Level::WARN>(
             "Warning: No opening book specified! Consider using one, otherwise all games will be "

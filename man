@@ -74,7 +74,7 @@ OPTIONS
                 ORDER  - the order of moves to be played, either random or sequential.
                          Default is random.
                 PLIES  - the number of plies to use (for pgn only).
-                         Default value is 0.
+                         If not specified, uses the maximum available plies.
                 START  - the starting offset (number of openings to skip).
                          Default value is 0.
 
@@ -93,6 +93,9 @@ OPTIONS
                 nodes - defaults to false, track node count.
                 seldepth - defaults to false, track seldepth.
                 nps - defaults to false, track nps.
+
+        -epdout file=NAME
+            Export the final position of each game in EPD format.
 
         -ratinginterval N
             Set the rating interval for the rating report.
@@ -115,6 +118,10 @@ OPTIONS
         -randomseed
             Automatically picks a random seed value between 0 and (2^32 - 1)
             for opening book randomization.
+
+        -timemargin N
+            Allows the engines to exceed the time limit by N milliseconds.
+            Default value is 0.
 
         -log file=NAME level=LEVEL
             Specify a log file with a specific log level.

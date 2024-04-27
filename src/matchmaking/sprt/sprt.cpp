@@ -4,6 +4,7 @@
 #include <iomanip>
 #include <sstream>
 
+#include <types/stats.hpp>
 #include <util/logger/logger.hpp>
 
 namespace fast_chess {
@@ -33,6 +34,14 @@ double SPRT::neloToScoreWDL(double nelo, double variance) noexcept {
 
 double SPRT::neloToScorePenta(double nelo, double variance) noexcept {
     return nelo * std::sqrt(2.0 * variance) / (800.0 / std::log(10)) + 0.5;
+}
+
+double SPRT::getLLR(const Stats& stats, bool penta) const noexcept {
+    if (penta)
+        return getLLR(stats.penta_WW, stats.penta_WD, stats.penta_WL, stats.penta_DD,
+                      stats.penta_LD, stats.penta_LL);
+
+    return getLLR(stats.wins, stats.draws, stats.losses);
 }
 
 double SPRT::getLLR(int win, int draw, int loss) const noexcept {

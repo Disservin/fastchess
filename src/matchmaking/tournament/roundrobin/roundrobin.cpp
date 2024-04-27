@@ -33,8 +33,10 @@ void RoundRobin::create() {
 
     const auto create_match = [this](std::size_t i, std::size_t j, std::size_t round_id, int g,
                                      Opening opening) {
-        constexpr auto normalize_stm_configs = [](const pair_config& configs,
-                                                  const chess::Color stm) {
+        assert(g < 2);
+
+        constexpr static auto normalize_stm_configs = [](const pair_config& configs,
+                                                         const chess::Color stm) {
             // swap players if the opening is for black, to ensure that
             // reporting the result is always white vs black
             if (stm == chess::Color::BLACK) {
@@ -44,7 +46,7 @@ void RoundRobin::create() {
             return configs;
         };
 
-        constexpr auto normalize_stats = [](const Stats& stats, const chess::Color stm) {
+        constexpr static auto normalize_stats = [](const Stats& stats, const chess::Color stm) {
             // swap stats if the opening is for black, to ensure that
             // reporting the result is always white vs black
             if (stm == chess::Color::BLACK) {
@@ -54,27 +56,24 @@ void RoundRobin::create() {
             return stats;
         };
 
-        const auto stm    = opening.stm;
-        const auto first  = engine_configs_[i];
-        const auto second = engine_configs_[j];
-        auto configs      = std::pair{engine_configs_[i], engine_configs_[j]};
+        const std::size_t game_id = round_id * tournament_options_.games + (g + 1);
+        const auto stm            = opening.stm;
+        const auto first          = engine_configs_[i];
+        const auto second         = engine_configs_[j];
+        auto configs              = std::pair{engine_configs_[i], engine_configs_[j]};
 
-        assert(g < 2);
         if (g == 1) {
             std::swap(configs.first, configs.second);
         }
 
-        const std::size_t game_id = round_id * tournament_options_.games + (g + 1);
-
         // callback functions, do not capture by reference
-        const auto start = [this, configs, game_id, stm, normalize_stm_configs]() {
+        const auto start = [this, configs, game_id, stm]() {
             output_->startGame(normalize_stm_configs(configs, stm), game_id, total_);
         };
 
         // callback functions, do not capture by reference
-        const auto finish = [this, configs, first, second, game_id, round_id, stm,
-                             normalize_stm_configs,
-                             normalize_stats](const Stats& stats, const std::string& reason) {
+        const auto finish = [this, configs, first, second, game_id, round_id, stm](
+                                const Stats& stats, const std::string& reason) {
             const auto normalized_configs = normalize_stm_configs(configs, stm);
             const auto normalized_stats   = normalize_stats(stats, stm);
 
@@ -82,14 +81,13 @@ void RoundRobin::create() {
 
             bool report = true;
 
-            if (tournament_options_.report_penta) {
+            if (tournament_options_.report_penta)
                 report = result_.updatePairStats(configs, first.name, stats, round_id);
-            } else {
+            else
                 result_.updateStats(configs, stats);
-            }
 
             // game_id starts 1 and round_id starts 0
-            auto interval_index = tournament_options_.report_penta ? round_id + 1 : game_id;
+            const auto interval_index = tournament_options_.report_penta ? round_id + 1 : game_id;
 
             // Only print the interval if the pair is complete or we are not tracking
             // penta stats.
@@ -109,7 +107,7 @@ void RoundRobin::create() {
 
     for (std::size_t i = 0; i < engine_configs_.size(); i++) {
         for (std::size_t j = i + 1; j < engine_configs_.size(); j++) {
-            auto offset = initial_matchcount_ / tournament_options_.games;
+            int offset = initial_matchcount_ / tournament_options_.games;
             for (int k = offset; k < tournament_options_.rounds; k++) {
                 // both players get the same opening
                 const auto opening = book_.fetch();

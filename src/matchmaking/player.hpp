@@ -30,17 +30,21 @@ class Player {
     /// @brief remove the elapsed time from the participant's time
     /// @param elapsed_millis
     /// @return `false` when out of time
-    [[nodiscard]] bool updateTime(const int64_t elapsed_millis) {
+    [[nodiscard]] bool updateTime(const int64_t elapsed_millis, const int64_t timemargin) {
         if (engine.getConfig().limit.tc.time == 0) {
             return true;
         }
 
         time_control_.time -= elapsed_millis;
 
-        if (time_control_.time < 0) {
+        if (time_control_.time < -timemargin) {
             return false;
         }
 
+        if (time_control_.time < 0) {
+            time_control_.time = 0;
+        }
+       
         time_control_.time += time_control_.increment;
 
         return true;

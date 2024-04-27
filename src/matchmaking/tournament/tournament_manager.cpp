@@ -9,7 +9,7 @@ TournamentManager::TournamentManager(const options::Tournament& tournament_confi
     : engine_configs_(engine_configs), tournament_options_(tournament_config) {
     validateEngines();
 
-    if (tournament_options_.randomseed == true && round_id == 0) {
+    if (tournament_options_.randomseed == true && initial_matchcount_ == 0) {
         std::random_device rd;   // Random device to seed the generator
         std::mt19937 gen(rd());  // Mersenne Twister 19937 generator
         std::uniform_int_distribution<uint32_t> dist(0, std::numeric_limits<uint32_t>::max());

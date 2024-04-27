@@ -101,6 +101,6 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(Tournament, resign, draw, openin
                                                 event_name, site, output, seed, variant,
                                                 ratinginterval, games, rounds, concurrency,
                                                 overhead, timemargin, recover, report_penta, 
-                                                affinity)
+                                                affinity, randomseed)
 
 }  // namespace fast_chess::options

@@ -187,7 +187,7 @@ bool Match::playMove(Player& us, Player& opponent) {
 
     // Time forfeit
     const auto elapsed_millis = chrono::duration_cast<chrono::milliseconds>(t1 - t0).count();
-    if (!us.updateTime(elapsed_millis, tournament_options_.timemargin)) {
+    if (!us.updateTime(elapsed_millis)) {
         setLose(us, opponent);
 
         data_.termination = MatchTermination::TIMEOUT;

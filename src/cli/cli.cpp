@@ -201,6 +201,16 @@ void parsePgnOut(int &i, int argc, char const *argv[], ArgumentData &argument_da
     }
 }
 
+void parseEpdOut(int &i, int argc, char const *argv[], ArgumentData &argument_data) {
+    parseDashOptions(i, argc, argv, [&](const std::string &key, const std::string &value) {
+        if (key == "file") {
+            argument_data.tournament_options.epd.file = value;
+        } else {
+            OptionsParser::throwMissing("epdout", key, value);
+        }
+    });
+}
+
 void parseOpening(int &i, int argc, char const *argv[], ArgumentData &argument_data) {
     parseDashOptions(i, argc, argv, [&](const std::string &key, const std::string &value) {
         if (key == "file") {
@@ -505,6 +515,7 @@ OptionsParser::OptionsParser(int argc, char const *argv[]) {
     addOption("engine", engine::parseEngine);
     addOption("each", parseEach);
     addOption("pgnout", parsePgnOut);
+    addOption("epdout", parseEpdOut);
     addOption("openings", parseOpening);
     addOption("sprt", parseSprt);
     addOption("draw", parseDraw);

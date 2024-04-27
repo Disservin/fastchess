@@ -26,6 +26,11 @@ struct Pgn {
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(Pgn, file, notation, track_nodes, track_seldepth,
                                                 track_nps)
 
+struct Epd {
+    std::string file;
+};
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(Epd, file)
+
 struct Sprt {
     double alpha         = 0.0;
     double beta          = 0.0;
@@ -56,6 +61,7 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(ResignAdjudication, move_count, 
 struct Tournament {
     Opening opening = {};
     Pgn pgn         = {};
+    Epd epd         = {};
 
     Sprt sprt = {};
 

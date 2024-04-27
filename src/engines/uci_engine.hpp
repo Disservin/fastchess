@@ -83,7 +83,7 @@ class UciEngine : Process {
 #ifdef NDEBUG
         60000
 #else
-        10
+        60000
 #endif
     );
 

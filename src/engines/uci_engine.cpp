@@ -29,7 +29,11 @@ bool UciEngine::ucinewgame() {
 
 void UciEngine::uci() { writeEngine("uci"); }
 
-bool UciEngine::uciok() { return readEngine("uciok") == Process::Status::OK; }
+bool UciEngine::uciok() {
+    if (!isResponsive(ping_time_)) return false;
+
+    return readEngine("uciok") == Process::Status::OK;
+}
 
 void UciEngine::loadConfig(const EngineConfiguration &config) { config_ = config; }
 

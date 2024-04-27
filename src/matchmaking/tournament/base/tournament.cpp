@@ -2,6 +2,7 @@
 
 #include <affinity/affinity_manager.hpp>
 #include <engines/uci_engine.hpp>
+#include <epd/epd_builder.hpp>
 #include <matchmaking/book/opening_book.hpp>
 #include <matchmaking/match/match.hpp>
 #include <matchmaking/output/output.hpp>
@@ -25,7 +26,8 @@ BaseTournament::BaseTournament(const options::Tournament &config,
     cores_              = std::make_unique<affinity::AffinityManager>(config.affinity,
                                                          getMaxAffinity(engine_configs));
 
-    if (!config.pgn.file.empty()) file_writer_ = std::make_unique<FileWriter>(config.pgn.file);
+    if (!config.pgn.file.empty()) file_writer_pgn = std::make_unique<FileWriter>(config.pgn.file);
+    if (!config.epd.file.empty()) file_writer_epd = std::make_unique<FileWriter>(config.epd.file);
 
     pool_.resize(config.concurrency);
 }
@@ -75,10 +77,12 @@ void BaseTournament::playGame(const std::pair<EngineConfiguration, EngineConfigu
 
     const auto match_data = match.get();
 
-    // If the game was stopped, don't write the PGN
-    if (match_data.termination != MatchTermination::INTERRUPT &&
-        !tournament_options_.pgn.file.empty()) {
-        file_writer_->write(PgnBuilder(match_data, tournament_options_, game_id + 1).get());
+    // If the game was interrupted(didn't completely finish)
+    if (match_data.termination != MatchTermination::INTERRUPT) {
+        if (!tournament_options_.pgn.file.empty())
+            file_writer_pgn->write(PgnBuilder(match_data, tournament_options_, game_id + 1).get());
+        if (!tournament_options_.epd.file.empty())
+            file_writer_epd->write(EpdBuilder(match_data, tournament_options_).get());
     }
 
     finish({match_data}, match_data.reason);

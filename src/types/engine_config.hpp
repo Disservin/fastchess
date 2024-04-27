@@ -24,8 +24,11 @@ struct TimeControl {
     int64_t time = 0;
     // go movestogo
     int moves = 0;
+
+    int timemargin = 0;
 };
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(TimeControl, increment, fixed_time, time, moves)
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(TimeControl, increment, fixed_time, time, moves,
+                                                timemargin)
 
 inline std::ostream &operator<<(std::ostream &os, const TimeControl &tc) {
     if (tc.moves > 0) os << tc.moves << "/";

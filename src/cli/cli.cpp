@@ -109,6 +109,8 @@ void parseEngineKeyValues(EngineConfiguration &engineConfig, const std::string &
         engineConfig.limit.tc = parseTc(value);
     else if (key == "st")
         engineConfig.limit.tc.fixed_time = static_cast<int64_t>(std::stod(value) * 1000);
+    else if (key == "timemargin")
+        engineConfig.limit.tc.timemargin = std::stoi(value);
     else if (key == "nodes")
         engineConfig.limit.nodes = std::stoll(value);
     else if (key == "plies" || key == "depth")

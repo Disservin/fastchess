@@ -75,7 +75,7 @@ void Match::prepare() {
         const auto move = uci::moveToUci(opening_move, board_.chess960());
         board_.makeMove(opening_move);
 
-        return MoveData(move, "0.00", 0, 0, 0, 0, 0);
+        return MoveData(move, "0.00", 0, 0, 0, 0, 0, true, true);
     };
 
     data_ = MatchData(board_.getFen());

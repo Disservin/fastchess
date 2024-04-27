@@ -158,11 +158,10 @@ class Process : public IProcess {
         int status;
         const pid_t r = waitpid(process_pid_, &status, WNOHANG);
 
-        if (r == -1) {
+        if (r == -1)
             throw std::runtime_error("Error: waitpid() failed");
-        } else {
+        else
             return r == 0;
-        }
     }
 
     std::string signalToString(int status) {
@@ -189,16 +188,16 @@ class Process : public IProcess {
     }
 
     void killProcess() {
+        if (!is_initalized_) return;
         fast_chess::process_list.remove(process_pid_);
 
-        if (!is_initalized_) return;
-
         int status;
-        pid_t r = waitpid(process_pid_, &status, WNOHANG);
+        const pid_t pid = waitpid(process_pid_, &status, WNOHANG);
 
+        // lgo the status of the process
         fast_chess::Logger::readFromEngine(signalToString(status), log_name_, true);
 
-        if (r == 0) {
+        if (pid == 0) {
             kill(process_pid_, SIGKILL);
             wait(NULL);
         }
@@ -221,20 +220,19 @@ class Process : public IProcess {
         lines.clear();
 
         // Set up the timeout for poll
-        auto timeoutMillis = threshold;
-        if (timeoutMillis.count() <= 0) {
+        if (threshold.count() <= 0) {
             // wait indefinitely
-            timeoutMillis = std::chrono::milliseconds(-1);
+            threshold = std::chrono::milliseconds(-1);
         }
 
         std::string currentLine;
         currentLine.reserve(300);
 
+        char buffer[4096];
+
         // Disable blocking
         in_pipe_.setNonBlocking();
         err_pipe_.setNonBlocking();
-
-        char buffer[4096];
 
         struct pollfd pollfds[2];
         pollfds[0].fd     = in_pipe_.get();
@@ -246,11 +244,11 @@ class Process : public IProcess {
         // Continue reading output lines until the line matches the specified line or a timeout
         // occurs
         while (true) {
-            const int ret = poll(pollfds, 2, timeoutMillis.count());
+            const int ready = poll(pollfds, 2, threshold.count());
 
-            if (ret == -1) {
+            if (ready == -1) {
                 throw std::runtime_error("Error: poll() failed");
-            } else if (ret == 0) {
+            } else if (ready == 0) {
                 // timeout
                 lines.emplace_back(currentLine);
                 return Status::TIMEOUT;
@@ -258,14 +256,12 @@ class Process : public IProcess {
 
             if (pollfds[0].revents & POLLIN) {
                 // input available on the pipe
-                const int bytesRead = read(in_pipe_.get(), buffer, sizeof(buffer));
+                const auto bytesRead = read(in_pipe_.get(), buffer, sizeof(buffer));
 
-                if (bytesRead == -1) {
-                    throw std::runtime_error("Error: read() failed");
-                }
+                if (bytesRead == -1) throw std::runtime_error("Error: read() failed");
 
                 // Iterate over each character in the buffer
-                for (int i = 0; i < bytesRead; i++) {
+                for (ssize_t i = 0; i < bytesRead; i++) {
                     // append the character to the current line
                     if (buffer[i] != '\n') {
                         currentLine += buffer[i];
@@ -290,14 +286,12 @@ class Process : public IProcess {
 
             if (pollfds[1].revents & POLLIN) {
                 // input available on the pipe
-                const int bytesRead = read(err_pipe_.get(), buffer, sizeof(buffer));
+                const ssize_t bytesRead = read(err_pipe_.get(), buffer, sizeof(buffer));
 
-                if (bytesRead == -1) {
-                    throw std::runtime_error("Error: read() failed");
-                }
+                if (bytesRead == -1) throw std::runtime_error("Error: read() failed");
 
                 // Iterate over each character in the buffer
-                for (int i = 0; i < bytesRead; i++) {
+                for (ssize_t i = 0; i < bytesRead; i++) {
                     // append the character to the current line
                     if (buffer[i] != '\n') {
                         currentLine += buffer[i];
@@ -316,6 +310,7 @@ class Process : public IProcess {
                 }
             }
         }
+
         return Status::OK;
     }
 

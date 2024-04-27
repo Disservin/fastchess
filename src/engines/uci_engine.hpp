@@ -81,7 +81,7 @@ class UciEngine : Process {
     static constexpr std::chrono::milliseconds initialize_time = std::chrono::milliseconds(60000);
     static constexpr std::chrono::milliseconds ping_time_      = std::chrono::milliseconds(
 #ifdef NDEBUG
-        10
+        60000
 #else
         60000
 #endif

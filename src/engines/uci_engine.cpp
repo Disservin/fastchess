@@ -14,17 +14,26 @@ bool UciEngine::isResponsive(std::chrono::milliseconds threshold) {
 
     writeEngine("isready");
     const auto res = readEngine("readyok", threshold);
+
+    if (res != Process::Status::OK) {
+        Logger::log<Logger::Level::WARN>("Warning; Engine", config_.name, "is not responsive.");
+    }
+
     return res == Process::Status::OK;
 }
 
 bool UciEngine::ucinewgame() {
     writeEngine("ucinewgame");
-    return isResponsive(ping_time_);
+    return isResponsive(initialize_time);
 }
 
 void UciEngine::uci() { writeEngine("uci"); }
 
-bool UciEngine::uciok() { return readEngine("uciok") == Process::Status::OK; }
+bool UciEngine::uciok() {
+    if (!isResponsive(ping_time_)) return false;
+
+    return readEngine("uciok") == Process::Status::OK;
+}
 
 void UciEngine::loadConfig(const EngineConfiguration &config) { config_ = config; }
 
@@ -45,7 +54,7 @@ void UciEngine::start() {
 }
 
 void UciEngine::refreshUci() {
-    if (!ucinewgame() && !isResponsive(std::chrono::milliseconds(60000))) {
+    if (!ucinewgame() && !isResponsive(ping_time_)) {
         // restart the engine
         restart();
         uci();
@@ -54,7 +63,7 @@ void UciEngine::refreshUci() {
             throw std::runtime_error(config_.name + " failed to start.");
         }
 
-        if (!ucinewgame() && !isResponsive(std::chrono::milliseconds(60000))) {
+        if (!ucinewgame() && !isResponsive(ping_time_)) {
             throw std::runtime_error("Warning; Something went wrong when pinging the engine.");
         }
     }

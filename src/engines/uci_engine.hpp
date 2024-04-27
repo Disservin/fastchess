@@ -78,7 +78,8 @@ class UciEngine : Process {
     [[nodiscard]] const EngineConfiguration &getConfig() const noexcept { return config_; }
 
     /// @brief TODO: expose this to the user
-    static constexpr std::chrono::milliseconds ping_time_ = std::chrono::milliseconds(60000);
+    static constexpr std::chrono::milliseconds initialize_time = std::chrono::milliseconds(60000);
+    static constexpr std::chrono::milliseconds ping_time_      = std::chrono::milliseconds(5);
 
    private:
     /// @brief Creates a new process and starts the engine.

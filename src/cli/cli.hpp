@@ -42,9 +42,9 @@ class OptionsParser {
     OptionsParser(int argc, char const *argv[]);
 
     static void throwMissing(std::string_view name, std::string_view key, std::string_view value) {
-        throw std::runtime_error("Unrecognized " + std::string(name) +
-                                 " option: " + std::string(key) + " with value " +
-                                 std::string(value) + " parsing failed.");
+        throw std::runtime_error("Unrecognized " + std::string(name) + " option \"" +
+                                 std::string(key) + "\" with value \"" + std::string(value) +
+                                 "\".");
     }
 
     static void printVersion() {
@@ -114,10 +114,17 @@ class OptionsParser {
     void parse(int argc, char const *argv[]) {
         for (int i = 1; i < argc; i++) {
             const std::string arg = argv[i];
-            if (options_.count(arg) > 0) {
-                options_[arg](i, argc, argv, argument_data_);
-            } else {
+            if (options_.count(arg) == 0) {
                 throw std::runtime_error("Unrecognized option: " + arg + " parsing failed.");
+            }
+
+            try {
+                options_[arg](i, argc, argv, argument_data_);
+            } catch (const std::exception &e) {
+                auto err = "\nError while reading option \"" + arg + "\" with value \"" +
+                           std::string(argv[i]) + "\"\nReason: " + e.what();
+
+                throw std::runtime_error(err);
             }
         }
     }

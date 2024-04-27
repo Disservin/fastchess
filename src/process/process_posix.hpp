@@ -4,6 +4,7 @@
 
 #include <process/iprocess.hpp>
 
+#include <array>
 #include <cassert>
 #include <chrono>
 #include <cstdint>
@@ -86,16 +87,21 @@ class Process : public IProcess {
 
     void init(const std::string &command, const std::string &args,
               const std::string &log_name) override {
+        assert(is_initalized_ == false);
+
         command_  = command;
         args_     = args;
         log_name_ = log_name;
 
         is_initalized_ = true;
 
-        // Fork the current process
-        pid_t forkPid = fork();
+        current_line.reserve(300);
 
-        if (forkPid < 0) {
+        // Fork the current process, this makes a copy of the current process
+        // and returns the process id of the child process to the parent process.
+        pid_t fork_pid = fork();
+
+        if (fork_pid < 0) {
             throw std::runtime_error("Failed to fork process");
         }
 
@@ -103,7 +109,7 @@ class Process : public IProcess {
         in_pipe_.setOpen(0);
         err_pipe_.setOpen(0);
 
-        if (forkPid == 0) {
+        if (fork_pid == 0) {
             // This is the child process, set up the pipes and start the engine.
 
             // Ignore signals, because the main process takes care of them
@@ -116,18 +122,22 @@ class Process : public IProcess {
             in_pipe_.dup2(1, STDOUT_FILENO);
             err_pipe_.dup2(1, STDERR_FILENO);
 
+            // Set the arguments for the engine
             setArgvs(command, args);
 
-            // Execute the engine
+            // Execute the engine, execv does not return if successful
+            // If it fails, it returns -1 and we throw an exception.
+            // Is the _exit(0) necessary?
+            // execv is replacing the current process with the new process
             if (execv(command.c_str(), unique_argv_.get()) == -1) {
                 throw std::runtime_error("Failed to execute engine");
             }
 
-            _exit(0); /* Note that we do not use exit() */
+            _exit(0);
         }
         // This is the parent process
         else {
-            process_pid_ = forkPid;
+            process_pid_ = fork_pid;
 
             // append the process to the list of running processes
             fast_chess::process_list.push(process_pid_);
@@ -179,6 +189,7 @@ class Process : public IProcess {
         // lgo the status of the process
         fast_chess::Logger::readFromEngine(signalToString(status), log_name_, true);
 
+        // If the process is still running, kill it
         if (pid == 0) {
             kill(process_pid_, SIGKILL);
             wait(NULL);
@@ -200,6 +211,7 @@ class Process : public IProcess {
         assert(is_initalized_);
 
         lines.clear();
+        current_line.clear();
 
         // Set up the timeout for poll
         if (threshold.count() <= 0) {
@@ -207,16 +219,13 @@ class Process : public IProcess {
             threshold = std::chrono::milliseconds(-1);
         }
 
-        std::string currentLine;
-        currentLine.reserve(300);
-
         char buffer[4096];
 
         // Disable blocking
         in_pipe_.setNonBlocking();
         err_pipe_.setNonBlocking();
 
-        struct pollfd pollfds[2];
+        std::array<pollfd, 2> pollfds;
         pollfds[0].fd     = in_pipe_.get();
         pollfds[0].events = POLLIN;
 
@@ -226,18 +235,20 @@ class Process : public IProcess {
         // Continue reading output lines until the line matches the specified line or a timeout
         // occurs
         while (true) {
-            const int ready = poll(pollfds, 2, threshold.count());
+            const int ready = poll(pollfds.data(), pollfds.size(), threshold.count());
 
+            // errors
             if (ready == -1) {
                 throw std::runtime_error("Error: poll() failed");
-            } else if (ready == 0) {
-                // timeout
-                lines.emplace_back(currentLine);
+            }
+            // timeout
+            else if (ready == 0) {
+                lines.emplace_back(current_line);
                 return Status::TIMEOUT;
             }
 
+            // There is data to read
             if (pollfds[0].revents & POLLIN) {
-                // input available on the pipe
                 const auto bytesRead = read(in_pipe_.get(), buffer, sizeof(buffer));
 
                 if (bytesRead == -1) throw std::runtime_error("Error: read() failed");
@@ -246,29 +257,29 @@ class Process : public IProcess {
                 for (ssize_t i = 0; i < bytesRead; i++) {
                     // append the character to the current line
                     if (buffer[i] != '\n') {
-                        currentLine += buffer[i];
+                        current_line += buffer[i];
                         continue;
                     }
 
-                    // If we encounter a newline, add the current line to the vector and reset the
-                    // currentLine
-                    // dont add empty lines
-                    if (!currentLine.empty()) {
-                        fast_chess::Logger::readFromEngine(currentLine, log_name_);
-                        lines.emplace_back(currentLine);
+                    // If we encounter a newline, add the current line
+                    // to the vector and reset the current_line.
+                    // Dont add empty lines
+                    if (!current_line.empty()) {
+                        fast_chess::Logger::readFromEngine(current_line, log_name_);
+                        lines.emplace_back(current_line);
 
-                        if (currentLine.rfind(last_word, 0) == 0) {
+                        if (current_line.rfind(last_word, 0) == 0) {
                             return Status::OK;
                         }
 
-                        currentLine.clear();
+                        current_line.clear();
                     }
                 }
             }
 
+            // There is data to read
             if (pollfds[1].revents & POLLIN) {
-                // input available on the pipe
-                const ssize_t bytesRead = read(err_pipe_.get(), buffer, sizeof(buffer));
+                const auto bytesRead = read(err_pipe_.get(), buffer, sizeof(buffer));
 
                 if (bytesRead == -1) throw std::runtime_error("Error: read() failed");
 
@@ -276,18 +287,18 @@ class Process : public IProcess {
                 for (ssize_t i = 0; i < bytesRead; i++) {
                     // append the character to the current line
                     if (buffer[i] != '\n') {
-                        currentLine += buffer[i];
+                        current_line += buffer[i];
                         continue;
                     }
 
-                    // If we encounter a newline, add the current line to the vector and reset the
-                    // currentLine
-                    // dont add empty lines
-                    if (!currentLine.empty()) {
-                        fast_chess::Logger::readFromEngine(currentLine, log_name_, true);
-                        lines.emplace_back(currentLine);
+                    // If we encounter a newline, add the current line
+                    // to the vector and reset the current_line.
+                    // Dont add empty lines
+                    if (!current_line.empty()) {
+                        fast_chess::Logger::readFromEngine(current_line, log_name_, true);
+                        lines.emplace_back(current_line);
 
-                        currentLine.clear();
+                        current_line.clear();
                     }
                 }
             }
@@ -336,18 +347,25 @@ class Process : public IProcess {
     }
 
    private:
+    // The command to execute
     std::string command_;
+    // The arguments for the engine
     std::string args_;
+    // The name in the log file
     std::string log_name_;
 
+    // True if the process has been initialized
     bool is_initalized_ = false;
 
+    // The process id of the engine
     pid_t process_pid_;
 
     Pipes in_pipe_ = {}, out_pipe_ = {}, err_pipe_ = {};
 
-    // exec
+    // argvs for execv
     std::unique_ptr<char *[], ArgvDeleter> unique_argv_;
+
+    std::string current_line;
 };
 
 }  // namespace fast_chess

@@ -62,6 +62,10 @@ class Process : public IProcess {
             throw std::runtime_error("Failed to create output pipe");
         }
 
+        if (pipe(err_pipe_) == -1) {
+            throw std::runtime_error("Failed to create err_pipe_ pipe");
+        }
+
         // Fork the current process
         pid_t forkPid = fork();
 
@@ -85,6 +89,11 @@ class Process : public IProcess {
             if (dup2(in_pipe_[1], 1) == -1) throw std::runtime_error("Failed to duplicate inpipe");
 
             if (close(in_pipe_[1]) == -1) throw std::runtime_error("Failed to close inpipe");
+
+            if (dup2(err_pipe_[1], STDERR_FILENO) == -1)
+                throw std::runtime_error("Failed to duplicate errpipe");
+
+            if (close(err_pipe_[1]) == -1) throw std::runtime_error("Failed to close errpipe");
 
             wordexp_t p;
             p.we_offs = 0;
@@ -135,6 +144,18 @@ class Process : public IProcess {
         }
     }
 
+    std::string signalToString(int status) {
+        if (WIFEXITED(status)) {
+            return std::to_string(WEXITSTATUS(status));
+        } else if (WIFSTOPPED(status)) {
+            return strsignal(WSTOPSIG(status));
+        } else if (WIFSIGNALED(status)) {
+            return strsignal(WTERMSIG(status));
+        } else {
+            return "Unknown child status";
+        }
+    }
+
     void setAffinity(const std::vector<int> &cpus) override {
         assert(is_initalized_);
         if (!cpus.empty()) {
@@ -155,9 +176,13 @@ class Process : public IProcess {
         close(in_pipe_[1]);
         close(out_pipe_[0]);
         close(out_pipe_[1]);
+        close(err_pipe_[0]);
+        close(err_pipe_[1]);
 
         int status;
         pid_t r = waitpid(process_pid_, &status, WNOHANG);
+
+        fast_chess::Logger::readFromEngine(signalToString(status), log_name_, true);
 
         if (r == 0) {
             kill(process_pid_, SIGKILL);
@@ -179,19 +204,7 @@ class Process : public IProcess {
                        std::chrono::milliseconds threshold) override {
         assert(is_initalized_);
 
-        // Disable blocking
-        fcntl(in_pipe_[0], F_SETFL, fcntl(in_pipe_[0], F_GETFL) | O_NONBLOCK);
-
         lines.clear();
-
-        std::string currentLine;
-        currentLine.reserve(300);
-
-        char buffer[4096];
-
-        struct pollfd pollfds[1];
-        pollfds[0].fd     = in_pipe_[0];
-        pollfds[0].events = POLLIN;
 
         // Set up the timeout for poll
         auto timeoutMillis = threshold;
@@ -200,10 +213,26 @@ class Process : public IProcess {
             timeoutMillis = std::chrono::milliseconds(-1);
         }
 
+        std::string currentLine;
+        currentLine.reserve(300);
+
+        // Disable blocking
+        fcntl(in_pipe_[0], F_SETFL, fcntl(in_pipe_[0], F_GETFL) | O_NONBLOCK);
+        fcntl(err_pipe_[0], F_SETFL, fcntl(err_pipe_[0], F_GETFL) | O_NONBLOCK);
+
+        char buffer[4096];
+
+        struct pollfd pollfds[2];
+        pollfds[0].fd     = in_pipe_[0];
+        pollfds[0].events = POLLIN;
+
+        pollfds[1].fd     = err_pipe_[0];
+        pollfds[1].events = POLLIN;
+
         // Continue reading output lines until the line matches the specified line or a timeout
         // occurs
         while (true) {
-            const int ret = poll(pollfds, 1, timeoutMillis.count());
+            const int ret = poll(pollfds, 2, timeoutMillis.count());
 
             if (ret == -1) {
                 throw std::runtime_error("Error: poll() failed");
@@ -211,7 +240,9 @@ class Process : public IProcess {
                 // timeout
                 lines.emplace_back(currentLine);
                 return Status::TIMEOUT;
-            } else if (pollfds[0].revents & POLLIN) {
+            }
+
+            if (pollfds[0].revents & POLLIN) {
                 // input available on the pipe
                 const int bytesRead = read(in_pipe_[0], buffer, sizeof(buffer));
 
@@ -237,6 +268,34 @@ class Process : public IProcess {
                         if (currentLine.rfind(last_word, 0) == 0) {
                             return Status::OK;
                         }
+
+                        currentLine.clear();
+                    }
+                }
+            }
+
+            if (pollfds[1].revents & POLLIN) {
+                // input available on the pipe
+                const int bytesRead = read(err_pipe_[0], buffer, sizeof(buffer));
+
+                if (bytesRead == -1) {
+                    throw std::runtime_error("Error: read() failed");
+                }
+
+                // Iterate over each character in the buffer
+                for (int i = 0; i < bytesRead; i++) {
+                    // append the character to the current line
+                    if (buffer[i] != '\n') {
+                        currentLine += buffer[i];
+                        continue;
+                    }
+
+                    // If we encounter a newline, add the current line to the vector and reset the
+                    // currentLine
+                    // dont add empty lines
+                    if (!currentLine.empty()) {
+                        fast_chess::Logger::readFromEngine(currentLine, log_name_, true);
+                        lines.emplace_back(currentLine);
 
                         currentLine.clear();
                     }
@@ -269,7 +328,7 @@ class Process : public IProcess {
     bool is_initalized_ = false;
 
     pid_t process_pid_;
-    int in_pipe_[2], out_pipe_[2];
+    int in_pipe_[2], out_pipe_[2], err_pipe_[2];
 
     // exec
     std::unique_ptr<char *[], ArgvDeleter> unique_argv_;

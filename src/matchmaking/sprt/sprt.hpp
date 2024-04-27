@@ -4,7 +4,7 @@
 
 namespace fast_chess {
 
-struct Stats;
+class Stats;
 
 enum SPRTResult { SPRT_H0, SPRT_H1, SPRT_CONTINUE };
 

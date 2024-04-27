@@ -79,7 +79,7 @@ class UciEngine : Process {
 
     /// @brief TODO: expose this to the user
     static constexpr std::chrono::milliseconds initialize_time = std::chrono::milliseconds(60000);
-    static constexpr std::chrono::milliseconds ping_time_      = std::chrono::milliseconds(5);
+    static constexpr std::chrono::milliseconds ping_time_      = std::chrono::milliseconds(60000);
 
    private:
     /// @brief Creates a new process and starts the engine.

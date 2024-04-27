@@ -40,6 +40,37 @@ struct ArgvDeleter {
     }
 };
 
+class Pipes {
+    int pipe_[2];
+
+    int open_ = -1;
+
+   public:
+    Pipes() {
+        if (pipe(pipe_) == -1) {
+            throw std::runtime_error("Failed to create pipe");
+        }
+    }
+
+    void dup2(int fd, int fd2) {
+        if (::dup2(pipe_[fd], fd2) == -1) {
+            throw std::runtime_error("Failed to duplicate pipe");
+        }
+
+        close(pipe_[fd]);
+
+        // 1 -> 0, 0 -> 1
+        open_ = 1 - fd;
+    }
+
+    int get() const { return pipe_[open_]; }
+
+    ~Pipes() {
+        close(pipe_[0]);
+        close(pipe_[1]);
+    }
+};
+
 class Process : public IProcess {
    public:
     virtual ~Process() override { killProcess(); }
@@ -52,19 +83,19 @@ class Process : public IProcess {
 
         is_initalized_ = true;
 
-        // Create input pipe
-        if (pipe(in_pipe_) == -1) {
-            throw std::runtime_error("Failed to create input pipe");
-        }
+        // // Create input pipe
+        // if (pipe(in_pipe_) == -1) {
+        //     throw std::runtime_error("Failed to create input pipe");
+        // }
 
-        // Create output pipe
-        if (pipe(out_pipe_) == -1) {
-            throw std::runtime_error("Failed to create output pipe");
-        }
+        // // Create output pipe
+        // if (pipe(out_pipe_) == -1) {
+        //     throw std::runtime_error("Failed to create output pipe");
+        // }
 
-        if (pipe(err_pipe_) == -1) {
-            throw std::runtime_error("Failed to create err_pipe_ pipe");
-        }
+        // if (pipe(err_pipe_) == -1) {
+        //     throw std::runtime_error("Failed to create err_pipe_ pipe");
+        // }
 
         // Fork the current process
         pid_t forkPid = fork();
@@ -79,21 +110,26 @@ class Process : public IProcess {
             // Ignore signals, because the main process takes care of them
             signal(SIGINT, SIG_IGN);
 
-            // Redirect the child's standard input to the read end of the output pipe
-            if (dup2(out_pipe_[0], 0) == -1)
-                throw std::runtime_error("Failed to duplicate outpipe");
+            // // Redirect the child's standard input to the read end of the output pipe
+            // if (dup2(out_pipe_[0], 0) == -1)
+            //     throw std::runtime_error("Failed to duplicate outpipe");
 
-            if (close(out_pipe_[0]) == -1) throw std::runtime_error("Failed to close outpipe");
+            // if (close(out_pipe_[0]) == -1) throw std::runtime_error("Failed to close outpipe");
 
-            // Redirect the child's standard output to the write end of the input pipe
-            if (dup2(in_pipe_[1], 1) == -1) throw std::runtime_error("Failed to duplicate inpipe");
+            // // Redirect the child's standard output to the write end of the input pipe
+            // if (dup2(in_pipe_[1], 1) == -1) throw std::runtime_error("Failed to duplicate
+            // inpipe");
 
-            if (close(in_pipe_[1]) == -1) throw std::runtime_error("Failed to close inpipe");
+            // if (close(in_pipe_[1]) == -1) throw std::runtime_error("Failed to close inpipe");
 
-            if (dup2(err_pipe_[1], STDERR_FILENO) == -1)
-                throw std::runtime_error("Failed to duplicate errpipe");
+            // if (dup2(err_pipe_[1], STDERR_FILENO) == -1)
+            //     throw std::runtime_error("Failed to duplicate errpipe");
 
-            if (close(err_pipe_[1]) == -1) throw std::runtime_error("Failed to close errpipe");
+            // if (close(err_pipe_[1]) == -1) throw std::runtime_error("Failed to close errpipe");
+
+            out_pipe_.dup2(0, STDIN_FILENO);
+            in_pipe_.dup2(1, STDOUT_FILENO);
+            err_pipe_.dup2(1, STDERR_FILENO);
 
             wordexp_t p;
             p.we_offs = 0;
@@ -172,13 +208,6 @@ class Process : public IProcess {
 
         if (!is_initalized_) return;
 
-        close(in_pipe_[0]);
-        close(in_pipe_[1]);
-        close(out_pipe_[0]);
-        close(out_pipe_[1]);
-        close(err_pipe_[0]);
-        close(err_pipe_[1]);
-
         int status;
         pid_t r = waitpid(process_pid_, &status, WNOHANG);
 
@@ -217,16 +246,16 @@ class Process : public IProcess {
         currentLine.reserve(300);
 
         // Disable blocking
-        fcntl(in_pipe_[0], F_SETFL, fcntl(in_pipe_[0], F_GETFL) | O_NONBLOCK);
-        fcntl(err_pipe_[0], F_SETFL, fcntl(err_pipe_[0], F_GETFL) | O_NONBLOCK);
+        fcntl(in_pipe_.get(), F_SETFL, fcntl(in_pipe_.get(), F_GETFL) | O_NONBLOCK);
+        fcntl(err_pipe_.get(), F_SETFL, fcntl(err_pipe_.get(), F_GETFL) | O_NONBLOCK);
 
         char buffer[4096];
 
         struct pollfd pollfds[2];
-        pollfds[0].fd     = in_pipe_[0];
+        pollfds[0].fd     = in_pipe_.get();
         pollfds[0].events = POLLIN;
 
-        pollfds[1].fd     = err_pipe_[0];
+        pollfds[1].fd     = err_pipe_.get();
         pollfds[1].events = POLLIN;
 
         // Continue reading output lines until the line matches the specified line or a timeout
@@ -244,7 +273,7 @@ class Process : public IProcess {
 
             if (pollfds[0].revents & POLLIN) {
                 // input available on the pipe
-                const int bytesRead = read(in_pipe_[0], buffer, sizeof(buffer));
+                const int bytesRead = read(in_pipe_.get(), buffer, sizeof(buffer));
 
                 if (bytesRead == -1) {
                     throw std::runtime_error("Error: read() failed");
@@ -276,7 +305,7 @@ class Process : public IProcess {
 
             if (pollfds[1].revents & POLLIN) {
                 // input available on the pipe
-                const int bytesRead = read(err_pipe_[0], buffer, sizeof(buffer));
+                const int bytesRead = read(err_pipe_.get(), buffer, sizeof(buffer));
 
                 if (bytesRead == -1) {
                     throw std::runtime_error("Error: read() failed");
@@ -315,7 +344,7 @@ class Process : public IProcess {
         }
 
         // Write the input and a newline to the output pipe
-        if (write(out_pipe_[1], input.c_str(), input.size()) == -1) {
+        if (write(out_pipe_.get(), input.c_str(), input.size()) == -1) {
             throw std::runtime_error("Failed to write to pipe");
         }
     }
@@ -328,7 +357,8 @@ class Process : public IProcess {
     bool is_initalized_ = false;
 
     pid_t process_pid_;
-    int in_pipe_[2], out_pipe_[2], err_pipe_[2];
+
+    Pipes in_pipe_ = {}, out_pipe_ = {}, err_pipe_ = {};
 
     // exec
     std::unique_ptr<char *[], ArgvDeleter> unique_argv_;

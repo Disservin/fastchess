@@ -116,25 +116,7 @@ class Process : public IProcess {
             in_pipe_.dup2(1, STDOUT_FILENO);
             err_pipe_.dup2(1, STDERR_FILENO);
 
-            wordexp_t p;
-            p.we_offs = 0;
-
-            switch (wordexp(args.c_str(), &p, 0)) {
-                case WRDE_NOSPACE:
-                    wordfree(&p);
-                    break;
-            }
-
-            unique_argv_ = std::unique_ptr<char *[], ArgvDeleter>(
-                new char *[p.we_wordc + 2]);  // +2 for the command and the nullptr
-
-            unique_argv_.get()[0] = strdup(command.c_str());
-
-            for (size_t i = 0; i < p.we_wordc; i++) {
-                unique_argv_.get()[i + 1] = strdup(p.we_wordv[i]);
-            }
-
-            unique_argv_.get()[p.we_wordc + 1] = nullptr;
+            setArgvs(command, args);
 
             // Execute the engine
             if (execv(command.c_str(), unique_argv_.get()) == -1) {
@@ -327,6 +309,30 @@ class Process : public IProcess {
         if (write(out_pipe_.get(), input.c_str(), input.size()) == -1) {
             throw std::runtime_error("Failed to write to pipe");
         }
+    }
+
+    void setArgvs(const std::string &command, const std::string &args) {
+        wordexp_t p;
+        p.we_offs = 0;
+
+        switch (wordexp(args.c_str(), &p, 0)) {
+            case WRDE_NOSPACE:
+                wordfree(&p);
+                break;
+        }
+
+        // +2 for the command and the nullptr
+        auto size = p.we_wordc + 2;
+
+        unique_argv_ = std::unique_ptr<char *[], ArgvDeleter>(new char *[size]);
+
+        unique_argv_.get()[0] = strdup(command.c_str());
+
+        for (size_t i = 0; i < p.we_wordc; i++) {
+            unique_argv_.get()[i + 1] = strdup(p.we_wordv[i]);
+        }
+
+        unique_argv_.get()[p.we_wordc + 1] = nullptr;
     }
 
    private:

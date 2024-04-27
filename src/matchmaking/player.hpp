@@ -44,7 +44,7 @@ class Player {
         if (time_control_.time < 0) {
             time_control_.time = 0;
         }
-       
+
         time_control_.time += time_control_.increment;
 
         return true;

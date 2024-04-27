@@ -11,7 +11,7 @@ struct Opening {
     std::string file;
     FormatType format = FormatType::NONE;
     OrderType order   = OrderType::RANDOM;
-    int plies         = 0;
+    int plies         = -1;
     int start         = 0;
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(Opening, file, format, order, plies, start)

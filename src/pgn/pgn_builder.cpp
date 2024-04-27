@@ -122,9 +122,7 @@ std::string PgnBuilder::addMove(chess::Board &board, const MoveData &move, std::
     ss << (illegal ? move.move : moveNotation(board, move.move));
 
     if (move.book) {
-        ss << " {"
-           << "book"
-           << "}";
+        ss << addComment("book");
     } else {
         ss << addComment(
             (move.score_string + "/" + std::to_string(move.depth)),                         //

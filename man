@@ -121,6 +121,7 @@ OPTIONS
 
         -timemargin N
             Allows the engines to exceed the time limit by N milliseconds.
+            Default value is 0.
 
         -log file=NAME level=LEVEL
             Specify a log file with a specific log level.

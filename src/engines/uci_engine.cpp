@@ -30,7 +30,7 @@ bool UciEngine::ucinewgame() {
 void UciEngine::uci() { writeEngine("uci"); }
 
 bool UciEngine::uciok() {
-    if (!isResponsive(ping_time_)) return false;
+    if (!isResponsive(initialize_time)) return false;
 
     return readEngine("uciok") == Process::Status::OK;
 }

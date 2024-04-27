@@ -34,15 +34,15 @@ void Logger::writeToEngine(const std::string &msg, const std::string &name) {
     log_ << ss.str() << std::flush;
 }
 
-void Logger::readFromEngine(const std::string &msg, const std::string &name) {
+void Logger::readFromEngine(const std::string &msg, const std::string &name, bool err) {
     if (!should_log_) {
         return;
     }
 
     std::stringstream ss;
     ss << "[" << time::datetime("%H:%M:%S") << "] "
-       << " <" << std::setw(3) << std::this_thread::get_id() << "> " << name << " ---> " << msg
-       << std::endl;
+       << " <" << std::setw(3) << std::this_thread::get_id() << "> " << name
+       << (err ? " 1 " : " 2 ") << "---> " << msg << std::endl;
 
     // Acquire the lock
     const std::lock_guard<std::mutex> lock(log_mutex_);

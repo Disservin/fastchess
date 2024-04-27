@@ -48,13 +48,13 @@ class Pipes {
    public:
     Pipes() {
         if (pipe(pipe_) == -1) {
-            throw std::runtime_error("Failed to create pipe");
+            throw std::runtime_error("Failed to create pipe.");
         }
     }
 
     void dup2(int fd, int fd2) {
         if (::dup2(pipe_[fd], fd2) == -1) {
-            throw std::runtime_error("Failed to duplicate pipe");
+            throw std::runtime_error("Failed to duplicate pipe.");
         }
 
         close(pipe_[fd]);
@@ -63,7 +63,16 @@ class Pipes {
         open_ = 1 - fd;
     }
 
-    int get() const { return pipe_[open_]; }
+    void setNonBlocking() const noexcept {
+        fcntl(get(), F_SETFL, fcntl(get(), F_GETFL) | O_NONBLOCK);
+    }
+
+    void setOpen(int fd) noexcept { open_ = fd; }
+
+    [[nodiscard]] int get() const noexcept {
+        assert(open_ != -1);
+        return pipe_[open_];
+    }
 
     ~Pipes() {
         close(pipe_[0]);
@@ -83,20 +92,6 @@ class Process : public IProcess {
 
         is_initalized_ = true;
 
-        // // Create input pipe
-        // if (pipe(in_pipe_) == -1) {
-        //     throw std::runtime_error("Failed to create input pipe");
-        // }
-
-        // // Create output pipe
-        // if (pipe(out_pipe_) == -1) {
-        //     throw std::runtime_error("Failed to create output pipe");
-        // }
-
-        // if (pipe(err_pipe_) == -1) {
-        //     throw std::runtime_error("Failed to create err_pipe_ pipe");
-        // }
-
         // Fork the current process
         pid_t forkPid = fork();
 
@@ -104,30 +99,20 @@ class Process : public IProcess {
             throw std::runtime_error("Failed to fork process");
         }
 
+        out_pipe_.setOpen(1);
+        in_pipe_.setOpen(0);
+        err_pipe_.setOpen(0);
+
         if (forkPid == 0) {
             // This is the child process, set up the pipes and start the engine.
 
             // Ignore signals, because the main process takes care of them
             signal(SIGINT, SIG_IGN);
 
-            // // Redirect the child's standard input to the read end of the output pipe
-            // if (dup2(out_pipe_[0], 0) == -1)
-            //     throw std::runtime_error("Failed to duplicate outpipe");
-
-            // if (close(out_pipe_[0]) == -1) throw std::runtime_error("Failed to close outpipe");
-
-            // // Redirect the child's standard output to the write end of the input pipe
-            // if (dup2(in_pipe_[1], 1) == -1) throw std::runtime_error("Failed to duplicate
-            // inpipe");
-
-            // if (close(in_pipe_[1]) == -1) throw std::runtime_error("Failed to close inpipe");
-
-            // if (dup2(err_pipe_[1], STDERR_FILENO) == -1)
-            //     throw std::runtime_error("Failed to duplicate errpipe");
-
-            // if (close(err_pipe_[1]) == -1) throw std::runtime_error("Failed to close errpipe");
-
+            // Redirect the child's standard input to the read end of the output pipe
             out_pipe_.dup2(0, STDIN_FILENO);
+
+            // Redirect the child's standard output to the write end of the input pipe
             in_pipe_.dup2(1, STDOUT_FILENO);
             err_pipe_.dup2(1, STDERR_FILENO);
 
@@ -246,8 +231,8 @@ class Process : public IProcess {
         currentLine.reserve(300);
 
         // Disable blocking
-        fcntl(in_pipe_.get(), F_SETFL, fcntl(in_pipe_.get(), F_GETFL) | O_NONBLOCK);
-        fcntl(err_pipe_.get(), F_SETFL, fcntl(err_pipe_.get(), F_GETFL) | O_NONBLOCK);
+        in_pipe_.setNonBlocking();
+        err_pipe_.setNonBlocking();
 
         char buffer[4096];
 

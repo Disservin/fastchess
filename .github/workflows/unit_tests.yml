@@ -24,7 +24,7 @@ jobs:
       run:
         shell: ${{ matrix.config.shell }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Installing required packages
         if: runner.os == 'Linux'
         run: |

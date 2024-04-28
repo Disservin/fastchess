@@ -151,7 +151,7 @@ class Process : public IProcess {
                     // don't add empty lines
                     if (current_line_.empty()) continue;
 
-                    lines.emplace_back(Line{current_line, IProcess::Standard::OUT});
+                    lines.emplace_back(Line{current_line_, IProcess::Standard::OUT});
 
                     if (current_line_.rfind(last_word, 0) == 0) {
                         return Status::OK;

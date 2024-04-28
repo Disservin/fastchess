@@ -90,7 +90,7 @@ class Player {
         // We cannot use st and tc together
         if (time_control_.fixed_time != 0) {
             input << " movetime " << time_control_.fixed_time;
-        } else if (time_left_ != 0 && enemy_tc.time != 0) {
+        } else {
             auto white = stm == chess::Color::WHITE ? time_control_ : enemy_tc;
             auto black = stm == chess::Color::WHITE ? enemy_tc : time_control_;
 

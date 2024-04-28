@@ -11,8 +11,7 @@
 
 #include <affinity/cpuinfo/cpu_info.hpp>
 
-namespace fast_chess {
-namespace affinity::cpu_info {
+namespace fast_chess::affinity::cpu_info {
 
 inline CpuInfo getCpuInfo() noexcept(false) {
     DWORD byte_length = 0;
@@ -71,5 +70,4 @@ inline CpuInfo getCpuInfo() noexcept(false) {
     return cpu_info;
 }
 
-}  // namespace affinity::cpu_info
 }  // namespace fast_chess

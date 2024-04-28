@@ -8,8 +8,7 @@
 
 #include <affinity/cpuinfo/cpu_info.hpp>
 
-namespace fast_chess {
-namespace affinity::cpu_info {
+namespace fast_chess::affinity::cpu_info {
 
 // Some dumb code for macOS, setting the affinity is not really supported.
 inline CpuInfo getCpuInfo() noexcept {
@@ -24,5 +23,4 @@ inline CpuInfo getCpuInfo() noexcept {
     return cpu_info;
 }
 
-}  // namespace affinity::cpu_info
 }  // namespace fast_chess

@@ -1,4 +1,4 @@
-#include <matchmaking/elo/elo_pentanomial.hpp>
+#include <elo/elo_pentanomial.hpp>
 
 #include <cmath>
 #include <iomanip>

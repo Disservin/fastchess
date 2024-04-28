@@ -1,7 +1,7 @@
 #pragma once
 
-#include <matchmaking/elo/elo_pentanomial.hpp>
-#include <matchmaking/elo/elo_wdl.hpp>
+#include <elo/elo_pentanomial.hpp>
+#include <elo/elo_wdl.hpp>
 #include <matchmaking/output/output.hpp>
 #include <util/logger/logger.hpp>
 

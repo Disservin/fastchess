@@ -1,9 +1,9 @@
 #include <matchmaking/tournament/base/tournament.hpp>
 
 #include <affinity/affinity_manager.hpp>
-#include <engines/uci_engine.hpp>
+#include <book/opening_book.hpp>
+#include <engine/uci_engine.hpp>
 #include <epd/epd_builder.hpp>
-#include <matchmaking/book/opening_book.hpp>
 #include <matchmaking/match/match.hpp>
 #include <matchmaking/output/output.hpp>
 #include <matchmaking/output/output_factory.hpp>

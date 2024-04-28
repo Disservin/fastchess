@@ -1,4 +1,4 @@
-#include <engines/uci_engine.hpp>
+#include <engine/uci_engine.hpp>
 #include <types/engine_config.hpp>
 
 #include <chrono>

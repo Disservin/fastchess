@@ -2,7 +2,7 @@
 
 #include <string>
 
-#include <matchmaking/elo/elo.hpp>
+#include <elo/elo.hpp>
 #include <types/stats.hpp>
 
 namespace fast_chess {

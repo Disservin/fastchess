@@ -21,7 +21,7 @@
 #include <util/thread_vector.hpp>
 
 namespace fast_chess {
-extern util::ThreadVector<pid_t> process_list;
+extern util::ThreadVector<HANDLE> process_list;
 }
 
 namespace fast_chess::engine::process {

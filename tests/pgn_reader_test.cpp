@@ -6,7 +6,7 @@
 namespace fast_chess {
 TEST_SUITE("PGN Reader") {
     TEST_CASE("Read PGN file") {
-        PgnReader reader("tests/data/test.pgn");
+        pgn::PgnReader reader("tests/data/test.pgn");
         const auto games = reader.getOpenings();
 
         CHECK(games.size() == 6);
@@ -25,7 +25,7 @@ TEST_SUITE("PGN Reader") {
         CHECK(games[4].moves.size() == 0);
         CHECK(games[5].moves.size() == 0);
 
-        auto convert = [](const std::vector<std::string> &moves) {
+        auto convert = [](const std::vector<std::string>& moves) {
             chess::Board board;
             std::vector<std::string> uci_moves;
             for (const auto& move : moves) {

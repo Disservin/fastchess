@@ -12,7 +12,7 @@ using namespace fast_chess;
 const std::string path = "./tests/mock/engine/";
 
 TEST_SUITE("Uci Engine Communication Tests") {
-    TEST_CASE("Test UciEngine Args Simple") {
+    TEST_CASE("Test engine::UciEngine Args Simple") {
         EngineConfiguration config;
 #ifdef _WIN64
         config.cmd = path + "dummy_engine.exe";
@@ -21,7 +21,7 @@ TEST_SUITE("Uci Engine Communication Tests") {
 #endif
         config.args = "arg1 arg2 arg3";
 
-        UciEngine uci_engine = UciEngine(config);
+        engine::UciEngine uci_engine = engine::UciEngine(config);
 
         for (const auto& line : uci_engine.output()) {
             std::cout << line.line << std::endl;
@@ -33,7 +33,7 @@ TEST_SUITE("Uci Engine Communication Tests") {
         CHECK(uci_engine.output()[2].line == "argv[3]: arg3");
     }
 
-    TEST_CASE("Test UciEngine Args Complex") {
+    TEST_CASE("Test engine::UciEngine Args Complex") {
         EngineConfiguration config;
 #ifdef _WIN64
         config.cmd = path + "dummy_engine.exe";
@@ -46,7 +46,7 @@ TEST_SUITE("Uci Engine Communication Tests") {
             "--weights=lc0/BT4-1024x15x32h-swa-6147500.pb.gz --minibatch-size=132 "
             "--nncache=50000000 --threads=5";
 
-        UciEngine uci_engine = UciEngine(config);
+        engine::UciEngine uci_engine = engine::UciEngine(config);
 
         for (const auto& line : uci_engine.output()) {
             std::cout << line.line << std::endl;
@@ -72,7 +72,7 @@ TEST_SUITE("Uci Engine Communication Tests") {
 #endif
         config.args = "arg1 arg2 arg3";
 
-        UciEngine uci_engine = UciEngine(config);
+        engine::UciEngine uci_engine = engine::UciEngine(config);
 
         CHECK(uci_engine.output().size() == 6);
         CHECK(uci_engine.output()[0].line == "argv[1]: arg1");
@@ -108,7 +108,7 @@ TEST_SUITE("Uci Engine Communication Tests") {
 #else
         config.cmd = path + "dummy_engine";
 #endif
-        UciEngine uci_engine = UciEngine(config);
+        engine::UciEngine uci_engine = engine::UciEngine(config);
 
         uci_engine.writeEngine("uci");
         const auto res = uci_engine.readEngine("uciok");

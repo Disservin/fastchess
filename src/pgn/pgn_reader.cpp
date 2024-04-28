@@ -5,7 +5,7 @@
 
 #include <chess.hpp>
 
-namespace fast_chess {
+namespace fast_chess::pgn {
 
 class PGNVisitor : public chess::pgn::Visitor {
    public:
@@ -52,8 +52,8 @@ class PGNVisitor : public chess::pgn::Visitor {
     }
 
    private:
-    std::vector<Opening>& pgns_;
-    Opening pgn_;
+    std::vector<pgn::Opening>& pgns_;
+    pgn::Opening pgn_;
     chess::Board board_;
     const int plies_limit_;
     int plie_count_ = 0;
@@ -64,10 +64,10 @@ PgnReader::PgnReader(const std::string& pgn_file_path, int plies_limit)
     pgn_file_.open(pgn_file_path);
 }
 
-std::vector<Opening> PgnReader::getOpenings() { return analyseFile(); }
+std::vector<pgn::Opening> PgnReader::getOpenings() { return analyseFile(); }
 
-std::vector<Opening> PgnReader::analyseFile() {
-    std::vector<Opening> pgns_;
+std::vector<pgn::Opening> PgnReader::analyseFile() {
+    std::vector<pgn::Opening> pgns_;
 
     auto vis = std::make_unique<PGNVisitor>(pgns_, plies_limit_);
     chess::pgn::StreamParser parser(pgn_file_);
@@ -76,4 +76,4 @@ std::vector<Opening> PgnReader::analyseFile() {
     return pgns_;
 }
 
-}  // namespace fast_chess
+}  // namespace fast_chess::pgn

@@ -7,7 +7,7 @@
 #include <util/helper.hpp>
 #include <util/logger/logger.hpp>
 
-namespace fast_chess {
+namespace fast_chess::engine {
 
 bool UciEngine::isResponsive(std::chrono::milliseconds threshold) {
     if (!alive()) return false;
@@ -77,8 +77,8 @@ void UciEngine::refreshUci() {
     }
 }
 
-Process::Status UciEngine::readEngine(std::string_view last_word,
-                                      std::chrono::milliseconds threshold) {
+process::Process::Status UciEngine::readEngine(std::string_view last_word,
+                                               std::chrono::milliseconds threshold) {
     try {
         return readProcess(output_, last_word, threshold);
     } catch (const std::exception &e) {
@@ -167,4 +167,4 @@ bool UciEngine::outputIncludesBestmove() const {
     return false;
 }
 
-}  // namespace fast_chess
+}  // namespace fast_chess::engine

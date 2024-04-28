@@ -5,7 +5,7 @@
 #include <elo/elo.hpp>
 #include <types/stats.hpp>
 
-namespace fast_chess {
+namespace fast_chess::elo {
 
 class EloPentanomial : public EloBase {
    public:
@@ -26,4 +26,4 @@ class EloPentanomial : public EloBase {
     [[nodiscard]] static std::size_t total(const Stats& stats) noexcept;
 };
 
-}  // namespace fast_chess
+}  // namespace fast_chess::elo

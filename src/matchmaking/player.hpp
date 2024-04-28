@@ -8,7 +8,7 @@ namespace fast_chess {
 
 class Player {
    public:
-    explicit Player(UciEngine &uci_enigne)
+    explicit Player(engine::UciEngine &uci_enigne)
         : engine(uci_enigne), time_control_(uci_enigne.getConfig().limit.tc) {
         if (time_control_.fixed_time != 0) {
             time_control_.time_left = time_control_.fixed_time;
@@ -102,7 +102,7 @@ class Player {
 
     [[nodiscard]] const TimeControl &getTimeControl() const { return time_control_; }
 
-    UciEngine &engine;
+    engine::UciEngine &engine;
 
     chess::Color color       = chess::Color::NONE;
     chess::GameResult result = chess::GameResult::NONE;

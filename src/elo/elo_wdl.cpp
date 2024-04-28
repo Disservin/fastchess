@@ -4,7 +4,7 @@
 #include <iomanip>
 #include <sstream>
 
-namespace fast_chess {
+namespace fast_chess::elo {
 
 std::string EloBase::getElo() const noexcept {
     std::stringstream ss;
@@ -82,4 +82,4 @@ std::string EloWDL::printScore() const noexcept {
 std::size_t EloWDL::total(const Stats& stats) noexcept {
     return stats.wins + stats.draws + stats.losses;
 }
-}  // namespace fast_chess
+}  // namespace fast_chess::elo

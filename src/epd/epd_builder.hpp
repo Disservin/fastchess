@@ -12,7 +12,7 @@
 
 #include <types/tournament_options.hpp>
 
-namespace fast_chess {
+namespace fast_chess::epd {
 
 class EpdBuilder {
    public:

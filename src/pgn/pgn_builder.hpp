@@ -12,7 +12,7 @@
 
 #include <types/tournament_options.hpp>
 
-namespace fast_chess {
+namespace fast_chess::pgn {
 
 class PgnBuilder {
    public:

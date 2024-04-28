@@ -13,11 +13,11 @@
 
 #include <types/engine_config.hpp>
 
-namespace fast_chess {
+namespace fast_chess::engine {
 
 enum class ScoreType { CP, MATE, ERR };
 
-class UciEngine : Process {
+class UciEngine : process::Process {
    public:
     explicit UciEngine(const EngineConfiguration &config) {
         loadConfig(config);
@@ -39,8 +39,8 @@ class UciEngine : Process {
 
     // Waits for the engine to output the last_word or until the threshold_ms is reached.
     // May throw if the read fails.
-    Process::Status readEngine(std::string_view last_word,
-                               std::chrono::milliseconds threshold = ping_time_);
+    process::Process::Status readEngine(std::string_view last_word,
+                                        std::chrono::milliseconds threshold = ping_time_);
 
     void writeLog() const;
 
@@ -66,7 +66,9 @@ class UciEngine : Process {
 
     [[nodiscard]] bool outputIncludesBestmove() const;
 
-    [[nodiscard]] const std::vector<IProcess::Line> &output() const noexcept { return output_; }
+    [[nodiscard]] const std::vector<process::IProcess::Line> &output() const noexcept {
+        return output_;
+    }
     [[nodiscard]] const EngineConfiguration &getConfig() const noexcept { return config_; }
 
     // @TODO: expose this to the user
@@ -88,6 +90,6 @@ class UciEngine : Process {
 
     EngineConfiguration config_;
 
-    std::vector<IProcess::Line> output_;
+    std::vector<process::IProcess::Line> output_;
 };
-}  // namespace fast_chess
+}  // namespace fast_chess::engine

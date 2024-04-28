@@ -12,7 +12,7 @@
 #include <affinity/cpuinfo/cpu_info.hpp>
 
 namespace fast_chess {
-namespace affinity {
+namespace affinity::cpu_info {
 
 inline CpuInfo getCpuInfo() {
     std::ifstream cpuinfo("/proc/cpuinfo");
@@ -55,5 +55,5 @@ inline CpuInfo getCpuInfo() {
     return cpu_info;
 }
 
-}  // namespace affinity
+}  // namespace affinity::cpu_info
 }  // namespace fast_chess

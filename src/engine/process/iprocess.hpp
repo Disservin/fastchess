@@ -6,7 +6,7 @@
 #include <string_view>
 #include <vector>
 
-namespace fast_chess {
+namespace fast_chess::engine::process {
 class IProcess {
    public:
     enum class Standard { INPUT, OUTPUT, ERR };
@@ -41,4 +41,4 @@ class IProcess {
     virtual void writeProcess(const std::string &input) = 0;
 };
 
-}  // namespace fast_chess
+}  // namespace fast_chess::engine::process

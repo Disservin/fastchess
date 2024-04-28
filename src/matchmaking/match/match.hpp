@@ -17,9 +17,9 @@ class DrawTacker {
         draw_score   = tournament_config.draw.score;
     }
 
-    void update(const int score, const int move_count, ScoreType score_type) noexcept {
+    void update(const int score, const int move_count, engine::ScoreType score_type) noexcept {
         if (move_count >= move_number_ && std::abs(score) <= draw_score &&
-            score_type == ScoreType::CP) {
+            score_type == engine::ScoreType::CP) {
             draw_moves++;
         } else {
             draw_moves = 0;
@@ -46,9 +46,9 @@ class ResignTracker {
         move_count_  = tournament_config.resign.move_count;
     }
 
-    void update(const int score, ScoreType score_type) noexcept {
-        if ((std::abs(score) >= resign_score && score_type == ScoreType::CP) ||
-            score_type == ScoreType::MATE) {
+    void update(const int score, engine::ScoreType score_type) noexcept {
+        if ((std::abs(score) >= resign_score && score_type == engine::ScoreType::CP) ||
+            score_type == engine::ScoreType::MATE) {
             resign_moves++;
         } else {
             resign_moves = 0;
@@ -69,11 +69,12 @@ class ResignTracker {
 
 class Match {
    public:
-    Match(const options::Tournament& tournament_config, const Opening& opening)
+    Match(const options::Tournament& tournament_config, const pgn::Opening& opening)
         : tournament_options_(tournament_config), opening_(opening) {}
 
     // starts the match
-    void start(UciEngine& engine1, UciEngine& engine2, const std::vector<int>& cpus);
+    void start(engine::UciEngine& engine1, engine::UciEngine& engine2,
+               const std::vector<int>& cpus);
 
     // returns the match data, only valid after the match has finished
     [[nodiscard]] const MatchData& get() const { return data_; }
@@ -104,7 +105,7 @@ class Match {
     bool isLegal(chess::Move move) const noexcept;
 
     const options::Tournament& tournament_options_;
-    const Opening& opening_;
+    const pgn::Opening& opening_;
 
     MatchData data_     = {};
     chess::Board board_ = chess::Board();

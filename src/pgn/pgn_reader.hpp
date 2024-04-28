@@ -6,7 +6,7 @@
 
 #include <chess.hpp>
 
-namespace fast_chess {
+namespace fast_chess::pgn {
 
 struct Opening {
     Opening() = default;
@@ -33,4 +33,4 @@ class PgnReader {
     int plies_limit_;
 };
 
-}  // namespace fast_chess
+}  // namespace fast_chess::pgn

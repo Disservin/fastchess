@@ -31,6 +31,9 @@
 
 namespace fast_chess {
 extern ThreadVector<pid_t> process_list;
+}
+
+namespace fast_chess::engine::process {
 
 struct ArgvDeleter {
     void operator()(char **argv) {
@@ -364,6 +367,6 @@ class Process : public IProcess {
     std::string current_line_;
 };
 
-}  // namespace fast_chess
+}  // namespace fast_chess::engine::process
 
 #endif

@@ -6,7 +6,7 @@
 #include <sstream>
 #include <string>
 
-namespace fast_chess {
+namespace fast_chess::util {
 
 namespace time {
 
@@ -53,4 +53,4 @@ namespace time {
 }
 }  // namespace time
 
-}  // namespace fast_chess
+}  // namespace fast_chess::util

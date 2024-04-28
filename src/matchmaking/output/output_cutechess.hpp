@@ -16,7 +16,7 @@ class Cutechess : public IOutput {
 
     void printElo(const Stats& stats, const std::string& first,
                   const std::string& second) override {
-        const EloWDL elo(stats);
+        const elo::EloWDL elo(stats);
 
         std::stringstream ss;
         ss << "Score of "                              //

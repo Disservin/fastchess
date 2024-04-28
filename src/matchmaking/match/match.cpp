@@ -45,10 +45,10 @@ void Match::addMoveData(const Player& player, int64_t measured_time_ms, bool leg
     // Missing elements default to 0
     std::stringstream ss;
 
-    if (score_type == ScoreType::CP) {
+    if (score_type == engine::ScoreType::CP) {
         ss << (move_data.score >= 0 ? '+' : '-');
         ss << std::fixed << std::setprecision(2) << (float(std::abs(move_data.score)) / 100);
-    } else if (score_type == ScoreType::MATE) {
+    } else if (score_type == engine::ScoreType::MATE) {
         ss << (move_data.score > 0 ? "+M" : "-M") << std::to_string(std::abs(move_data.score));
     } else {
         ss << "ERR";
@@ -87,7 +87,8 @@ void Match::prepare() {
     resign_tracker_ = ResignTracker(tournament_options_);
 }
 
-void Match::start(UciEngine& engine1, UciEngine& engine2, const std::vector<int>& cpus) {
+void Match::start(engine::UciEngine& engine1, engine::UciEngine& engine2,
+                  const std::vector<int>& cpus) {
     prepare();
 
     Player player_1 = Player(engine1);
@@ -130,8 +131,8 @@ void Match::start(UciEngine& engine1, UciEngine& engine2, const std::vector<int>
 
     const auto end = clock::now();
 
-    data_.end_time = time::datetime("%Y-%m-%dT%H:%M:%S %z");
-    data_.duration = time::duration(chrono::duration_cast<chrono::seconds>(end - start));
+    data_.end_time = util::time::datetime("%Y-%m-%dT%H:%M:%S %z");
+    data_.duration = util::time::duration(chrono::duration_cast<chrono::seconds>(end - start));
 
     data_.players =
         std::make_pair(MatchData::PlayerInfo{engine1.getConfig(), player_1.result, player_1.color},

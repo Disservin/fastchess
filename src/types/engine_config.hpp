@@ -31,6 +31,11 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(TimeControl, increment, fixed_ti
                                                 timemargin)
 
 inline std::ostream &operator<<(std::ostream &os, const TimeControl &tc) {
+    if (tc.fixed_time > 0) {
+        os << std::setprecision(8) << std::noshowpoint << tc.fixed_time / 1000.0 << "/move";
+        return os;
+    }
+
     if (tc.moves > 0) os << tc.moves << "/";
 
     os << (tc.time / 1000.0);

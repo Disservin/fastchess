@@ -45,6 +45,11 @@ inline std::ostream &operator<<(std::ostream &os, const TimeControl &tc) {
     return os;
 }
 
+inline bool operator==(const TimeControl &lhs, const TimeControl &rhs) {
+    return std::tie(lhs.increment, lhs.fixed_time, lhs.time, lhs.moves, lhs.timemargin) ==
+           std::tie(rhs.increment, rhs.fixed_time, rhs.time, rhs.moves, rhs.timemargin);
+}
+
 struct Limit {
     TimeControl tc;
 

@@ -8,9 +8,13 @@ namespace fast_chess {
 
 class Player {
    public:
-    explicit Player(UciEngine &uci_enigne) : engine(uci_enigne) {
-        // copy time control which will be updated later
-        time_control_ = engine.getConfig().limit.tc;
+    explicit Player(UciEngine &uci_enigne)
+        : engine(uci_enigne), time_control_(uci_enigne.getConfig().limit.tc) {
+        if (time_control_.fixed_time != 0) {
+            time_left_ = time_control_.fixed_time;
+        } else {
+            time_left_ = time_control_.time;
+        }
     }
 
     /// @brief The timeout threshold for the read engine command.
@@ -24,7 +28,7 @@ class Player {
             return std::chrono::milliseconds(0);
         }
 
-        return std::chrono::milliseconds(time_control_.time + 100) /* margin*/;
+        return std::chrono::milliseconds(time_left_ + 100) /* margin*/;
     }
 
     /// @brief remove the elapsed time from the participant's time
@@ -36,17 +40,17 @@ class Player {
             return true;
         }
 
-        time_control_.time -= elapsed_millis;
+        time_left_ -= elapsed_millis;
 
-        if (time_control_.time < -tc.timemargin) {
+        if (time_left_ < -tc.timemargin) {
             return false;
         }
 
-        if (time_control_.time < 0) {
-            time_control_.time = 0;
+        if (time_left_ < 0) {
+            time_left_ = 0;
         }
 
-        time_control_.time += time_control_.increment;
+        time_left_ += time_control_.increment;
 
         return true;
     }
@@ -86,7 +90,7 @@ class Player {
         // We cannot use st and tc together
         if (time_control_.fixed_time != 0) {
             input << " movetime " << time_control_.fixed_time;
-        } else if (time_control_.time != 0 && enemy_tc.time != 0) {
+        } else if (time_left_ != 0 && enemy_tc.time != 0) {
             auto white = stm == chess::Color::WHITE ? time_control_ : enemy_tc;
             auto black = stm == chess::Color::WHITE ? enemy_tc : time_control_;
 
@@ -113,7 +117,9 @@ class Player {
 
    private:
     /// @brief updated time control after each move
-    TimeControl time_control_;
+    const TimeControl time_control_;
+
+    int64_t time_left_;
 };
 
 }  // namespace fast_chess

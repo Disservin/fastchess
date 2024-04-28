@@ -11,9 +11,9 @@ class Player {
     explicit Player(UciEngine &uci_enigne)
         : engine(uci_enigne), time_control_(uci_enigne.getConfig().limit.tc) {
         if (time_control_.fixed_time != 0) {
-            time_left_ = time_control_.fixed_time;
+            time_control_.time_left = time_control_.fixed_time;
         } else {
-            time_left_ = time_control_.time;
+            time_control_.time_left = time_control_.time;
         }
     }
 
@@ -28,29 +28,29 @@ class Player {
             return std::chrono::milliseconds(0);
         }
 
-        return std::chrono::milliseconds(time_left_ + 100) /* margin*/;
+        return std::chrono::milliseconds(time_control_.time_left + 100) /* margin*/;
     }
 
     /// @brief remove the elapsed time from the participant's time
     /// @param elapsed_millis
     /// @return `false` when out of time
     [[nodiscard]] bool updateTime(const int64_t elapsed_millis) {
-        const auto &tc = engine.getConfig().limit.tc;
+        auto &tc = time_control_;
         if (tc.time == 0) {
             return true;
         }
 
-        time_left_ -= elapsed_millis;
+        tc.time_left -= elapsed_millis;
 
-        if (time_left_ < -tc.timemargin) {
+        if (tc.time_left < -tc.timemargin) {
             return false;
         }
 
-        if (time_left_ < 0) {
-            time_left_ = 0;
+        if (tc.time_left < 0) {
+            tc.time_left = 0;
         }
 
-        time_left_ += time_control_.increment;
+        tc.time_left += time_control_.increment;
 
         return true;
     }
@@ -116,10 +116,7 @@ class Player {
     chess::GameResult result = chess::GameResult::NONE;
 
    private:
-    const TimeControl time_control_;
-
-    /// @brief updated time control after each move
-    int64_t time_left_;
+    TimeControl time_control_;
 };
 
 }  // namespace fast_chess

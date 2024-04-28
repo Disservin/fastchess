@@ -9,11 +9,11 @@
 namespace fast_chess {
 class IProcess {
    public:
-    enum class Standard { IN, OUT, ERR };
+    enum class Standard { INPUT, OUTPUT, ERR };
 
     struct Line {
         std::string line;
-        Standard std = Standard::OUT;
+        Standard std = Standard::OUTPUT;
     };
 
     enum class Status { OK, ERR, TIMEOUT };

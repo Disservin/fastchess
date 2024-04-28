@@ -243,7 +243,7 @@ class Process : public IProcess {
             }
             // timeout
             else if (ready == 0) {
-                lines.emplace_back(Line{current_line_, IProcess::Standard::OUT});
+                lines.emplace_back(Line{current_line_});
                 return Status::TIMEOUT;
             }
 
@@ -265,7 +265,7 @@ class Process : public IProcess {
                     // to the vector and reset the current_line_.
                     // Dont add empty lines
                     if (!current_line_.empty()) {
-                        lines.emplace_back(Line{current_line_, IProcess::Standard::OUT});
+                        lines.emplace_back(Line{current_line_});
 
                         if (current_line_.rfind(last_word, 0) == 0) {
                             return Status::OK;
@@ -294,7 +294,7 @@ class Process : public IProcess {
                     // to the vector and reset the current_line_.
                     // Dont add empty lines
                     if (!current_line_.empty()) {
-                        lines.emplace_back(Line{current_line_, IProcess::Standard::ERR});
+                        lines.emplace_back(Line{current_line_, Standard::ERR});
 
                         current_line_.clear();
                     }

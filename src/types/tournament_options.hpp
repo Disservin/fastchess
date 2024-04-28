@@ -74,10 +74,10 @@ struct Tournament {
     VariantType variant = VariantType::STANDARD;
 
 #ifdef USE_CUTE
-    /// @brief output format, fastchess or cutechess
+    // output format, fastchess or cutechess
     OutputType output = OutputType::CUTECHESS;
 #else
-    /// @brief output format, fastchess or cutechess
+    // output format, fastchess or cutechess
     OutputType output = OutputType::FASTCHESS;
 #endif
 

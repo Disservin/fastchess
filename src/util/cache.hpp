@@ -27,10 +27,8 @@ class CachedEntry : public ScopeEntry {
     friend class CachePool;
 };
 
-/// @brief CachePool is a pool of objects which can be reused. An object is indentified by an ID
-/// type and value. The pool is thread safe.
-/// @tparam T
-/// @tparam ID
+// CachePool is a pool of objects which can be reused. An object is indentified by an ID
+// type and value. The pool is thread safe.
 template <typename T, typename ID>
 class CachePool {
    public:

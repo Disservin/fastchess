@@ -20,7 +20,7 @@
 
 namespace fast_chess::cli {
 
-/// @brief Holds the data of the OptionParser
+// Holds the data of the OptionParser
 struct ArgumentData {
     // Holds all the relevant settings for the handling of the games
     options::Tournament tournament_options;
@@ -101,17 +101,13 @@ class OptionsParser {
     [[nodiscard]] stats_map getResults() const { return argument_data_.stats; }
 
    private:
-    /// @brief Adds an option to the parser
-    /// @param optionName
-    /// @param option
+    // Adds an option to the parser
     void addOption(const std::string &optionName, parseFunc func) {
         options_.insert(std::make_pair("-" + optionName, func));
     }
 
-    /// @brief Parses the command line arguments and calls the corresponding option. Parse will
-    /// increment i if need be.
-    /// @param argc
-    /// @param argv
+    // Parses the command line arguments and calls the corresponding option. Parse will
+    // increment i if need be.
     void parse(int argc, char const *argv[]) {
         for (int i = 1; i < argc; i++) {
             const std::string arg = argv[i];

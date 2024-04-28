@@ -11,11 +11,7 @@
 namespace fast_chess::cli {
 using json = nlohmann::json;
 
-/// @brief Parse -name key=value key=value
-/// @param i
-/// @param argc
-/// @param argv
-/// @param func
+// Parse -name key=value key=value
 void parseDashOptions(int &i, int argc, char const *argv[],
                       const std::function<void(std::string, std::string)> &func) {
     while (i + 1 < argc && argv[i + 1][0] != '-' && i++) {
@@ -28,12 +24,7 @@ void parseDashOptions(int &i, int argc, char const *argv[],
     }
 }
 
-/// @brief Parse a standalone value after a dash command. i.e -concurrency 10
-/// @tparam T
-/// @param i
-/// @param argc
-/// @param argv
-/// @param optionValue
+// Parse a standalone value after a dash command. i.e -concurrency 10
 template <typename T>
 void parseValue(int &i, int argc, const char *argv[], T &optionValue) {
     i++;
@@ -53,11 +44,7 @@ void parseValue(int &i, int argc, const char *argv[], T &optionValue) {
     }
 }
 
-/// @brief Reads the entire line until a dash is found
-/// @param i
-/// @param argc
-/// @param argv
-/// @return
+// Reads the entire line until a dash is found
 [[nodiscard]] inline std::string readUntilDash(int &i, int argc, char const *argv[]) {
     std::string result;
     while (i + 1 < argc && argv[i + 1][0] != '-' && i++) {
@@ -455,12 +442,8 @@ void parseTournament(int &i, int argc, char const *argv[], ArgumentData &) {
     parseValue(i, argc, argv, val);
 }
 
-/// @brief .\fast-chess.exe -quick cmd=smallbrain.exe cmd=smallbrain-2.exe
-/// book="UHO_XXL_2022_+110_+139.epd"
-/// @param i
-/// @param argc
-/// @param argv
-/// @param argument_data
+// .\fast-chess.exe -quick cmd=smallbrain.exe cmd=smallbrain-2.exe
+// book="UHO_XXL_2022_+110_+139.epd"
 void parseQuick(int &i, int argc, char const *argv[], ArgumentData &argument_data) {
     parseDashOptions(i, argc, argv, [&](const std::string &key, const std::string &value) {
         if (key == "cmd") {

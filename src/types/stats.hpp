@@ -47,8 +47,7 @@ class Stats {
         return stats;
     }
 
-    /// @brief invert the stats
-    /// @return
+    // invert the stats
     [[nodiscard]] Stats operator~() const {
         Stats stats = *this;
         std::swap(stats.wins, stats.losses);

@@ -10,9 +10,7 @@ namespace fast_chess {
 
 namespace time {
 
-/// @brief Get the current date and time in a given format.
-/// @param format
-/// @return
+// Get the current date and time in a given format.
 [[nodiscard]] inline std::string datetime(const std::string &format) {
     // Get the current time in UTC
     const auto now        = std::chrono::system_clock::now();
@@ -39,9 +37,7 @@ namespace time {
 #endif
 }
 
-/// @brief Formats a duration in seconds to a string in the format HH:MM:SS.
-/// @param duration
-/// @return
+// Formats a duration in seconds to a string in the format HH:MM:SS.
 [[nodiscard]] inline std::string duration(std::chrono::seconds duration) {
     const auto hours = std::chrono::duration_cast<std::chrono::hours>(duration);
     duration -= hours;

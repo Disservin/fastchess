@@ -24,8 +24,7 @@ class IProcess {
     virtual void init(const std::string &command, const std::string &args,
                       const std::string &log_name) = 0;
 
-    /// @brief Returns true if the process is alive
-    /// @return
+    // Returns true if the process is alive
     [[nodiscard]] virtual bool alive() const = 0;
 
     virtual void setAffinity(const std::vector<int> &cpus) = 0;
@@ -33,10 +32,8 @@ class IProcess {
     virtual void restart() = 0;
 
    protected:
-    /// @brief Read stdout until the line matches last_word or timeout is reached
-    /// @param lines
-    /// @param last_word
-    /// @param threshold 0 means no timeout
+    // Read stdout until the line matches last_word or timeout is reached
+    // 0 threshold means no timeout
     virtual Status readProcess(std::vector<Line> &lines, std::string_view last_word,
                                std::chrono::milliseconds threshold) = 0;
 

@@ -13,17 +13,13 @@ namespace fast_chess {
 
 using pair_config = std::pair<fast_chess::EngineConfiguration, fast_chess::EngineConfiguration>;
 
-/// @brief Interface for outputting current tournament state to the user.
+// Interface for outputting current tournament state to the user.
 class IOutput {
    public:
     IOutput()          = default;
     virtual ~IOutput() = default;
 
-    /// @brief Interval output. Get's displayed every n `ratinginterval`.
-    /// @param sprt
-    /// @param stats
-    /// @param first
-    /// @param second
+    // Interval output. Get's displayed every n `ratinginterval`.
     virtual void printInterval(const SPRT& sprt, const Stats& stats, const std::string& first,
                                const std::string& second) {
         std::cout << "--------------------------------------------------\n";
@@ -32,36 +28,22 @@ class IOutput {
         std::cout << "--------------------------------------------------\n";
     };
 
-    /// @brief Print current H2H elo stats.
-    /// @param stats
-    /// @param first
-    /// @param second
+    // Print current H2H elo stats.
     virtual void printElo(const Stats& stats, const std::string& first,
                           const std::string& second) = 0;
 
-    /// @brief Print current SPRT stats.
-    /// @param sprt
-    /// @param stats
+    // Print current SPRT stats.
     virtual void printSprt(const SPRT& sprt, const Stats& stats) = 0;
 
-    /// @brief Print game start.
-    /// @param first
-    /// @param second
-    /// @param current_game_count
-    /// @param max_game_count
+    // Print game start.
     virtual void startGame(const pair_config& configs, std::size_t current_game_count,
                            std::size_t max_game_count) = 0;
 
-    /// @brief Print game end.
-    /// @param stats
-    /// @param first
-    /// @param second
-    /// @param annotation
-    /// @param id
+    // Print game end.
     virtual void endGame(const pair_config& configs, const Stats& stats,
                          const std::string& annotation, std::size_t id) = 0;
 
-    /// @brief Print tournament end.
+    // Print tournament end.
     virtual void endTournament() = 0;
 
     [[nodiscard]] static std::string formatStats(const Stats& stats) {

@@ -44,9 +44,7 @@ class AffinityManager {
     // Same goes for HT_2. This is done to avoid putting two processes on the same
     // physical core. When all cores in HT_1 are used, HT_2 is used.
 
-    /// @brief
-    /// @param use_affinity
-    /// @param tpe threads per engine
+    // Construct a new Affinity Manager object
     AffinityManager(bool use_affinity, int tpe) {
         use_affinity_ = use_affinity;
 
@@ -59,8 +57,7 @@ class AffinityManager {
         }
     }
 
-    /// @brief Get a core from the pool of available cores.
-    /// @return
+    // Get a core from the pool of available cores.
     [[nodiscard]] AffinityProcessor& consume() {
         if (!use_affinity_) {
             return null_core_;
@@ -86,12 +83,12 @@ class AffinityManager {
     }
 
    private:
-    /// @brief Setup the cores for the affinity, later entries from the core pool will be just
-    /// picked up.
+    // Setup the cores for the affinity, later entries from the core pool will be just
+    // picked up.
     void setupCores(const CpuInfo& cpu_info) {
         std::lock_guard<std::mutex> lock(core_mutex_);
 
-        /// @todo: fix logic for multiple threads and multiple concurrencies
+        // @TODO: fix logic for multiple threads and multiple concurrencies
 
         for (const auto& physical_cpu : cpu_info.physical_cpus) {
             for (const auto& core : physical_cpu.second.cores) {
@@ -110,7 +107,7 @@ class AffinityManager {
     std::array<std::deque<AffinityProcessor>, 2> cores_;
     std::mutex core_mutex_;
 
-    /// @brief This is a dummy core which is returned when affinity is disabled.
+    // This is a dummy core which is returned when affinity is disabled.
     AffinityProcessor null_core_ = {{}};
 
     bool use_affinity_ = false;

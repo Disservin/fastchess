@@ -12,7 +12,6 @@
 
 namespace fast_chess {
 
-/// @brief
 class Logger {
    public:
     enum class Level { ALL, TRACE, WARN, INFO, ERR, FATAL };

@@ -11,8 +11,7 @@
 namespace fast_chess {
 namespace affinity {
 
-/// @brief Some dumb code for macOS, setting the affinity is not really supported.
-/// @return
+// Some dumb code for macOS, setting the affinity is not really supported.
 inline CpuInfo getCpuInfo() noexcept {
     CpuInfo cpu_info;
 

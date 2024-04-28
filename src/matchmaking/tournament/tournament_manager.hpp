@@ -5,8 +5,8 @@
 
 namespace fast_chess {
 
-/// @brief Manages the tournament, currently wraps round robin but can be extended to support
-/// different tournament types
+// Manages the tournament, currently wraps round robin but can be extended to support
+// different tournament types
 class TournamentManager {
    public:
     TournamentManager(const options::Tournament &game_config,

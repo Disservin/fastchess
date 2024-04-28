@@ -202,10 +202,8 @@ class Process : public IProcess {
     }
 
    protected:
-    /// @brief Read stdout until the line matches last_word or timeout is reached
-    /// @param lines
-    /// @param last_word
-    /// @param threshold_ms 0 means no timeout
+    // Read stdout until the line matches last_word or timeout is reached
+    // 0 means no timeout
     Status readProcess(std::vector<Line> &lines, std::string_view last_word,
                        std::chrono::milliseconds threshold) override {
         assert(is_initalized_);

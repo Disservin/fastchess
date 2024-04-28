@@ -14,7 +14,7 @@
 
 namespace fast_chess {
 
-/// @brief @todo use std::chrono::milliseconds
+// @todo use std::chrono::milliseconds
 struct TimeControl {
     // go winc/binc, in milliseconds
     uint64_t increment = 0;
@@ -27,7 +27,7 @@ struct TimeControl {
 
     int timemargin = 0;
 
-    /// @brief updated time control after each move
+    // updated time control after each move
     int64_t time_left;
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(TimeControl, increment, fixed_time, time, moves,

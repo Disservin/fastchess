@@ -10,6 +10,15 @@
 
 namespace fast_chess {
 
+namespace str {
+template <typename T>
+std::string to_string(const T &obj) {
+    std::stringstream ss;
+    ss << obj;
+    return ss.str();
+}
+}  // namespace str
+
 PgnBuilder::PgnBuilder(const MatchData &match, const options::Tournament &tournament_options,
                        std::size_t round_id) {
     match_        = match;
@@ -21,6 +30,11 @@ PgnBuilder::PgnBuilder(const MatchData &match, const options::Tournament &tourna
     const auto black_player = match.players.first.color == chess::Color::BLACK
                                   ? match.players.first
                                   : match.players.second;
+
+    const auto tc = white_player.config.limit.tc == black_player.config.limit.tc
+                        ? str::to_string(white_player.config.limit.tc)
+                        : str::to_string(white_player.config.limit.tc) + "; " +
+                              str::to_string(black_player.config.limit.tc);
 
     addHeader("Event", tournament_options.event_name);
     addHeader("Site", game_options_.site);
@@ -45,7 +59,7 @@ PgnBuilder::PgnBuilder(const MatchData &match, const options::Tournament &tourna
     addHeader("GameEndTime", match_.end_time);
     addHeader("PlyCount", std::to_string(match_.moves.size()));
     addHeader("Termination", convertMatchTermination(match_.termination));
-    addHeader("TimeControl", white_player.config.limit.tc);
+    addHeader("TimeControl", tc);
 
     pgn_ << "\n";
     // add body

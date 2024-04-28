@@ -12,7 +12,7 @@
 #include <type_traits>
 #include <vector>
 
-namespace fast_chess {
+namespace fast_chess::util {
 
 class ThreadPool {
    public:
@@ -107,4 +107,4 @@ class ThreadPool {
     std::atomic_bool stop_;
 };
 
-}  // namespace fast_chess
+}  // namespace fast_chess::util

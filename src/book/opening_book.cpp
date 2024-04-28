@@ -33,7 +33,7 @@ void OpeningBook::setup(const std::string& file, FormatType type) {
         std::string line;
         std::vector<std::string> epd;
 
-        while (safeGetline(openingFile, line)) {
+        while (util::safeGetline(openingFile, line)) {
             if (!line.empty()) epd.emplace_back(line);
         }
 

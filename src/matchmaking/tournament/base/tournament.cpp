@@ -26,8 +26,10 @@ BaseTournament::BaseTournament(const options::Tournament &config,
     cores_              = std::make_unique<affinity::AffinityManager>(config.affinity,
                                                          getMaxAffinity(engine_configs));
 
-    if (!config.pgn.file.empty()) file_writer_pgn = std::make_unique<FileWriter>(config.pgn.file);
-    if (!config.epd.file.empty()) file_writer_epd = std::make_unique<FileWriter>(config.epd.file);
+    if (!config.pgn.file.empty())
+        file_writer_pgn = std::make_unique<util::FileWriter>(config.pgn.file);
+    if (!config.epd.file.empty())
+        file_writer_epd = std::make_unique<util::FileWriter>(config.epd.file);
 
     pool_.resize(config.concurrency);
 }
@@ -50,10 +52,10 @@ void BaseTournament::playGame(const std::pair<EngineConfiguration, EngineConfigu
                               const pgn::Opening &opening, std::size_t game_id) {
     if (atomic::stop) return;
 
-    const auto core = ScopeGuard(cores_->consume());
+    const auto core = util::ScopeGuard(cores_->consume());
 
-    auto engine_one = ScopeGuard(engine_cache_.getEntry(configs.first.name, configs.first));
-    auto engine_two = ScopeGuard(engine_cache_.getEntry(configs.second.name, configs.second));
+    auto engine_one = util::ScopeGuard(engine_cache_.getEntry(configs.first.name, configs.first));
+    auto engine_two = util::ScopeGuard(engine_cache_.getEntry(configs.second.name, configs.second));
 
     start();
 

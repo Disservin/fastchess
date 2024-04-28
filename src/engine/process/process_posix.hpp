@@ -30,7 +30,7 @@
 #include <util/thread_vector.hpp>
 
 namespace fast_chess {
-extern ThreadVector<pid_t> process_list;
+extern util::ThreadVector<pid_t> process_list;
 }
 
 namespace fast_chess::engine::process {

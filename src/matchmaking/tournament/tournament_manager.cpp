@@ -19,7 +19,7 @@ TournamentManager::TournamentManager(const options::Tournament& tournament_confi
     }
 
     // Set the seed for the random number generator
-    random::mersenne_rand.seed(tournament_options_.seed);
+    util::random::mersenne_rand.seed(tournament_options_.seed);
 
     round_robin_ = std::make_unique<RoundRobin>(fixConfig(tournament_options_), engine_configs_);
 }

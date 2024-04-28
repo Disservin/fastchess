@@ -39,8 +39,8 @@ class UciEngine : process::Process {
 
     // Waits for the engine to output the last_word or until the threshold_ms is reached.
     // May throw if the read fails.
-    process::Process::Status readEngine(std::string_view last_word,
-                                        std::chrono::milliseconds threshold = ping_time_);
+    process::Status readEngine(std::string_view last_word,
+                               std::chrono::milliseconds threshold = ping_time_);
 
     void writeLog() const;
 
@@ -66,9 +66,7 @@ class UciEngine : process::Process {
 
     [[nodiscard]] bool outputIncludesBestmove() const;
 
-    [[nodiscard]] const std::vector<process::IProcess::Line> &output() const noexcept {
-        return output_;
-    }
+    [[nodiscard]] const std::vector<process::Line> &output() const noexcept { return output_; }
     [[nodiscard]] const EngineConfiguration &getConfig() const noexcept { return config_; }
 
     // @TODO: expose this to the user
@@ -90,6 +88,6 @@ class UciEngine : process::Process {
 
     EngineConfiguration config_;
 
-    std::vector<process::IProcess::Line> output_;
+    std::vector<process::Line> output_;
 };
 }  // namespace fast_chess::engine

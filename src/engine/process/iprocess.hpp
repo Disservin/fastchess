@@ -7,17 +7,17 @@
 #include <vector>
 
 namespace fast_chess::engine::process {
+
+enum class Standard { INPUT, OUTPUT, ERR };
+enum class Status { OK, ERR, TIMEOUT };
+
+struct Line {
+    std::string line;
+    Standard std = Standard::OUTPUT;
+};
+
 class IProcess {
    public:
-    enum class Standard { INPUT, OUTPUT, ERR };
-
-    struct Line {
-        std::string line;
-        Standard std = Standard::OUTPUT;
-    };
-
-    enum class Status { OK, ERR, TIMEOUT };
-
     virtual ~IProcess() = default;
 
     // Initialize the process

@@ -123,6 +123,7 @@ class Process : public IProcess {
         assert(is_initalized_);
 
         lines.clear();
+        current_line_.clear();
 
         auto readFuture = std::async(std::launch::async, [this, &last_word, &lines]() {
             char buffer[4096];

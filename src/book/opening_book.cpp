@@ -1,4 +1,4 @@
-#include <matchmaking/book/opening_book.hpp>
+#include <book/opening_book.hpp>
 
 #include <fstream>
 #include <string>

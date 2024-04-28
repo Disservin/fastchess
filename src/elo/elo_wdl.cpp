@@ -1,4 +1,4 @@
-#include <matchmaking/elo/elo_wdl.hpp>
+#include <elo/elo_wdl.hpp>
 
 #include <cmath>
 #include <iomanip>

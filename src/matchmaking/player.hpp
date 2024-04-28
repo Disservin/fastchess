@@ -2,7 +2,7 @@
 
 #include <chrono>
 
-#include <engines/uci_engine.hpp>
+#include <engine/uci_engine.hpp>
 
 namespace fast_chess {
 

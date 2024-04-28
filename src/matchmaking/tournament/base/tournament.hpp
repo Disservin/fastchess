@@ -3,8 +3,8 @@
 #include <vector>
 
 #include <affinity/affinity_manager.hpp>
-#include <engines/uci_engine.hpp>
-#include <matchmaking/book/opening_book.hpp>
+#include <book/opening_book.hpp>
+#include <engine/uci_engine.hpp>
 #include <matchmaking/output/output.hpp>
 #include <matchmaking/result.hpp>
 #include <types/tournament_options.hpp>

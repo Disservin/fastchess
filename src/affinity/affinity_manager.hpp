@@ -29,9 +29,9 @@ class AffinityManager {
         HT_2,
     };
 
-    class AffinityProcessor : public ScopeEntry {
+    class AffinityProcessor : public util::ScopeEntry {
        public:
-        AffinityProcessor(const std::vector<int>& cpus) : ScopeEntry(true), cpus(cpus) {}
+        AffinityProcessor(const std::vector<int>& cpus) : util::ScopeEntry(true), cpus(cpus) {}
 
         std::vector<int> cpus;
 
@@ -53,7 +53,7 @@ class AffinityManager {
         }
 
         if (use_affinity_) {
-            setupCores(getCpuInfo());
+            setupCores(cpu_info::getCpuInfo());
         }
     }
 
@@ -85,7 +85,7 @@ class AffinityManager {
    private:
     // Setup the cores for the affinity, later entries from the core pool will be just
     // picked up.
-    void setupCores(const CpuInfo& cpu_info) {
+    void setupCores(const cpu_info::CpuInfo& cpu_info) {
         std::lock_guard<std::mutex> lock(core_mutex_);
 
         // @TODO: fix logic for multiple threads and multiple concurrencies

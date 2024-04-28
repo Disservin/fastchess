@@ -12,7 +12,7 @@ using namespace fast_chess;
 const std::string path = "./tests/mock/engine/";
 
 TEST_SUITE("Uci Engine Communication Tests") {
-    TEST_CASE("Test UciEngine Args Simple") {
+    TEST_CASE("Test engine::UciEngine Args Simple") {
         EngineConfiguration config;
 #ifdef _WIN64
         config.cmd = path + "dummy_engine.exe";
@@ -21,7 +21,7 @@ TEST_SUITE("Uci Engine Communication Tests") {
 #endif
         config.args = "arg1 arg2 arg3";
 
-        UciEngine uci_engine = UciEngine(config);
+        engine::UciEngine uci_engine = engine::UciEngine(config);
 
         for (const auto& line : uci_engine.output()) {
             std::cout << line.line << std::endl;
@@ -33,7 +33,7 @@ TEST_SUITE("Uci Engine Communication Tests") {
         CHECK(uci_engine.output()[2].line == "argv[3]: arg3");
     }
 
-    TEST_CASE("Test UciEngine Args Complex") {
+    TEST_CASE("Test engine::UciEngine Args Complex") {
         EngineConfiguration config;
 #ifdef _WIN64
         config.cmd = path + "dummy_engine.exe";
@@ -46,7 +46,7 @@ TEST_SUITE("Uci Engine Communication Tests") {
             "--weights=lc0/BT4-1024x15x32h-swa-6147500.pb.gz --minibatch-size=132 "
             "--nncache=50000000 --threads=5";
 
-        UciEngine uci_engine = UciEngine(config);
+        engine::UciEngine uci_engine = engine::UciEngine(config);
 
         for (const auto& line : uci_engine.output()) {
             std::cout << line.line << std::endl;
@@ -72,7 +72,7 @@ TEST_SUITE("Uci Engine Communication Tests") {
 #endif
         config.args = "arg1 arg2 arg3";
 
-        UciEngine uci_engine = UciEngine(config);
+        engine::UciEngine uci_engine = engine::UciEngine(config);
 
         CHECK(uci_engine.output().size() == 6);
         CHECK(uci_engine.output()[0].line == "argv[1]: arg1");
@@ -92,11 +92,11 @@ TEST_SUITE("Uci Engine Communication Tests") {
 
         uci_engine.writeEngine("sleep");
         const auto res = uci_engine.readEngine("done", std::chrono::milliseconds(100));
-        CHECK(res == Process::Status::TIMEOUT);
+        CHECK(res == engine::process::Status::TIMEOUT);
 
         uci_engine.writeEngine("sleep");
         const auto res2 = uci_engine.readEngine("done", std::chrono::milliseconds(5000));
-        CHECK(res2 == Process::Status::OK);
+        CHECK(res2 == engine::process::Status::OK);
         CHECK(uci_engine.output().size() == 1);
         CHECK(uci_engine.output()[0].line == "done");
     }
@@ -108,12 +108,12 @@ TEST_SUITE("Uci Engine Communication Tests") {
 #else
         config.cmd = path + "dummy_engine";
 #endif
-        UciEngine uci_engine = UciEngine(config);
+        engine::UciEngine uci_engine = engine::UciEngine(config);
 
         uci_engine.writeEngine("uci");
         const auto res = uci_engine.readEngine("uciok");
 
-        CHECK(res == Process::Status::OK);
+        CHECK(res == engine::process::Status::OK);
         CHECK(uci_engine.output().size() == 3);
         CHECK(uci_engine.output()[0].line == "line0");
         CHECK(uci_engine.output()[1].line == "line1");
@@ -121,19 +121,19 @@ TEST_SUITE("Uci Engine Communication Tests") {
 
         uci_engine.writeEngine("isready");
         const auto res2 = uci_engine.readEngine("readyok");
-        CHECK(res2 == Process::Status::OK);
+        CHECK(res2 == engine::process::Status::OK);
         CHECK(uci_engine.output().size() == 1);
         CHECK(uci_engine.output()[0].line == "readyok");
 
         uci_engine.writeEngine("sleep");
         const auto res3 = uci_engine.readEngine("done", std::chrono::milliseconds(100));
-        CHECK(res3 == Process::Status::TIMEOUT);
+        CHECK(res3 == engine::process::Status::TIMEOUT);
 
         std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
         uci_engine.writeEngine("sleep");
         const auto res4 = uci_engine.readEngine("done", std::chrono::milliseconds(5000));
-        CHECK(res4 == Process::Status::OK);
+        CHECK(res4 == engine::process::Status::OK);
         CHECK(uci_engine.output().size() == 1);
         CHECK(uci_engine.output()[0].line == "done");
     }

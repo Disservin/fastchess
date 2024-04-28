@@ -4,7 +4,7 @@
 #include <mutex>
 #include <vector>
 
-namespace fast_chess {
+namespace fast_chess::util {
 
 template <typename T>
 class ThreadVector {

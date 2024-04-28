@@ -13,12 +13,12 @@ std::atomic_bool stop = false;
 
 #ifdef _WIN64
 #include <windows.h>
-ThreadVector<HANDLE> process_list;
+util::ThreadVector<HANDLE> process_list;
 #else
 #include <signal.h>
 #include <unistd.h>
 #include <cstdlib>
-ThreadVector<pid_t> process_list;
+util::ThreadVector<pid_t> process_list;
 #endif
 
 // Make sure that all processes are stopped, and no zombie processes are left after the

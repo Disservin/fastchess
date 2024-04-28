@@ -7,7 +7,7 @@
 #include <util/helper.hpp>
 #include <util/logger/logger.hpp>
 
-namespace fast_chess {
+namespace fast_chess::engine {
 
 bool UciEngine::isResponsive(std::chrono::milliseconds threshold) {
     if (!alive()) return false;
@@ -15,11 +15,11 @@ bool UciEngine::isResponsive(std::chrono::milliseconds threshold) {
     writeEngine("isready");
     const auto res = readEngine("readyok", threshold);
 
-    if (res != Process::Status::OK) {
+    if (res != process::Status::OK) {
         Logger::log<Logger::Level::WARN>("Warning; Engine", config_.name, "is not responsive.");
     }
 
-    return res == Process::Status::OK;
+    return res == process::Status::OK;
 }
 
 bool UciEngine::ucinewgame() {
@@ -29,7 +29,7 @@ bool UciEngine::ucinewgame() {
 
 void UciEngine::uci() { writeEngine("uci"); }
 
-bool UciEngine::uciok() { return readEngine("uciok") == Process::Status::OK; }
+bool UciEngine::uciok() { return readEngine("uciok") == process::Status::OK; }
 
 void UciEngine::loadConfig(const EngineConfiguration &config) { config_ = config; }
 
@@ -77,7 +77,7 @@ void UciEngine::refreshUci() {
     }
 }
 
-Process::Status UciEngine::readEngine(std::string_view last_word,
+process::Status UciEngine::readEngine(std::string_view last_word,
                                       std::chrono::milliseconds threshold) {
     try {
         return readProcess(output_, last_word, threshold);
@@ -91,7 +91,7 @@ Process::Status UciEngine::readEngine(std::string_view last_word,
 void UciEngine::writeLog() const {
     for (const auto &line : output_) {
         fast_chess::Logger::readFromEngine(line.line, config_.name,
-                                           line.std == Process::Standard::ERR);
+                                           line.std == process::Standard::ERR);
     }
 }
 
@@ -167,4 +167,4 @@ bool UciEngine::outputIncludesBestmove() const {
     return false;
 }
 
-}  // namespace fast_chess
+}  // namespace fast_chess::engine

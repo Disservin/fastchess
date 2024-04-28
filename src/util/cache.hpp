@@ -8,7 +8,7 @@
 
 #include <util/scope_guard.hpp>
 
-namespace fast_chess {
+namespace fast_chess::util {
 
 template <typename T, typename ID>
 class CachedEntry : public ScopeEntry {

@@ -9,7 +9,7 @@
 #include <types/tournament_options.hpp>
 #include <util/rand.hpp>
 
-namespace fast_chess {
+namespace fast_chess::book {
 
 class OpeningBook {
    public:
@@ -20,7 +20,7 @@ class OpeningBook {
     void shuffle() {
         const auto shuffle = [](auto& vec) {
             for (std::size_t i = 0; i + 2 <= vec.size(); i++) {
-                auto rand     = random::mersenne_rand();
+                auto rand     = util::random::mersenne_rand();
                 std::size_t j = i + (rand % (vec.size() - i));
                 std::swap(vec[i], vec[j]);
             }
@@ -29,7 +29,7 @@ class OpeningBook {
         std::visit(shuffle, book_);
     }
 
-    [[nodiscard]] Opening fetch() noexcept;
+    [[nodiscard]] pgn::Opening fetch() noexcept;
 
     void setInternalOffset(std::size_t offset) noexcept { matchcount_ = offset; }
 
@@ -37,7 +37,7 @@ class OpeningBook {
     void setup(const std::string& file, FormatType type);
 
     using epd_book = std::vector<std::string>;
-    using pgn_book = std::vector<Opening>;
+    using pgn_book = std::vector<pgn::Opening>;
 
     std::size_t start_      = 0;
     std::size_t matchcount_ = 0;
@@ -47,4 +47,4 @@ class OpeningBook {
     std::variant<epd_book, pgn_book> book_;
 };
 
-}  // namespace fast_chess
+}  // namespace fast_chess::book

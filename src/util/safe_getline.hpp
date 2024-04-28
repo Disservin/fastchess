@@ -3,7 +3,7 @@
 #include <istream>
 #include <string>
 
-namespace fast_chess {
+namespace fast_chess::util {
 
 inline std::istream& safeGetline(std::istream& is, std::string& t) {
     t.clear();
@@ -35,4 +35,4 @@ inline std::istream& safeGetline(std::istream& is, std::string& t) {
     }
 }
 
-}  // namespace fast_chess
+}  // namespace fast_chess::util

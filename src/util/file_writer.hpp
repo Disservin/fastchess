@@ -4,7 +4,7 @@
 #include <mutex>
 #include <string>
 
-namespace fast_chess {
+namespace fast_chess::util {
 
 // Writes to a file in a thread safe manner.
 class FileWriter {
@@ -21,4 +21,4 @@ class FileWriter {
     std::mutex file_mutex_;
 };
 
-}  // namespace fast_chess
+}  // namespace fast_chess::util

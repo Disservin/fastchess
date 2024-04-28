@@ -5,7 +5,7 @@
 
 #include <util/safe_getline.hpp>
 
-namespace fast_chess {
+namespace fast_chess::book {
 
 OpeningBook::OpeningBook(const options::Tournament& tournament) {
     start_ = tournament.opening.start;
@@ -21,7 +21,7 @@ void OpeningBook::setup(const std::string& file, FormatType type) {
     }
 
     if (type == FormatType::PGN) {
-        book_ = PgnReader(file, plies_).getOpenings();
+        book_ = pgn::PgnReader(file, plies_).getOpenings();
 
         if (std::get<pgn_book>(book_).empty()) {
             throw std::runtime_error("No openings found in PGN file: " + file);
@@ -33,7 +33,7 @@ void OpeningBook::setup(const std::string& file, FormatType type) {
         std::string line;
         std::vector<std::string> epd;
 
-        while (safeGetline(openingFile, line)) {
+        while (util::safeGetline(openingFile, line)) {
             if (!line.empty()) epd.emplace_back(line);
         }
 
@@ -49,7 +49,7 @@ void OpeningBook::setup(const std::string& file, FormatType type) {
     if (order_ == OrderType::RANDOM && type != FormatType::NONE) shuffle();
 }
 
-Opening OpeningBook::fetch() noexcept {
+pgn::Opening OpeningBook::fetch() noexcept {
     static uint64_t opening_index = 0;
     const auto idx                = start_ + opening_index++ + matchcount_ / games_;
     const auto book_size          = std::holds_alternative<epd_book>(book_)
@@ -70,4 +70,4 @@ Opening OpeningBook::fetch() noexcept {
     return {chess::constants::STARTPOS, {}};
 }
 
-}  // namespace fast_chess
+}  // namespace fast_chess::book

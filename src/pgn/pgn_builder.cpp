@@ -8,7 +8,7 @@
 
 #include <matchmaking/output/output.hpp>
 
-namespace fast_chess {
+namespace fast_chess::pgn {
 
 namespace str {
 template <typename T>

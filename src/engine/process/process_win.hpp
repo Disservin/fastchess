@@ -21,7 +21,10 @@
 #include <util/thread_vector.hpp>
 
 namespace fast_chess {
-extern ThreadVector<HANDLE> process_list;
+extern util::ThreadVector<HANDLE> process_list;
+}
+
+namespace fast_chess::engine::process {
 
 class Process : public IProcess {
    public:
@@ -212,6 +215,6 @@ class Process : public IProcess {
     HANDLE child_std_in_;
 };
 
-}  // namespace fast_chess
+}  // namespace fast_chess::engine::process
 
 #endif

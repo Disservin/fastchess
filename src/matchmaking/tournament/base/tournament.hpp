@@ -67,21 +67,22 @@ class BaseTournament {
 
     // play one game and write it to the pgn file
     void playGame(const std::pair<EngineConfiguration, EngineConfiguration> &configs,
-                  start_callback start, finished_callback finish, const Opening &opening,
+                  start_callback start, finished_callback finish, const pgn::Opening &opening,
                   std::size_t game_id);
 
     std::unique_ptr<IOutput> output_;
     std::unique_ptr<affinity::AffinityManager> cores_;
-    std::unique_ptr<FileWriter> file_writer_pgn;
-    std::unique_ptr<FileWriter> file_writer_epd;
+    std::unique_ptr<util::FileWriter> file_writer_pgn;
+    std::unique_ptr<util::FileWriter> file_writer_epd;
 
-    OpeningBook book_;
+    book::OpeningBook book_;
     options::Tournament tournament_options_;
     std::vector<EngineConfiguration> engine_configs_;
 
-    CachePool<UciEngine, std::string> engine_cache_ = CachePool<UciEngine, std::string>();
-    Result result_                                  = Result();
-    ThreadPool pool_                                = ThreadPool(1);
+    util::CachePool<engine::UciEngine, std::string> engine_cache_ =
+        util::CachePool<engine::UciEngine, std::string>();
+    Result result_         = Result();
+    util::ThreadPool pool_ = util::ThreadPool(1);
 
    private:
     int getMaxAffinity(const std::vector<EngineConfiguration> &configs) const noexcept;

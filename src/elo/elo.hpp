@@ -4,7 +4,7 @@
 
 #include <types/stats.hpp>
 
-namespace fast_chess {
+namespace fast_chess::elo {
 
 class EloBase {
    public:
@@ -42,4 +42,4 @@ class EloBase {
     double neloerror_;
 };
 
-}  // namespace fast_chess
+}  // namespace fast_chess::elo

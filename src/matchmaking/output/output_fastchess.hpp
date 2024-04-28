@@ -21,12 +21,12 @@ class Fastchess : public IOutput {
 
     void printElo(const Stats& stats, const std::string& first,
                   const std::string& second) override {
-        std::unique_ptr<EloBase> elo;
+        std::unique_ptr<elo::EloBase> elo;
 
         if (report_penta_) {
-            elo = std::make_unique<EloPentanomial>(stats);
+            elo = std::make_unique<elo::EloPentanomial>(stats);
         } else {
-            elo = std::make_unique<EloWDL>(stats);
+            elo = std::make_unique<elo::EloWDL>(stats);
         }
 
         std::stringstream ss;

@@ -32,7 +32,7 @@ void RoundRobin::create() {
              tournament_options_.rounds * tournament_options_.games;
 
     const auto create_match = [this](std::size_t i, std::size_t j, std::size_t round_id, int g,
-                                     Opening opening) {
+                                     pgn::Opening opening) {
         assert(g < 2);
 
         constexpr static auto normalize_stm_configs = [](const pair_config& configs,

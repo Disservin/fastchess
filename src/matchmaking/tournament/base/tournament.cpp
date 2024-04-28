@@ -22,12 +22,14 @@ BaseTournament::BaseTournament(const options::Tournament &config,
     tournament_options_ = config;
     engine_configs_     = engine_configs;
     output_             = OutputFactory::create(config);
-    book_               = OpeningBook(config);
+    book_               = book::OpeningBook(config);
     cores_              = std::make_unique<affinity::AffinityManager>(config.affinity,
                                                          getMaxAffinity(engine_configs));
 
-    if (!config.pgn.file.empty()) file_writer_pgn = std::make_unique<FileWriter>(config.pgn.file);
-    if (!config.epd.file.empty()) file_writer_epd = std::make_unique<FileWriter>(config.epd.file);
+    if (!config.pgn.file.empty())
+        file_writer_pgn = std::make_unique<util::FileWriter>(config.pgn.file);
+    if (!config.epd.file.empty())
+        file_writer_epd = std::make_unique<util::FileWriter>(config.epd.file);
 
     pool_.resize(config.concurrency);
 }
@@ -47,13 +49,13 @@ void BaseTournament::stop() {
 
 void BaseTournament::playGame(const std::pair<EngineConfiguration, EngineConfiguration> &configs,
                               start_callback start, finished_callback finish,
-                              const Opening &opening, std::size_t game_id) {
+                              const pgn::Opening &opening, std::size_t game_id) {
     if (atomic::stop) return;
 
-    const auto core = ScopeGuard(cores_->consume());
+    const auto core = util::ScopeGuard(cores_->consume());
 
-    auto engine_one = ScopeGuard(engine_cache_.getEntry(configs.first.name, configs.first));
-    auto engine_two = ScopeGuard(engine_cache_.getEntry(configs.second.name, configs.second));
+    auto engine_one = util::ScopeGuard(engine_cache_.getEntry(configs.first.name, configs.first));
+    auto engine_two = util::ScopeGuard(engine_cache_.getEntry(configs.second.name, configs.second));
 
     start();
 
@@ -80,9 +82,10 @@ void BaseTournament::playGame(const std::pair<EngineConfiguration, EngineConfigu
     // If the game was interrupted(didn't completely finish)
     if (match_data.termination != MatchTermination::INTERRUPT) {
         if (!tournament_options_.pgn.file.empty())
-            file_writer_pgn->write(PgnBuilder(match_data, tournament_options_, game_id + 1).get());
+            file_writer_pgn->write(
+                pgn::PgnBuilder(match_data, tournament_options_, game_id + 1).get());
         if (!tournament_options_.epd.file.empty())
-            file_writer_epd->write(EpdBuilder(match_data, tournament_options_).get());
+            file_writer_epd->write(epd::EpdBuilder(match_data, tournament_options_).get());
     }
 
     finish({match_data}, match_data.reason);

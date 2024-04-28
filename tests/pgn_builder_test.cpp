@@ -41,7 +41,7 @@ Nf6 {+10.15/18, 1.821s, engine2 got checkmated} 1-0
 
 )";
 
-        PgnBuilder pgn_builder = PgnBuilder(match_data, options, 1);
+        pgn::PgnBuilder pgn_builder = pgn::PgnBuilder(match_data, options, 1);
         CHECK(pgn_builder.get() == expected);
     }
 
@@ -82,7 +82,7 @@ Nf6 {+10.15/18, 1.821s, engine1 got checkmated} 0-1
 
 )";
 
-        PgnBuilder pgn_builder = PgnBuilder(match_data, options, 1);
+        pgn::PgnBuilder pgn_builder = pgn::PgnBuilder(match_data, options, 1);
         CHECK(pgn_builder.get() == expected);
     }
 
@@ -123,7 +123,7 @@ Nc5 {+1.45/16, 0.310s, aborted} *
 
 )";
 
-        PgnBuilder pgn_builder = PgnBuilder(match_data, options, 1);
+        pgn::PgnBuilder pgn_builder = pgn::PgnBuilder(match_data, options, 1);
         CHECK(pgn_builder.get() == expected);
     }
 
@@ -166,7 +166,7 @@ Nc5 {+1.45/16, 0.310s, aborted} *
 
 )";
 
-        PgnBuilder pgn_builder = PgnBuilder(match_data, options, 1);
+        pgn::PgnBuilder pgn_builder = pgn::PgnBuilder(match_data, options, 1);
         CHECK(pgn_builder.get() == expected);
     }
 
@@ -209,7 +209,7 @@ Nc5 {+1.45/16, 0.310s, aborted} *
 
 )";
 
-        PgnBuilder pgn_builder = PgnBuilder(match_data, options, 1);
+        pgn::PgnBuilder pgn_builder = pgn::PgnBuilder(match_data, options, 1);
         CHECK(pgn_builder.get() == expected);
     }
 }

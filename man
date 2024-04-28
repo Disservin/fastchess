@@ -168,7 +168,7 @@ OPTIONS
                 10+0.1 would be 10 seconds with 100 millisecond increments.
             
             [timemargin=N]
-                Allows the engines to exceed the time limit by N milliseconds.
+                Allows the engine to exceed the time limit by N milliseconds.
                 Default value is 0.
 
             [st=ST]

@@ -15,22 +15,13 @@ using pair_config = std::pair<fast_chess::EngineConfiguration, fast_chess::Engin
 
 class Result {
    public:
-    /// @brief Updates the stats of engine1 vs engine2
-    /// @param engine1
-    /// @param engine2
-    /// @param stats
+    // Updates the stats of engine1 vs engine2
     void updateStats(const pair_config& configs, const Stats& stats) noexcept {
         std::lock_guard<std::mutex> lock(results_mutex_);
         results_[configs.first.name][configs.second.name] += stats;
     }
 
-    /// @brief Update the stats in pair batches to keep track of pentanomial stats.
-    /// @param first
-    /// @param engine1
-    /// @param engine2
-    /// @param stats
-    /// @param round_id
-    /// @return
+    // Update the stats in pair batches to keep track of pentanomial stats.
     [[nodiscard]] bool updatePairStats(const pair_config& configs, const std::string& first,
                                        const Stats& stats, uint64_t round_id) noexcept {
         std::lock_guard<std::mutex> lock(game_pair_cache_mutex_);
@@ -62,10 +53,7 @@ class Result {
         }
     }
 
-    /// @brief Stats of engine1 vs engine2, adjusted with the perspective
-    /// @param engine1
-    /// @param engine2
-    /// @return
+    // Stats of engine1 vs engine2, adjusted with the perspective
     [[nodiscard]] Stats getStats(const std::string& engine1, const std::string& engine2) noexcept {
         std::lock_guard<std::mutex> lock(results_mutex_);
 
@@ -77,22 +65,18 @@ class Result {
         return stats1 + ~stats2;
     }
 
-    /// @brief
-    /// @return
     [[nodiscard]] stats_map getResults() noexcept {
         std::lock_guard<std::mutex> lock(results_mutex_);
         return results_;
     }
 
-    /// @brief
-    /// @param results
     void setResults(const stats_map& results) noexcept {
         std::lock_guard<std::mutex> lock(results_mutex_);
         results_ = results;
     }
 
    private:
-    /// @brief tracks the engine results
+    // tracks the engine results
     stats_map results_;
     std::mutex results_mutex_;
 

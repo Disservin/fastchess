@@ -17,9 +17,8 @@ class Player {
         }
     }
 
-    /// @brief The timeout threshold for the read engine command.
-    /// This has nothing to do with the time control itself.
-    /// @return time in ms
+    // The timeout threshold for the read engine command.
+    // This has nothing to do with the time control itself.
     [[nodiscard]] std::chrono::milliseconds getTimeoutThreshold() const {
         if (engine.getConfig().limit.nodes != 0     //
             || engine.getConfig().limit.plies != 0  //
@@ -31,9 +30,8 @@ class Player {
         return std::chrono::milliseconds(time_control_.time_left + 100) /* margin*/;
     }
 
-    /// @brief remove the elapsed time from the participant's time
-    /// @param elapsed_millis
-    /// @return `false` when out of time
+    // remove the elapsed time from the participant's time control.
+    // Returns false if the time control has been exceeded.
     [[nodiscard]] bool updateTime(const int64_t elapsed_millis) {
         auto &tc = time_control_;
         if (tc.time == 0) {
@@ -55,10 +53,7 @@ class Player {
         return true;
     }
 
-    /// @brief Build the uci position input from the given moves and fen.
-    /// @param moves
-    /// @param fen
-    /// @return
+    // Build the uci position input from the given moves and fen.
     [[nodiscard]] static std::string buildPositionInput(const std::vector<std::string> &moves,
                                                         const std::string &fen) {
         std::string position = fen == "startpos" ? "position startpos" : ("position fen " + fen);
@@ -73,10 +68,7 @@ class Player {
         return position;
     }
 
-    /// @brief Build the uci go input from the given time controls.
-    /// @param stm
-    /// @param enemy_tc
-    /// @return
+    // Build the uci go input from the given time controls.
     [[nodiscard]] std::string buildGoInput(chess::Color stm, const TimeControl &enemy_tc) const {
         std::stringstream input;
         input << "go";

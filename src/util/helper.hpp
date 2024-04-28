@@ -25,45 +25,30 @@ ordered_json type conversion is not yet supported, though we only have to change
 
 namespace fast_chess::str_utils {
 
-/// @brief @todo unnecessary with c++20
-/// @param haystack
-/// @param needle
-/// @return
+// @todo unnecessary with c++20
 [[nodiscard]] inline bool startsWith(std::string_view haystack, std::string_view needle) noexcept {
     if (needle.empty()) return false;
     return (haystack.rfind(needle, 0) != std::string::npos);
 }
 
-/// @brief @todo unnecessary with c++20
-/// @param value
-/// @param ending
-/// @return
+// @todo unnecessary with c++20
 [[nodiscard]] inline bool endsWith(std::string_view value, std::string_view ending) {
     if (ending.size() > value.size()) return false;
     return std::equal(ending.rbegin(), ending.rend(), value.rbegin());
 }
 
-/// @brief Check if a string contains a substring. @todo unnecessary with c++20
-/// @param haystack
-/// @param needle
-/// @return
+// Check if a string contains a substring. @todo unnecessary with c++20
 [[nodiscard]] inline bool contains(std::string_view haystack, std::string_view needle) noexcept {
     return haystack.find(needle) != std::string::npos;
 }
 
-/// @brief Check if a vector of strings contains a string.
-/// @param haystack
-/// @param needle
-/// @return
+// Check if a vector of strings contains a string.
 [[nodiscard]] inline bool contains(const std::vector<std::string> &haystack,
                                    std::string_view needle) noexcept {
     return std::find(haystack.begin(), haystack.end(), needle) != haystack.end();
 }
 
-/// @brief Split a string into a vector of strings based on a delimiter.
-/// @param string
-/// @param delimiter
-/// @return
+// Split a string into a vector of strings based on a delimiter.
 [[nodiscard]] inline std::vector<std::string> splitString(const std::string &string,
                                                           const char &delimiter) {
     std::stringstream string_stream(string);
@@ -75,11 +60,7 @@ namespace fast_chess::str_utils {
     return seglist;
 }
 
-/// @brief Find an element in a vector of strings and return the next element as a specified type.
-/// @tparam T
-/// @param haystack
-/// @param needle
-/// @return
+// Find an element in a vector of strings and return the next element as a specified type.
 template <typename T>
 [[nodiscard]] std::optional<T> findElement(const std::vector<std::string> &haystack,
                                            std::string_view needle) {

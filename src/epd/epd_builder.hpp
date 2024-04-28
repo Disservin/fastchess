@@ -34,8 +34,7 @@ class EpdBuilder {
         epd << board.getEpd() << "\n";
     }
 
-    /// @brief Get the newly created epd
-    /// @return
+    // Get the newly created epd
     [[nodiscard]] std::string get() const noexcept { return epd.str(); }
 
    private:

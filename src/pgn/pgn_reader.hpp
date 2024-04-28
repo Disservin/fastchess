@@ -23,13 +23,10 @@ class PgnReader {
    public:
     explicit PgnReader(const std::string& pgn_file_path, int plies_limit = -1);
 
-    /// @brief
-    /// @return
     [[nodiscard]] std::vector<Opening> getOpenings();
 
    private:
-    /// @brief Extracts all pgns from the file
-    /// @return
+    // Extracts all pgns from the file
     std::vector<Opening> analyseFile();
 
     std::ifstream pgn_file_;

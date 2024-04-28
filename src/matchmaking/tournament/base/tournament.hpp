@@ -28,7 +28,7 @@ class BaseTournament {
 
     virtual void start();
 
-    /// @brief forces the tournament to stop
+    // forces the tournament to stop
     virtual void stop();
 
     [[nodiscard]] stats_map getResults() noexcept { return result_.getResults(); }
@@ -55,22 +55,17 @@ class BaseTournament {
     }
 
    protected:
-    /// @brief number of games played
+    // number of games played
     std::atomic<std::uint64_t> match_count_;
     std::uint64_t initial_matchcount_;
 
-    /// @brief creates the matches
+    // creates the matches
     virtual void create() = 0;
 
     using start_callback    = std::function<void()>;
     using finished_callback = std::function<void(const Stats &stats, const std::string &reason)>;
 
-    /// @brief play one game and write it to the pgn file
-    /// @param configs
-    /// @param start
-    /// @param finish
-    /// @param opening
-    /// @param game_id
+    // play one game and write it to the pgn file
     void playGame(const std::pair<EngineConfiguration, EngineConfiguration> &configs,
                   start_callback start, finished_callback finish, const Opening &opening,
                   std::size_t game_id);

@@ -16,7 +16,7 @@ class OpeningBook {
     OpeningBook() = default;
     explicit OpeningBook(const options::Tournament& tournament);
 
-    /// @brief Fisher-Yates / Knuth shuffle
+    // Fisher-Yates / Knuth shuffle
     void shuffle() {
         const auto shuffle = [](auto& vec) {
             for (std::size_t i = 0; i + 2 <= vec.size(); i++) {

@@ -25,21 +25,20 @@ class RoundRobin : public BaseTournament {
     explicit RoundRobin(const options::Tournament &tournament_config,
                         const std::vector<EngineConfiguration> &engine_configs);
 
-    /// @brief starts the round robin
+    // starts the round robin
     void start() override;
 
    protected:
-    /// @brief creates the matches
+    // creates the matches
     void create() override;
 
    private:
-    /// @brief update the current running sprt. SPRT Config has to be valid.
-    /// @param engine_configs
+    // update the current running sprt. SPRT Config has to be valid.
     void updateSprtStatus(const std::vector<EngineConfiguration> &engine_configs);
 
     SPRT sprt_ = SPRT();
 
-    /// @brief number of games to be played
+    // number of games to be played
     std::atomic<uint64_t> total_ = 0;
 };
 }  // namespace fast_chess

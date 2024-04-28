@@ -6,7 +6,7 @@
 
 namespace fast_chess {
 
-/// @brief Writes to a file in a thread safe manner.
+// Writes to a file in a thread safe manner.
 class FileWriter {
    public:
     FileWriter(const std::string &filename) { file_.open(filename, std::ios::app); }

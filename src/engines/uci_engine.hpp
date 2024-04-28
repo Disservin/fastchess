@@ -34,16 +34,11 @@ class UciEngine : Process {
     [[nodiscard]] bool uciok();
     [[nodiscard]] bool ucinewgame();
 
-    /// @brief Sends "isready" to the engine and waits for a response.
-    /// @param threshold
-    /// @return
+    // Sends "isready" to the engine and waits for a response.
     [[nodiscard]] bool isResponsive(std::chrono::milliseconds threshold = ping_time_);
 
-    /// @brief Waits for the engine to output the last_word or until the threshold_ms is reached.
-    /// May throw if the read fails.
-    /// @param last_word
-    /// @param threshold 0 means no timeout
-    /// @return
+    // Waits for the engine to output the last_word or until the threshold_ms is reached.
+    // May throw if the read fails.
     Process::Status readEngine(std::string_view last_word,
                                std::chrono::milliseconds threshold = ping_time_);
 
@@ -51,27 +46,22 @@ class UciEngine : Process {
 
     [[nodiscard]] std::string lastInfoLine() const;
 
-    /// @brief Writes the input to the engine. May throw if the write fails.
-    /// @param input
+    // Writes the input to the engine. May throw if the write fails.
     void writeEngine(const std::string &input);
 
     void setCpus(const std::vector<int> &cpus) { setAffinity(cpus); }
 
-    /// @brief Get the bestmove from the last output.
-    /// @return
+    // Get the bestmove from the last output.
     [[nodiscard]] std::string bestmove() const;
 
-    /// @brief Get the last info from the last output.
-    /// @return
+    // Get the last info from the last output.
     [[nodiscard]] std::vector<std::string> lastInfo() const;
 
-    /// @brief Get the last score type from the last output. cp or mate.
-    /// @return
+    // Get the last score type from the last output. cp or mate.
     [[nodiscard]] ScoreType lastScoreType() const;
 
-    /// @brief Get the last score from the last output. Becareful, mate scores are not converted. So
-    /// the score might 1, while it's actually mate 1. Always check lastScoreType() first.
-    /// @return
+    // Get the last score from the last output. Becareful, mate scores are not converted. So
+    // the score might 1, while it's actually mate 1. Always check lastScoreType() first.
     [[nodiscard]] int lastScore() const;
 
     [[nodiscard]] bool outputIncludesBestmove() const;
@@ -79,7 +69,7 @@ class UciEngine : Process {
     [[nodiscard]] const std::vector<IProcess::Line> &output() const noexcept { return output_; }
     [[nodiscard]] const EngineConfiguration &getConfig() const noexcept { return config_; }
 
-    /// @brief TODO: expose this to the user
+    // @TODO: expose this to the user
     static constexpr std::chrono::milliseconds initialize_time = std::chrono::milliseconds(60000);
     static constexpr std::chrono::milliseconds ping_time_      = std::chrono::milliseconds(
 #ifdef NDEBUG
@@ -90,7 +80,7 @@ class UciEngine : Process {
     );
 
    private:
-    /// @brief Creates a new process and starts the engine.
+    // @TODO Creates a new process and starts the engine.
     void start();
 
     void loadConfig(const EngineConfiguration &config);

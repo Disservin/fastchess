@@ -29,9 +29,9 @@ class DrawTacker {
     [[nodiscard]] bool adjudicatable() const noexcept { return draw_moves >= move_count_ * 2; }
 
    private:
-    /// @brief number of moves below the draw threshold
+    // number of moves below the draw threshold
     int draw_moves = 0;
-    /// @brief the score must be below this threshold to draw
+    // the score must be below this threshold to draw
     int draw_score = 0;
 
     // config
@@ -58,11 +58,11 @@ class ResignTracker {
     [[nodiscard]] bool resignable() const noexcept { return resign_moves >= move_count_ * 2; }
 
    private:
-    /// @brief number of moves above the resign threshold
+    // number of moves above the resign threshold
     int resign_moves = 0;
 
     // config
-    /// @brief the score muust be above this threshold to resign
+    // the score muust be above this threshold to resign
     int resign_score = 0;
     int move_count_  = 0;
 };
@@ -72,39 +72,30 @@ class Match {
     Match(const options::Tournament& tournament_config, const Opening& opening)
         : tournament_options_(tournament_config), opening_(opening) {}
 
-    /// @brief starts the match
+    // starts the match
     void start(UciEngine& engine1, UciEngine& engine2, const std::vector<int>& cpus);
 
-    /// @brief returns the match data, only valid after the match has finished
+    // returns the match data, only valid after the match has finished
     [[nodiscard]] const MatchData& get() const { return data_; }
 
    private:
     static bool isUciMove(const std::string& move) noexcept;
     void verifyPvLines(const Player& us);
 
-    /// @brief Add opening moves to played moves
+    // Add opening moves to played moves
     void prepare();
 
     static void setDraw(Player& us, Player& them) noexcept;
     static void setWin(Player& us, Player& them) noexcept;
     static void setLose(Player& us, Player& them) noexcept;
 
-    /// @brief append the move data to the match data
-    /// @param player
-    /// @param measured_time_ms
-    /// @param legal
+    // append the move data to the match data
     void addMoveData(const Player& player, int64_t measured_time_ms, bool legal);
 
-    /// @brief returns false if the next move could not be played
-    /// @param us
-    /// @param opponent
-    /// @return
+    // returns false if the next move could not be played
     [[nodiscard]] bool playMove(Player& us, Player& opponent);
 
-    /// @brief returns true if adjudicated
-    /// @param us
-    /// @param them
-    /// @return
+    // returns true if adjudicated
     [[nodiscard]] bool adjudicate(Player& us, Player& them) noexcept;
 
     [[nodiscard]] static std::string convertChessReason(const std::string& engine_name,

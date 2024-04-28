@@ -47,6 +47,8 @@ class UciEngine : Process {
     Process::Status readEngine(std::string_view last_word,
                                std::chrono::milliseconds threshold = ping_time_);
 
+    void writeLog() const;
+
     [[nodiscard]] std::string lastInfoLine() const;
 
     /// @brief Writes the input to the engine. May throw if the write fails.
@@ -74,7 +76,7 @@ class UciEngine : Process {
 
     [[nodiscard]] bool outputIncludesBestmove() const;
 
-    [[nodiscard]] const std::vector<std::string> &output() const noexcept { return output_; }
+    [[nodiscard]] const std::vector<IProcess::Line> &output() const noexcept { return output_; }
     [[nodiscard]] const EngineConfiguration &getConfig() const noexcept { return config_; }
 
     /// @brief TODO: expose this to the user
@@ -96,6 +98,6 @@ class UciEngine : Process {
 
     EngineConfiguration config_;
 
-    std::vector<std::string> output_;
+    std::vector<IProcess::Line> output_;
 };
 }  // namespace fast_chess

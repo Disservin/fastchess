@@ -88,12 +88,20 @@ Process::Status UciEngine::readEngine(std::string_view last_word,
     }
 }
 
+void UciEngine::writeLog() const {
+    for (const auto &line : output_) {
+        fast_chess::Logger::readFromEngine(line.line, config_.name,
+                                           line.std == Process::Standard::ERR);
+    }
+}
+
 std::string UciEngine::lastInfoLine() const {
     // iterate backwards over the output and save the first line
     // that contains "info depth" and score
     for (auto it = output_.rbegin(); it != output_.rend(); ++it) {
-        if (it->find("info") != std::string::npos && it->find(" score ") != std::string::npos) {
-            return *it;
+        if (it->line.find("info") != std::string::npos &&
+            it->line.find(" score ") != std::string::npos) {
+            return it->line;
         }
     }
 
@@ -112,8 +120,8 @@ void UciEngine::writeEngine(const std::string &input) {
 }
 
 std::string UciEngine::bestmove() const {
-    const auto bm = str_utils::findElement<std::string>(str_utils::splitString(output_.back(), ' '),
-                                                        "bestmove");
+    const auto bm = str_utils::findElement<std::string>(
+        str_utils::splitString(output_.back().line, ' '), "bestmove");
 
     if (!bm.has_value()) {
         Logger::log<Logger::Level::WARN>("Warning; Could not extract bestmove.");
@@ -153,7 +161,7 @@ int UciEngine::lastScore() const {
 
 bool UciEngine::outputIncludesBestmove() const {
     for (const auto &line : output_) {
-        if (line.find("bestmove") != std::string::npos) return true;
+        if (line.line.find("bestmove") != std::string::npos) return true;
     }
 
     return false;

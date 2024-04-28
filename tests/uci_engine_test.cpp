@@ -24,13 +24,13 @@ TEST_SUITE("Uci Engine Communication Tests") {
         UciEngine uci_engine = UciEngine(config);
 
         for (const auto& line : uci_engine.output()) {
-            std::cout << line << std::endl;
+            std::cout << line.line << std::endl;
         }
 
         CHECK(uci_engine.output().size() == 6);
-        CHECK(uci_engine.output()[0] == "argv[1]: arg1");
-        CHECK(uci_engine.output()[1] == "argv[2]: arg2");
-        CHECK(uci_engine.output()[2] == "argv[3]: arg3");
+        CHECK(uci_engine.output()[0].line == "argv[1]: arg1");
+        CHECK(uci_engine.output()[1].line == "argv[2]: arg2");
+        CHECK(uci_engine.output()[2].line == "argv[3]: arg3");
     }
 
     TEST_CASE("Test UciEngine Args Complex") {
@@ -49,17 +49,18 @@ TEST_SUITE("Uci Engine Communication Tests") {
         UciEngine uci_engine = UciEngine(config);
 
         for (const auto& line : uci_engine.output()) {
-            std::cout << line << std::endl;
+            std::cout << line.line << std::endl;
         }
 
         CHECK(uci_engine.output().size() == 9);
-        CHECK(uci_engine.output()[0] == "argv[1]: --backend=multiplexing");
-        CHECK(uci_engine.output()[1] ==
+        CHECK(uci_engine.output()[0].line == "argv[1]: --backend=multiplexing");
+        CHECK(uci_engine.output()[1].line ==
               "argv[2]: --backend-opts=backend=cuda-fp16,(gpu=0),(gpu=1),(gpu=2),(gpu=3)");
-        CHECK(uci_engine.output()[2] == "argv[3]: --weights=lc0/BT4-1024x15x32h-swa-6147500.pb.gz");
-        CHECK(uci_engine.output()[3] == "argv[4]: --minibatch-size=132");
-        CHECK(uci_engine.output()[4] == "argv[5]: --nncache=50000000");
-        CHECK(uci_engine.output()[5] == "argv[6]: --threads=5");
+        CHECK(uci_engine.output()[2].line ==
+              "argv[3]: --weights=lc0/BT4-1024x15x32h-swa-6147500.pb.gz");
+        CHECK(uci_engine.output()[3].line == "argv[4]: --minibatch-size=132");
+        CHECK(uci_engine.output()[4].line == "argv[5]: --nncache=50000000");
+        CHECK(uci_engine.output()[5].line == "argv[6]: --threads=5");
     }
 
     TEST_CASE("Testing the EngineProcess class") {
@@ -74,9 +75,9 @@ TEST_SUITE("Uci Engine Communication Tests") {
         UciEngine uci_engine = UciEngine(config);
 
         CHECK(uci_engine.output().size() == 6);
-        CHECK(uci_engine.output()[0] == "argv[1]: arg1");
-        CHECK(uci_engine.output()[1] == "argv[2]: arg2");
-        CHECK(uci_engine.output()[2] == "argv[3]: arg3");
+        CHECK(uci_engine.output()[0].line == "argv[1]: arg1");
+        CHECK(uci_engine.output()[1].line == "argv[2]: arg2");
+        CHECK(uci_engine.output()[2].line == "argv[3]: arg3");
 
         uci_engine.uci();
         auto uci       = uci_engine.uciok();
@@ -84,9 +85,9 @@ TEST_SUITE("Uci Engine Communication Tests") {
 
         CHECK(uci);
         CHECK(uciOutput.size() == 3);
-        CHECK(uciOutput[0] == "line0");
-        CHECK(uciOutput[1] == "line1");
-        CHECK(uciOutput[2] == "uciok");
+        CHECK(uciOutput[0].line == "line0");
+        CHECK(uciOutput[1].line == "line1");
+        CHECK(uciOutput[2].line == "uciok");
         CHECK(uci_engine.isResponsive());
 
         uci_engine.writeEngine("sleep");
@@ -97,7 +98,7 @@ TEST_SUITE("Uci Engine Communication Tests") {
         const auto res2 = uci_engine.readEngine("done", std::chrono::milliseconds(5000));
         CHECK(res2 == Process::Status::OK);
         CHECK(uci_engine.output().size() == 1);
-        CHECK(uci_engine.output()[0] == "done");
+        CHECK(uci_engine.output()[0].line == "done");
     }
 
     TEST_CASE("Testing the EngineProcess class with lower level class functions") {
@@ -114,15 +115,15 @@ TEST_SUITE("Uci Engine Communication Tests") {
 
         CHECK(res == Process::Status::OK);
         CHECK(uci_engine.output().size() == 3);
-        CHECK(uci_engine.output()[0] == "line0");
-        CHECK(uci_engine.output()[1] == "line1");
-        CHECK(uci_engine.output()[2] == "uciok");
+        CHECK(uci_engine.output()[0].line == "line0");
+        CHECK(uci_engine.output()[1].line == "line1");
+        CHECK(uci_engine.output()[2].line == "uciok");
 
         uci_engine.writeEngine("isready");
         const auto res2 = uci_engine.readEngine("readyok");
         CHECK(res2 == Process::Status::OK);
         CHECK(uci_engine.output().size() == 1);
-        CHECK(uci_engine.output()[0] == "readyok");
+        CHECK(uci_engine.output()[0].line == "readyok");
 
         uci_engine.writeEngine("sleep");
         const auto res3 = uci_engine.readEngine("done", std::chrono::milliseconds(100));
@@ -134,6 +135,6 @@ TEST_SUITE("Uci Engine Communication Tests") {
         const auto res4 = uci_engine.readEngine("done", std::chrono::milliseconds(5000));
         CHECK(res4 == Process::Status::OK);
         CHECK(uci_engine.output().size() == 1);
-        CHECK(uci_engine.output()[0] == "done");
+        CHECK(uci_engine.output()[0].line == "done");
     }
 }

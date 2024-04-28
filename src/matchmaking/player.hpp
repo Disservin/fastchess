@@ -116,9 +116,9 @@ class Player {
     chess::GameResult result = chess::GameResult::NONE;
 
    private:
-    /// @brief updated time control after each move
     const TimeControl time_control_;
 
+    /// @brief updated time control after each move
     int64_t time_left_;
 };
 

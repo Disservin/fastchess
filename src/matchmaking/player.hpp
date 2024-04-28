@@ -34,7 +34,7 @@ class Player {
     // Returns false if the time control has been exceeded.
     [[nodiscard]] bool updateTime(const int64_t elapsed_millis) {
         auto &tc = time_control_;
-        if (tc.time == 0) {
+        if (tc.time_left == 0) {
             return true;
         }
 
@@ -86,7 +86,7 @@ class Player {
             auto white = stm == chess::Color::WHITE ? time_control_ : enemy_tc;
             auto black = stm == chess::Color::WHITE ? enemy_tc : time_control_;
 
-            input << " wtime " << white.time << " btime " << black.time;
+            input << " wtime " << white.time_left << " btime " << black.time_left;
 
             if (time_control_.increment != 0) {
                 input << " winc " << white.increment << " binc " << black.increment;

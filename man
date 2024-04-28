@@ -1,4 +1,4 @@
-FAST-CHESS (alpha-0.8.0)            General Commands Manual             FAST-CHESS (alpha-0.8.0)
+FAST-CHESS (alpha-0.8.1)            General Commands Manual             FAST-CHESS (alpha-0.8.1)
 
 NAME
        fast-chess - a command-line tool for managing chess games with engines
@@ -210,4 +210,4 @@ COPYRIGHT
         This software is licensed under the MIT license. See the LICENSE file for details.
 
 VERSION
-        fast-chess version alpha-0.8.0
+        fast-chess version alpha-0.8.1

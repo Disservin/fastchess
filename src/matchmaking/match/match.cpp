@@ -175,9 +175,18 @@ bool Match::playMove(Player& us, Player& opponent) {
     us.engine.writeEngine(us.buildGoInput(board_.sideToMove(), opponent.getTimeControl()));
 
     // wait for bestmove
-    const auto t0 = clock::now();
-    us.engine.readEngine("bestmove", us.getTimeoutThreshold());
-    const auto t1 = clock::now();
+    auto t0 = clock::now();
+
+    try {
+        us.engine.readEngine("bestmove", us.getTimeoutThreshold());
+    } catch (const std::exception& e) {
+        us.engine.writeLog();
+        throw;
+    }
+
+    auto t1 = clock::now();
+
+    us.engine.writeLog();
 
     if (atomic::stop) {
         data_.termination = MatchTermination::INTERRUPT;
@@ -282,12 +291,12 @@ void Match::verifyPvLines(const Player& us) {
     };
 
     for (const auto& info : us.engine.output()) {
-        const auto tokens = str_utils::splitString(info, ' ');
+        const auto tokens = str_utils::splitString(info.line, ' ');
 
         // skip lines without pv
         if (!str_utils::contains(tokens, "pv")) continue;
 
-        verifyPv(tokens, info);
+        verifyPv(tokens, info.line);
     }
 }
 

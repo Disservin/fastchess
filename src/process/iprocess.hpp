@@ -9,6 +9,13 @@
 namespace fast_chess {
 class IProcess {
    public:
+    enum class Standard { IN, OUT, ERR };
+
+    struct Line {
+        std::string line;
+        Standard std = Standard::OUT;
+    };
+
     enum class Status { OK, ERR, TIMEOUT };
 
     virtual ~IProcess() = default;
@@ -30,7 +37,7 @@ class IProcess {
     /// @param lines
     /// @param last_word
     /// @param threshold 0 means no timeout
-    virtual Status readProcess(std::vector<std::string> &lines, std::string_view last_word,
+    virtual Status readProcess(std::vector<Line> &lines, std::string_view last_word,
                                std::chrono::milliseconds threshold) = 0;
 
     // Write input to the engine's stdin

@@ -33,6 +33,8 @@ class Process : public IProcess {
         args_     = args;
         log_name_ = log_name;
 
+        current_line_.reserve(300);
+
         pi_ = PROCESS_INFORMATION();
 
         STARTUPINFOA si = STARTUPINFOA();
@@ -116,16 +118,13 @@ class Process : public IProcess {
     /// @param lines
     /// @param last_word
     /// @param threshold 0 means no timeout
-    Status readProcess(std::vector<std::string> &lines, std::string_view last_word,
+    Status readProcess(std::vector<Line> &lines, std::string_view last_word,
                        std::chrono::milliseconds threshold) override {
         assert(is_initalized_);
 
         lines.clear();
-        lines.reserve(30);
 
         auto readFuture = std::async(std::launch::async, [this, &last_word, &lines]() {
-            std::string currentLine;
-
             char buffer[4096];
             DWORD bytesRead;
             DWORD bytesAvail = 0;
@@ -142,27 +141,23 @@ class Process : public IProcess {
                 // Iterate over each character in the buffer
                 for (DWORD i = 0; i < bytesRead; i++) {
                     // If we encounter a newline, add the current line to the vector and reset
-                    // the currentLine on Windows newlines are \r\n. Otherwise, append the
+                    // the current_line_ on Windows newlines are \r\n. Otherwise, append the
                     // character to the current line
                     if (buffer[i] != '\n' && buffer[i] != '\r') {
-                        currentLine += buffer[i];
+                        current_line_ += buffer[i];
                         continue;
                     }
 
                     // don't add empty lines
-                    if (currentLine.empty()) continue;
+                    if (current_line_.empty()) continue;
 
-                    // logging will significantly slow down the reading and lead to engine
-                    // timeouts
-                    fast_chess::Logger::readFromEngine(currentLine, log_name_);
+                    lines.emplace_back(Line{current_line, IProcess::Standard::OUT});
 
-                    lines.emplace_back(currentLine);
-
-                    if (currentLine.rfind(last_word, 0) == 0) {
+                    if (current_line_.rfind(last_word, 0) == 0) {
                         return Status::OK;
                     }
 
-                    currentLine.clear();
+                    current_line_.clear();
                 }
             }
         });
@@ -208,6 +203,8 @@ class Process : public IProcess {
     std::string command_;
     std::string args_;
     std::string log_name_;
+
+    std::string current_line_;
 
     bool is_initalized_ = false;
 

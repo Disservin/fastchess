@@ -95,7 +95,7 @@ class Process : public IProcess {
 
         is_initalized_ = true;
 
-        current_line.reserve(300);
+        current_line_.reserve(300);
 
         // Fork the current process, this makes a copy of the current process
         // and returns the process id of the child process to the parent process.
@@ -206,12 +206,12 @@ class Process : public IProcess {
     /// @param lines
     /// @param last_word
     /// @param threshold_ms 0 means no timeout
-    Status readProcess(std::vector<std::string> &lines, std::string_view last_word,
+    Status readProcess(std::vector<Line> &lines, std::string_view last_word,
                        std::chrono::milliseconds threshold) override {
         assert(is_initalized_);
 
         lines.clear();
-        current_line.clear();
+        current_line_.clear();
 
         // Set up the timeout for poll
         if (threshold.count() <= 0) {
@@ -243,7 +243,7 @@ class Process : public IProcess {
             }
             // timeout
             else if (ready == 0) {
-                lines.emplace_back(current_line);
+                lines.emplace_back(Line{current_line_, IProcess::Standard::OUT});
                 return Status::TIMEOUT;
             }
 
@@ -257,22 +257,21 @@ class Process : public IProcess {
                 for (ssize_t i = 0; i < bytesRead; i++) {
                     // append the character to the current line
                     if (buffer[i] != '\n') {
-                        current_line += buffer[i];
+                        current_line_ += buffer[i];
                         continue;
                     }
 
                     // If we encounter a newline, add the current line
-                    // to the vector and reset the current_line.
+                    // to the vector and reset the current_line_.
                     // Dont add empty lines
-                    if (!current_line.empty()) {
-                        fast_chess::Logger::readFromEngine(current_line, log_name_);
-                        lines.emplace_back(current_line);
+                    if (!current_line_.empty()) {
+                        lines.emplace_back(Line{current_line_, IProcess::Standard::OUT});
 
-                        if (current_line.rfind(last_word, 0) == 0) {
+                        if (current_line_.rfind(last_word, 0) == 0) {
                             return Status::OK;
                         }
 
-                        current_line.clear();
+                        current_line_.clear();
                     }
                 }
             }
@@ -287,18 +286,17 @@ class Process : public IProcess {
                 for (ssize_t i = 0; i < bytesRead; i++) {
                     // append the character to the current line
                     if (buffer[i] != '\n') {
-                        current_line += buffer[i];
+                        current_line_ += buffer[i];
                         continue;
                     }
 
                     // If we encounter a newline, add the current line
-                    // to the vector and reset the current_line.
+                    // to the vector and reset the current_line_.
                     // Dont add empty lines
-                    if (!current_line.empty()) {
-                        fast_chess::Logger::readFromEngine(current_line, log_name_, true);
-                        lines.emplace_back(current_line);
+                    if (!current_line_.empty()) {
+                        lines.emplace_back(Line{current_line_, IProcess::Standard::ERR});
 
-                        current_line.clear();
+                        current_line_.clear();
                     }
                 }
             }
@@ -365,7 +363,7 @@ class Process : public IProcess {
     // argvs for execv
     std::unique_ptr<char *[], ArgvDeleter> unique_argv_;
 
-    std::string current_line;
+    std::string current_line_;
 };
 
 }  // namespace fast_chess

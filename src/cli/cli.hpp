@@ -71,7 +71,7 @@ class OptionsParser {
 #else
         date >> month >> day >> year;
         if (day.length() == 1) day = "0" + day;
-        ss << year.substr(2) << months[month] << day;
+        ss << year.substr(2) << months.at(month) << day;
 #endif
 
 #ifdef GIT_SHA

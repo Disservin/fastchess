@@ -48,23 +48,24 @@ class OptionsParser {
     }
 
     static void printVersion() {
-        std::unordered_map<std::string, std::string> months({{"Jan", "01"},
-                                                             {"Feb", "02"},
-                                                             {"Mar", "03"},
-                                                             {"Apr", "04"},
-                                                             {"May", "05"},
-                                                             {"Jun", "06"},
-                                                             {"Jul", "07"},
-                                                             {"Aug", "08"},
-                                                             {"Sep", "09"},
-                                                             {"Oct", "10"},
-                                                             {"Nov", "11"},
-                                                             {"Dec", "12"}});
+        const static std::unordered_map<std::string, std::string> months(  //
+            {{"Jan", "01"},
+             {"Feb", "02"},
+             {"Mar", "03"},
+             {"Apr", "04"},
+             {"May", "05"},
+             {"Jun", "06"},
+             {"Jul", "07"},
+             {"Aug", "08"},
+             {"Sep", "09"},
+             {"Oct", "10"},
+             {"Nov", "11"},
+             {"Dec", "12"}});
 
         std::string month, day, year;
         std::stringstream ss, date(__DATE__);  // {month} {date} {year}
 
-        ss << "fast-chess alpha-0.7.0-";
+        ss << "fast-chess alpha-0.8.0-";
 #ifdef GIT_DATE
         ss << GIT_DATE;
 #else

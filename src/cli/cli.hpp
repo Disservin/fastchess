@@ -65,7 +65,7 @@ class OptionsParser {
         std::string month, day, year;
         std::stringstream ss, date(__DATE__);  // {month} {date} {year}
 
-        ss << "fast-chess alpha-0.8.1-";
+        ss << "fast-chess alpha-0.8.2-";
 #ifdef GIT_DATE
         ss << GIT_DATE;
 #else

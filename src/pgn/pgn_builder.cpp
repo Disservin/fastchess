@@ -35,7 +35,7 @@ PgnBuilder::PgnBuilder(const MatchData &match, const options::Tournament &tourna
                         ? str::to_string(white_player.config.limit.tc)
                         : str::to_string(white_player.config.limit.tc) + "; " +
                               str::to_string(black_player.config.limit.tc);
-    
+
     addHeader("Event", tournament_options.event_name);
     addHeader("Site", game_options_.site);
     addHeader("Date", match_.date);

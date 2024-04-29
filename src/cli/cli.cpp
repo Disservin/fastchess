@@ -228,7 +228,7 @@ void parseOpening(int &i, int argc, char const *argv[], ArgumentData &argument_d
             }
         } else if (key == "order") {
             argument_data.tournament_options.opening.order =
-                value == "random" ? OrderType::RANDOM : OrderType::SEQUENTIAL;
+                value == "sequential" ? OrderType::SEQUENTIAL : OrderType::RANDOM;
         } else if (key == "plies") {
             argument_data.tournament_options.opening.plies = std::stoi(value);
         } else if (key == "start") {

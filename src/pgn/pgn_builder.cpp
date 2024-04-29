@@ -37,9 +37,12 @@ PgnBuilder::PgnBuilder(const MatchData &match, const options::Tournament &tourna
                         : str::to_string(white_player.config.limit.tc) + "; " +
                               str::to_string(black_player.config.limit.tc);
 
+    std::string pgn_date = match_.date;
+    replace(pgn_date.begin(), pgn_date.end(), '-', '.');
+    
     addHeader("Event", tournament_options.event_name);
     addHeader("Site", game_options_.site);
-    addHeader("Date", replace(match_.date.begin(), match_.date.end(), '-', '.'));
+    addHeader("Date", pgn_date);
     addHeader("Round", std::to_string(round_id));
     addHeader("White", white_player.config.name);
     addHeader("Black", black_player.config.name);

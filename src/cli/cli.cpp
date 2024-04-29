@@ -115,7 +115,7 @@ void parseEngineKeyValues(EngineConfiguration &engineConfig, const std::string &
         const std::string strippedKey = key.substr(pos + 1);
         engineConfig.options.emplace_back(strippedKey, value);
     } else if (key == "proto") {
-        if (value != uci) {
+        if (value != "uci") {
             throw std::runtime_error("Error; unknown protocol");
         }
     } else

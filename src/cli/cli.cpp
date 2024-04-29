@@ -116,7 +116,7 @@ void parseEngineKeyValues(EngineConfiguration &engineConfig, const std::string &
         engineConfig.options.emplace_back(strippedKey, value);
     } else if (key == "proto") {
         if (value != "uci") {
-            throw std::runtime_error("Error; unknown protocol");
+            throw std::runtime_error("Error; unsupported protocol");
         }
     } else
         OptionsParser::throwMissing("engine", key, value);

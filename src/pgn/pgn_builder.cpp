@@ -1,6 +1,7 @@
 #include <pgn/pgn_builder.hpp>
 
 #include <iomanip>
+#include <algorithm>
 #include <sstream>
 #include <string>
 #include <string_view>
@@ -38,7 +39,7 @@ PgnBuilder::PgnBuilder(const MatchData &match, const options::Tournament &tourna
 
     addHeader("Event", tournament_options.event_name);
     addHeader("Site", game_options_.site);
-    addHeader("Date", match_.date);
+    addHeader("Date", replace(match_.date.begin(), match_.date.end(), '-', '.'));
     addHeader("Round", std::to_string(round_id));
     addHeader("White", white_player.config.name);
     addHeader("Black", black_player.config.name);

@@ -38,10 +38,10 @@ PgnBuilder::PgnBuilder(const MatchData &match, const options::Tournament &tourna
 
     addHeader("Event", tournament_options.event_name);
     addHeader("Site", game_options_.site);
+    addHeader("Date", match_.date);
     addHeader("Round", std::to_string(round_id));
     addHeader("White", white_player.config.name);
     addHeader("Black", black_player.config.name);
-    addHeader("Date", match_.date);
     addHeader("Result", getResultFromMatch(white_player, black_player));
 
     if (match_.fen != chess::constants::STARTPOS ||

@@ -1,7 +1,6 @@
 #include <pgn/pgn_builder.hpp>
 
 #include <iomanip>
-#include <algorithm>
 #include <sstream>
 #include <string>
 #include <string_view>

@@ -47,6 +47,10 @@ options::Tournament TournamentManager::fixConfig(options::Tournament config) {
   
     config.concurrency = std::min(config.concurrency, static_cast<int>(std::thread::hardware_concurrency()));
 
+    if (config.variant == VariantType::FRC && config.opening.format == FormatType::NONE) {
+        throw std::runtime_error("Error: Please specify a Chess960 opening book");
+    }
+
     if (config.opening.file.empty()) {
         Logger::log<Logger::Level::WARN>(
             "Warning: No opening book specified! Consider using one, otherwise all games will be "

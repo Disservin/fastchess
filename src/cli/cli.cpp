@@ -62,11 +62,19 @@ TimeControl parseTc(const std::string &tcString) {
     TimeControl tc;
 
     std::string remainingStringVector = tcString;
+    std::string secondtc, remainingStringVector2;
     const bool has_moves              = str_utils::contains(tcString, "/");
     const bool has_inc                = str_utils::contains(tcString, "+");
+    const bool has_secondtc           = str_utils::contains(tcString, ":");
 
+    if (has_secondtc) {
+        const auto fulltc     = str_utils::splitString(remainingStringVector, ':');
+        remainingStringVector = fulltc[0];
+        secondtc              = fulltc[1];
+    }
+  
     if (has_moves) {
-        const auto moves      = str_utils::splitString(tcString, '/');
+        const auto moves      = str_utils::splitString(remainingStringVector, '/');
         tc.moves              = std::stoi(moves[0]);
         remainingStringVector = moves[1];
     }
@@ -77,7 +85,23 @@ TimeControl parseTc(const std::string &tcString) {
         remainingStringVector = moves[0];
     }
 
-    tc.time = static_cast<int64_t>(std::stod(remainingStringVector) * 1000);
+    const bool has_moves_second              = str_utils::contains(secondtc, "/");
+    const bool has_inc_second                = str_utils::contains(secondtc, "+");
+
+    if (has_moves_second) {
+        const auto moves_second      = str_utils::splitString(remainingStringVector, '/');
+        tc.moves_second              = std::stoi(moves[0]);
+        remainingStringVector2       = moves[1];
+    }
+
+    if (has_inc_second) {
+        const auto moves_second      = str_utils::splitString(remainingStringVector, '+');
+        tc.increment_second          = static_cast<uint64_t>(std::stod(moves[1]) * 1000);
+        remainingStringVector2       = moves[0];
+    }
+  
+    tc.time        = static_cast<int64_t>(std::stod(remainingStringVector) * 1000);
+    tc.time_second = static_cast<int64_t>(std::stod(remainingStringVector2) * 1000);
 
     return tc;
 }

@@ -17,6 +17,8 @@ class Player {
         } else {
             time_control_.time_left = std::numeric_limits<std::int64_t>::max();
         }
+
+        time_control_.moves_left = time_control_.moves;
     }
 
     // The timeout threshold for the read engine command.
@@ -108,7 +110,7 @@ class Player {
             }
 
             if (time_control_.moves != 0) {
-                input << " movestogo " << time_control_.moves;
+                input << " movestogo " << time_control_.moves_left;
             }
         }
 

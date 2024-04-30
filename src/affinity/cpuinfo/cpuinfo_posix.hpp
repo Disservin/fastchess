@@ -22,6 +22,20 @@ inline CpuInfo getCpuInfo() {
     int coreId      = -1;
     int physicalId  = -1;
 
+    bool procIdFound     = false;
+    bool coreIdFound     = false;
+    bool physicalIdFound = false;
+
+    auto unset_id = [&]() {
+        coreId      = -1;
+        processorId = -1;
+        physicalId  = -1;
+
+        procIdFound     = false;
+        coreIdFound     = false;
+        physicalIdFound = false;
+    };
+
     constexpr auto extract_value = [](const std::string& line) -> int {
         size_t colonPos = line.find(':');
         if (colonPos != std::string::npos) {
@@ -35,20 +49,40 @@ inline CpuInfo getCpuInfo() {
 
     while (std::getline(cpuinfo, line)) {
         if (line.find("processor") != std::string::npos) {
+
+            // Already found process ID before, but haven't pushed
+            if (procIdFound) {
+                cpu_info.physical_cpus[physicalIdFound ? physicalId : 0]
+                        .cores[coreIdFound ? coreIdFound : 0]
+                        .processors.emplace_back(processorId);
+
+                unset_id();
+            }
+
+            procIdFound = true;
             processorId = extract_value(line);
+
         } else if (line.find("core id") != std::string::npos) {
-            coreId = extract_value(line);
+            coreId      = extract_value(line);
+            coreIdFound = true;
         } else if (line.find("physical id") != std::string::npos) {
-            physicalId = extract_value(line);
+            physicalId      = extract_value(line);
+            physicalIdFound = true;
         }
 
         if (coreId != -1 && processorId != -1 && physicalId != -1) {
             cpu_info.physical_cpus[physicalId].cores[coreId].processors.emplace_back(processorId);
 
-            coreId      = -1;
-            processorId = -1;
-            physicalId  = -1;
+            unset_id();
         }
+    }
+  
+    if (procIdFound) {
+        cpu_info.physical_cpus[physicalIdFound ? physicalId : 0]
+                .cores[coreIdFound ? coreIdFound : 0]
+                .processors.emplace_back(processorId);
+
+        unset_id();
     }
 
     return cpu_info;

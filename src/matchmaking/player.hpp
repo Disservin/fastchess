@@ -15,7 +15,7 @@ class Player {
         } else if (time_control_.time != 0) {
             time_control_.time_left = time_control_.time;
         } else {
-            time_control_.time_left = INT64_MAX;
+            time_control_.time_left = std::numeric_limits<std::int64_t>::max();
         }
     }
 

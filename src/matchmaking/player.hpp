@@ -34,10 +34,6 @@ class Player {
     // Returns false if the time control has been exceeded.
     [[nodiscard]] bool updateTime(const int64_t elapsed_millis) {
         auto &tc = time_control_;
-        if (tc.time_left == 0) {
-            return true;
-        }
-
         tc.time_left -= elapsed_millis;
 
         if (tc.time_left < -tc.timemargin) {

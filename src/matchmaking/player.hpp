@@ -12,8 +12,10 @@ class Player {
         : engine(uci_enigne), time_control_(uci_enigne.getConfig().limit.tc) {
         if (time_control_.fixed_time != 0) {
             time_control_.time_left = time_control_.fixed_time;
-        } else {
+        } else if (time_control_.time != 0) {
             time_control_.time_left = time_control_.time;
+        } else {
+            time_control_.time_left = INT64_MAX;
         }
     }
 

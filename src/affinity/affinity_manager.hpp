@@ -96,6 +96,7 @@ class AffinityManager {
                 for (const auto& processor : core.second.processors) {
                     Group group = idx % 2 == 0 ? HT_1 : HT_2;
 
+                    // this looks wrong??
                     cores_[group].emplace_back(std::vector{processor.processor_id});
 
                     idx++;

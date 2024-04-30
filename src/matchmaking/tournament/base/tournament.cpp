@@ -100,7 +100,12 @@ int BaseTournament::getMaxAffinity(const std::vector<EngineConfiguration> &confi
 
         // thread count in all configs has to be the same for affinity to work,
         // otherwise we set it to 0 and affinity is disabled
-        if (threads != first_threads) {
+        // if (threads != first_threads) {
+        //     return 0;
+        // }
+
+        // only enable for 1 thread currently
+        if (threads != 1) {
             return 0;
         }
     }

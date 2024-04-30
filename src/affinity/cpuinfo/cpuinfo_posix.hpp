@@ -54,4 +54,4 @@ inline CpuInfo getCpuInfo() {
     return cpu_info;
 }
 
-}  // namespace fast_chess
+}  // namespace fast_chess::affinity::cpu_info

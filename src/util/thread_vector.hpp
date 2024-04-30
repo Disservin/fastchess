@@ -57,4 +57,4 @@ class ThreadVector {
     std::vector<T> vec_;
 };
 
-}  // namespace fast_chess
+}  // namespace fast_chess::util

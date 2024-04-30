@@ -41,4 +41,4 @@ class EpdBuilder {
     std::stringstream epd;
 };
 
-}  // namespace fast_chess
+}  // namespace fast_chess::epd

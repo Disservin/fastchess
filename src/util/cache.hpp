@@ -52,4 +52,4 @@ class CachePool {
     std::mutex access_mutex_;
 };
 
-}  // namespace fast_chess
+}  // namespace fast_chess::util

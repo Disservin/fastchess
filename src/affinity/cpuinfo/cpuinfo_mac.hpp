@@ -23,4 +23,4 @@ inline CpuInfo getCpuInfo() noexcept {
     return cpu_info;
 }
 
-}  // namespace fast_chess
+}  // namespace fast_chess::affinity::cpu_info

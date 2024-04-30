@@ -35,4 +35,4 @@ class ScopeGuard {
     T &entry_;
 };
 
-}  // namespace fast_chess
+}  // namespace fast_chess::util

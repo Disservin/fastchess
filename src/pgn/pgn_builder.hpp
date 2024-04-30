@@ -66,4 +66,4 @@ class PgnBuilder {
     std::stringstream pgn_;
 };
 
-}  // namespace fast_chess
+}  // namespace fast_chess::pgn

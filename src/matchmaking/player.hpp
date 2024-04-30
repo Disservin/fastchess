@@ -35,6 +35,11 @@ class Player {
     // remove the elapsed time from the participant's time control.
     // Returns false if the time control has been exceeded.
     [[nodiscard]] bool updateTime(const int64_t elapsed_millis) {
+        // no time control, i.e. fixed nodes
+        if (time_control_.fixed_time == 0 || time_control_.time == 0) {
+            return true;
+        }
+
         auto &tc = time_control_;
         tc.time_left -= elapsed_millis;
 
@@ -85,7 +90,7 @@ class Player {
             auto black = stm == chess::Color::WHITE ? enemy_tc : time_control_;
 
             if (time_control_.time != 0) {
-               input << " wtime " << white.time_left << " btime " << black.time_left;
+                input << " wtime " << white.time_left << " btime " << black.time_left;
             }
 
             if (time_control_.increment != 0) {

@@ -12,8 +12,10 @@ class Player {
         : engine(uci_enigne), time_control_(uci_enigne.getConfig().limit.tc) {
         if (time_control_.fixed_time != 0) {
             time_control_.time_left = time_control_.fixed_time;
-        } else {
+        } else if (time_control_.time != 0) {
             time_control_.time_left = time_control_.time;
+        } else {
+            time_control_.time_left = std::numeric_limits<std::int64_t>::max();
         }
     }
 
@@ -34,10 +36,6 @@ class Player {
     // Returns false if the time control has been exceeded.
     [[nodiscard]] bool updateTime(const int64_t elapsed_millis) {
         auto &tc = time_control_;
-        if (tc.time_left == 0) {
-            return true;
-        }
-
         tc.time_left -= elapsed_millis;
 
         if (tc.time_left < -tc.timemargin) {
@@ -86,7 +84,9 @@ class Player {
             auto white = stm == chess::Color::WHITE ? time_control_ : enemy_tc;
             auto black = stm == chess::Color::WHITE ? enemy_tc : time_control_;
 
-            input << " wtime " << white.time_left << " btime " << black.time_left;
+            if (time_control_.time != 0) {
+               input << " wtime " << white.time_left << " btime " << black.time_left;
+            }
 
             if (time_control_.increment != 0) {
                 input << " winc " << white.increment << " binc " << black.increment;

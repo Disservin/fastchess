@@ -25,7 +25,7 @@ THIS FILE IS AUTO GENERATED DO NOT CHANGE MANUALLY.
 
 Source: https://github.com/Disservin/chess-library
 
-VERSION: 0.6.44
+VERSION: 0.6.45
 */
 
 #ifndef CHESS_HPP
@@ -4039,8 +4039,17 @@ class uci {
     /// @param uci
     /// @return
     [[nodiscard]] static Move uciToMove(const Board &board, const std::string &uci) noexcept(false) {
-        Square source   = Square(uci.substr(0, 2));
-        Square target   = Square(uci.substr(2, 2));
+        if (uci.length() < 4) {
+            return Move::NO_MOVE;
+        }
+
+        Square source = Square(uci.substr(0, 2));
+        Square target = Square(uci.substr(2, 2));
+
+        if (!source.is_valid() || !target.is_valid()) {
+            return Move::NO_MOVE;
+        }
+
         PieceType piece = board.at(source).type();
 
         // castling in chess960
@@ -4063,6 +4072,13 @@ class uci {
 
         // promotion
         if (piece == PieceType::PAWN && uci.length() == 5 && Square::back_rank(target, ~board.sideToMove())) {
+            auto promotion = PieceType(uci.substr(4, 1));
+
+            if (promotion != PieceType::QUEEN && promotion != PieceType::ROOK && promotion != PieceType::BISHOP &&
+                promotion != PieceType::KNIGHT) {
+                return Move::NO_MOVE;
+            }
+
             return Move::make<Move::PROMOTION>(source, target, PieceType(uci.substr(4, 1)));
         }
 
@@ -4070,7 +4086,7 @@ class uci {
             case 4:
                 return Move::make<Move::NORMAL>(source, target);
             default:
-                throw std::logic_error("UCI move has an unexpected length and cannot be safely converted." + uci);
+                return Move::NO_MOVE;
         }
     }
 

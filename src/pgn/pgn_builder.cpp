@@ -76,14 +76,15 @@ PgnBuilder::PgnBuilder(const MatchData &match, const options::Tournament &tourna
     bool first_move         = true;
 
     for (auto it = match_.moves.begin(); it != match_.moves.end(); ++it) {
-        const auto illegal  = !it->legal;
-        const auto n_dots   = first_move && board.sideToMove() == chess::Color::BLACK ? 3 : 1;
-        const auto last     = std::next(it) == match_.moves.end();
-        const auto move_str = addMove(board, *it, move_number, n_dots, illegal, last);
+        const auto illegal = !it->legal;
 
         if (illegal) {
             break;
         }
+
+        const auto n_dots   = first_move && board.sideToMove() == chess::Color::BLACK ? 3 : 1;
+        const auto last     = std::next(it) == match_.moves.end();
+        const auto move_str = addMove(board, *it, move_number, n_dots, illegal, last);
 
         board.makeMove(chess::uci::uciToMove(board, it->move));
 
@@ -179,4 +180,4 @@ std::string PgnBuilder::convertMatchTermination(const MatchTermination &res) noe
     }
 }
 
-}  // namespace fast_chess
+}  // namespace fast_chess::pgn

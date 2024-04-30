@@ -115,7 +115,9 @@ void parseEngineKeyValues(EngineConfiguration &engineConfig, const std::string &
         const std::string strippedKey = key.substr(pos + 1);
         engineConfig.options.emplace_back(strippedKey, value);
     } else if (key == "proto") {
-        // silently ignore
+        if (value != "uci") {
+            throw std::runtime_error("Error; unsupported protocol");
+        }
     } else
         OptionsParser::throwMissing("engine", key, value);
 }
@@ -226,7 +228,7 @@ void parseOpening(int &i, int argc, char const *argv[], ArgumentData &argument_d
             }
         } else if (key == "order") {
             argument_data.tournament_options.opening.order =
-                value == "random" ? OrderType::RANDOM : OrderType::SEQUENTIAL;
+                value == "sequential" ? OrderType::SEQUENTIAL : OrderType::RANDOM;
         } else if (key == "plies") {
             argument_data.tournament_options.opening.plies = std::stoi(value);
         } else if (key == "start") {

@@ -44,6 +44,12 @@ options::Tournament TournamentManager::fixConfig(options::Tournament config) {
     if (config.report_penta && config.output == OutputType::CUTECHESS) config.report_penta = false;
 
     if (config.report_penta && config.games != 2) config.report_penta = false;
+  
+    config.concurrency = std::min(config.concurrency, static_cast<int>(std::thread::hardware_concurrency()));
+
+    if (config.variant == VariantType::FRC && config.opening.file.empty()) {
+        throw std::runtime_error("Error: Please specify a Chess960 opening book");
+    }
 
     if (config.opening.file.empty()) {
         Logger::log<Logger::Level::WARN>(

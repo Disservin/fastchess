@@ -44,8 +44,9 @@ options::Tournament TournamentManager::fixConfig(options::Tournament config) {
     if (config.report_penta && config.output == OutputType::CUTECHESS) config.report_penta = false;
 
     if (config.report_penta && config.games != 2) config.report_penta = false;
-  
-    config.concurrency = std::min(config.concurrency, static_cast<int>(std::thread::hardware_concurrency()));
+
+    config.concurrency =
+        std::min(config.concurrency, static_cast<int>(std::thread::hardware_concurrency()));
 
     if (config.variant == VariantType::FRC && config.opening.file.empty()) {
         throw std::runtime_error("Error: Please specify a Chess960 opening book");
@@ -69,6 +70,10 @@ options::Tournament TournamentManager::fixConfig(options::Tournament config) {
 void TournamentManager::validateEngines() const {
     if (engine_configs_.size() < 2) {
         throw std::runtime_error("Error: Need at least two engines to start!");
+    }
+
+    if (engine_configs_.size() > 2) {
+        throw std::runtime_error("Error: Exceeded -engine limit! Must be 2!");
     }
 
     for (std::size_t i = 0; i < engine_configs_.size(); i++) {

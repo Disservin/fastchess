@@ -29,6 +29,8 @@ struct TimeControl {
 
     // updated time control after each move
     int64_t time_left;
+
+    int moves_left;
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(TimeControl, increment, fixed_time, time, moves,
                                                 timemargin)

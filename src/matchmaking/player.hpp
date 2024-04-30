@@ -36,6 +36,16 @@ class Player {
     // Returns false if the time control has been exceeded.
     [[nodiscard]] bool updateTime(const int64_t elapsed_millis) {
         // no time control, i.e. fixed nodes
+        if (time_control_.moves > 0) {
+            // new tc
+            if (time_control_.moves_left == 1) {
+                time_control_.moves_left = time_control_.moves;
+                time_control_.time_left += time_control_.time;
+            } else {
+                time_control_.moves_left--;
+            }
+        }
+
         if (time_control_.fixed_time == 0 && time_control_.time == 0) {
             return true;
         }

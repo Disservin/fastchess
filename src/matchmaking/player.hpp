@@ -84,7 +84,9 @@ class Player {
             auto white = stm == chess::Color::WHITE ? time_control_ : enemy_tc;
             auto black = stm == chess::Color::WHITE ? enemy_tc : time_control_;
 
-            input << " wtime " << white.time_left << " btime " << black.time_left;
+            if (time_control_.time != 0) {
+               input << " wtime " << white.time_left << " btime " << black.time_left;
+            }
 
             if (time_control_.increment != 0) {
                 input << " winc " << white.increment << " binc " << black.increment;

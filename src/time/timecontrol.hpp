@@ -1,11 +1,9 @@
 #pragma once
 
+#include <chrono>
 #include <cstdint>
 #include <iostream>
-#include <optional>
-#include <string>
 #include <tuple>
-#include <vector>
 
 #include <types/enums.hpp>
 #include <util/helper.hpp>
@@ -39,48 +37,10 @@ class TimeControl {
 
     TimeControl() = default;
 
-    TimeControl(const Limits &limits) : limits_(limits) {
-        if (limits_.fixed_time != 0) {
-            time_left_ = limits_.fixed_time;
-        } else if (limits_.time != 0) {
-            time_left_ = limits_.time;
-        } else {
-            time_left_ = std::numeric_limits<std::int64_t>::max();
-        }
-    }
+    TimeControl(const Limits &limits);
 
-    [[nodiscard]] std::chrono::milliseconds getTimeoutThreshold() const {
-        return std::chrono::milliseconds(time_left_ + 100);
-    }
-
-    [[nodiscard]] bool updateTime(const int64_t elapsed_millis) {
-        if (limits_.moves > 0) {
-            if (moves_left_ == 1) {
-                moves_left_ = limits_.moves;
-                time_left_ += limits_.time;
-            } else {
-                moves_left_--;
-            }
-        }
-
-        if (limits_.fixed_time == 0 && limits_.time == 0) {
-            return true;
-        }
-
-        time_left_ -= elapsed_millis;
-
-        if (time_left_ < -limits_.timemargin) {
-            return false;
-        }
-
-        if (time_left_ < 0) {
-            time_left_ = 0;
-        }
-
-        time_left_ += limits_.increment;
-
-        return true;
-    }
+    [[nodiscard]] std::chrono::milliseconds getTimeoutThreshold() const;
+    [[nodiscard]] bool updateTime(const int64_t elapsed_millis);
 
     [[nodiscard]] int64_t getTimeLeft() const { return time_left_; }
     [[nodiscard]] int64_t getMovesLeft() const { return moves_left_; }
@@ -118,20 +78,5 @@ class TimeControl {
     int64_t time_left_;
     int moves_left_;
 };
-
-inline std::ostream &operator<<(std::ostream &os, const TimeControl &tc) {
-    if (tc.limits_.fixed_time > 0) {
-        os << std::setprecision(8) << std::noshowpoint << tc.limits_.fixed_time / 1000.0 << "/move";
-        return os;
-    }
-
-    if (tc.limits_.moves > 0) os << tc.limits_.moves << "/";
-
-    os << (tc.limits_.time / 1000.0);
-
-    if (tc.limits_.increment > 0) os << "+" << (tc.limits_.increment / 1000.0);
-
-    return os;
-}
 
 }  // namespace fast_chess

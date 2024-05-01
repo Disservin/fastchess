@@ -61,10 +61,14 @@ std::ostream &operator<<(std::ostream &os, const TimeControl &tc) {
         os << std::setprecision(8) << std::noshowpoint << tc.limits_.fixed_time / 1000.0 << "/move";
         return os;
     }
-
+    
+    if (tc.moves == 0 && tc.time == 0 && tc.increment == 0 && tc.fixed_time == 0) {
+        os << "-";
+    }
+    
     if (tc.limits_.moves > 0) os << tc.limits_.moves << "/";
 
-    os << (tc.limits_.time / 1000.0);
+    if (tc.limits_.time > 0) os << (tc.limits_.time / 1000.0);
 
     if (tc.limits_.increment > 0) os << "+" << (tc.limits_.increment / 1000.0);
 

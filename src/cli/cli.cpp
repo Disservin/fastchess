@@ -102,7 +102,7 @@ TimeControl parseTc(const std::string &tcString) {
     }
   
     tc.time        = static_cast<int64_t>(std::stod(remainingStringVector) * 1000);
-    tc.time_second = static_cast<int64_t>(std::stod(remainingStringVector2) * 1000);
+    if (has_secondtc) tc.time_second = static_cast<int64_t>(std::stod(remainingStringVector2) * 1000);
 
     return tc;
 }

@@ -44,18 +44,32 @@ inline std::ostream &operator<<(std::ostream &os, const TimeControl &tc) {
         return os;
     }
 
+    if (tc.moves == 0 && tc.time == 0 && tc.increment == 0 && tc.fixed_time == 0) {
+        os << "-";
+    }
+
     if (tc.moves > 0) os << tc.moves << "/";
 
-    os << (tc.time / 1000.0);
+    if (tc.time > 0) os << (tc.time / 1000.0);
 
     if (tc.increment > 0) os << "+" << (tc.increment / 1000.0);
+
+    if (tc.increment_second > 0 || tc.moves_second > 0 || tc.time_second > 0) {
+        os << ":";
+    }
+
+    if (tc.moves_second > 0) os << tc.moves_second << "/";
+
+    if (tc.time_second > 0) os << (tc.time_second / 1000.0);
+
+    if (tc.increment_second > 0) os << "+" << (tc.increment_second / 1000.0);
 
     return os;
 }
 
 inline bool operator==(const TimeControl &lhs, const TimeControl &rhs) {
-    return std::tie(lhs.increment, lhs.fixed_time, lhs.time, lhs.moves, lhs.timemargin) ==
-           std::tie(rhs.increment, rhs.fixed_time, rhs.time, rhs.moves, rhs.timemargin);
+    return std::tie(lhs.increment, lhs.increment_second, lhs.fixed_time, lhs.time, lhs.time_second, lhs.moves, lhs.moves_second, lhs.timemargin) ==
+           std::tie(rhs.increment, rhs.increment_second, rhs.fixed_time, rhs.time, rhs.time_second, rhs.moves, rhs.moves_second, rhs.timemargin);
 }
 
 struct Limit {

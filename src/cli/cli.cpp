@@ -54,12 +54,12 @@ void parseValue(int &i, int argc, const char *argv[], T &optionValue) {
 }
 
 namespace engine {
-TimeControl parseTc(const std::string &tcString) {
+TimeControl::Limits parseTc(const std::string &tcString) {
     if (tcString == "infinite" || tcString == "inf") {
         return {};
     }
 
-    TimeControl tc;
+    TimeControl::Limits tc;
 
     std::string remainingStringVector = tcString;
     const bool has_moves              = str_utils::contains(tcString, "/");

@@ -491,7 +491,7 @@ void parseQuick(int &i, int argc, char const *argv[], ArgumentData &argument_dat
 }
 
 void parseAffinity(int &, int, char const *[], ArgumentData &argument_data) {
-    argument_data.tournament_options.affinity = false;
+    argument_data.tournament_options.affinity = true;
 }
 
 OptionsParser::OptionsParser(int argc, char const *argv[]) {
@@ -534,7 +534,7 @@ OptionsParser::OptionsParser(int argc, char const *argv[]) {
     addOption("variant", parseVariant);
     addOption("tournament", parseTournament);
     addOption("quick", parseQuick);
-    addOption("no-affinity", parseAffinity);
+    addOption("use-affinity", parseAffinity);
 
     parse(argc, argv);
 

@@ -129,8 +129,8 @@ OPTIONS
                 err
                 fatal
 
-        -no-affinity
-            Disable thread affinity for running multiple instances of fast-chess in parallel.
+        -use-affinity
+            Enable thread affinity for bindings engines to specific CPU cores.
 
         -report penta=(true|false)
             Reports pentanomial statistics (only for fastchess output). Defaults to true.

@@ -21,6 +21,7 @@ TimeControl::TimeControl(const Limits &limits) : limits_(limits) {
     } else {
         time_left_ = 0;
     }
+    moves_left_ = limits_.moves;
 }
 
 std::chrono::milliseconds TimeControl::getTimeoutThreshold() const {

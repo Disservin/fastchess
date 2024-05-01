@@ -83,7 +83,7 @@ TimeControl parseTc(const std::string &tcString) {
     if (has_inc) {
         const auto inc        = str_utils::splitString(remainingStringVector, '+');
         tc.increment          = static_cast<uint64_t>(std::stod(inc[1]) * 1000);
-        remainingStringVector = moves[0];
+        remainingStringVector = inc[0];
     }
 
     const bool has_moves_second              = str_utils::contains(remainingStringVector2, "/");
@@ -92,13 +92,13 @@ TimeControl parseTc(const std::string &tcString) {
     if (has_moves_second) {
         const auto moves_second      = str_utils::splitString(remainingStringVector2, '/');
         tc.moves_second              = std::stoi(moves_second[0]);
-        remainingStringVector2       = moves[1];
+        remainingStringVector2       = moves_second[1];
     }
 
     if (has_inc_second) {
         const auto inc_second        = str_utils::splitString(remainingStringVector2, '+');
         tc.increment_second          = static_cast<uint64_t>(std::stod(inc_second[1]) * 1000);
-        remainingStringVector2       = moves[0];
+        remainingStringVector2       = inc_second[0];
     }
   
     tc.time        = static_cast<int64_t>(std::stod(remainingStringVector) * 1000);

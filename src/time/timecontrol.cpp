@@ -19,7 +19,7 @@ TimeControl::TimeControl(const Limits &limits) : limits_(limits) {
     } else if (limits_.time != 0) {
         time_left_ = limits_.time;
     } else {
-        time_left_ = std::numeric_limits<std::int64_t>::max();
+        time_left_ = 0;
     }
 }
 

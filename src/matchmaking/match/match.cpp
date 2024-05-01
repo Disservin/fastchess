@@ -97,11 +97,11 @@ void Match::start(engine::UciEngine& engine1, engine::UciEngine& engine2,
     player_1.color = board_.sideToMove();
     player_2.color = ~board_.sideToMove();
 
-    player_1.engine.setCpus(cpus);
-    player_2.engine.setCpus(cpus);
-
     player_1.engine.refreshUci();
     player_2.engine.refreshUci();
+
+    player_1.engine.setCpus(cpus);
+    player_2.engine.setCpus(cpus);
 
     const auto start = clock::now();
 
@@ -122,11 +122,6 @@ void Match::start(engine::UciEngine& engine1, engine::UciEngine& engine2,
             if (!playMove(player_2, player_1)) break;
         }
     } catch (const std::exception& e) {
-        if (tournament_options_.recover)
-            data_.needs_restart = true;
-        else {
-            throw e;
-        }
     }
 
     const auto end = clock::now();

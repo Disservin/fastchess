@@ -17,13 +17,16 @@ namespace fast_chess {
 // @todo use std::chrono::milliseconds
 struct TimeControl {
     // go winc/binc, in milliseconds
-    uint64_t increment = 0;
+    uint64_t increment        = 0;
+    uint64_t increment_second = 0;
     // go movetime, in milliseconds
     int64_t fixed_time = 0;
     // go wtime/btime, in milliseconds
-    int64_t time = 0;
+    int64_t time        = 0;
+    int64_t time_second = 0;
     // go movestogo
-    int moves = 0;
+    int moves        = 0;
+    int moves_second = 0;
 
     int timemargin = 0;
 

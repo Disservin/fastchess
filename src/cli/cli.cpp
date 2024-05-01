@@ -61,7 +61,8 @@ TimeControl parseTc(const std::string &tcString) {
 
     TimeControl tc;
 
-    std::string remainingStringVector, remainingStringVector2;
+    std::string remainingStringVector = tcString; 
+    std::string remainingStringVector2;
     const bool has_secondtc           = str_utils::contains(tcString, ":");
 
     if (has_secondtc) {

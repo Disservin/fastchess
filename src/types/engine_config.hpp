@@ -35,8 +35,8 @@ struct TimeControl {
 
     int moves_left;
 };
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(TimeControl, increment, fixed_time, time, moves,
-                                                timemargin)
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(TimeControl, increment, increment_second, fixed_time, time, 
+                                                time_second, moves, moves_second, timemargin)
 
 inline std::ostream &operator<<(std::ostream &os, const TimeControl &tc) {
     if (tc.fixed_time > 0) {

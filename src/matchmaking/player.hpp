@@ -19,6 +19,12 @@ class Player {
         }
 
         time_control_.moves_left = time_control_.moves;
+
+        if (time_control_.moves_second == 0 && time_control_.inc_second == 0 && time_control_.time_second == 0) {
+            time_control_.moves_second = time_control_.moves;
+            time_control_.inc_second   = time_control_.inc;
+            time_control_.time_second  = time_control_.time;
+        }
     }
 
     // The timeout threshold for the read engine command.
@@ -41,6 +47,9 @@ class Player {
         if (time_control_.moves > 0) {
             // new tc
             if (time_control_.moves_left == 1) {
+                time_control_.moves      = time_control_.moves_second;
+                time_control_.inc        = time_control_.inc_second;
+                time_control_.time       = time_control_.time_second;
                 time_control_.moves_left = time_control_.moves;
                 time_control_.time_left += time_control_.time;
             } else {

@@ -62,21 +62,23 @@ class Player {
         } else {
             auto white = stm == chess::Color::WHITE ? time_control_ : enemy_tc;
             auto black = stm == chess::Color::WHITE ? enemy_tc : time_control_;
-
-            if (white.isTimed()) {
-                input << " wtime " << white.getTimeLeft();
+           
+            if (time_control_.isTimed()) {
+               if (white.isTimed()) {
+                   input << " wtime " << white.getTimeLeft();
+               }
+               if (black.isTimed()) {
+                   input << " btime " << black.getTimeLeft();
+               }
             }
-
-            if (black.isTimed()) {
-                input << " btime " << black.getTimeLeft();
-            }
-
-            if (white.isIncrement()) {
-                input << " winc " << white.getIncrement();
-            }
-
-            if (black.isIncrement()) {
-                input << " binc " << black.getIncrement();
+           
+            if (time_control_.isIncrement()) {
+               if (white.isIncrement()) {
+                   input << " winc " << white.getIncrement();
+               }
+               if (black.isIncrement()) {
+                   input << " binc " << black.getIncrement();
+               }
             }
 
             if (time_control_.isMoves()) {

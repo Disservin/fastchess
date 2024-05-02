@@ -202,7 +202,8 @@ Nc5 {+1.45/16, 0.310s, aborted} *
 [SetUp "1"]
 [FEN "r2qk2r/1bpp2pp/n3pn2/p2P1p2/1bP5/2N1BNP1/1PQ1PPBP/R3K2R b KQkq - 0 1"]
 [PlyCount "3"]
-[TimeControl "1/move; 0.2/move"]
+[WhiteTimeControl "1/move"]
+[BlackTimeControl "0.2/move"]
 
 1... O-O {+1.00/15, 1.321s} 2. O-O {+1.23/15, 0.430s}
 Nc5 {+1.45/16, 0.310s, aborted} *

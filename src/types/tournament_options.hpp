@@ -65,7 +65,7 @@ struct Tournament {
 
     Sprt sprt = {};
 
-    std::string event_name = "Fast Chess";
+    std::string event_name = "Fast-Chess Tournament";
     std::string site       = "?";
 
     DrawAdjudication draw     = {};

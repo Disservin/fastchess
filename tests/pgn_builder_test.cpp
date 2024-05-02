@@ -26,7 +26,7 @@ TEST_SUITE("PGN Builder Tests") {
         options::Tournament options;
         options.site = "localhost";
 
-        std::string expected = R"([Event "Fast Chess"]
+        std::string expected = R"([Event "Fast-Chess Tournament"]
 [Site "localhost"]
 [Round "1"]
 [White "engine1"]
@@ -34,7 +34,7 @@ TEST_SUITE("PGN Builder Tests") {
 [Result "1-0"]
 [FEN "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"]
 [PlyCount "4"]
-[TimeControl "0"]
+[TimeControl "-"]
 
 1. e4 {+1.00/15, 1.321s} e5 {+1.23/15, 0.430s} 2. Nf3 {+1.45/16, 0.310s}
 Nf6 {+10.15/18, 1.821s, engine2 got checkmated} 1-0
@@ -67,7 +67,7 @@ Nf6 {+10.15/18, 1.821s, engine2 got checkmated} 1-0
         options::Tournament options;
         options.site = "localhost";
 
-        std::string expected = R"([Event "Fast Chess"]
+        std::string expected = R"([Event "Fast-Chess Tournament"]
 [Site "localhost"]
 [Round "1"]
 [White "engine1"]
@@ -75,7 +75,7 @@ Nf6 {+10.15/18, 1.821s, engine2 got checkmated} 1-0
 [Result "0-1"]
 [FEN "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"]
 [PlyCount "4"]
-[TimeControl "0"]
+[TimeControl "-"]
 
 1. e4 {+1.00/15, 1.321s} e5 {+1.23/15, 0.430s} 2. Nf3 {+1.45/16, 0.310s}
 Nf6 {+10.15/18, 1.821s, engine1 got checkmated} 0-1
@@ -107,7 +107,7 @@ Nf6 {+10.15/18, 1.821s, engine1 got checkmated} 0-1
         options::Tournament options;
         options.site = "localhost";
 
-        std::string expected = R"([Event "Fast Chess"]
+        std::string expected = R"([Event "Fast-Chess Tournament"]
 [Site "localhost"]
 [Round "1"]
 [White "engine2"]
@@ -116,7 +116,7 @@ Nf6 {+10.15/18, 1.821s, engine1 got checkmated} 0-1
 [SetUp "1"]
 [FEN "r2qk2r/1bpp2pp/n3pn2/p2P1p2/1bP5/2N1BNP1/1PQ1PPBP/R3K2R b KQkq - 0 1"]
 [PlyCount "3"]
-[TimeControl "0"]
+[TimeControl "-"]
 
 1... O-O {+1.00/15, 1.321s} 2. O-O {+1.23/15, 0.430s}
 Nc5 {+1.45/16, 0.310s, aborted} *
@@ -150,7 +150,7 @@ Nc5 {+1.45/16, 0.310s, aborted} *
         options::Tournament options;
         options.site = "localhost";
 
-        std::string expected = R"([Event "Fast Chess"]
+        std::string expected = R"([Event "Fast-Chess Tournament"]
 [Site "localhost"]
 [Round "1"]
 [White "engine2"]
@@ -193,7 +193,7 @@ Nc5 {+1.45/16, 0.310s, aborted} *
         options::Tournament options;
         options.site = "localhost";
 
-        std::string expected = R"([Event "Fast Chess"]
+        std::string expected = R"([Event "Fast-Chess Tournament"]
 [Site "localhost"]
 [Round "1"]
 [White "engine2"]

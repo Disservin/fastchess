@@ -19,8 +19,9 @@ TimeControl::TimeControl(const Limits &limits) : limits_(limits) {
     } else if (limits_.time != 0) {
         time_left_ = limits_.time;
     } else {
-        time_left_ = std::numeric_limits<std::int64_t>::max();
+        time_left_ = 0;
     }
+    moves_left_ = limits_.moves;
 }
 
 std::chrono::milliseconds TimeControl::getTimeoutThreshold() const {
@@ -61,10 +62,14 @@ std::ostream &operator<<(std::ostream &os, const TimeControl &tc) {
         os << std::setprecision(8) << std::noshowpoint << tc.limits_.fixed_time / 1000.0 << "/move";
         return os;
     }
-
+    
+    if (tc.limits_.moves == 0 && tc.limits_.time == 0 && tc.limits_.increment == 0) {
+        os << "-";
+    }
+    
     if (tc.limits_.moves > 0) os << tc.limits_.moves << "/";
 
-    os << (tc.limits_.time / 1000.0);
+    if (tc.limits_.time > 0) os << (tc.limits_.time / 1000.0);
 
     if (tc.limits_.increment > 0) os << "+" << (tc.limits_.increment / 1000.0);
 

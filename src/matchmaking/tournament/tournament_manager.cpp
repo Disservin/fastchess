@@ -77,7 +77,7 @@ void TournamentManager::validateEngines() const {
     }
 
     for (std::size_t i = 0; i < engine_configs_.size(); i++) {
-        if (engine_configs_[i].name == "") {throw std::runtime_error("Error; please specify a name for each engine!");}
+        if (engine_configs_[i].name.empty()) {throw std::runtime_error("Error; please specify a name for each engine!");}
         for (std::size_t j = 0; j < i; j++) {
             if (engine_configs_[i].name == engine_configs_[j].name) {
                 throw std::runtime_error("Error: Engine with the same name are not allowed!: " +

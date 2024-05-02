@@ -24,7 +24,7 @@ BaseTournament::BaseTournament(const options::Tournament &config,
     output_             = OutputFactory::create(config);
     book_               = book::OpeningBook(config);
     cores_              = std::make_unique<affinity::AffinityManager>(config.affinity,
-                                                                      getMaxAffinity(engine_configs));
+                                                         getMaxAffinity(engine_configs));
 
     if (!config.pgn.file.empty())
         file_writer_pgn = std::make_unique<util::FileWriter>(config.pgn.file);
@@ -63,14 +63,9 @@ void BaseTournament::playGame(const std::pair<EngineConfiguration, EngineConfigu
 
     try {
         match.start(engine_one.get().get(), engine_two.get().get(), core.get().cpus);
-
-        while (match.get().needs_restart) {
-            if (atomic::stop) return;
-            match.start(engine_one.get().get(), engine_two.get().get(), core.get().cpus);
-        }
-
     } catch (const std::exception &e) {
-        Logger::log<Logger::Level::ERR>("Exception RoundRobin::playGame: " + std::string(e.what()));
+        atomic::stop = true;
+        Logger::log<Logger::Level::ERR>("Exception RoundRobin:::playGame " + std::string(e.what()));
 
         return;
     }

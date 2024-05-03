@@ -9,9 +9,9 @@
 
 namespace fast_chess {
 
-class DrawTacker {
+class DrawTracker {
    public:
-    DrawTacker(const options::Tournament& tournament_config) noexcept {
+    DrawTracker(const options::Tournament& tournament_config) noexcept {
         move_number_ = tournament_config.draw.move_number;
         move_count_  = tournament_config.draw.move_count;
         draw_score   = tournament_config.draw.score;
@@ -127,7 +127,7 @@ class Match {
     MatchData data_     = {};
     chess::Board board_ = chess::Board();
 
-    DrawTacker draw_tracker_          = DrawTacker(tournament_options_);
+    DrawTracker draw_tracker_          = DrawTracker(tournament_options_);
     ResignTracker resign_tracker_     = ResignTracker(tournament_options_);
     MaxMovesTracker maxmoves_tracker_ = MaxMovesTracker(tournament_options_);
 

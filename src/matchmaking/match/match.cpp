@@ -83,8 +83,9 @@ void Match::prepare() {
     std::transform(opening_.moves.begin(), opening_.moves.end(), std::back_inserter(data_.moves),
                    insert_move);
 
-    draw_tracker_   = DrawTacker(tournament_options_);
-    resign_tracker_ = ResignTracker(tournament_options_);
+    draw_tracker_     = DrawTacker(tournament_options_);
+    resign_tracker_   = ResignTracker(tournament_options_);
+    maxmoves_tracker_ = MaxMovesTracker(tournament_options_);
 }
 
 void Match::start(engine::UciEngine& engine1, engine::UciEngine& engine2,
@@ -215,6 +216,7 @@ bool Match::playMove(Player& us, Player& opponent) {
 
     draw_tracker_.update(us.engine.lastScore(), data_.moves.size() / 2, us.engine.lastScoreType());
     resign_tracker_.update(us.engine.lastScore(), us.engine.lastScoreType());
+    maxmoves_tracker_.update();
 
     const auto best_move = us.engine.bestmove();
     const auto move      = uci::uciToMove(board_, best_move);
@@ -320,7 +322,16 @@ bool Match::adjudicate(Player& us, Player& them) noexcept {
 
         return true;
     }
+    
+    if (tournament_options_.maxmoves.enabled && maxmoves_tracker_.maxmovesreached()) {
+        setDraw(us, them);
 
+        data_.termination = MatchTermination::ADJUDICATION;
+        data_.reason      = Match::ADJUDICATION_MSG;
+
+        return true;
+    }
+    
     if (tournament_options_.resign.enabled && resign_tracker_.resignable()) {
         data_.termination = MatchTermination::ADJUDICATION;
         data_.reason      = us.engine.getConfig().name;

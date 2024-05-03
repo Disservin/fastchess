@@ -67,8 +67,11 @@ TimeControl::Limits parseTc(const std::string &tcString) {
 
     if (has_moves) {
         const auto moves      = str_utils::splitString(tcString, '/');
-        if (moves[0] == "inf" || moves[0] == "infinite") moves[0] =  "0";
-        tc.moves              = std::stoi(moves[0]);
+        if (moves[0] == "inf" || moves[0] == "infinite"){
+            tc.moves              = 0;
+        } else {
+            tc.moves              = std::stoi(moves[0]);
+        }
         remainingStringVector = moves[1];
     }
 

@@ -68,6 +68,10 @@ OPTIONS
                 COUNT - the number of moves to make before resigning. Default value is 1.
                 SCORE - the score threshold (in centipawns) to resign at. Default value is 0.
 
+        -maxmoves N
+            Enables draw adjudication by maximum number of moves.
+            If the number of moves of the game exceeds N, the game ends in a draw.
+
         -openings file=NAME format=(epd|pgn) [order=ORDER] [plies=PLIES] [start=START]
             Specify an opening book file and its format for game starting positions.
 

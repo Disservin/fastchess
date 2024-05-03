@@ -127,7 +127,7 @@ class Match {
     MatchData data_     = {};
     chess::Board board_ = chess::Board();
 
-    DrawTracker draw_tracker_          = DrawTracker(tournament_options_);
+    DrawTracker draw_tracker_         = DrawTracker(tournament_options_);
     ResignTracker resign_tracker_     = ResignTracker(tournament_options_);
     MaxMovesTracker maxmoves_tracker_ = MaxMovesTracker(tournament_options_);
 

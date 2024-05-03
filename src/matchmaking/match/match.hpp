@@ -74,7 +74,7 @@ class MaxMovesTracker {
     }
 
     void update() noexcept {
-        max_moves++
+        max_moves++;
     }
 
     [[nodiscard]] bool maxmovesreached() const noexcept { return max_moves >= move_count_ * 2; }

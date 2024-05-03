@@ -50,6 +50,13 @@ struct DrawAdjudication {
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(DrawAdjudication, move_number, move_count, score,
                                                 enabled)
 
+struct MaxMovesAdjudication {
+    int move_count  = 1;
+
+    bool enabled = false;
+};
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(MaxMovesAdjudication, move_count)
+
 struct ResignAdjudication {
     int move_count = 1;
     int score      = 0;

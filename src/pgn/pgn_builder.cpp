@@ -31,11 +31,6 @@ PgnBuilder::PgnBuilder(const MatchData &match, const options::Tournament &tourna
                                   ? match.players.first
                                   : match.players.second;
 
-    const auto tc = white_player.config.limit.tc == black_player.config.limit.tc
-                        ? str::to_string(white_player.config.limit.tc)
-                        : str::to_string(white_player.config.limit.tc) + "; " +
-                              str::to_string(black_player.config.limit.tc);
-
     addHeader("Event", tournament_options.event_name);
     addHeader("Site", game_options_.site);
     addHeader("Date", match_.date);
@@ -59,7 +54,13 @@ PgnBuilder::PgnBuilder(const MatchData &match, const options::Tournament &tourna
     addHeader("GameEndTime", match_.end_time);
     addHeader("PlyCount", std::to_string(match_.moves.size()));
     addHeader("Termination", convertMatchTermination(match_.termination));
-    addHeader("TimeControl", tc);
+    
+    if (white_player.config.limit.tc == black_player.config.limit.tc){
+        addHeader("TimeControl", str::to_string(white_player.config.limit.tc));
+    } else {
+        addHeader("WhiteTimeControl", str::to_string(white_player.config.limit.tc));
+        addHeader("BlackTimeControl", str::to_string(black_player.config.limit.tc));
+    }
 
     pgn_ << "\n";
     // add body

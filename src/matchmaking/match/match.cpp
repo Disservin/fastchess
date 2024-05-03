@@ -83,7 +83,7 @@ void Match::prepare() {
     std::transform(opening_.moves.begin(), opening_.moves.end(), std::back_inserter(data_.moves),
                    insert_move);
 
-    draw_tracker_     = DrawTacker(tournament_options_);
+    draw_tracker_     = DrawTracker(tournament_options_);
     resign_tracker_   = ResignTracker(tournament_options_);
     maxmoves_tracker_ = MaxMovesTracker(tournament_options_);
 }

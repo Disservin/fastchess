@@ -62,7 +62,7 @@ class Player {
         } else {
             auto white = stm == chess::Color::WHITE ? time_control_ : enemy_tc;
             auto black = stm == chess::Color::WHITE ? enemy_tc : time_control_;
-           
+
             if (time_control_.isTimed()) {
                if (white.isTimed()) {
                    input << " wtime " << white.getTimeLeft();
@@ -71,7 +71,7 @@ class Player {
                    input << " btime " << black.getTimeLeft();
                }
             }
-           
+
             if (time_control_.isIncrement()) {
                if (white.isIncrement()) {
                    input << " winc " << white.getIncrement();

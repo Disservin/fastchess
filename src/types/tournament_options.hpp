@@ -63,7 +63,7 @@ struct MaxMovesAdjudication {
 
     bool enabled = false;
 };
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(MaxMovesAdjudication, move_count)
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(MaxMovesAdjudication, move_count, enabled)
 
 struct Tournament {
     Opening opening = {};

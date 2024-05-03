@@ -287,6 +287,10 @@ void parseDraw(int &i, int argc, char const *argv[], ArgumentData &argument_data
     });
 }
 
+void parseMaxMoves(int &i, int argc, char const *argv[], ArgumentData &argument_data) {
+    parseValue(i, argc, argv, argument_data.tournament_options.ratinginterval);
+}
+
 void parseResign(int &i, int argc, char const *argv[], ArgumentData &argument_data) {
     parseDashOptions(i, argc, argv, [&](const std::string &key, const std::string &value) {
         argument_data.tournament_options.resign.enabled = true;

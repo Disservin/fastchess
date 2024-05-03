@@ -70,7 +70,7 @@ OPTIONS
 
         -maxmoves N
             Enables draw adjudication by maximum number of moves.
-            If the number of moves of the game exceeds N, the game ends in a draw.
+            If the number of moves of the game reaches N, the game ends in a draw.
 
         -openings file=NAME format=(epd|pgn) [order=ORDER] [plies=PLIES] [start=START]
             Specify an opening book file and its format for game starting positions.

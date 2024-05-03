@@ -40,6 +40,7 @@ OPTIONS
             provide meaningful results.
 
         -variant VARIANT
+            standard     - play Standard Chess (default)
             fischerandom - play Fischer Random Chess
 
         -repeat
@@ -82,7 +83,7 @@ OPTIONS
             Choose the output format for game results (cutechess or fastchess).
             Default is fastchess.
 
-        -pgnout notation=(san|lan|uci) file=NAME [nodes=(true|false)] [seldepth=(true|false)] [nps=(true|false)]
+        -pgnout file=NAME notation=(san|lan|uci) [nodes=(true|false)] [seldepth=(true|false)] [nps=(true|false)]
             Export games in PGN format with specified notations and optional tracking of nodes, seldepth, and nps.
 
                 notation
@@ -90,9 +91,9 @@ OPTIONS
                     lan - Long Algebraic Notation
                     uci - Universal Chess Interface
 
-                nodes - defaults to false, track node count.
+                nodes    - defaults to false, track node count.
                 seldepth - defaults to false, track seldepth.
-                nps - defaults to false, track nps.
+                nps      - defaults to false, track nps.
 
         -epdout file=NAME
             Export the final position of each game in EPD format.
@@ -182,8 +183,11 @@ OPTIONS
             
             [depth=DEPTH]
                 Depth to search. If supported. Does the same as plies.
-            
-            [dir=DIR]
+
+            [proto=PROTOCOL]
+                Specify the communication protocol. Only supports uci.
+
+            [dir=DIRECTORY]
                 Working directory for the engine.
 
             [option.name=VALUE]

@@ -212,7 +212,7 @@ void parseEpdOut(int &i, int argc, char const *argv[], ArgumentData &argument_da
         });
     } catch (const std::exception &e) {
         i = originalI;
-        // try to read as cutechess pgnout
+        // try to read as cutechess epdout
         parseValue(i, argc, argv, argument_data.tournament_options.epd.file);
     }
 }

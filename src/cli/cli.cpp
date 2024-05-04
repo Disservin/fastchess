@@ -531,6 +531,7 @@ OptionsParser::OptionsParser(int argc, char const *argv[]) {
     addOption("recover", parseRecover);
     addOption("randomseed", parseRandomSeed);
     addOption("repeat", parseRepeat);
+    addOption("repeat 2", parseRepeat);
     addOption("variant", parseVariant);
     addOption("tournament", parseTournament);
     addOption("quick", parseQuick);

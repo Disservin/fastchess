@@ -424,8 +424,13 @@ void parseRandomSeed(int &, int, char const *[], ArgumentData &argument_data) {
     argument_data.tournament_options.randomseed = true;
 }
 
-void parseRepeat(int &, int, char const *[], ArgumentData &argument_data) {
-    argument_data.tournament_options.games = 2;
+void parseRepeat(int &i, int argc, char const *argv[], ArgumentData &argument_data) {
+    try {
+        std::string val = readUntilDash(i, argc, argv);
+        argument_data.tournament_options.games = 2;
+    } catch (const std::exception &e) {
+        argument_data.tournament_options.games = 2;
+    }
 }
 
 void parseVariant(int &i, int argc, char const *argv[], ArgumentData &argument_data) {

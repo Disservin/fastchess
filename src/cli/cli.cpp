@@ -169,11 +169,11 @@ void parsePgnOut(int &i, int argc, char const *argv[], ArgumentData &argument_da
             if (key == "file") {
                 argument_data.tournament_options.pgn.file = value;
             } else if (key == "nodes") {
-                argument_data.tournament_options.pgn.track_nodes = true;
+                argument_data.tournament_options.pgn.track_nodes = value == "true";
             } else if (key == "seldepth") {
-                argument_data.tournament_options.pgn.track_seldepth = true;
+                argument_data.tournament_options.pgn.track_seldepth = value == "true";
             } else if (key == "nps") {
-                argument_data.tournament_options.pgn.track_nps = true;
+                argument_data.tournament_options.pgn.track_nps = value == "true";
             } else if (key == "notation") {
                 if (value == "san") {
                     argument_data.tournament_options.pgn.notation = NotationType::SAN;

@@ -58,6 +58,13 @@ struct ResignAdjudication {
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(ResignAdjudication, move_count, score, enabled)
 
+struct MaxMovesAdjudication {
+    int move_count  = 1;
+
+    bool enabled = false;
+};
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(MaxMovesAdjudication, move_count, enabled)
+
 struct Tournament {
     Opening opening = {};
     Pgn pgn         = {};
@@ -68,8 +75,9 @@ struct Tournament {
     std::string event_name = "Fast-Chess Tournament";
     std::string site       = "?";
 
-    DrawAdjudication draw     = {};
-    ResignAdjudication resign = {};
+    DrawAdjudication draw         = {};
+    ResignAdjudication resign     = {};
+    MaxMovesAdjudication maxmoves = {};
 
     VariantType variant = VariantType::STANDARD;
 
@@ -95,10 +103,9 @@ struct Tournament {
     bool affinity     = false;
     bool randomseed   = false;
 };
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(Tournament, resign, draw, opening, pgn, epd, sprt,
-                                                event_name, site, output, seed, variant,
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(Tournament, resign, draw, maxmoves, opening, pgn, epd, 
+                                                sprt, event_name, site, output, seed, variant,
                                                 ratinginterval, games, rounds, concurrency,
-                                                overhead, recover, report_penta, affinity,
-                                                randomseed)
+                                                overhead, recover, report_penta, affinity, randomseed)
 
 }  // namespace fast_chess::options

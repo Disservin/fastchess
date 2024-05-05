@@ -67,14 +67,18 @@ TimeControl::Limits parseTc(const std::string &tcString) {
 
     if (has_moves) {
         const auto moves      = str_utils::splitString(tcString, '/');
-        tc.moves              = std::stoi(moves[0]);
+        if (moves[0] == "inf" || moves[0] == "infinite"){
+            tc.moves              = 0;
+        } else {
+            tc.moves              = std::stoi(moves[0]);
+        }
         remainingStringVector = moves[1];
     }
 
     if (has_inc) {
-        const auto moves      = str_utils::splitString(remainingStringVector, '+');
-        tc.increment          = static_cast<uint64_t>(std::stod(moves[1]) * 1000);
-        remainingStringVector = moves[0];
+        const auto inc      = str_utils::splitString(remainingStringVector, '+');
+        tc.increment          = static_cast<uint64_t>(std::stod(inc[1]) * 1000);
+        remainingStringVector = inc[0];
     }
 
     tc.time = static_cast<int64_t>(std::stod(remainingStringVector) * 1000);
@@ -196,13 +200,21 @@ void parsePgnOut(int &i, int argc, char const *argv[], ArgumentData &argument_da
 }
 
 void parseEpdOut(int &i, int argc, char const *argv[], ArgumentData &argument_data) {
-    parseDashOptions(i, argc, argv, [&](const std::string &key, const std::string &value) {
-        if (key == "file") {
-            argument_data.tournament_options.epd.file = value;
-        } else {
-            OptionsParser::throwMissing("epdout", key, value);
-        }
-    });
+    const auto originalI = i;
+
+    try {
+        parseDashOptions(i, argc, argv, [&](const std::string &key, const std::string &value) {
+            if (key == "file") {
+                argument_data.tournament_options.epd.file = value;
+            } else {
+                OptionsParser::throwMissing("epdout", key, value);
+            }
+        });
+    } catch (const std::exception &e) {
+        i = originalI;
+        // try to read as cutechess epdout
+        parseValue(i, argc, argv, argument_data.tournament_options.epd.file);
+    }
 }
 
 void parseOpening(int &i, int argc, char const *argv[], ArgumentData &argument_data) {

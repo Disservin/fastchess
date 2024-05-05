@@ -84,16 +84,9 @@ TimeControl::Limits parseTc(const std::string &tcString) {
   
     if (has_colon) {
         const auto colon      = str_utils::splitString(remainingStringVector, ':');
-        if (colon.size() == 2) {
-            int64_t minutes = static_cast<int64_t>(std::stod(colon[0]) * 1000);
-            int64_t seconds = static_cast<int64_t>(std::stod(colon[1]) * 1000);
-            tc.time = minutes * 60 + seconds;
-        } else {
-            int64_t hours = static_cast<int64_t>(std::stod(colon[0]) * 1000);
-            int64_t minutes = static_cast<int64_t>(std::stod(colon[1]) * 1000);
-            int64_t seconds = static_cast<int64_t>(std::stod(colon[2]) * 1000);
-            tc.time = hours * 3600 + minutes * 60 + seconds;
-        }
+        int64_t minutes = static_cast<int64_t>(std::stod(colon[0]) * 1000);
+        int64_t seconds = static_cast<int64_t>(std::stod(colon[1]) * 1000);
+        tc.time = minutes * 60 + seconds;
     } else {
         tc.time = static_cast<int64_t>(std::stod(remainingStringVector) * 1000);
     }

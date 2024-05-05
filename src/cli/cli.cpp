@@ -317,6 +317,11 @@ void parseResign(int &i, int argc, char const *argv[], ArgumentData &argument_da
     });
 }
 
+void parseMaxMoves(int &i, int argc, char const *argv[], ArgumentData &argument_data) {
+    parseValue(i, argc, argv, argument_data.tournament_options.maxmoves.move_count);
+    argument_data.tournament_options.maxmoves.enabled = true;
+}
+
 void parseLog(int &i, int argc, char const *argv[], ArgumentData &) {
     parseDashOptions(i, argc, argv, [&](const std::string &key, const std::string &value) {
         if (key == "file") {
@@ -523,6 +528,7 @@ OptionsParser::OptionsParser(int argc, char const *argv[]) {
     addOption("sprt", parseSprt);
     addOption("draw", parseDraw);
     addOption("resign", parseResign);
+    addOption("maxmoves", parseMaxMoves);
     addOption("log", parseLog);
     addOption("config", config::parseConfig);
     addOption("report", parseReport);

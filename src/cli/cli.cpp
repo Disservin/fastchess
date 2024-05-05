@@ -64,7 +64,7 @@ TimeControl::Limits parseTc(const std::string &tcString) {
     std::string remainingStringVector = tcString;
     const bool has_moves              = str_utils::contains(tcString, "/");
     const bool has_inc                = str_utils::contains(tcString, "+");
-    const bool has_colon              = str_utils::contains(tcString, ":");
+    const bool has_minutes            = str_utils::contains(tcString, ":");
 
     if (has_moves) {
         const auto moves      = str_utils::splitString(tcString, '/');
@@ -82,10 +82,10 @@ TimeControl::Limits parseTc(const std::string &tcString) {
         remainingStringVector = inc[0];
     }
   
-    if (has_colon) {
-        const auto colon      = str_utils::splitString(remainingStringVector, ':');
-        int64_t minutes = static_cast<int64_t>(std::stod(colon[0]) * 1000);
-        int64_t seconds = static_cast<int64_t>(std::stod(colon[1]) * 1000);
+    if (has_minutes) {
+        const auto minutes_string = str_utils::splitString(remainingStringVector, ':');
+        int64_t minutes = static_cast<int64_t>(std::stod(minutes_string[0]) * 1000);
+        int64_t seconds = static_cast<int64_t>(std::stod(minutes_string[1]) * 1000);
         tc.time = minutes * 60 + seconds;
     } else {
         tc.time = static_cast<int64_t>(std::stod(remainingStringVector) * 1000);

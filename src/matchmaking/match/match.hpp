@@ -9,9 +9,9 @@
 
 namespace fast_chess {
 
-class DrawTacker {
+class DrawTracker {
    public:
-    DrawTacker(const options::Tournament& tournament_config) noexcept {
+    DrawTracker(const options::Tournament& tournament_config) noexcept {
         move_number_ = tournament_config.draw.move_number;
         move_count_  = tournament_config.draw.move_count;
         draw_score   = tournament_config.draw.score;
@@ -67,6 +67,23 @@ class ResignTracker {
     int move_count_  = 0;
 };
 
+class MaxMovesTracker {
+   public:
+    MaxMovesTracker(const options::Tournament& tournament_config) noexcept {
+        move_count_  = tournament_config.maxmoves.move_count;
+    }
+
+    void update() noexcept {
+        max_moves++;
+    }
+
+    [[nodiscard]] bool maxmovesreached() const noexcept { return max_moves >= move_count_ * 2; }
+
+   private:
+    int max_moves    = 0;
+    int move_count_  = 0;
+};
+
 class Match {
    public:
     Match(const options::Tournament& tournament_config, const pgn::Opening& opening)
@@ -110,8 +127,9 @@ class Match {
     MatchData data_     = {};
     chess::Board board_ = chess::Board();
 
-    DrawTacker draw_tracker_      = DrawTacker(tournament_options_);
-    ResignTracker resign_tracker_ = ResignTracker(tournament_options_);
+    DrawTracker draw_tracker_         = DrawTracker(tournament_options_);
+    ResignTracker resign_tracker_     = ResignTracker(tournament_options_);
+    MaxMovesTracker maxmoves_tracker_ = MaxMovesTracker(tournament_options_);
 
     // start position, required for the uci position command
     // is either startpos or the fen of the opening

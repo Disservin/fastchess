@@ -441,13 +441,13 @@ void parseRandomSeed(int &, int, char const *[], ArgumentData &argument_data) {
     argument_data.tournament_options.randomseed = true;
 }
 
+bool is_number(const std::string &s) {
+    return !s.empty() && std::find_if(s.begin(), s.end(), [](unsigned char c) { return !std::isdigit(c); }) == s.end();
+}
+
 void parseRepeat(int &i, int argc, char const *argv[], ArgumentData &argument_data) {
-    try {
-        std::string val = readUntilDash(i, argc, argv);
-        argument_data.tournament_options.games = 2;
-    } catch (const std::exception &e) {
-        argument_data.tournament_options.games = 2;
-    }
+   if (is_number(argv[i])) parseValue(i, argc, argv, argument_data.tournament_options.games);
+   else argument_data.tournament_options.games = 2;
 }
 
 void parseVariant(int &i, int argc, char const *argv[], ArgumentData &argument_data) {

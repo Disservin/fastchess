@@ -21,14 +21,24 @@ RoundRobin::RoundRobin(const options::Tournament& tournament_config,
 
 void RoundRobin::start() {
     BaseTournament::start();
-    long unsigned int save_iter = 0;
-    const long unsigned int save_interval = 20;  // TODO: make this configurable via cmd args
-    // Wait for games to finish
-    while (match_count_ < total_ && !atomic::stop) {
-        if (match_count_ == save_iter) {
-            saveJson();
-            save_iter += save_interval;
+    // Check if the user wants to automatically save the results
+    const auto do_autosave = tournament_options_.autosave.enabled;
+    if (do_autosave){
+        // If autosave is enabled, save the results every save_interval games
+        const auto save_interval = tournament_options_.autosave.interval;
+        // Account for the initial matchcount
+        auto save_iter = initial_matchcount_ + save_interval;
+        // Wait for games to finish while saving the results
+        while (match_count_ < total_ && !atomic::stop) {
+            if (match_count_ >= save_iter) {
+                saveJson();
+                save_iter += save_interval;
+            }
         }
+    }
+    else{
+        // Wait for games to finish
+        while (match_count_ < total_ && !atomic::stop) {}
     }
 }
 

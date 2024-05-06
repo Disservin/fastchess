@@ -21,9 +21,17 @@ RoundRobin::RoundRobin(const options::Tournament& tournament_config,
 
 void RoundRobin::start() {
     BaseTournament::start();
-
+    long unsigned int save_iter = 0;
+    const long unsigned int save_interval = 20;  // TODO: make this configurable via cmd args
     // Wait for games to finish
     while (match_count_ < total_ && !atomic::stop) {
+        if (match_count_ == save_iter) {
+            std::cout << "match count is " << match_count_ << " saving results\n";
+            std::cout << "save iter was " << save_iter << " save interval is " << save_interval
+                      << "\n";
+            saveJson();
+            save_iter += save_interval;
+        }
     }
 }
 

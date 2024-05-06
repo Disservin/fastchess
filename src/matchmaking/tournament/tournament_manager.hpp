@@ -15,7 +15,6 @@ class TournamentManager {
     ~TournamentManager() {
         Logger::log<Logger::Level::TRACE>("Destroying tournament manager...");
         stop();
-        saveJson();
     }
 
     void start();
@@ -24,18 +23,6 @@ class TournamentManager {
     [[nodiscard]] RoundRobin *roundRobin() { return round_robin_.get(); }
 
    private:
-    void saveJson() {
-        nlohmann::ordered_json jsonfile = tournament_options_;
-        jsonfile["engines"]             = engine_configs_;
-        jsonfile["stats"]               = round_robin_->getResults();
-
-        Logger::log<Logger::Level::TRACE>("Saving results...");
-
-        std::ofstream file("config.json");
-        file << std::setw(4) << jsonfile << std::endl;
-
-        Logger::log<Logger::Level::INFO>("Saved results.");
-    }
 
     options::Tournament fixConfig(options::Tournament config);
     void validateEngines() const;

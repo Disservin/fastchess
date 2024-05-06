@@ -40,6 +40,19 @@ void BaseTournament::start() {
     create();
 }
 
+void BaseTournament::saveJson() {
+    nlohmann::ordered_json jsonfile = tournament_options_;
+    jsonfile["engines"]             = engine_configs_;
+    jsonfile["stats"]               = getResults();
+
+    Logger::log<Logger::Level::TRACE>("Saving results...");
+
+    std::ofstream file("config.json");
+    file << std::setw(4) << jsonfile << std::endl;
+
+    Logger::log<Logger::Level::INFO>("Saved results.");
+}
+
 void BaseTournament::stop() {
     Logger::log<Logger::Level::TRACE>("Stopped!");
     atomic::stop = true;

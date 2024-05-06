@@ -446,7 +446,7 @@ bool is_number(const std::string &s) {
 }
 
 void parseRepeat(int &i, int argc, char const *argv[], ArgumentData &argument_data) {
-   if (is_number(argv[i])) parseValue(i, argc, argv, argument_data.tournament_options.games);
+   if (is_number(argv[i+1])) parseValue(i, argc, argv, argument_data.tournament_options.games);
    else argument_data.tournament_options.games = 2;
 }
 

@@ -24,7 +24,7 @@ class BaseTournament {
     BaseTournament(const options::Tournament &config,
                    const std::vector<EngineConfiguration> &engine_configs);
 
-    ~BaseTournament() {
+    virtual ~BaseTournament() {
         Logger::log<Logger::Level::TRACE>("Destroying tournament...");
         saveJson();
     }

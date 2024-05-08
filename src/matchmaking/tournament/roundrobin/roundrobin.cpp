@@ -22,10 +22,9 @@ RoundRobin::RoundRobin(const options::Tournament& tournament_config,
 void RoundRobin::start() {
     BaseTournament::start();
     // Check if the user wants to automatically save the results
-    const auto do_autosave = tournament_options_.autosave.enabled;
-    if (do_autosave){
+    if (tournament_options_.autosaveinterval > 0){
         // If autosave is enabled, save the results every save_interval games
-        const auto save_interval = tournament_options_.autosave.interval;
+        const auto save_interval = tournament_options_.autosaveinterval;
         // Account for the initial matchcount
         auto save_iter = initial_matchcount_ + save_interval;
         // Wait for games to finish while saving the results

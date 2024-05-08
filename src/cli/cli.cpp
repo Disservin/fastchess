@@ -331,8 +331,7 @@ void parseMaxMoves(int &i, int argc, char const *argv[], ArgumentData &argument_
 }
 
 void parseAutoSaveInterval(int &i, int argc, char const *argv[], ArgumentData &argument_data) {
-    parseValue(i, argc, argv, argument_data.tournament_options.autosave.interval);
-    argument_data.tournament_options.autosave.enabled = argument_data.tournament_options.autosave.interval > 0;
+    parseValue(i, argc, argv, argument_data.tournament_options.autosaveinterval);
 }
 
 void parseLog(int &i, int argc, char const *argv[], ArgumentData &) {

@@ -65,13 +65,6 @@ struct MaxMovesAdjudication {
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(MaxMovesAdjudication, move_count, enabled)
 
-struct AutoSave {
-    int interval = 20;
-
-    bool enabled = true;
-};
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(AutoSave, interval, enabled)
-
 struct Tournament {
     Opening opening = {};
     Pgn pgn         = {};
@@ -85,7 +78,6 @@ struct Tournament {
     DrawAdjudication draw         = {};
     ResignAdjudication resign     = {};
     MaxMovesAdjudication maxmoves = {};
-    AutoSave autosave             = {};
 
     VariantType variant = VariantType::STANDARD;
 
@@ -99,7 +91,8 @@ struct Tournament {
 
     uint32_t seed = 951356066;
 
-    int ratinginterval = 10;
+    int ratinginterval   = 10;
+    int autosaveinterval = 20;
 
     int games       = 2;
     int rounds      = 2;
@@ -111,9 +104,9 @@ struct Tournament {
     bool affinity     = false;
     bool randomseed   = false;
 };
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(Tournament, resign, draw, maxmoves, autosave, opening, pgn, epd, 
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(Tournament, resign, draw, maxmoves, opening, pgn, epd, 
                                                 sprt, event_name, site, output, seed, variant,
-                                                ratinginterval, games, rounds, concurrency,
+                                                ratinginterval, autosaveinterval, games, rounds, concurrency,
                                                 overhead, recover, report_penta, affinity, randomseed)
 
 }  // namespace fast_chess::options

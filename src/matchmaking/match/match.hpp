@@ -27,8 +27,9 @@ class DrawTracker {
         } else {
             draw_moves = 0;
         }
-        std::string hmvc = str_utils::splitString(Fen, ' ');
-        if (hmvc == "0") draw_moves = 0;
+        std::vector<std::string> fen_vector = str_utils::splitString(Fen, ' ');
+        //reset when hmvc is 0
+        if (fen_vector[4] == "0") draw_moves = 0;
     }
 
     [[nodiscard]] bool adjudicatable() const noexcept { return draw_moves >= move_count_ * 2; }

@@ -19,8 +19,10 @@ class DrawTracker {
 
     void update(const int score, const int move_count, engine::ScoreType score_type, chess::Color color) noexcept {
         if (move_count >= move_number_ && std::abs(score) <= draw_score &&
-            score_type == engine::ScoreType::CP && (color == chess::Color::WHITE || draw_moves > 0)) {
-            draw_moves++;
+            score_type == engine::ScoreType::CP) {
+            //start increment only from odd plies
+            if (color == chess::Color::WHITE || draw_moves > 0) 
+               draw_moves++;
         } else {
             draw_moves = 0;
         }
@@ -47,9 +49,11 @@ class ResignTracker {
     }
 
     void update(const int score, engine::ScoreType score_type, chess::Color color) noexcept {
-        if ((std::abs(score) >= resign_score && (color == chess::Color::WHITE || resign_moves > 0) 
-             && score_type == engine::ScoreType::CP) || score_type == engine::ScoreType::MATE) {
-            resign_moves++;
+        if ((std::abs(score) >= resign_score && score_type == engine::ScoreType::CP) 
+           || score_type == engine::ScoreType::MATE) {
+            //start increment only from odd plies
+            if (color == chess::Color::WHITE || resign_moves > 0)
+               resign_moves++;
         } else {
             resign_moves = 0;
         }

@@ -71,10 +71,6 @@ OPTIONS
         -maxmoves N
             Enables draw adjudication by maximum number of moves.
             If the number of moves of the game reaches N, the game ends in a draw.
-        
-        -autosaveinterval N
-            Enables automatic save of the tournament state in the config.json file each N games played.
-            Setting it to 0 will disable it. Default value is 20.
 
         -openings file=NAME format=(epd|pgn) [order=ORDER] [plies=PLIES] [start=START]
             Specify an opening book file and its format for game starting positions.
@@ -109,6 +105,10 @@ OPTIONS
         -ratinginterval N
             Set the rating interval for the rating report.
             For penta reports, this is reports per N game pair. Default value is 10.
+
+        -autosaveinterval N
+            Automatically saves the tournament state to the config.json file each N games played.
+            Setting it to 0 will disable it. Default value is 20.
 
         -sprt elo0=ELO0 elo1=ELO1 alpha=ALPHA beta=BETA model=MODEL
             Set parameters for the Sequential Probability Ratio Test (SPRT).
@@ -173,8 +173,8 @@ OPTIONS
                 multiple words
 
             [tc=TC] 
-                TC uses the same format as Cute-Chess. For example,
-                10+0.1 would be 10 seconds with 100 millisecond increments.
+                TC uses the same format as Cute-Chess, which is moves/minutes:seconds+increment. For example, 
+                10+0.1 would be 10 seconds with 100 ms increment and 40/1:0 would be 40 moves every minute.
             
             [timemargin=N]
                 Allows the engine to exceed the time limit by N milliseconds.

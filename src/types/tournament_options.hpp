@@ -78,7 +78,6 @@ struct Tournament {
     DrawAdjudication draw         = {};
     ResignAdjudication resign     = {};
     MaxMovesAdjudication maxmoves = {};
-    AutoSave autosave             = {};
 
     VariantType variant = VariantType::STANDARD;
 

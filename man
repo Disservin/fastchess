@@ -173,7 +173,7 @@ OPTIONS
                 multiple words
 
             [tc=TC] 
-                TC uses the same format as Cute-Chess, which is moves/minutes:seconds+increment. For example, 
+                TC uses the same format as Cute-Chess, which is moves/minutes:seconds+increment. For example,
                 10+0.1 would be 10 seconds with 100 ms increment and 40/1:0 would be 40 moves every minute.
             
             [timemargin=N]

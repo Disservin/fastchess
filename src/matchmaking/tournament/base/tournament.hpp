@@ -24,7 +24,10 @@ class BaseTournament {
     BaseTournament(const options::Tournament &config,
                    const std::vector<EngineConfiguration> &engine_configs);
 
-    virtual ~BaseTournament() = default;
+    virtual ~BaseTournament() {
+        Logger::log<Logger::Level::TRACE>("Destroying tournament...");
+        saveJson();
+    }
 
     virtual void start();
 
@@ -55,6 +58,7 @@ class BaseTournament {
     }
 
    protected:
+    
     // number of games played
     std::atomic<std::uint64_t> match_count_;
     std::uint64_t initial_matchcount_;
@@ -64,6 +68,9 @@ class BaseTournament {
 
     using start_callback    = std::function<void()>;
     using finished_callback = std::function<void(const Stats &stats, const std::string &reason)>;
+
+    // Function to save the config file
+    void saveJson();
 
     // play one game and write it to the pgn file
     void playGame(const std::pair<EngineConfiguration, EngineConfiguration> &configs,

@@ -71,6 +71,10 @@ OPTIONS
         -maxmoves N
             Enables draw adjudication by maximum number of moves.
             If the number of moves of the game reaches N, the game ends in a draw.
+        
+        -autosaveinterval N
+            Enables automatic save of the tournament state in the config.json file each N games played.
+            Setting it to 0 will disable it. Default value is 20.
 
         -openings file=NAME format=(epd|pgn) [order=ORDER] [plies=PLIES] [start=START]
             Specify an opening book file and its format for game starting positions.

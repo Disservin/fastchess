@@ -77,9 +77,9 @@ class Player {
                 input << " movestogo " << time_control_.getMovesLeft();
             }
         }
-       
-        if (engine.getConfig().limit.plies == 0 && engine.getConfig().limit.nodes == 0
-           && !time_control_.isTimed() && !time_control_.isFixedTime())
+
+        if (engine.getConfig().limit.plies == 0 && engine.getConfig().limit.nodes == 0 &&
+            !time_control_.isTimed() && !time_control_.isFixedTime())
             input << " infinite";
 
         return input.str();

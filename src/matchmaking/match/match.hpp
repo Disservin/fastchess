@@ -70,18 +70,16 @@ class ResignTracker {
 class MaxMovesTracker {
    public:
     MaxMovesTracker(const options::Tournament& tournament_config) noexcept {
-        move_count_  = tournament_config.maxmoves.move_count;
+        move_count_ = tournament_config.maxmoves.move_count;
     }
 
-    void update() noexcept {
-        max_moves++;
-    }
+    void update() noexcept { max_moves++; }
 
     [[nodiscard]] bool maxmovesreached() const noexcept { return max_moves >= move_count_ * 2; }
 
    private:
-    int max_moves    = 0;
-    int move_count_  = 0;
+    int max_moves   = 0;
+    int move_count_ = 0;
 };
 
 class Match {

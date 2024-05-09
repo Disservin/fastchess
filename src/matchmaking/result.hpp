@@ -11,7 +11,7 @@
 namespace fast_chess {
 
 using stats_map   = std::unordered_map<std::string, std::unordered_map<std::string, Stats>>;
-using pair_config = std::pair<fast_chess::EngineConfiguration, fast_chess::EngineConfiguration>;
+using pair_config = std::pair<EngineConfiguration, EngineConfiguration>;
 
 class Result {
    public:

@@ -67,11 +67,11 @@ TimeControl::Limits parseTc(const std::string &tcString) {
     const bool has_minutes            = str_utils::contains(tcString, ":");
 
     if (has_moves) {
-        const auto moves      = str_utils::splitString(tcString, '/');
-        if (moves[0] == "inf" || moves[0] == "infinite"){
-            tc.moves              = 0;
+        const auto moves = str_utils::splitString(tcString, '/');
+        if (moves[0] == "inf" || moves[0] == "infinite") {
+            tc.moves = 0;
         } else {
-            tc.moves              = std::stoi(moves[0]);
+            tc.moves = std::stoi(moves[0]);
         }
         remainingStringVector = moves[1];
     }
@@ -81,12 +81,11 @@ TimeControl::Limits parseTc(const std::string &tcString) {
         tc.increment          = static_cast<uint64_t>(std::stod(inc[1]) * 1000);
         remainingStringVector = inc[0];
     }
-  
+
     if (has_minutes) {
         const auto clock_vector = str_utils::splitString(remainingStringVector, ':');
-        int64_t minutes = static_cast<int64_t>(std::stod(clock_vector[0]));
-        int64_t seconds = static_cast<int64_t>(std::stod(clock_vector[1]));
-        tc.time = (minutes * 60 + seconds) * 1000;
+        tc.time                 = static_cast<int64_t>(std::stod(clock_vector[0]) * 1000 * 60) +
+                  static_cast<int64_t>(std::stod(clock_vector[1]) * 1000);
     } else {
         tc.time = static_cast<int64_t>(std::stod(remainingStringVector) * 1000);
     }
@@ -454,12 +453,15 @@ void parseRandomSeed(int &, int, char const *[], ArgumentData &argument_data) {
 }
 
 bool is_number(const std::string &s) {
-    return !s.empty() && std::find_if(s.begin(), s.end(), [](unsigned char c) { return !std::isdigit(c); }) == s.end();
+    return !s.empty() && std::find_if(s.begin(), s.end(),
+                                      [](unsigned char c) { return !std::isdigit(c); }) == s.end();
 }
 
 void parseRepeat(int &i, int argc, char const *argv[], ArgumentData &argument_data) {
-   if (is_number(argv[i+1])) parseValue(i, argc, argv, argument_data.tournament_options.games);
-   else argument_data.tournament_options.games = 2;
+    if (is_number(argv[i + 1]))
+        parseValue(i, argc, argv, argument_data.tournament_options.games);
+    else
+        argument_data.tournament_options.games = 2;
 }
 
 void parseVariant(int &i, int argc, char const *argv[], ArgumentData &argument_data) {

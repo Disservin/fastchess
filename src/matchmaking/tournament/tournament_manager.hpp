@@ -23,7 +23,6 @@ class TournamentManager {
     [[nodiscard]] RoundRobin *roundRobin() { return round_robin_.get(); }
 
    private:
-
     options::Tournament fixConfig(options::Tournament config);
     void validateEngines() const;
 

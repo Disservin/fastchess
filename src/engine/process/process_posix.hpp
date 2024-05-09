@@ -29,21 +29,12 @@
 #include <util/logger/logger.hpp>
 #include <util/thread_vector.hpp>
 
+#include <argv_split.hpp>
+
 namespace fast_chess {
 extern util::ThreadVector<pid_t> process_list;
-}
 
-namespace fast_chess::engine::process {
-
-struct ArgvDeleter {
-    void operator()(char **argv) {
-        for (int i = 0; argv[i] != nullptr; ++i) {
-            delete[] argv[i];  // delete each string
-        }
-        delete[] argv;  // delete the array of pointers
-    }
-};
-
+namespace engine::process {
 class Pipes {
     int pipe_[2];
 
@@ -125,14 +116,15 @@ class Process : public IProcess {
             in_pipe_.dup2(1, STDOUT_FILENO);
             err_pipe_.dup2(1, STDERR_FILENO);
 
-            // Set the arguments for the engine
-            setArgvs(command, args);
+            argv_split parser(command);
+            parser.parse(args);
+            char *const *execv_argv = (char *const *)parser.argv();
 
             // Execute the engine, execv does not return if successful
             // If it fails, it returns -1 and we throw an exception.
             // Is the _exit(0) necessary?
             // execv is replacing the current process with the new process
-            if (execv(command.c_str(), unique_argv_.get()) == -1) {
+            if (execv(command.c_str(), execv_argv) == -1) {
                 throw std::runtime_error("Failed to execute engine");
             }
 
@@ -143,7 +135,7 @@ class Process : public IProcess {
             process_pid_ = fork_pid;
 
             // append the process to the list of running processes
-            fast_chess::process_list.push(process_pid_);
+            process_list.push(process_pid_);
         }
     }
 
@@ -184,19 +176,21 @@ class Process : public IProcess {
 
     void killProcess() {
         if (!is_initalized_) return;
-        fast_chess::process_list.remove(process_pid_);
+        process_list.remove(process_pid_);
 
         int status;
         const pid_t pid = waitpid(process_pid_, &status, WNOHANG);
 
         // lgo the status of the process
-        fast_chess::Logger::readFromEngine(signalToString(status), log_name_, true);
+        Logger::readFromEngine(signalToString(status), log_name_, true);
 
         // If the process is still running, kill it
         if (pid == 0) {
             kill(process_pid_, SIGKILL);
-            wait(NULL);
+            wait(nullptr);
         }
+
+        is_initalized_ = false;
     }
 
     void restart() override {
@@ -308,7 +302,7 @@ class Process : public IProcess {
 
     void writeProcess(const std::string &input) override {
         assert(is_initalized_);
-        fast_chess::Logger::writeToEngine(input, log_name_);
+        Logger::writeToEngine(input, log_name_);
 
         if (!alive()) {
             throw std::runtime_error("IProcess is not alive and write occured with message: " +
@@ -321,30 +315,6 @@ class Process : public IProcess {
         }
     }
 
-    void setArgvs(const std::string &command, const std::string &args) {
-        wordexp_t p;
-        p.we_offs = 0;
-
-        switch (wordexp(args.c_str(), &p, 0)) {
-            case WRDE_NOSPACE:
-                wordfree(&p);
-                break;
-        }
-
-        // +2 for the command and the nullptr
-        auto size = p.we_wordc + 2;
-
-        unique_argv_ = std::unique_ptr<char *[], ArgvDeleter>(new char *[size]);
-
-        unique_argv_.get()[0] = strdup(command.c_str());
-
-        for (size_t i = 0; i < p.we_wordc; i++) {
-            unique_argv_.get()[i + 1] = strdup(p.we_wordv[i]);
-        }
-
-        unique_argv_.get()[p.we_wordc + 1] = nullptr;
-    }
-
    private:
     // The command to execute
     std::string command_;
@@ -353,6 +323,8 @@ class Process : public IProcess {
     // The name in the log file
     std::string log_name_;
 
+    std::string current_line_;
+
     // True if the process has been initialized
     bool is_initalized_ = false;
 
@@ -360,13 +332,8 @@ class Process : public IProcess {
     pid_t process_pid_;
 
     Pipes in_pipe_ = {}, out_pipe_ = {}, err_pipe_ = {};
-
-    // argvs for execv
-    std::unique_ptr<char *[], ArgvDeleter> unique_argv_;
-
-    std::string current_line_;
 };
-
-}  // namespace fast_chess::engine::process
+}  // namespace engine::process
+}  // namespace fast_chess
 
 #endif

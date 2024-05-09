@@ -90,8 +90,7 @@ process::Status UciEngine::readEngine(std::string_view last_word,
 
 void UciEngine::writeLog() const {
     for (const auto &line : output_) {
-        fast_chess::Logger::readFromEngine(line.line, config_.name,
-                                           line.std == process::Standard::ERR);
+        Logger::readFromEngine(line.line, config_.name, line.std == process::Standard::ERR);
     }
 }
 
@@ -113,6 +112,7 @@ void UciEngine::writeEngine(const std::string &input) {
     try {
         writeProcess(input + "\n");
     } catch (const std::exception &e) {
+        std::cout << input << std::endl;
         Logger::log<Logger::Level::ERR>("Raised Exception in writeProcess\nWarning; Engine",
                                         config_.name, "disconnects");
 
@@ -121,6 +121,11 @@ void UciEngine::writeEngine(const std::string &input) {
 }
 
 std::string UciEngine::bestmove() const {
+    if (output_.empty()) {
+        Logger::log<Logger::Level::WARN>("Warning; No output from engine.");
+        return "aaaa";
+    }
+
     const auto bm = str_utils::findElement<std::string>(
         str_utils::splitString(output_.back().line, ' '), "bestmove");
 

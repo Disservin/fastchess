@@ -22,9 +22,8 @@
 
 namespace fast_chess {
 extern util::ThreadVector<HANDLE> process_list;
-}
 
-namespace fast_chess::engine::process {
+namespace engine::process {
 
 class Process : public IProcess {
    public:
@@ -70,7 +69,7 @@ class Process : public IProcess {
         child_std_out_ = child_stdout_read;
         child_std_in_  = child_stdin_write;
 
-        fast_chess::process_list.push(pi_.hProcess);
+        process_list.push(pi_.hProcess);
         is_initalized_ = true;
     }
 
@@ -89,9 +88,8 @@ class Process : public IProcess {
     }
 
     void killProcess() {
-        fast_chess::process_list.remove(pi_.hProcess);
-
         if (!is_initalized_) return;
+        process_list.remove(pi_.hProcess);
 
         try {
             DWORD exitCode = 0;
@@ -102,10 +100,7 @@ class Process : public IProcess {
                 TerminateProcess(pi_.hProcess, uExitCode);
             }
 
-            // Clean up the child process resources
-            closeHandles();
         } catch (const std::exception &e) {
-            std::cerr << e.what();
         }
 
         is_initalized_ = false;
@@ -129,7 +124,6 @@ class Process : public IProcess {
         auto readFuture = std::async(std::launch::async, [this, &last_word, &lines]() {
             char buffer[4096];
             DWORD bytesRead;
-            DWORD bytesAvail = 0;
 
             while (true) {
                 if (!ReadFile(child_std_out_, buffer, sizeof(buffer), &bytesRead, nullptr)) {
@@ -137,8 +131,6 @@ class Process : public IProcess {
                 }
 
                 if (bytesRead <= 0) continue;
-
-                bytesAvail += bytesRead;
 
                 // Iterate over each character in the buffer
                 for (DWORD i = 0; i < bytesRead; i++) {
@@ -176,7 +168,7 @@ class Process : public IProcess {
 
     void writeProcess(const std::string &input) override {
         assert(is_initalized_);
-        fast_chess::Logger::writeToEngine(input, log_name_);
+        Logger::writeToEngine(input, log_name_);
 
         if (!alive()) {
             killProcess();
@@ -202,12 +194,16 @@ class Process : public IProcess {
         }
     }
 
+    // The command to execute
     std::string command_;
+    // The arguments for the engine
     std::string args_;
+    // The name in the log file
     std::string log_name_;
 
     std::string current_line_;
 
+    // True if the process has been initialized
     bool is_initalized_ = false;
 
     PROCESS_INFORMATION pi_;
@@ -215,6 +211,7 @@ class Process : public IProcess {
     HANDLE child_std_in_;
 };
 
-}  // namespace fast_chess::engine::process
+}  // namespace engine::process
+}  // namespace fast_chess
 
 #endif

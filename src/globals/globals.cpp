@@ -39,7 +39,7 @@ void stopProcesses() {
 #endif
 }
 
-void consoleHandlerAction() { fast_chess::atomic::stop = true; }
+void consoleHandlerAction() { atomic::stop = true; }
 
 #ifdef _WIN64
 BOOL WINAPI handler(DWORD signal) {

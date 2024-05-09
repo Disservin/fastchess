@@ -25,9 +25,8 @@ void Logger::writeToEngine(const std::string &msg, const std::string &name) {
     }
 
     std::stringstream ss;
-    ss << "[" << util::time::datetime("%H:%M:%S") << "] "
-       << " <" << std::setw(3) << std::this_thread::get_id() << "> " << name << " <--- " << msg
-       << std::endl;
+    ss << "[" << util::time::datetime("%H:%M:%S") << "] " << " <" << std::setw(3)
+       << std::this_thread::get_id() << "> " << name << " <--- " << msg << std::endl;
 
     // Acquire the lock
     const std::lock_guard<std::mutex> lock(log_mutex_);
@@ -40,9 +39,9 @@ void Logger::readFromEngine(const std::string &msg, const std::string &name, boo
     }
 
     std::stringstream ss;
-    ss << "[" << util::time::datetime("%H:%M:%S") << "] "
-       << " <" << std::setw(3) << std::this_thread::get_id() << "> " << name
-       << (err ? " 1 " : " 2 ") << "---> " << msg << std::endl;
+    ss << "[" << util::time::datetime("%H:%M:%S") << "] " << " <" << std::setw(3)
+       << std::this_thread::get_id() << "> " << name << (err ? " 1 " : " 2 ") << "---> " << msg
+       << std::endl;
 
     // Acquire the lock
     const std::lock_guard<std::mutex> lock(log_mutex_);

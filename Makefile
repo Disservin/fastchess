@@ -37,9 +37,8 @@ MKDIR	  := mkdir -p
 
 ifeq ($(OS), Windows_NT)
 	uname_S  := Windows
-	LDFLAGS  := -static
-	ifneq (,$(findstring g++, $(CXX)))
-		LDFLAGS += -static-libgcc -static-libstdc++ -Wl,--no-as-needed
+	ifeq (,$(findstring g++, $(CXX)))
+		LDFLAGS  := -static -static-libgcc -static-libstdc++ -Wl,--no-as-needed
 	endif
 else
 ifeq ($(COMP), MINGW)

@@ -101,11 +101,10 @@ class Process : public IProcess {
                 TerminateProcess(pi_.hProcess, uExitCode);
             }
 
-            // Clean up the child process resources
-            closeHandles();
         } catch (const std::exception &e) {
-            // std::cerr << e.what();
         }
+
+        is_initalized_ = false;
     }
 
     void restart() override {

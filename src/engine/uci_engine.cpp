@@ -112,6 +112,7 @@ void UciEngine::writeEngine(const std::string &input) {
     try {
         writeProcess(input + "\n");
     } catch (const std::exception &e) {
+        std::cout << input << std::endl;
         Logger::log<Logger::Level::ERR>("Raised Exception in writeProcess\nWarning; Engine",
                                         config_.name, "disconnects");
 

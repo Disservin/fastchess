@@ -71,12 +71,10 @@ class Pipes {
         return pipe_[open_];
     }
 
-    void closePipes() {
+    ~Pipes() {
         close(pipe_[0]);
         close(pipe_[1]);
     }
-
-    ~Pipes() { closePipes(); }
 };
 
 class Process : public IProcess {
@@ -182,10 +180,6 @@ class Process : public IProcess {
         if (!is_initalized_) return;
         fast_chess::process_list.remove(process_pid_);
 
-        in_pipe_.closePipes();
-        out_pipe_.closePipes();
-        err_pipe_.closePipes();
-
         int status;
         const pid_t pid = waitpid(process_pid_, &status, WNOHANG);
 
@@ -197,6 +191,8 @@ class Process : public IProcess {
             kill(process_pid_, SIGKILL);
             wait(nullptr);
         }
+
+        is_initalized_ = false;
     }
 
     void restart() override {

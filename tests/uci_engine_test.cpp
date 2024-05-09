@@ -11,6 +11,15 @@ using namespace fast_chess;
 
 const std::string path = "./tests/mock/engine/";
 
+namespace {
+class MockUciEngine : public engine::UciEngine {
+   public:
+    explicit MockUciEngine(const EngineConfiguration& config) : engine::UciEngine(config) {}
+
+    void restart() { engine::UciEngine::restart(); }
+};
+}  // namespace
+
 TEST_SUITE("Uci Engine Communication Tests") {
     TEST_CASE("Test engine::UciEngine Args Simple") {
         EngineConfiguration config;
@@ -136,5 +145,35 @@ TEST_SUITE("Uci Engine Communication Tests") {
         CHECK(res4 == engine::process::Status::OK);
         CHECK(uci_engine.output().size() == 1);
         CHECK(uci_engine.output()[0].line == "done");
+    }
+
+    TEST_CASE("Restarting the engine") {
+        EngineConfiguration config;
+#ifdef _WIN64
+        config.cmd = path + "dummy_engine.exe";
+#else
+        config.cmd = path + "dummy_engine";
+#endif
+        MockUciEngine uci_engine = MockUciEngine(config);
+
+        uci_engine.writeEngine("uci");
+        const auto res = uci_engine.readEngine("uciok");
+
+        CHECK(res == engine::process::Status::OK);
+        CHECK(uci_engine.output().size() == 3);
+        CHECK(uci_engine.output()[0].line == "line0");
+        CHECK(uci_engine.output()[1].line == "line1");
+        CHECK(uci_engine.output()[2].line == "uciok");
+
+        uci_engine.restart();
+
+        uci_engine.writeEngine("uci");
+        const auto res2 = uci_engine.readEngine("uciok");
+
+        CHECK(res2 == engine::process::Status::OK);
+        CHECK(uci_engine.output().size() == 3);
+        CHECK(uci_engine.output()[0].line == "line0");
+        CHECK(uci_engine.output()[1].line == "line1");
+        CHECK(uci_engine.output()[2].line == "uciok");
     }
 }

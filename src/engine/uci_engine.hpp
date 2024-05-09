@@ -80,7 +80,6 @@ class UciEngine : process::Process {
     );
 
    private:
-    // @TODO Creates a new process and starts the engine.
     void start();
 
     void loadConfig(const EngineConfiguration &config);

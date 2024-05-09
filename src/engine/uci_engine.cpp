@@ -96,10 +96,12 @@ void UciEngine::writeLog() const {
 
 std::string UciEngine::lastInfoLine() const {
     // iterate backwards over the output and save the first line
-    // that contains "info depth" and score
+    // that contains "info", "score" and "multipv 1" if it contains multipv
     for (auto it = output_.rbegin(); it != output_.rend(); ++it) {
         if (it->line.find("info") != std::string::npos &&
-            it->line.find(" score ") != std::string::npos) {
+            it->line.find(" score ") != std::string::npos &&
+            (it->line.find(" multipv ") == std::string::npos ||
+             it->line.find(" multipv 1") != std::string::npos)) {
             return it->line;
         }
     }

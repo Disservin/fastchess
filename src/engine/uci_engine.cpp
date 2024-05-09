@@ -120,6 +120,11 @@ void UciEngine::writeEngine(const std::string &input) {
 }
 
 std::string UciEngine::bestmove() const {
+    if (output_.empty()) {
+        Logger::log<Logger::Level::WARN>("Warning; No output from engine.");
+        return "aaaa";
+    }
+
     const auto bm = str_utils::findElement<std::string>(
         str_utils::splitString(output_.back().line, ' '), "bestmove");
 

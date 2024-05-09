@@ -191,33 +191,9 @@ bool Match::playMove(Player& us, Player& opponent) {
         return false;
     }
 
-    // Time forfeit
     const auto elapsed_millis = chrono::duration_cast<chrono::milliseconds>(t1 - t0).count();
-    if (!us.updateTime(elapsed_millis)) {
-        setLose(us, opponent);
 
-        data_.termination = MatchTermination::TIMEOUT;
-        data_.reason      = name + Match::TIMEOUT_MSG;
-
-        Logger::log<Logger::Level::WARN>("Warning; Engine", name, "loses on time");
-
-        // we send a stop command to the engine to prevent it from thinking
-        // and wait for a bestmove to appear
-
-        us.engine.writeEngine("stop");
-
-        if (!us.engine.outputIncludesBestmove()) {
-            // wait for bestmove, indefinitely
-            us.engine.readEngine("bestmove", 0ms);
-        }
-
-        return false;
-    }
-
-    draw_tracker_.update(us.engine.lastScore(), data_.moves.size() / 2, us.engine.lastScoreType());
-    resign_tracker_.update(us.engine.lastScore(), us.engine.lastScoreType());
-    maxmoves_tracker_.update();
-
+    // Illegal move
     const auto best_move = us.engine.bestmove();
     const auto move      = uci::uciToMove(board_, best_move);
     const auto legal     = isLegal(move);
@@ -234,6 +210,33 @@ bool Match::playMove(Player& us, Player& opponent) {
 
         return false;
     }
+
+    // Time forfeit
+    if (!us.updateTime(elapsed_millis)) {
+        setLose(us, opponent);
+
+        data_.termination = MatchTermination::TIMEOUT;
+        data_.reason      = name + Match::TIMEOUT_MSG;
+
+        Logger::log<Logger::Level::WARN>("Warning; Engine", name, "loses on time");
+
+        // we send a stop command to the engine to prevent it from thinking
+        // and wait for a bestmove to appear
+
+        us.engine.writeEngine("stop");
+
+        if (!us.engine.outputIncludesBestmove()) {
+            // wait for bestmove, indefinitely
+            // is this a good idea? what if the engine is stuck?
+            us.engine.readEngine("bestmove", 0ms);
+        }
+
+        return false;
+    }
+
+    draw_tracker_.update(us.engine.lastScore(), data_.moves.size() / 2, us.engine.lastScoreType());
+    resign_tracker_.update(us.engine.lastScore(), us.engine.lastScoreType());
+    maxmoves_tracker_.update();
 
     board_.makeMove(move);
 

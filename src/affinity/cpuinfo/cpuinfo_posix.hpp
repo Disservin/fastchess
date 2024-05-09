@@ -23,7 +23,7 @@ inline CpuInfo getCpuInfo() {
     int physicalId  = -1;
 
     constexpr auto extract_value = [](const std::string& line) -> int {
-        size_t colonPos = line.find(':');
+        std::size_t colonPos = line.find(':');
         if (colonPos != std::string::npos) {
             return std::stoi(line.substr(colonPos + 1));
         }

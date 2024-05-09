@@ -71,10 +71,12 @@ class Pipes {
         return pipe_[open_];
     }
 
-    ~Pipes() {
+    void closePipes() {
         close(pipe_[0]);
         close(pipe_[1]);
     }
+
+    ~Pipes() { closePipes(); }
 };
 
 class Process : public IProcess {
@@ -179,6 +181,10 @@ class Process : public IProcess {
     void killProcess() {
         if (!is_initalized_) return;
         fast_chess::process_list.remove(process_pid_);
+
+        in_pipe_.closePipes();
+        out_pipe_.closePipes();
+        err_pipe_.closePipes();
 
         int status;
         const pid_t pid = waitpid(process_pid_, &status, WNOHANG);
@@ -323,6 +329,8 @@ class Process : public IProcess {
     // The name in the log file
     std::string log_name_;
 
+    std::string current_line_;
+
     // True if the process has been initialized
     bool is_initalized_ = false;
 
@@ -330,8 +338,6 @@ class Process : public IProcess {
     pid_t process_pid_;
 
     Pipes in_pipe_ = {}, out_pipe_ = {}, err_pipe_ = {};
-
-    std::string current_line_;
 };
 
 }  // namespace fast_chess::engine::process

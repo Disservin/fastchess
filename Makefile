@@ -36,12 +36,8 @@ DEPFLAGS  := -MMD -MP
 MKDIR	  := mkdir -p
 
 ifeq ($(OS), Windows_NT)
-	uname_S  := Windows
-	ifneq (,$(findstring g++,$(CXX)))
-		LDFLAGS := -static -static-libgcc -static-libstdc++ -Wl,--no-as-needed
-	else
-		LDFLAGS := -static -lstdc++
-	endif
+	uname_S := Windows
+	LDFLAGS := -static
 else
 ifeq ($(COMP), MINGW)
 	uname_S  := Windows

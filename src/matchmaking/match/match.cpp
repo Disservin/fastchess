@@ -322,7 +322,7 @@ bool Match::adjudicate(Player& us, Player& them) noexcept {
 
         return true;
     }
-    
+
     if (tournament_options_.maxmoves.enabled && maxmoves_tracker_.maxmovesreached()) {
         setDraw(us, them);
 
@@ -331,7 +331,7 @@ bool Match::adjudicate(Player& us, Player& them) noexcept {
 
         return true;
     }
-    
+
     if (tournament_options_.resign.enabled && resign_tracker_.resignable()) {
         data_.termination = MatchTermination::ADJUDICATION;
         data_.reason      = us.engine.getConfig().name;

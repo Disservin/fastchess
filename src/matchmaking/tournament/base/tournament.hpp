@@ -58,7 +58,6 @@ class BaseTournament {
     }
 
    protected:
-    
     // number of games played
     std::atomic<std::uint64_t> match_count_;
     std::uint64_t initial_matchcount_;

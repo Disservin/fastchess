@@ -129,7 +129,6 @@ class Process : public IProcess {
         auto readFuture = std::async(std::launch::async, [this, &last_word, &lines]() {
             char buffer[4096];
             DWORD bytesRead;
-            DWORD bytesAvail = 0;
 
             while (true) {
                 if (!ReadFile(child_std_out_, buffer, sizeof(buffer), &bytesRead, nullptr)) {
@@ -137,8 +136,6 @@ class Process : public IProcess {
                 }
 
                 if (bytesRead <= 0) continue;
-
-                bytesAvail += bytesRead;
 
                 // Iterate over each character in the buffer
                 for (DWORD i = 0; i < bytesRead; i++) {

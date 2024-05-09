@@ -22,6 +22,7 @@ class DrawTracker {
         if (hmvc == 0) draw_moves = 0;
         if (move_count >= move_number_ && std::abs(score) <= draw_score &&
             score_type == engine::ScoreType::CP) {
+            //start increment only from odd plies
             if (color == chess::Color::WHITE || draw_moves > 0) 
                draw_moves++;
         } else {

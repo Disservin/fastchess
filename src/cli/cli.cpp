@@ -84,9 +84,8 @@ TimeControl::Limits parseTc(const std::string &tcString) {
   
     if (has_minutes) {
         const auto clock_vector = str_utils::splitString(remainingStringVector, ':');
-        int64_t minutes = static_cast<int64_t>(std::stod(clock_vector[0]));
-        int64_t seconds = static_cast<int64_t>(std::stod(clock_vector[1]));
-        tc.time = (minutes * 60 + seconds) * 1000;
+        tc.time = static_cast<int64_t>(std::stod(clock_vector[0]) * 1000 * 60) +
+                  static_cast<int64_t>(std::stod(clock_vector[1]) * 1000);
     } else {
         tc.time = static_cast<int64_t>(std::stod(remainingStringVector) * 1000);
     }

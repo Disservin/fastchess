@@ -11,7 +11,7 @@
 
 namespace fast_chess {
 
-using pair_config = std::pair<fast_chess::EngineConfiguration, fast_chess::EngineConfiguration>;
+using pair_config = std::pair<EngineConfiguration, EngineConfiguration>;
 
 // Interface for outputting current tournament state to the user.
 class IOutput {

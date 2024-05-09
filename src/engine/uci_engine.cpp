@@ -90,8 +90,7 @@ process::Status UciEngine::readEngine(std::string_view last_word,
 
 void UciEngine::writeLog() const {
     for (const auto &line : output_) {
-        fast_chess::Logger::readFromEngine(line.line, config_.name,
-                                           line.std == process::Standard::ERR);
+        Logger::readFromEngine(line.line, config_.name, line.std == process::Standard::ERR);
     }
 }
 

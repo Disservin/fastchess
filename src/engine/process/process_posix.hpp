@@ -33,10 +33,8 @@
 
 namespace fast_chess {
 extern util::ThreadVector<pid_t> process_list;
-}
 
-namespace fast_chess::engine::process {
-
+namespace engine::process {
 class Pipes {
     int pipe_[2];
 
@@ -137,7 +135,7 @@ class Process : public IProcess {
             process_pid_ = fork_pid;
 
             // append the process to the list of running processes
-            fast_chess::process_list.push(process_pid_);
+            process_list.push(process_pid_);
         }
     }
 
@@ -178,13 +176,13 @@ class Process : public IProcess {
 
     void killProcess() {
         if (!is_initalized_) return;
-        fast_chess::process_list.remove(process_pid_);
+        process_list.remove(process_pid_);
 
         int status;
         const pid_t pid = waitpid(process_pid_, &status, WNOHANG);
 
         // lgo the status of the process
-        fast_chess::Logger::readFromEngine(signalToString(status), log_name_, true);
+        Logger::readFromEngine(signalToString(status), log_name_, true);
 
         // If the process is still running, kill it
         if (pid == 0) {
@@ -304,7 +302,7 @@ class Process : public IProcess {
 
     void writeProcess(const std::string &input) override {
         assert(is_initalized_);
-        fast_chess::Logger::writeToEngine(input, log_name_);
+        Logger::writeToEngine(input, log_name_);
 
         if (!alive()) {
             throw std::runtime_error("IProcess is not alive and write occured with message: " +
@@ -335,7 +333,7 @@ class Process : public IProcess {
 
     Pipes in_pipe_ = {}, out_pipe_ = {}, err_pipe_ = {};
 };
-
-}  // namespace fast_chess::engine::process
+}  // namespace engine::process
+}  // namespace fast_chess
 
 #endif

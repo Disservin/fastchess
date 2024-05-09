@@ -22,9 +22,8 @@
 
 namespace fast_chess {
 extern util::ThreadVector<HANDLE> process_list;
-}
 
-namespace fast_chess::engine::process {
+namespace engine::process {
 
 class Process : public IProcess {
    public:
@@ -70,7 +69,7 @@ class Process : public IProcess {
         child_std_out_ = child_stdout_read;
         child_std_in_  = child_stdin_write;
 
-        fast_chess::process_list.push(pi_.hProcess);
+        process_list.push(pi_.hProcess);
         is_initalized_ = true;
     }
 
@@ -90,7 +89,7 @@ class Process : public IProcess {
 
     void killProcess() {
         if (!is_initalized_) return;
-        fast_chess::process_list.remove(pi_.hProcess);
+        process_list.remove(pi_.hProcess);
 
         try {
             DWORD exitCode = 0;
@@ -169,7 +168,7 @@ class Process : public IProcess {
 
     void writeProcess(const std::string &input) override {
         assert(is_initalized_);
-        fast_chess::Logger::writeToEngine(input, log_name_);
+        Logger::writeToEngine(input, log_name_);
 
         if (!alive()) {
             killProcess();
@@ -212,6 +211,7 @@ class Process : public IProcess {
     HANDLE child_std_in_;
 };
 
-}  // namespace fast_chess::engine::process
+}  // namespace engine::process
+}  // namespace fast_chess
 
 #endif

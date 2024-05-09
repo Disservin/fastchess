@@ -89,9 +89,8 @@ class Process : public IProcess {
     }
 
     void killProcess() {
-        fast_chess::process_list.remove(pi_.hProcess);
-
         if (!is_initalized_) return;
+        fast_chess::process_list.remove(pi_.hProcess);
 
         try {
             DWORD exitCode = 0;
@@ -102,10 +101,7 @@ class Process : public IProcess {
                 TerminateProcess(pi_.hProcess, uExitCode);
             }
 
-            // Clean up the child process resources
-            closeHandles();
         } catch (const std::exception &e) {
-            std::cerr << e.what();
         }
 
         is_initalized_ = false;
@@ -199,12 +195,16 @@ class Process : public IProcess {
         }
     }
 
+    // The command to execute
     std::string command_;
+    // The arguments for the engine
     std::string args_;
+    // The name in the log file
     std::string log_name_;
 
     std::string current_line_;
 
+    // True if the process has been initialized
     bool is_initalized_ = false;
 
     PROCESS_INFORMATION pi_;

@@ -17,7 +17,7 @@ namespace fast_chess::engine {
 
 enum class ScoreType { CP, MATE, ERR };
 
-class UciEngine : process::Process {
+class UciEngine : protected process::Process {
    public:
     explicit UciEngine(const EngineConfiguration &config) {
         loadConfig(config);

@@ -191,6 +191,8 @@ class Process : public IProcess {
             kill(process_pid_, SIGKILL);
             wait(nullptr);
         }
+
+        is_initalized_ = false;
     }
 
     void restart() override {
@@ -323,6 +325,8 @@ class Process : public IProcess {
     // The name in the log file
     std::string log_name_;
 
+    std::string current_line_;
+
     // True if the process has been initialized
     bool is_initalized_ = false;
 
@@ -330,8 +334,6 @@ class Process : public IProcess {
     pid_t process_pid_;
 
     Pipes in_pipe_ = {}, out_pipe_ = {}, err_pipe_ = {};
-
-    std::string current_line_;
 };
 
 }  // namespace fast_chess::engine::process

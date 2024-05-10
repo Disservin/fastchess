@@ -37,8 +37,10 @@ MKDIR	  := mkdir -p
 
 ifeq ($(OS), Windows_NT)
 	uname_S  := Windows
-	ifeq (,$(findstring g++, $(CXX)))
-		LDFLAGS  := -static -static-libgcc -static-libstdc++ -Wl,--no-as-needed
+	ifneq (,$(findstring g++,$(CXX)))
+		LDFLAGS = -static -static-libgcc -static-libstdc++ -Wl,--no-as-needed
+	else
+		LDFLAGS =
 	endif
 else
 ifeq ($(COMP), MINGW)
@@ -124,7 +126,7 @@ $(TARGET): $(OBJECTS)
 	$(CXX) $(CXXFLAGS) $(NATIVE) $(INC) $(DEPFLAGS) -o $@ $^ $(LDFLAGS)
 
 $(BUILDDIR)/%.o: %.cpp | build_directories
-	$(CXX) $(CXXFLAGS) $(NATIVE) $(INC) $(DEPFLAGS) -c $< -o $@ $(LDFLAGS)
+	$(CXX) $(CXXFLAGS) $(NATIVE) $(INC) $(DEPFLAGS) -c $< -o $@
 
 build_directories:
 	@$(MKDIR) $(BUILDDIR)

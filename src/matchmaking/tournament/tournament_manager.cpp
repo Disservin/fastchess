@@ -64,6 +64,8 @@ options::Tournament TournamentManager::fixConfig(options::Tournament config) {
             "All games will be played from the starting position.");
     }
 
+    if (config.ratinginterval == 0) config.ratinginterval = std::numeric_limits<int>::max();
+  
     return config;
 }
 

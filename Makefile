@@ -53,7 +53,7 @@ ifeq ($(build), debug)
 endif
 
 ifeq ($(build), release)
-	LDFLAGS  := -lpthread -static -static-libgcc -static-libstdc++ -Wl,--no-as-needed
+	LDFLAGS  := -lpthread -static
 	NATIVE   := -march=x86-64
 endif
 

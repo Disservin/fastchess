@@ -51,10 +51,12 @@ void OpeningBook::setup(const std::string& file, FormatType type) {
 
 pgn::Opening OpeningBook::fetch() noexcept {
     static uint64_t opening_index = 0;
-    const auto idx                = start_ - 1 + opening_index++ + matchcount_ / games_;
-    const auto book_size          = std::holds_alternative<epd_book>(book_)
-                                        ? std::get<epd_book>(book_).size()
-                                        : std::get<pgn_book>(book_).size();
+
+    // - 1 because start starts at 1 in the opening options
+    const auto idx       = start_ - 1 + opening_index++ + matchcount_ / games_;
+    const auto book_size = std::holds_alternative<epd_book>(book_)
+                               ? std::get<epd_book>(book_).size()
+                               : std::get<pgn_book>(book_).size();
 
     if (book_size == 0) {
         return {chess::constants::STARTPOS, {}};

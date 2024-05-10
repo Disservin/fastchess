@@ -12,7 +12,7 @@ struct Opening {
     FormatType format = FormatType::NONE;
     OrderType order   = OrderType::RANDOM;
     int plies         = -1;
-    int start         = 0;
+    int start         = 1;
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(Opening, file, format, order, plies, start)
 

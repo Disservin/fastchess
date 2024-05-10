@@ -36,8 +36,8 @@ DEPFLAGS  := -MMD -MP
 MKDIR	  := mkdir -p
 
 ifeq ($(OS), Windows_NT)
-	uname_S := Windows
-	LDFLAGS := -static
+	uname_S  := Windows
+	LDFLAGS  := -static
 else
 ifeq ($(COMP), MINGW)
 	uname_S  := Windows

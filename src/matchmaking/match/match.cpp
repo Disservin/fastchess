@@ -234,13 +234,13 @@ bool Match::playMove(Player& us, Player& opponent) {
         return false;
     }
 
+    resign_tracker_.update(us.engine.lastScore(), us.engine.lastScoreType());
     maxmoves_tracker_.update();
 
     board_.makeMove(move);
 
     draw_tracker_.update(us.engine.lastScore(), board_.fullMoveNumber(), us.engine.lastScoreType(), 
                          board_.halfMoveClock());
-    resign_tracker_.update(us.engine.lastScore(), us.engine.lastScoreType());
     return !adjudicate(us, opponent);
 }
 

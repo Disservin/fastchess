@@ -18,7 +18,7 @@ class DrawTracker {
     }
 
     void update(const int score, const std::uint32_t move_count, engine::ScoreType score_type, 
-                std::uint32_t hmvc) noexcept {
+                const std::uint32_t hmvc) noexcept {
         if (hmvc == 0) draw_moves = 0;
         if (move_count >= move_number_ && std::abs(score) <= draw_score &&
             score_type == engine::ScoreType::CP) {

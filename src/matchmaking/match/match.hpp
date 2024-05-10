@@ -49,7 +49,7 @@ class ResignTracker {
     }
 
     void update(const int score, engine::ScoreType score_type) noexcept {
-        if ((std::abs(score) >= resign_score && score_type == engine::ScoreType::CP) || 
+        if ((std::abs(score) >= resign_score && score_type == engine::ScoreType::CP) ||
             score_type == engine::ScoreType::MATE) {
             resign_moves++;
         } else {

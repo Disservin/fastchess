@@ -251,7 +251,9 @@ void parseOpening(int &i, int argc, char const *argv[], ArgumentData &argument_d
         } else if (key == "plies") {
             argument_data.tournament_options.opening.plies = std::stoi(value);
         } else if (key == "start") {
-            argument_data.tournament_options.opening.start = std::stoi(value);
+            argument_data.tournament_options.opening.start = std::stoi(value) - 1;
+            if (argument_data.tournament_options.opening.start < 1)
+                throw std::runtime_error("Starting offset must be at least 1!");
         } else {
             OptionsParser::throwMissing("openings", key, value);
         }

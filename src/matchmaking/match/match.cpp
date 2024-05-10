@@ -238,7 +238,7 @@ bool Match::playMove(Player& us, Player& opponent) {
 
     board_.makeMove(move);
 
-    draw_tracker_.update(us.engine.lastScore(), data_.moves.size() / 2, us.engine.lastScoreType(), 
+    draw_tracker_.update(us.engine.lastScore(), board_.fullMoveNumber(), us.engine.lastScoreType(), 
                          board_.halfMoveClock());
     resign_tracker_.update(us.engine.lastScore(), us.engine.lastScoreType());
     return !adjudicate(us, opponent);

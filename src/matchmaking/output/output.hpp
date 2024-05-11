@@ -28,6 +28,10 @@ class IOutput {
         std::cout << "--------------------------------------------------\n";
     };
 
+    // Print current H2H result stats.
+    virtual void printResult(const Stats& stats, const std::string& first,
+                             const std::string& second) = 0;
+
     // Print current H2H elo stats.
     virtual void printElo(const Stats& stats, const std::string& first,
                           const std::string& second) = 0;

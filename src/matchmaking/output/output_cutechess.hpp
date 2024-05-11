@@ -42,6 +42,8 @@ class Cutechess : public IOutput {
                   const std::string& second) override {
         const elo::EloWDL elo(stats);
 
+         //get rid of unused parameter compiler warning
+        if (false) std::cout << first << second;
         std::stringstream ss;
         ss << "Elo difference: "    //
            << elo.getElo()          //

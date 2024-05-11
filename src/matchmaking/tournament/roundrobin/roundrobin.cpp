@@ -108,7 +108,7 @@ void RoundRobin::create() {
             //print score result based on scoreinterval if output format is cutechess
             if ((scoreinterval_index % tournament_options_.scoreinterval == 0) ||
                  match_count_ + 1 == total_) {
-                if (tournament_options_.output == OutputType::Cutechess)
+                if (tournament_options_.output == OutputType::CUTECHESS)
                     output_->printResult(updated_stats, first.name, second.name);
             }
           

@@ -22,6 +22,8 @@ class Fastchess : public IOutput {
     void printResult(const Stats& stats, const std::string& first,
                      const std::string& second) override {
         //do nothing
+        //get rid of unused parameter compiler warning
+        if (false) std::cout << first << second;
     }
 
     void printElo(const Stats& stats, const std::string& first,

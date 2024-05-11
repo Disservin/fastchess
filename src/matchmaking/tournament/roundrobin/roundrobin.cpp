@@ -100,16 +100,15 @@ void RoundRobin::create() {
             else
                 result_.updateStats(configs, stats);
 
-            // game_id starts 1 and round_id starts 0
-            const auto ratinginterval_index = tournament_options_.report_penta ? round_id + 1 : game_id;
-            const auto scoreinterval_index  = game_id;
+            //round_id and match_count_ starts 0 so we add 1
+            const auto ratinginterval_index = tournament_options_.report_penta ? round_id + 1 : match_count_ + 1;
+            const auto scoreinterval_index  = match_count_ + 1;
             const auto updated_stats        = result_.getStats(first.name, second.name);
 
             //print score result based on scoreinterval if output format is cutechess
             if ((scoreinterval_index % tournament_options_.scoreinterval == 0) ||
                  match_count_ + 1 == total_) {
-                if (tournament_options_.output == OutputType::CUTECHESS)
-                    output_->printResult(updated_stats, first.name, second.name);
+                output_->printResult(updated_stats, first.name, second.name);
             }
           
             // Only print the interval if the pair is complete or we are not tracking
@@ -153,7 +152,8 @@ void RoundRobin::updateSprtStatus(const std::vector<EngineConfiguration>& engine
 
         Logger::log<Logger::Level::INFO>("SPRT test finished: " + sprt_.getBounds() + " " +
                                          sprt_.getElo());
-
+      
+        output_->printResult(stats, engine_configs[0].name, engine_configs[1].name);
         output_->printInterval(sprt_, stats, engine_configs[0].name, engine_configs[1].name);
         output_->endTournament();
 

@@ -92,6 +92,7 @@ struct Tournament {
     uint32_t seed = 951356066;
 
     int ratinginterval   = 10;
+    int scoreinterval    = 1;
     int autosaveinterval = 20;
 
     int games       = 2;

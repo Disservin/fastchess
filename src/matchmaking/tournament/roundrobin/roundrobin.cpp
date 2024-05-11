@@ -101,14 +101,21 @@ void RoundRobin::create() {
                 result_.updateStats(configs, stats);
 
             // game_id starts 1 and round_id starts 0
-            const auto interval_index = tournament_options_.report_penta ? round_id + 1 : game_id;
+            const auto ratinginterval_index = tournament_options_.report_penta ? round_id + 1 : game_id;
+            const auto scoreinterval_index  = game_id;
+            const auto updated_stats        = result_.getStats(first.name, second.name);
 
+            //print score result based on scoreinterval if output format is cutechess
+            if ((scoreinterval_index % tournament_options_.scoreinterval == 0) ||
+                 match_count_ + 1 == total_) {
+                if (tournament_options_.output == OutputType::Cutechess)
+                    output_->printResult(updated_stats, first.name, second.name);
+            }
+          
             // Only print the interval if the pair is complete or we are not tracking
             // penta stats.
-            if ((report && interval_index % tournament_options_.ratinginterval == 0) ||
+            if ((report && ratinginterval_index % tournament_options_.ratinginterval == 0) ||
                  match_count_ + 1 == total_) {
-                const auto updated_stats = result_.getStats(first.name, second.name);
-
                 output_->printInterval(sprt_, updated_stats, first.name, second.name);
             }
 

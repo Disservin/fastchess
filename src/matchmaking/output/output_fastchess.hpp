@@ -23,7 +23,7 @@ class Fastchess : public IOutput {
                      const std::string& second) override {
         //do nothing
         //get rid of unused parameter compiler warning
-        if (false) std::cout << first << second;
+        if (false) std::cout << first << second << stats.wins;
     }
 
     void printElo(const Stats& stats, const std::string& first,

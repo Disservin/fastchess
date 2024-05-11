@@ -19,6 +19,11 @@ class Fastchess : public IOutput {
         std::cout << "--------------------------------------------------\n";
     };
 
+    void printResult(const Stats& stats, const std::string& first,
+                     const std::string& second) override {
+        //do nothing
+    }
+
     void printElo(const Stats& stats, const std::string& first,
                   const std::string& second) override {
         std::unique_ptr<elo::EloBase> elo;

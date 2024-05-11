@@ -71,8 +71,8 @@ options::Tournament TournamentManager::fixConfig(options::Tournament config) {
     if (config.seed == 951356066 && !config.randomseed && !config.opening.file.empty()
         && config.opening.order == OrderType::RANDOM) {
         Logger::log<Logger::Level::WARN>(
-            "Warning: No opening book seed specified! Consider using one, otherwise the match will be "
-            "played using the default seed of 951356066.");
+            "Warning: No opening book seed specified! Consider specifying one, otherwise the match "
+            "will be played using the default seed of 951356066.");
     }
   
     return config;

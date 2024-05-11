@@ -438,6 +438,10 @@ void parseRatinginterval(int &i, int argc, char const *argv[], ArgumentData &arg
     parseValue(i, argc, argv, argument_data.tournament_options.ratinginterval);
 }
 
+void parseScoreinterval(int &i, int argc, char const *argv[], ArgumentData &argument_data) {
+    parseValue(i, argc, argv, argument_data.tournament_options.scoreinterval);
+}
+
 void parseSRand(int &i, int argc, char const *argv[], ArgumentData &argument_data) {
     parseValue(i, argc, argv, argument_data.tournament_options.seed);
 }
@@ -561,6 +565,7 @@ OptionsParser::OptionsParser(int argc, char const *argv[]) {
     addOption("games", parseGames);
     addOption("rounds", parseRounds);
     addOption("ratinginterval", parseRatinginterval);
+    addOption("scoreinterval", parseScoreinterval);
     addOption("srand", parseSRand);
     addOption("version", parseVersion);
     addOption("-version", parseVersion);

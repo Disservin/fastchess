@@ -14,7 +14,7 @@ class Cutechess : public IOutput {
         printSprt(sprt, stats);
     };
 
-    void printResult(const Stats& stats, const std::string& first,
+    virtual void printResult(const Stats& stats, const std::string& first,
                      const std::string& second) override {
         const elo::EloWDL elo(stats);
 

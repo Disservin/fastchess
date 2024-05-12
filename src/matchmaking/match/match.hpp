@@ -56,12 +56,18 @@ class ResignTracker {
         } else {
             resign_moves = 0;
         }
-        if ((score <= -resign_score && score_type == engine::ScoreType::CP) || 
-             score_type == engine::ScoreType::MATE) {
-             if (color == chess::Color::BLACK) resign_moves_black++;
-             if (color == chess::Color::WHITE) resign_moves_white++;
+        if (color == chess::Color::BLACK) {
+           if ((score <= -resign_score && score_type == engine::ScoreType::CP) || 
+                score_type == engine::ScoreType::MATE) {
+                resign_moves_black++;
+           } else {resign_moves_black = 0;}
         }
-       
+       else {
+           if ((score <= -resign_score && score_type == engine::ScoreType::CP) || 
+                score_type == engine::ScoreType::MATE) {
+                resign_moves_white++;
+           } else {resign_moves_white = 0;}
+       }
     }
 
     [[nodiscard]] bool resignable() const noexcept { 

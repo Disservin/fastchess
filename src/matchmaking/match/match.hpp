@@ -46,6 +46,7 @@ class ResignTracker {
     ResignTracker(const options::Tournament& tournament_config) noexcept {
         resign_score = tournament_config.resign.score;
         move_count_  = tournament_config.resign.move_count;
+        twosided_    = tournament_config.resign.twosided;
     }
 
     void update(const int score, engine::ScoreType score_type, chess::Color color) noexcept {
@@ -65,7 +66,7 @@ class ResignTracker {
     }
 
     [[nodiscard]] bool resignable() const noexcept { 
-       if (tournament_config.resign.twosided) return resign_moves >= move_count_ * 2;
+       if (twosided_) return resign_moves >= move_count_ * 2;
        else {
           if (color == chess::Color::BLACK) return resign_moves_black >= move_count_;
           if (color == chess::Color::WHITE) return resign_moves_white >= move_count_;
@@ -82,6 +83,7 @@ class ResignTracker {
     // the score muust be above this threshold to resign
     int resign_score = 0;
     int move_count_  = 0;
+    bool twosided_   = false;
 };
 
 class MaxMovesTracker {

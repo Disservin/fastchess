@@ -67,9 +67,8 @@ class ResignTracker {
 
     [[nodiscard]] bool resignable() const noexcept { 
        if (twosided_) return resign_moves >= move_count_ * 2;
-       else {
-          if (color == chess::Color::BLACK) return resign_moves_black >= move_count_;
-          if (color == chess::Color::WHITE) return resign_moves_white >= move_count_;
+       else if (resign_moves_black >= move_count_ || resign_moves_white >= move_count_){
+          return true;
        }
     }
 

@@ -340,7 +340,7 @@ bool Match::adjudicate(Player& us, Player& them) noexcept {
         data_.termination = MatchTermination::ADJUDICATION;
         data_.reason      = us.engine.getConfig().name;
 
-        if (us.engine.lastScore() < tournament_options_.resign.score) {
+        if (us.engine.lastScore() < 0) {
             setLose(us, them);
             data_.reason += Match::ADJUDICATION_LOSE_MSG;
         } else {

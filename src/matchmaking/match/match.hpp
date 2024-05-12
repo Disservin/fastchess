@@ -57,12 +57,11 @@ class ResignTracker {
             resign_moves = 0;
         }
         if ((score <= -resign_score && score_type == engine::ScoreType::CP) || 
-            score_type == engine::ScoreType::MATE) {
-            if (color == chess::Color::BLACK) resign_moves_black++;
-            else resign_moves_black = 0;
-            if (color == chess::Color::WHITE) resign_moves_white++;
-            else resign_moves_white = 0;
+             score_type == engine::ScoreType::MATE) {
+             if (color == chess::Color::BLACK) resign_moves_black++;
+             if (color == chess::Color::WHITE) resign_moves_white++;
         }
+       
     }
 
     [[nodiscard]] bool resignable() const noexcept { 

@@ -22,7 +22,7 @@ int main(int argc, char const *argv[]) {
         Logger::log<Logger::Level::TRACE>("Starting tournament...");
         tour.start();
 
-        Logger::log<Logger::Level::INFO>("Finished tournament.");
+        Logger::log<Logger::Level::INFO>("Finished match");
     }
 
     stopProcesses();

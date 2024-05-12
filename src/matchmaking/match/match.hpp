@@ -17,7 +17,9 @@ class DrawTracker {
         draw_score   = tournament_config.draw.score;
     }
 
-    void update(const int score, const int move_count, engine::ScoreType score_type) noexcept {
+    void update(const int score, const int move_count, engine::ScoreType score_type, 
+                const int hmvc) noexcept {
+        if (hmvc == 0) draw_moves = 0;
         if (move_count >= move_number_ && std::abs(score) <= draw_score &&
             score_type == engine::ScoreType::CP) {
             draw_moves++;

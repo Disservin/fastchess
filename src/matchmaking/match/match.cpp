@@ -234,7 +234,7 @@ bool Match::playMove(Player& us, Player& opponent) {
         return false;
     }
 
-    resign_tracker_.update(us.engine.lastScore(), us.engine.lastScoreType());
+    resign_tracker_.update(us.engine.lastScore(), us.engine.lastScoreType(), board_.sideToMove());
     maxmoves_tracker_.update();
 
     board_.makeMove(move);

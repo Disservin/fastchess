@@ -58,12 +58,12 @@ class ResignTracker {
         }
         if (color == chess::Color::BLACK && !twosided_) {
            if ((score <= -resign_score && score_type == engine::ScoreType::CP) || 
-                score_type == engine::ScoreType::MATE) {
+               (score < 0 && score_type == engine::ScoreType::MATE)) {
                 resign_moves_black++;
            } else {resign_moves_black = 0;}
         } else if (!twosided_) {
            if ((score <= -resign_score && score_type == engine::ScoreType::CP) || 
-                score_type == engine::ScoreType::MATE) {
+               (score < 0 && score_type == engine::ScoreType::MATE)) {
                 resign_moves_white++;
            } else {resign_moves_white = 0;}
        }

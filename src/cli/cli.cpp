@@ -314,6 +314,8 @@ void parseResign(int &i, int argc, char const *argv[], ArgumentData &argument_da
 
         if (key == "movecount") {
             argument_data.tournament_options.resign.move_count = std::stoi(value);
+        } else if (key == "twosided") {
+            argument_data.tournament_options.resign.twosided = value == true;
         } else if (key == "score") {
             if (std::stoi(value) >= 0) {
                 argument_data.tournament_options.resign.score = std::stoi(value);

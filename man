@@ -57,16 +57,21 @@ OPTIONS
                 NUMBER - the number of moves before checking for a draw.
                          Default value is 0.
                 COUNT  - the number of moves below the score threshold to adjudicate a draw.
+                         Pawn moves and captures resets the counter.
                          Default value is 1.
                 SCORE  - the score threshold (in centipawns) for a draw.
                          Default value is 0.
 
-        -resign movecount=COUNT score=SCORE
+        -resign movecount=COUNT score=SCORE [twosided=(true|false)]
             Enables engine resignation. Configure when the engine should resign based on move
             count and score threshold.
 
-                COUNT - the number of moves to make before resigning. Default value is 1.
-                SCORE - the score threshold (in centipawns) to resign at. Default value is 0.
+                twosided - If set to true, enables two-sided resignation.
+                           Defaults to false.
+                COUNT    - the number of consecutive moves above the score threshold before resigning.
+                           Default value is 1.
+                SCORE    - the score threshold (in centipawns) to resign at.
+                           Default value is 0.
 
         -maxmoves N
             Enables draw adjudication by maximum number of moves.
@@ -80,8 +85,8 @@ OPTIONS
                          Default is random.
                 PLIES  - the number of plies to use (for pgn only).
                          If not specified, uses the maximum available plies.
-                START  - the starting offset (number of openings to skip).
-                         Default value is 0.
+                START  - the starting offset of the book.
+                         Default value is 1.
 
         -output format=FORMAT
             Choose the output format for game results (cutechess or fastchess).

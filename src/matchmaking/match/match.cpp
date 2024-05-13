@@ -239,7 +239,7 @@ bool Match::playMove(Player& us, Player& opponent) {
     draw_tracker_.update(us.engine.lastScore(), board_.fullMoveNumber(), us.engine.lastScoreType(),
                          board_.halfMoveClock());
     resign_tracker_.update(us.engine.lastScore(), us.engine.lastScoreType(), ~board_.sideToMove());
-    maxmoves_tracker_.update();
+    maxmoves_tracker_.update(us.engine.lastScore(), us.engine.lastScoreType());
     return !adjudicate(us, opponent);
 }
 

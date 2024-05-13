@@ -172,18 +172,20 @@ bool Match::playMove(Player& us, Player& opponent) {
     us.engine.writeEngine(us.buildGoInput(board_.sideToMove(), opponent.getTimeControl()));
 
     // wait for bestmove
-    auto t0 = clock::now();
-
-    try {
-        us.engine.readEngine("bestmove", us.getTimeoutThreshold());
-    } catch (const std::exception& e) {
-        us.engine.writeLog();
-        throw;
-    }
-
-    auto t1 = clock::now();
+    auto t0     = clock::now();
+    auto status = us.engine.readEngine("bestmove", us.getTimeoutThreshold());
+    auto t1     = clock::now();
 
     us.engine.writeLog();
+
+    if (status == engine::process::Status::ERR) {
+        setLose(us, opponent);
+
+        data_.termination = MatchTermination::DISCONNECT;
+        data_.reason      = name + Match::DISCONNECT_MSG;
+
+        throw std::runtime_error("Error: Failed to read from engine");
+    }
 
     if (atomic::stop) {
         data_.termination = MatchTermination::INTERRUPT;

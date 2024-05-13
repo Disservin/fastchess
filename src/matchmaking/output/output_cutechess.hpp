@@ -14,8 +14,8 @@ class Cutechess : public IOutput {
         printSprt(sprt, stats);
     };
 
-    void printElo(const Stats& stats, const std::string& first,
-                  const std::string& second) override {
+    void printResult(const Stats& stats, const std::string& first,
+                     const std::string& second) override {
         const elo::EloWDL elo(stats);
 
         std::stringstream ss;
@@ -35,6 +35,13 @@ class Cutechess : public IOutput {
            << stats.wins + stats.losses + stats.draws  //
            << "\n";
 
+        std::cout << ss.str() << std::flush;
+    }
+
+    void printElo(const Stats& stats, const std::string&, const std::string&) override {
+        const elo::EloWDL elo(stats);
+
+        std::stringstream ss;
         ss << "Elo difference: "    //
            << elo.getElo()          //
            << ", "                  //

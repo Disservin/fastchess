@@ -107,6 +107,11 @@ OPTIONS
             this is reports per N game pair. Setting it to 0 will disable it. 
             Default value is 10.
 
+        -scoreinterval N
+            For cutechess output only. Set the interval for printing score results.
+            Results are printed per N games played. Setting it to 0 will disable it. 
+            Default value is 1.
+
         -autosaveinterval N
             Automatically saves the tournament state to the config.json file each N games played.
             Setting it to 0 will disable it. Default value is 20.

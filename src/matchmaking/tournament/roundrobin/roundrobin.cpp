@@ -21,23 +21,20 @@ RoundRobin::RoundRobin(const options::Tournament& tournament_config,
 
 void RoundRobin::start() {
     BaseTournament::start();
-    // Check if the user wants to automatically save the results
-    if (tournament_options_.autosaveinterval > 0) {
-        // If autosave is enabled, save the results every save_interval games
-        const auto save_interval = tournament_options_.autosaveinterval;
-        // Account for the initial matchcount
-        auto save_iter = initial_matchcount_ + save_interval;
-        // Wait for games to finish while saving the results
-        while (match_count_ < total_ && !atomic::stop) {
-            if (match_count_ >= save_iter) {
-                saveJson();
-                save_iter += save_interval;
-            }
+
+    // If autosave is enabled, save the results every save_interval games
+    const auto save_interval = tournament_options_.autosaveinterval;
+    // Account for the initial matchcount
+    auto save_iter = initial_matchcount_ + save_interval;
+
+    // Wait for games to finish
+    while (match_count_ < total_ && !atomic::stop) {
+        if (save_interval > 0 && match_count_ >= save_iter) {
+            saveJson();
+            save_iter += save_interval;
         }
-    } else {
-        // Wait for games to finish
-        while (match_count_ < total_ && !atomic::stop) {
-        }
+
+        std::this_thread::sleep_for(std::chrono::seconds(1));
     }
 }
 
@@ -100,21 +97,22 @@ void RoundRobin::create() {
             else
                 result_.updateStats(configs, stats);
 
-            //round_id and match_count_ starts 0 so we add 1
-            const auto ratinginterval_index = tournament_options_.report_penta ? round_id + 1 : match_count_ + 1;
-            const auto scoreinterval_index  = match_count_ + 1;
-            const auto updated_stats        = result_.getStats(first.name, second.name);
+            // round_id and match_count_ starts 0 so we add 1
+            const auto ratinginterval_index =
+                tournament_options_.report_penta ? round_id + 1 : match_count_ + 1;
+            const auto scoreinterval_index = match_count_ + 1;
+            const auto updated_stats       = result_.getStats(first.name, second.name);
 
-            //print score result based on scoreinterval if output format is cutechess
+            // print score result based on scoreinterval if output format is cutechess
             if ((scoreinterval_index % tournament_options_.scoreinterval == 0) ||
-                 match_count_ + 1 == total_) {
+                match_count_ + 1 == total_) {
                 output_->printResult(updated_stats, first.name, second.name);
             }
-          
+
             // Only print the interval if the pair is complete or we are not tracking
             // penta stats.
             if ((report && ratinginterval_index % tournament_options_.ratinginterval == 0) ||
-                 match_count_ + 1 == total_) {
+                match_count_ + 1 == total_) {
                 output_->printInterval(sprt_, updated_stats, first.name, second.name);
             }
 
@@ -152,7 +150,7 @@ void RoundRobin::updateSprtStatus(const std::vector<EngineConfiguration>& engine
 
         Logger::log<Logger::Level::INFO>("SPRT test finished: " + sprt_.getBounds() + " " +
                                          sprt_.getElo());
-      
+
         output_->printResult(stats, engine_configs[0].name, engine_configs[1].name);
         output_->printInterval(sprt_, stats, engine_configs[0].name, engine_configs[1].name);
         output_->endTournament();

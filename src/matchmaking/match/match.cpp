@@ -234,13 +234,12 @@ bool Match::playMove(Player& us, Player& opponent) {
         return false;
     }
 
-    resign_tracker_.update(us.engine.lastScore(), us.engine.lastScoreType());
-    maxmoves_tracker_.update();
-
     board_.makeMove(move);
 
     draw_tracker_.update(us.engine.lastScore(), board_.fullMoveNumber(), us.engine.lastScoreType(),
                          board_.halfMoveClock());
+    resign_tracker_.update(us.engine.lastScore(), us.engine.lastScoreType(), ~board_.sideToMove());
+    maxmoves_tracker_.update();
     return !adjudicate(us, opponent);
 }
 
@@ -344,7 +343,7 @@ bool Match::adjudicate(Player& us, Player& them) noexcept {
         data_.termination = MatchTermination::ADJUDICATION;
         data_.reason      = us.engine.getConfig().name;
 
-        if (us.engine.lastScore() < tournament_options_.resign.score) {
+        if (us.engine.lastScore() < 0) {
             setLose(us, them);
             data_.reason += Match::ADJUDICATION_LOSE_MSG;
         } else {

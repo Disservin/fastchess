@@ -239,7 +239,7 @@ bool Match::playMove(Player& us, Player& opponent) {
 
     board_.makeMove(move);
 
-    draw_tracker_.update(us.engine.lastScore(), board_.fullMoveNumber(), us.engine.lastScoreType(), 
+    draw_tracker_.update(us.engine.lastScore(), board_.fullMoveNumber(), us.engine.lastScoreType(),
                          board_.halfMoveClock());
     return !adjudicate(us, opponent);
 }
@@ -273,23 +273,27 @@ bool Match::isUciMove(const std::string& move) noexcept {
 }
 
 void Match::verifyPvLines(const Player& us) {
-    const auto verifyPv = [&](const std::vector<std::string>& tokens, std::string_view info) {
-        auto tmp      = board_;
+    const static auto verifyPv = [](Board board, const std::vector<std::string>& tokens,
+                                    std::string_view info) {
         auto it_start = std::find(tokens.begin(), tokens.end(), "pv") + 1;
         auto it_end   = std::find_if(it_start, tokens.end(),
                                      [](const auto& token) { return !isUciMove(token); });
 
         Movelist moves;
 
-        std::for_each(it_start, it_end, [&](const auto& token) {
-            movegen::legalmoves(moves, tmp);
+        while (it_start != it_end) {
+            movegen::legalmoves(moves, board);
 
-            if (std::find(moves.begin(), moves.end(), uci::uciToMove(tmp, token)) == moves.end()) {
-                Logger::log<Logger::Level::WARN>("Warning; Illegal pv move ", token, "pv:", info);
+            if (std::find(moves.begin(), moves.end(), uci::uciToMove(board, *it_start)) ==
+                moves.end()) {
+                Logger::log<Logger::Level::WARN>("Warning; Illegal pv move ", *it_start,
+                                                 "pv:", info);
+                break;
             }
 
-            tmp.makeMove(uci::uciToMove(tmp, token));
-        });
+            board.makeMove(uci::uciToMove(board, *it_start));
+            it_start++;
+        }
     };
 
     for (const auto& info : us.engine.output()) {
@@ -298,7 +302,7 @@ void Match::verifyPvLines(const Player& us) {
         // skip lines without pv
         if (!str_utils::contains(tokens, "pv")) continue;
 
-        verifyPv(tokens, info.line);
+        verifyPv(board_, tokens, info.line);
     }
 }
 

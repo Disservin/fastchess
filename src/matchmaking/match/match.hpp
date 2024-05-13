@@ -46,27 +46,43 @@ class ResignTracker {
     ResignTracker(const options::Tournament& tournament_config) noexcept {
         resign_score = tournament_config.resign.score;
         move_count_  = tournament_config.resign.move_count;
+        twosided_    = tournament_config.resign.twosided;
     }
 
-    void update(const int score, engine::ScoreType score_type) noexcept {
+    void update(const int score, engine::ScoreType score_type, chess::Color color) noexcept {
         if ((std::abs(score) >= resign_score && score_type == engine::ScoreType::CP) ||
             score_type == engine::ScoreType::MATE) {
-            resign_moves++;
+            if (twosided_ && (color == chess::Color::WHITE || resign_moves > 0)) resign_moves++;
         } else {
             resign_moves = 0;
         }
+        if (!twosided_) {
+            int& counter = (color == chess::Color::BLACK) ? resign_moves_black : resign_moves_white;
+            if ((score <= -resign_score && score_type == engine::ScoreType::CP) || 
+                (score < 0 && score_type == engine::ScoreType::MATE)) {
+                counter++;
+            } else {
+                counter = 0;
+            }
+       }
     }
 
-    [[nodiscard]] bool resignable() const noexcept { return resign_moves >= move_count_ * 2; }
+    [[nodiscard]] bool resignable() const noexcept { 
+       if (twosided_) return resign_moves >= move_count_ * 2;
+       return resign_moves_black >= move_count_ || resign_moves_white >= move_count_;
+    }
 
    private:
     // number of moves above the resign threshold
     int resign_moves = 0;
+    int resign_moves_black = 0;
+    int resign_moves_white = 0;
 
     // config
     // the score muust be above this threshold to resign
     int resign_score = 0;
     int move_count_  = 0;
+    bool twosided_   = false;
 };
 
 class MaxMovesTracker {

@@ -254,6 +254,9 @@ void parseOpening(int &i, int argc, char const *argv[], ArgumentData &argument_d
             argument_data.tournament_options.opening.start = std::stoi(value);
             if (argument_data.tournament_options.opening.start < 1)
                 throw std::runtime_error("Starting offset must be at least 1!");
+        } else if (key == "policy") {
+            if (value != "default")
+                throw std::runtime_error("Error; Unsupported opening book policy");
         } else {
             OptionsParser::throwMissing("openings", key, value);
         }
@@ -538,6 +541,14 @@ void parseAffinity(int &, int, char const *[], ArgumentData &argument_data) {
     argument_data.tournament_options.affinity = true;
 }
 
+void parseDebug(int &, int, char const *[], ArgumentData &argument_data) {
+    // throw error
+    std::string error_message = "Error; 'debug' option does not exist in fast-chess."
+                                " Use the 'log' option instead to write all engine input"
+                                " and output into a text file.";
+    throw std::runtime_error(error_message);
+}
+
 OptionsParser::OptionsParser(int argc, char const *argv[]) {
     if (argument_data_.tournament_options.output == OutputType::CUTECHESS) {
         argument_data_.tournament_options.ratinginterval = 1;
@@ -582,6 +593,7 @@ OptionsParser::OptionsParser(int argc, char const *argv[]) {
     addOption("tournament", parseTournament);
     addOption("quick", parseQuick);
     addOption("use-affinity", parseAffinity);
+    addOption("debug", parseDebug);
 
     parse(argc, argv);
 

@@ -42,14 +42,11 @@ PgnBuilder::PgnBuilder(const MatchData &match, const options::Tournament &tourna
     if (match_.fen != chess::constants::STARTPOS ||
         match_.players.first.config.variant == VariantType::FRC) {
         addHeader("SetUp", "1");
+        addHeader("FEN", match_.fen);
     }
 
     if (game_options_.variant == VariantType::FRC) {
         addHeader("Variant", "Chess960");
-    }
-
-    if (match_.fen != chess::constants::STARTPOS) {
-        addHeader("FEN", match_.fen);
     }
 
     addHeader("GameDuration", match_.duration);

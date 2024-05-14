@@ -48,7 +48,10 @@ PgnBuilder::PgnBuilder(const MatchData &match, const options::Tournament &tourna
         addHeader("Variant", "Chess960");
     }
 
-    addHeader("FEN", match_.fen);
+    if (match_.fen != chess::constants::STARTPOS) {
+        addHeader("FEN", match_.fen);
+    }
+
     addHeader("GameDuration", match_.duration);
     addHeader("GameStartTime", match_.start_time);
     addHeader("GameEndTime", match_.end_time);

@@ -35,7 +35,7 @@ class Logger {
         ((ss << " " << std::forward<Args>(args)), ...);
         ss << "\n";
 
-        std::cout << ss.str();
+        std::cout << ss.str() << std::flush;
 
         if (!should_log_) {
             return;

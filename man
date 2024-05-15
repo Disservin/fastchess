@@ -92,7 +92,7 @@ OPTIONS
             Choose the output format for game results (cutechess or fastchess).
             Default is fastchess.
 
-        -pgnout file=NAME notation=(san|lan|uci) [nodes=(true|false)] [seldepth=(true|false)] [nps=(true|false)]
+        -pgnout file=NAME notation=(san|lan|uci) [nodes=(true|false)] [seldepth=(true|false)] [nps=(true|false)] [min=(true|false)]
             Export games in PGN format with specified notations and optional tracking of nodes, seldepth, and nps.
 
                 notation

@@ -56,7 +56,7 @@ OPTIONS
               
                 NUMBER - the number of moves before checking for a draw.
                          Default value is 0.
-                COUNT  - the number of moves below the score threshold to adjudicate a draw.
+                COUNT  - the number of consecutive moves below the score threshold to adjudicate a draw.
                          Pawn moves and captures resets the counter.
                          Default value is 1.
                 SCORE  - the score threshold (in centipawns) for a draw.
@@ -103,6 +103,7 @@ OPTIONS
                 nodes    - defaults to false, track node count.
                 seldepth - defaults to false, track seldepth.
                 nps      - defaults to false, track nps.
+                min      - defaults to false, minimal PGN format.
 
         -epdout file=NAME
             Export the final position of each game in EPD format.

@@ -13,10 +13,10 @@ class Fastchess : public IOutput {
 
     void printInterval(const SPRT& sprt, const Stats& stats, const std::string& first,
                        const std::string& second) override {
-        std::cout << "--------------------------------------------------\n";
+        std::cout << "--------------------------------------------------\n" << std::flush;
         printElo(stats, first, second);
         printSprt(sprt, stats);
-        std::cout << "--------------------------------------------------\n";
+        std::cout << "--------------------------------------------------\n" << std::flush;
     };
 
     void printResult(const Stats&, const std::string&, const std::string&) override {

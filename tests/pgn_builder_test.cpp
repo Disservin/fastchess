@@ -32,7 +32,6 @@ TEST_SUITE("PGN Builder Tests") {
 [White "engine1"]
 [Black "engine2"]
 [Result "1-0"]
-[FEN "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"]
 [PlyCount "4"]
 [TimeControl "-"]
 
@@ -73,7 +72,6 @@ Nf6 {+10.15/18, 1.821s, engine2 got checkmated} 1-0
 [White "engine1"]
 [Black "engine2"]
 [Result "0-1"]
-[FEN "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"]
 [PlyCount "4"]
 [TimeControl "-"]
 

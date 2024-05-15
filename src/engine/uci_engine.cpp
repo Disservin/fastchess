@@ -79,13 +79,7 @@ void UciEngine::refreshUci() {
 
 process::Status UciEngine::readEngine(std::string_view last_word,
                                       std::chrono::milliseconds threshold) {
-    try {
-        return readProcess(output_, last_word, threshold);
-    } catch (const std::exception &e) {
-        Logger::log<Logger::Level::ERR>("Raised Exception in readProcess\nWarning; Engine",
-                                        config_.name, "disconnects");
-        throw e;
-    }
+    return readProcess(output_, last_word, threshold);
 }
 
 void UciEngine::writeLog() const {

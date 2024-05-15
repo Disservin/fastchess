@@ -234,7 +234,7 @@ class Process : public IProcess {
 
             // errors
             if (ready == -1) {
-                throw std::runtime_error("Error: poll() failed");
+                return Status::ERR;
             }
             // timeout
             else if (ready == 0) {
@@ -246,7 +246,7 @@ class Process : public IProcess {
             if (pollfds[0].revents & POLLIN) {
                 const auto bytesRead = read(in_pipe_.get(), buffer, sizeof(buffer));
 
-                if (bytesRead == -1) throw std::runtime_error("Error: read() failed");
+                if (bytesRead == -1) return Status::ERR;
 
                 // Iterate over each character in the buffer
                 for (ssize_t i = 0; i < bytesRead; i++) {
@@ -275,7 +275,7 @@ class Process : public IProcess {
             if (pollfds[1].revents & POLLIN) {
                 const auto bytesRead = read(err_pipe_.get(), buffer, sizeof(buffer));
 
-                if (bytesRead == -1) throw std::runtime_error("Error: read() failed");
+                if (bytesRead == -1) return Status::ERR;
 
                 // Iterate over each character in the buffer
                 for (ssize_t i = 0; i < bytesRead; i++) {

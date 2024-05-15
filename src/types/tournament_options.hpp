@@ -22,9 +22,10 @@ struct Pgn {
     bool track_nodes      = false;
     bool track_seldepth   = false;
     bool track_nps        = false;
+    bool min              = false;
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(Pgn, file, notation, track_nodes, track_seldepth,
-                                                track_nps)
+                                                track_nps, min)
 
 struct Epd {
     std::string file;

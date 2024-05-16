@@ -68,7 +68,7 @@ class OptionsParser {
         constexpr std::string_view version = "dev";
         
         ss << "fast-chess " << version;
-        if constexpr (version=="dev") {
+        if constexpr (version == "dev") {
             ss << "-";
 #ifdef GIT_DATE
             ss << GIT_DATE;

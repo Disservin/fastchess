@@ -65,7 +65,10 @@ class OptionsParser {
         std::string month, day, year;
         std::stringstream ss, date(__DATE__);  // {month} {date} {year}
 
-        ss << "fast-chess alpha-0.8.2-";
+        constexpr std::string_view version = "dev";
+        ss << "fast-chess ";
+        if (version == "dev") ss << "dev-";
+        else ss << version;
 #ifdef GIT_DATE
         ss << GIT_DATE;
 #else
@@ -76,6 +79,8 @@ class OptionsParser {
 
 #ifdef GIT_SHA
         ss << "-" << GIT_SHA;
+#else
+        ss << "-nogit"
 #endif
 
         ss << "\n";

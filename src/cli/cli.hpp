@@ -66,8 +66,8 @@ class OptionsParser {
         std::stringstream ss, date(__DATE__);  // {month} {date} {year}
 
         constexpr std::string_view version = "dev";
+        
         ss << "fast-chess " << version;
-
         if constexpr (version=="dev") {
             ss << "-";
 #ifdef GIT_DATE

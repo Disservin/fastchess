@@ -66,22 +66,24 @@ class OptionsParser {
         std::stringstream ss, date(__DATE__);  // {month} {date} {year}
 
         constexpr std::string_view version = "dev";
-        ss << "fast-chess ";
+        ss << "fast-chess " << version;
 
-        ss << version << "-";
+        if constexpr (version=="dev") {
+            ss << "-";
 #ifdef GIT_DATE
-        ss << GIT_DATE;
+            ss << GIT_DATE;
 #else
-        date >> month >> day >> year;
-        if (day.length() == 1) day = "0" + day;
-        ss << year.substr(2) << months.at(month) << day;
+            date >> month >> day >> year;
+            if (day.length() == 1) day = "0" + day;
+            ss << year.substr(2) << months.at(month) << day;
 #endif
 
 #ifdef GIT_SHA
-        ss << "-" << GIT_SHA;
+            ss << "-" << GIT_SHA;
 #else
-        ss << "-nogit"
+            ss << "-nogit"
 #endif
+        }
 
         ss << "\n";
 

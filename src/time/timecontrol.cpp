@@ -25,7 +25,7 @@ TimeControl::TimeControl(const Limits &limits) : limits_(limits) {
 }
 
 std::chrono::milliseconds TimeControl::getTimeoutThreshold() const {
-    return std::chrono::milliseconds(time_left_ + 100);
+    return std::chrono::milliseconds(time_left_ + limits_.timemargin + 100);
 }
 
 bool TimeControl::updateTime(const int64_t elapsed_millis) {

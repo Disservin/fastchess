@@ -58,7 +58,8 @@ struct ResignAdjudication {
 
     bool enabled = false;
 };
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(ResignAdjudication, move_count, score, twosided, enabled)
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(ResignAdjudication, move_count, score, twosided,
+                                                enabled)
 
 struct MaxMovesAdjudication {
     int move_count = 1;
@@ -109,8 +110,8 @@ struct Tournament {
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(Tournament, resign, draw, maxmoves, opening, pgn,
                                                 epd, sprt, event_name, site, output, seed, variant,
-                                                ratinginterval, scoreinterval, autosaveinterval, games, 
-                                                rounds, concurrency, overhead, recover, report_penta,
-                                                affinity, randomseed)
+                                                ratinginterval, scoreinterval, autosaveinterval,
+                                                games, rounds, concurrency, overhead, recover,
+                                                report_penta, affinity, randomseed)
 
 }  // namespace fast_chess::options

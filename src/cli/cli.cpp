@@ -545,9 +545,10 @@ void parseAffinity(int &, int, char const *[], ArgumentData &argument_data) {
 
 void parseDebug(int &, int, char const *[], ArgumentData &) {
     // throw error
-    std::string error_message = "Error; 'debug' option does not exist in fast-chess."
-                                " Use the 'log' option instead to write all engine input"
-                                " and output into a text file.";
+    std::string error_message =
+        "Error; 'debug' option does not exist in fast-chess."
+        " Use the 'log' option instead to write all engine input"
+        " and output into a text file.";
     throw std::runtime_error(error_message);
 }
 

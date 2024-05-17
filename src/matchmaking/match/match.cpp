@@ -331,7 +331,7 @@ bool Match::adjudicate(Player& us, Player& them) noexcept {
 
         return true;
     }
-    
+
     if (tournament_options_.draw.enabled && draw_tracker_.adjudicatable()) {
         setDraw(us, them);
 

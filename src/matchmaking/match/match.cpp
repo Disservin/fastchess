@@ -37,6 +37,8 @@ void Match::addMoveData(const Player& player, int64_t measured_time_ms, bool leg
     const auto info       = player.engine.lastInfo();
 
     move_data.nps      = str_utils::findElement<int>(info, "nps").value_or(0);
+    move_data.hashfull = str_utils::findElement<int>(info, "hashfull").value_or(0);
+    move_data.tbhits   = str_utils::findElement<uint64_t>(info, "tbhits").value_or(0);
     move_data.depth    = str_utils::findElement<int>(info, "depth").value_or(0);
     move_data.seldepth = str_utils::findElement<int>(info, "seldepth").value_or(0);
     move_data.nodes    = str_utils::findElement<uint64_t>(info, "nodes").value_or(0);

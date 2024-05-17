@@ -327,7 +327,7 @@ bool Match::adjudicate(Player& us, Player& them) noexcept {
         setLose(us, them);
         
         data_.termination = MatchTermination::ADJUDICATION;
-        data_.reason      = us.engine.getConfig().name + Match::ADJUDICATION_LOSE_MSG;
+        data_.reason      = them.engine.getConfig().name + Match::ADJUDICATION_WIN_MSG;
 
         return true;
     }

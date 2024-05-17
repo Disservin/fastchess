@@ -111,9 +111,10 @@ struct Tournament {
     bool randomseed   = false;
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(Tournament, resign, draw, maxmoves, opening, pgn,
-                                                epd, sprt, event_name, site, output, seed, variant,
-                                                ratinginterval, scoreinterval, autosaveinterval,
-                                                games, rounds, concurrency, overhead, recover,
-                                                report_penta, affinity, randomseed)
+                                                epd, sprt, event_name, site, config_name, output,
+                                                seed, variant, ratinginterval, scoreinterval,
+                                                autosaveinterval, games, rounds, concurrency,
+                                                overhead, recover, report_penta, affinity,
+                                                randomseed)
 
 }  // namespace fast_chess::options

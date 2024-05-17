@@ -20,7 +20,7 @@ class Fastchess : public IOutput {
     };
 
     void printResult(const Stats&, const std::string&, const std::string&) override {
-        //do nothing
+        // do nothing
     }
 
     void printElo(const Stats& stats, const std::string& first,

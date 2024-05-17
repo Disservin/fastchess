@@ -52,7 +52,7 @@ class ResignTracker {
     void update(const int score, engine::ScoreType score_type, chess::Color color) noexcept {
         if ((std::abs(score) >= resign_score && score_type == engine::ScoreType::CP) ||
             score_type == engine::ScoreType::MATE) {
-            if (twosided_ && (score >= 0 || resign_moves > 0)) resign_moves++;
+            if (twosided_) resign_moves++;
         } else {
             resign_moves = 0;
         }

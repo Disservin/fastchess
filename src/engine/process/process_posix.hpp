@@ -81,7 +81,7 @@ class Process : public IProcess {
 
     void init(const std::string &command, const std::string &args,
               const std::string &log_name) override {
-        assert(is_initalized_ == false);
+        assert(!is_initalized_);
 
         command_  = command;
         args_     = args;

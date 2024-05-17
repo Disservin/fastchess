@@ -17,7 +17,7 @@ class DrawTracker {
         draw_score   = tournament_config.draw.score;
     }
 
-    void update(const int score, const int move_count, engine::ScoreType score_type, 
+    void update(const int score, const int move_count, engine::ScoreType score_type,
                 const int hmvc) noexcept {
         if (hmvc == 0) draw_moves = 0;
         if (move_count >= move_number_ && std::abs(score) <= draw_score &&
@@ -58,23 +58,23 @@ class ResignTracker {
         }
         if (!twosided_) {
             int& counter = (color == chess::Color::BLACK) ? resign_moves_black : resign_moves_white;
-            if ((score <= -resign_score && score_type == engine::ScoreType::CP) || 
+            if ((score <= -resign_score && score_type == engine::ScoreType::CP) ||
                 (score < 0 && score_type == engine::ScoreType::MATE)) {
                 counter++;
             } else {
                 counter = 0;
             }
-       }
+        }
     }
 
-    [[nodiscard]] bool resignable() const noexcept { 
-       if (twosided_) return resign_moves >= move_count_ * 2;
-       return resign_moves_black >= move_count_ || resign_moves_white >= move_count_;
+    [[nodiscard]] bool resignable() const noexcept {
+        if (twosided_) return resign_moves >= move_count_ * 2;
+        return resign_moves_black >= move_count_ || resign_moves_white >= move_count_;
     }
 
    private:
     // number of moves above the resign threshold
-    int resign_moves = 0;
+    int resign_moves       = 0;
     int resign_moves_black = 0;
     int resign_moves_white = 0;
 
@@ -91,10 +91,10 @@ class MaxMovesTracker {
         move_count_ = tournament_config.maxmoves.move_count;
     }
 
-    void update(const int score, engine::ScoreType score_type) noexcept { 
-       max_moves++;
-       // in case checkmate happens at the exact same time as maxmoves
-       if (score == 1 && score_type == engine::ScoreType::MATE) max_moves--;
+    void update(const int score, engine::ScoreType score_type) noexcept {
+        max_moves++;
+        // in case checkmate happens at the exact same time as maxmoves
+        if (score == 1 && score_type == engine::ScoreType::MATE) max_moves--;
     }
 
     [[nodiscard]] bool maxmovesreached() const noexcept { return max_moves >= move_count_ * 2; }

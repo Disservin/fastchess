@@ -24,7 +24,7 @@ OPTIONS
         -site NAME
             Set the site name for the PGN header.
 
-        -config file=NAME [discard=(true|false)] outname=NAME
+        -config file=NAME [discard=(true|false)] [outname=NAME]
             Load engine configurations to resume games from previous sessions.
             Use 'discard=true' to discard saved game results. defaults to false.
             Use 'outname=NAME' to specify the auto generated file name of the config.

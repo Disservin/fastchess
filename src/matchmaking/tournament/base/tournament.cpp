@@ -47,7 +47,8 @@ void BaseTournament::saveJson() {
 
     Logger::log<Logger::Level::TRACE>("Saving results...");
 
-    std::ofstream file(tournament_options_.config_name);
+    std::ofstream file(tournament_options_.config_name.empty() ? "config.json"
+                                                               : tournament_options_.config_name);
     file << std::setw(4) << jsonfile << std::endl;
 
     Logger::log<Logger::Level::INFO>("Saved results.");

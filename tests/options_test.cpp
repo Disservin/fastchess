@@ -88,7 +88,7 @@ TEST_SUITE("Option Parsing Tests") {
         auto gameOptions           = options.getGameOptions();
 
         // Test proper cli settings
-        CHECK(gameOptions.recover == true);
+        CHECK(gameOptions.recover);
         CHECK(gameOptions.concurrency == 8);
         CHECK(gameOptions.games == 2);
         CHECK(gameOptions.rounds == 256);

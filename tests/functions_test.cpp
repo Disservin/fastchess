@@ -7,9 +7,9 @@ using namespace fast_chess;
 TEST_SUITE("Standalone Function Tests") {
     TEST_CASE("Testing the str_utils::startsWith function") {
         CHECK(str_utils::startsWith("-engine", "-"));
-        CHECK(str_utils::startsWith("-engine", "") == false);
-        CHECK(str_utils::startsWith("-engine", "/-") == false);
-        CHECK(str_utils::startsWith("-engine", "e") == false);
+        CHECK(!str_utils::startsWith("-engine", ""));
+        CHECK(!str_utils::startsWith("-engine", "/-"));
+        CHECK(!str_utils::startsWith("-engine", "e"));
     }
 
     TEST_CASE("Testing the str_utils::contains function") {

@@ -390,6 +390,8 @@ void parseConfig(int &i, int argc, char const *argv[], ArgumentData &argument_da
     parseDashOptions(i, argc, argv, [&](const std::string &key, const std::string &value) {
         if (key == "file") {
             loadJson(argument_data, value);
+        } else if (key == "outname") {
+            argument_data.tournament_options.config_name = value;
         } else if (key == "discard" && value == "true") {
             Logger::log<Logger::Level::INFO>("Discarding config file");
             argument_data.tournament_options = argument_data.old_tournament_options;

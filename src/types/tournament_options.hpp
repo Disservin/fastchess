@@ -78,6 +78,8 @@ struct Tournament {
     std::string event_name = "Fast-Chess Tournament";
     std::string site       = "?";
 
+    std::string config_name;
+
     DrawAdjudication draw         = {};
     ResignAdjudication resign     = {};
     MaxMovesAdjudication maxmoves = {};

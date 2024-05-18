@@ -61,7 +61,7 @@ double SPRT::getLLR(int win, int draw, int loss) const noexcept {
     const double variance_per_game = variance / games;
     double score0;
     double score1;
-    if (logistic_bounds_ == false) {
+    if (!logistic_bounds_) {
         score0 = neloToScoreWDL(elo0_, variance);
         score1 = neloToScoreWDL(elo1_, variance);
     } else {
@@ -94,7 +94,7 @@ double SPRT::getLLR(int penta_WW, int penta_WD, int penta_WL, int penta_DD, int 
     const double variance_per_pair = variance / pairs;
     double score0;
     double score1;
-    if (logistic_bounds_ == false) {
+    if (!logistic_bounds_) {
         score0 = neloToScorePenta(elo0_, variance);
         score1 = neloToScorePenta(elo1_, variance);
     } else {

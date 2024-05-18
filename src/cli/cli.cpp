@@ -185,6 +185,10 @@ void parsePgnOut(int &i, int argc, char const *argv[], ArgumentData &argument_da
                 argument_data.tournament_options.pgn.track_seldepth = value == "true";
             } else if (key == "nps") {
                 argument_data.tournament_options.pgn.track_nps = value == "true";
+            } else if (key == "hashfull") {
+                argument_data.tournament_options.pgn.track_hashfull = value == "true";
+            } else if (key == "tbhits") {
+                argument_data.tournament_options.pgn.track_tbhits = value == "true";
             } else if (key == "min") {
                 argument_data.tournament_options.pgn.min = value == "true";
             } else if (key == "notation") {
@@ -555,10 +559,6 @@ void parseDebug(int &, int, char const *[], ArgumentData &) {
 }
 
 OptionsParser::OptionsParser(int argc, char const *argv[]) {
-    if (argument_data_.tournament_options.output == OutputType::CUTECHESS) {
-        argument_data_.tournament_options.ratinginterval = 1;
-    }
-
     if (argc == 1) {
         printHelp();
     }

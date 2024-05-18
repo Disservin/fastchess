@@ -1,6 +1,32 @@
 #include <cli/cli.hpp>
 
+#if defined(__MINGW32__) && defined(__GNUC__) && __GNUC__ == 8
+#define NO_STD_FILESYSTEM
+#endif
+
+#if defined(__GNUC__) && !defined(__clang__) && __GNUC__ < 8
+#define NO_STD_FILESYSTEM
+#endif
+
+#if defined(__clang_major__) && __clang_major__ < 7
+#define NO_STD_FILESYSTEM
+#endif
+
+#if defined(_MSC_VER) && _MSC_VER < 1914
+#define NO_STD_FILESYSTEM
+#endif
+
+#if defined(__IPHONE_OS_VERSION_MIN_REQUIRED) && __IPHONE_OS_VERSION_MIN_REQUIRED < 130000
+#define NO_STD_FILESYSTEM
+#endif
+
+#if defined(__MAC_OS_X_VERSION_MIN_REQUIRED) && __MAC_OS_X_VERSION_MIN_REQUIRED < 101500
+#define NO_STD_FILESYSTEM
+#endif
+
+#ifndef NO_STD_FILESYSTEM
 #include <filesystem>
+#endif
 
 #include <matchmaking/output/output_factory.hpp>
 #include <matchmaking/result.hpp>
@@ -146,10 +172,12 @@ void validateEnginePath(std::string dir, std::string &cmd) {
     }
 #endif
 
-    // throw if cmd does not exist
+// throw if cmd does not exist
+#ifndef NO_STD_FILESYSTEM
     if (!std::filesystem::exists(engine_path)) {
         throw std::runtime_error("Error; Engine not found: " + engine_path);
     }
+#endif
 }
 
 void parseEngine(int &i, int argc, char const *argv[], ArgumentData &argument_data) {
@@ -240,9 +268,11 @@ void parseOpening(int &i, int argc, char const *argv[], ArgumentData &argument_d
                 argument_data.tournament_options.opening.format = FormatType::PGN;
             }
 
+#ifndef NO_STD_FILESYSTEM
             if (!std::filesystem::exists(value)) {
                 throw std::runtime_error("Opening file does not exist: " + value);
             }
+#endif
         } else if (key == "format") {
             if (value == "epd") {
                 argument_data.tournament_options.opening.format = FormatType::EPD;

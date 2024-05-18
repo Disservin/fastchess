@@ -4,3 +4,4 @@ IndentWidth: 4
 TabWidth: 4
 IncludeBlocks: Preserve
 AlignConsecutiveAssignments: true
+IndentPPDirectives: AfterHash

@@ -155,15 +155,15 @@ class Match {
     // is either startpos or the fen of the opening
     std::string start_position_;
 
-    inline static constexpr char INSUFFICIENT_MSG[]      = "Draw by insufficient material";
-    inline static constexpr char REPETITION_MSG[]        = "Draw by 3-fold repetition";
-    inline static constexpr char ILLEGAL_MSG[]           = " made an illegal move";
-    inline static constexpr char ADJUDICATION_WIN_MSG[]  = " wins by adjudication";
-    inline static constexpr char ADJUDICATION_MSG[]      = "Draw by adjudication";
-    inline static constexpr char FIFTY_MSG[]             = "Draw by 50-move rule";
-    inline static constexpr char STALEMATE_MSG[]         = "Draw by stalemate";
-    inline static constexpr char CHECKMATE_MSG[]         = /*..*/ " got checkmated";
-    inline static constexpr char TIMEOUT_MSG[]           = /*.. */ " loses on time";
-    inline static constexpr char DISCONNECT_MSG[]        = /*.. */ " disconnects";
+    inline static constexpr char INSUFFICIENT_MSG[]     = "Draw by insufficient material";
+    inline static constexpr char REPETITION_MSG[]       = "Draw by 3-fold repetition";
+    inline static constexpr char ILLEGAL_MSG[]          = " made an illegal move";
+    inline static constexpr char ADJUDICATION_WIN_MSG[] = " wins by adjudication";
+    inline static constexpr char ADJUDICATION_MSG[]     = "Draw by adjudication";
+    inline static constexpr char FIFTY_MSG[]            = "Draw by 50-move rule";
+    inline static constexpr char STALEMATE_MSG[]        = "Draw by stalemate";
+    inline static constexpr char CHECKMATE_MSG[]        = /*..*/ " got checkmated";
+    inline static constexpr char TIMEOUT_MSG[]          = /*.. */ " loses on time";
+    inline static constexpr char DISCONNECT_MSG[]       = /*.. */ " disconnects";
 };
 }  // namespace fast_chess

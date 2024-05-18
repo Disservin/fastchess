@@ -70,17 +70,17 @@ class OptionsParser {
         ss << "fast-chess " << version;
 
 #ifndef RELEASE
-#ifdef GIT_DATE
+#    ifdef GIT_DATE
         ss << GIT_DATE;
-#else
+#    else
         date >> month >> day >> year;
         if (day.length() == 1) day = "0" + day;
         ss << year.substr(2) << months.at(month) << day;
-#endif
+#    endif
 
-#ifdef GIT_SHA
+#    ifdef GIT_SHA
         ss << "-" << GIT_SHA;
-#endif
+#    endif
 #endif
 
         std::cout << ss.str() << std::endl;

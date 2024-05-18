@@ -144,14 +144,15 @@ std::string PgnBuilder::addMove(chess::Board &board, const MoveData &move, std::
             ss << addComment("book");
         } else {
             ss << addComment(
-                (move.score_string + "/" + std::to_string(move.depth)),                              //
-                formatTime(move.elapsed_millis),                                                     //
-                game_options_.pgn.track_nodes ? "n=" + std::to_string(move.nodes) : "",              //
-                game_options_.pgn.track_seldepth ? "sd=" + std::to_string(move.seldepth) : "",       //
-                game_options_.pgn.track_nps ? "nps=" + std::to_string(move.nps) : "",                //
-                game_options_.pgn.track_hashfull ? "hashfull=" + std::to_string(move.hashfull) : "", //
-                game_options_.pgn.track_tbhits ? "tbhits=" + std::to_string(move.tbhits) : "",       //
-                last ? match_.reason : ""                                                            //
+                (move.score_string + "/" + std::to_string(move.depth)),                         //
+                formatTime(move.elapsed_millis),                                                //
+                game_options_.pgn.track_nodes ? "n=" + std::to_string(move.nodes) : "",         //
+                game_options_.pgn.track_seldepth ? "sd=" + std::to_string(move.seldepth) : "",  //
+                game_options_.pgn.track_nps ? "nps=" + std::to_string(move.nps) : "",           //
+                game_options_.pgn.track_hashfull ? "hashfull=" + std::to_string(move.hashfull)
+                                                 : "",                                          //
+                game_options_.pgn.track_tbhits ? "tbhits=" + std::to_string(move.tbhits) : "",  //
+                last ? match_.reason : ""                                                       //
             );
         }
     }

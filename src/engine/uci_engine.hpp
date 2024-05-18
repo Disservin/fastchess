@@ -6,9 +6,9 @@
 #include <chess.hpp>
 
 #ifdef _WIN64
-#include <engine/process/process_win.hpp>
+#    include <engine/process/process_win.hpp>
 #else
-#include <engine/process/process_posix.hpp>
+#    include <engine/process/process_posix.hpp>
 #endif
 
 #include <types/engine_config.hpp>

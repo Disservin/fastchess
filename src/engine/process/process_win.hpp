@@ -2,23 +2,23 @@
 
 #ifdef _WIN64
 
-#include <engine/process/iprocess.hpp>
+#    include <engine/process/iprocess.hpp>
 
-#include <cassert>
-#include <chrono>
-#include <cstdint>
-#include <future>
-#include <iostream>
-#include <stdexcept>
-#include <string>
-#include <thread>
-#include <vector>
+#    include <cassert>
+#    include <chrono>
+#    include <cstdint>
+#    include <future>
+#    include <iostream>
+#    include <stdexcept>
+#    include <string>
+#    include <thread>
+#    include <vector>
 
-#include <windows.h>
+#    include <windows.h>
 
-#include <affinity/affinity.hpp>
-#include <util/logger/logger.hpp>
-#include <util/thread_vector.hpp>
+#    include <affinity/affinity.hpp>
+#    include <util/logger/logger.hpp>
+#    include <util/thread_vector.hpp>
 
 namespace fast_chess {
 extern util::ThreadVector<HANDLE> process_list;

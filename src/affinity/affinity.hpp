@@ -1,13 +1,13 @@
 #pragma once
 
 #ifdef _WIN64
-#include <windows.h>
+#    include <windows.h>
 #elif defined(__APPLE__)
-#include <mach/thread_act.h>
-#include <mach/thread_policy.h>
-#include <pthread.h>
+#    include <mach/thread_act.h>
+#    include <mach/thread_policy.h>
+#    include <pthread.h>
 #else
-#include <sched.h>
+#    include <sched.h>
 #endif
 
 namespace fast_chess {

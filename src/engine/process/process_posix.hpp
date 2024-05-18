@@ -2,34 +2,34 @@
 
 #ifndef _WIN64
 
-#include <engine/process/iprocess.hpp>
+#    include <engine/process/iprocess.hpp>
 
-#include <array>
-#include <cassert>
-#include <chrono>
-#include <cstdint>
-#include <iostream>
-#include <memory>
-#include <stdexcept>
-#include <string>
-#include <thread>
-#include <vector>
+#    include <array>
+#    include <cassert>
+#    include <chrono>
+#    include <cstdint>
+#    include <iostream>
+#    include <memory>
+#    include <stdexcept>
+#    include <string>
+#    include <thread>
+#    include <vector>
 
-#include <errno.h>
-#include <fcntl.h>  // fcntl
-#include <poll.h>   // poll
-#include <signal.h>
-#include <string.h>
-#include <sys/types.h>  // pid_t
-#include <sys/wait.h>
-#include <unistd.h>  // _exit, fork
-#include <wordexp.h>
+#    include <errno.h>
+#    include <fcntl.h>  // fcntl
+#    include <poll.h>   // poll
+#    include <signal.h>
+#    include <string.h>
+#    include <sys/types.h>  // pid_t
+#    include <sys/wait.h>
+#    include <unistd.h>  // _exit, fork
+#    include <wordexp.h>
 
-#include <affinity/affinity.hpp>
-#include <util/logger/logger.hpp>
-#include <util/thread_vector.hpp>
+#    include <affinity/affinity.hpp>
+#    include <util/logger/logger.hpp>
+#    include <util/thread_vector.hpp>
 
-#include <argv_split.hpp>
+#    include <argv_split.hpp>
 
 namespace fast_chess {
 extern util::ThreadVector<pid_t> process_list;
@@ -166,11 +166,11 @@ class Process : public IProcess {
     void setAffinity(const std::vector<int> &cpus) override {
         assert(is_initalized_);
         if (!cpus.empty()) {
-#if defined(__APPLE__)
+#    if defined(__APPLE__)
 // Apple does not support setting the affinity of a pid
-#else
+#    else
             affinity::setAffinity(cpus, process_pid_);
-#endif
+#    endif
         }
     }
 

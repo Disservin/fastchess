@@ -12,12 +12,12 @@ std::atomic_bool stop = false;
 }
 
 #ifdef _WIN64
-#include <windows.h>
+#    include <windows.h>
 util::ThreadVector<HANDLE> process_list;
 #else
-#include <signal.h>
-#include <unistd.h>
-#include <cstdlib>
+#    include <signal.h>
+#    include <unistd.h>
+#    include <cstdlib>
 util::ThreadVector<pid_t> process_list;
 #endif
 

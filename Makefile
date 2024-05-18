@@ -52,9 +52,16 @@ ifeq ($(build), debug)
 endif
 
 ifeq ($(build), release)
-	LDFLAGS  := -lpthread -static -static-libgcc -static-libstdc++ -Wl,--no-as-needed
+	LDFLAGS  :=
 	NATIVE   := -march=x86-64
 	CXXFLAGS += -DRELEASE
+
+	ifneq (,$(findstring clang,$(CXX)))
+	else ifneq (,$(findstring g++,$(CXX)))
+		LDFLAGS += -Wl,--no-as-needed
+	endif
+
+	LDFLAGS += -lpthread -lstdc++fs -static -static-libgcc -static-libstdc++
 endif
 
 # Different native flag for macOS

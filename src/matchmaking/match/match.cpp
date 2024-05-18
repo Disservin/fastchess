@@ -323,17 +323,11 @@ void Match::setLose(Player& us, Player& them) noexcept {
 }
 
 bool Match::adjudicate(Player& us, Player& them) noexcept {
-    if (tournament_options_.resign.enabled && resign_tracker_.resignable()) {
+    if (tournament_options_.resign.enabled && resign_tracker_.resignable() && us.engine.lastScore() < 0) {
+        setLose(us, them);
+        
         data_.termination = MatchTermination::ADJUDICATION;
-        data_.reason      = us.engine.getConfig().name;
-
-        if (us.engine.lastScore() < 0) {
-            setLose(us, them);
-            data_.reason += Match::ADJUDICATION_LOSE_MSG;
-        } else {
-            setWin(us, them);
-            data_.reason += Match::ADJUDICATION_WIN_MSG;
-        }
+        data_.reason      = them.engine.getConfig().name + Match::ADJUDICATION_WIN_MSG;
 
         return true;
     }

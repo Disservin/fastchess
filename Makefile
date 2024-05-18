@@ -58,10 +58,10 @@ ifeq ($(build), release)
 
 	ifneq (,$(findstring clang,$(CXX)))
 	else ifneq (,$(findstring g++,$(CXX)))
-		LDFLAGS += -Wl,--no-as-needed
+		LDFLAGS += -Wl,--no-as-needed -lstdc++fs
 	endif
 
-	LDFLAGS += -lpthread -lstdc++fs -static -static-libgcc -static-libstdc++
+	LDFLAGS += -lpthread -static -static-libgcc -static-libstdc++
 endif
 
 # Different native flag for macOS

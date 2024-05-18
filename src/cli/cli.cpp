@@ -25,7 +25,20 @@
 #endif
 
 #ifndef NO_STD_FILESYSTEM
+
+#if defined(__cpp_lib_filesystem)
 #include <filesystem>
+#elif defined(__cpp_lib_experimental_filesystem)
+#include <experimental/filesystem>
+#else
+
+#if defined(__has_include)
+#elif __has_include(<filesystem>)
+#include <filesystem>
+#elif __has_include(<experimental/filesystem>)
+#include <experimental/filesystem>
+#endif
+#endif
 #endif
 
 #include <matchmaking/output/output_factory.hpp>

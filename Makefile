@@ -42,7 +42,7 @@ ifeq ($(COMP), MINGW)
 	uname_S  := Windows
 else
 	SUFFIX  :=
-	LDFLAGS := -pthread
+	LDFLAGS := -pthread -lstdc++fs
 	uname_S := $(shell uname -s)
 endif
 endif

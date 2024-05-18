@@ -555,10 +555,6 @@ void parseDebug(int &, int, char const *[], ArgumentData &) {
 }
 
 OptionsParser::OptionsParser(int argc, char const *argv[]) {
-    if (argument_data_.tournament_options.output == OutputType::CUTECHESS) {
-        argument_data_.tournament_options.ratinginterval = 1;
-    }
-
     if (argc == 1) {
         printHelp();
     }

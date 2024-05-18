@@ -218,7 +218,7 @@ void parsePgnOut(int &i, int argc, char const *argv[], ArgumentData &argument_da
                 argument_data.tournament_options.pgn.track_tbhits = value == "true";
             } else if (key == "min") {
                 argument_data.tournament_options.pgn.min = value == "true";
-            } else if (ke y == "notation") {
+            } else if (key == "notation") {
                 if (value == "san") {
                     argument_data.tournament_options.pgn.notation = NotationType::SAN;
                 } else if (value == "lan") {

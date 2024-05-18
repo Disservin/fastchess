@@ -33,6 +33,8 @@ struct MoveData {
     int depth              = 0;
     int score              = 0;
     int nps                = 0;
+    int hashfull           = 0;
+    uint64_t tbhits        = 0;
     bool legal             = true;
     bool book              = false;
 };

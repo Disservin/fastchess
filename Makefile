@@ -54,7 +54,7 @@ endif
 ifeq ($(build), release)
 	LDFLAGS  := -lpthread -static -static-libgcc -static-libstdc++ -Wl,--no-as-needed
 	NATIVE   := -march=x86-64
-	CXXFLAGS := -DRELEASE
+	CXXFLAGS += -DRELEASE
 endif
 
 # Different native flag for macOS

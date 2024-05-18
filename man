@@ -1,4 +1,4 @@
-FAST-CHESS (alpha-0.8.2)            General Commands Manual             FAST-CHESS (alpha-0.8.2)
+FAST-CHESS                  General Commands Manual                    FAST-CHESS
 
 NAME
        fast-chess - a command-line tool for managing chess games with engines

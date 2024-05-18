@@ -1,4 +1,4 @@
-FAST-CHESS (alpha-0.8.2)            General Commands Manual             FAST-CHESS (alpha-0.8.2)
+FAST-CHESS            General Commands Manual            FAST-CHESS
 
 NAME
        fast-chess - a command-line tool for managing chess games with engines
@@ -24,7 +24,7 @@ OPTIONS
         -site NAME
             Set the site name for the PGN header.
 
-        -config file=NAME [discard=(true|false)] [outname=NAME]
+        -config [file=NAME] [discard=(true|false)] [outname=NAME]
             Load engine configurations to resume games from previous sessions.
             Use 'discard=true' to discard saved game results. defaults to false.
             Use 'outname=NAME' to specify the auto generated file name of the config.
@@ -233,6 +233,3 @@ REPORTING BUGS
 
 COPYRIGHT
         This software is licensed under the MIT license. See the LICENSE file for details.
-
-VERSION
-        fast-chess version alpha-0.8.2

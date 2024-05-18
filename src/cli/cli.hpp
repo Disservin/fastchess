@@ -20,6 +20,8 @@
 
 namespace fast_chess::cli {
 
+constexpr auto version = "alpha 0.8.2 ";
+
 // Holds the data of the OptionParser
 struct ArgumentData {
     // Holds all the relevant settings for the handling of the games
@@ -65,7 +67,9 @@ class OptionsParser {
         std::string month, day, year;
         std::stringstream ss, date(__DATE__);  // {month} {date} {year}
 
-        ss << "fast-chess alpha-0.8.2-";
+        ss << "fast-chess " << version;
+
+#ifndef RELEASE
 #ifdef GIT_DATE
         ss << GIT_DATE;
 #else
@@ -77,10 +81,9 @@ class OptionsParser {
 #ifdef GIT_SHA
         ss << "-" << GIT_SHA;
 #endif
+#endif
 
-        ss << "\n";
-
-        std::cout << ss.str() << std::flush;
+        std::cout << ss.str() << std::endl;
         std::exit(0);
     }
 

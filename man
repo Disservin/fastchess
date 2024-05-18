@@ -27,7 +27,7 @@ OPTIONS
         -config [file=NAME] [discard=(true|false)] [outname=NAME]
             Load engine configurations to resume games from previous sessions.
             Use 'discard=true' to discard saved game results. defaults to false.
-            Use 'outname=NAME' to specify the auto generated file name of the config.
+            Use 'outname=NAME' to specify the auto generated file name of the config. default is "config.json".
 
         -concurrency N
             Plays N matches concurrently. Default value is 1.
@@ -86,14 +86,14 @@ OPTIONS
                          Default is random.
                 PLIES  - the number of plies to use (for pgn only).
                          If not specified, uses the maximum available plies.
-                START  - the starting offset of the book.
+                START  - the starting index of the opening book.
                          Default value is 1.
 
         -output format=FORMAT
             Choose the output format for game results (cutechess or fastchess).
             Default is fastchess.
 
-        -pgnout file=NAME notation=(san|lan|uci) [nodes=(true|false)] [seldepth=(true|false)] [nps=(true|false)] [min=(true|false)]
+        -pgnout file=NAME notation=(san|lan|uci) [nodes=(true|false)] [seldepth=(true|false)] [nps=(true|false)] [hashfull=(true|false)] [tbhits=(true|false)] [min=(true|false)]
             Export games in PGN format with specified notations and optional tracking of nodes, seldepth, and nps.
 
                 notation
@@ -104,6 +104,8 @@ OPTIONS
                 nodes    - defaults to false, track node count.
                 seldepth - defaults to false, track seldepth.
                 nps      - defaults to false, track nps.
+                hashfull - defaults to false, track hashfull.
+                tbhits   - defaults to false, track tbhits.
                 min      - defaults to false, minimal PGN format.
 
         -epdout file=NAME

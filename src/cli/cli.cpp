@@ -257,7 +257,7 @@ void parseOpening(int &i, int argc, char const *argv[], ArgumentData &argument_d
             if (argument_data.tournament_options.opening.start < 1)
                 throw std::runtime_error("Starting offset must be at least 1!");
         } else if (key == "policy") {
-            if (value != "default")
+            if (value != "default" && value != "round")
                 throw std::runtime_error("Error; Unsupported opening book policy");
         } else {
             OptionsParser::throwMissing("openings", key, value);

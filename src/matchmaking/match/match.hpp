@@ -52,7 +52,7 @@ class ResignTracker {
     void update(const int score, engine::ScoreType score_type, chess::Color color) noexcept {
         if ((std::abs(score) >= resign_score && score_type == engine::ScoreType::CP) ||
             score_type == engine::ScoreType::MATE) {
-            if (twosided_ && (color == chess::Color::WHITE || resign_moves > 0)) resign_moves++;
+            if (twosided_) resign_moves++;
         } else {
             resign_moves = 0;
         }
@@ -157,7 +157,6 @@ class Match {
 
     inline static constexpr char INSUFFICIENT_MSG[]      = "Draw by insufficient material";
     inline static constexpr char REPETITION_MSG[]        = "Draw by 3-fold repetition";
-    inline static constexpr char ADJUDICATION_LOSE_MSG[] = " loses by adjudication";
     inline static constexpr char ILLEGAL_MSG[]           = " made an illegal move";
     inline static constexpr char ADJUDICATION_WIN_MSG[]  = " wins by adjudication";
     inline static constexpr char ADJUDICATION_MSG[]      = "Draw by adjudication";

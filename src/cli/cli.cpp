@@ -172,7 +172,6 @@ void validateEnginePath(std::string dir, std::string &cmd) {
     }
 #endif
 
-// throw if cmd does not exist
 #ifndef NO_STD_FILESYSTEM
     if (!std::filesystem::exists(engine_path)) {
         throw std::runtime_error("Error; Engine not found: " + engine_path);
@@ -219,7 +218,7 @@ void parsePgnOut(int &i, int argc, char const *argv[], ArgumentData &argument_da
                 argument_data.tournament_options.pgn.track_tbhits = value == "true";
             } else if (key == "min") {
                 argument_data.tournament_options.pgn.min = value == "true";
-            } else if (key == "notation") {
+            } else if (ke y == "notation") {
                 if (value == "san") {
                     argument_data.tournament_options.pgn.notation = NotationType::SAN;
                 } else if (value == "lan") {

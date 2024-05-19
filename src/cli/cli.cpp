@@ -48,50 +48,64 @@
 #include <types/tournament_options.hpp>
 #include <util/logger/logger.hpp>
 
-namespace fast_chess::cli {
-using json = nlohmann::json;
-
+namespace {
 // Parse -name key=value key=value
-void parseDashOptions(int &i, int argc, char const *argv[],
+void parseDashOptions(const std::vector<std::string> &params,
                       const std::function<void(std::string, std::string)> &func) {
-    while (i + 1 < argc && argv[i + 1][0] != '-' && i++) {
-        std::string param = argv[i];
-        std::size_t pos   = param.find('=');
-        std::string key   = param.substr(0, pos);
-        std::string value = param.substr(pos + 1);
-
-        func(key, value);
+    for (const auto &param : params) {
+        size_t pos = param.find('=');
+        if (pos != std::string::npos) {
+            std::string key   = param.substr(0, pos);
+            std::string value = param.substr(pos + 1);
+            func(key, value);
+        } else {
+            std::cerr << "Invalid parameter: " << param << std::endl;
+        }
     }
 }
 
 // Parse a standalone value after a dash command. i.e -concurrency 10
 template <typename T>
-void parseValue(int &i, int argc, const char *argv[], T &optionValue) {
-    i++;
-    if (i < argc && argv[i][0] != '-') {
-        if constexpr (std::is_same_v<T, int>)
-            optionValue = std::stoi(argv[i]);
-        else if constexpr (std::is_same_v<T, uint32_t>)
-            optionValue = std::stoul(argv[i]);
-        else if constexpr (std::is_same_v<T, float>)
-            optionValue = std::stof(argv[i]);
-        else if constexpr (std::is_same_v<T, double>)
-            optionValue = std::stod(argv[i]);
-        else if constexpr (std::is_same_v<T, bool>)
-            optionValue = std::string(argv[i]) == "true";
-        else
-            optionValue = argv[i];
+void parseValue(const std::vector<std::string> &params, T &value) {
+    std::string str;
+
+    for (const auto &param : params) {
+        str += param;
     }
+
+    // convert the string to the desired type
+    if constexpr (std::is_same_v<T, int>)
+        value = std::stoi(str);
+    else if constexpr (std::is_same_v<T, uint32_t>)
+        value = std::stoul(str);
+    else if constexpr (std::is_same_v<T, float>)
+        value = std::stof(str);
+    else if constexpr (std::is_same_v<T, double>)
+        value = std::stod(str);
+    else if constexpr (std::is_same_v<T, bool>)
+        value = str == "true";
+    else
+        value = str;
 }
 
-// Reads the entire line until a dash is found
-[[nodiscard]] inline std::string readUntilDash(int &i, int argc, char const *argv[]) {
-    std::string result;
-    while (i + 1 < argc && argv[i + 1][0] != '-' && i++) {
-        result += argv[i] + std::string(" ");
+std::string concat(const std::vector<std::string> &params) {
+    std::string str;
+
+    for (const auto &param : params) {
+        str += param;
     }
-    return result.erase(result.size() - 1);
+
+    return str;
 }
+
+bool is_number(const std::string &s) {
+    static const auto is_digit = [](unsigned char c) { return !std::isdigit(c); };
+    return !s.empty() && std::find_if(s.begin(), s.end(), is_digit) == s.end();
+}
+}  // namespace
+
+namespace fast_chess::cli {
+using json = nlohmann::json;
 
 namespace engine {
 TimeControl::Limits parseTc(const std::string &tcString) {
@@ -199,10 +213,10 @@ void validateEnginePath(std::string dir, std::string &cmd) {
 #endif
 }
 
-void parseEngine(int &i, int argc, char const *argv[], ArgumentData &argument_data) {
+void parseEngine(const std::vector<std::string> &params, ArgumentData &argument_data) {
     argument_data.configs.emplace_back();
 
-    parseDashOptions(i, argc, argv, [&](const std::string &key, const std::string &value) {
+    parseDashOptions(params, [&](const std::string &key, const std::string &value) {
         engine::parseEngineKeyValues(argument_data.configs.back(), key, value);
     });
 
@@ -211,19 +225,17 @@ void parseEngine(int &i, int argc, char const *argv[], ArgumentData &argument_da
 
 }  // namespace engine
 
-void parseEach(int &i, int argc, char const *argv[], ArgumentData &argument_data) {
-    parseDashOptions(i, argc, argv, [&](const std::string &key, const std::string &value) {
+void parseEach(const std::vector<std::string> &params, ArgumentData &argument_data) {
+    parseDashOptions(params, [&](const std::string &key, const std::string &value) {
         for (auto &config : argument_data.configs) {
             engine::parseEngineKeyValues(config, key, value);
         }
     });
 }
 
-void parsePgnOut(int &i, int argc, char const *argv[], ArgumentData &argument_data) {
-    const auto originalI = i;
-
+void parsePgnOut(const std::vector<std::string> &params, ArgumentData &argument_data) {
     try {
-        parseDashOptions(i, argc, argv, [&](const std::string &key, const std::string &value) {
+        parseDashOptions(params, [&](const std::string &key, const std::string &value) {
             if (key == "file") {
                 argument_data.tournament_options.pgn.file = value;
             } else if (key == "nodes") {
@@ -253,17 +265,14 @@ void parsePgnOut(int &i, int argc, char const *argv[], ArgumentData &argument_da
             }
         });
     } catch (const std::exception &e) {
-        i = originalI;
         // try to read as cutechess pgnout
-        parseValue(i, argc, argv, argument_data.tournament_options.pgn.file);
+        parseValue(params, argument_data.tournament_options.pgn.file);
     }
 }
 
-void parseEpdOut(int &i, int argc, char const *argv[], ArgumentData &argument_data) {
-    const auto originalI = i;
-
+void parseEpdOut(const std::vector<std::string> &params, ArgumentData &argument_data) {
     try {
-        parseDashOptions(i, argc, argv, [&](const std::string &key, const std::string &value) {
+        parseDashOptions(params, [&](const std::string &key, const std::string &value) {
             if (key == "file") {
                 argument_data.tournament_options.epd.file = value;
             } else {
@@ -271,14 +280,13 @@ void parseEpdOut(int &i, int argc, char const *argv[], ArgumentData &argument_da
             }
         });
     } catch (const std::exception &e) {
-        i = originalI;
         // try to read as cutechess epdout
-        parseValue(i, argc, argv, argument_data.tournament_options.epd.file);
+        parseValue(params, argument_data.tournament_options.epd.file);
     }
 }
 
-void parseOpening(int &i, int argc, char const *argv[], ArgumentData &argument_data) {
-    parseDashOptions(i, argc, argv, [&](const std::string &key, const std::string &value) {
+void parseOpening(const std::vector<std::string> &params, ArgumentData &argument_data) {
+    parseDashOptions(params, [&](const std::string &key, const std::string &value) {
         if (key == "file") {
             argument_data.tournament_options.opening.file = value;
             if (str_utils::endsWith(value, ".epd")) {
@@ -318,8 +326,8 @@ void parseOpening(int &i, int argc, char const *argv[], ArgumentData &argument_d
     });
 }
 
-void parseSprt(int &i, int argc, char const *argv[], ArgumentData &argument_data) {
-    parseDashOptions(i, argc, argv, [&](const std::string &key, const std::string &value) {
+void parseSprt(const std::vector<std::string> &params, ArgumentData &argument_data) {
+    parseDashOptions(params, [&](const std::string &key, const std::string &value) {
         if (argument_data.tournament_options.rounds == 0) {
             argument_data.tournament_options.rounds = 500000;
         }
@@ -346,8 +354,8 @@ void parseSprt(int &i, int argc, char const *argv[], ArgumentData &argument_data
     });
 }
 
-void parseDraw(int &i, int argc, char const *argv[], ArgumentData &argument_data) {
-    parseDashOptions(i, argc, argv, [&](const std::string &key, const std::string &value) {
+void parseDraw(const std::vector<std::string> &params, ArgumentData &argument_data) {
+    parseDashOptions(params, [&](const std::string &key, const std::string &value) {
         argument_data.tournament_options.draw.enabled = true;
 
         if (key == "movenumber") {
@@ -366,8 +374,8 @@ void parseDraw(int &i, int argc, char const *argv[], ArgumentData &argument_data
     });
 }
 
-void parseResign(int &i, int argc, char const *argv[], ArgumentData &argument_data) {
-    parseDashOptions(i, argc, argv, [&](const std::string &key, const std::string &value) {
+void parseResign(const std::vector<std::string> &params, ArgumentData &argument_data) {
+    parseDashOptions(params, [&](const std::string &key, const std::string &value) {
         argument_data.tournament_options.resign.enabled = true;
 
         if (key == "movecount") {
@@ -386,17 +394,17 @@ void parseResign(int &i, int argc, char const *argv[], ArgumentData &argument_da
     });
 }
 
-void parseMaxMoves(int &i, int argc, char const *argv[], ArgumentData &argument_data) {
-    parseValue(i, argc, argv, argument_data.tournament_options.maxmoves.move_count);
+void parseMaxMoves(const std::vector<std::string> &params, ArgumentData &argument_data) {
+    parseValue(params, argument_data.tournament_options.maxmoves.move_count);
     argument_data.tournament_options.maxmoves.enabled = true;
 }
 
-void parseAutoSaveInterval(int &i, int argc, char const *argv[], ArgumentData &argument_data) {
-    parseValue(i, argc, argv, argument_data.tournament_options.autosaveinterval);
+void parseAutoSaveInterval(const std::vector<std::string> &params, ArgumentData &argument_data) {
+    parseValue(params, argument_data.tournament_options.autosaveinterval);
 }
 
-void parseLog(int &i, int argc, char const *argv[], ArgumentData &) {
-    parseDashOptions(i, argc, argv, [&](const std::string &key, const std::string &value) {
+void parseLog(const std::vector<std::string> &params, ArgumentData &) {
+    parseDashOptions(params, [&](const std::string &key, const std::string &value) {
         if (key == "file") {
             Logger::openFile(value);
         } else if (key == "level") {
@@ -439,9 +447,10 @@ void loadJson(ArgumentData &argument_data, const std::string &filename) {
     argument_data.stats = jsonfile["stats"].get<stats_map>();
 }
 
-void parseConfig(int &i, int argc, char const *argv[], ArgumentData &argument_data) {
+void parseConfig(const std::vector<std::string> &params, ArgumentData &argument_data) {
     bool drop_stats = false;
-    parseDashOptions(i, argc, argv, [&](const std::string &key, const std::string &value) {
+
+    parseDashOptions(params, [&](const std::string &key, const std::string &value) {
         if (key == "file") {
             loadJson(argument_data, value);
         } else if (key == "outname") {
@@ -460,10 +469,11 @@ void parseConfig(int &i, int argc, char const *argv[], ArgumentData &argument_da
         argument_data.stats.clear();
     }
 }
+
 }  // namespace config
 
-void parseReport(int &i, int argc, char const *argv[], ArgumentData &argument_data) {
-    parseDashOptions(i, argc, argv, [&](const std::string &key, const std::string &value) {
+void parseReport(const std::vector<std::string> &params, ArgumentData &argument_data) {
+    parseDashOptions(params, [&](const std::string &key, const std::string &value) {
         if (key == "penta") {
             argument_data.tournament_options.report_penta = value == "true";
         } else {
@@ -472,8 +482,8 @@ void parseReport(int &i, int argc, char const *argv[], ArgumentData &argument_da
     });
 }
 
-void parseOutput(int &i, int argc, char const *argv[], ArgumentData &argument_data) {
-    parseDashOptions(i, argc, argv, [&](const std::string &key, const std::string &value) {
+void parseOutput(const std::vector<std::string> &params, ArgumentData &argument_data) {
+    parseDashOptions(params, [&](const std::string &key, const std::string &value) {
         if (key == "format") {
             argument_data.tournament_options.output = OutputFactory::getType(value);
             if (value == "cutechess") argument_data.tournament_options.report_penta = false;
@@ -483,82 +493,78 @@ void parseOutput(int &i, int argc, char const *argv[], ArgumentData &argument_da
     });
 }
 
-void parseConcurrency(int &i, int argc, char const *argv[], ArgumentData &argument_data) {
-    parseValue(i, argc, argv, argument_data.tournament_options.concurrency);
+void parseConcurrency(const std::vector<std::string> &params, ArgumentData &argument_data) {
+    parseValue(params, argument_data.tournament_options.concurrency);
 }
 
-void parseEvent(int &i, int argc, char const *argv[], ArgumentData &argument_data) {
-    argument_data.tournament_options.event_name = readUntilDash(i, argc, argv);
+void parseEvent(const std::vector<std::string> &params, ArgumentData &argument_data) {
+    argument_data.tournament_options.event_name = concat(params);
 }
 
-void parseSite(int &i, int argc, char const *argv[], ArgumentData &argument_data) {
-    parseValue(i, argc, argv, argument_data.tournament_options.site);
+void parseSite(const std::vector<std::string> &params, ArgumentData &argument_data) {
+    parseValue(params, argument_data.tournament_options.site);
 }
 
-void parseGames(int &i, int argc, char const *argv[], ArgumentData &argument_data) {
-    parseValue(i, argc, argv, argument_data.tournament_options.games);
+void parseGames(const std::vector<std::string> &params, ArgumentData &argument_data) {
+    parseValue(params, argument_data.tournament_options.games);
 }
 
-void parseRounds(int &i, int argc, char const *argv[], ArgumentData &argument_data) {
-    parseValue(i, argc, argv, argument_data.tournament_options.rounds);
+void parseRounds(const std::vector<std::string> &params, ArgumentData &argument_data) {
+    parseValue(params, argument_data.tournament_options.rounds);
 }
 
-void parseRatinginterval(int &i, int argc, char const *argv[], ArgumentData &argument_data) {
-    parseValue(i, argc, argv, argument_data.tournament_options.ratinginterval);
+void parseRatinginterval(const std::vector<std::string> &params, ArgumentData &argument_data) {
+    parseValue(params, argument_data.tournament_options.ratinginterval);
 }
 
-void parseScoreinterval(int &i, int argc, char const *argv[], ArgumentData &argument_data) {
-    parseValue(i, argc, argv, argument_data.tournament_options.scoreinterval);
+void parseScoreinterval(const std::vector<std::string> &params, ArgumentData &argument_data) {
+    parseValue(params, argument_data.tournament_options.scoreinterval);
 }
 
-void parseSRand(int &i, int argc, char const *argv[], ArgumentData &argument_data) {
-    parseValue(i, argc, argv, argument_data.tournament_options.seed);
+void parseSRand(const std::vector<std::string> &params, ArgumentData &argument_data) {
+    parseValue(params, argument_data.tournament_options.seed);
 }
 
-void parseVersion(int &, int, char const *[], ArgumentData &) { OptionsParser::printVersion(); }
+void parseVersion(const std::vector<std::string> &, ArgumentData &) {
+    OptionsParser::printVersion();
+}
 
-void parseHelp(int &, int, char const *[], ArgumentData &) { OptionsParser::printHelp(); }
+void parseHelp(const std::vector<std::string> &, ArgumentData &) { OptionsParser::printHelp(); }
 
-void parseRecover(int &, int, char const *[], ArgumentData &argument_data) {
+void parseRecover(const std::vector<std::string> &, ArgumentData &argument_data) {
     argument_data.tournament_options.recover = true;
 }
 
-void parseRandomSeed(int &, int, char const *[], ArgumentData &argument_data) {
+void parseRandomSeed(const std::vector<std::string> &, ArgumentData &argument_data) {
     argument_data.tournament_options.randomseed = true;
 }
 
-bool is_number(const std::string &s) {
-    return !s.empty() && std::find_if(s.begin(), s.end(),
-                                      [](unsigned char c) { return !std::isdigit(c); }) == s.end();
-}
-
-void parseRepeat(int &i, int argc, char const *argv[], ArgumentData &argument_data) {
-    if (is_number(argv[i + 1]))
-        parseValue(i, argc, argv, argument_data.tournament_options.games);
-    else
+void parseRepeat(const std::vector<std::string> &params, ArgumentData &argument_data) {
+    if (params.size() == 1 && is_number(params[0])) {
+        parseValue(params, argument_data.tournament_options.games);
+    } else {
         argument_data.tournament_options.games = 2;
+    }
 }
 
-void parseVariant(int &i, int argc, char const *argv[], ArgumentData &argument_data) {
+void parseVariant(const std::vector<std::string> &params, ArgumentData &argument_data) {
     std::string val;
 
-    parseValue(i, argc, argv, val);
+    parseValue(params, val);
 
     if (val == "fischerandom") argument_data.tournament_options.variant = VariantType::FRC;
     if (val != "fischerandom" && val != "standard")
         throw std::runtime_error("Error; Unknown variant");
 }
 
-void parseTournament(int &i, int argc, char const *argv[], ArgumentData &) {
+void parseTournament(const std::vector<std::string> &params, ArgumentData &) {
     std::string val;
     // Do nothing
-    parseValue(i, argc, argv, val);
+    parseValue(params, val);
 }
 
-// .\fast-chess.exe -quick cmd=smallbrain.exe cmd=smallbrain-2.exe
-// book="UHO_XXL_2022_+110_+139.epd"
-void parseQuick(int &i, int argc, char const *argv[], ArgumentData &argument_data) {
-    parseDashOptions(i, argc, argv, [&](const std::string &key, const std::string &value) {
+void parseQuick(const std::vector<std::string> &params, ArgumentData &argument_data) {
+    parseDashOptions(params, [&](const std::string &key, const std::string &value) {
         if (key == "cmd") {
             argument_data.configs.emplace_back();
             argument_data.configs.back().cmd  = value;
@@ -601,11 +607,11 @@ void parseQuick(int &i, int argc, char const *argv[], ArgumentData &argument_dat
     argument_data.tournament_options.output = OutputType::CUTECHESS;
 }
 
-void parseAffinity(int &, int, char const *[], ArgumentData &argument_data) {
+void parseAffinity(const std::vector<std::string> &, ArgumentData &argument_data) {
     argument_data.tournament_options.affinity = true;
 }
 
-void parseDebug(int &, int, char const *[], ArgumentData &) {
+void parseDebug(const std::vector<std::string> &, ArgumentData &) {
     // throw error
     std::string error_message =
         "Error; 'debug' option does not exist in fast-chess."

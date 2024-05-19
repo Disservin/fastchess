@@ -17,9 +17,9 @@ short time controls (0.2+0.002s), it exhibits minimal timeout issues, with only
 - **Enhanced Cutechess Output**: The Cutechess output support has been refined to
   enhance compatibility with other tools. Simply switch the `-output` option to
   cutechess to enable it.
-- **Extended PGN Data**: You can now track nodes, seldepth, and nps (nodes per
-  second) in the PGN output. Refer to the `-pgnout` option for detailed
-  information.
+- **Extended PGN Data**: You can now track nodes, seldepth, nps (nodes per
+  second), hashfull, and tbhits in the PGN output. Refer to the `-pgnout`
+  option for detailed information.
 - **Quick Match Option**: We've introduced a `-quick` option for running quick
   matches between two engines with an EPD book. Specify
   `-quick cmd=ENGINE1 cmd=ENGINE2 book=BOOK` to swiftly initiate a match.

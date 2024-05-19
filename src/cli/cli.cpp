@@ -266,7 +266,7 @@ void parsePgnOut(const std::vector<std::string> &params, ArgumentData &argument_
         });
     } catch (const std::exception &e) {
         // try to read as cutechess pgnout
-        std::string val = readUntilDash(i, argc, argv);
+        std::string val = concat(params);
         if (str_utils::contains(val, " ")) {
             const auto string_vector = str_utils::splitString(val, ' ');
             argument_data.tournament_options.pgn.file = string_vector[0];

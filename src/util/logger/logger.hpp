@@ -12,6 +12,7 @@
 
 namespace fast_chess {
 
+// Singleton class for logging messages to the console/file.
 class Logger {
    public:
     enum class Level { ALL, TRACE, WARN, INFO, ERR, FATAL };
@@ -42,8 +43,7 @@ class Logger {
         }
 
         std::stringstream file_ss;
-        file_ss << "[" << util::time::datetime("%H:%M:%S") << "] "
-                << "<fastchess>" << ss.str();
+        file_ss << "[" << util::time::datetime("%H:%M:%S") << "] " << "<fastchess>" << ss.str();
 
         const std::lock_guard<std::mutex> lock(log_mutex_);
 

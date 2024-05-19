@@ -4,6 +4,9 @@
 #include <type_traits>
 
 namespace fast_chess::util {
+
+// Base class for entries which are managed by a ScopeGuard.
+// Needs to be inherited by the managed class.
 class ScopeEntry {
    public:
     ScopeEntry(bool available) : available_(available) {}
@@ -14,8 +17,8 @@ class ScopeEntry {
     std::atomic<bool> available_;
 };
 
+// RAII class that releases the entry when it goes out of scope
 template <typename T>
-
 class ScopeGuard {
    public:
     explicit ScopeGuard(T &entry) : entry_(entry) {

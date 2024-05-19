@@ -5,6 +5,9 @@
 
 namespace fast_chess::util {
 
+// Reading lines from a file with std::getline is a bit weird as the line endings handled
+// differently on different platforms. This function reads a line from a stream and handles all line
+// endings os agnostic.
 inline std::istream& safeGetline(std::istream& is, std::string& t) {
     t.clear();
 

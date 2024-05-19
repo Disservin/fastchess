@@ -10,6 +10,8 @@
 
 namespace fast_chess::util {
 
+// An entry for the cache pool, should be guarded by a ScopeGuard to release the entry
+// when it goes out of scope and make it available for other threads to use again.
 template <typename T, typename ID>
 class CachedEntry : public ScopeEntry {
    public:
@@ -38,6 +40,7 @@ class CachePool {
 
         for (auto &entry : cache_) {
             if (entry.available_ && entry.id == identifier) {
+                // block the entry from being used by other threads
                 entry.available_ = false;
                 return entry;
             }

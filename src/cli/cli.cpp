@@ -175,20 +175,26 @@ void parseEngineKeyValues(EngineConfiguration &engineConfig, const std::string &
 
 void validateEnginePath(std::string dir, std::string &cmd) {
     // engine path with dir
-    dir              = dir == "." ? "" : dir;
-    auto engine_path = dir + cmd;
-
-// append .exe to cmd if it is missing on windows
-#ifdef _WIN64
-    if (engine_path.find(".exe") == std::string::npos) {
-        cmd += ".exe";
-        engine_path += ".exe";
-    }
-#endif
+    auto engine_path = dir == "." ? "" : dir + cmd;
 
 #ifndef NO_STD_FILESYSTEM
     if (!std::filesystem::exists(engine_path)) {
+        // append .exe to cmd if it is missing on windows
+#    ifdef _WIN64
+        if (engine_path.find(".exe") == std::string::npos) {
+            auto original_path = engine_path;
+
+            cmd += ".exe";
+            engine_path += ".exe";
+
+            if (!std::filesystem::exists(engine_path)) {
+                throw std::runtime_error("Error; Engine not found: " + original_path);
+            }
+        }
+#    else
         throw std::runtime_error("Error; Engine not found: " + engine_path);
+
+#    endif
     }
 #endif
 }

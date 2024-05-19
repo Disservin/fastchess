@@ -440,6 +440,7 @@ void loadJson(ArgumentData &argument_data, const std::string &filename) {
 }
 
 void parseConfig(int &i, int argc, char const *argv[], ArgumentData &argument_data) {
+    bool drop_stats = false;
     parseDashOptions(i, argc, argv, [&](const std::string &key, const std::string &value) {
         if (key == "file") {
             loadJson(argument_data, value);
@@ -450,8 +451,14 @@ void parseConfig(int &i, int argc, char const *argv[], ArgumentData &argument_da
             argument_data.tournament_options = argument_data.old_tournament_options;
             argument_data.configs            = argument_data.old_configs;
             argument_data.stats.clear();
+        } else if (key == "stats") {
+            drop_stats = value == "false";
         }
     });
+
+    if (drop_stats) {
+        argument_data.stats.clear();
+    }
 }
 }  // namespace config
 

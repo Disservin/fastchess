@@ -266,15 +266,9 @@ void parsePgnOut(const std::vector<std::string> &params, ArgumentData &argument_
         });
     } catch (const std::exception &e) {
         // try to read as cutechess pgnout
-        std::string val = concat(params);
-        if (str_utils::contains(val, " ")) {
-            const auto string_vector = str_utils::splitString(val, ' ');
-            argument_data.tournament_options.pgn.file = string_vector[0];
-            if (std::find(params.begin(), params.end(), "min") != params.end())
-                argument_data.tournament_options.pgn.min = true;
-        } else {
-            argument_data.tournament_options.pgn.file = val;
-        }
+        argument_data.tournament_options.pgn.file = params[0];
+        if (std::find(params.begin(), params.end(), "min") != params.end())
+            argument_data.tournament_options.pgn.min = true;
     }
 }
 

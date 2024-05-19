@@ -234,7 +234,8 @@ void parseEach(const std::vector<std::string> &params, ArgumentData &argument_da
 }
 
 void parsePgnOut(const std::vector<std::string> &params, ArgumentData &argument_data) {
-    try {
+    size_t pos = param.find('=');
+    if (pos != std::string::npos) {
         parseDashOptions(params, [&](const std::string &key, const std::string &value) {
             if (key == "file") {
                 argument_data.tournament_options.pgn.file = value;
@@ -264,7 +265,7 @@ void parsePgnOut(const std::vector<std::string> &params, ArgumentData &argument_
                 OptionsParser::throwMissing("pgnout", key, value);
             }
         });
-    } catch (const std::exception &e) {
+    } else {
         // try to read as cutechess pgnout
         argument_data.tournament_options.pgn.file = params[0];
         argument_data.tournament_options.pgn.min = std::find(params.begin(), params.end(), "min") != params.end();
@@ -272,7 +273,8 @@ void parsePgnOut(const std::vector<std::string> &params, ArgumentData &argument_
 }
 
 void parseEpdOut(const std::vector<std::string> &params, ArgumentData &argument_data) {
-    try {
+    size_t pos = param.find('=');
+    if (pos != std::string::npos) {
         parseDashOptions(params, [&](const std::string &key, const std::string &value) {
             if (key == "file") {
                 argument_data.tournament_options.epd.file = value;
@@ -280,7 +282,7 @@ void parseEpdOut(const std::vector<std::string> &params, ArgumentData &argument_
                 OptionsParser::throwMissing("epdout", key, value);
             }
         });
-    } catch (const std::exception &e) {
+    } else {
         // try to read as cutechess epdout
         parseValue(params, argument_data.tournament_options.epd.file);
     }

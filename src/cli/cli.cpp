@@ -270,7 +270,8 @@ void parsePgnOut(const std::vector<std::string> &params, ArgumentData &argument_
         if (str_utils::contains(val, " ")) {
             const auto string_vector = str_utils::splitString(val, ' ');
             argument_data.tournament_options.pgn.file = string_vector[0];
-            if (str_utils::contains(val, " min")) argument_data.tournament_options.pgn.min = true;
+            if (std::find(params.begin(), params.end(), "min") != params.end())
+                argument_data.tournament_options.pgn.min = true;
         } else {
             argument_data.tournament_options.pgn.file = val;
         }

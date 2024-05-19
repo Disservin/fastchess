@@ -32,6 +32,8 @@ TEST_SUITE("Uci Engine Communication Tests") {
 
         engine::UciEngine uci_engine = engine::UciEngine(config);
 
+        uci_engine.start();
+
         for (const auto& line : uci_engine.output()) {
             std::cout << line.line << std::endl;
         }
@@ -56,6 +58,8 @@ TEST_SUITE("Uci Engine Communication Tests") {
             "--nncache=50000000 --threads=5";
 
         engine::UciEngine uci_engine = engine::UciEngine(config);
+
+        uci_engine.start();
 
         for (const auto& line : uci_engine.output()) {
             std::cout << line.line << std::endl;
@@ -82,6 +86,8 @@ TEST_SUITE("Uci Engine Communication Tests") {
         config.args = "arg1 arg2 arg3";
 
         engine::UciEngine uci_engine = engine::UciEngine(config);
+
+        uci_engine.start();
 
         CHECK(uci_engine.output().size() == 6);
         CHECK(uci_engine.output()[0].line == "argv[1]: arg1");
@@ -119,6 +125,8 @@ TEST_SUITE("Uci Engine Communication Tests") {
 #endif
         engine::UciEngine uci_engine = engine::UciEngine(config);
 
+        uci_engine.start();
+
         uci_engine.writeEngine("uci");
         const auto res = uci_engine.readEngine("uciok");
 
@@ -155,6 +163,8 @@ TEST_SUITE("Uci Engine Communication Tests") {
         config.cmd = path + "dummy_engine";
 #endif
         MockUciEngine uci_engine = MockUciEngine(config);
+
+        uci_engine.start();
 
         uci_engine.writeEngine("uci");
         const auto res = uci_engine.readEngine("uciok");

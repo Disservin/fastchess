@@ -267,8 +267,7 @@ void parsePgnOut(const std::vector<std::string> &params, ArgumentData &argument_
     } catch (const std::exception &e) {
         // try to read as cutechess pgnout
         argument_data.tournament_options.pgn.file = params[0];
-        if (std::find(params.begin(), params.end(), "min") != params.end())
-            argument_data.tournament_options.pgn.min = true;
+        argument_data.tournament_options.pgn.min = std::find(params.begin(), params.end(), "min") != params.end();
     }
 }
 

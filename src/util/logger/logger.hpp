@@ -41,14 +41,12 @@ class Logger {
             return;
         }
 
-        // Acquire the lock
+        std::stringstream file_ss;
+        file_ss << "[" << util::time::datetime("%H:%M:%S") << "] " << "<fastchess>" << ss.str();
+
         const std::lock_guard<std::mutex> lock(log_mutex_);
 
-        std::stringstream file_ss;
-        file_ss << "[" << util::time::datetime("%H:%M:%S") << "] "
-                << "<fastchess>" << ss.str() << std::endl;
-
-        log_ << file_ss.str() << std::flush;
+        log_ << file_ss.str() << std::endl;
     }
 
     static void writeToEngine(const std::string &msg, const std::string &name);

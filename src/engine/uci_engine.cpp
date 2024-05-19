@@ -40,6 +40,8 @@ void UciEngine::sendSetoption(const std::string &name, const std::string &value)
 }
 
 void UciEngine::start() {
+    if (initialized_) return;
+
     Logger::log<Logger::Level::TRACE>("Starting engine", config_.name);
     init((config_.dir == "." ? "" : config_.dir) + config_.cmd, config_.args, config_.name);
     uci();
@@ -47,9 +49,13 @@ void UciEngine::start() {
     if (!uciok()) {
         throw std::runtime_error(config_.name + " failed to start.");
     }
+
+    initialized_ = true;
 }
 
 void UciEngine::refreshUci() {
+    start();
+
     if (!ucinewgame() && !isResponsive(ping_time_)) {
         // restart the engine
         restart();

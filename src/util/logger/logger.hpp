@@ -42,7 +42,8 @@ class Logger {
         }
 
         std::stringstream file_ss;
-        file_ss << "[" << util::time::datetime("%H:%M:%S") << "] " << "<fastchess>" << ss.str();
+        file_ss << "[" << util::time::datetime("%H:%M:%S") << "] "
+                << "<fastchess>" << ss.str();
 
         const std::lock_guard<std::mutex> lock(log_mutex_);
 

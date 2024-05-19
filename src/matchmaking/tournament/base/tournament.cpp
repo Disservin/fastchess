@@ -24,7 +24,7 @@ BaseTournament::BaseTournament(const options::Tournament &config,
     output_             = OutputFactory::create(config);
     book_               = book::OpeningBook(config);
     cores_              = std::make_unique<affinity::AffinityManager>(config.affinity,
-                                                                      getMaxAffinity(engine_configs));
+                                                         getMaxAffinity(engine_configs));
 
     if (!config.pgn.file.empty())
         file_writer_pgn = std::make_unique<util::FileWriter>(config.pgn.file);

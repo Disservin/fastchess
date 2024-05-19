@@ -233,9 +233,17 @@ void parseEach(const std::vector<std::string> &params, ArgumentData &argument_da
     });
 }
 
+bool containsEqualSign(const std::vector<std::string> &params) {
+    for (const auto &param : params) {
+        if (param.find('=') != std::string::npos) {
+            return true;
+        }
+    }
+    return false;
+}
+
 void parsePgnOut(const std::vector<std::string> &params, ArgumentData &argument_data) {
-    size_t pos = params.find('=');
-    if (pos != std::string::npos) {
+    if (containsEqualSign(params)) {
         parseDashOptions(params, [&](const std::string &key, const std::string &value) {
             if (key == "file") {
                 argument_data.tournament_options.pgn.file = value;
@@ -273,8 +281,7 @@ void parsePgnOut(const std::vector<std::string> &params, ArgumentData &argument_
 }
 
 void parseEpdOut(const std::vector<std::string> &params, ArgumentData &argument_data) {
-    size_t pos = params.find('=');
-    if (pos != std::string::npos) {
+    if (containsEqualSign(params)) {
         parseDashOptions(params, [&](const std::string &key, const std::string &value) {
             if (key == "file") {
                 argument_data.tournament_options.epd.file = value;

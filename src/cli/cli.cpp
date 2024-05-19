@@ -234,7 +234,7 @@ void parseEach(const std::vector<std::string> &params, ArgumentData &argument_da
 }
 
 void parsePgnOut(const std::vector<std::string> &params, ArgumentData &argument_data) {
-    size_t pos = param.find('=');
+    size_t pos = params.find('=');
     if (pos != std::string::npos) {
         parseDashOptions(params, [&](const std::string &key, const std::string &value) {
             if (key == "file") {
@@ -273,7 +273,7 @@ void parsePgnOut(const std::vector<std::string> &params, ArgumentData &argument_
 }
 
 void parseEpdOut(const std::vector<std::string> &params, ArgumentData &argument_data) {
-    size_t pos = param.find('=');
+    size_t pos = params.find('=');
     if (pos != std::string::npos) {
         parseDashOptions(params, [&](const std::string &key, const std::string &value) {
             if (key == "file") {

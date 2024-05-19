@@ -21,11 +21,12 @@ class UciEngine : protected process::Process {
    public:
     explicit UciEngine(const EngineConfiguration &config) {
         loadConfig(config);
-        start();
         output_.reserve(100);
     }
 
     ~UciEngine() override { quit(); }
+
+    void start();
 
     void refreshUci();
 
@@ -80,13 +81,14 @@ class UciEngine : protected process::Process {
     );
 
    private:
-    void start();
-
     void loadConfig(const EngineConfiguration &config);
     void sendSetoption(const std::string &name, const std::string &value);
 
     EngineConfiguration config_;
 
     std::vector<process::Line> output_;
+
+    // init on first use
+    bool initialized_ = false;
 };
 }  // namespace fast_chess::engine

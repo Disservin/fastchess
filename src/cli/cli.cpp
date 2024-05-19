@@ -102,6 +102,15 @@ bool is_number(const std::string &s) {
     static const auto is_digit = [](unsigned char c) { return !std::isdigit(c); };
     return !s.empty() && std::find_if(s.begin(), s.end(), is_digit) == s.end();
 }
+
+bool containsEqualSign(const std::vector<std::string> &params) {
+    for (const auto &param : params) {
+        if (param.find('=') != std::string::npos) {
+            return true;
+        }
+    }
+    return false;
+}
 }  // namespace
 
 namespace fast_chess::cli {
@@ -231,15 +240,6 @@ void parseEach(const std::vector<std::string> &params, ArgumentData &argument_da
             engine::parseEngineKeyValues(config, key, value);
         }
     });
-}
-
-bool containsEqualSign(const std::vector<std::string> &params) {
-    for (const auto &param : params) {
-        if (param.find('=') != std::string::npos) {
-            return true;
-        }
-    }
-    return false;
 }
 
 void parsePgnOut(const std::vector<std::string> &params, ArgumentData &argument_data) {

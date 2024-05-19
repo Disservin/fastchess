@@ -97,6 +97,11 @@ std::string concat(const std::vector<std::string> &params) {
 
     return str;
 }
+
+bool is_number(const std::string &s) {
+    static const auto is_digit = [](unsigned char c) { return !std::isdigit(c); };
+    return !s.empty() && std::find_if(s.begin(), s.end(), is_digit) == s.end();
+}
 }  // namespace
 
 namespace fast_chess::cli {
@@ -532,11 +537,6 @@ void parseRecover(const std::vector<std::string> &, ArgumentData &argument_data)
 
 void parseRandomSeed(const std::vector<std::string> &, ArgumentData &argument_data) {
     argument_data.tournament_options.randomseed = true;
-}
-
-bool is_number(const std::string &s) {
-    return !s.empty() && std::find_if(s.begin(), s.end(),
-                                      [](unsigned char c) { return !std::isdigit(c); }) == s.end();
 }
 
 void parseRepeat(const std::vector<std::string> &params, ArgumentData &argument_data) {

@@ -266,7 +266,14 @@ void parsePgnOut(const std::vector<std::string> &params, ArgumentData &argument_
         });
     } catch (const std::exception &e) {
         // try to read as cutechess pgnout
-        parseValue(params, argument_data.tournament_options.pgn.file);
+        std::string val = readUntilDash(i, argc, argv);
+        if (str_utils::contains(val, " ")) {
+            const auto string_vector = str_utils::splitString(val, ' ');
+            argument_data.tournament_options.pgn.file = string_vector[0];
+            if (str_utils::contains(val, " min")) argument_data.tournament_options.pgn.min = true;
+        } else {
+            argument_data.tournament_options.pgn.file = val;
+        }
     }
 }
 
@@ -318,7 +325,7 @@ void parseOpening(const std::vector<std::string> &params, ArgumentData &argument
             if (argument_data.tournament_options.opening.start < 1)
                 throw std::runtime_error("Starting offset must be at least 1!");
         } else if (key == "policy") {
-            if (value != "default")
+            if (value != "round")
                 throw std::runtime_error("Error; Unsupported opening book policy");
         } else {
             OptionsParser::throwMissing("openings", key, value);

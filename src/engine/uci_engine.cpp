@@ -49,6 +49,8 @@ void UciEngine::start() {
     if (!uciok()) {
         throw std::runtime_error(config_.name + " failed to start.");
     }
+
+    initialized_ = true;
 }
 
 void UciEngine::refreshUci() {

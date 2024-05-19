@@ -24,10 +24,13 @@ OPTIONS
         -site NAME
             Set the site name for the PGN header.
 
-        -config [file=NAME] [discard=(true|false)] [outname=NAME]
+        -config [file=NAME] [discard=(true|false)] [outname=NAME] [stats=(true|false)]
             Load engine configurations to resume games from previous sessions.
-            Use 'discard=true' to discard saved game results. defaults to false.
-            Use 'outname=NAME' to specify the auto generated file name of the config. default is "config.json".
+
+            file - the file name to load the configuration from.
+            discard - discard the saved game results. Defaults to false.
+            outname - the auto generated file name of the config. Default is "config.json".
+            stats - drop the stats from the config file. Defaults to false.
 
         -concurrency N
             Plays N matches concurrently. Default value is 1.

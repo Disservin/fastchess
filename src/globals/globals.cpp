@@ -21,8 +21,6 @@ util::ThreadVector<HANDLE> process_list;
 util::ThreadVector<pid_t> process_list;
 #endif
 
-// Make sure that all processes are stopped, and no zombie processes are left after the
-// program exits.
 void stopProcesses() {
 #ifdef _WIN64
     for (const auto &pid : process_list) {

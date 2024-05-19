@@ -38,7 +38,7 @@ struct ArgumentData {
 };
 
 class OptionsParser {
-    using parseFunc = std::function<void(int &, int, char const *[], ArgumentData &)>;
+    using parseFunc = std::function<void((const std::vector<std::string> &, ArgumentData &))>;
 
    public:
     OptionsParser(int argc, char const *argv[]);
@@ -119,7 +119,14 @@ class OptionsParser {
             }
 
             try {
-                options_[arg](i, argc, argv, argument_data_);
+                std::vector<std::string> params;
+
+                while (i + 1 < argc && argv[i + 1][0] != '-') {
+                    params.push_back(argv[++i]);
+                }
+
+                options_.at(arg)(params, argument_data_);
+
             } catch (const std::exception &e) {
                 auto err = "\nError while reading option \"" + arg + "\" with value \"" +
                            std::string(argv[i]) + "\"\nReason: " + e.what();

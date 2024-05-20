@@ -102,6 +102,15 @@ bool is_number(const std::string &s) {
     static const auto is_digit = [](unsigned char c) { return !std::isdigit(c); };
     return !s.empty() && std::find_if(s.begin(), s.end(), is_digit) == s.end();
 }
+
+bool containsEqualSign(const std::vector<std::string> &params) {
+    for (const auto &param : params) {
+        if (param.find('=') != std::string::npos) {
+            return true;
+        }
+    }
+    return false;
+}
 }  // namespace
 
 namespace fast_chess::cli {
@@ -234,7 +243,7 @@ void parseEach(const std::vector<std::string> &params, ArgumentData &argument_da
 }
 
 void parsePgnOut(const std::vector<std::string> &params, ArgumentData &argument_data) {
-    try {
+    if (containsEqualSign(params)) {
         parseDashOptions(params, [&](const std::string &key, const std::string &value) {
             if (key == "file") {
                 argument_data.tournament_options.pgn.file = value;
@@ -264,7 +273,7 @@ void parsePgnOut(const std::vector<std::string> &params, ArgumentData &argument_
                 OptionsParser::throwMissing("pgnout", key, value);
             }
         });
-    } catch (const std::exception &e) {
+    } else {
         // try to read as cutechess pgnout
         argument_data.tournament_options.pgn.file = params[0];
         argument_data.tournament_options.pgn.min = std::find(params.begin(), params.end(), "min") != params.end();
@@ -272,7 +281,7 @@ void parsePgnOut(const std::vector<std::string> &params, ArgumentData &argument_
 }
 
 void parseEpdOut(const std::vector<std::string> &params, ArgumentData &argument_data) {
-    try {
+    if (containsEqualSign(params)) {
         parseDashOptions(params, [&](const std::string &key, const std::string &value) {
             if (key == "file") {
                 argument_data.tournament_options.epd.file = value;
@@ -280,7 +289,7 @@ void parseEpdOut(const std::vector<std::string> &params, ArgumentData &argument_
                 OptionsParser::throwMissing("epdout", key, value);
             }
         });
-    } catch (const std::exception &e) {
+    } else {
         // try to read as cutechess epdout
         parseValue(params, argument_data.tournament_options.epd.file);
     }

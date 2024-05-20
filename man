@@ -30,7 +30,7 @@ OPTIONS
             file - the file name to load the configuration from.
             discard - discard the saved game results. Defaults to false.
             outname - the auto generated file name of the config. Default is "config.json".
-            stats - Load the stats from the config file. Defaults to true.
+            stats - load the stats from the config file. Defaults to true.
 
         -concurrency N
             Plays N matches concurrently. Default value is 1.

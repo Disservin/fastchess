@@ -73,7 +73,7 @@ double SPRT::getLLR(int win, int draw, int loss) const noexcept {
         score0 = neloToScoreWDL(elo0_, variance);
         score1 = neloToScoreWDL(elo1_, variance);
     } else if (model_ == "bayesian") {
-        if (win == 0 || draw == 0 || loss == 0) return 0.0;
+        if (win == 0 || loss == 0) return 0.0;
         double drawelo = 200 * std::log10((1-L)/L * (1-W)/W);
         score0 = bayeseloToScore(elo0_, drawelo);
         score1 = bayeseloToScore(elo1_, drawelo); 

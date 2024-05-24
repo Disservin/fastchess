@@ -136,6 +136,7 @@ OPTIONS
             MODEL
                 Specify the model to use.
                     - logistic
+                    - bayesian
                     - normalized (default)
 
         -srand SEED

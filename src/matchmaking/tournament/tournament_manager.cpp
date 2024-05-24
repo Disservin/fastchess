@@ -45,6 +45,12 @@ options::Tournament TournamentManager::fixConfig(options::Tournament config) {
 
     if (config.report_penta && config.games != 2) config.report_penta = false;
 
+    if (config.sprt.model == "bayesian" && config.report_penta) {
+        Logger::log<Logger::Level::WARN>(
+            "Warning: Bayesian SPRT model not available with pentanomial statistics. Disabling pentanomial reports...");
+        config.report_penta = false;
+    }
+
     config.concurrency =
         std::min(config.concurrency, static_cast<int>(std::thread::hardware_concurrency()));
 

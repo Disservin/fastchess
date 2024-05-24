@@ -29,7 +29,7 @@ SPRT::SPRT(double alpha, double beta, double elo0, double elo1, bool logistic_bo
 
 double SPRT::leloToScore(double lelo) noexcept { return 1 / (1 + std::pow(10, (-lelo / 400))); }
 
-double SPRT::bayeseloToScore(double bayeselo, drawelo) noexcept { 
+double SPRT::bayeseloToScore(double bayeselo, double drawelo) noexcept { 
     double pwin = 1.0 / (1.0 + std::pow(10.0, (-bayeselo + drawelo) / 400.0));
     double ploss = 1.0 / (1.0 + std::pow(10.0, (bayeselo + drawelo) / 400.0));
     double pdraw = 1.0 - pwin - ploss;

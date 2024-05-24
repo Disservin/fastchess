@@ -36,7 +36,7 @@ class SPRT {
     double elo1_ = 0.0;
 
     bool valid_           = false;
-    std::string model     = "normalized";
+    std::string model_    = "normalized";
 };
 
 }  // namespace fast_chess

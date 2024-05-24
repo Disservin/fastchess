@@ -17,7 +17,7 @@ class SPRT {
     [[nodiscard]] bool isValid() const noexcept;
 
     [[nodiscard]] static double leloToScore(double lelo) noexcept;
-    [[nodiscard]] static double bayeseloToScore(double bayeselo, drawelo) noexcept;
+    [[nodiscard]] static double bayeseloToScore(double bayeselo, double drawelo) noexcept;
     [[nodiscard]] static double neloToScoreWDL(double nelo, double stdDeviation) noexcept;
     [[nodiscard]] static double neloToScorePenta(double nelo, double stdDeviation) noexcept;
     [[nodiscard]] double getLLR(const Stats& stats, bool penta) const noexcept;

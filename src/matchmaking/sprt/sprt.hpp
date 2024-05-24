@@ -12,7 +12,7 @@ class SPRT {
    public:
     SPRT() = default;
 
-    SPRT(double alpha, double beta, double elo0, double elo1, bool logistic_bounds);
+    SPRT(double alpha, double beta, double elo0, double elo1, std::string model);
 
     [[nodiscard]] bool isValid() const noexcept;
 

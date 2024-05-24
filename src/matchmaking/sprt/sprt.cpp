@@ -10,7 +10,8 @@
 namespace fast_chess {
 
 SPRT::SPRT(double alpha, double beta, double elo0, double elo1, bool logistic_bounds) {
-    valid_ = alpha != 0.0 && beta != 0.0 && elo0 < elo1;
+    valid_ = alpha != 0.0 && beta != 0.0 && elo0 < elo1 
+             && (model == "normalized" || model == "bayesian" || model == "logistic");
     if (isValid()) {
         lower_ = std::log(beta / (1 - alpha));
         upper_ = std::log((1 - beta) / alpha);
@@ -18,7 +19,7 @@ SPRT::SPRT(double alpha, double beta, double elo0, double elo1, bool logistic_bo
         elo0_ = elo0;
         elo1_ = elo1;
 
-        logistic_bounds_ = logistic_bounds;
+        model_ = model;
 
         Logger::log<Logger::Level::INFO>("Initialized valid SPRT configuration.");
     } else if (!(alpha == 0.0 && beta == 0.0 && elo0 == 0.0 && elo1 == 0.0)) {
@@ -27,6 +28,13 @@ SPRT::SPRT(double alpha, double beta, double elo0, double elo1, bool logistic_bo
 }
 
 double SPRT::leloToScore(double lelo) noexcept { return 1 / (1 + std::pow(10, (-lelo / 400))); }
+
+double SPRT::bayeseloToScore(double bayeselo, drawelo) noexcept { 
+    double pwin = 1.0 / (1.0 + std::pow(10.0, (-bayeselo + drawelo) / 400.0));
+    double ploss = 1.0 / (1.0 + std::pow(10.0, (bayeselo + drawelo) / 400.0));
+    double pdraw = 1.0 - pwin - ploss;
+    return pwin + 0.5 * pdraw;
+}
 
 double SPRT::neloToScoreWDL(double nelo, double variance) noexcept {
     return nelo * std::sqrt(variance) / (800.0 / std::log(10)) + 0.5;
@@ -61,9 +69,14 @@ double SPRT::getLLR(int win, int draw, int loss) const noexcept {
     const double variance_per_game = variance / games;
     double score0;
     double score1;
-    if (!logistic_bounds_) {
+    if (model_ == "normalized") {
         score0 = neloToScoreWDL(elo0_, variance);
         score1 = neloToScoreWDL(elo1_, variance);
+    } else if (model_ == "bayesian") {
+        if (win == 0 || draw == 0 || loss == 0) return 0.0;
+        double drawelo = 200 * std::log10((1-L)/L * (1-W)/W);
+        score0 = bayeseloToScore(elo0_, drawelo);
+        score1 = bayeseloToScore(elo1_, drawelo); 
     } else {
         score0 = leloToScore(elo0_);
         score1 = leloToScore(elo1_);
@@ -94,7 +107,7 @@ double SPRT::getLLR(int penta_WW, int penta_WD, int penta_WL, int penta_DD, int 
     const double variance_per_pair = variance / pairs;
     double score0;
     double score1;
-    if (!logistic_bounds_) {
+    if (model_ == "normalized") {
         score0 = neloToScorePenta(elo0_, variance);
         score1 = neloToScorePenta(elo1_, variance);
     } else {

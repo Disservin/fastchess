@@ -9,7 +9,7 @@
 
 namespace fast_chess {
 
-SPRT::SPRT(double alpha, double beta, double elo0, double elo1, bool logistic_bounds) {
+SPRT::SPRT(double alpha, double beta, double elo0, double elo1, std::string model) {
     valid_ = alpha != 0.0 && beta != 0.0 && elo0 < elo1 
              && (model == "normalized" || model == "bayesian" || model == "logistic");
     if (isValid()) {

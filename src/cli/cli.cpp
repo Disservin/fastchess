@@ -1,51 +1,10 @@
 #include <cli/cli.hpp>
 
-#if defined(__MINGW32__) && defined(__GNUC__) && __GNUC__ == 8
-#    define NO_STD_FILESYSTEM
-#endif
-
-#if defined(__GNUC__) && !defined(__clang__) && __GNUC__ < 8
-#    define NO_STD_FILESYSTEM
-#endif
-
-#if defined(__clang_major__) && __clang_major__ < 7
-#    define NO_STD_FILESYSTEM
-#endif
-
-#if defined(_MSC_VER) && _MSC_VER < 1914
-#    define NO_STD_FILESYSTEM
-#endif
-
-#if defined(__IPHONE_OS_VERSION_MIN_REQUIRED) && __IPHONE_OS_VERSION_MIN_REQUIRED < 130000
-#    define NO_STD_FILESYSTEM
-#endif
-
-#if defined(__MAC_OS_X_VERSION_MIN_REQUIRED) && __MAC_OS_X_VERSION_MIN_REQUIRED < 101500
-#    define NO_STD_FILESYSTEM
-#endif
-
-#ifndef NO_STD_FILESYSTEM
-
-#    if defined(__cpp_lib_filesystem)
-#        include <filesystem>
-#    elif defined(__cpp_lib_experimental_filesystem)
-#        include <experimental/filesystem>
-#    else
-
-#        if defined(__has_include)
-#            if __has_include(<filesystem>)
-#                include <filesystem>
-#            elif __has_include(<experimental/filesystem>)
-#                include <experimental/filesystem>
-#            endif
-#        endif
-#    endif
-#endif
-
 #include <matchmaking/output/output_factory.hpp>
 #include <matchmaking/result.hpp>
 #include <types/engine_config.hpp>
 #include <types/tournament_options.hpp>
+#include <util/file_system.hpp>
 #include <util/logger/logger.hpp>
 
 namespace {
@@ -276,7 +235,8 @@ void parsePgnOut(const std::vector<std::string> &params, ArgumentData &argument_
     } else {
         // try to read as cutechess pgnout
         argument_data.tournament_options.pgn.file = params[0];
-        argument_data.tournament_options.pgn.min = std::find(params.begin(), params.end(), "min") != params.end();
+        argument_data.tournament_options.pgn.min =
+            std::find(params.begin(), params.end(), "min") != params.end();
     }
 }
 

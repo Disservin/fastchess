@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 
+#include <util/file_system.hpp>
 #include <util/helper.hpp>
 #include <util/logger/logger.hpp>
 
@@ -43,7 +44,16 @@ void UciEngine::start() {
     if (initialized_) return;
 
     Logger::log<Logger::Level::TRACE>("Starting engine", config_.name);
-    init((config_.dir == "." ? "" : config_.dir) + config_.cmd, config_.args, config_.name);
+
+    std::string path = (config_.dir == "." ? "" : config_.dir) + config_.cmd;
+
+#ifndef NO_STD_FILESYSTEM
+    // convert path to a filesystem path
+    auto p = std::filesystem::path(config_.dir) / std::filesystem::path(config_.cmd);
+    path   = p.string();
+#endif
+
+    init(path, config_.args, config_.name);
     uci();
 
     if (!uciok()) {

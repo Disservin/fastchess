@@ -240,6 +240,9 @@ bool Match::playMove(Player& us, Player& opponent) {
 
     board_.makeMove(move);
 
+    // CuteChess uses plycount/2 for its movenumber, which is wrong for epd books as it doesnt take
+    // into account the fullmove counter of the starting FEN, leading to different behavior between pgn and epd
+    // adjudication. fast-chess fixes this by using the fullmove counter from the board object directly
     draw_tracker_.update(us.engine.lastScore(), board_.fullMoveNumber() - 1, us.engine.lastScoreType(),
                          board_.halfMoveClock());
     resign_tracker_.update(us.engine.lastScore(), us.engine.lastScoreType(), ~board_.sideToMove());

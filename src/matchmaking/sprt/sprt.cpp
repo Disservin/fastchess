@@ -89,6 +89,7 @@ double SPRT::getLLR(int win, int draw, int loss) const noexcept {
     const double L_dev1    = L * std::pow((0 - score1), 2);
     const double variance1 = W_dev1 + D_dev1 + L_dev1;
     if (variance0 == 0 || variance1 == 0) return 0.0;
+    // For more information: http://hardy.uhasselt.be/Fishtest/support_MLE_multinomial.pdf
     return 0.5 * games * std::log(variance0 / variance1);
 }
 
@@ -134,6 +135,7 @@ double SPRT::getLLR(int penta_WW, int penta_WD, int penta_WL, int penta_DD, int 
     const double LL_dev1   = LL * std::pow((0 - score1), 2);
     const double variance1 = WW_dev1 + WD_dev1 + WLDD_dev1 + LD_dev1 + LL_dev1;
     if (variance0 == 0 || variance1 == 0) return 0.0;
+    // For more information: http://hardy.uhasselt.be/Fishtest/support_MLE_multinomial.pdf
     return 0.5 * pairs * std::log(variance0 / variance1);
 }
 

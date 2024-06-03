@@ -14,6 +14,8 @@ class SPRT {
 
     SPRT(double alpha, double beta, double elo0, double elo1, std::string model);
 
+    [[nodiscard]] bool isEnabled() const noexcept;
+
     [[nodiscard]] static double leloToScore(double lelo) noexcept;
     [[nodiscard]] static double bayeseloToScore(double bayeselo, double drawelo) noexcept;
     [[nodiscard]] static double neloToScoreWDL(double nelo, double stdDeviation) noexcept;

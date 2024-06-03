@@ -12,7 +12,7 @@ class SPRT {
    public:
     SPRT() = default;
 
-    SPRT(double alpha, double beta, double elo0, double elo1, std::string model);
+    SPRT(double alpha, double beta, double elo0, double elo1, std::string model, bool enabled);
 
     [[nodiscard]] bool isEnabled() const noexcept;
 

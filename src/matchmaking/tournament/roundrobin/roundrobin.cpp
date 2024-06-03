@@ -140,7 +140,7 @@ void RoundRobin::create() {
 }
 
 void RoundRobin::updateSprtStatus(const std::vector<EngineConfiguration>& engine_configs) {
-    if (!sprt_.isValid()) return;
+    if (!sprt_.isEnabled()) return;
 
     const auto stats = result_.getStats(engine_configs[0].name, engine_configs[1].name);
     const auto llr   = sprt_.getLLR(stats, tournament_options_.report_penta);

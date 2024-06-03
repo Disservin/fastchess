@@ -35,6 +35,7 @@ struct Epd {
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(Epd, file)
 
 struct Sprt {
+    bool enabled         = false;
     double alpha         = 0.0;
     double beta          = 0.0;
     double elo0          = 0.0;

@@ -161,6 +161,6 @@ std::string SPRT::getElo() const noexcept {
     return ss.str();
 }
 
-bool SPRT::isValid() const noexcept { return enabled_; }
+bool SPRT::isEnabled() const noexcept { return enabled_; }
 
 }  // namespace fast_chess

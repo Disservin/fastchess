@@ -56,7 +56,7 @@ class Cutechess : public IOutput {
     }
 
     void printSprt(const SPRT& sprt, const Stats& stats) override {
-        if (sprt.isValid()) {
+        if (sprt.isEnabled()) {
             std::stringstream ss;
 
             ss << "LLR: " << std::fixed << std::setprecision(2)

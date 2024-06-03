@@ -21,6 +21,7 @@ SPRT::SPRT(double alpha, double beta, double elo0, double elo1, std::string mode
         model_ = model;
 
         Logger::log<Logger::Level::INFO>("Initialized valid SPRT configuration.");
+    }
 }
 
 double SPRT::leloToScore(double lelo) noexcept { return 1 / (1 + std::pow(10, (-lelo / 400))); }

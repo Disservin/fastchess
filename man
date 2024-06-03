@@ -70,7 +70,7 @@ OPTIONS
             Enables engine resignation. Configure when the engine should resign based on move
             count and score threshold.
 
-                twosided - If set to true, enables two-sided resignation.
+                twosided - if set to true, enables two-sided resignation.
                            Defaults to false.
                 COUNT    - the number of consecutive moves above the score threshold before resigning.
                            Default value is 1.
@@ -135,8 +135,9 @@ OPTIONS
 
             MODEL
                 Specify the model to use.
-                    - logistic
-                    - normalized (default)
+                    logistic   - uses regular/logistic Elo for elo0 and elo1.
+                    bayesian   - uses bayesElo for elo0 and elo1.
+                    normalized - uses nElo for elo0 and elo1. (default)
 
         -srand SEED
             Set the seed for opening book randomization.

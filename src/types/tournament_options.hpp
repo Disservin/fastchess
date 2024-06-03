@@ -39,9 +39,11 @@ struct Sprt {
     double beta          = 0.0;
     double elo0          = 0.0;
     double elo1          = 0.0;
-    bool logistic_bounds = false;
+    // available as 3 models: "normalized", "bayesian", and "logistic"
+    // bayesian model only available when -penta report=false
+    std::string model    = "normalized";
 };
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(Sprt, alpha, beta, elo0, elo1, logistic_bounds)
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(Sprt, alpha, beta, elo0, elo1, model)
 
 struct DrawAdjudication {
     int move_number = 0;

@@ -12,9 +12,9 @@ class SPRT {
    public:
     SPRT() = default;
 
-    SPRT(double alpha, double beta, double elo0, double elo1, std::string model);
+    SPRT(double alpha, double beta, double elo0, double elo1, std::string model, bool enabled);
 
-    [[nodiscard]] bool isValid() const noexcept;
+    [[nodiscard]] bool isEnabled() const noexcept;
 
     [[nodiscard]] static double leloToScore(double lelo) noexcept;
     [[nodiscard]] static double bayeseloToScore(double bayeselo, double drawelo) noexcept;
@@ -36,7 +36,7 @@ class SPRT {
     double elo0_ = 0.0;
     double elo1_ = 0.0;
 
-    bool valid_           = false;
+    bool enabled_         = false;
     std::string model_    = "normalized";
 };
 

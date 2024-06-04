@@ -9,10 +9,9 @@
 
 namespace fast_chess {
 
-SPRT::SPRT(double alpha, double beta, double elo0, double elo1, std::string model) {
-    valid_ = alpha != 0.0 && beta != 0.0 && elo0 < elo1 
-             && (model == "normalized" || model == "bayesian" || model == "logistic");
-    if (isValid()) {
+SPRT::SPRT(double alpha, double beta, double elo0, double elo1, std::string model, bool enabled) {
+    enabled_ = enabled;
+    if (enabled_) {
         lower_ = std::log(beta / (1 - alpha));
         upper_ = std::log((1 - beta) / alpha);
 
@@ -22,8 +21,6 @@ SPRT::SPRT(double alpha, double beta, double elo0, double elo1, std::string mode
         model_ = model;
 
         Logger::log<Logger::Level::INFO>("Initialized valid SPRT configuration.");
-    } else if (!(alpha == 0.0 && beta == 0.0 && elo0 == 0.0 && elo1 == 0.0)) {
-        Logger::log<Logger::Level::INFO>("No valid SPRT configuration was found!");
     }
 }
 
@@ -53,7 +50,7 @@ double SPRT::getLLR(const Stats& stats, bool penta) const noexcept {
 }
 
 double SPRT::getLLR(int win, int draw, int loss) const noexcept {
-    if (!valid_) return 0.0;
+    if (!enabled_) return 0.0;
 
     const double games = win + draw + loss;
     if (games == 0) return 0.0;
@@ -95,7 +92,7 @@ double SPRT::getLLR(int win, int draw, int loss) const noexcept {
 
 double SPRT::getLLR(int penta_WW, int penta_WD, int penta_WL, int penta_DD, int penta_LD,
                     int penta_LL) const noexcept {
-    if (!valid_) return 0.0;
+    if (!enabled_) return 0.0;
 
     const double pairs = penta_WW + penta_WD + penta_WL + penta_DD + penta_LD + penta_LL;
     if (pairs == 0) return 0.0;
@@ -140,7 +137,7 @@ double SPRT::getLLR(int penta_WW, int penta_WD, int penta_WL, int penta_DD, int 
 }
 
 SPRTResult SPRT::getResult(double llr) const noexcept {
-    if (!valid_) return SPRT_CONTINUE;
+    if (!enabled_) return SPRT_CONTINUE;
 
     if (llr >= upper_)
         return SPRT_H0;
@@ -165,6 +162,6 @@ std::string SPRT::getElo() const noexcept {
     return ss.str();
 }
 
-bool SPRT::isValid() const noexcept { return valid_; }
+bool SPRT::isEnabled() const noexcept { return enabled_; }
 
 }  // namespace fast_chess

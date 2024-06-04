@@ -16,7 +16,7 @@ RoundRobin::RoundRobin(const options::Tournament& tournament_config,
     // Initialize the SPRT test
     sprt_ = SPRT(tournament_options_.sprt.alpha, tournament_options_.sprt.beta,
                  tournament_options_.sprt.elo0, tournament_options_.sprt.elo1,
-                 tournament_options_.sprt.model);
+                 tournament_options_.sprt.model, tournament_options_.sprt.enabled);
 }
 
 void RoundRobin::start() {
@@ -140,7 +140,7 @@ void RoundRobin::create() {
 }
 
 void RoundRobin::updateSprtStatus(const std::vector<EngineConfiguration>& engine_configs) {
-    if (!sprt_.isValid()) return;
+    if (!sprt_.isEnabled()) return;
 
     const auto stats = result_.getStats(engine_configs[0].name, engine_configs[1].name);
     const auto llr   = sprt_.getLLR(stats, tournament_options_.report_penta);

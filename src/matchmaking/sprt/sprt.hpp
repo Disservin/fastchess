@@ -12,11 +12,12 @@ class SPRT {
    public:
     SPRT() = default;
 
-    SPRT(double alpha, double beta, double elo0, double elo1, bool logistic_bounds);
+    SPRT(double alpha, double beta, double elo0, double elo1, std::string model, bool enabled);
 
-    [[nodiscard]] bool isValid() const noexcept;
+    [[nodiscard]] bool isEnabled() const noexcept;
 
     [[nodiscard]] static double leloToScore(double lelo) noexcept;
+    [[nodiscard]] static double bayeseloToScore(double bayeselo, double drawelo) noexcept;
     [[nodiscard]] static double neloToScoreWDL(double nelo, double stdDeviation) noexcept;
     [[nodiscard]] static double neloToScorePenta(double nelo, double stdDeviation) noexcept;
     [[nodiscard]] double getLLR(const Stats& stats, bool penta) const noexcept;
@@ -35,8 +36,8 @@ class SPRT {
     double elo0_ = 0.0;
     double elo1_ = 0.0;
 
-    bool valid_           = false;
-    bool logistic_bounds_ = false;
+    bool enabled_         = false;
+    std::string model_    = "normalized";
 };
 
 }  // namespace fast_chess

@@ -298,6 +298,8 @@ void parseOpening(const std::vector<std::string> &params, ArgumentData &argument
 
 void parseSprt(const std::vector<std::string> &params, ArgumentData &argument_data) {
     parseDashOptions(params, [&](const std::string &key, const std::string &value) {
+        argument_data.tournament_options.sprt.enabled = true;
+      
         if (argument_data.tournament_options.rounds == 0) {
             argument_data.tournament_options.rounds = 500000;
         }
@@ -311,13 +313,7 @@ void parseSprt(const std::vector<std::string> &params, ArgumentData &argument_da
         } else if (key == "beta") {
             argument_data.tournament_options.sprt.beta = std::stod(value);
         } else if (key == "model") {
-            if (value == "logistic") {
-                argument_data.tournament_options.sprt.logistic_bounds = true;
-            } else if (value == "normalized") {
-                argument_data.tournament_options.sprt.logistic_bounds = false;
-            } else {
-                OptionsParser::throwMissing("sprt", key, value);
-            }
+            argument_data.tournament_options.sprt.model = value;
         } else {
             OptionsParser::throwMissing("sprt", key, value);
         }

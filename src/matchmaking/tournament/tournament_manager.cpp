@@ -53,6 +53,8 @@ options::Tournament TournamentManager::fixConfig(options::Tournament config) {
             throw std::runtime_error("Error; SPRT: alpha must be a decimal number between 0 and 1!");
         } else if (config.sprt.beta <= 0 || config.sprt.beta >= 1) {
             throw std::runtime_error("Error; SPRT: beta must be a decimal number between 0 and 1!");
+        } else if (config.sprt.alpha + config.sprt.beta >= 1) {
+            throw std::runtime_error("Error; SPRT: sum of alpha and beta must be less than 1!");
         } else if (config.sprt.model != "normalized" && config.sprt.model != "bayesian" && config.sprt.model != "logistic") {
             throw std::runtime_error("Error; SPRT: invalid SPRT model!");
         }

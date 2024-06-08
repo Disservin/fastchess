@@ -561,10 +561,12 @@ void parseQuick(const std::vector<std::string> &params, ArgumentData &argument_d
         } else if (key == "book") {
             argument_data.tournament_options.opening.file   = value;
             argument_data.tournament_options.opening.order  = OrderType::RANDOM;
-            argument_data.tournament_options.opening.format = FormatType::EPD;
-            if (str_utils::endsWith(value, ".pgn")) {
+            if (str_utils::endsWith(value, ".pgn"))
                 argument_data.tournament_options.opening.format = FormatType::PGN;
-            }
+            else if (str_utils::endsWith(value, ".epd"))
+                argument_data.tournament_options.opening.format = FormatType::EPD;
+            else
+                throw std::runtime_error("Error; please include the .png or .epd file extension for the opening book");
         } else {
             OptionsParser::throwMissing("quick", key, value);
         }

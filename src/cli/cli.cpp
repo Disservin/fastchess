@@ -242,6 +242,8 @@ void parsePgnOut(const std::vector<std::string> &params, ArgumentData &argument_
         argument_data.tournament_options.pgn.min =
             std::find(params.begin(), params.end(), "min") != params.end();
     }
+    if (argument_data.tournament_options.pgn.file.empty()) 
+        throw std::runtime_error("Error; Please specify filename for pgn output.");
 }
 
 void parseEpdOut(const std::vector<std::string> &params, ArgumentData &argument_data) {
@@ -257,6 +259,8 @@ void parseEpdOut(const std::vector<std::string> &params, ArgumentData &argument_
         // try to read as cutechess epdout
         parseValue(params, argument_data.tournament_options.epd.file);
     }
+    if (argument_data.tournament_options.epd.file.empty()) 
+        throw std::runtime_error("Error; Please specify filename for epd output.");
 }
 
 void parseOpening(const std::vector<std::string> &params, ArgumentData &argument_data) {
@@ -380,8 +384,10 @@ void parseAutoSaveInterval(const std::vector<std::string> &params, ArgumentData 
 
 void parseLog(const std::vector<std::string> &params, ArgumentData &) {
     parseDashOptions(params, [&](const std::string &key, const std::string &value) {
-        if (key == "file") {
+        if (key == "file" && !value.empty()) {
             Logger::openFile(value);
+        } else if (key == "file") {
+            throw std::runtime_error("Error; Please specify filename for log output.");
         } else if (key == "level") {
             if (value == "trace") {
                 Logger::setLevel(Logger::Level::TRACE);

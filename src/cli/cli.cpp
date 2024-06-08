@@ -62,6 +62,10 @@ bool is_number(const std::string &s) {
     return !s.empty() && std::find_if(s.begin(), s.end(), is_digit) == s.end();
 }
 
+bool is_bool(const std::string &s) {
+    return s == "true" || s == "false";
+}
+
 bool containsEqualSign(const std::vector<std::string> &params) {
     for (const auto &param : params) {
         if (param.find('=') != std::string::npos) {
@@ -206,17 +210,17 @@ void parsePgnOut(const std::vector<std::string> &params, ArgumentData &argument_
         parseDashOptions(params, [&](const std::string &key, const std::string &value) {
             if (key == "file") {
                 argument_data.tournament_options.pgn.file = value;
-            } else if (key == "nodes") {
+            } else if (key == "nodes" && is_bool(value)) {
                 argument_data.tournament_options.pgn.track_nodes = value == "true";
-            } else if (key == "seldepth") {
+            } else if (key == "seldepth" && is_bool(value)) {
                 argument_data.tournament_options.pgn.track_seldepth = value == "true";
-            } else if (key == "nps") {
+            } else if (key == "nps" && is_bool(value)) {
                 argument_data.tournament_options.pgn.track_nps = value == "true";
-            } else if (key == "hashfull") {
+            } else if (key == "hashfull" && is_bool(value)) {
                 argument_data.tournament_options.pgn.track_hashfull = value == "true";
-            } else if (key == "tbhits") {
+            } else if (key == "tbhits" && is_bool(value)) {
                 argument_data.tournament_options.pgn.track_tbhits = value == "true";
-            } else if (key == "min") {
+            } else if (key == "min" && is_bool(value)) {
                 argument_data.tournament_options.pgn.min = value == "true";
             } else if (key == "notation") {
                 if (value == "san") {
@@ -279,8 +283,13 @@ void parseOpening(const std::vector<std::string> &params, ArgumentData &argument
                 OptionsParser::throwMissing("openings format", key, value);
             }
         } else if (key == "order") {
-            argument_data.tournament_options.opening.order =
-                value == "sequential" ? OrderType::SEQUENTIAL : OrderType::RANDOM;
+            if (value == "sequential") {
+                argument_data.tournament_options.opening.order = OrderType::SEQUENTIAL;
+            } else if (value == "random") {
+                argument_data.tournament_options.opening.order = OrderType::RANDOM;
+            } else {
+                OptionsParser::throwMissing("openings order", key, value);
+            }
         } else if (key == "plies") {
             argument_data.tournament_options.opening.plies = std::stoi(value);
         } else if (key == "start") {
@@ -346,7 +355,7 @@ void parseResign(const std::vector<std::string> &params, ArgumentData &argument_
 
         if (key == "movecount") {
             argument_data.tournament_options.resign.move_count = std::stoi(value);
-        } else if (key == "twosided") {
+        } else if (key == "twosided" && is_bool(value)) {
             argument_data.tournament_options.resign.twosided = value == "true";
         } else if (key == "score") {
             if (std::stoi(value) >= 0) {
@@ -440,7 +449,7 @@ void parseConfig(const std::vector<std::string> &params, ArgumentData &argument_
 
 void parseReport(const std::vector<std::string> &params, ArgumentData &argument_data) {
     parseDashOptions(params, [&](const std::string &key, const std::string &value) {
-        if (key == "penta") {
+        if (key == "penta" && is_bool(value)) {
             argument_data.tournament_options.report_penta = value == "true";
         } else {
             OptionsParser::throwMissing("report", key, value);

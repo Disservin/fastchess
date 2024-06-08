@@ -383,7 +383,7 @@ void parseAutoSaveInterval(const std::vector<std::string> &params, ArgumentData 
 }
 
 void parseLog(const std::vector<std::string> &params, ArgumentData &) {
-    std::string filename = "";
+    std::string filename;
     parseDashOptions(params, [&](const std::string &key, const std::string &value) {
         if (key == "file") {
             filename = value;

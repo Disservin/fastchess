@@ -12,7 +12,7 @@ TEST_SUITE("Option Parsing Tests") {
                               "cmd=tests/mock/engine/dummy_engine",
                               "tc=10/9.64",
                               "depth=5",
-                              "st=5234",
+                              "st=5",
                               "nodes=5000",
                               "option.Threads=1",
                               "option.Hash=16",
@@ -50,7 +50,7 @@ TEST_SUITE("Option Parsing Tests") {
         CHECK(config0.limit.tc.time == 9640);
         CHECK(config0.limit.tc.increment == 0);
         CHECK(config0.limit.tc.timemargin == 0);
-        CHECK(config0.limit.tc.fixed_time == 5234);
+        CHECK(config0.limit.tc.fixed_time == 5000);
         CHECK(config0.limit.nodes == 5000);
         CHECK(config0.limit.plies == 5);
         CHECK(config0.options.at(0).first == "Threads");

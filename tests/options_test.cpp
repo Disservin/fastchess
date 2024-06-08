@@ -132,7 +132,7 @@ TEST_SUITE("Option Parsing Tests") {
         CHECK(gameOptions.recover);
         CHECK(gameOptions.concurrency == 8);
         CHECK(gameOptions.ratinginterval == 2);
-        CHECK(gameOptions.scoreinterval == 2);
+        CHECK(gameOptions.scoreinterval == 3);
         CHECK(gameOptions.autosaveinterval == 4);
         CHECK(gameOptions.games == 1);
         CHECK(gameOptions.rounds == 256);

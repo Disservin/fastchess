@@ -83,7 +83,7 @@ TEST_SUITE("Option Parsing Tests") {
                                       "-autosaveinterval",
                                       "4",
                                       "-rounds",
-                                      "256",
+                                      "25",
                                       "-draw",
                                       "movenumber=40",
                                       "movecount=3",
@@ -138,7 +138,7 @@ TEST_SUITE("Option Parsing Tests") {
         CHECK(gameOptions.scoreinterval == 3);
         CHECK(gameOptions.autosaveinterval == 4);
         CHECK(gameOptions.games == 1);
-        CHECK(gameOptions.rounds == 256);
+        CHECK(gameOptions.rounds == 25);
         CHECK(gameOptions.variant == VariantType::FRC);
         CHECK(gameOptions.draw.move_number == 40);
         CHECK(gameOptions.draw.move_count == 3);

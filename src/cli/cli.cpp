@@ -383,11 +383,10 @@ void parseAutoSaveInterval(const std::vector<std::string> &params, ArgumentData 
 }
 
 void parseLog(const std::vector<std::string> &params, ArgumentData &) {
+    std::string filename = "";
     parseDashOptions(params, [&](const std::string &key, const std::string &value) {
-        if (key == "file" && !value.empty()) {
-            Logger::openFile(value);
-        } else if (key == "file") {
-            throw std::runtime_error("Error; Please specify filename for log output.");
+        if (key == "file") {
+            filename = value;
         } else if (key == "level") {
             if (value == "trace") {
                 Logger::setLevel(Logger::Level::TRACE);
@@ -406,6 +405,7 @@ void parseLog(const std::vector<std::string> &params, ArgumentData &) {
             OptionsParser::throwMissing("log", key, value);
         }
     });
+    if (filename.empty()) throw std::runtime_error("Error; Please specify filename for log output.");
 }
 
 namespace config {

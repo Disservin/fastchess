@@ -56,7 +56,7 @@ TEST_SUITE("Option Parsing Tests") {
         CHECK(config0.options.at(1).second == "16");
         CHECK(config1.name == "Alexandria-27E42728");
         CHECK(config1.limit.tc.moves == 40);
-        CHECK(config1.limit.tc.time == 69650);
+        CHECK(config1.limit.tc.time == 79650);
         CHECK(config1.limit.tc.increment == 100);
         CHECK(config1.limit.tc.timemargin == 243);
         CHECK(config1.limit.nodes == 0);
@@ -89,7 +89,7 @@ TEST_SUITE("Option Parsing Tests") {
                                       "score=600",
                                       "twosided=true",
                                       "-maxmoves",
-                                      "movecount=150",
+                                      "150",
                                       "-games",
                                       "1",
                                       "-sprt",

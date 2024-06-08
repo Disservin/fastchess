@@ -562,6 +562,9 @@ void parseQuick(const std::vector<std::string> &params, ArgumentData &argument_d
             argument_data.tournament_options.opening.file   = value;
             argument_data.tournament_options.opening.order  = OrderType::RANDOM;
             argument_data.tournament_options.opening.format = FormatType::EPD;
+            if (str_utils::endsWith(value, ".pgn")) {
+                argument_data.tournament_options.opening.format = FormatType::PGN;
+            }
         } else {
             OptionsParser::throwMissing("quick", key, value);
         }

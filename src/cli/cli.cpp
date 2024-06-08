@@ -406,6 +406,7 @@ void parseLog(const std::vector<std::string> &params, ArgumentData &) {
         }
     });
     if (filename.empty()) throw std::runtime_error("Error; Please specify filename for log output.");
+    Logger::openFile(filename);
 }
 
 namespace config {

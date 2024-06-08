@@ -467,7 +467,6 @@ void parseOutput(const std::vector<std::string> &params, ArgumentData &argument_
     parseDashOptions(params, [&](const std::string &key, const std::string &value) {
         if (key == "format" && (value == "cutechess" || value == "fastchess")) {
             argument_data.tournament_options.output = OutputFactory::getType(value);
-            if (value == "cutechess") argument_data.tournament_options.report_penta = false;
         } else {
             OptionsParser::throwMissing("output", key, value);
         }

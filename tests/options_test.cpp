@@ -12,6 +12,7 @@ TEST_SUITE("Option Parsing Tests") {
                               "cmd=tests/mock/engine/dummy_engine",
                               "tc=10/9.64",
                               "depth=5",
+                              "st=5234",
                               "nodes=5000",
                               "option.Threads=1",
                               "option.Hash=16",
@@ -48,6 +49,8 @@ TEST_SUITE("Option Parsing Tests") {
         CHECK(config0.limit.tc.moves == 10);
         CHECK(config0.limit.tc.time == 9640);
         CHECK(config0.limit.tc.increment == 0);
+        CHECK(config0.limit.tc.timemargin == 0);
+        CHECK(config0.limit.tc.fixed_time == 5234);
         CHECK(config0.limit.nodes == 5000);
         CHECK(config0.limit.plies == 5);
         CHECK(config0.options.at(0).first == "Threads");
@@ -56,7 +59,8 @@ TEST_SUITE("Option Parsing Tests") {
         CHECK(config0.options.at(1).second == "16");
         CHECK(config1.name == "Alexandria-27E42728");
         CHECK(config1.limit.tc.moves == 40);
-        CHECK(config1.limit.tc.time == 79650);
+        CHECK(config1.limit.tc.time == 69650);
+        CHECK(config1.limit.tc.fixed_time == 0);
         CHECK(config1.limit.tc.increment == 100);
         CHECK(config1.limit.tc.timemargin == 243);
         CHECK(config1.limit.nodes == 0);

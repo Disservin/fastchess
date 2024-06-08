@@ -99,7 +99,7 @@ TEST_SUITE("Option Parsing Tests") {
                                       "-sprt",
                                       "alpha=0.05",
                                       "beta=0.05",
-                                      "elo0=-1",
+                                      "elo0=-1.5",
                                       "elo1=5",
                                       "model=bayesian",
                                       "-openings",
@@ -159,7 +159,7 @@ TEST_SUITE("Option Parsing Tests") {
         CHECK(gameOptions.sprt.enabled);
         CHECK(gameOptions.sprt.alpha == 0.05);
         CHECK(gameOptions.sprt.beta == 0.05);
-        CHECK(gameOptions.sprt.elo0 == 0);
+        CHECK(gameOptions.sprt.elo0 == -1.5);
         CHECK(gameOptions.sprt.elo1 == 5.0);
         CHECK(gameOptions.sprt.model == "bayesian");
         CHECK(gameOptions.pgn.file == "PGNs/Alexandria-EA649FED_vs_Alexandria-27E42728");

@@ -9,13 +9,11 @@ TournamentManager::TournamentManager(const options::Tournament& tournament_confi
     : engine_configs_(engine_configs), tournament_options_(tournament_config) {
     validateEngines();
 
-    if (tournament_options_.randomseed && tournament_options_.seed == 951356066) {
-        while (tournament_options_.seed == 951356066) {
-            std::random_device rd;   // Random device to seed the generator
-            std::mt19937 gen(rd());  // Mersenne Twister 19937 generator
-            std::uniform_int_distribution<uint32_t> dist(0, std::numeric_limits<uint32_t>::max());
-            tournament_options_.seed = dist(gen);
-        }
+    while (tournament_options_.randomseed && tournament_options_.seed == 951356066) {
+        std::random_device rd;   // Random device to seed the generator
+        std::mt19937 gen(rd());  // Mersenne Twister 19937 generator
+        std::uniform_int_distribution<uint32_t> dist(0, std::numeric_limits<uint32_t>::max());
+        tournament_options_.seed = dist(gen);
     }
 
     // Set the seed for the random number generator

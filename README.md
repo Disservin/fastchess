@@ -21,7 +21,7 @@ short time controls (0.2+0.002s), it exhibits minimal timeout issues, with only
   second), hashfull, and tbhits in the PGN output. Refer to the `-pgnout`
   option for detailed information.
 - **Quick Match Option**: We've introduced a `-quick` option for running quick
-  matches between two engines with an EPD book. Specify
+  matches between two engines with a specified book. Specify
   `-quick cmd=ENGINE1 cmd=ENGINE2 book=BOOK` to swiftly initiate a match.
 
 ## Quick start

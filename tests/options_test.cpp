@@ -38,7 +38,7 @@ TEST_SUITE("Option Parsing Tests") {
                               "-pgnout",
                               "file=PGNs/Alexandria-EA649FED_vs_Alexandria-27E42728"};
 
-        cli::OptionsParser options = cli::OptionsParser(26, argv);
+        cli::OptionsParser options = cli::OptionsParser(31, argv);
 
         auto configs = options.getEngineConfigs();
 
@@ -128,7 +128,7 @@ TEST_SUITE("Option Parsing Tests") {
                                       "hashfull=true",
                                       "tbhits=true",
                                       "min=true"};
-        cli::OptionsParser options = cli::OptionsParser(21, argv);
+        cli::OptionsParser options = cli::OptionsParser(56, argv);
         auto gameOptions           = options.getGameOptions();
 
         // Test proper cli settings

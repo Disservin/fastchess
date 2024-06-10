@@ -37,6 +37,7 @@ void OpeningBook::setup(const std::string& file, FormatType type) {
 
         if (pgn_.size() > total_games) {
             pgn_.erase(pgn_.begin() + total_games, pgn_.end());
+            pgn_.shrink_to_fit();
         }
 
         if (pgn_.empty()) {
@@ -65,6 +66,7 @@ void OpeningBook::setup(const std::string& file, FormatType type) {
         
         if (epd_.size() > total_games) {
             epd_.erase(epd_.begin() + total_games, epd_.end());
+            epd_.shrink_to_fit();
         }
 
         if (epd_.empty()) {

@@ -31,7 +31,7 @@ void OpeningBook::setup(const std::string& file, FormatType type) {
              for (std::size_t i = 0; i + 2 <= pgn_.size(); i++) {
                  auto rand     = util::random::mersenne_rand();
                  std::size_t j = i + (rand % (pgn_.size() - i));
-                 std::swap(vec[i], vec[j]);
+                 std::swap(pgn_[i], pgn_[j]);
              }
         }
 
@@ -59,7 +59,7 @@ void OpeningBook::setup(const std::string& file, FormatType type) {
              for (std::size_t i = 0; i + 2 <= epd_.size(); i++) {
                  auto rand     = util::random::mersenne_rand();
                  std::size_t j = i + (rand % (epd_.size() - i));
-                 std::swap(vec[i], vec[j]);
+                 std::swap(epd_[i], epd_[j]);
              }
         }
         

@@ -62,7 +62,7 @@ pgn::Opening OpeningBook::fetch() noexcept {
 
     // - 1 because start starts at 1 in the opening options
     const auto idx       = start_ - 1 + opening_index++ + matchcount_ / games_;
-    const auto book_size = std::max(epd_.size(), pgn_.size());
+    const auto book_size = epd_.size() + pgn_.size();
 
     if (book_size == 0) {
         return {chess::constants::STARTPOS, {}};

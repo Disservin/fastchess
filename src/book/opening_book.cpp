@@ -21,9 +21,12 @@ void OpeningBook::setup(const std::string& file, FormatType type) {
         return;
     }
 
+    std::size_t total_games = static_cast<std::size_t>(games_ * rounds_)
+    
     if (type == FormatType::PGN) {
         pgn_ = pgn::PgnReader(file, plies_).getOpenings();
-        
+
+        // Fisher-Yates / Knuth shuffle
         if (order_ == OrderType::RANDOM) {
              for (std::size_t i = 0; i + 2 <= pgn_.size(); i++) {
                  auto rand     = util::random::mersenne_rand();
@@ -31,9 +34,9 @@ void OpeningBook::setup(const std::string& file, FormatType type) {
                  std::swap(vec[i], vec[j]);
              }
         }
-        
-        if (pgn_.size() > games_ * rounds_) {
-            pgn_.erase(pgn_.begin() + games_ * rounds_, pgn_.end());
+
+        if (pgn_.size() > total_games) {
+            pgn_.erase(pgn_.begin() + total_games, pgn_.end());
         }
 
         if (pgn_.empty()) {
@@ -51,6 +54,7 @@ void OpeningBook::setup(const std::string& file, FormatType type) {
 
         openingFile.close();
 
+        // Fisher-Yates / Knuth shuffle
         if (order_ == OrderType::RANDOM) {
              for (std::size_t i = 0; i + 2 <= epd_.size(); i++) {
                  auto rand     = util::random::mersenne_rand();
@@ -59,8 +63,8 @@ void OpeningBook::setup(const std::string& file, FormatType type) {
              }
         }
         
-        if (epd_.size() > games_ * rounds_) {
-            epd_.erase(epd_.begin() + games_ * rounds_, epd_.end());
+        if (epd_.size() > total_games) {
+            epd_.erase(epd_.begin() + total_games, epd_.end());
         }
 
         if (epd_.empty()) {

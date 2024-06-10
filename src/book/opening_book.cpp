@@ -27,7 +27,7 @@ void OpeningBook::setup(const std::string& file, FormatType type) {
         pgn = pgn::PgnReader(file, plies_).getOpenings();
         
         if (pgn.size() > games_ * rounds_) {
-            epd.erase(pgn.begin() + games_ * rounds_, pgn.end());
+            pgn.erase(pgn.begin() + games_ * rounds_, pgn.end());
         }
         
         book_ = pgn;

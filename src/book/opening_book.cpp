@@ -49,7 +49,7 @@ void OpeningBook::setup(const std::string& file, FormatType type) {
     if (order_ == OrderType::RANDOM && type != FormatType::NONE) shuffle();
 
     if (book_.size() > 8) {
-        book_.erase(vec.begin() + 8, vec.end());
+        book_.erase(book_.begin() + 8, book_.end());
     }
 }
 

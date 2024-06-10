@@ -20,8 +20,6 @@ void OpeningBook::setup(const std::string& file, FormatType type) {
     if (file.empty()) {
         return;
     }
-
-    std::size_t total_games = static_cast<std::size_t>(games_ * rounds_);
     
     if (type == FormatType::PGN) {
         pgn_ = pgn::PgnReader(file, plies_).getOpenings();
@@ -35,8 +33,8 @@ void OpeningBook::setup(const std::string& file, FormatType type) {
              }
         }
 
-        if (pgn_.size() > total_games) {
-            pgn_.erase(pgn_.begin() + total_games, pgn_.end());
+        if (pgn_.size() > static_cast<std::size_t>(rounds_)) {
+            pgn_.erase(pgn_.begin() + rounds_, pgn_.end());
             pgn_.shrink_to_fit();
         }
 
@@ -64,8 +62,8 @@ void OpeningBook::setup(const std::string& file, FormatType type) {
              }
         }
         
-        if (epd_.size() > total_games) {
-            epd_.erase(epd_.begin() + total_games, epd_.end());
+        if (epd_.size() > rounds_) {
+            epd_.erase(epd_.begin() + static_cast<std::size_t>(rounds_), epd_.end());
             epd_.shrink_to_fit();
         }
 

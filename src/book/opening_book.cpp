@@ -8,10 +8,11 @@
 namespace fast_chess::book {
 
 OpeningBook::OpeningBook(const options::Tournament& tournament) {
-    start_ = tournament.opening.start;
-    games_ = tournament.games;
-    order_ = tournament.opening.order;
-    plies_ = tournament.opening.plies;
+    start_  = tournament.opening.start;
+    games_  = tournament.games;
+    rounds_ = tournament.rounds;
+    order_  = tournament.opening.order;
+    plies_  = tournament.opening.plies;
     setup(tournament.opening.file, tournament.opening.format);
 }
 
@@ -38,7 +39,11 @@ void OpeningBook::setup(const std::string& file, FormatType type) {
         }
 
         openingFile.close();
-
+        
+        if (epd.size() > games_ * rounds_) {
+            epd.erase(epd.begin() + games_ * rounds_, epd.end());
+        }
+        
         book_ = epd;
 
         if (std::get<epd_book>(book_).empty()) {
@@ -47,10 +52,6 @@ void OpeningBook::setup(const std::string& file, FormatType type) {
     }
 
     if (order_ == OrderType::RANDOM && type != FormatType::NONE) shuffle();
-
-    if (book_.size() > 8) {
-        book_.erase(book_.begin() + 8, book_.end());
-    }
 }
 
 pgn::Opening OpeningBook::fetch() noexcept {

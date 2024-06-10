@@ -17,7 +17,7 @@ class OpeningBook {
     explicit OpeningBook(const options::Tournament& tournament);
 
     // Fisher-Yates / Knuth shuffle
-    void shuffle() {
+    void shuffle(FormatType type) {
         const auto shuffle = [](auto& vec) {
             for (std::size_t i = 0; i + 2 <= vec.size(); i++) {
                 auto rand     = util::random::mersenne_rand();
@@ -26,7 +26,10 @@ class OpeningBook {
             }
         };
 
-        std::visit(shuffle, book_);
+        if (type == FormatType::EPD)
+           std::visit(shuffle, epd_);
+        else if (type == FormatType::PGN)
+           std::visit(shuffle, pgn_);
     }
 
     [[nodiscard]] pgn::Opening fetch() noexcept;
@@ -35,9 +38,6 @@ class OpeningBook {
 
    private:
     void setup(const std::string& file, FormatType type);
-
-    using epd_book = std::vector<std::string>;
-    using pgn_book = std::vector<pgn::Opening>;
 
     std::size_t start_      = 0;
     std::size_t matchcount_ = 0;

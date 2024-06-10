@@ -27,8 +27,6 @@ void OpeningBook::setup(const std::string& file, FormatType type) {
         if (pgn.size() > games_ * rounds_) {
             pgn_.erase(pgn_.begin() + games_ * rounds_, pgn_.end());
         }
-        
-        book_ = pgn;
 
         if (pgn_.empty()) {
             throw std::runtime_error("No openings found in PGN file: " + file);

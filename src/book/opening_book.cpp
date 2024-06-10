@@ -24,6 +24,8 @@ void OpeningBook::setup(const std::string& file, FormatType type) {
     if (type == FormatType::PGN) {
         pgn_ = pgn::PgnReader(file, plies_).getOpenings();
         
+        if (order_ == OrderType::RANDOM) shuffle(type);
+        
         if (pgn.size() > games_ * rounds_) {
             pgn_.erase(pgn_.begin() + games_ * rounds_, pgn_.end());
         }
@@ -42,6 +44,8 @@ void OpeningBook::setup(const std::string& file, FormatType type) {
         }
 
         openingFile.close();
+
+        if (order_ == OrderType::RANDOM) shuffle(type);
         
         if (epd_.size() > games_ * rounds_) {
             epd_.erase(epd_.begin() + games_ * rounds_, epd_.end());
@@ -51,8 +55,6 @@ void OpeningBook::setup(const std::string& file, FormatType type) {
             throw std::runtime_error("No openings found in EPD file: " + file);
         }
     }
-
-    if (order_ == OrderType::RANDOM && type != FormatType::NONE) shuffle();
 }
 
 pgn::Opening OpeningBook::fetch() noexcept {

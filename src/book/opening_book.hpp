@@ -45,7 +45,8 @@ class OpeningBook {
     int rounds_;
     int plies_;
     OrderType order_;
-    std::variant<epd_book, pgn_book> book_;
+    std::vector<std::string> epd_;
+    std::vector<pgn::Opening> pgn_;
 };
 
 }  // namespace fast_chess::book

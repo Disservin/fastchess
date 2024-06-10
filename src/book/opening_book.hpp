@@ -42,6 +42,7 @@ class OpeningBook {
     std::size_t start_      = 0;
     std::size_t matchcount_ = 0;
     int games_;
+    int rounds_;
     int plies_;
     OrderType order_;
     std::variant<epd_book, pgn_book> book_;

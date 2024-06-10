@@ -24,7 +24,13 @@ void OpeningBook::setup(const std::string& file, FormatType type) {
     if (type == FormatType::PGN) {
         pgn_ = pgn::PgnReader(file, plies_).getOpenings();
         
-        if (order_ == OrderType::RANDOM) shuffle(pgn_);
+        if (order_ == OrderType::RANDOM) {
+             for (std::size_t i = 0; i + 2 <= pgn_.size(); i++) {
+                 auto rand     = util::random::mersenne_rand();
+                 std::size_t j = i + (rand % (pgn_.size() - i));
+                 std::swap(vec[i], vec[j]);
+             }
+        }
         
         if (pgn_.size() > games_ * rounds_) {
             pgn_.erase(pgn_.begin() + games_ * rounds_, pgn_.end());
@@ -45,7 +51,13 @@ void OpeningBook::setup(const std::string& file, FormatType type) {
 
         openingFile.close();
 
-        if (order_ == OrderType::RANDOM) shuffle(epd_);
+        if (order_ == OrderType::RANDOM) {
+             for (std::size_t i = 0; i + 2 <= epd_.size(); i++) {
+                 auto rand     = util::random::mersenne_rand();
+                 std::size_t j = i + (rand % (epd_.size() - i));
+                 std::swap(vec[i], vec[j]);
+             }
+        }
         
         if (epd_.size() > games_ * rounds_) {
             epd_.erase(epd_.begin() + games_ * rounds_, epd_.end());

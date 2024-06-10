@@ -21,7 +21,7 @@ void OpeningBook::setup(const std::string& file, FormatType type) {
         return;
     }
 
-    std::size_t total_games = static_cast<std::size_t>(games_ * rounds_)
+    std::size_t total_games = static_cast<std::size_t>(games_ * rounds_);
     
     if (type == FormatType::PGN) {
         pgn_ = pgn::PgnReader(file, plies_).getOpenings();

@@ -24,7 +24,7 @@ void OpeningBook::setup(const std::string& file, FormatType type) {
     if (type == FormatType::PGN) {
         pgn_ = pgn::PgnReader(file, plies_).getOpenings();
         
-        if (order_ == OrderType::RANDOM) shuffle(epd);
+        if (order_ == OrderType::RANDOM) shuffle(pgn_);
         
         if (pgn.size() > games_ * rounds_) {
             pgn_.erase(pgn_.begin() + games_ * rounds_, pgn_.end());
@@ -45,7 +45,7 @@ void OpeningBook::setup(const std::string& file, FormatType type) {
 
         openingFile.close();
 
-        if (order_ == OrderType::RANDOM) shuffle(pgn);
+        if (order_ == OrderType::RANDOM) shuffle(epd_);
         
         if (epd_.size() > games_ * rounds_) {
             epd_.erase(epd_.begin() + games_ * rounds_, epd_.end());

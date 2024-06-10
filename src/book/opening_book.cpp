@@ -26,7 +26,7 @@ void OpeningBook::setup(const std::string& file, FormatType type) {
         
         if (order_ == OrderType::RANDOM) shuffle(pgn_);
         
-        if (pgn.size() > games_ * rounds_) {
+        if (pgn_.size() > games_ * rounds_) {
             pgn_.erase(pgn_.begin() + games_ * rounds_, pgn_.end());
         }
 

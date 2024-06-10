@@ -27,7 +27,7 @@ void OpeningBook::setup(const std::string& file, FormatType type) {
         pgn_ = pgn::PgnReader(file, plies_).getOpenings();
 
         // Fisher-Yates / Knuth shuffle
-        if (order_ == OrderType::RANDOM) {
+        if (order_ == OrderType::RANDOM && !pgn_.empty()) {
              for (std::size_t i = 0; i + 2 <= pgn_.size(); i++) {
                  auto rand     = util::random::mersenne_rand();
                  std::size_t j = i + (rand % (pgn_.size() - i));
@@ -55,7 +55,7 @@ void OpeningBook::setup(const std::string& file, FormatType type) {
         openingFile.close();
 
         // Fisher-Yates / Knuth shuffle
-        if (order_ == OrderType::RANDOM) {
+        if (order_ == OrderType::RANDOM && !epd_.empty()) {
              for (std::size_t i = 0; i + 2 <= epd_.size(); i++) {
                  auto rand     = util::random::mersenne_rand();
                  std::size_t j = i + (rand % (epd_.size() - i));

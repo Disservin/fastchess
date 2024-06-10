@@ -33,8 +33,8 @@ void OpeningBook::setup(const std::string& file, FormatType type) {
              }
         }
 
-        if (pgn_.size() > static_cast<std::size_t>(rounds_)) {
-            pgn_.erase(pgn_.begin() + rounds_, pgn_.end());
+        if (pgn_.size() > static_cast<std::size_t>(start_ + rounds_ - 1)) {
+            pgn_.erase(pgn_.begin() + (start_ + rounds_ - 1), pgn_.end());
             pgn_.shrink_to_fit();
         }
 
@@ -62,8 +62,8 @@ void OpeningBook::setup(const std::string& file, FormatType type) {
              }
         }
         
-        if (epd_.size() > static_cast<std::size_t>(rounds_)) {
-            epd_.erase(epd_.begin() + rounds_, epd_.end());
+        if (epd_.size() > static_cast<std::size_t>(start_ + rounds_ - 1)) {
+            epd_.erase(epd_.begin() + (start_ + rounds_ - 1), epd_.end());
             epd_.shrink_to_fit();
         }
 

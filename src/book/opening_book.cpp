@@ -22,7 +22,15 @@ void OpeningBook::setup(const std::string& file, FormatType type) {
     }
 
     if (type == FormatType::PGN) {
-        book_ = pgn::PgnReader(file, plies_).getOpenings();
+        std::vector<pgn::Opening> pgn;
+
+        pgn = pgn::PgnReader(file, plies_).getOpenings();
+        
+        if (pgn.size() > games_ * rounds_) {
+            epd.erase(pgn.begin() + games_ * rounds_, pgn.end());
+        }
+        
+        book_ = pgn;
 
         if (std::get<pgn_book>(book_).empty()) {
             throw std::runtime_error("No openings found in PGN file: " + file);

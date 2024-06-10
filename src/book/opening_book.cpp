@@ -22,17 +22,15 @@ void OpeningBook::setup(const std::string& file, FormatType type) {
     }
 
     if (type == FormatType::PGN) {
-        std::vector<pgn::Opening> pgn;
-
-        pgn = pgn::PgnReader(file, plies_).getOpenings();
+        pgn_ = pgn::PgnReader(file, plies_).getOpenings();
         
         if (pgn.size() > games_ * rounds_) {
-            pgn.erase(pgn.begin() + games_ * rounds_, pgn.end());
+            pgn_.erase(pgn_.begin() + games_ * rounds_, pgn_.end());
         }
         
         book_ = pgn;
 
-        if (std::get<pgn_book>(book_).empty()) {
+        if (pgn_.empty()) {
             throw std::runtime_error("No openings found in PGN file: " + file);
         }
     } else if (type == FormatType::EPD) {
@@ -40,21 +38,18 @@ void OpeningBook::setup(const std::string& file, FormatType type) {
         openingFile.open(file);
 
         std::string line;
-        std::vector<std::string> epd;
 
         while (util::safeGetline(openingFile, line)) {
-            if (!line.empty()) epd.emplace_back(line);
+            if (!line.empty()) epd_.emplace_back(line);
         }
 
         openingFile.close();
         
-        if (epd.size() > games_ * rounds_) {
-            epd.erase(epd.begin() + games_ * rounds_, epd.end());
+        if (epd_.size() > games_ * rounds_) {
+            epd_.erase(epd_.begin() + games_ * rounds_, epd_.end());
         }
-        
-        book_ = epd;
 
-        if (std::get<epd_book>(book_).empty()) {
+        if (epd_.empty()) {
             throw std::runtime_error("No openings found in EPD file: " + file);
         }
     }
@@ -75,11 +70,11 @@ pgn::Opening OpeningBook::fetch() noexcept {
         return {chess::constants::STARTPOS, {}};
     }
 
-    if (std::holds_alternative<epd_book>(book_)) {
-        const auto fen = std::get<epd_book>(book_)[idx % book_size];
+    if (!epd_.empty()) {
+        const auto fen = epd_[idx % book_size];
         return {fen, {}, chess::Board(fen).sideToMove()};
-    } else if (std::holds_alternative<pgn_book>(book_)) {
-        return std::get<pgn_book>(book_)[idx % book_size];
+    } else if (!pgn_.empty()) {
+        return pgn_[idx % book_size];
     }
 
     return {chess::constants::STARTPOS, {}};

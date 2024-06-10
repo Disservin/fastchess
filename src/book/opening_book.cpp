@@ -62,8 +62,8 @@ void OpeningBook::setup(const std::string& file, FormatType type) {
              }
         }
         
-        if (epd_.size() > rounds_) {
-            epd_.erase(epd_.begin() + static_cast<std::size_t>(rounds_), epd_.end());
+        if (epd_.size() > static_cast<std::size_t>(rounds_)) {
+            epd_.erase(epd_.begin() + rounds_, epd_.end());
             epd_.shrink_to_fit();
         }
 

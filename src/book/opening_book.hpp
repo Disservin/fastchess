@@ -8,7 +8,6 @@
 #include <pgn/pgn_reader.hpp>
 #include <types/enums.hpp>
 #include <types/tournament_options.hpp>
-#include <util/memory_map.hpp>
 #include <util/rand.hpp>
 
 namespace fast_chess::book {

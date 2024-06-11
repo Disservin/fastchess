@@ -4,7 +4,6 @@
 #include <optional>
 #include <string>
 
-#include <util/memory_map.hpp>
 #include <util/safe_getline.hpp>
 
 namespace fast_chess::book {

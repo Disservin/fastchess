@@ -8,6 +8,7 @@
 #include <pgn/pgn_reader.hpp>
 #include <types/enums.hpp>
 #include <types/tournament_options.hpp>
+#include <util/memory_map.hpp>
 #include <util/rand.hpp>
 
 namespace fast_chess::book {
@@ -16,6 +17,8 @@ class OpeningBook {
    public:
     OpeningBook() = default;
     explicit OpeningBook(const options::Tournament& tournament);
+
+    ~OpeningBook() { mmap->unmapFile(); }
 
     // Fisher-Yates / Knuth shuffle
     void shuffle() {
@@ -39,7 +42,7 @@ class OpeningBook {
 
         if (std::holds_alternative<epd_book>(book_)) {
             const auto fen = std::get<epd_book>(book_)[*idx];
-            return {fen, {}, chess::Board(fen).sideToMove()};
+            return {std::string(fen), {}, chess::Board(fen).sideToMove()};
         }
 
         return std::get<pgn_book>(book_)[*idx];
@@ -48,7 +51,7 @@ class OpeningBook {
    private:
     void setup(const std::string& file, FormatType type);
 
-    using epd_book = std::vector<std::string>;
+    using epd_book = std::vector<std::string_view>;
     using pgn_book = std::vector<pgn::Opening>;
 
     std::size_t start_      = 0;
@@ -57,6 +60,8 @@ class OpeningBook {
     int plies_;
     OrderType order_;
     std::variant<epd_book, pgn_book> book_;
+
+    std::unique_ptr<util::memory::MemoryMappedFile> mmap = nullptr;
 };
 
 }  // namespace fast_chess::book

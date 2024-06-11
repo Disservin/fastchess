@@ -4,6 +4,7 @@
 #include <optional>
 #include <string>
 
+#include <util/memory_map.hpp>
 #include <util/safe_getline.hpp>
 
 namespace fast_chess::book {
@@ -30,21 +31,25 @@ void OpeningBook::setup(const std::string& file, FormatType type) {
             throw std::runtime_error("No openings found in PGN file: " + file);
         }
     } else if (type == FormatType::EPD) {
-        std::ifstream openingFile(file);
+        mmap = util::memory::createMemoryMappedFile();
+        mmap->mapFile(file);
 
-        std::string line;
-        while (util::safeGetline(openingFile, line)) {
-            if (!line.empty()) {
-                line.shrink_to_fit();
-                std::get<epd_book>(book_).emplace_back(line);
+        const char* data = static_cast<const char*>(mmap->getData());
+
+        const char* end   = data;
+        const char* start = data;
+
+        while (end && *end) {
+            if (*end == '\n' || *end == '\0') {
+                if (end != start) {
+                    std::get<epd_book>(book_).emplace_back(std::string_view(start, end - start));
+                }
+                start = end + 1;
             }
+            end++;
         }
 
         std::get<epd_book>(book_).shrink_to_fit();
-
-        if (std::get<epd_book>(book_).empty()) {
-            throw std::runtime_error("No openings found in EPD file: " + file);
-        }
     }
 
     if (order_ == OrderType::RANDOM && type != FormatType::NONE) shuffle();

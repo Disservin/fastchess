@@ -1,5 +1,6 @@
 #pragma once
 
+#include <optional>
 #include <string>
 #include <variant>
 #include <vector>
@@ -29,9 +30,20 @@ class OpeningBook {
         std::visit(shuffle, book_);
     }
 
-    [[nodiscard]] pgn::Opening fetch() noexcept;
+    [[nodiscard]] std::optional<std::size_t> fetchId() noexcept;
 
     void setInternalOffset(std::size_t offset) noexcept { matchcount_ = offset; }
+
+    pgn::Opening operator[](std::optional<std::size_t> idx) const noexcept {
+        if (!idx.has_value()) return {chess::constants::STARTPOS, {}};
+
+        if (std::holds_alternative<epd_book>(book_)) {
+            const auto fen = std::get<epd_book>(book_)[*idx];
+            return {fen, {}, chess::Board(fen).sideToMove()};
+        }
+
+        return std::get<pgn_book>(book_)[*idx];
+    }
 
    private:
     void setup(const std::string& file, FormatType type);

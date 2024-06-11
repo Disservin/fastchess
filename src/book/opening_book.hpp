@@ -18,8 +18,6 @@ class OpeningBook {
     OpeningBook() = default;
     explicit OpeningBook(const options::Tournament& tournament);
 
-    ~OpeningBook() { mmap->unmapFile(); }
-
     // Fisher-Yates / Knuth shuffle
     void shuffle() {
         const auto shuffle = [](auto& vec) {
@@ -61,7 +59,7 @@ class OpeningBook {
     OrderType order_;
     std::variant<epd_book, pgn_book> book_;
 
-    std::unique_ptr<util::memory::MemoryMappedFile> mmap = nullptr;
+    std::unique_ptr<char[]> file_data_;
 };
 
 }  // namespace fast_chess::book

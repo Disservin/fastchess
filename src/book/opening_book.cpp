@@ -31,15 +31,23 @@ void OpeningBook::setup(const std::string& file, FormatType type) {
             throw std::runtime_error("No openings found in PGN file: " + file);
         }
     } else if (type == FormatType::EPD) {
-        mmap = util::memory::createMemoryMappedFile();
-        mmap->mapFile(file);
+        std::ifstream in(file, std::ios::binary | std::ios::ate);
+        if (!in) {
+            throw std::runtime_error("Error opening EPD file: " + file);
+        }
 
-        const char* data = static_cast<const char*>(mmap->getData());
+        std::streamsize size = in.tellg();
+        in.seekg(0, std::ios::beg);
 
+        file_data_ = std::make_unique<char[]>(size);
+
+        in.read(file_data_.get(), size);
+
+        const char* data  = file_data_.get();
         const char* end   = data;
         const char* start = data;
 
-        while (end && *end) {
+        while (*end) {
             if (*end == '\n' || *end == '\0') {
                 if (end != start) {
                     std::get<epd_book>(book_).emplace_back(std::string_view(start, end - start));

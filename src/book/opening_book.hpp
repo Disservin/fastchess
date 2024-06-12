@@ -38,6 +38,15 @@ class OpeningBook {
         std::visit(rotate, book_);
     }
 
+   void truncate() {
+        const auto truncate = [this](auto& vec) {
+            vec.erase(vec.begin() + rounds_, vec.end());
+            vec.shrink_to_fit();
+        };
+
+        std::visit(truncate, book_);
+    }
+
     [[nodiscard]] std::optional<std::size_t> fetchId() noexcept;
 
     void setInternalOffset(std::size_t offset) noexcept { matchcount_ = offset; }

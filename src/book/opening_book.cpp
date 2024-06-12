@@ -11,6 +11,7 @@ namespace fast_chess::book {
 OpeningBook::OpeningBook(const options::Tournament& tournament) {
     start_  = tournament.opening.start;
     games_  = tournament.games;
+    rounds_ = tournament.rounds;
     order_  = tournament.opening.order;
     plies_  = tournament.opening.plies;
     offset_ = start_ - 1 + matchcount_ / games_;

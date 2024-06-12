@@ -30,6 +30,14 @@ class OpeningBook {
         std::visit(shuffle, book_);
     }
 
+    void rotate() {
+        const auto rotate = [](auto& vec) {
+            std::rotate(vec.begin(), vec.begin() + offset_, vec.end());
+        };
+
+        std::visit(rotate, book_);
+    }
+
     [[nodiscard]] std::optional<std::size_t> fetchId() noexcept;
 
     void setInternalOffset(std::size_t offset) noexcept { matchcount_ = offset; }
@@ -53,6 +61,7 @@ class OpeningBook {
 
     std::size_t start_      = 0;
     std::size_t matchcount_ = 0;
+    std::size_t offset_     = 0;
     int games_;
     int plies_;
     OrderType order_;

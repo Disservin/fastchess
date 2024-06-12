@@ -61,6 +61,7 @@ void OpeningBook::setup(const std::string& file, FormatType type) {
     }
 
     if (order_ == OrderType::RANDOM && type != FormatType::NONE) shuffle();
+    rotate();
 }
 
 [[nodiscard]] std::optional<std::size_t> OpeningBook::fetchId() noexcept {

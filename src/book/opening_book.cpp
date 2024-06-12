@@ -63,14 +63,7 @@ void OpeningBook::setup(const std::string& file, FormatType type) {
 
     if (order_ == OrderType::RANDOM && type != FormatType::NONE) shuffle();
     rotate();
-
-    if (type == FormatType::EPD && std::get<epd_book>(book_).size() > static_cast<std::size_t>(rounds_)) {
-        std::get<epd_book>(book_).erase(std::get<epd_book>(book_).begin() + rounds_, std::get<epd_book>(book_).end());
-        std::get<epd_book>(book_).shrink_to_fit();
-    } else if (type == FormatType::PGN && std::get<pgn_book>(book_).size() > static_cast<std::size_t>(rounds_)) {
-        std::get<pgn_book>(book_).erase(std::get<pgn_book>(book_).begin() + rounds_, std::get<pgn_book>(book_).end());
-        std::get<pgn_book>(book_).shrink_to_fit();
-    }
+    truncate();
 }
 
 [[nodiscard]] std::optional<std::size_t> OpeningBook::fetchId() noexcept {

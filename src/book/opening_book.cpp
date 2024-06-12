@@ -1,6 +1,7 @@
 #include <book/opening_book.hpp>
 
 #include <fstream>
+#include <optional>
 #include <string>
 
 #include <util/safe_getline.hpp>
@@ -20,6 +21,8 @@ void OpeningBook::setup(const std::string& file, FormatType type) {
         return;
     }
 
+    std::visit([](auto&& arg) { arg.clear(); }, book_);
+
     if (type == FormatType::PGN) {
         book_ = pgn::PgnReader(file, plies_).getOpenings();
 
@@ -27,29 +30,39 @@ void OpeningBook::setup(const std::string& file, FormatType type) {
             throw std::runtime_error("No openings found in PGN file: " + file);
         }
     } else if (type == FormatType::EPD) {
-        std::ifstream openingFile;
-        openingFile.open(file);
-
-        std::string line;
-        std::vector<std::string> epd;
-
-        while (util::safeGetline(openingFile, line)) {
-            if (!line.empty()) epd.emplace_back(line);
+        std::ifstream in(file, std::ios::binary | std::ios::ate);
+        if (!in) {
+            throw std::runtime_error("Error opening EPD file: " + file);
         }
 
-        openingFile.close();
+        std::streamsize size = in.tellg();
+        in.seekg(0, std::ios::beg);
 
-        book_ = epd;
+        file_data_ = std::make_unique<char[]>(size);
 
-        if (std::get<epd_book>(book_).empty()) {
-            throw std::runtime_error("No openings found in EPD file: " + file);
+        in.read(file_data_.get(), size);
+
+        const char* data  = file_data_.get();
+        const char* end   = data;
+        const char* start = data;
+
+        while (*end) {
+            if (*end == '\n' || *end == '\0') {
+                if (end != start) {
+                    std::get<epd_book>(book_).emplace_back(std::string_view(start, end - start));
+                }
+                start = end + 1;
+            }
+            end++;
         }
+
+        std::get<epd_book>(book_).shrink_to_fit();
     }
 
     if (order_ == OrderType::RANDOM && type != FormatType::NONE) shuffle();
 }
 
-pgn::Opening OpeningBook::fetch() noexcept {
+[[nodiscard]] std::optional<std::size_t> OpeningBook::fetchId() noexcept {
     static uint64_t opening_index = 0;
 
     // - 1 because start starts at 1 in the opening options
@@ -59,17 +72,10 @@ pgn::Opening OpeningBook::fetch() noexcept {
                                : std::get<pgn_book>(book_).size();
 
     if (book_size == 0) {
-        return {chess::constants::STARTPOS, {}};
+        return std::nullopt;
     }
 
-    if (std::holds_alternative<epd_book>(book_)) {
-        const auto fen = std::get<epd_book>(book_)[idx % book_size];
-        return {fen, {}, chess::Board(fen).sideToMove()};
-    } else if (std::holds_alternative<pgn_book>(book_)) {
-        return std::get<pgn_book>(book_)[idx % book_size];
-    }
-
-    return {chess::constants::STARTPOS, {}};
+    return idx % book_size;
 }
 
 }  // namespace fast_chess::book

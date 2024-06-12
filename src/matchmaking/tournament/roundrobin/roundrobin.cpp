@@ -43,7 +43,7 @@ void RoundRobin::create() {
              tournament_options_.rounds * tournament_options_.games;
 
     const auto create_match = [this](std::size_t i, std::size_t j, std::size_t round_id, int g,
-                                     pgn::Opening opening) {
+                                     std::optional<std::size_t> opening_id) {
         assert(g < 2);
 
         constexpr static auto normalize_stm_configs = [](const pair_config& configs,
@@ -66,6 +66,8 @@ void RoundRobin::create() {
 
             return stats;
         };
+
+        const auto opening = book_[opening_id];
 
         const std::size_t game_id = round_id * tournament_options_.games + (g + 1);
         const auto stm            = opening.stm;
@@ -129,7 +131,7 @@ void RoundRobin::create() {
             int offset = initial_matchcount_ / tournament_options_.games;
             for (int k = offset; k < tournament_options_.rounds; k++) {
                 // both players get the same opening
-                const auto opening = book_.fetch();
+                const auto opening = book_.fetchId();
 
                 for (int g = 0; g < tournament_options_.games; g++) {
                     pool_.enqueue(create_match, i, j, k, g, opening);

@@ -45,7 +45,7 @@ class OpeningBook {
    void truncate() {
         const auto truncate = [this](auto& vec) {
             if (vec.size() > static_cast<std::size_t>(rounds_)) {
-                vec.erase(vec.begin() + rounds_, vec.end());
+                vec.resize(rounds_);
                 vec.shrink_to_fit();
             }
         };
@@ -71,7 +71,7 @@ class OpeningBook {
    private:
     void setup(const std::string& file, FormatType type);
 
-    using epd_book = std::vector<std::string_view>;
+    using epd_book = std::vector<std::string>;
     using pgn_book = std::vector<pgn::Opening>;
 
     std::size_t start_      = 0;

@@ -32,33 +32,20 @@ void OpeningBook::setup(const std::string& file, FormatType type) {
             throw std::runtime_error("No openings found in PGN file: " + file);
         }
     } else if (type == FormatType::EPD) {
-        std::ifstream in(file, std::ios::binary | std::ios::ate);
-        if (!in) {
-            throw std::runtime_error("Error opening EPD file: " + file);
+        std::ifstream openingFile;
+        openingFile.open(file);
+
+        std::string line;
+
+        while (util::safeGetline(openingFile, line)) {
+            if (!line.empty()) std::get<epd_book>(book_).emplace_back(line);
         }
 
-        std::streamsize size = in.tellg();
-        in.seekg(0, std::ios::beg);
+        openingFile.close();
 
-        file_data_ = std::make_unique<char[]>(size);
-
-        in.read(file_data_.get(), size);
-
-        const char* data  = file_data_.get();
-        const char* end   = data;
-        const char* start = data;
-
-        while (*end) {
-            if (*end == '\n' || *end == '\0') {
-                if (end != start) {
-                    std::get<epd_book>(book_).emplace_back(std::string_view(start, end - start));
-                }
-                start = end + 1;
-            }
-            end++;
+        if (std::get<epd_book>(book_).empty()) {
+            throw std::runtime_error("No openings found in EPD file: " + file);
         }
-
-        std::get<epd_book>(book_).shrink_to_fit();
     }
 
     if (type != FormatType::NONE) {

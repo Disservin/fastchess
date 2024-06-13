@@ -34,7 +34,7 @@ class OpeningBook {
 
     void rotate() {
         const auto rotate = [this](auto& vec) {
-            std::rotate(vec.begin(), vec.begin() + offset_, vec.end());
+            std::rotate(vec.begin(), vec.begin() + (offset_ % vec.size()), vec.end());
         };
 
         std::visit(rotate, book_);

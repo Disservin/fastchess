@@ -71,7 +71,6 @@ void OpeningBook::setup(const std::string& file, FormatType type) {
 [[nodiscard]] std::optional<std::size_t> OpeningBook::fetchId() noexcept {
     static uint64_t opening_index = 0;
 
-    // - 1 because start starts at 1 in the opening options
     const auto idx       = opening_index++;
     const auto book_size = std::holds_alternative<epd_book>(book_)
                                ? std::get<epd_book>(book_).size()

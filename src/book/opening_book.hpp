@@ -32,6 +32,7 @@ class OpeningBook {
         std::visit(shuffle, book_);
     }
 
+    // Rotates the book vector based on the starting offset
     void rotate() {
         const auto rotate = [this](auto& vec) {
             std::rotate(vec.begin(), vec.begin() + (offset_ % vec.size()), vec.end());
@@ -40,6 +41,7 @@ class OpeningBook {
         std::visit(rotate, book_);
     }
 
+   // Gets rid of unused openings within the book vector to reduce memory usage
    void truncate() {
         const auto truncate = [this](auto& vec) {
             if (vec.size() > static_cast<std::size_t>(rounds_)) {

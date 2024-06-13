@@ -1,6 +1,7 @@
 #include <book/opening_book.hpp>
 
 #include <fstream>
+#include <optional>
 #include <string>
 
 #include <util/safe_getline.hpp>

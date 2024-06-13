@@ -71,7 +71,7 @@ class OpeningBook {
    private:
     void setup(const std::string& file, FormatType type);
 
-    using epd_book = std::vector<std::string_view>;
+    using epd_book = std::vector<std::string>;
     using pgn_book = std::vector<pgn::Opening>;
 
     std::size_t start_      = 0;

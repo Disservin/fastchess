@@ -52,6 +52,7 @@ void OpeningBook::setup(const std::string& file, FormatType type) {
         shuffle();
         rotate();
         truncate();
+        shrink();
     }
 }
 

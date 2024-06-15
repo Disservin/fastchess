@@ -44,13 +44,17 @@ class OpeningBook {
    // Gets rid of unused openings within the book vector to reduce memory usage
    void truncate() {
         const auto truncate = [this](auto& vec) {
-            if (vec.size() > static_cast<std::size_t>(rounds_)) {
-                vec.resize(rounds_);
-                vec.shrink_to_fit();
-            }
+            if (vec.size() > static_cast<std::size_t>(rounds_)) { vec.resize(rounds_); }
         };
 
         std::visit(truncate, book_);
+    }
+
+   // Shrink book vector
+   void shrink() {
+        const auto shrink = [this](auto& vec) { vec.shrink_to_fit(); };
+
+        std::visit(shrink, book_);
     }
 
     [[nodiscard]] std::optional<std::size_t> fetchId() noexcept;

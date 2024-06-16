@@ -45,11 +45,11 @@ class Logger {
         std::stringstream file_ss;
 
         if constexpr (thread) {
-            file_ss << "[" << util::time::datetime("%H:%M:%S") << "] "             //
+            file_ss << "[" << util::time::datetime_precise() << "] "               //
                     << " <" << std::setw(3) << std::this_thread::get_id() << "> "  //
                     << "fastchess" << " --- " << ss.str();
         } else {
-            file_ss << "[" << util::time::datetime("%H:%M:%S") << "] "  //
+            file_ss << "[" << util::time::datetime_precise() << "] "  //
                     << " <fastchess>" << ss.str();
         }
 
@@ -58,7 +58,8 @@ class Logger {
         log_ << file_ss.str() << std::endl;
     }
 
-    static void writeToEngine(const std::string &msg, const std::string &name);
+    static void writeToEngine(const std::string &msg, const std::string &time,
+                              const std::string &name);
 
     static void readFromEngine(const std::string &msg, const std::string &time,
                                const std::string &name, bool err = false);

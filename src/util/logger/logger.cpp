@@ -19,14 +19,15 @@ void Logger::openFile(const std::string &file) {
 
 void Logger::setLevel(Level level) { Logger::level_ = level; }
 
-void Logger::writeToEngine(const std::string &msg, const std::string &name) {
+void Logger::writeToEngine(const std::string &msg, const std::string &time,
+                           const std::string &name) {
     if (!should_log_) {
         return;
     }
 
     std::stringstream ss;
-    ss << "[" << util::time::datetime("%H:%M:%S") << "] " << " <" << std::setw(3)
-       << std::this_thread::get_id() << "> " << name << " <--- " << msg << std::endl;
+    ss << "[" << time << "] " << " <" << std::setw(3) << std::this_thread::get_id() << "> " << name
+       << " <--- " << msg << std::endl;
 
     // Acquire the lock
     const std::lock_guard<std::mutex> lock(log_mutex_);

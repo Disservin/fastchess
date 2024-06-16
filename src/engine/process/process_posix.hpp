@@ -317,7 +317,7 @@ class Process : public IProcess {
 
     void writeProcess(const std::string &input) override {
         assert(is_initalized_);
-        Logger::writeToEngine(input, log_name_);
+        Logger::writeToEngine(input, util::time::datetime_precise(), log_name_);
 
         if (!alive()) {
             throw std::runtime_error("IProcess is not alive and write occured with message: " +

@@ -17,7 +17,8 @@ bool UciEngine::isResponsive(std::chrono::milliseconds threshold) {
     const auto res = readEngine("readyok", threshold);
 
     if (res != process::Status::OK) {
-        Logger::log<Logger::Level::WARN>("Warning; Engine", config_.name, "is not responsive.");
+        Logger::log<Logger::Level::WARN, true>("Warning; Engine", config_.name,
+                                               "is not responsive.");
     }
 
     return res == process::Status::OK;
@@ -43,7 +44,7 @@ void UciEngine::sendSetoption(const std::string &name, const std::string &value)
 void UciEngine::start() {
     if (initialized_) return;
 
-    Logger::log<Logger::Level::TRACE>("Starting engine", config_.name);
+    Logger::log<Logger::Level::TRACE, true>("Starting engine", config_.name);
 
     std::string path = (config_.dir == "." ? "" : config_.dir) + config_.cmd;
 
@@ -124,8 +125,8 @@ void UciEngine::writeEngine(const std::string &input) {
         writeProcess(input + "\n");
     } catch (const std::exception &e) {
         std::cout << input << std::endl;
-        Logger::log<Logger::Level::ERR>("Raised Exception in writeProcess\nWarning; Engine",
-                                        config_.name, "disconnects");
+        Logger::log<Logger::Level::ERR, true>("Raised Exception in writeProcess\nWarning; Engine",
+                                              config_.name, "disconnects");
 
         throw e;
     }
@@ -133,7 +134,7 @@ void UciEngine::writeEngine(const std::string &input) {
 
 std::optional<std::string> UciEngine::bestmove() const {
     if (output_.empty()) {
-        Logger::log<Logger::Level::WARN>("Warning; No output from engine.");
+        Logger::log<Logger::Level::WARN, true>("Warning; No output from engine.");
         return std::nullopt;
     }
 
@@ -141,7 +142,7 @@ std::optional<std::string> UciEngine::bestmove() const {
         str_utils::splitString(output_.back().line, ' '), "bestmove");
 
     if (!bm.has_value()) {
-        Logger::log<Logger::Level::WARN>("Warning; Could not extract bestmove.");
+        Logger::log<Logger::Level::WARN, true>("Warning; Could not extract bestmove.");
         return std::nullopt;
     }
 
@@ -151,7 +152,7 @@ std::optional<std::string> UciEngine::bestmove() const {
 std::vector<std::string> UciEngine::lastInfo() const {
     const auto last_info = lastInfoLine();
     if (last_info.empty()) {
-        Logger::log<Logger::Level::WARN>("Warning; Could not extract last uci info line.");
+        Logger::log<Logger::Level::WARN, true>("Warning; Could not extract last uci info line.");
         return {};
     }
 
@@ -168,7 +169,7 @@ int UciEngine::lastScore() const {
     const auto score = lastScoreType();
 
     if (score == ScoreType::ERR) {
-        Logger::log<Logger::Level::WARN>("Warning; Could not extract last uci score.");
+        Logger::log<Logger::Level::WARN, true>("Warning; Could not extract last uci score.");
         return 0;
     }
 

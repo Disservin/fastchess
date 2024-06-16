@@ -25,7 +25,7 @@ class Logger {
 
     static void openFile(const std::string &file);
 
-    template <Level level = Level::WARN, typename First, typename... Args>
+    template <Level level = Level::WARN, bool thread = false, typename First, typename... Args>
     static void log(First &&first, Args &&...args) {
         if (level < level_) {
             return;
@@ -43,7 +43,15 @@ class Logger {
         }
 
         std::stringstream file_ss;
-        file_ss << "[" << util::time::datetime("%H:%M:%S") << "] " << "<fastchess>" << ss.str();
+
+        if constexpr (thread) {
+            file_ss << "[" << util::time::datetime("%H:%M:%S") << "] "             //
+                    << " <" << std::setw(3) << std::this_thread::get_id() << "> "  //
+                    << "fastchess" << " --- " << ss.str();
+        } else {
+            file_ss << "[" << util::time::datetime("%H:%M:%S") << "] "  //
+                    << "<fastchess>" << ss.str();
+        }
 
         const std::lock_guard<std::mutex> lock(log_mutex_);
 

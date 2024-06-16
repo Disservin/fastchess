@@ -11,5 +11,6 @@ TEST_SUITE("Openings") {
       tournament.seed = 123456789;
       tournament.opening.start = 3256;
       book::OpeningBook book(tournament);
+      book.book_[0] = 
 }
 

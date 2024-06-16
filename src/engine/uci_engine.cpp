@@ -13,6 +13,8 @@ namespace fast_chess::engine {
 bool UciEngine::isResponsive(std::chrono::milliseconds threshold) {
     if (!alive()) return false;
 
+    Logger::log<Logger::Level::TRACE, true>("Pinging engine", config_.name);
+
     writeEngine("isready");
 
     std::vector<process::Line> output;
@@ -23,33 +25,55 @@ bool UciEngine::isResponsive(std::chrono::milliseconds threshold) {
     }
 
     if (res != process::Status::OK) {
+        Logger::log<Logger::Level::TRACE, true>("Engine", config_.name, "didn't respond to isready.");
         Logger::log<Logger::Level::WARN, true>("Warning; Engine", config_.name, "is not responsive.");
     }
+
+    Logger::log<Logger::Level::TRACE, true>("Engine", config_.name,
+                                            res == process::Status::OK ? "is responsive." : "is not responsive.");
 
     return res == process::Status::OK;
 }
 
 bool UciEngine::ucinewgame() {
+    Logger::log<Logger::Level::TRACE, true>("Sending ucinewgame to engine", config_.name);
+
     writeEngine("ucinewgame");
-    return isResponsive(initialize_time);
+    const auto res = isResponsive(initialize_time);
+
+    return res;
 }
 
-void UciEngine::uci() { writeEngine("uci"); }
+void UciEngine::uci() {
+    Logger::log<Logger::Level::TRACE, true>("Sending uci to engine", config_.name);
+    writeEngine("uci");
+}
 
-bool UciEngine::uciok() { return readEngine("uciok") == process::Status::OK; }
+bool UciEngine::uciok() {
+    Logger::log<Logger::Level::TRACE, true>("Waiting for uciok from engine", config_.name);
+
+    const auto res = readEngine("uciok") == process::Status::OK;
+
+    Logger::log<Logger::Level::TRACE, true>("Engine", config_.name,
+                                            res ? "responded to uciok." : "didn't respond to uciok.");
+
+    return res;
+}
 
 void UciEngine::loadConfig(const EngineConfiguration &config) { config_ = config; }
 
-void UciEngine::quit() { writeEngine("quit"); }
+void UciEngine::quit() {
+    Logger::log<Logger::Level::TRACE, true>("Sending quit to engine", config_.name);
+    writeEngine("quit");
+}
 
 void UciEngine::sendSetoption(const std::string &name, const std::string &value) {
+    Logger::log<Logger::Level::TRACE, true>("Sending setoption to engine", config_.name, name, value);
     writeEngine("setoption name " + name + " value " + value);
 }
 
 void UciEngine::start() {
     if (initialized_) return;
-
-    Logger::log<Logger::Level::TRACE, true>("Starting engine", config_.name);
 
     std::string path = (config_.dir == "." ? "" : config_.dir) + config_.cmd;
 
@@ -58,6 +82,8 @@ void UciEngine::start() {
     auto p = std::filesystem::path(config_.dir) / std::filesystem::path(config_.cmd);
     path   = p.string();
 #endif
+
+    Logger::log<Logger::Level::TRACE, true>("Starting engine", config_.name, "at", path);
 
     init(path, config_.args, config_.name);
     uci();
@@ -70,18 +96,23 @@ void UciEngine::start() {
 }
 
 void UciEngine::refreshUci() {
+    Logger::log<Logger::Level::TRACE, true>("Refreshing engine", config_.name);
     start();
 
     if (!ucinewgame() && !isResponsive(ping_time_)) {
         // restart the engine
+        Logger::log<Logger::Level::TRACE, true>("Engine", config_.name, "failed to refresh. Restarting engine.");
         restart();
         uci();
 
         if (!uciok()) {
+            Logger::log<Logger::Level::TRACE, true>("Engine", config_.name, "failed to start.");
             throw std::runtime_error(config_.name + " failed to start.");
         }
 
         if (!ucinewgame() && !isResponsive(ping_time_)) {
+            Logger::log<Logger::Level::TRACE, true>("Engine", config_.name,
+                                                    "responded to uci but not to ucinewgame/isready.");
             throw std::runtime_error("Warning; Something went wrong when pinging the engine.");
         }
     }
@@ -95,6 +126,7 @@ void UciEngine::refreshUci() {
     }
 
     if (!ucinewgame()) {
+        Logger::log<Logger::Level::TRACE, true>("Engine", config_.name, "didn't respond to ucinewgame.");
         throw std::runtime_error(config_.name + " failed to start.");
     }
 }

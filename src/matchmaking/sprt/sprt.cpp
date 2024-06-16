@@ -26,8 +26,8 @@ SPRT::SPRT(double alpha, double beta, double elo0, double elo1, std::string mode
 
 double SPRT::leloToScore(double lelo) noexcept { return 1 / (1 + std::pow(10, (-lelo / 400))); }
 
-double SPRT::bayeseloToScore(double bayeselo, double drawelo) noexcept { 
-    double pwin = 1.0 / (1.0 + std::pow(10.0, (-bayeselo + drawelo) / 400.0));
+double SPRT::bayeseloToScore(double bayeselo, double drawelo) noexcept {
+    double pwin  = 1.0 / (1.0 + std::pow(10.0, (-bayeselo + drawelo) / 400.0));
     double ploss = 1.0 / (1.0 + std::pow(10.0, (bayeselo + drawelo) / 400.0));
     double pdraw = 1.0 - pwin - ploss;
     return pwin + 0.5 * pdraw;
@@ -54,9 +54,9 @@ double SPRT::getLLR(int win, int draw, int loss) const noexcept {
 
     const double games = win + draw + loss;
     if (games == 0) return 0.0;
-    const double W        = double(win) / games;
-    const double D        = double(draw) / games;
-    const double L        = double(loss) / games;
+    const double W = double(win) / games;
+    const double D = double(draw) / games;
+    const double L = double(loss) / games;
     double score0;
     double score1;
     if (model_ == "normalized") {
@@ -70,9 +70,9 @@ double SPRT::getLLR(int win, int draw, int loss) const noexcept {
         score1 = neloToScoreWDL(elo1_, variance);
     } else if (model_ == "bayesian") {
         if (win == 0 || loss == 0) return 0.0;
-        const double drawelo = 200 * std::log10((1-L)/L * (1-W)/W);
-        score0 = bayeseloToScore(elo0_, drawelo);
-        score1 = bayeseloToScore(elo1_, drawelo); 
+        const double drawelo = 200 * std::log10((1 - L) / L * (1 - W) / W);
+        score0               = bayeseloToScore(elo0_, drawelo);
+        score1               = bayeseloToScore(elo1_, drawelo);
     } else {
         score0 = leloToScore(elo0_);
         score1 = leloToScore(elo1_);
@@ -96,12 +96,12 @@ double SPRT::getLLR(int penta_WW, int penta_WD, int penta_WL, int penta_DD, int 
 
     const double pairs = penta_WW + penta_WD + penta_WL + penta_DD + penta_LD + penta_LL;
     if (pairs == 0) return 0.0;
-    const double WW       = double(penta_WW) / pairs;
-    const double WD       = double(penta_WD) / pairs;
-    const double WL       = double(penta_WL) / pairs;
-    const double DD       = double(penta_DD) / pairs;
-    const double LD       = double(penta_LD) / pairs;
-    const double LL       = double(penta_LL) / pairs;
+    const double WW = double(penta_WW) / pairs;
+    const double WD = double(penta_WD) / pairs;
+    const double WL = double(penta_WL) / pairs;
+    const double DD = double(penta_DD) / pairs;
+    const double LD = double(penta_LD) / pairs;
+    const double LL = double(penta_LL) / pairs;
     double score0;
     double score1;
     if (model_ == "normalized") {

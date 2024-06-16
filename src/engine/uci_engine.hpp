@@ -53,7 +53,7 @@ class UciEngine : protected process::Process {
     void setCpus(const std::vector<int> &cpus) { setAffinity(cpus); }
 
     // Get the bestmove from the last output.
-    [[nodiscard]] std::string bestmove() const;
+    [[nodiscard]] std::optional<std::string> bestmove() const;
 
     // Get the last info from the last output.
     [[nodiscard]] std::vector<std::string> lastInfo() const;

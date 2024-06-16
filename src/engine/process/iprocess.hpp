@@ -13,6 +13,7 @@ enum class Status { OK, ERR, TIMEOUT };
 
 struct Line {
     std::string line;
+    std::string time;
     Standard std = Standard::OUTPUT;
 };
 

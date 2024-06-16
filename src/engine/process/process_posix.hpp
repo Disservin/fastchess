@@ -154,11 +154,24 @@ class Process : public IProcess {
     std::string signalToString(int status) {
         if (WIFEXITED(status)) {
             return std::to_string(WEXITSTATUS(status));
-        } else if (WIFSTOPPED(status)) {
-            return strsignal(WSTOPSIG(status));
+        }
+#    ifdef _GNU_SOURCE
+        else if (WIFSTOPPED(status)) {
+            auto desc = sigdescr_np(WSTOPSIG(status));
+            return desc ? desc : "Unknown child status";
         } else if (WIFSIGNALED(status)) {
-            return strsignal(WTERMSIG(status));
-        } else {
+            auto desc = sigdescr_np(WTERMSIG(status));
+            return desc ? desc : "Unknown child status";
+        }
+#    else
+        else if (WIFSIGNALED(status)) {
+            return "WIFSIGNALED status: " + std::to_string(WTERMSIG(status));
+        } else if (WIFSTOPPED(status)) {
+            return "WIFSTOPPED status: " + std::to_string(WSTOPSIG(status));
+        }
+#    endif
+
+        else {
             return "Unknown child status";
         }
     }
@@ -181,8 +194,9 @@ class Process : public IProcess {
         int status;
         const pid_t pid = waitpid(process_pid_, &status, WNOHANG);
 
-        // lgo the status of the process
-        Logger::readFromEngine(signalToString(status), log_name_, true);
+        // log the status of the process
+        Logger::readFromEngine(signalToString(status), util::time::datetime_precise(), log_name_,
+                               true);
 
         // If the process is still running, kill it
         if (pid == 0) {
@@ -238,7 +252,7 @@ class Process : public IProcess {
             }
             // timeout
             else if (ready == 0) {
-                lines.emplace_back(Line{current_line_});
+                lines.emplace_back(Line{current_line_, util::time::datetime_precise()});
                 return Status::TIMEOUT;
             }
 
@@ -260,7 +274,7 @@ class Process : public IProcess {
                     // to the vector and reset the current_line_.
                     // Dont add empty lines
                     if (!current_line_.empty()) {
-                        lines.emplace_back(Line{current_line_});
+                        lines.emplace_back(Line{current_line_, util::time::datetime_precise()});
 
                         if (current_line_.rfind(last_word, 0) == 0) {
                             return Status::OK;
@@ -289,7 +303,8 @@ class Process : public IProcess {
                     // to the vector and reset the current_line_.
                     // Dont add empty lines
                     if (!current_line_.empty()) {
-                        lines.emplace_back(Line{current_line_, Standard::ERR});
+                        lines.emplace_back(
+                            Line{current_line_, util::time::datetime_precise(), Standard::ERR});
 
                         current_line_.clear();
                     }
@@ -302,7 +317,7 @@ class Process : public IProcess {
 
     void writeProcess(const std::string &input) override {
         assert(is_initalized_);
-        Logger::writeToEngine(input, log_name_);
+        Logger::writeToEngine(input, util::time::datetime_precise(), log_name_);
 
         if (!alive()) {
             throw std::runtime_error("IProcess is not alive and write occured with message: " +

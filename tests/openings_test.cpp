@@ -13,7 +13,8 @@ TEST_SUITE("Openings") {
         tournament.seed = 123456789;
         tournament.opening.start = 3256;
 
-        book::OpeningBook book(tournament);
+        test = book::OpeningBook(tournament);
+        //book::OpeningBook book(tournament);
 
 
         CHECK(book.book_[0] == "r1bqkb1r/pp3pp1/2nppn2/7p/3NP1PP/2N5/PPP2P2/R1BQKBR1 w Qkq - 0 9");

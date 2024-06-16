@@ -16,10 +16,9 @@ TEST_SUITE("Openings") {
         auto book = book::OpeningBook(tournament);
         std::vector<std::string> epd = book.getEpdBook();
 
-        std::string fen1 = epd[1];
+        std::string fen = epd[0];
 
-        //CHECK(1 == 1);
-        CHECK(fen1 == "r1bqkb1r/pp3pp1/2nppn2/7p/3NP1PP/2N5/PPP2P2/R1BQKBR1 w Qkq - 0 9");
+        CHECK(fen == "r1bqkb1r/3p1ppp/p1p1p3/3nP3/8/2N5/PPP1BPPP/R1BQK2R w KQkq - 1 9");
     }
 }
 

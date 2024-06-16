@@ -16,8 +16,10 @@ TEST_SUITE("Openings") {
         auto book = book::OpeningBook(tournament);
         auto epd = book.getEpdBook();
 
+        auto fen1 = epd[1];
+
         //CHECK(1 == 1);
-        CHECK(epd[0] == "r1bqkb1r/pp3pp1/2nppn2/7p/3NP1PP/2N5/PPP2P2/R1BQKBR1 w Qkq - 0 9");
+        CHECK(epd[1] == "r1bqkb1r/pp3pp1/2nppn2/7p/3NP1PP/2N5/PPP2P2/R1BQKBR1 w Qkq - 0 9");
     }
 }
 

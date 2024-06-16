@@ -19,7 +19,8 @@ TEST_SUITE("Openings") {
 
         std::string fen = epd[0];
 
-        CHECK(epd.size() == 10 && epd.capacity() == 10);
+        CHECK(epd.size() == 10);
+        CHECK(epd.capacity() == 10);
         CHECK(fen == "r1b1kb1r/1p2pppp/p1np4/q5B1/3NP1n1/2N4P/PPP2PP1/R2QKB1R w KQkq - 1 9");
     }
 }

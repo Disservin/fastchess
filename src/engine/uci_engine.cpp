@@ -131,10 +131,10 @@ void UciEngine::writeEngine(const std::string &input) {
     }
 }
 
-std::string UciEngine::bestmove() const {
+std::optional<std::string> UciEngine::bestmove() const {
     if (output_.empty()) {
         Logger::log<Logger::Level::WARN>("Warning; No output from engine.");
-        return "aaaa";
+        return std::nullopt;
     }
 
     const auto bm = str_utils::findElement<std::string>(
@@ -142,7 +142,7 @@ std::string UciEngine::bestmove() const {
 
     if (!bm.has_value()) {
         Logger::log<Logger::Level::WARN>("Warning; Could not extract bestmove.");
-        return "aaaa";
+        return std::nullopt;
     }
 
     return bm.value();

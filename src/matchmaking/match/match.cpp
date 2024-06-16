@@ -24,8 +24,8 @@ using namespace std::literals;
 using namespace chess;
 
 void Match::addMoveData(const Player& player, int64_t measured_time_ms, bool legal) {
-    MoveData move_data =
-        MoveData(player.engine.bestmove(), "0.00", measured_time_ms, 0, 0, 0, 0, legal);
+    const auto move    = player.engine.bestmove() ? *player.engine.bestmove() : "<none>";
+    MoveData move_data = MoveData(move, "0.00", measured_time_ms, 0, 0, 0, 0, legal);
 
     if (player.engine.output().size() <= 1) {
         data_.moves.push_back(move_data);
@@ -199,8 +199,8 @@ bool Match::playMove(Player& us, Player& opponent) {
 
     // Illegal move
     const auto best_move = us.engine.bestmove();
-    const auto move      = uci::uciToMove(board_, best_move);
-    const auto legal     = isLegal(move);
+    const auto move      = best_move ? uci::uciToMove(board_, *best_move) : Move::NO_MOVE;
+    const auto legal     = best_move ? isLegal(move) : false;
 
     addMoveData(us, elapsed_millis, legal);
 
@@ -210,7 +210,8 @@ bool Match::playMove(Player& us, Player& opponent) {
         data_.termination = MatchTermination::ILLEGAL_MOVE;
         data_.reason      = name + Match::ILLEGAL_MSG;
 
-        Logger::log<Logger::Level::WARN>("Warning; Illegal move", best_move, "played by", name);
+        Logger::log<Logger::Level::WARN>("Warning; Illegal move", best_move ? *best_move : "<none>",
+                                         "played by", name);
 
         return false;
     }
@@ -241,10 +242,11 @@ bool Match::playMove(Player& us, Player& opponent) {
     board_.makeMove(move);
 
     // CuteChess uses plycount/2 for its movenumber, which is wrong for epd books as it doesnt take
-    // into account the fullmove counter of the starting FEN, leading to different behavior between pgn and epd
-    // adjudication. fast-chess fixes this by using the fullmove counter from the board object directly
-    draw_tracker_.update(us.engine.lastScore(), board_.fullMoveNumber() - 1, us.engine.lastScoreType(),
-                         board_.halfMoveClock());
+    // into account the fullmove counter of the starting FEN, leading to different behavior between
+    // pgn and epd adjudication. fast-chess fixes this by using the fullmove counter from the board
+    // object directly
+    draw_tracker_.update(us.engine.lastScore(), board_.fullMoveNumber() - 1,
+                         us.engine.lastScoreType(), board_.halfMoveClock());
     resign_tracker_.update(us.engine.lastScore(), us.engine.lastScoreType(), ~board_.sideToMove());
     maxmoves_tracker_.update(us.engine.lastScore(), us.engine.lastScoreType());
     return !adjudicate(us, opponent);

@@ -145,7 +145,7 @@ class Process : public IProcess {
                     // don't add empty lines
                     if (current_line_.empty()) continue;
 
-                    lines.emplace_back(Line{current_line_});
+                    lines.emplace_back(Line{current_line_, util::time::datetime_precise()});
 
                     if (current_line_.rfind(last_word, 0) == 0) {
                         return Status::OK;
@@ -168,7 +168,7 @@ class Process : public IProcess {
 
     void writeProcess(const std::string &input) override {
         assert(is_initalized_);
-        Logger::writeToEngine(input, log_name_);
+        Logger::writeToEngine(input, util::time::datetime_precise(), log_name_);
 
         if (!alive()) {
             killProcess();

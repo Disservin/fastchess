@@ -19,7 +19,8 @@ bool UciEngine::isResponsive(std::chrono::milliseconds threshold) {
     const auto res = readProcess(output, "readyok", threshold);
 
     for (const auto &line : output) {
-        Logger::readFromEngine(line.line, config_.name, line.std == process::Standard::ERR);
+        Logger::readFromEngine(line.line, line.time, config_.name,
+                               line.std == process::Standard::ERR);
     }
 
     if (res != process::Status::OK) {
@@ -107,7 +108,8 @@ process::Status UciEngine::readEngine(std::string_view last_word,
 
 void UciEngine::writeLog() const {
     for (const auto &line : output_) {
-        Logger::readFromEngine(line.line, config_.name, line.std == process::Standard::ERR);
+        Logger::readFromEngine(line.line, line.time, config_.name,
+                               line.std == process::Standard::ERR);
     }
 }
 

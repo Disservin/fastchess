@@ -8,13 +8,15 @@
 
 namespace fast_chess::util {
 
+namespace sc = std::chrono;
+
 namespace time {
 
 // Get the current date and time in a given format.
 [[nodiscard]] inline std::string datetime(const std::string &format) {
     // Get the current time in UTC
-    const auto now        = std::chrono::system_clock::now();
-    const auto time_t_now = std::chrono::system_clock::to_time_t(now);
+    const auto now        = sc::system_clock::now();
+    const auto time_t_now = sc::system_clock::to_time_t(now);
     struct tm buf {};
 
 #ifdef _WIN32
@@ -38,10 +40,10 @@ namespace time {
 }
 
 // Formats a duration in seconds to a string in the format HH:MM:SS.
-[[nodiscard]] inline std::string duration(std::chrono::seconds duration) {
-    const auto hours = std::chrono::duration_cast<std::chrono::hours>(duration);
+[[nodiscard]] inline std::string duration(sc::seconds duration) {
+    const auto hours = sc::duration_cast<sc::hours>(duration);
     duration -= hours;
-    const auto minutes = std::chrono::duration_cast<std::chrono::minutes>(duration);
+    const auto minutes = sc::duration_cast<sc::minutes>(duration);
     duration -= minutes;
     const auto seconds = duration;
 
@@ -49,6 +51,17 @@ namespace time {
     ss << std::setfill('0') << std::setw(2) << hours.count() << ":" << std::setfill('0')
        << std::setw(2) << minutes.count() << ":" << std::setfill('0') << std::setw(2)
        << seconds.count();
+    return ss.str();
+}
+
+[[nodiscard]] inline std::string datetime_precise() {
+    const auto now        = sc::system_clock::now();
+    const auto ms         = sc::duration_cast<sc::microseconds>(now.time_since_epoch());
+    const auto elapsed_ms = ms % sc::seconds(1);
+    const auto str        = datetime("%H:%M:%S");
+
+    std::stringstream ss;
+    ss << str << "." << std::setfill('0') << std::setw(6) << elapsed_ms.count();
     return ss.str();
 }
 }  // namespace time

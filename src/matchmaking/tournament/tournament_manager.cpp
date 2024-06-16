@@ -18,8 +18,7 @@ TournamentManager::TournamentManager(const options::Tournament& tournament_confi
     }
 
     // Set the seed for the random number generator
-    Logger::log<Logger::Level::TRACE>("Seeding random number generator with seed: ",
-                                      tournament_options_.seed);
+    Logger::log<Logger::Level::TRACE>("Seeding random number generator with seed: ", tournament_options_.seed);
     util::random::mersenne_rand.seed(tournament_options_.seed);
 
     round_robin_ = std::make_unique<RoundRobin>(fixConfig(tournament_options_), engine_configs_);
@@ -51,8 +50,7 @@ options::Tournament TournamentManager::fixConfig(options::Tournament config) {
         if (config.sprt.elo0 >= config.sprt.elo1) {
             throw std::runtime_error("Error; SPRT: elo0 must be less than elo1!");
         } else if (config.sprt.alpha <= 0 || config.sprt.alpha >= 1) {
-            throw std::runtime_error(
-                "Error; SPRT: alpha must be a decimal number between 0 and 1!");
+            throw std::runtime_error("Error; SPRT: alpha must be a decimal number between 0 and 1!");
         } else if (config.sprt.beta <= 0 || config.sprt.beta >= 1) {
             throw std::runtime_error("Error; SPRT: beta must be a decimal number between 0 and 1!");
         } else if (config.sprt.alpha + config.sprt.beta >= 1) {
@@ -70,8 +68,7 @@ options::Tournament TournamentManager::fixConfig(options::Tournament config) {
         }
     }
 
-    config.concurrency =
-        std::min(config.concurrency, static_cast<int>(std::thread::hardware_concurrency()));
+    config.concurrency = std::min(config.concurrency, static_cast<int>(std::thread::hardware_concurrency()));
 
     if (config.variant == VariantType::FRC && config.opening.file.empty()) {
         throw std::runtime_error("Error: Please specify a Chess960 opening book");

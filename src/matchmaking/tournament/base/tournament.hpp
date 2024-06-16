@@ -21,8 +21,7 @@ extern std::atomic_bool stop;
 
 class BaseTournament {
    public:
-    BaseTournament(const options::Tournament &config,
-                   const std::vector<EngineConfiguration> &engine_configs);
+    BaseTournament(const options::Tournament &config, const std::vector<EngineConfiguration> &engine_configs);
 
     virtual ~BaseTournament() {
         Logger::log<Logger::Level::TRACE>("Destroying tournament...");
@@ -74,9 +73,8 @@ class BaseTournament {
     void saveJson();
 
     // play one game and write it to the pgn file
-    void playGame(const std::pair<EngineConfiguration, EngineConfiguration> &configs,
-                  start_callback start, finished_callback finish, const pgn::Opening &opening,
-                  std::size_t game_id);
+    void playGame(const std::pair<EngineConfiguration, EngineConfiguration> &configs, start_callback start,
+                  finished_callback finish, const pgn::Opening &opening, std::size_t game_id);
 
     std::unique_ptr<IOutput> output_;
     std::unique_ptr<affinity::AffinityManager> cores_;
@@ -87,10 +85,9 @@ class BaseTournament {
     options::Tournament tournament_options_;
     std::vector<EngineConfiguration> engine_configs_;
 
-    util::CachePool<engine::UciEngine, std::string> engine_cache_ =
-        util::CachePool<engine::UciEngine, std::string>();
-    Result result_         = Result();
-    util::ThreadPool pool_ = util::ThreadPool(1);
+    util::CachePool<engine::UciEngine, std::string> engine_cache_ = util::CachePool<engine::UciEngine, std::string>();
+    Result result_                                                = Result();
+    util::ThreadPool pool_                                        = util::ThreadPool(1);
 
    private:
     int getMaxAffinity(const std::vector<EngineConfiguration> &configs) const noexcept;

@@ -16,8 +16,7 @@ namespace fast_chess::pgn {
 
 class PgnBuilder {
    public:
-    PgnBuilder(const MatchData &match, const options::Tournament &tournament_options,
-               std::size_t round_id);
+    PgnBuilder(const MatchData &match, const options::Tournament &tournament_options, std::size_t round_id);
 
     // Get the newly created pgn
     [[nodiscard]] std::string get() const noexcept { return pgn_.str() + "\n\n"; }
@@ -26,15 +25,14 @@ class PgnBuilder {
 
    private:
     // Converts a UCI move to either SAN, LAN or keeps it as UCI
-    [[nodiscard]] std::string moveNotation(chess::Board &board,
-                                           const std::string &move) const noexcept;
+    [[nodiscard]] std::string moveNotation(chess::Board &board, const std::string &move) const noexcept;
 
     // Adds a header to the pgn
     template <typename T>
     void addHeader(std::string_view name, const T &value) noexcept;
 
-    std::string addMove(chess::Board &board, const MoveData &move, std::size_t move_number,
-                        int dots, bool illegal, bool last) noexcept;
+    std::string addMove(chess::Board &board, const MoveData &move, std::size_t move_number, int dots, bool illegal,
+                        bool last) noexcept;
 
     // Adds a comment to the pgn. The comment is formatted as {first, args}
     template <typename First, typename... Args>
@@ -55,8 +53,8 @@ class PgnBuilder {
         return ss.str();
     }
 
-    [[nodiscard]] static std::string getResultFromMatch(
-        const MatchData::PlayerInfo &white, const MatchData::PlayerInfo &black) noexcept;
+    [[nodiscard]] static std::string getResultFromMatch(const MatchData::PlayerInfo &white,
+                                                        const MatchData::PlayerInfo &black) noexcept;
 
     [[nodiscard]] static std::string convertMatchTermination(const MatchTermination &res) noexcept;
 

@@ -43,8 +43,7 @@ double SPRT::neloToScorePenta(double nelo, double variance) noexcept {
 
 double SPRT::getLLR(const Stats& stats, bool penta) const noexcept {
     if (penta)
-        return getLLR(stats.penta_WW, stats.penta_WD, stats.penta_WL, stats.penta_DD,
-                      stats.penta_LD, stats.penta_LL);
+        return getLLR(stats.penta_WW, stats.penta_WD, stats.penta_WL, stats.penta_DD, stats.penta_LD, stats.penta_LL);
 
     return getLLR(stats.wins, stats.draws, stats.losses);
 }
@@ -90,8 +89,7 @@ double SPRT::getLLR(int win, int draw, int loss) const noexcept {
     return 0.5 * games * std::log(variance0 / variance1);
 }
 
-double SPRT::getLLR(int penta_WW, int penta_WD, int penta_WL, int penta_DD, int penta_LD,
-                    int penta_LL) const noexcept {
+double SPRT::getLLR(int penta_WW, int penta_WD, int penta_WL, int penta_DD, int penta_LD, int penta_LL) const noexcept {
     if (!enabled_) return 0.0;
 
     const double pairs = penta_WW + penta_WD + penta_WL + penta_DD + penta_LD + penta_LL;
@@ -149,15 +147,15 @@ SPRTResult SPRT::getResult(double llr) const noexcept {
 
 std::string SPRT::getBounds() const noexcept {
     std::stringstream ss;
-    ss << "(" << std::fixed << std::setprecision(2) << lower_ << ", " << std::fixed
-       << std::setprecision(2) << upper_ << ")";
+    ss << "(" << std::fixed << std::setprecision(2) << lower_ << ", " << std::fixed << std::setprecision(2) << upper_
+       << ")";
     return ss.str();
 }
 
 std::string SPRT::getElo() const noexcept {
     std::stringstream ss;
-    ss << "[" << std::fixed << std::setprecision(2) << elo0_ << ", " << std::fixed
-       << std::setprecision(2) << elo1_ << "]";
+    ss << "[" << std::fixed << std::setprecision(2) << elo0_ << ", " << std::fixed << std::setprecision(2) << elo1_
+       << "]";
 
     return ss.str();
 }

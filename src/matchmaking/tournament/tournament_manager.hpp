@@ -9,8 +9,7 @@ namespace fast_chess {
 // different tournament types
 class TournamentManager {
    public:
-    TournamentManager(const options::Tournament &game_config,
-                      const std::vector<EngineConfiguration> &engine_configs);
+    TournamentManager(const options::Tournament &game_config, const std::vector<EngineConfiguration> &engine_configs);
 
     ~TournamentManager() {
         Logger::log<Logger::Level::INFO>("Finished match.");

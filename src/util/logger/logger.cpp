@@ -19,8 +19,7 @@ void Logger::openFile(const std::string &file) {
 
 void Logger::setLevel(Level level) { Logger::level_ = level; }
 
-void Logger::writeToEngine(const std::string &msg, const std::string &time,
-                           const std::string &name) {
+void Logger::writeToEngine(const std::string &msg, const std::string &time, const std::string &name) {
     if (!should_log_) {
         return;
     }
@@ -39,8 +38,7 @@ void Logger::writeToEngine(const std::string &msg, const std::string &time,
     log_ << ss.str() << std::flush;
 }
 
-void Logger::readFromEngine(const std::string &msg, const std::string &time,
-                            const std::string &name, bool err) {
+void Logger::readFromEngine(const std::string &msg, const std::string &time, const std::string &name, bool err) {
     if (!should_log_) {
         return;
     }

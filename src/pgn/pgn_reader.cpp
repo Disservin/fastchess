@@ -9,8 +9,7 @@ namespace fast_chess::pgn {
 
 class PGNVisitor : public chess::pgn::Visitor {
    public:
-    PGNVisitor(std::vector<Opening>& pgns, int plies_limit)
-        : pgns_(pgns), plies_limit_(plies_limit) {}
+    PGNVisitor(std::vector<Opening>& pgns, int plies_limit) : pgns_(pgns), plies_limit_(plies_limit) {}
     virtual ~PGNVisitor() {}
 
     void startPgn() {
@@ -59,8 +58,7 @@ class PGNVisitor : public chess::pgn::Visitor {
     int plie_count_ = 0;
 };
 
-PgnReader::PgnReader(const std::string& pgn_file_path, int plies_limit)
-    : plies_limit_(plies_limit) {
+PgnReader::PgnReader(const std::string& pgn_file_path, int plies_limit) : plies_limit_(plies_limit) {
     pgn_file_.open(pgn_file_path);
 }
 

@@ -82,16 +82,14 @@ void Match::prepare() {
 
     data_ = MatchData(board_.getFen());
 
-    std::transform(opening_.moves.begin(), opening_.moves.end(), std::back_inserter(data_.moves),
-                   insert_move);
+    std::transform(opening_.moves.begin(), opening_.moves.end(), std::back_inserter(data_.moves), insert_move);
 
     draw_tracker_     = DrawTracker(tournament_options_);
     resign_tracker_   = ResignTracker(tournament_options_);
     maxmoves_tracker_ = MaxMovesTracker(tournament_options_);
 }
 
-void Match::start(engine::UciEngine& engine1, engine::UciEngine& engine2,
-                  const std::vector<int>& cpus) {
+void Match::start(engine::UciEngine& engine1, engine::UciEngine& engine2, const std::vector<int>& cpus) {
     prepare();
 
     Player player_1 = Player(engine1);
@@ -132,9 +130,8 @@ void Match::start(engine::UciEngine& engine1, engine::UciEngine& engine2,
     data_.end_time = util::time::datetime("%Y-%m-%dT%H:%M:%S %z");
     data_.duration = util::time::duration(chrono::duration_cast<chrono::seconds>(end - start));
 
-    data_.players =
-        std::make_pair(MatchData::PlayerInfo{engine1.getConfig(), player_1.result, player_1.color},
-                       MatchData::PlayerInfo{engine2.getConfig(), player_2.result, player_2.color});
+    data_.players = std::make_pair(MatchData::PlayerInfo{engine1.getConfig(), player_1.result, player_1.color},
+                                   MatchData::PlayerInfo{engine2.getConfig(), player_2.result, player_2.color});
 }
 
 bool Match::playMove(Player& us, Player& opponent) {
@@ -221,8 +218,8 @@ bool Match::playMove(Player& us, Player& opponent) {
         data_.termination = MatchTermination::ILLEGAL_MOVE;
         data_.reason      = name + Match::ILLEGAL_MSG;
 
-        Logger::log<Logger::Level::WARN, true>(
-            "Warning; Illegal move", best_move ? *best_move : "<none>", "played by", name);
+        Logger::log<Logger::Level::WARN, true>("Warning; Illegal move", best_move ? *best_move : "<none>", "played by",
+                                               name);
 
         return false;
     }
@@ -256,8 +253,8 @@ bool Match::playMove(Player& us, Player& opponent) {
     // into account the fullmove counter of the starting FEN, leading to different behavior between
     // pgn and epd adjudication. fast-chess fixes this by using the fullmove counter from the board
     // object directly
-    draw_tracker_.update(us.engine.lastScore(), board_.fullMoveNumber() - 1,
-                         us.engine.lastScoreType(), board_.halfMoveClock());
+    draw_tracker_.update(us.engine.lastScore(), board_.fullMoveNumber() - 1, us.engine.lastScoreType(),
+                         board_.halfMoveClock());
     resign_tracker_.update(us.engine.lastScore(), us.engine.lastScoreType(), ~board_.sideToMove());
     maxmoves_tracker_.update(us.engine.lastScore(), us.engine.lastScoreType());
     return !adjudicate(us, opponent);
@@ -275,9 +272,7 @@ bool Match::isUciMove(const std::string& move) noexcept {
 
     constexpr auto is_digit     = [](char c) { return c >= '0' && c <= '9'; };
     constexpr auto is_file      = [](char c) { return c >= 'a' && c <= 'h'; };
-    constexpr auto is_promotion = [](char c) {
-        return c == 'n' || c == 'b' || c == 'r' || c == 'q';
-    };
+    constexpr auto is_promotion = [](char c) { return c == 'n' || c == 'b' || c == 'r' || c == 'q'; };
 
     // assert that the move is in uci format, [abcdefgh][0-9][abcdefgh][0-9][nbrq]
     if (move.size() >= 4) {
@@ -292,21 +287,17 @@ bool Match::isUciMove(const std::string& move) noexcept {
 }
 
 void Match::verifyPvLines(const Player& us) {
-    const static auto verifyPv = [](Board board, const std::vector<std::string>& tokens,
-                                    std::string_view info) {
+    const static auto verifyPv = [](Board board, const std::vector<std::string>& tokens, std::string_view info) {
         auto it_start = std::find(tokens.begin(), tokens.end(), "pv") + 1;
-        auto it_end   = std::find_if(it_start, tokens.end(),
-                                     [](const auto& token) { return !isUciMove(token); });
+        auto it_end   = std::find_if(it_start, tokens.end(), [](const auto& token) { return !isUciMove(token); });
 
         Movelist moves;
 
         while (it_start != it_end) {
             movegen::legalmoves(moves, board);
 
-            if (std::find(moves.begin(), moves.end(), uci::uciToMove(board, *it_start)) ==
-                moves.end()) {
-                Logger::log<Logger::Level::WARN, true>("Warning; Illegal pv move ", *it_start,
-                                                       "pv:", info);
+            if (std::find(moves.begin(), moves.end(), uci::uciToMove(board, *it_start)) == moves.end()) {
+                Logger::log<Logger::Level::WARN, true>("Warning; Illegal pv move ", *it_start, "pv:", info);
                 break;
             }
 
@@ -341,8 +332,7 @@ void Match::setLose(Player& us, Player& them) noexcept {
 }
 
 bool Match::adjudicate(Player& us, Player& them) noexcept {
-    if (tournament_options_.resign.enabled && resign_tracker_.resignable() &&
-        us.engine.lastScore() < 0) {
+    if (tournament_options_.resign.enabled && resign_tracker_.resignable() && us.engine.lastScore() < 0) {
         setLose(us, them);
 
         data_.termination = MatchTermination::ADJUDICATION;
@@ -372,8 +362,7 @@ bool Match::adjudicate(Player& us, Player& them) noexcept {
     return false;
 }
 
-std::string Match::convertChessReason(const std::string& engine_name,
-                                      GameResultReason reason) noexcept {
+std::string Match::convertChessReason(const std::string& engine_name, GameResultReason reason) noexcept {
     if (reason == GameResultReason::CHECKMATE) {
         return engine_name + Match::CHECKMATE_MSG;
     }

@@ -61,11 +61,10 @@ class Logger {
         log_ << file_ss.str() << std::endl;
     }
 
-    static void writeToEngine(const std::string &msg, const std::string &time,
-                              const std::string &name);
+    static void writeToEngine(const std::string &msg, const std::string &time, const std::string &name);
 
-    static void readFromEngine(const std::string &msg, const std::string &time,
-                               const std::string &name, bool err = false);
+    static void readFromEngine(const std::string &msg, const std::string &time, const std::string &name,
+                               bool err = false);
 
     static std::atomic_bool should_log_;
 

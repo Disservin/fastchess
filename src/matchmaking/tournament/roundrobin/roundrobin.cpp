@@ -14,9 +14,8 @@ RoundRobin::RoundRobin(const options::Tournament& tournament_config,
                        const std::vector<EngineConfiguration>& engine_configs)
     : BaseTournament(tournament_config, engine_configs) {
     // Initialize the SPRT test
-    sprt_ = SPRT(tournament_options_.sprt.alpha, tournament_options_.sprt.beta,
-                 tournament_options_.sprt.elo0, tournament_options_.sprt.elo1,
-                 tournament_options_.sprt.model, tournament_options_.sprt.enabled);
+    sprt_ = SPRT(tournament_options_.sprt.alpha, tournament_options_.sprt.beta, tournament_options_.sprt.elo0,
+                 tournament_options_.sprt.elo1, tournament_options_.sprt.model, tournament_options_.sprt.enabled);
 }
 
 void RoundRobin::start() {
@@ -43,15 +42,14 @@ void RoundRobin::start() {
 void RoundRobin::create() {
     Logger::log<Logger::Level::TRACE>("Creating matches...");
 
-    total_ = (engine_configs_.size() * (engine_configs_.size() - 1) / 2) *
-             tournament_options_.rounds * tournament_options_.games;
+    total_ = (engine_configs_.size() * (engine_configs_.size() - 1) / 2) * tournament_options_.rounds *
+             tournament_options_.games;
 
     const auto create_match = [this](std::size_t i, std::size_t j, std::size_t round_id, int g,
                                      std::optional<std::size_t> opening_id) {
         assert(g < 2);
 
-        constexpr static auto normalize_stm_configs = [](const pair_config& configs,
-                                                         const chess::Color stm) {
+        constexpr static auto normalize_stm_configs = [](const pair_config& configs, const chess::Color stm) {
             // swap players if the opening is for black, to ensure that
             // reporting the result is always white vs black
             if (stm == chess::Color::BLACK) {
@@ -89,8 +87,8 @@ void RoundRobin::create() {
         };
 
         // callback functions, do not capture by reference
-        const auto finish = [this, configs, first, second, game_id, round_id, stm](
-                                const Stats& stats, const std::string& reason) {
+        const auto finish = [this, configs, first, second, game_id, round_id, stm](const Stats& stats,
+                                                                                   const std::string& reason) {
             const auto normalized_configs = normalize_stm_configs(configs, stm);
             const auto normalized_stats   = normalize_stats(stats, stm);
 
@@ -104,14 +102,12 @@ void RoundRobin::create() {
                 result_.updateStats(configs, stats);
 
             // round_id and match_count_ starts 0 so we add 1
-            const auto ratinginterval_index =
-                tournament_options_.report_penta ? round_id + 1 : match_count_ + 1;
-            const auto scoreinterval_index = match_count_ + 1;
-            const auto updated_stats       = result_.getStats(first.name, second.name);
+            const auto ratinginterval_index = tournament_options_.report_penta ? round_id + 1 : match_count_ + 1;
+            const auto scoreinterval_index  = match_count_ + 1;
+            const auto updated_stats        = result_.getStats(first.name, second.name);
 
             // print score result based on scoreinterval if output format is cutechess
-            if ((scoreinterval_index % tournament_options_.scoreinterval == 0) ||
-                match_count_ + 1 == total_) {
+            if ((scoreinterval_index % tournament_options_.scoreinterval == 0) || match_count_ + 1 == total_) {
                 output_->printResult(updated_stats, first.name, second.name);
             }
 
@@ -154,8 +150,7 @@ void RoundRobin::updateSprtStatus(const std::vector<EngineConfiguration>& engine
     if (sprt_.getResult(llr) != SPRT_CONTINUE || match_count_ == total_) {
         atomic::stop = true;
 
-        Logger::log<Logger::Level::INFO>("SPRT test finished: " + sprt_.getBounds() + " " +
-                                         sprt_.getElo());
+        Logger::log<Logger::Level::INFO>("SPRT test finished: " + sprt_.getBounds() + " " + sprt_.getElo());
 
         output_->printResult(stats, engine_configs[0].name, engine_configs[1].name);
         output_->printInterval(sprt_, stats, engine_configs[0].name, engine_configs[1].name);

@@ -1,5 +1,5 @@
 BasedOnStyle: Google
-ColumnLimit: 100
+ColumnLimit: 120
 IndentWidth: 4
 TabWidth: 4
 IncludeBlocks: Preserve

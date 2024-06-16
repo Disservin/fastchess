@@ -26,13 +26,10 @@ class Player {
 
     // remove the elapsed time from the participant's time control.
     // Returns false if the time control has been exceeded.
-    [[nodiscard]] bool updateTime(const int64_t elapsed_millis) {
-        return time_control_.updateTime(elapsed_millis);
-    }
+    [[nodiscard]] bool updateTime(const int64_t elapsed_millis) { return time_control_.updateTime(elapsed_millis); }
 
     // Build the uci position input from the given moves and fen.
-    [[nodiscard]] static std::string buildPositionInput(const std::vector<std::string> &moves,
-                                                        const std::string &fen) {
+    [[nodiscard]] static std::string buildPositionInput(const std::vector<std::string> &moves, const std::string &fen) {
         std::string position = fen == "startpos" ? "position startpos" : ("position fen " + fen);
 
         if (!moves.empty()) {
@@ -50,11 +47,9 @@ class Player {
         std::stringstream input;
         input << "go";
 
-        if (engine.getConfig().limit.nodes != 0)
-            input << " nodes " << engine.getConfig().limit.nodes;
+        if (engine.getConfig().limit.nodes != 0) input << " nodes " << engine.getConfig().limit.nodes;
 
-        if (engine.getConfig().limit.plies != 0)
-            input << " depth " << engine.getConfig().limit.plies;
+        if (engine.getConfig().limit.plies != 0) input << " depth " << engine.getConfig().limit.plies;
 
         // We cannot use st and tc together
         if (time_control_.isFixedTime()) {
@@ -78,8 +73,8 @@ class Player {
             }
         }
 
-        if (engine.getConfig().limit.plies == 0 && engine.getConfig().limit.nodes == 0 &&
-            !time_control_.isTimed() && !time_control_.isFixedTime())
+        if (engine.getConfig().limit.plies == 0 && engine.getConfig().limit.nodes == 0 && !time_control_.isTimed() &&
+            !time_control_.isFixedTime())
             input << " infinite";
 
         return input.str();

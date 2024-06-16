@@ -23,8 +23,7 @@ class Fastchess : public IOutput {
         // do nothing
     }
 
-    void printElo(const Stats& stats, const std::string& first,
-                  const std::string& second) override {
+    void printElo(const Stats& stats, const std::string& first, const std::string& second) override {
         std::unique_ptr<elo::EloBase> elo;
 
         if (report_penta_) {
@@ -51,8 +50,8 @@ class Fastchess : public IOutput {
            << ", DrawRatio: "         //
            << elo->drawRatio(stats);  //
 
-        const double pairsRatio = static_cast<double>(stats.penta_WW + stats.penta_WD) /
-                                  (stats.penta_LD + stats.penta_LL);
+        const double pairsRatio =
+            static_cast<double>(stats.penta_WW + stats.penta_WD) / (stats.penta_LD + stats.penta_LL);
         if (report_penta_) {
             ss << ", PairsRatio: " << std::fixed << std::setprecision(2) << pairsRatio << "\n";
         } else {
@@ -60,26 +59,24 @@ class Fastchess : public IOutput {
         }
 
         const double points = stats.wins + 0.5 * stats.draws;
-        ss << "Games: "                                           //
-           << stats.wins + stats.losses + stats.draws             //
-           << ", Wins: "                                          //
-           << stats.wins                                          //
-           << ", Losses: "                                        //
-           << stats.losses                                        //
-           << ", Draws: "                                         //
-           << stats.draws                                         //
-           << std::fixed << std::setprecision(1) << ", Points: "  //
-           << points                                              //
-           << " ("                                                //
-           << std::fixed << std::setprecision(2)
-           << points / (stats.wins + stats.losses + stats.draws) * 100  //
+        ss << "Games: "                                                                                       //
+           << stats.wins + stats.losses + stats.draws                                                         //
+           << ", Wins: "                                                                                      //
+           << stats.wins                                                                                      //
+           << ", Losses: "                                                                                    //
+           << stats.losses                                                                                    //
+           << ", Draws: "                                                                                     //
+           << stats.draws                                                                                     //
+           << std::fixed << std::setprecision(1) << ", Points: "                                              //
+           << points                                                                                          //
+           << " ("                                                                                            //
+           << std::fixed << std::setprecision(2) << points / (stats.wins + stats.losses + stats.draws) * 100  //
            << " %)\n";
 
         if (report_penta_) {
             ss << "Ptnml(0-2): "
-               << "[" << stats.penta_LL << ", " << stats.penta_LD << ", "
-               << stats.penta_WL + stats.penta_DD << ", " << stats.penta_WD << ", "
-               << stats.penta_WW << "]\n";
+               << "[" << stats.penta_LL << ", " << stats.penta_LD << ", " << stats.penta_WL + stats.penta_DD << ", "
+               << stats.penta_WD << ", " << stats.penta_WW << "]\n";
         }
         std::cout << ss.str() << std::flush;
     }
@@ -98,8 +95,7 @@ class Fastchess : public IOutput {
         }
     }
 
-    void startGame(const pair_config& configs, std::size_t current_game_count,
-                   std::size_t max_game_count) override {
+    void startGame(const pair_config& configs, std::size_t current_game_count, std::size_t max_game_count) override {
         std::stringstream ss;
 
         ss << "Started game "      //

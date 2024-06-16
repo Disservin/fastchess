@@ -58,9 +58,7 @@ class Pipes {
         open_ = 1 - fd;
     }
 
-    void setNonBlocking() const noexcept {
-        fcntl(get(), F_SETFL, fcntl(get(), F_GETFL) | O_NONBLOCK);
-    }
+    void setNonBlocking() const noexcept { fcntl(get(), F_SETFL, fcntl(get(), F_GETFL) | O_NONBLOCK); }
 
     void setOpen(int fd) noexcept { open_ = fd; }
 
@@ -79,8 +77,7 @@ class Process : public IProcess {
    public:
     virtual ~Process() override { killProcess(); }
 
-    void init(const std::string &command, const std::string &args,
-              const std::string &log_name) override {
+    void init(const std::string &command, const std::string &args, const std::string &log_name) override {
         assert(!is_initalized_);
 
         command_  = command;
@@ -195,8 +192,7 @@ class Process : public IProcess {
         const pid_t pid = waitpid(process_pid_, &status, WNOHANG);
 
         // log the status of the process
-        Logger::readFromEngine(signalToString(status), util::time::datetime_precise(), log_name_,
-                               true);
+        Logger::readFromEngine(signalToString(status), util::time::datetime_precise(), log_name_, true);
 
         // If the process is still running, kill it
         if (pid == 0) {
@@ -303,8 +299,7 @@ class Process : public IProcess {
                     // to the vector and reset the current_line_.
                     // Dont add empty lines
                     if (!current_line_.empty()) {
-                        lines.emplace_back(
-                            Line{current_line_, util::time::datetime_precise(), Standard::ERR});
+                        lines.emplace_back(Line{current_line_, util::time::datetime_precise(), Standard::ERR});
 
                         current_line_.clear();
                     }
@@ -320,8 +315,7 @@ class Process : public IProcess {
         Logger::writeToEngine(input, util::time::datetime_precise(), log_name_);
 
         if (!alive()) {
-            throw std::runtime_error("IProcess is not alive and write occured with message: " +
-                                     input);
+            throw std::runtime_error("IProcess is not alive and write occured with message: " + input);
         }
 
         // Write the input and a newline to the output pipe

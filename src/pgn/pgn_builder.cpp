@@ -19,17 +19,14 @@ std::string to_string(const T &obj) {
 }
 }  // namespace str
 
-PgnBuilder::PgnBuilder(const MatchData &match, const options::Tournament &tournament_options,
-                       std::size_t round_id) {
+PgnBuilder::PgnBuilder(const MatchData &match, const options::Tournament &tournament_options, std::size_t round_id) {
     match_        = match;
     game_options_ = tournament_options;
 
-    const auto white_player = match.players.first.color == chess::Color::WHITE
-                                  ? match.players.first
-                                  : match.players.second;
-    const auto black_player = match.players.first.color == chess::Color::BLACK
-                                  ? match.players.first
-                                  : match.players.second;
+    const auto white_player =
+        match.players.first.color == chess::Color::WHITE ? match.players.first : match.players.second;
+    const auto black_player =
+        match.players.first.color == chess::Color::BLACK ? match.players.first : match.players.second;
 
     addHeader("Event", tournament_options.event_name);
     addHeader("Site", game_options_.site);
@@ -39,8 +36,7 @@ PgnBuilder::PgnBuilder(const MatchData &match, const options::Tournament &tourna
     addHeader("Black", black_player.config.name);
     addHeader("Result", getResultFromMatch(white_player, black_player));
 
-    if (match_.fen != chess::constants::STARTPOS ||
-        match_.players.first.config.variant == VariantType::FRC) {
+    if (match_.fen != chess::constants::STARTPOS || match_.players.first.config.variant == VariantType::FRC) {
         addHeader("SetUp", "1");
         addHeader("FEN", match_.fen);
     }
@@ -130,29 +126,26 @@ std::string PgnBuilder::moveNotation(chess::Board &board, const std::string &mov
     }
 }
 
-std::string PgnBuilder::addMove(chess::Board &board, const MoveData &move, std::size_t move_number,
-                                int dots, bool illegal, bool last) noexcept {
+std::string PgnBuilder::addMove(chess::Board &board, const MoveData &move, std::size_t move_number, int dots,
+                                bool illegal, bool last) noexcept {
     std::stringstream ss;
 
-    ss << (dots == 3 || move_number % 2 == 1
-               ? std::to_string((move_number + 1) / 2) + std::string(dots, '.') + ' '
-               : "");
+    ss << (dots == 3 || move_number % 2 == 1 ? std::to_string((move_number + 1) / 2) + std::string(dots, '.') + ' '
+                                             : "");
     ss << (illegal ? move.move : moveNotation(board, move.move));
 
     if (!game_options_.pgn.min) {
         if (move.book) {
             ss << addComment("book");
         } else {
-            ss << addComment(
-                (move.score_string + "/" + std::to_string(move.depth)),                         //
-                formatTime(move.elapsed_millis),                                                //
-                game_options_.pgn.track_nodes ? "n=" + std::to_string(move.nodes) : "",         //
-                game_options_.pgn.track_seldepth ? "sd=" + std::to_string(move.seldepth) : "",  //
-                game_options_.pgn.track_nps ? "nps=" + std::to_string(move.nps) : "",           //
-                game_options_.pgn.track_hashfull ? "hashfull=" + std::to_string(move.hashfull)
-                                                 : "",                                          //
-                game_options_.pgn.track_tbhits ? "tbhits=" + std::to_string(move.tbhits) : "",  //
-                last ? match_.reason : ""                                                       //
+            ss << addComment((move.score_string + "/" + std::to_string(move.depth)),                               //
+                             formatTime(move.elapsed_millis),                                                      //
+                             game_options_.pgn.track_nodes ? "n=" + std::to_string(move.nodes) : "",               //
+                             game_options_.pgn.track_seldepth ? "sd=" + std::to_string(move.seldepth) : "",        //
+                             game_options_.pgn.track_nps ? "nps=" + std::to_string(move.nps) : "",                 //
+                             game_options_.pgn.track_hashfull ? "hashfull=" + std::to_string(move.hashfull) : "",  //
+                             game_options_.pgn.track_tbhits ? "tbhits=" + std::to_string(move.tbhits) : "",        //
+                             last ? match_.reason : ""                                                             //
             );
         }
     }

@@ -44,9 +44,8 @@ class OptionsParser {
     OptionsParser(int argc, char const *argv[]);
 
     static void throwMissing(std::string_view name, std::string_view key, std::string_view value) {
-        throw std::runtime_error("Unrecognized " + std::string(name) + " option \"" +
-                                 std::string(key) + "\" with value \"" + std::string(value) +
-                                 "\".");
+        throw std::runtime_error("Unrecognized " + std::string(name) + " option \"" + std::string(key) +
+                                 "\" with value \"" + std::string(value) + "\".");
     }
 
     static void printVersion() {
@@ -93,13 +92,9 @@ class OptionsParser {
         std::exit(0);
     }
 
-    [[nodiscard]] std::vector<EngineConfiguration> getEngineConfigs() const {
-        return argument_data_.configs;
-    }
+    [[nodiscard]] std::vector<EngineConfiguration> getEngineConfigs() const { return argument_data_.configs; }
 
-    [[nodiscard]] options::Tournament getGameOptions() const {
-        return argument_data_.tournament_options;
-    }
+    [[nodiscard]] options::Tournament getGameOptions() const { return argument_data_.tournament_options; }
 
     [[nodiscard]] stats_map getResults() const { return argument_data_.stats; }
 
@@ -128,8 +123,8 @@ class OptionsParser {
                 options_.at(arg)(params, argument_data_);
 
             } catch (const std::exception &e) {
-                auto err = "\nError while reading option \"" + arg + "\" with value \"" +
-                           std::string(argv[i]) + "\"\nReason: " + e.what();
+                auto err = "\nError while reading option \"" + arg + "\" with value \"" + std::string(argv[i]) +
+                           "\"\nReason: " + e.what();
 
                 throw std::runtime_error(err);
             }

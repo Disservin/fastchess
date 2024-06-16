@@ -10,8 +10,7 @@ namespace fast_chess::pgn {
 
 struct Opening {
     Opening() = default;
-    Opening(const std::string& fen, const std::vector<chess::Move>& moves,
-            chess::Color stm = chess::Color::WHITE)
+    Opening(const std::string& fen, const std::vector<chess::Move>& moves, chess::Color stm = chess::Color::WHITE)
         : fen(fen), moves(moves), stm(stm) {}
 
     std::string fen                = chess::constants::STARTPOS;

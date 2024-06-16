@@ -14,8 +14,7 @@ class Cutechess : public IOutput {
         printSprt(sprt, stats);
     };
 
-    void printResult(const Stats& stats, const std::string& first,
-                     const std::string& second) override {
+    void printResult(const Stats& stats, const std::string& first, const std::string& second) override {
         const elo::EloWDL elo(stats);
 
         std::stringstream ss;
@@ -59,15 +58,13 @@ class Cutechess : public IOutput {
         if (sprt.isEnabled()) {
             std::stringstream ss;
 
-            ss << "LLR: " << std::fixed << std::setprecision(2)
-               << sprt.getLLR(stats.wins, stats.draws, stats.losses) << " " << sprt.getBounds()
-               << " " << sprt.getElo() << "\n";
+            ss << "LLR: " << std::fixed << std::setprecision(2) << sprt.getLLR(stats.wins, stats.draws, stats.losses)
+               << " " << sprt.getBounds() << " " << sprt.getElo() << "\n";
             std::cout << ss.str() << std::flush;
         }
     };
 
-    void startGame(const pair_config& configs, std::size_t current_game_count,
-                   std::size_t max_game_count) override {
+    void startGame(const pair_config& configs, std::size_t current_game_count, std::size_t max_game_count) override {
         std::stringstream ss;
 
         ss << "Started game "      //

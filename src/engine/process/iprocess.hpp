@@ -22,8 +22,7 @@ class IProcess {
     virtual ~IProcess() = default;
 
     // Initialize the process
-    virtual void init(const std::string &command, const std::string &args,
-                      const std::string &log_name) = 0;
+    virtual void init(const std::string &command, const std::string &args, const std::string &log_name) = 0;
 
     // Returns true if the process is alive
     [[nodiscard]] virtual bool alive() const = 0;

@@ -29,23 +29,20 @@ class IOutput {
     };
 
     // Print current H2H score result stats.
-    virtual void printResult(const Stats& stats, const std::string& first,
-                             const std::string& second) = 0;
+    virtual void printResult(const Stats& stats, const std::string& first, const std::string& second) = 0;
 
     // Print current H2H elo stats.
-    virtual void printElo(const Stats& stats, const std::string& first,
-                          const std::string& second) = 0;
+    virtual void printElo(const Stats& stats, const std::string& first, const std::string& second) = 0;
 
     // Print current SPRT stats.
     virtual void printSprt(const SPRT& sprt, const Stats& stats) = 0;
 
     // Print game start.
-    virtual void startGame(const pair_config& configs, std::size_t current_game_count,
-                           std::size_t max_game_count) = 0;
+    virtual void startGame(const pair_config& configs, std::size_t current_game_count, std::size_t max_game_count) = 0;
 
     // Print game end.
-    virtual void endGame(const pair_config& configs, const Stats& stats,
-                         const std::string& annotation, std::size_t id) = 0;
+    virtual void endGame(const pair_config& configs, const Stats& stats, const std::string& annotation,
+                         std::size_t id) = 0;
 
     // Print tournament end.
     virtual void endTournament() = 0;

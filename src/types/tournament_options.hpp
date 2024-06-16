@@ -26,8 +26,8 @@ struct Pgn {
     bool track_tbhits     = false;
     bool min              = false;
 };
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(Pgn, file, notation, track_nodes, track_seldepth,
-                                                track_nps, track_hashfull, track_tbhits, min)
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(Pgn, file, notation, track_nodes, track_seldepth, track_nps,
+                                                track_hashfull, track_tbhits, min)
 
 struct Epd {
     std::string file;
@@ -53,8 +53,7 @@ struct DrawAdjudication {
 
     bool enabled = false;
 };
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(DrawAdjudication, move_number, move_count, score,
-                                                enabled)
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(DrawAdjudication, move_number, move_count, score, enabled)
 
 struct ResignAdjudication {
     int move_count = 1;
@@ -63,8 +62,7 @@ struct ResignAdjudication {
 
     bool enabled = false;
 };
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(ResignAdjudication, move_count, score, twosided,
-                                                enabled)
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(ResignAdjudication, move_count, score, twosided, enabled)
 
 struct MaxMovesAdjudication {
     int move_count = 1;
@@ -115,11 +113,9 @@ struct Tournament {
     bool affinity     = false;
     bool randomseed   = false;
 };
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(Tournament, resign, draw, maxmoves, opening, pgn,
-                                                epd, sprt, event_name, site, config_name, output,
-                                                seed, variant, ratinginterval, scoreinterval,
-                                                autosaveinterval, games, rounds, concurrency,
-                                                overhead, recover, report_penta, affinity,
-                                                randomseed)
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(Tournament, resign, draw, maxmoves, opening, pgn, epd, sprt, event_name,
+                                                site, config_name, output, seed, variant, ratinginterval, scoreinterval,
+                                                autosaveinterval, games, rounds, concurrency, overhead, recover,
+                                                report_penta, affinity, randomseed)
 
 }  // namespace fast_chess::options

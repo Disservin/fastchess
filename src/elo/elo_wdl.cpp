@@ -24,11 +24,9 @@ EloWDL::EloWDL(const Stats& stats) {
     scoreUpperBound_   = score_ + CI95zscore_ * std::sqrt(variance_per_game_);
     scoreLowerBound_   = score_ - CI95zscore_ * std::sqrt(variance_per_game_);
     diff_              = scoreToEloDiff(score_);
-    error_     = (scoreToEloDiff(scoreUpperBound_) - scoreToEloDiff(scoreLowerBound_)) / 2.0;
-    nelodiff_  = scoreToNeloDiff(score_, variance_);
-    neloerror_ = (scoreToNeloDiff(scoreUpperBound_, variance_) -
-                  scoreToNeloDiff(scoreLowerBound_, variance_)) /
-                 2.0;
+    error_             = (scoreToEloDiff(scoreUpperBound_) - scoreToEloDiff(scoreLowerBound_)) / 2.0;
+    nelodiff_          = scoreToNeloDiff(score_, variance_);
+    neloerror_ = (scoreToNeloDiff(scoreUpperBound_, variance_) - scoreToNeloDiff(scoreLowerBound_, variance_)) / 2.0;
 }
 
 double EloWDL::scoreToNeloDiff(double score, double variance) noexcept {
@@ -79,7 +77,5 @@ std::string EloWDL::printScore() const noexcept {
     return ss.str();
 }
 
-std::size_t EloWDL::total(const Stats& stats) noexcept {
-    return stats.wins + stats.draws + stats.losses;
-}
+std::size_t EloWDL::total(const Stats& stats) noexcept { return stats.wins + stats.draws + stats.losses; }
 }  // namespace fast_chess::elo

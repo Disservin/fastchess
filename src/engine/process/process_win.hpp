@@ -29,8 +29,7 @@ class Process : public IProcess {
    public:
     ~Process() override { killProcess(); }
 
-    void init(const std::string &command, const std::string &args,
-              const std::string &log_name) override {
+    void init(const std::string &command, const std::string &args, const std::string &log_name) override {
         command_  = command;
         args_     = args;
         log_name_ = log_name;
@@ -59,8 +58,8 @@ class Process : public IProcess {
         CREATE_NEW_PROCESS_GROUP flag is important here to disable all CTRL+C signals for the new
         process
         */
-        CreateProcessA(nullptr, const_cast<char *>((command + " " + args).c_str()), nullptr,
-                       nullptr, TRUE, CREATE_NEW_PROCESS_GROUP, nullptr, nullptr, &si, &pi_);
+        CreateProcessA(nullptr, const_cast<char *>((command + " " + args).c_str()), nullptr, nullptr, TRUE,
+                       CREATE_NEW_PROCESS_GROUP, nullptr, nullptr, &si, &pi_);
 
         // not needed
         CloseHandle(child_stdout_write);

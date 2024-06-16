@@ -57,9 +57,9 @@ class Stats {
     }
 
     [[nodiscard]] bool operator==(const Stats &rhs) const {
-        return wins == rhs.wins && losses == rhs.losses && draws == rhs.draws &&
-               penta_WW == rhs.penta_WW && penta_WD == rhs.penta_WD && penta_WL == rhs.penta_WL &&
-               penta_DD == rhs.penta_DD && penta_LD == rhs.penta_LD && penta_LL == rhs.penta_LL;
+        return wins == rhs.wins && losses == rhs.losses && draws == rhs.draws && penta_WW == rhs.penta_WW &&
+               penta_WD == rhs.penta_WD && penta_WL == rhs.penta_WL && penta_DD == rhs.penta_DD &&
+               penta_LD == rhs.penta_LD && penta_LL == rhs.penta_LL;
     }
 
     [[nodiscard]] bool operator!=(const Stats &rhs) const { return !(*this == rhs); }
@@ -77,7 +77,7 @@ class Stats {
     int penta_LD = 0;
     int penta_LL = 0;
 };
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(Stats, wins, losses, draws, penta_WW, penta_WD,
-                                                penta_WL, penta_DD, penta_LD, penta_LL)
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(Stats, wins, losses, draws, penta_WW, penta_WD, penta_WL, penta_DD,
+                                                penta_LD, penta_LL)
 
 }  // namespace fast_chess

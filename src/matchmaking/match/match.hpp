@@ -17,11 +17,9 @@ class DrawTracker {
         draw_score   = tournament_config.draw.score;
     }
 
-    void update(const int score, const int move_count, engine::ScoreType score_type,
-                const int hmvc) noexcept {
+    void update(const int score, const int move_count, engine::ScoreType score_type, const int hmvc) noexcept {
         if (hmvc == 0) draw_moves = 0;
-        if (move_count >= move_number_ && std::abs(score) <= draw_score &&
-            score_type == engine::ScoreType::CP) {
+        if (move_count >= move_number_ && std::abs(score) <= draw_score && score_type == engine::ScoreType::CP) {
             draw_moves++;
         } else {
             draw_moves = 0;
@@ -111,8 +109,7 @@ class Match {
         : tournament_options_(tournament_config), opening_(opening) {}
 
     // starts the match
-    void start(engine::UciEngine& engine1, engine::UciEngine& engine2,
-               const std::vector<int>& cpus);
+    void start(engine::UciEngine& engine1, engine::UciEngine& engine2, const std::vector<int>& cpus);
 
     // returns the match data, only valid after the match has finished
     [[nodiscard]] const MatchData& get() const { return data_; }

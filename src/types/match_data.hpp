@@ -13,8 +13,8 @@
 namespace fast_chess {
 
 struct MoveData {
-    MoveData(std::string _move, std::string _score_string, int64_t _elapsed_millis, int _depth,
-             int _seldepth, int _score, int _nodes, bool _legal = true, bool _book = false)
+    MoveData(std::string _move, std::string _score_string, int64_t _elapsed_millis, int _depth, int _seldepth,
+             int _score, int _nodes, bool _legal = true, bool _book = false)
         : move(std::move(_move)),
           score_string(std::move(_score_string)),
           elapsed_millis(_elapsed_millis),

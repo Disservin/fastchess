@@ -49,9 +49,8 @@ struct EngineConfiguration {
 
     template <typename T, typename Predicate>
     std::optional<T> getOption(std::string_view option_name, Predicate transform) const {
-        const auto it = std::find_if(
-            options.begin(), options.end(),
-            [&option_name](const auto &option) { return option.first == option_name; });
+        const auto it = std::find_if(options.begin(), options.end(),
+                                     [&option_name](const auto &option) { return option.first == option_name; });
 
         if (it != options.end()) {
             return std::optional<T>(transform(it->second));
@@ -60,7 +59,7 @@ struct EngineConfiguration {
         return std::nullopt;
     }
 };
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(EngineConfiguration, name, dir, cmd, args, options,
-                                                limit, variant, recover)
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(EngineConfiguration, name, dir, cmd, args, options, limit, variant,
+                                                recover)
 
 }  // namespace fast_chess

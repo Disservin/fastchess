@@ -22,8 +22,8 @@ class SPRT {
     [[nodiscard]] static double neloToScorePenta(double nelo, double stdDeviation) noexcept;
     [[nodiscard]] double getLLR(const Stats& stats, bool penta) const noexcept;
     [[nodiscard]] double getLLR(int win, int draw, int loss) const noexcept;
-    [[nodiscard]] double getLLR(int penta_WW, int penta_WD, int penta_WL, int penta_DD,
-                                int penta_LD, int penta_LL) const noexcept;
+    [[nodiscard]] double getLLR(int penta_WW, int penta_WD, int penta_WL, int penta_DD, int penta_LD,
+                                int penta_LL) const noexcept;
 
     [[nodiscard]] SPRTResult getResult(double llr) const noexcept;
     [[nodiscard]] std::string getBounds() const noexcept;

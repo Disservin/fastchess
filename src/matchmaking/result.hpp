@@ -22,8 +22,8 @@ class Result {
     }
 
     // Update the stats in pair batches to keep track of pentanomial stats.
-    [[nodiscard]] bool updatePairStats(const pair_config& configs, const std::string& first,
-                                       const Stats& stats, uint64_t round_id) noexcept {
+    [[nodiscard]] bool updatePairStats(const pair_config& configs, const std::string& first, const Stats& stats,
+                                       uint64_t round_id) noexcept {
         const auto adjusted = first == configs.first.name ? stats : ~stats;
 
         std::lock_guard<std::mutex> lock(game_pair_cache_mutex_);

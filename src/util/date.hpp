@@ -48,9 +48,8 @@ namespace time {
     const auto seconds = duration;
 
     std::stringstream ss;
-    ss << std::setfill('0') << std::setw(2) << hours.count() << ":" << std::setfill('0')
-       << std::setw(2) << minutes.count() << ":" << std::setfill('0') << std::setw(2)
-       << seconds.count();
+    ss << std::setfill('0') << std::setw(2) << hours.count() << ":" << std::setfill('0') << std::setw(2)
+       << minutes.count() << ":" << std::setfill('0') << std::setw(2) << seconds.count();
     return ss.str();
 }
 

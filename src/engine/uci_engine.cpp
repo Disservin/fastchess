@@ -19,13 +19,11 @@ bool UciEngine::isResponsive(std::chrono::milliseconds threshold) {
     const auto res = readProcess(output, "readyok", threshold);
 
     for (const auto &line : output) {
-        Logger::readFromEngine(line.line, line.time, config_.name,
-                               line.std == process::Standard::ERR);
+        Logger::readFromEngine(line.line, line.time, config_.name, line.std == process::Standard::ERR);
     }
 
     if (res != process::Status::OK) {
-        Logger::log<Logger::Level::WARN, true>("Warning; Engine", config_.name,
-                                               "is not responsive.");
+        Logger::log<Logger::Level::WARN, true>("Warning; Engine", config_.name, "is not responsive.");
     }
 
     return res == process::Status::OK;
@@ -101,15 +99,13 @@ void UciEngine::refreshUci() {
     }
 }
 
-process::Status UciEngine::readEngine(std::string_view last_word,
-                                      std::chrono::milliseconds threshold) {
+process::Status UciEngine::readEngine(std::string_view last_word, std::chrono::milliseconds threshold) {
     return readProcess(output_, last_word, threshold);
 }
 
 void UciEngine::writeLog() const {
     for (const auto &line : output_) {
-        Logger::readFromEngine(line.line, line.time, config_.name,
-                               line.std == process::Standard::ERR);
+        Logger::readFromEngine(line.line, line.time, config_.name, line.std == process::Standard::ERR);
     }
 }
 
@@ -117,10 +113,8 @@ std::string UciEngine::lastInfoLine() const {
     // iterate backwards over the output and save the first line
     // that contains "info", "score" and "multipv 1" if it contains multipv
     for (auto it = output_.rbegin(); it != output_.rend(); ++it) {
-        if (it->line.find("info") != std::string::npos &&
-            it->line.find(" score ") != std::string::npos &&
-            (it->line.find(" multipv ") == std::string::npos ||
-             it->line.find(" multipv 1") != std::string::npos)) {
+        if (it->line.find("info") != std::string::npos && it->line.find(" score ") != std::string::npos &&
+            (it->line.find(" multipv ") == std::string::npos || it->line.find(" multipv 1") != std::string::npos)) {
             return it->line;
         }
     }
@@ -133,8 +127,8 @@ void UciEngine::writeEngine(const std::string &input) {
         writeProcess(input + "\n");
     } catch (const std::exception &e) {
         std::cout << input << std::endl;
-        Logger::log<Logger::Level::ERR, true>("Raised Exception in writeProcess\nWarning; Engine",
-                                              config_.name, "disconnects");
+        Logger::log<Logger::Level::ERR, true>("Raised Exception in writeProcess\nWarning; Engine", config_.name,
+                                              "disconnects");
 
         throw e;
     }
@@ -146,8 +140,7 @@ std::optional<std::string> UciEngine::bestmove() const {
         return std::nullopt;
     }
 
-    const auto bm = str_utils::findElement<std::string>(
-        str_utils::splitString(output_.back().line, ' '), "bestmove");
+    const auto bm = str_utils::findElement<std::string>(str_utils::splitString(output_.back().line, ' '), "bestmove");
 
     if (!bm.has_value()) {
         Logger::log<Logger::Level::WARN, true>("Warning; Could not extract bestmove.");
@@ -181,8 +174,7 @@ int UciEngine::lastScore() const {
         return 0;
     }
 
-    return str_utils::findElement<int>(lastInfo(), lastScoreType() == ScoreType::CP ? "cp" : "mate")
-        .value_or(0);
+    return str_utils::findElement<int>(lastInfo(), lastScoreType() == ScoreType::CP ? "cp" : "mate").value_or(0);
 }
 
 bool UciEngine::outputIncludesBestmove() const {

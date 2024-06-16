@@ -23,13 +23,10 @@ BaseTournament::BaseTournament(const options::Tournament &config,
     tournament_options_ = config;
     engine_configs_     = engine_configs;
     output_             = OutputFactory::create(config);
-    cores_              = std::make_unique<affinity::AffinityManager>(config.affinity,
-                                                                      getMaxAffinity(engine_configs));
+    cores_              = std::make_unique<affinity::AffinityManager>(config.affinity, getMaxAffinity(engine_configs));
 
-    if (!config.pgn.file.empty())
-        file_writer_pgn = std::make_unique<util::FileWriter>(config.pgn.file);
-    if (!config.epd.file.empty())
-        file_writer_epd = std::make_unique<util::FileWriter>(config.epd.file);
+    if (!config.pgn.file.empty()) file_writer_pgn = std::make_unique<util::FileWriter>(config.pgn.file);
+    if (!config.epd.file.empty()) file_writer_epd = std::make_unique<util::FileWriter>(config.epd.file);
 
     pool_.resize(config.concurrency);
 }
@@ -47,8 +44,7 @@ void BaseTournament::saveJson() {
 
     Logger::log<Logger::Level::TRACE>("Saving results...");
 
-    std::ofstream file(tournament_options_.config_name.empty() ? "config.json"
-                                                               : tournament_options_.config_name);
+    std::ofstream file(tournament_options_.config_name.empty() ? "config.json" : tournament_options_.config_name);
     file << std::setw(4) << jsonfile << std::endl;
 
     Logger::log<Logger::Level::INFO>("Saved results.");
@@ -61,9 +57,8 @@ void BaseTournament::stop() {
     pool_.kill();
 }
 
-void BaseTournament::playGame(const std::pair<EngineConfiguration, EngineConfiguration> &configs,
-                              start_callback start, finished_callback finish,
-                              const pgn::Opening &opening, std::size_t game_id) {
+void BaseTournament::playGame(const std::pair<EngineConfiguration, EngineConfiguration> &configs, start_callback start,
+                              finished_callback finish, const pgn::Opening &opening, std::size_t game_id) {
     if (atomic::stop) return;
 
     const auto core = util::ScopeGuard(cores_->consume());
@@ -71,8 +66,8 @@ void BaseTournament::playGame(const std::pair<EngineConfiguration, EngineConfigu
     auto engine_one = util::ScopeGuard(engine_cache_.getEntry(configs.first.name, configs.first));
     auto engine_two = util::ScopeGuard(engine_cache_.getEntry(configs.second.name, configs.second));
 
-    Logger::log<Logger::Level::TRACE>("Playing game ", game_id + 1, " between ", configs.first.name,
-                                      " and ", configs.second.name);
+    Logger::log<Logger::Level::TRACE>("Playing game ", game_id + 1, " between ", configs.first.name, " and ",
+                                      configs.second.name);
 
     start();
 
@@ -94,8 +89,7 @@ void BaseTournament::playGame(const std::pair<EngineConfiguration, EngineConfigu
     // If the game was interrupted(didn't completely finish)
     if (match_data.termination != MatchTermination::INTERRUPT) {
         if (!tournament_options_.pgn.file.empty())
-            file_writer_pgn->write(
-                pgn::PgnBuilder(match_data, tournament_options_, game_id + 1).get());
+            file_writer_pgn->write(pgn::PgnBuilder(match_data, tournament_options_, game_id + 1).get());
         if (!tournament_options_.epd.file.empty())
             file_writer_epd->write(epd::EpdBuilder(match_data, tournament_options_).get());
     }

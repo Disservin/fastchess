@@ -22,8 +22,8 @@ class ThreadPool {
 
     template <class F, class... Args>
     void enqueue(F &&func, Args &&...args) {
-        auto task = std::make_shared<std::packaged_task<void()>>(
-            std::bind(std::forward<F>(func), std::forward<Args>(args)...));
+        auto task =
+            std::make_shared<std::packaged_task<void()>>(std::bind(std::forward<F>(func), std::forward<Args>(args)...));
 
         {
             std::unique_lock<std::mutex> lock(queue_mutex_);
@@ -34,14 +34,12 @@ class ThreadPool {
     }
 
     void resize(std::size_t num_threads) {
-        if (num_threads == 0)
-            throw std::invalid_argument("Error; ThreadPool::resize() - num_threads cannot be 0");
+        if (num_threads == 0) throw std::invalid_argument("Error; ThreadPool::resize() - num_threads cannot be 0");
 
         if (num_threads == workers_.size()) return;
 
         //  don't go over the number of threads the system has
-        num_threads =
-            std::min(num_threads, static_cast<std::size_t>(std::thread::hardware_concurrency()));
+        num_threads = std::min(num_threads, static_cast<std::size_t>(std::thread::hardware_concurrency()));
 
         kill();
 

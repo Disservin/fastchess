@@ -117,12 +117,9 @@ TimeControl::Limits parseTc(const std::string &tcString) {
     return tc;
 }
 
-bool isEngineSettableOption(std::string_view stringFormat) {
-    return str_utils::startsWith(stringFormat, "option.");
-}
+bool isEngineSettableOption(std::string_view stringFormat) { return str_utils::startsWith(stringFormat, "option."); }
 
-void parseEngineKeyValues(EngineConfiguration &engineConfig, const std::string &key,
-                          const std::string &value) {
+void parseEngineKeyValues(EngineConfiguration &engineConfig, const std::string &key, const std::string &value) {
     if (key == "cmd") {
         engineConfig.cmd = value;
     } else if (key == "name")
@@ -237,8 +234,7 @@ void parsePgnOut(const std::vector<std::string> &params, ArgumentData &argument_
     } else {
         // try to read as cutechess pgnout
         argument_data.tournament_options.pgn.file = params[0];
-        argument_data.tournament_options.pgn.min =
-            std::find(params.begin(), params.end(), "min") != params.end();
+        argument_data.tournament_options.pgn.min  = std::find(params.begin(), params.end(), "min") != params.end();
     }
     if (argument_data.tournament_options.pgn.file.empty())
         throw std::runtime_error("Error; Please specify filename for pgn output.");
@@ -299,8 +295,7 @@ void parseOpening(const std::vector<std::string> &params, ArgumentData &argument
             if (argument_data.tournament_options.opening.start < 1)
                 throw std::runtime_error("Starting offset must be at least 1!");
         } else if (key == "policy") {
-            if (value != "round")
-                throw std::runtime_error("Error; Unsupported opening book policy");
+            if (value != "round") throw std::runtime_error("Error; Unsupported opening book policy");
         } else {
             OptionsParser::throwMissing("openings", key, value);
         }
@@ -403,8 +398,7 @@ void parseLog(const std::vector<std::string> &params, ArgumentData &) {
             OptionsParser::throwMissing("log", key, value);
         }
     });
-    if (filename.empty())
-        throw std::runtime_error("Error; Please specify filename for log output.");
+    if (filename.empty()) throw std::runtime_error("Error; Please specify filename for log output.");
     Logger::openFile(filename);
 }
 
@@ -505,9 +499,7 @@ void parseSRand(const std::vector<std::string> &params, ArgumentData &argument_d
     parseValue(params, argument_data.tournament_options.seed);
 }
 
-void parseVersion(const std::vector<std::string> &, ArgumentData &) {
-    OptionsParser::printVersion();
-}
+void parseVersion(const std::vector<std::string> &, ArgumentData &) { OptionsParser::printVersion(); }
 
 void parseHelp(const std::vector<std::string> &, ArgumentData &) { OptionsParser::printHelp(); }
 
@@ -533,8 +525,7 @@ void parseVariant(const std::vector<std::string> &params, ArgumentData &argument
     parseValue(params, val);
 
     if (val == "fischerandom") argument_data.tournament_options.variant = VariantType::FRC;
-    if (val != "fischerandom" && val != "standard")
-        throw std::runtime_error("Error; Unknown variant");
+    if (val != "fischerandom" && val != "standard") throw std::runtime_error("Error; Unknown variant");
 }
 
 void parseTournament(const std::vector<std::string> &params, ArgumentData &) {
@@ -555,8 +546,7 @@ void parseQuick(const std::vector<std::string> &params, ArgumentData &argument_d
 
             argument_data.configs.back().recover = true;
 
-            engine::validateEnginePath(argument_data.configs.back().dir,
-                                       argument_data.configs.back().cmd);
+            engine::validateEnginePath(argument_data.configs.back().dir, argument_data.configs.back().cmd);
         } else if (key == "book") {
             argument_data.tournament_options.opening.file  = value;
             argument_data.tournament_options.opening.order = OrderType::RANDOM;
@@ -565,8 +555,7 @@ void parseQuick(const std::vector<std::string> &params, ArgumentData &argument_d
             else if (str_utils::endsWith(value, ".epd"))
                 argument_data.tournament_options.opening.format = FormatType::EPD;
             else
-                throw std::runtime_error(
-                    "Error; please include the .png or .epd file extension for the opening book");
+                throw std::runtime_error("Error; please include the .png or .epd file extension for the opening book");
         } else {
             OptionsParser::throwMissing("quick", key, value);
         }

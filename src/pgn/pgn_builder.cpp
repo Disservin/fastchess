@@ -181,8 +181,10 @@ std::string PgnBuilder::convertMatchTermination(const MatchTermination &res) noe
             return "time forfeit";
         case MatchTermination::ILLEGAL_MOVE:
             return "illegal move";
+        case MatchTermination::DISCONNECT:
+            return "abandoned";
         case MatchTermination::NO_BESTMOVE:
-            return "no bestmove received";
+            return "abandoned";
         case MatchTermination::INTERRUPT:
             return "unterminated";
         default:

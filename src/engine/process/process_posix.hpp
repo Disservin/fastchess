@@ -163,6 +163,12 @@ class Process : public IProcess {
             auto desc = sigdescr_np(WTERMSIG(status));
             return desc ? desc : "Unknown child status";
         }
+#    else
+        else if (WIFSIGNALED(status)) {
+            return "WIFSIGNALED status: " + std::to_string(WTERMSIG(status));
+        } else if (WIFSTOPPED(status)) {
+            return "WIFSTOPPED status: " + std::to_string(WSTOPSIG(status));
+        }
 #    endif
 
         else {

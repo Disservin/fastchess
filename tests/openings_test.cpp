@@ -5,6 +5,8 @@
 using namespace fast_chess;
 
 TEST_SUITE("Openings") {
+      options::Tournament tournament;
       
+      book::OpeningBook book(tournament);
 }
 

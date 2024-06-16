@@ -8,7 +8,7 @@ using namespace fast_chess;
 TEST_SUITE("Openings") {
     TEST_CASE("check epd openings") {
         options::Tournament tournament;
-        tournament.rounds = 3000;
+        tournament.rounds = 10;
         tournament.opening.file = "tests/data/openings.epd";
         tournament.opening.format = FormatType::EPD;
         tournament.opening.order = OrderType::SEQUENTIAL;
@@ -19,7 +19,8 @@ TEST_SUITE("Openings") {
 
         std::string fen = epd[0];
 
-        CHECK(fen == "1n1qkb1r/rp3ppp/p1p1pn2/2PpN2b/3PP3/1QN5/PP3PPP/R1B1KB1R w KQk - 0 9");
+        CHECK(epd.size() == 10 && epd.capacity() == 10);
+        CHECK(fen == "r1b1kb1r/1p2pppp/p1np4/q5B1/3NP1n1/2N4P/PPP2PP1/R2QKB1R w KQkq - 1 9");
     }
 }
 

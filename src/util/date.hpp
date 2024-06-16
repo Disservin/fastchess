@@ -51,6 +51,21 @@ namespace time {
        << seconds.count();
     return ss.str();
 }
+
+[[nodiscard]] inline std::string datetime_precise() {
+    // get current time
+    const auto now = std::chrono::system_clock::now();
+
+    // get number of microseconds for the current second
+    auto ms = std::chrono::duration_cast<std::chrono::microseconds>(now.time_since_epoch()) %
+              std::chrono::seconds(1);
+
+    const auto str = datetime("%H:%M:%S");
+
+    std::stringstream ss;
+    ss << str << "." << std::setfill('0') << std::setw(6) << ms.count();
+    return ss.str();
+}
 }  // namespace time
 
 }  // namespace fast_chess::util

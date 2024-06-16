@@ -194,8 +194,9 @@ class Process : public IProcess {
         int status;
         const pid_t pid = waitpid(process_pid_, &status, WNOHANG);
 
-        // lgo the status of the process
-        Logger::readFromEngine(signalToString(status), log_name_, true);
+        // log the status of the process
+        Logger::readFromEngine(signalToString(status), util::time::datetime_precise(), log_name_,
+                               true);
 
         // If the process is still running, kill it
         if (pid == 0) {
@@ -251,7 +252,7 @@ class Process : public IProcess {
             }
             // timeout
             else if (ready == 0) {
-                lines.emplace_back(Line{current_line_});
+                lines.emplace_back(Line{current_line_, util::time::datetime_precise()});
                 return Status::TIMEOUT;
             }
 
@@ -273,7 +274,7 @@ class Process : public IProcess {
                     // to the vector and reset the current_line_.
                     // Dont add empty lines
                     if (!current_line_.empty()) {
-                        lines.emplace_back(Line{current_line_});
+                        lines.emplace_back(Line{current_line_, util::time::datetime_precise()});
 
                         if (current_line_.rfind(last_word, 0) == 0) {
                             return Status::OK;
@@ -302,7 +303,8 @@ class Process : public IProcess {
                     // to the vector and reset the current_line_.
                     // Dont add empty lines
                     if (!current_line_.empty()) {
-                        lines.emplace_back(Line{current_line_, Standard::ERR});
+                        lines.emplace_back(
+                            Line{current_line_, util::time::datetime_precise(), Standard::ERR});
 
                         current_line_.clear();
                     }

@@ -145,7 +145,7 @@ class Process : public IProcess {
                     // don't add empty lines
                     if (current_line_.empty()) continue;
 
-                    lines.emplace_back(Line{current_line_});
+                    lines.emplace_back(Line{current_line_, util::time::datetime_precise()});
 
                     if (current_line_.rfind(last_word, 0) == 0) {
                         return Status::OK;

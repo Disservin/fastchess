@@ -200,7 +200,7 @@ bool Match::playMove(Player& us, Player& opponent) {
     // Illegal move
     const auto best_move = us.engine.bestmove();
     const auto move      = best_move ? uci::uciToMove(board_, *best_move) : Move::NO_MOVE;
-    const auto legal     = best_move ? isLegal(move) : false;
+    const auto legal     = isLegal(move);
 
     addMoveData(us, elapsed_millis, legal);
 

@@ -14,7 +14,9 @@ bool UciEngine::isResponsive(std::chrono::milliseconds threshold) {
     if (!alive()) return false;
 
     writeEngine("isready");
-    const auto res = readEngine("readyok", threshold);
+
+    std::vector<process::Line> output;
+    const auto res = readProcess(output, "readyok", threshold);
 
     if (res != process::Status::OK) {
         Logger::log<Logger::Level::WARN, true>("Warning; Engine", config_.name,

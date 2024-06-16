@@ -11,7 +11,7 @@ TEST_SUITE("Openings") {
         tournament.rounds = 3000;
         tournament.opening.file = "tests/data/openings.epd";
         tournament.opening.format = FormatType::EPD;
-        tournament.seed = 123456789;
+        tournament.opening.order = OrderType::SEQUENTIAL;
         tournament.opening.start = 3256;
 
         auto book = book::OpeningBook(tournament);

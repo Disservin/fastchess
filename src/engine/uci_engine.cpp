@@ -18,6 +18,10 @@ bool UciEngine::isResponsive(std::chrono::milliseconds threshold) {
     std::vector<process::Line> output;
     const auto res = readProcess(output, "readyok", threshold);
 
+    for (const auto &line : output) {
+        Logger::readFromEngine(line.line, config_.name, line.std == process::Standard::ERR);
+    }
+
     if (res != process::Status::OK) {
         Logger::log<Logger::Level::WARN, true>("Warning; Engine", config_.name,
                                                "is not responsive.");

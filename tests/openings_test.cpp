@@ -11,7 +11,7 @@ TEST_SUITE("Openings") {
         tournament.rounds = 10;
         tournament.opening.file = "tests/data/openings.epd";
         tournament.opening.format = FormatType::EPD;
-        tournament.opening.order = OrderType::SEQUENTIAL;
+        tournament.opening.order = OrderType::RANDOM;
         tournament.opening.start = 3256;
 
         auto book = book::OpeningBook(tournament);
@@ -21,7 +21,7 @@ TEST_SUITE("Openings") {
 
         CHECK(epd.size() == 10);
         CHECK(epd.capacity() == 10);
-        CHECK(fen == "r1b1kb1r/1p2pppp/p1np4/q5B1/3NP1n1/2N4P/PPP2PP1/R2QKB1R w KQkq - 1 9");
+        CHECK(fen == "rnbq1rk1/1p3pbp/p2ppnp1/2pP4/P1P1P3/2N2N1P/1P3PP1/R1BQKB1R w KQ - 0 9");
     }
 }
 

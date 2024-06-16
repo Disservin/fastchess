@@ -22,6 +22,7 @@ class OpeningBook {
         const auto shuffle = [this](auto& vec) {
             if (order_ == OrderType::RANDOM) {
                 for (std::size_t i = 0; i + 2 <= vec.size(); i++) {
+                    util::random::mersenne_rand.seed(tournament.seed);
                     auto rand     = util::random::mersenne_rand();
                     std::size_t j = i + (rand % (vec.size() - i));
                     std::swap(vec[i], vec[j]);
@@ -52,7 +53,7 @@ class OpeningBook {
 
    // Shrink book vector
    void shrink() {
-        const auto shrink = [this](auto& vec) { vec.shrink_to_fit(); };
+        const auto shrink = [](auto& vec) { vec.shrink_to_fit(); };
 
         std::visit(shrink, book_);
     }

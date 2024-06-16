@@ -47,11 +47,10 @@ class Logger {
         if constexpr (thread) {
             file_ss << "[" << util::time::datetime("%H:%M:%S") << "] "             //
                     << " <" << std::setw(3) << std::this_thread::get_id() << "> "  //
-                    << "fastchess"
-                    << " --- " << ss.str();
+                    << "fastchess" << " --- " << ss.str();
         } else {
             file_ss << "[" << util::time::datetime("%H:%M:%S") << "] "  //
-                    << "<fastchess>" << ss.str();
+                    << " <fastchess>" << ss.str();
         }
 
         const std::lock_guard<std::mutex> lock(log_mutex_);

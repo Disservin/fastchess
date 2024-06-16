@@ -207,10 +207,15 @@ bool Match::playMove(Player& us, Player& opponent) {
     if (!legal) {
         setLose(us, opponent);
 
-        data_.termination = MatchTermination::ILLEGAL_MOVE;
-        data_.reason      = name + Match::ILLEGAL_MSG;
-
-        Logger::log<Logger::Level::WARN>("Warning; Illegal move", best_move, "played by", name);
+        if (best_move != "aaaa") {
+            data_.termination = MatchTermination::ILLEGAL_MOVE;
+            data_.reason      = name + Match::ILLEGAL_MSG;
+    
+            Logger::log<Logger::Level::WARN>("Warning; Illegal move", best_move, "played by", name);
+        } else {
+            data_.termination = MatchTermination::NO_BESTMOVE;
+            data_.reason      = name + Match::NO_BESTMOVE_MSG;
+        }
 
         return false;
     }

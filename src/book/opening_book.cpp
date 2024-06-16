@@ -15,6 +15,7 @@ OpeningBook::OpeningBook(const options::Tournament& tournament) {
     order_  = tournament.opening.order;
     plies_  = tournament.opening.plies;
     offset_ = start_ - 1 + matchcount_ / games_;
+    seed_   = tournament.seed;
     setup(tournament.opening.file, tournament.opening.format);
 }
 

@@ -44,6 +44,7 @@ enum class MatchTermination {
     TIMEOUT,
     DISCONNECT,
     ILLEGAL_MOVE,
+    NO_BESTMOVE,
     INTERRUPT,
     None,
 };

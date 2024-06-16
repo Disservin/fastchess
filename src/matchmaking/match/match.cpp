@@ -180,7 +180,7 @@ bool Match::playMove(Player& us, Player& opponent) {
 
     us.engine.writeLog();
 
-    if (status == engine::process::Status::ERR) {
+    if (status == engine::process::Status::ERR || !us.engine.isResponsive()) {
         setLose(us, opponent);
 
         data_.termination = MatchTermination::DISCONNECT;

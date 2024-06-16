@@ -170,6 +170,17 @@ bool Match::playMove(Player& us, Player& opponent) {
                    [](const MoveData& data) { return data.move; });
 
     us.engine.writeEngine(Player::buildPositionInput(uci_moves, start_position_));
+
+    // wait for readyok
+    if (!us.engine.isResponsive()) {
+        setLose(us, opponent);
+
+        data_.termination = MatchTermination::DISCONNECT;
+        data_.reason      = name + Match::DISCONNECT_MSG;
+
+        return false;
+    }
+
     // write go command
     us.engine.writeEngine(us.buildGoInput(board_.sideToMove(), opponent.getTimeControl()));
 

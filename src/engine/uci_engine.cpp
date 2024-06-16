@@ -175,7 +175,7 @@ std::optional<std::string> UciEngine::bestmove() const {
     const auto bm = str_utils::findElement<std::string>(str_utils::splitString(output_.back().line, ' '), "bestmove");
 
     if (!bm.has_value()) {
-        Logger::log<Logger::Level::WARN, true>("Warning; No bestmove found in engine output.");
+        Logger::log<Logger::Level::WARN, true>("Warning; Could not extract bestmove.");
         return std::nullopt;
     }
 
@@ -185,7 +185,7 @@ std::optional<std::string> UciEngine::bestmove() const {
 std::vector<std::string> UciEngine::lastInfo() const {
     const auto last_info = lastInfoLine();
     if (last_info.empty()) {
-        Logger::log<Logger::Level::WARN, true>("Warning; No info string with a score found in engine output.");
+        Logger::log<Logger::Level::WARN, true>("Warning; Could not extract last uci info line.");
         return {};
     }
 
@@ -202,7 +202,7 @@ int UciEngine::lastScore() const {
     const auto score = lastScoreType();
 
     if (score == ScoreType::ERR) {
-        Logger::log<Logger::Level::WARN, true>("Warning; Unknown score type in engine output.");
+        Logger::log<Logger::Level::WARN, true>("Warning; Could not extract last uci score.");
         return 0;
     }
 

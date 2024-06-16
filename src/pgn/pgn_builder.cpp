@@ -182,7 +182,7 @@ std::string PgnBuilder::convertMatchTermination(const MatchTermination &res) noe
         case MatchTermination::ILLEGAL_MOVE:
             return "illegal move";
         case MatchTermination::NO_BESTMOVE:
-            return "no bestmove sent";
+            return "no bestmove received";
         case MatchTermination::INTERRUPT:
             return "unterminated";
         default:

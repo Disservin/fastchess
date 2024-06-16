@@ -154,13 +154,18 @@ class Process : public IProcess {
     std::string signalToString(int status) {
         if (WIFEXITED(status)) {
             return std::to_string(WEXITSTATUS(status));
-        } else if (WIFSTOPPED(status)) {
+        }
+#    ifdef _GNU_SOURCE
+        else if (WIFSTOPPED(status)) {
             auto desc = sigdescr_np(WSTOPSIG(status));
             return desc ? desc : "Unknown child status";
         } else if (WIFSIGNALED(status)) {
             auto desc = sigdescr_np(WTERMSIG(status));
             return desc ? desc : "Unknown child status";
-        } else {
+        }
+#    endif
+
+        else {
             return "Unknown child status";
         }
     }

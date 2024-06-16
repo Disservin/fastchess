@@ -33,6 +33,24 @@ if ! grep -q "Saved results." $OUTPUT_FILE; then
     exit 1
 fi
 
+# If the output contains "illegal move" then fail
+if grep -q "illegal move" $OUTPUT_FILE; then
+    echo "Illegal move detected."
+    exit 1
+fi
+
+# If the output contains "disconnects" then fail
+if grep -q "disconnects" $OUTPUT_FILE; then
+    echo "Disconnect detected."
+    exit 1
+fi
+
+# If the output contains "loses on time" then fail
+if grep -q "loses on time" $OUTPUT_FILE; then
+    echo "Loses on time detected."
+    exit 1
+fi
+
 # PGN Book Test
 
 OUTPUT_FILE_2=$(mktemp)
@@ -48,5 +66,23 @@ fi
 # Check if "Saved results." is in the output, else fail
 if ! grep -q "Saved results." $OUTPUT_FILE_2; then
     echo "Failed to save results."
+    exit 1
+fi
+
+# If the output contains "illegal move" then fail
+if grep -q "illegal move" $OUTPUT_FILE_2; then
+    echo "Illegal move detected."
+    exit 1
+fi
+
+# If the output contains "disconnects" then fail
+if grep -q "disconnects" $OUTPUT_FILE_2; then
+    echo "Disconnect detected."
+    exit 1
+fi
+
+# If the output contains "loses on time" then fail
+if grep -q "loses on time" $OUTPUT_FILE_2; then
+    echo "Loses on time detected."
     exit 1
 fi

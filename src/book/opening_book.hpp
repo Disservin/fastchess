@@ -90,6 +90,7 @@ class OpeningBook {
     std::size_t start_      = 0;
     std::size_t matchcount_ = 0;
     std::size_t offset_     = 0;
+    std::size_t seed_       = 0;
     int rounds_;
     int games_;
     int plies_;

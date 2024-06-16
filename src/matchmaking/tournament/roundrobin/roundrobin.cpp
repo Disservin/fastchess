@@ -20,6 +20,8 @@ RoundRobin::RoundRobin(const options::Tournament& tournament_config,
 }
 
 void RoundRobin::start() {
+    Logger::log<Logger::Level::TRACE>("Starting round robin tournament...");
+
     BaseTournament::start();
 
     // If autosave is enabled, save the results every save_interval games
@@ -39,6 +41,8 @@ void RoundRobin::start() {
 }
 
 void RoundRobin::create() {
+    Logger::log<Logger::Level::TRACE>("Creating matches...");
+
     total_ = (engine_configs_.size() * (engine_configs_.size() - 1) / 2) *
              tournament_options_.rounds * tournament_options_.games;
 

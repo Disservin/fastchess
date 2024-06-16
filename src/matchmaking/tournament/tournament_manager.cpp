@@ -7,16 +7,19 @@ namespace fast_chess {
 TournamentManager::TournamentManager(const options::Tournament& tournament_config,
                                      const std::vector<EngineConfiguration>& engine_configs)
     : engine_configs_(engine_configs), tournament_options_(tournament_config) {
+    Logger::log<Logger::Level::TRACE>("Creating tournament...");
     validateEngines();
 
     while (tournament_options_.randomseed && tournament_options_.seed == 951356066) {
-        std::random_device rd;   // Random device to seed the generator
-        std::mt19937 gen(rd());  // Mersenne Twister 19937 generator
+        std::random_device rd;
+        std::mt19937 gen(rd());
         std::uniform_int_distribution<uint32_t> dist(0, std::numeric_limits<uint32_t>::max());
         tournament_options_.seed = dist(gen);
     }
 
     // Set the seed for the random number generator
+    Logger::log<Logger::Level::TRACE>("Seeding random number generator with seed: ",
+                                      tournament_options_.seed);
     util::random::mersenne_rand.seed(tournament_options_.seed);
 
     round_robin_ = std::make_unique<RoundRobin>(fixConfig(tournament_options_), engine_configs_);
@@ -101,6 +104,8 @@ options::Tournament TournamentManager::fixConfig(options::Tournament config) {
 }
 
 void TournamentManager::validateEngines() const {
+    Logger::log<Logger::Level::TRACE>("Validating engine configs...");
+
     if (engine_configs_.size() < 2) {
         throw std::runtime_error("Error: Need at least two engines to start!");
     }

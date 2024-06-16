@@ -24,7 +24,7 @@ BaseTournament::BaseTournament(const options::Tournament &config,
     engine_configs_     = engine_configs;
     output_             = OutputFactory::create(config);
     cores_              = std::make_unique<affinity::AffinityManager>(config.affinity,
-                                                         getMaxAffinity(engine_configs));
+                                                                      getMaxAffinity(engine_configs));
 
     if (!config.pgn.file.empty())
         file_writer_pgn = std::make_unique<util::FileWriter>(config.pgn.file);
@@ -35,7 +35,7 @@ BaseTournament::BaseTournament(const options::Tournament &config,
 }
 
 void BaseTournament::start() {
-    Logger::log<Logger::Level::TRACE>("Starting...");
+    Logger::log<Logger::Level::TRACE>("Starting tournament...");
 
     create();
 }
@@ -70,6 +70,9 @@ void BaseTournament::playGame(const std::pair<EngineConfiguration, EngineConfigu
 
     auto engine_one = util::ScopeGuard(engine_cache_.getEntry(configs.first.name, configs.first));
     auto engine_two = util::ScopeGuard(engine_cache_.getEntry(configs.second.name, configs.second));
+
+    Logger::log<Logger::Level::TRACE>("Playing game ", game_id + 1, " between ", configs.first.name,
+                                      " and ", configs.second.name);
 
     start();
 

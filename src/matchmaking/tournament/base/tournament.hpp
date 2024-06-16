@@ -36,6 +36,8 @@ class BaseTournament {
 
     [[nodiscard]] stats_map getResults() noexcept { return result_.getResults(); }
     void setResults(const stats_map &results) noexcept {
+        Logger::log<Logger::Level::TRACE>("Setting results...");
+
         result_.setResults(results);
 
         match_count_ = 0;

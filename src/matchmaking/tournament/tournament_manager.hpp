@@ -13,7 +13,7 @@ class TournamentManager {
                       const std::vector<EngineConfiguration> &engine_configs);
 
     ~TournamentManager() {
-        Logger::log<Logger::Level::TRACE>("Destroying tournament manager...");
+        Logger::log<Logger::Level::INFO>("Finished match.");
         stop();
     }
 

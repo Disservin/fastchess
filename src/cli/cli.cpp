@@ -607,6 +607,8 @@ void parseDebug(const std::vector<std::string> &, ArgumentData &) {
 }
 
 OptionsParser::OptionsParser(int argc, char const *argv[]) {
+    Logger::log<Logger::Level::TRACE>("Reading options...");
+
     if (argc == 1) {
         printHelp();
     }

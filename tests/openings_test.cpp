@@ -1,3 +1,4 @@
+#include <types/tournament_openings.hpp>
 #include <book/opening_book.hpp>
 
 #include "doctest/doctest.hpp"

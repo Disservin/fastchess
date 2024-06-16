@@ -62,9 +62,7 @@ bool is_number(const std::string &s) {
     return !s.empty() && std::find_if(s.begin(), s.end(), is_digit) == s.end();
 }
 
-bool is_bool(const std::string &s) {
-    return s == "true" || s == "false";
-}
+bool is_bool(const std::string &s) { return s == "true" || s == "false"; }
 
 bool containsEqualSign(const std::vector<std::string> &params) {
     for (const auto &param : params) {
@@ -242,7 +240,7 @@ void parsePgnOut(const std::vector<std::string> &params, ArgumentData &argument_
         argument_data.tournament_options.pgn.min =
             std::find(params.begin(), params.end(), "min") != params.end();
     }
-    if (argument_data.tournament_options.pgn.file.empty()) 
+    if (argument_data.tournament_options.pgn.file.empty())
         throw std::runtime_error("Error; Please specify filename for pgn output.");
 }
 
@@ -259,7 +257,7 @@ void parseEpdOut(const std::vector<std::string> &params, ArgumentData &argument_
         // try to read as cutechess epdout
         parseValue(params, argument_data.tournament_options.epd.file);
     }
-    if (argument_data.tournament_options.epd.file.empty()) 
+    if (argument_data.tournament_options.epd.file.empty())
         throw std::runtime_error("Error; Please specify filename for epd output.");
 }
 
@@ -312,7 +310,7 @@ void parseOpening(const std::vector<std::string> &params, ArgumentData &argument
 void parseSprt(const std::vector<std::string> &params, ArgumentData &argument_data) {
     parseDashOptions(params, [&](const std::string &key, const std::string &value) {
         argument_data.tournament_options.sprt.enabled = true;
-      
+
         if (argument_data.tournament_options.rounds == 0) {
             argument_data.tournament_options.rounds = 500000;
         }
@@ -405,7 +403,8 @@ void parseLog(const std::vector<std::string> &params, ArgumentData &) {
             OptionsParser::throwMissing("log", key, value);
         }
     });
-    if (filename.empty()) throw std::runtime_error("Error; Please specify filename for log output.");
+    if (filename.empty())
+        throw std::runtime_error("Error; Please specify filename for log output.");
     Logger::openFile(filename);
 }
 
@@ -559,14 +558,15 @@ void parseQuick(const std::vector<std::string> &params, ArgumentData &argument_d
             engine::validateEnginePath(argument_data.configs.back().dir,
                                        argument_data.configs.back().cmd);
         } else if (key == "book") {
-            argument_data.tournament_options.opening.file   = value;
-            argument_data.tournament_options.opening.order  = OrderType::RANDOM;
+            argument_data.tournament_options.opening.file  = value;
+            argument_data.tournament_options.opening.order = OrderType::RANDOM;
             if (str_utils::endsWith(value, ".pgn"))
                 argument_data.tournament_options.opening.format = FormatType::PGN;
             else if (str_utils::endsWith(value, ".epd"))
                 argument_data.tournament_options.opening.format = FormatType::EPD;
             else
-                throw std::runtime_error("Error; please include the .png or .epd file extension for the opening book");
+                throw std::runtime_error(
+                    "Error; please include the .png or .epd file extension for the opening book");
         } else {
             OptionsParser::throwMissing("quick", key, value);
         }

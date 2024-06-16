@@ -9,7 +9,7 @@ TEST_SUITE("Openings") {
     TEST_CASE("check epd openings") {
         options::Tournament tournament;
         tournament.rounds = 3000;
-        tournament.opening.file = "./data/openings.epd";
+        tournament.opening.file = "tests/data/openings.epd";
         tournament.seed = 123456789;
         tournament.opening.start = 3256;
 

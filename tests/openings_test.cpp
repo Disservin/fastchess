@@ -18,7 +18,7 @@ TEST_SUITE("Openings") {
 
         std::string fen = epd[0];
 
-        CHECK(fen == "r1bqkb1r/3p1ppp/p1p1p3/3nP3/8/2N5/PPP1BPPP/R1BQK2R w KQkq - 1 9");
+        CHECK(fen == "1n1qkb1r/rp3ppp/p1p1pn2/2PpN2b/3PP3/1QN5/PP3PPP/R1B1KB1R w KQk - 0 9");
     }
 }
 

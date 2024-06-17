@@ -89,7 +89,7 @@ TEST_SUITE("Openings") {
         int initial_matchcount = 0;
 
         auto book = book::OpeningBook(tournament, initial_matchcount);
-        std::vector<std::string> book_vector = book.getPgnBook();
+        std::vector<pgn::Opening> book_vector = book.getPgnBook();
         std::vector<pgn::Opening> opening(tournament.rounds);
 
         for (int i=0; i < tournament.rounds; i++) {

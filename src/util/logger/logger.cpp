@@ -28,7 +28,7 @@ void Logger::writeToEngine(const std::string &msg, const std::string &time, cons
 
     ss                                                                 //
         << "[" << time << "] "                                         //
-        << " <" << std::setw(3) << std::this_thread::get_id() << "> "  //
+        << " <" << std::this_thread::get_id() << "> "  //
         << name                                                        //
         << " <--- " << msg                                             //
         << std::endl;
@@ -45,7 +45,7 @@ void Logger::readFromEngine(const std::string &msg, const std::string &time, con
 
     std::stringstream ss;
     ss                                                                                        //
-        << "[" << time << "] " << " <" << std::setw(3) << std::this_thread::get_id() << "> "  //
+        << "[" << time << "] " << " <" << std::this_thread::get_id() << "> "  //
         << name                                                                               //
         << (err ? " 1 " : " 2 ")                                                              //
         << "---> " << msg                                                                     //

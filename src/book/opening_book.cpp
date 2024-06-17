@@ -58,7 +58,7 @@ void OpeningBook::setup(const std::string& file, FormatType type) {
 }
 
 [[nodiscard]] std::optional<std::size_t> OpeningBook::fetchId() noexcept {
-    const auto idx       = opening_index++;
+    const auto idx       = opening_index_++;
     const auto book_size =
         std::holds_alternative<epd_book>(book_) ? std::get<epd_book>(book_).size() : std::get<pgn_book>(book_).size();
 

@@ -15,7 +15,7 @@ TEST_SUITE("Openings") {
         tournament.opening.start = 3256;
         tournament.seed = 123456789;
 
-        auto book = book::OpeningBook(tournament);
+        auto book = book::OpeningBook(tournament, 0);
         std::vector<std::string> epd = book.getEpdBook();
 
         CHECK(epd.size() == 10);
@@ -33,7 +33,7 @@ TEST_SUITE("Openings") {
         tournament.opening.start = 3256;
         tournament.seed = 123456789;
 
-        auto book = book::OpeningBook(tournament);
+        auto book = book::OpeningBook(tournament, 0);
         std::vector<pgn::Opening> pgn = book.getPgnBook();
 
         CHECK(pgn.size() == 10);

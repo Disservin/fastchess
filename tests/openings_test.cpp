@@ -18,7 +18,7 @@ TEST_SUITE("Openings") {
 
         auto book = book::OpeningBook(tournament, initial_matchcount);
         std::vector<std::string> book_vector = book.getEpdBook();
-        std::vector<std::size_t> index;
+        std::vector<std::optional<std::size_t>> index;
         std::vector<std::string> opening;
         index.reserve(tournament.rounds);
         opening.reserve(tournament.rounds);

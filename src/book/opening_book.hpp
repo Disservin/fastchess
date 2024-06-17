@@ -85,9 +85,10 @@ class OpeningBook {
     using epd_book = std::vector<std::string>;
     using pgn_book = std::vector<pgn::Opening>;
 
-    std::size_t start_      = 0;
-    std::size_t offset_     = 0;
-    std::size_t seed_       = 0;
+    std::size_t start_         = 0;
+    std::size_t opening_index_ = 0;
+    std::size_t offset_        = 0;
+    std::size_t seed_          = 0;
     int rounds_;
     int games_;
     int plies_;

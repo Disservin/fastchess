@@ -18,11 +18,9 @@ TEST_SUITE("Openings") {
         auto book = book::OpeningBook(tournament);
         std::vector<std::string> epd = book.getEpdBook();
 
-        std::string fen = epd[0];
-
         CHECK(epd.size() == 10);
         CHECK(epd.capacity() == 10);
-        CHECK(fen == "rnbq1rk1/1p3pbp/p2ppnp1/2pP4/P1P1P3/2N2N1P/1P3PP1/R1BQKB1R w KQ - 0 9");
+        CHECK(epd[0] == "1n1qkb1r/rp3ppp/p1p1pn2/2PpN2b/3PP3/1QN5/PP3PPP/R1B1KB1R w KQk - 0 9");
     }
 }
 

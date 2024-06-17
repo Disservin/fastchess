@@ -38,9 +38,8 @@ TEST_SUITE("Openings") {
 
         CHECK(pgn.size() == 5);
         CHECK(pgn.capacity() == 5);
-        CHECK(pgn[0].fen == "1n1qkb1r/rp3ppp/p1p1pn2/2PpN2b/3PP3/1QN5/PP3PPP/R1B1KB1R w KQk - 0 9");
-        CHECK(pgn[9].fen == "rn1qkb1r/4pp1p/3p1np1/2pP4/4P3/2N5/PP3PPP/R1BQ1KNR w kq - 0 9");
-        CHECK(pgn[10].fen == "rn1qkb1r/4pp1p/3p1np1/2pP4/4P3/2N5/PP3PPP/R1BQ1KNR w kq - 0 9");
+        CHECK(pgn[0].moves == {});
+        CHECK(pgn[4].moves == {});
     }
 }
 

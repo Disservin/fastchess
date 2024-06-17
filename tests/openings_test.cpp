@@ -14,7 +14,7 @@ TEST_SUITE("Openings") {
         tournament.opening.order = OrderType::SEQUENTIAL;
         tournament.opening.start = 3256;
         tournament.seed = 123456789;
-        int initial_matchcount = 47;
+        int initial_matchcount = 46;
 
         auto book = book::OpeningBook(tournament, initial_matchcount);
         std::vector<std::string> book_vector = book.getEpdBook();
@@ -39,7 +39,7 @@ TEST_SUITE("Openings") {
         tournament.opening.order = OrderType::SEQUENTIAL;
         tournament.opening.start = 3256;
         tournament.seed = 123456789;
-        int initial_matchcount = 47;
+        int initial_matchcount = 46;
 
         auto book = book::OpeningBook(tournament, initial_matchcount);
         std::vector<std::string> book_vector = book.getEpdBook();

@@ -32,7 +32,7 @@ BaseTournament::BaseTournament(const options::Tournament &config,
 
 void BaseTournament::start() {
     Logger::log<Logger::Level::TRACE>("Starting tournament...");
-    book_ = book::OpeningBook(config, initial_matchcount_);
+
     create();
 }
 

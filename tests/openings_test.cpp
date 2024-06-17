@@ -36,8 +36,8 @@ TEST_SUITE("Openings") {
         auto book = book::OpeningBook(tournament);
         std::vector<pgn::Opening> pgn = book.getPgnBook();
 
-        CHECK(pgn.size() == 5);
-        CHECK(pgn.capacity() == 5);
+        CHECK(pgn.size() == 10);
+        CHECK(pgn.capacity() == 10);
         CHECK(pgn[0].fen == " ");
         CHECK(pgn[4].fen == " ");
     }

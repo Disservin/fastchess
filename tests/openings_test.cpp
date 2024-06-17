@@ -22,7 +22,7 @@ TEST_SUITE("Openings") {
         CHECK(epd.size() == 10);
         CHECK(epd.capacity() == 10);
         CHECK(epd[0] == "rn1qkb1r/1p3p1p/p2p1np1/2pP4/4P1b1/2N2N2/PP2QPPP/R1B1KB1R w KQkq - 2 9");
-        CHECK(epd[9] == "rn1qkb1r/4pp1p/3p1np1/2pP4/4P3/2N5/PP3PPP/R1BQ1KNR w kq - 0 9");
+        CHECK(epd[9] == "rnbqk2r/pp2p1bp/2pp1np1/5P2/3P4/2N3P1/PPP2PB1/R1BQK1NR w KQkq - 3 9");
     }
 
     TEST_CASE("check pgn openings") {

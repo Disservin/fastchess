@@ -152,7 +152,7 @@ class Process : public IProcess {
         if (WIFEXITED(status)) {
             return std::to_string(WEXITSTATUS(status));
         }
-#    ifdef _GNU_SOURCE
+#    if defined(_GNU_SOURCE) && __GLIBC__ >= 2 && __GLIBC_MINOR__ >= 32
         else if (WIFSTOPPED(status)) {
             auto desc = sigdescr_np(WSTOPSIG(status));
             return desc ? desc : "Unknown child status";

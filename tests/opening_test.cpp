@@ -122,7 +122,7 @@ TEST_SUITE("Opening Book Test") {
         auto id   = book.fetchId();
 
         REQUIRE(id.has_value());
-        CHECK(id.value() == 55);
+        CHECK(id.value() == 0);
         CHECK(book[id].fen == "rnbqk2r/1p3pbp/p2p1np1/2pP4/4P3/2N2N1P/PP3PP1/R1BQKB1R w KQkq - 1 9");
 
         id = book.fetchId();

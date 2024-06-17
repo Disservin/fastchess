@@ -113,7 +113,7 @@ TEST_SUITE("Opening Book Test") {
         tournament.rounds         = 2;
         tournament.opening.file   = "tests/data/openings.epd";
         tournament.opening.format = FormatType::EPD;
-        tournament.opening.order  = OrderType::RANDOM;
+        tournament.opening.order  = OrderType::SEQUENTIAL;
         tournament.opening.start  = 3256;
         tournament.seed           = 123456789;
         int matchcount            = 0;
@@ -123,12 +123,12 @@ TEST_SUITE("Opening Book Test") {
 
         REQUIRE(id.has_value());
         CHECK(id.value() == 0);
-        CHECK(book[id].fen == "rnbqk2r/1p3pbp/p2p1np1/2pP4/4P3/2N2N1P/PP3PP1/R1BQKB1R w KQkq - 1 9");
+        CHECK(book[id].fen == "1n1qkb1r/rp3ppp/p1p1pn2/2PpN2b/3PP3/1QN5/PP3PPP/R1B1KB1R w KQk - 0 9");
 
         id = book.fetchId();
 
         REQUIRE(id.has_value());
-        CHECK(id.value() == 56);
+        CHECK(id.value() == 1);
         CHECK(book[id].fen == "rnbqr1k1/pp1p1pp1/3b1n1p/2pP4/7B/2N2N2/PP2PPPP/R2QKB1R w KQ - 4 9");
     }
 
@@ -146,7 +146,7 @@ TEST_SUITE("Opening Book Test") {
         auto id   = book.fetchId();
 
         REQUIRE(id.has_value());
-        CHECK(id.value() == 55);
+        CHECK(id.value() == 0);
         CHECK(book[id].fen == "5k2/5p2/4B2p/r5pn/4P3/5PPP/2NR2K1/8 b - - 0 59");
 
         id = book.fetchId();

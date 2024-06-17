@@ -21,6 +21,9 @@ RoundRobin::RoundRobin(const options::Tournament& tournament_config,
 void RoundRobin::start() {
     Logger::log<Logger::Level::TRACE>("Starting round robin tournament...");
 
+    // Initialize book
+    book_ = book::OpeningBook(tournament_options_, initial_matchcount_);
+  
     BaseTournament::start();
 
     // If autosave is enabled, save the results every save_interval games

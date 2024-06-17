@@ -38,8 +38,8 @@ TEST_SUITE("Openings") {
 
         CHECK(pgn.size() == 5);
         CHECK(pgn.capacity() == 5);
-        CHECK(pgn[0].moves == {});
-        CHECK(pgn[4].moves == {});
+        CHECK(pgn[0].fen == " ");
+        CHECK(pgn[4].fen == " ");
     }
 }
 

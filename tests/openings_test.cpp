@@ -24,7 +24,7 @@ TEST_SUITE("Openings") {
         CHECK(epd[9] == "rn1qkb1r/4pp1p/3p1np1/2pP4/4P3/2N5/PP3PPP/R1BQ1KNR w kq - 0 9");
     }
 
-        TEST_CASE("check pgn openings") {
+    TEST_CASE("check pgn openings") {
         options::Tournament tournament;
         tournament.rounds = 10;
         tournament.opening.file = "tests/data/test2.pgn";

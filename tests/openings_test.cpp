@@ -32,7 +32,7 @@ TEST_SUITE("Openings") {
 
     TEST_CASE("EPD 2") {
         options::Tournament tournament;
-        tournament.rounds = 100;
+        tournament.rounds = 110;
         tournament.opening.file = "tests/data/openings.epd";
         tournament.opening.format = FormatType::EPD;
         tournament.opening.order = OrderType::RANDOM;

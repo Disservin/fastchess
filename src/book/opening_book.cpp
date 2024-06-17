@@ -56,6 +56,10 @@ void OpeningBook::setup(const std::string& file, FormatType type) {
             end++;
         }
 
+        if (start != end) {
+            std::get<epd_book>(book_).emplace_back(std::string_view(start, end - start));
+        }
+
         std::get<epd_book>(book_).shrink_to_fit();
     }
 

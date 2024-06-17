@@ -13,7 +13,6 @@ namespace fast_chess {
 RoundRobin::RoundRobin(const options::Tournament& tournament_config,
                        const std::vector<EngineConfiguration>& engine_configs)
     : BaseTournament(tournament_config, engine_configs) {
-    book_ = book::OpeningBook(tournament_config, initial_matchcount_);
     // Initialize the SPRT test
     sprt_ = SPRT(tournament_options_.sprt.alpha, tournament_options_.sprt.beta, tournament_options_.sprt.elo0,
                  tournament_options_.sprt.elo1, tournament_options_.sprt.model, tournament_options_.sprt.enabled);
@@ -22,6 +21,9 @@ RoundRobin::RoundRobin(const options::Tournament& tournament_config,
 void RoundRobin::start() {
     Logger::log<Logger::Level::TRACE>("Starting round robin tournament...");
 
+    // Initialize book
+    book_ = book::OpeningBook(tournament_config, initial_matchcount_);
+  
     BaseTournament::start();
 
     // If autosave is enabled, save the results every save_interval games

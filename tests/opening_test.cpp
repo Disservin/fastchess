@@ -86,20 +86,20 @@ TEST_SUITE("Opening Book Test") {
         tournament.opening.order  = OrderType::SEQUENTIAL;
         tournament.opening.start  = 3256;
         tournament.seed           = 123456789;
-        int matchcount            = 0;
+        int matchcount            = 1;
 
         auto book = book::OpeningBook(tournament, matchcount);
         auto id   = book.fetchId();
 
         REQUIRE(id.has_value());
         CHECK(id.value() == 0);
-        CHECK(book[id].fen == "5k2/3r1p2/1p3pp1/p2n3p/P6P/1PPR1PP1/3KN3/6b1 w - - 0 34");
+        CHECK(book[id].fen == "5k2/5p2/4B2p/r5pn/4P3/5PPP/2NR2K1/8 b - - 0 59");
 
         id = book.fetchId();
 
         REQUIRE(id.has_value());
         CHECK(id.value() == 1);
-        CHECK(book[id].fen == "5k2/5p2/4B2p/r5pn/4P3/5PPP/2NR2K1/8 b - - 0 59");
+        CHECK(book[id].fen == "8/p3kp1p/1p4p1/2r2b2/2BR3P/1P3P2/P4PK1/8 b - - 0 28");
 
         id = book.fetchId();
 
@@ -140,7 +140,7 @@ TEST_SUITE("Opening Book Test") {
         tournament.opening.order  = OrderType::RANDOM;
         tournament.opening.start  = 3256;
         tournament.seed           = 123456789;
-        int matchcount            = 0;
+        int matchcount            = 2;
 
         auto book = book::OpeningBook(tournament, matchcount);
         auto id   = book.fetchId();
@@ -164,7 +164,7 @@ TEST_SUITE("Opening Book Test") {
         tournament.opening.order  = OrderType::RANDOM;
         tournament.opening.start  = 3256;
         tournament.seed           = 123456789;
-        int matchcount            = 0;
+        int matchcount            = 1;
 
         auto book = book::OpeningBook(tournament, matchcount);
         auto id   = book.fetchId();
@@ -194,19 +194,19 @@ TEST_SUITE("Opening Book Test") {
         tournament.opening.order  = OrderType::RANDOM;
         tournament.opening.start  = 3256;
         tournament.seed           = 123456789;
-        int matchcount            = 0;
+        int matchcount            = 1;
 
         auto book = book::OpeningBook(tournament, matchcount);
         auto id   = book.fetchId();
 
         REQUIRE(id.has_value());
-        CHECK(id.value() == 55);
+        CHECK(id.value() == 0);
         CHECK(book[id].fen == "r1b1k1nr/ppq3pp/2n1p3/2ppPp2/3P4/P1P3Q1/2P2PPP/R1B1KBNR w KQkq - 2 9");
 
         id = book.fetchId();
 
         REQUIRE(id.has_value());
-        CHECK(id.value() == 56);
+        CHECK(id.value() == 1);
         CHECK(book[id].fen == "rnbqk2r/pp2p1bp/2pp1np1/5P2/3P4/2N3P1/PPP2PB1/R1BQK1NR w KQkq - 3 9");
     }
 }

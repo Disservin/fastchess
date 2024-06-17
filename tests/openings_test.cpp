@@ -17,12 +17,22 @@ TEST_SUITE("Openings") {
         int initial_matchcount = 47;
 
         auto book = book::OpeningBook(tournament, initial_matchcount);
-        std::vector<std::string> epd = book.getEpdBook();
+        std::vector<std::string> book_vector = book.getEpdBook();
+        std::vector<std::size_t> index;
+        std::vector<std::string> opening;
+        index.reserve(tournament.rounds);
+        opening.reserve(tournament.rounds);
 
-        CHECK(epd.size() == 10);
-        CHECK(epd.capacity() == 10);
-        CHECK(epd[0] == "rn1qkb1r/1p3p1p/p2p1np1/2pP4/4P1b1/2N2N2/PP2QPPP/R1B1KB1R w KQkq - 2 9");
-        CHECK(epd[9] == "rnbqk2r/pp2p1bp/2pp1np1/5P2/3P4/2N3P1/PPP2PB1/R1BQK1NR w KQkq - 3 9");
+        for (i=0; i < tournament.rounds; i++) {
+            index[i] = book.fetchId();
+            opening[i] = book[index[i]];
+        }
+
+        CHECK(book_vector.size() == 10);
+        CHECK(opening.size() == 10);
+        CHECK(book_vector.capacity() == 10);
+        CHECK(opening[0] == "rn1qkb1r/1p3p1p/p2p1np1/2pP4/4P1b1/2N2N2/PP2QPPP/R1B1KB1R w KQkq - 2 9");
+        CHECK(opening[9] == "rnbqk2r/pp2p1bp/2pp1np1/5P2/3P4/2N3P1/PPP2PB1/R1BQK1NR w KQkq - 3 9");
     }
 
     TEST_CASE("check pgn openings") {

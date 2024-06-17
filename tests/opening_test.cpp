@@ -129,7 +129,7 @@ TEST_SUITE("Opening Book Test") {
 
         REQUIRE(id.has_value());
         CHECK(id.value() == 1);
-        CHECK(book[id].fen == "rnbqr1k1/pp1p1pp1/3b1n1p/2pP4/7B/2N2N2/PP2PPPP/R2QKB1R w KQ - 4 9");
+        CHECK(book[id].fen == "r1bqkb1r/1p3ppp/p1np1n2/4p3/3NPP2/2N1BQ2/PPP3PP/R3KB1R w KQkq - 0 9");
     }
 
     TEST_CASE("Test fewer openings than rounds random") {

@@ -19,7 +19,6 @@ namespace fast_chess {
 
 BaseTournament::BaseTournament(const options::Tournament &config,
                                const std::vector<EngineConfiguration> &engine_configs) {
-    book_ = book::OpeningBook(config, initial_matchcount_);
     tournament_options_ = config;
     engine_configs_     = engine_configs;
     output_             = OutputFactory::create(config);
@@ -33,7 +32,7 @@ BaseTournament::BaseTournament(const options::Tournament &config,
 
 void BaseTournament::start() {
     Logger::log<Logger::Level::TRACE>("Starting tournament...");
-
+    book_ = book::OpeningBook(config, initial_matchcount_);
     create();
 }
 

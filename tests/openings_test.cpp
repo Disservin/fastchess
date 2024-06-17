@@ -13,6 +13,7 @@ TEST_SUITE("Openings") {
         tournament.opening.format = FormatType::EPD;
         tournament.opening.order = OrderType::RANDOM;
         tournament.opening.start = 3256;
+        tournament.seed = 123456789;
 
         auto book = book::OpeningBook(tournament);
         std::vector<std::string> epd = book.getEpdBook();

@@ -50,8 +50,6 @@ class BaseTournament {
         }
 
         initial_matchcount_ = match_count_;
-
-        book_.setInternalOffset(match_count_);
     }
 
     void setGameConfig(const options::Tournament &tournament_config) noexcept {

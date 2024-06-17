@@ -19,13 +19,10 @@ TEST_SUITE("Openings") {
         auto book = book::OpeningBook(tournament, initial_matchcount);
         std::vector<std::string> book_vector = book.getEpdBook();
         std::vector<std::optional<std::size_t>> index;
-        std::vector<pgn::Opening> opening;
-        index.reserve(tournament.rounds);
-        opening.reserve(tournament.rounds);
+        std::vector<pgn::Opening> opening(tournament.rounds);
 
         for (int i=0; i < tournament.rounds; i++) {
-            index[i] = book.fetchId();
-            opening[i] = book[index[i]];
+            opening[i] = book[book.fetchId()];
         }
 
         CHECK(book_vector.size() == 10);

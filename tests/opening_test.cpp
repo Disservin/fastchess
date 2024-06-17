@@ -86,7 +86,7 @@ TEST_SUITE("Opening Book Test") {
         tournament.opening.order  = OrderType::SEQUENTIAL;
         tournament.opening.start  = 3256;
         tournament.seed           = 123456789;
-        int matchcount            = 1;
+        int matchcount            = 2;
 
         auto book = book::OpeningBook(tournament, matchcount);
         auto id   = book.fetchId();
@@ -164,7 +164,7 @@ TEST_SUITE("Opening Book Test") {
         tournament.opening.order  = OrderType::RANDOM;
         tournament.opening.start  = 3256;
         tournament.seed           = 123456789;
-        int matchcount            = 1;
+        int matchcount            = 2;
 
         auto book = book::OpeningBook(tournament, matchcount);
         auto id   = book.fetchId();
@@ -194,7 +194,7 @@ TEST_SUITE("Opening Book Test") {
         tournament.opening.order  = OrderType::RANDOM;
         tournament.opening.start  = 3256;
         tournament.seed           = 123456789;
-        int matchcount            = 1;
+        int matchcount            = 2;
 
         auto book = book::OpeningBook(tournament, matchcount);
         auto id   = book.fetchId();

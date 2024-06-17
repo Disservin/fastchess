@@ -22,7 +22,7 @@ void RoundRobin::start() {
     Logger::log<Logger::Level::TRACE>("Starting round robin tournament...");
 
     // Initialize book
-    book_ = book::OpeningBook(tournament_config, initial_matchcount_);
+    book_ = book::OpeningBook(tournament_options_, initial_matchcount_);
   
     BaseTournament::start();
 

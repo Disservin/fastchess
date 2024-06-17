@@ -21,7 +21,7 @@ TEST_SUITE("Openings") {
 
         CHECK(epd.size() == 10);
         CHECK(epd.capacity() == 10);
-        CHECK(fen == "r1b1k1nr/pp1nqppp/2p5/4p1bQ/2B1P3/8/PPP2PPP/RNB2RK1 w kq - 2 9");
+        CHECK(fen == "rnbq1rk1/1p3pbp/p2ppnp1/2pP4/P1P1P3/2N2N1P/1P3PP1/R1BQKB1R w KQ - 0 9");
     }
 }
 

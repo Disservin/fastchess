@@ -14,8 +14,9 @@ TEST_SUITE("Opening Book Test") {
         tournament.opening.order  = OrderType::SEQUENTIAL;
         tournament.opening.start  = 3256;
         tournament.seed           = 123456789;
+        int matchcount            = 0;
 
-        auto book = book::OpeningBook(tournament);
+        auto book = book::OpeningBook(tournament, matchcount);
         auto id   = book.fetchId();
 
         REQUIRE(id.has_value());
@@ -85,8 +86,9 @@ TEST_SUITE("Opening Book Test") {
         tournament.opening.order  = OrderType::SEQUENTIAL;
         tournament.opening.start  = 3256;
         tournament.seed           = 123456789;
+        int matchcount            = 0;
 
-        auto book = book::OpeningBook(tournament);
+        auto book = book::OpeningBook(tournament, matchcount);
         auto id   = book.fetchId();
 
         REQUIRE(id.has_value());
@@ -114,8 +116,9 @@ TEST_SUITE("Opening Book Test") {
         tournament.opening.order  = OrderType::RANDOM;
         tournament.opening.start  = 3256;
         tournament.seed           = 123456789;
+        int matchcount            = 0;
 
-        auto book = book::OpeningBook(tournament);
+        auto book = book::OpeningBook(tournament, matchcount);
         auto id   = book.fetchId();
 
         REQUIRE(id.has_value());
@@ -137,8 +140,9 @@ TEST_SUITE("Opening Book Test") {
         tournament.opening.order  = OrderType::RANDOM;
         tournament.opening.start  = 3256;
         tournament.seed           = 123456789;
+        int matchcount            = 0;
 
-        auto book = book::OpeningBook(tournament);
+        auto book = book::OpeningBook(tournament, matchcount);
         auto id   = book.fetchId();
 
         REQUIRE(id.has_value());
@@ -160,8 +164,9 @@ TEST_SUITE("Opening Book Test") {
         tournament.opening.order  = OrderType::RANDOM;
         tournament.opening.start  = 3256;
         tournament.seed           = 123456789;
+        int matchcount            = 0;
 
-        auto book = book::OpeningBook(tournament);
+        auto book = book::OpeningBook(tournament, matchcount);
         auto id   = book.fetchId();
 
         REQUIRE(id.has_value());
@@ -189,8 +194,9 @@ TEST_SUITE("Opening Book Test") {
         tournament.opening.order  = OrderType::RANDOM;
         tournament.opening.start  = 3256;
         tournament.seed           = 123456789;
+        int matchcount            = 0;
 
-        auto book = book::OpeningBook(tournament);
+        auto book = book::OpeningBook(tournament, matchcount);
         auto id   = book.fetchId();
 
         REQUIRE(id.has_value());

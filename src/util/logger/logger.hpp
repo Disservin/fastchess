@@ -46,7 +46,7 @@ class Logger {
 
         if constexpr (thread) {
             file_ss << "[" << util::time::datetime_precise() << "] "               //
-                    << " <" << std::setw(3) << std::this_thread::get_id() << "> "  //
+                    << " <" << std::this_thread::get_id() << "> "  //
                     << "fastchess"                                                 //
                     << " --- "                                                     //
                     << ss.str();

@@ -27,7 +27,7 @@ TEST_SUITE("Openings") {
         TEST_CASE("check pgn openings") {
         options::Tournament tournament;
         tournament.rounds = 10;
-        tournament.opening.file = "tests/data/openings.pgn";
+        tournament.opening.file = "tests/data/test2.pgn";
         tournament.opening.format = FormatType::PGN;
         tournament.opening.order = OrderType::RANDOM;
         tournament.opening.start = 3256;

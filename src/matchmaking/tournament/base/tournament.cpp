@@ -18,8 +18,7 @@
 namespace fast_chess {
 
 BaseTournament::BaseTournament(const options::Tournament &config,
-                               const std::vector<EngineConfiguration> &engine_configs)
-    : book_(config) {
+                               const std::vector<EngineConfiguration> &engine_configs) {
     tournament_options_ = config;
     engine_configs_     = engine_configs;
     output_             = OutputFactory::create(config);

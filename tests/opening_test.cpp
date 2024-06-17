@@ -153,7 +153,7 @@ TEST_SUITE("Opening Book Test") {
 
         REQUIRE(id.has_value());
         CHECK(id.value() == 1);
-        CHECK(book[id].fen == "5k2/3r1p2/1p3pp1/p2n3p/P6P/1PPR1PP1/3KN3/6b1 w - - 0 34");
+        CHECK(book[id].fen == "5k2/5p2/4B2p/r5pn/4P3/5PPP/2NR2K1/8 b - - 0 59");
     }
 
     TEST_CASE("Test equal openings to rounds random") {

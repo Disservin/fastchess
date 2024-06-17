@@ -23,7 +23,7 @@ TEST_SUITE("Openings") {
         index.reserve(tournament.rounds);
         opening.reserve(tournament.rounds);
 
-        for (i=0; i < tournament.rounds; i++) {
+        for (int i=0; i < tournament.rounds; i++) {
             index[i] = book.fetchId();
             opening[i] = book[index[i]];
         }

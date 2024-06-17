@@ -11,7 +11,7 @@ TEST_SUITE("Openings") {
         tournament.rounds = 10;
         tournament.opening.file = "tests/data/openings.epd";
         tournament.opening.format = FormatType::EPD;
-        tournament.opening.order = OrderType::RANDOM;
+        tournament.opening.order = OrderType::SEQUENTIAL;
         tournament.opening.start = 3256;
         tournament.seed = 123456789;
         int initial_matchcount = 47;
@@ -35,7 +35,7 @@ TEST_SUITE("Openings") {
         tournament.rounds = 110;
         tournament.opening.file = "tests/data/openings.epd";
         tournament.opening.format = FormatType::EPD;
-        tournament.opening.order = OrderType::RANDOM;
+        tournament.opening.order = OrderType::SEQUENTIAL;
         tournament.opening.start = 3256;
         tournament.seed = 123456789;
         int initial_matchcount = 47;

@@ -37,8 +37,9 @@ void OpeningBook::setup(const std::string& file, FormatType type) {
         std::streampos start_pos = 0;
         while (util::safeGetline(opening_file_, line)) {
             if (line.empty()) continue;
-            std::streampos end_pos = opening_file_.tellg();
+            std::streampos end_pos = start_pos + std::streampos(line.size() + 1);
             std::get<epd_book>(book_).emplace_back(std::make_pair(start_pos, end_pos));
+            std::cout << "start_pos: " << start_pos << " end_pos: " << end_pos << std::endl;
             start_pos = end_pos;
         }
     }

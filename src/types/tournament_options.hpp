@@ -97,7 +97,7 @@ struct Tournament {
     OutputType output = OutputType::FASTCHESS;
 #endif
 
-    uint32_t seed = 951356066;
+    uint64_t seed = 951356066;
 
     int ratinginterval   = 10;
     int scoreinterval    = 1;

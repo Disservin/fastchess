@@ -14,6 +14,8 @@ OpeningBook::OpeningBook(const options::Tournament& tournament, std::size_t init
     rounds_ = tournament.rounds;
     order_  = tournament.opening.order;
     plies_  = tournament.opening.plies;
+
+    // - 1 because start starts at 1 in the opening options
     offset_ = start_ - 1 + initial_matchcount / games_;
     setup(tournament.opening.file, tournament.opening.format);
 }

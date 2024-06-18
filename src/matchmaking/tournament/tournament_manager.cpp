@@ -12,8 +12,8 @@ TournamentManager::TournamentManager(const options::Tournament& tournament_confi
 
     while (tournament_options_.randomseed && tournament_options_.seed == 951356066) {
         std::random_device rd;
-        std::mt19937 gen(rd());
-        std::uniform_int_distribution<uint32_t> dist(0, std::numeric_limits<uint32_t>::max());
+        std::mt19937_64 gen(rd());
+        std::uniform_int_distribution<uint64_t> dist(0, std::numeric_limits<uint64_t>::max());
         tournament_options_.seed = dist(gen);
     }
 

@@ -126,6 +126,38 @@ TEST_SUITE("Opening Book Test") {
         CHECK(book[id].fen == "r1bqkb1r/1p3ppp/p1np1n2/4p3/3NPP2/2N1BQ2/PPP3PP/R3KB1R w KQkq - 0 9");
     }
 
+    TEST_CASE("Test more openings than rounds, Initial Matchcount 1") {
+        options::Tournament tournament;
+        tournament.rounds         = 2;
+        tournament.opening.file   = "tests/data/openings.epd";
+        tournament.opening.format = FormatType::EPD;
+        tournament.opening.order  = OrderType::SEQUENTIAL;
+        tournament.opening.start  = 1;
+
+        auto book = book::OpeningBook(tournament, 1);
+        auto id   = book.fetchId();
+
+        REQUIRE(id.has_value());
+        CHECK(id.value() == 0);
+        CHECK(book[id].fen == "r1bqkb1r/pp3pp1/2nppn2/7p/3NP1PP/2N5/PPP2P2/R1BQKBR1 w Qkq - 0 9");
+    }
+
+    TEST_CASE("Test more openings than rounds, Initial Matchcount 2") {
+        options::Tournament tournament;
+        tournament.rounds         = 2;
+        tournament.opening.file   = "tests/data/openings.epd";
+        tournament.opening.format = FormatType::EPD;
+        tournament.opening.order  = OrderType::SEQUENTIAL;
+        tournament.opening.start  = 1;
+
+        auto book = book::OpeningBook(tournament, 2);
+        auto id   = book.fetchId();
+
+        REQUIRE(id.has_value());
+        CHECK(id.value() == 1);
+        CHECK(book[id].fen == "rnb2rk1/ppp2pbp/3p2p1/3Pp2n/2P1P2q/2N1BP2/PP1Q2PP/R3KBNR w KQ - 3 9");
+    }
+
     TEST_CASE("Test fewer openings than rounds random") {
         options::Tournament tournament;
         tournament.rounds         = 4;

@@ -12,9 +12,7 @@ int main(int argc, char const *argv[]) {
     auto options = cli::OptionsParser(argc, argv);
 
     {
-        auto tour = TournamentManager(options.getGameOptions(), options.getEngineConfigs());
-
-        tour.roundRobin()->setResults(options.getResults());
+        auto tour = TournamentManager(options.getGameOptions(), options.getEngineConfigs(), options.getResults());
 
         tour.start();
     }

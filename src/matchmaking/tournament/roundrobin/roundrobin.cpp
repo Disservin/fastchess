@@ -11,8 +11,8 @@
 namespace fast_chess {
 
 RoundRobin::RoundRobin(const options::Tournament& tournament_config,
-                       const std::vector<EngineConfiguration>& engine_configs)
-    : BaseTournament(tournament_config, engine_configs) {
+                       const std::vector<EngineConfiguration>& engine_configs, const stats_map& results)
+    : BaseTournament(tournament_config, engine_configs, results) {
     // Initialize the SPRT test
     sprt_ = SPRT(tournament_options_.sprt.alpha, tournament_options_.sprt.beta, tournament_options_.sprt.elo0,
                  tournament_options_.sprt.elo1, tournament_options_.sprt.model, tournament_options_.sprt.enabled);
@@ -69,7 +69,7 @@ void RoundRobin::create() {
             return stats;
         };
 
-        const auto opening = book_[opening_id];
+        const auto opening = (*book_)[opening_id];
 
         const std::size_t game_id = round_id * tournament_options_.games + (g + 1);
         const auto stm            = opening.stm;
@@ -131,7 +131,7 @@ void RoundRobin::create() {
             int offset = initial_matchcount_ / tournament_options_.games;
             for (int k = offset; k < tournament_options_.rounds; k++) {
                 // both players get the same opening
-                const auto opening = book_.fetchId();
+                const auto opening = book_->fetchId();
 
                 for (int g = 0; g < tournament_options_.games; g++) {
                     pool_.enqueue(create_match, i, j, k, g, opening);

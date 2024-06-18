@@ -8,11 +8,12 @@
 
 namespace fast_chess::book {
 
-OpeningBook::OpeningBook(const options::Tournament& tournament) {
-    start_ = tournament.opening.start;
-    games_ = tournament.games;
-    order_ = tournament.opening.order;
-    plies_ = tournament.opening.plies;
+OpeningBook::OpeningBook(const options::Tournament& tournament, std::size_t initial_matchcount) {
+    start_      = tournament.opening.start;
+    games_      = tournament.games;
+    order_      = tournament.opening.order;
+    plies_      = tournament.opening.plies;
+    matchcount_ = initial_matchcount;
     setup(tournament.opening.file, tournament.opening.format);
 }
 

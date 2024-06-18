@@ -23,7 +23,7 @@ extern std::atomic_bool stop;
 class RoundRobin : public BaseTournament {
    public:
     explicit RoundRobin(const options::Tournament &tournament_config,
-                        const std::vector<EngineConfiguration> &engine_configs);
+                        const std::vector<EngineConfiguration> &engine_configs, const stats_map &results);
 
     // starts the round robin
     void start() override;

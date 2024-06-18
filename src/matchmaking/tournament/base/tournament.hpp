@@ -21,7 +21,8 @@ extern std::atomic_bool stop;
 
 class BaseTournament {
    public:
-    BaseTournament(const options::Tournament &config, const std::vector<EngineConfiguration> &engine_configs);
+    BaseTournament(const options::Tournament &config, const std::vector<EngineConfiguration> &engine_configs,
+                   const stats_map &results);
 
     virtual ~BaseTournament() {
         Logger::log<Logger::Level::TRACE>("Destroying tournament...");
@@ -50,8 +51,6 @@ class BaseTournament {
         }
 
         initial_matchcount_ = match_count_;
-
-        book_.setInternalOffset(match_count_);
     }
 
     void setGameConfig(const options::Tournament &tournament_config) noexcept {
@@ -80,8 +79,8 @@ class BaseTournament {
     std::unique_ptr<affinity::AffinityManager> cores_;
     std::unique_ptr<util::FileWriter> file_writer_pgn;
     std::unique_ptr<util::FileWriter> file_writer_epd;
+    std::unique_ptr<book::OpeningBook> book_;
 
-    book::OpeningBook book_;
     options::Tournament tournament_options_;
     std::vector<EngineConfiguration> engine_configs_;
 

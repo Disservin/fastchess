@@ -18,8 +18,7 @@
 namespace fast_chess {
 
 BaseTournament::BaseTournament(const options::Tournament &config,
-                               const std::vector<EngineConfiguration> &engine_configs)
-    : book_(config) {
+                               const std::vector<EngineConfiguration> &engine_configs, const stats_map &results) {
     tournament_options_ = config;
     engine_configs_     = engine_configs;
     output_             = OutputFactory::create(config);
@@ -29,6 +28,10 @@ BaseTournament::BaseTournament(const options::Tournament &config,
     if (!config.epd.file.empty()) file_writer_epd = std::make_unique<util::FileWriter>(config.epd.file);
 
     pool_.resize(config.concurrency);
+
+    setResults(results);
+
+    book_ = std::make_unique<book::OpeningBook>(config, initial_matchcount_);
 }
 
 void BaseTournament::start() {

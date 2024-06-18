@@ -19,13 +19,11 @@ class OpeningBook {
 
     // Fisher-Yates / Knuth shuffle
     void shuffle() {
-        const auto shuffle = [this](auto& vec) {
-            if (order_ == OrderType::RANDOM) {
-                for (std::size_t i = 0; i + 2 <= vec.size(); i++) {
-                    auto rand     = util::random::mersenne_rand();
-                    std::size_t j = i + (rand % (vec.size() - i));
-                    std::swap(vec[i], vec[j]);
-                }
+        const auto shuffle = [](auto& vec) {
+            for (std::size_t i = 0; i + 2 <= vec.size(); i++) {
+                auto rand     = util::random::mersenne_rand();
+                std::size_t j = i + (rand % (vec.size() - i));
+                std::swap(vec[i], vec[j]);
             }
         };
 
@@ -33,25 +31,27 @@ class OpeningBook {
     }
 
     // Rotates the book vector based on the starting offset
-    void rotate() {
-        const auto rotate = [this](auto& vec) {
-            std::rotate(vec.begin(), vec.begin() + (offset_ % vec.size()), vec.end());
+    void rotate(std::size_t offset) {
+        const auto rotate = [offset](auto& vec) {
+            std::rotate(vec.begin(), vec.begin() + (offset % vec.size()), vec.end());
         };
 
         std::visit(rotate, book_);
     }
 
-   // Gets rid of unused openings within the book vector to reduce memory usage
-   void truncate() {
-        const auto truncate = [this](auto& vec) {
-            if (vec.size() > static_cast<std::size_t>(rounds_)) { vec.resize(rounds_); }
+    // Gets rid of unused openings within the book vector to reduce memory usage
+    void truncate(std::size_t rounds) {
+        const auto truncate = [rounds](auto& vec) {
+            if (vec.size() > rounds) {
+                vec.resize(rounds);
+            }
         };
 
         std::visit(truncate, book_);
     }
 
-   // Shrink book vector
-   void shrink() {
+    // Shrink book vector
+    void shrink() {
         const auto shrink = [](auto& vec) { vec.shrink_to_fit(); };
 
         std::visit(shrink, book_);

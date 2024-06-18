@@ -30,7 +30,7 @@ void OpeningBook::setup(const std::string& file, FormatType type) {
             throw std::runtime_error("No openings found in PGN file: " + file);
         }
     } else if (type == FormatType::EPD) {
-        std::ifstream in(file, std::ios::binary | std::ios::ate);
+        std::ifstream in(file, std::ios::ate);
         if (!in) {
             throw std::runtime_error("Error opening EPD file: " + file);
         }

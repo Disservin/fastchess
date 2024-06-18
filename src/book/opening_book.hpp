@@ -21,7 +21,6 @@ class OpeningBook {
     void shuffle() {
         const auto shuffle = [this](auto& vec) {
             if (order_ == OrderType::RANDOM) {
-                util::random::mersenne_rand.seed(seed_);
                 for (std::size_t i = 0; i + 2 <= vec.size(); i++) {
                     auto rand     = util::random::mersenne_rand();
                     std::size_t j = i + (rand % (vec.size() - i));

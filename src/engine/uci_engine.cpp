@@ -64,7 +64,11 @@ void UciEngine::loadConfig(const EngineConfiguration &config) { config_ = config
 
 void UciEngine::quit() {
     Logger::log<Logger::Level::TRACE, true>("Sending quit to engine", config_.name);
-    writeEngine("quit");
+    try {
+        writeEngine("quit");
+    } catch (const std::exception &e) {
+        Logger::log<Logger::Level::TRACE, true>("Raised Exception when quitting engine", e.what());
+    }
 }
 
 void UciEngine::sendSetoption(const std::string &name, const std::string &value) {
@@ -158,9 +162,8 @@ void UciEngine::writeEngine(const std::string &input) {
     try {
         writeProcess(input + "\n");
     } catch (const std::exception &e) {
-        std::cout << input << std::endl;
-        Logger::log<Logger::Level::ERR, true>("Raised Exception in writeProcess\nWarning; Engine", config_.name,
-                                              "disconnects");
+        Logger::log<Logger::Level::TRACE, true>("Raised Exception in writeProcess", e.what());
+        Logger::log<Logger::Level::ERR, true>("Warning; Engine", config_.name, "disconnects");
 
         throw e;
     }

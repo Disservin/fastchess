@@ -62,12 +62,14 @@ class OpeningBook {
     pgn::Opening operator[](std::optional<std::size_t> idx) const noexcept {
         if (!idx.has_value()) return {chess::constants::STARTPOS, {}};
 
-        assert(idx.has_value() && idx.value() < std::get<epd_book>(book_).size());
-
         if (std::holds_alternative<epd_book>(book_)) {
+            assert(idx.value() < std::get<epd_book>(book_).size());
+
             const auto fen = std::get<epd_book>(book_)[*idx];
             return {std::string(fen), {}, chess::Board(fen).sideToMove()};
         }
+
+        assert(idx.value() < std::get<pgn_book>(book_).size());
 
         return std::get<pgn_book>(book_)[*idx];
     }

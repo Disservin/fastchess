@@ -71,14 +71,6 @@ class OpeningBook {
         return std::get<pgn_book>(book_)[*idx];
     }
 
-    std::vector<std::string> getEpdBook() {
-       return std::get<epd_book>(book_);
-    }
-
-    std::vector<pgn::Opening> getPgnBook() {
-       return std::get<pgn_book>(book_);
-    }
-
    private:
     void setup(const std::string& file, FormatType type);
 

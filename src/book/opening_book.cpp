@@ -68,8 +68,7 @@ void OpeningBook::setup(const std::string& file, FormatType type) {
 
     opening_file_.read(&line[0], size);
 
-    line.erase(std::remove(line.begin(), line.end(), '\n'), line.cend());
-    line.erase(std::remove(line.begin(), line.end(), '\r'), line.cend());
+    line.erase(line.find_last_not_of(" \n\r\t") + 1);  // Trim the line from the right
 
     return line;
 }

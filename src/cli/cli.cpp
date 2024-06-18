@@ -38,7 +38,7 @@ void parseValue(const std::vector<std::string> &params, T &value) {
     else if constexpr (std::is_same_v<T, uint32_t>)
         value = std::stoul(str);
     else if constexpr (std::is_same_v<T, uint64_t>)
-        value = std::stoul(str);
+        value = std::stoull(str);
     else if constexpr (std::is_same_v<T, float>)
         value = std::stof(str);
     else if constexpr (std::is_same_v<T, double>)

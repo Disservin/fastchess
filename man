@@ -144,7 +144,7 @@ OPTIONS
             Default seed is 951356066.
 
         -randomseed
-            Automatically picks a random seed value between 0 and (2^32 - 1)
+            Automatically picks a random seed value between 0 and (2^64 - 1)
             for opening book randomization.
 
         -log file=NAME level=LEVEL

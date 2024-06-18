@@ -116,13 +116,13 @@ TEST_SUITE("Opening Book Test") {
         auto id   = book.fetchId();
 
         REQUIRE(id.has_value());
-        CHECK(id.value() == 55);
+        CHECK(id.value() == 0);
         CHECK(book[id].fen == "r1b1kb1r/1p2pppp/p1np4/q5B1/3NP1n1/2N4P/PPP2PP1/R2QKB1R w KQkq - 1 9");
 
         id = book.fetchId();
 
         REQUIRE(id.has_value());
-        CHECK(id.value() == 56);
+        CHECK(id.value() == 1);
         CHECK(book[id].fen == "r1bqkb1r/1p3ppp/p1np1n2/4p3/3NPP2/2N1BQ2/PPP3PP/R3KB1R w KQkq - 0 9");
     }
 
@@ -154,7 +154,7 @@ TEST_SUITE("Opening Book Test") {
         auto id   = book.fetchId();
 
         REQUIRE(id.has_value());
-        CHECK(id.value() == 1);
+        CHECK(id.value() == 0);
         CHECK(book[id].fen == "rnb2rk1/ppp2pbp/3p2p1/3Pp2n/2P1P2q/2N1BP2/PP1Q2PP/R3KBNR w KQ - 3 9");
     }
 
@@ -229,13 +229,13 @@ TEST_SUITE("Opening Book Test") {
         auto id   = book.fetchId();
 
         REQUIRE(id.has_value());
-        CHECK(id.value() == 55);
+        CHECK(id.value() == 0);
         CHECK(book[id].fen == "1n1qkb1r/rp3ppp/p1p1pn2/2PpN2b/3PP3/1QN5/PP3PPP/R1B1KB1R w KQk - 0 9");
 
         id = book.fetchId();
 
         REQUIRE(id.has_value());
-        CHECK(id.value() == 56);
+        CHECK(id.value() == 1);
         CHECK(book[id].fen == "rnbqkb1r/5ppp/p2p1n2/2pP4/Pp2P3/5NP1/1P3P1P/RNBQKB1R w KQkq - 0 9");
     }
 }

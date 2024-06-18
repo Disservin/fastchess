@@ -32,12 +32,14 @@ class OpeningBook {
 
     [[nodiscard]] std::optional<std::size_t> fetchId() noexcept;
 
-    pgn::Opening operator[](std::optional<std::size_t> idx) const noexcept {
+    [[nodiscard]] pgn::Opening operator[](std::optional<std::size_t> idx) {
         if (!idx.has_value()) return {chess::constants::STARTPOS, {}};
 
         if (std::holds_alternative<epd_book>(book_)) {
-            const auto fen = std::get<epd_book>(book_)[*idx];
-            return {std::string(fen), {}, chess::Board(fen).sideToMove()};
+            const auto pos = std::get<epd_book>(book_)[*idx];
+            const auto fen = readLineFromEpdBook(pos.first, pos.second);
+
+            return {fen, {}, chess::Board(fen).sideToMove()};
         }
 
         return std::get<pgn_book>(book_)[*idx];
@@ -46,7 +48,9 @@ class OpeningBook {
    private:
     void setup(const std::string& file, FormatType type);
 
-    using epd_book = std::vector<std::string>;
+    [[nodiscard]] std::string readLineFromEpdBook(std::streampos start, std::streampos end);
+
+    using epd_book = std::vector<std::pair<std::streampos, std::streampos>>;
     using pgn_book = std::vector<pgn::Opening>;
 
     std::size_t opening_index_ = 0;
@@ -56,6 +60,8 @@ class OpeningBook {
     int plies_;
     OrderType order_;
     std::variant<epd_book, pgn_book> book_;
+
+    std::ifstream opening_file_;
 };
 
 }  // namespace fast_chess::book

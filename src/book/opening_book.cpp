@@ -31,21 +31,15 @@ void OpeningBook::setup(const std::string& file, FormatType type) {
             throw std::runtime_error("No openings found in PGN file: " + file);
         }
     } else if (type == FormatType::EPD) {
-        std::ifstream openingFile;
-        openingFile.open(file);
+        opening_file_.open(file);
 
         std::string line;
-        while (util::safeGetline(openingFile, line)) {
+        std::streampos start_pos = 0;
+        while (util::safeGetline(opening_file_, line)) {
             if (line.empty()) continue;
-            std::get<epd_book>(book_).push_back(line);
-        }
-
-        openingFile.close();
-
-        std::get<epd_book>(book_).shrink_to_fit();
-
-        if (std::get<epd_book>(book_).empty()) {
-            throw std::runtime_error("No openings found in EPD file: " + file);
+            std::streampos end_pos = opening_file_.tellg();
+            std::get<epd_book>(book_).emplace_back(std::make_pair(start_pos, end_pos));
+            start_pos = end_pos;
         }
     }
 
@@ -63,6 +57,21 @@ void OpeningBook::setup(const std::string& file, FormatType type) {
     }
 
     return idx % book_size;
+}
+
+[[nodiscard]] std::string OpeningBook::readLineFromEpdBook(std::streampos start, std::streampos end) {
+    opening_file_.clear();
+    opening_file_.seekg(start);
+
+    std::streamsize size = end - start;
+    std::string line(size, ' ');
+
+    opening_file_.read(&line[0], size);
+
+    line.erase(std::remove(line.begin(), line.end(), '\n'), line.cend());
+    line.erase(std::remove(line.begin(), line.end(), '\r'), line.cend());
+
+    return line;
 }
 
 }  // namespace fast_chess::book

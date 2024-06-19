@@ -19,7 +19,7 @@ make -j build=debug $1
 OUTPUT_FILE=$(mktemp)
 ./fast-chess -engine cmd=random_mover name=random_move_1 -engine cmd=random_mover name=random_move_2 \
     -each tc=2+0.02s -rounds 5 -repeat -concurrency 2 \
-    -openings file=app/tests/data/openings.epd format=epd order=random -log file=log.txt level=info 2>&1 | tee $OUTPUT_FILE
+    -openings file=./app/tests/data/openings.epd format=epd order=random -log file=log.txt level=info 2>&1 | tee $OUTPUT_FILE
 
 if grep -q "WARNING: ThreadSanitizer:" $OUTPUT_FILE; then
     echo "Data races detected."

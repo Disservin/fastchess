@@ -1,6 +1,7 @@
 ROOT_DIR:=$(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 
 all: fetch-subs ## Build the project
+	echo $(MAKEFLAGS)
 	@echo "Building.."
 	$(MAKE) -C app BINARY_PATH=$(ROOT_DIR)
 	@echo "Done."
@@ -24,7 +25,7 @@ update-man: man ## Update man like page
 
 tests: ## Run tests
 	@echo "Running tests.."
-	$(MAKE) -C app tests
+	$(MAKE) -C app tests BINARY_PATH=$(ROOT_DIR)
 	@echo "Done."
 
 format: ## Format code

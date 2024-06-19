@@ -123,10 +123,10 @@ update-man: man
 	rm temp.hpp
 	clang-format -i ./src/cli/man.hpp
 
-tests: $(TARGET)
+tests: fetch-subs $(TARGET)
 	$(CXX) $(CXXFLAGS) ./tests/mock/engine/dummy_engine.cpp -o ./tests/mock/engine/dummy_engine$(SUFFIX) $(LDFLAGS)
 
-format: fetch-subs $(SRC_FILES) $(HEADERS)
+format: $(SRC_FILES) $(HEADERS)
 	clang-format -i $^
 
 $(TARGET): $(OBJECTS)

@@ -75,17 +75,25 @@ void BaseTournament::playGame(const std::pair<EngineConfiguration, EngineConfigu
     start();
 
     auto match = Match(tournament_options_, opening);
+    match.start(engine_one.get().get(), engine_two.get().get(), core.get().cpus);
 
-    try {
-        match.start(engine_one.get().get(), engine_two.get().get(), core.get().cpus);
-    } catch (const std::exception &e) {
-        atomic::stop = true;
-        Logger::log<Logger::Level::ERR>("Exception RoundRobin:::playGame " + std::string(e.what()));
+    if (match.isCrashOrDisconnect()) {
+        // restart the engine when recover is enabled
+        if (tournament_options_.recover) {
+            Logger::log<Logger::Level::TRACE>("Restarting engine...");
+            if (!engine_one.get().get().isResponsive()) {
+                Logger::log<Logger::Level::TRACE>("Restarting engine", configs.first.name);
+                engine_one.get().get().refreshUci();
+            }
 
-        return;
+            if (!engine_two.get().get().isResponsive()) {
+                Logger::log<Logger::Level::TRACE>("Restarting engine", configs.second.name);
+                engine_two.get().get().refreshUci();
+            }
+        } else {
+            atomic::stop = true;
+        }
     }
-
-    if (atomic::stop) return;
 
     const auto match_data = match.get();
 
@@ -95,9 +103,9 @@ void BaseTournament::playGame(const std::pair<EngineConfiguration, EngineConfigu
             file_writer_pgn->write(pgn::PgnBuilder(match_data, tournament_options_, game_id + 1).get());
         if (!tournament_options_.epd.file.empty())
             file_writer_epd->write(epd::EpdBuilder(match_data, tournament_options_).get());
-    }
 
-    finish({match_data}, match_data.reason);
+        finish({match_data}, match_data.reason);
+    }
 }
 
 int BaseTournament::getMaxAffinity(const std::vector<EngineConfiguration> &configs) const noexcept {

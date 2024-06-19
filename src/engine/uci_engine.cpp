@@ -11,37 +11,48 @@
 namespace fast_chess::engine {
 
 bool UciEngine::isResponsive(std::chrono::milliseconds threshold) {
-    if (!alive()) return false;
+    try {
+        if (!alive()) return false;
 
-    Logger::log<Logger::Level::TRACE, true>("Pinging engine", config_.name);
+        Logger::log<Logger::Level::TRACE, true>("Pinging engine", config_.name);
 
-    writeEngine("isready");
+        writeEngine("isready");
 
-    std::vector<process::Line> output;
-    const auto res = readProcess(output, "readyok", threshold);
+        std::vector<process::Line> output;
+        const auto res = readProcess(output, "readyok", threshold);
 
-    for (const auto &line : output) {
-        Logger::readFromEngine(line.line, line.time, config_.name, line.std == process::Standard::ERR);
+        for (const auto &line : output) {
+            Logger::readFromEngine(line.line, line.time, config_.name, line.std == process::Standard::ERR);
+        }
+
+        if (res != process::Status::OK) {
+            Logger::log<Logger::Level::TRACE, true>("Engine", config_.name, "didn't respond to isready.");
+            Logger::log<Logger::Level::WARN, true>("Warning; Engine", config_.name, "is not responsive.");
+        }
+
+        Logger::log<Logger::Level::TRACE, true>("Engine", config_.name,
+                                                res == process::Status::OK ? "is responsive." : "is not responsive.");
+
+        return res == process::Status::OK;
+
+    } catch (const std::exception &e) {
+        Logger::log<Logger::Level::TRACE, true>("Raised Exception in isResponsive", e.what());
+
+        return false;
     }
-
-    if (res != process::Status::OK) {
-        Logger::log<Logger::Level::TRACE, true>("Engine", config_.name, "didn't respond to isready.");
-        Logger::log<Logger::Level::WARN, true>("Warning; Engine", config_.name, "is not responsive.");
-    }
-
-    Logger::log<Logger::Level::TRACE, true>("Engine", config_.name,
-                                            res == process::Status::OK ? "is responsive." : "is not responsive.");
-
-    return res == process::Status::OK;
 }
 
 bool UciEngine::ucinewgame() {
     Logger::log<Logger::Level::TRACE, true>("Sending ucinewgame to engine", config_.name);
 
-    writeEngine("ucinewgame");
-    const auto res = isResponsive(initialize_time);
-
-    return res;
+    try {
+        writeEngine("ucinewgame");
+        const auto res = isResponsive(initialize_time);
+        return res;
+    } catch (const std::exception &e) {
+        Logger::log<Logger::Level::TRACE, true>("Raised Exception in ucinewgame", e.what());
+        return false;
+    }
 }
 
 void UciEngine::uci() {
@@ -163,7 +174,6 @@ void UciEngine::writeEngine(const std::string &input) {
         writeProcess(input + "\n");
     } catch (const std::exception &e) {
         Logger::log<Logger::Level::TRACE, true>("Raised Exception in writeProcess", e.what());
-        Logger::log<Logger::Level::ERR, true>("Warning; Engine", config_.name, "disconnects");
 
         throw e;
     }

@@ -155,6 +155,8 @@ bool Match::playMove(Player& us, Player& opponent) {
     if (!us.engine.isResponsive()) {
         setLose(us, opponent);
 
+        crash_or_disconnect_ = true;
+
         data_.termination = MatchTermination::DISCONNECT;
         data_.reason      = name + Match::DISCONNECT_MSG;
 
@@ -171,6 +173,8 @@ bool Match::playMove(Player& us, Player& opponent) {
     // wait for readyok
     if (!us.engine.isResponsive()) {
         setLose(us, opponent);
+
+        crash_or_disconnect_ = true;
 
         data_.termination = MatchTermination::DISCONNECT;
         data_.reason      = name + Match::DISCONNECT_MSG;
@@ -190,6 +194,8 @@ bool Match::playMove(Player& us, Player& opponent) {
 
     if (status == engine::process::Status::ERR || !us.engine.isResponsive()) {
         setLose(us, opponent);
+
+        crash_or_disconnect_ = true;
 
         data_.termination = MatchTermination::DISCONNECT;
         data_.reason      = name + Match::DISCONNECT_MSG;

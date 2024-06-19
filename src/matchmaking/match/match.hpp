@@ -114,6 +114,8 @@ class Match {
     // returns the match data, only valid after the match has finished
     [[nodiscard]] const MatchData& get() const { return data_; }
 
+    [[nodiscard]] bool isCrashOrDisconnect() const noexcept { return crash_or_disconnect_; }
+
    private:
     static bool isUciMove(const std::string& move) noexcept;
     void verifyPvLines(const Player& us);
@@ -152,6 +154,8 @@ class Match {
     // start position, required for the uci position command
     // is either startpos or the fen of the opening
     std::string start_position_;
+
+    bool crash_or_disconnect_ = false;
 
     inline static constexpr char INSUFFICIENT_MSG[]     = "Draw by insufficient material";
     inline static constexpr char REPETITION_MSG[]       = "Draw by 3-fold repetition";

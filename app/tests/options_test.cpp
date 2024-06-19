@@ -9,7 +9,7 @@ TEST_SUITE("Option Parsing Tests") {
         const char *argv[] = {"fast-chess.exe",
                               "-engine",
                               "dir=./",
-                              "cmd=tests/mock/engine/dummy_engine",
+                              "cmd=app/tests/mock/engine/dummy_engine",
                               "tc=10/9.64",
                               "depth=5",
                               "st=5",
@@ -19,7 +19,7 @@ TEST_SUITE("Option Parsing Tests") {
                               "name=Alexandria-EA649FED",
                               "-engine",
                               "dir=./",
-                              "cmd=tests/mock/engine/dummy_engine",
+                              "cmd=app/tests/mock/engine/dummy_engine",
                               "tc=40/1:9.65+0.1",
                               "timemargin=243",
                               "plies=7",
@@ -27,7 +27,7 @@ TEST_SUITE("Option Parsing Tests") {
                               "option.Hash=32",
                               "name=Alexandria-27E42728",
                               "-openings",
-                              "file=./tests/data/test.epd",
+                              "file=./app/tests/data/test.epd",
                               "format=epd",
                               "order=random",
                               "plies=16",
@@ -103,7 +103,7 @@ TEST_SUITE("Option Parsing Tests") {
                                       "elo1=5",
                                       "model=bayesian",
                                       "-openings",
-                                      "file=./tests/data/test.epd",
+                                      "file=./app/tests/data/test.epd",
                                       "format=epd",
                                       "order=sequential",
                                       "plies=16",
@@ -171,7 +171,7 @@ TEST_SUITE("Option Parsing Tests") {
         CHECK(gameOptions.pgn.min);
         CHECK(gameOptions.epd.file == "EPDs/Alexandria-EA649FED_vs_Alexandria-27E42728");
         // Test opening settings parsing
-        CHECK(gameOptions.opening.file == "./tests/data/test.epd");
+        CHECK(gameOptions.opening.file == "./app/tests/data/test.epd");
         CHECK(gameOptions.opening.format == FormatType::EPD);
         CHECK(gameOptions.opening.order == OrderType::SEQUENTIAL);
         CHECK(gameOptions.opening.plies == 16);

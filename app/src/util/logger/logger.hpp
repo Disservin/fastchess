@@ -10,6 +10,9 @@
 
 #include <util/date.hpp>
 
+#define FMT_HEADER_ONLY
+#include "../../../third_party/fmt/include/fmt/core.h"
+
 namespace fast_chess {
 
 // Singleton class for logging messages to the console/file.
@@ -25,18 +28,14 @@ class Logger {
 
     static void openFile(const std::string &file);
 
-    template <Level level = Level::WARN, bool thread = false, typename First, typename... Args>
-    static void log(First &&first, Args &&...args) {
+    template <Level level = Level::WARN, bool thread = false, typename... Args>
+    static void log(const std::string &format, Args &&...args) {
         if (level < level_) {
             return;
         }
 
-        std::stringstream ss;
-        ss << std::forward<First>(first);
-        ((ss << " " << std::forward<Args>(args)), ...);
-        ss << "\n";
-
-        std::cout << ss.str() << std::flush;
+        auto message = fmt::format(format + "\n", std::forward<Args>(args)...);
+        std::cout << message << std::flush;
 
         if (!should_log_) {
             return;
@@ -49,11 +48,11 @@ class Logger {
                     << " <" << std::setw(3) << std::this_thread::get_id() << "> "  //
                     << "fastchess"                                                 //
                     << " --- "                                                     //
-                    << ss.str();
+                    << message;
         } else {
             file_ss << "[" << util::time::datetime_precise() << "] "  //
                     << " <fastchess>"                                 //
-                    << ss.str();
+                    << message;
         }
 
         const std::lock_guard<std::mutex> lock(log_mutex_);

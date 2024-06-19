@@ -25,6 +25,9 @@ jobs:
         shell: ${{ matrix.config.shell }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
       - name: Installing required packages
         if: runner.os == 'Linux'
         run: |
@@ -48,16 +51,16 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           make clean
-          bash tests/e2e/e2e.sh san=thread
+          bash app/tests/e2e/e2e.sh san=thread
 
       - name: Asan E2E
         if: runner.os == 'Linux'
         continue-on-error: true
         run: |
           make clean
-          bash tests/e2e/e2e.sh san=asan
+          bash app/tests/e2e/e2e.sh san=asan
 
       - name: Normal E2E
         run: |
           make clean
-          bash tests/e2e/e2e.sh
+          bash app/tests/e2e/e2e.sh

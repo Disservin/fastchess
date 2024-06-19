@@ -406,7 +406,7 @@ void parseLog(const std::vector<std::string> &params, ArgumentData &) {
 
 namespace config {
 void loadJson(ArgumentData &argument_data, const std::string &filename) {
-    Logger::log<Logger::Level::INFO>("Loading config file: ", filename);
+    Logger::log<Logger::Level::INFO>("Loading config file: {}", filename);
     std::ifstream f(filename);
     json jsonfile = json::parse(f);
 

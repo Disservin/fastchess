@@ -73,3 +73,5 @@ tmp
 
 #
 log.txt
+
+!app/tests/data/*

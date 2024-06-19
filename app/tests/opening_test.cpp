@@ -9,7 +9,7 @@ TEST_SUITE("Opening Book Test") {
     TEST_CASE("Test fewer openings than rounds") {
         options::Tournament tournament;
         tournament.rounds         = 10;
-        tournament.opening.file   = "tests/data/test.epd";
+        tournament.opening.file   = "app/tests/data/test.epd";
         tournament.opening.format = FormatType::EPD;
         tournament.opening.order  = OrderType::SEQUENTIAL;
         tournament.opening.start  = 3256;
@@ -79,7 +79,7 @@ TEST_SUITE("Opening Book Test") {
     TEST_CASE("Test equal openings to rounds") {
         options::Tournament tournament;
         tournament.rounds         = 3;
-        tournament.opening.file   = "tests/data/test.epd";
+        tournament.opening.file   = "app/tests/data/test.epd";
         tournament.opening.format = FormatType::EPD;
         tournament.opening.order  = OrderType::SEQUENTIAL;
         tournament.opening.start  = 3256;
@@ -107,7 +107,7 @@ TEST_SUITE("Opening Book Test") {
     TEST_CASE("Test more openings than rounds") {
         options::Tournament tournament;
         tournament.rounds         = 2;
-        tournament.opening.file   = "tests/data/openings.epd";
+        tournament.opening.file   = "app/tests/data/openings.epd";
         tournament.opening.format = FormatType::EPD;
         tournament.opening.order  = OrderType::SEQUENTIAL;
         tournament.opening.start  = 3256;
@@ -129,7 +129,7 @@ TEST_SUITE("Opening Book Test") {
     TEST_CASE("Test more openings than rounds, Initial Matchcount 1") {
         options::Tournament tournament;
         tournament.rounds         = 2;
-        tournament.opening.file   = "tests/data/openings.epd";
+        tournament.opening.file   = "app/tests/data/openings.epd";
         tournament.opening.format = FormatType::EPD;
         tournament.opening.order  = OrderType::SEQUENTIAL;
         tournament.opening.start  = 1;
@@ -145,7 +145,7 @@ TEST_SUITE("Opening Book Test") {
     TEST_CASE("Test more openings than rounds, Initial Matchcount 2") {
         options::Tournament tournament;
         tournament.rounds         = 2;
-        tournament.opening.file   = "tests/data/openings.epd";
+        tournament.opening.file   = "app/tests/data/openings.epd";
         tournament.opening.format = FormatType::EPD;
         tournament.opening.order  = OrderType::SEQUENTIAL;
         tournament.opening.start  = 1;
@@ -161,7 +161,7 @@ TEST_SUITE("Opening Book Test") {
     TEST_CASE("Test fewer openings than rounds random") {
         options::Tournament tournament;
         tournament.rounds         = 4;
-        tournament.opening.file   = "tests/data/test.epd";
+        tournament.opening.file   = "app/tests/data/test.epd";
         tournament.opening.format = FormatType::EPD;
         tournament.opening.order  = OrderType::RANDOM;
         tournament.opening.start  = 3256;
@@ -186,7 +186,7 @@ TEST_SUITE("Opening Book Test") {
     TEST_CASE("Test equal openings to rounds random") {
         options::Tournament tournament;
         tournament.rounds         = 3;
-        tournament.opening.file   = "tests/data/test.epd";
+        tournament.opening.file   = "app/tests/data/test.epd";
         tournament.opening.format = FormatType::EPD;
         tournament.opening.order  = OrderType::RANDOM;
         tournament.opening.start  = 3256;
@@ -217,7 +217,7 @@ TEST_SUITE("Opening Book Test") {
     TEST_CASE("Test more openings than rounds random") {
         options::Tournament tournament;
         tournament.rounds         = 2;
-        tournament.opening.file   = "tests/data/openings.epd";
+        tournament.opening.file   = "app/tests/data/openings.epd";
         tournament.opening.format = FormatType::EPD;
         tournament.opening.order  = OrderType::RANDOM;
         tournament.opening.start  = 3256;

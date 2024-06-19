@@ -69,7 +69,7 @@ void BaseTournament::playGame(const std::pair<EngineConfiguration, EngineConfigu
     auto engine_one = util::ScopeGuard(engine_cache_.getEntry(configs.first.name, configs.first));
     auto engine_two = util::ScopeGuard(engine_cache_.getEntry(configs.second.name, configs.second));
 
-    Logger::log<Logger::Level::TRACE>("Playing game ", game_id + 1, " between ", configs.first.name, " and ",
+    Logger::log<Logger::Level::TRACE>("Playing game {} between {} and {}", game_id + 1, configs.first.name,
                                       configs.second.name);
 
     start();
@@ -82,12 +82,12 @@ void BaseTournament::playGame(const std::pair<EngineConfiguration, EngineConfigu
         if (tournament_options_.recover) {
             Logger::log<Logger::Level::TRACE>("Restarting engine...");
             if (!engine_one.get().get().isResponsive()) {
-                Logger::log<Logger::Level::TRACE>("Restarting engine", configs.first.name);
+                Logger::log<Logger::Level::TRACE>("Restarting engine {}", configs.first.name);
                 engine_one.get().get().refreshUci();
             }
 
             if (!engine_two.get().get().isResponsive()) {
-                Logger::log<Logger::Level::TRACE>("Restarting engine", configs.second.name);
+                Logger::log<Logger::Level::TRACE>("Restarting engine {}", configs.second.name);
                 engine_two.get().get().refreshUci();
             }
         } else {

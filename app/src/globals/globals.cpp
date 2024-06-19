@@ -24,9 +24,9 @@ util::ThreadVector<pid_t> process_list;
 void stopProcesses() {
 #ifdef _WIN64
     for (const auto &pid : process_list) {
-        Logger::log<Logger::Level::TRACE>("Terminating process ", pid);
+        Logger::log<Logger::Level::TRACE>("Terminating process {}", pid);
         TerminateProcess(pid, 1);
-        Logger::log<Logger::Level::TRACE>("Closing handle for process ", pid);
+        Logger::log<Logger::Level::TRACE>("Closing handle for process {}", pid);
         CloseHandle(pid);
     }
 #else

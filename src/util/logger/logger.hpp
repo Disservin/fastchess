@@ -11,7 +11,7 @@
 #include <util/date.hpp>
 
 #define FMT_HEADER_ONLY
-#include "../third_party/fmt/include/fmt/core.h"
+#include "../../../third_party/fmt/include/fmt/core.h"
 
 namespace fast_chess {
 

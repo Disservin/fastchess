@@ -4,6 +4,7 @@
 
 namespace fast_chess::util::random {
 inline std::mt19937_64 mersenne_rand;
+inline std::random_device random_device;
 
 // Function to generate a random integer between x and y (inclusive)
 inline uint64_t rand_int(uint64_t x, uint64_t y) {

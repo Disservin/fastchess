@@ -150,8 +150,7 @@ void RoundRobin::updateSprtStatus(const std::vector<EngineConfiguration>& engine
     if (sprt_.getResult(llr) != SPRT_CONTINUE || match_count_ == total_) {
         atomic::stop = true;
 
-        Logger::log<Logger::Level::INFO>("SPRT test finished: " + sprt_.getBounds() + " " + sprt_.getElo());
-
+        Logger::log<Logger::Level::INFO>("SPRT test finished: {} {}", sprt_.getBounds(), sprt_.getElo());
         output_->printResult(stats, engine_configs[0].name, engine_configs[1].name);
         output_->printInterval(sprt_, stats, engine_configs[0].name, engine_configs[1].name);
         output_->endTournament();

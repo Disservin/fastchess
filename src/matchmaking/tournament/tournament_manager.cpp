@@ -18,7 +18,7 @@ TournamentManager::TournamentManager(const options::Tournament& tournament_confi
     }
 
     // Set the seed for the random number generator
-    Logger::log<Logger::Level::TRACE>("Seeding random number generator with seed: ", tournament_options_.seed);
+    Logger::log<Logger::Level::TRACE>("Seeding random number generator with seed: {}", tournament_options_.seed);
     util::random::mersenne_rand.seed(tournament_options_.seed);
 
     round_robin_ = std::make_unique<RoundRobin>(fixConfig(tournament_options_), engine_configs_, results);
@@ -82,8 +82,8 @@ options::Tournament TournamentManager::fixConfig(options::Tournament config) {
 
     if (config.opening.format != FormatType::EPD && config.opening.format != FormatType::PGN) {
         Logger::log<Logger::Level::WARN>(
-            "Warning: Unknown opening format, " + std::to_string(int(config.opening.format)) + ".",
-            "All games will be played from the starting position.");
+            "Warning: Unknown opening format, {}. All games will be played from the starting position.",
+            int(config.opening.format));
     }
 
     if (config.ratinginterval == 0) config.ratinginterval = std::numeric_limits<int>::max();

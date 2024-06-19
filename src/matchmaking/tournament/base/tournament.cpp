@@ -103,9 +103,9 @@ void BaseTournament::playGame(const std::pair<EngineConfiguration, EngineConfigu
             file_writer_pgn->write(pgn::PgnBuilder(match_data, tournament_options_, game_id + 1).get());
         if (!tournament_options_.epd.file.empty())
             file_writer_epd->write(epd::EpdBuilder(match_data, tournament_options_).get());
-    }
 
-    finish({match_data}, match_data.reason);
+        finish({match_data}, match_data.reason);
+    }
 }
 
 int BaseTournament::getMaxAffinity(const std::vector<EngineConfiguration> &configs) const noexcept {

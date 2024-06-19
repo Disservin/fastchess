@@ -20,9 +20,9 @@ class OpeningBook {
     // Fisher-Yates / Knuth shuffle
     void shuffle() {
         const auto shuffle = [](auto& vec) {
-            for (std::size_t i = 0; i + 2 <= vec.size(); i++) {
-                auto rand     = util::random::mersenne_rand();
-                std::size_t j = i + (rand % (vec.size() - i));
+            for (std::size_t i = 0; i <= vec.size() - 2; i++) {
+                std::size_t rand = util::random::rand_int(0, vec.size() - i - 1);
+                std::size_t j = i + rand;
                 std::swap(vec[i], vec[j]);
             }
         };

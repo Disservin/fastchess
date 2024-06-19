@@ -57,14 +57,7 @@ void OpeningBook::setup(const std::string& file, FormatType type) {
 
     rotate(offset_);
     truncate(rounds_);
-
-    // force deallocation of memory
-    std::visit([](auto& book) {
-        using BookType = std::decay_t<decltype(book)>;
-        std::vector<typename BookType::value_type> tmp(book.begin(), book.end());
-        book.swap(tmp);
-        book.shrink_to_fit();
-    }, book);
+    shrink();
 }
 
 [[nodiscard]] std::optional<std::size_t> OpeningBook::fetchId() noexcept {

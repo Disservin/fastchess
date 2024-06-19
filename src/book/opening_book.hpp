@@ -50,6 +50,15 @@ class OpeningBook {
         std::visit(truncate, book_);
     }
 
+   void shrink() {
+       std::visit([&](auto& book) {
+           using BookType = std::decay_t<decltype(book)>;
+           std::vector<typename BookType::value_type> tmp(book.begin(), book.end());
+           book.swap(tmp);
+           book.shrink_to_fit();
+       }, book_);
+   }
+
     [[nodiscard]] std::optional<std::size_t> fetchId() noexcept;
 
     pgn::Opening operator[](std::optional<std::size_t> idx) const noexcept {

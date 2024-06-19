@@ -11,10 +11,9 @@ TournamentManager::TournamentManager(const options::Tournament& tournament_confi
     validateEngines();
 
     while (tournament_options_.randomseed && tournament_options_.seed == 951356066) {
-        std::random_device rd;
-        std::mt19937_64 gen(rd());
+        util::random::mersenne_rand.seed(util::random::random_device());
         std::uniform_int_distribution<uint64_t> dist(0, std::numeric_limits<uint64_t>::max());
-        tournament_options_.seed = dist(gen);
+        tournament_options_.seed = dist(util::random::mersenne_rand);
     }
 
     // Set the seed for the random number generator

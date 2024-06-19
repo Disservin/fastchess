@@ -126,7 +126,7 @@ update-man: man
 tests: $(TARGET)
 	$(CXX) $(CXXFLAGS) ./tests/mock/engine/dummy_engine.cpp -o ./tests/mock/engine/dummy_engine$(SUFFIX) $(LDFLAGS)
 
-format: $(SRC_FILES) $(HEADERS)
+format: fetch-subs $(SRC_FILES) $(HEADERS)
 	clang-format -i $^
 
 $(TARGET): $(OBJECTS)

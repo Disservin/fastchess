@@ -108,7 +108,11 @@ endif
 
 .PHONY: clean all tests FORCE
 
-all: $(TARGET)
+all: fetch-subs $(TARGET)
+
+fetch-subs:
+	@git submodule init
+	@git submodule update
 
 update-man: man
 	xxd -i man | sed 's/unsigned char/inline char/g' | sed 's/unsigned int/inline unsigned int/g' > temp.hpp

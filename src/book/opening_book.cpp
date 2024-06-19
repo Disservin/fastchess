@@ -58,6 +58,7 @@ void OpeningBook::setup(const std::string& file, FormatType type) {
     rotate(offset_);
     truncate(rounds_);
 
+    // force deallocation of memory
     if (type == FormatType::EPD) {
         std::vector<std::string> tmp(std::get<epd_book>(book_).begin(), std::get<epd_book>(book_).end());
         std::get<epd_book>(book_).swap(tmp);

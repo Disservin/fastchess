@@ -50,13 +50,6 @@ class OpeningBook {
         std::visit(truncate, book_);
     }
 
-    // Shrink book vector
-    void shrink() {
-        const auto shrink = [](auto& vec) { vec.shrink_to_fit(); };
-
-        std::visit(shrink, book_);
-    }
-
     [[nodiscard]] std::optional<std::size_t> fetchId() noexcept;
 
     pgn::Opening operator[](std::optional<std::size_t> idx) const noexcept {

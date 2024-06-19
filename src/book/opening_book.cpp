@@ -59,15 +59,12 @@ void OpeningBook::setup(const std::string& file, FormatType type) {
     truncate(rounds_);
 
     // force deallocation of memory
-    if (type == FormatType::EPD) {
-        std::vector<std::string> tmp(std::get<epd_book>(book_).begin(), std::get<epd_book>(book_).end());
-        std::get<epd_book>(book_).swap(tmp);
-        std::get<epd_book>(book_).shrink_to_fit();
-    } else {
-        std::vector<pgn::Opening> tmp(std::get<pgn_book>(book_).begin(), std::get<pgn_book>(book_).end());
-        std::get<pgn_book>(book_).swap(tmp);
-        std::get<pgn_book>(book_).shrink_to_fit();
-    }
+    std::visit([](auto& book) {
+        using BookType = std::decay_t<decltype(book)>;
+        std::vector<typename BookType::value_type> tmp(book.begin(), book.end());
+        book.swap(tmp);
+        book.shrink_to_fit();
+    }, book);
 }
 
 [[nodiscard]] std::optional<std::size_t> OpeningBook::fetchId() noexcept {

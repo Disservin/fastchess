@@ -9,7 +9,7 @@
 
 using namespace fast_chess;
 
-const std::string path = "./tests/mock/engine/";
+const std::string path = "./app/tests/mock/engine/";
 
 namespace {
 class MockUciEngine : public engine::UciEngine {
@@ -69,8 +69,7 @@ TEST_SUITE("Uci Engine Communication Tests") {
         CHECK(uci_engine.output()[0].line == "argv[1]: --backend=multiplexing");
         CHECK(uci_engine.output()[1].line ==
               "argv[2]: --backend-opts=backend=cuda-fp16,(gpu=0),(gpu=1),(gpu=2),(gpu=3)");
-        CHECK(uci_engine.output()[2].line ==
-              "argv[3]: --weights=lc0/BT4-1024x15x32h-swa-6147500.pb.gz");
+        CHECK(uci_engine.output()[2].line == "argv[3]: --weights=lc0/BT4-1024x15x32h-swa-6147500.pb.gz");
         CHECK(uci_engine.output()[3].line == "argv[4]: --minibatch-size=132");
         CHECK(uci_engine.output()[4].line == "argv[5]: --nncache=50000000");
         CHECK(uci_engine.output()[5].line == "argv[6]: --threads=5");

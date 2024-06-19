@@ -9,7 +9,7 @@ set -x
 sudo sysctl -w vm.mmap_rnd_bits=28
 
 # Compile the random_mover
-g++ -O3 -std=c++17 tests/mock/engine/random_mover.cpp -o random_mover
+g++ -O3 -std=c++17 app/tests/mock/engine/random_mover.cpp -o random_mover
 
 # Compile fast-chess
 make -j build=debug $1
@@ -19,7 +19,7 @@ make -j build=debug $1
 OUTPUT_FILE=$(mktemp)
 ./fast-chess -engine cmd=random_mover name=random_move_1 -engine cmd=random_mover name=random_move_2 \
     -each tc=2+0.02s -rounds 5 -repeat -concurrency 2 \
-    -openings file=tests/data/openings.epd format=epd order=random -log file=log.txt level=info 2>&1 | tee $OUTPUT_FILE
+    -openings file=app/tests/data/openings.epd format=epd order=random -log file=log.txt level=info 2>&1 | tee $OUTPUT_FILE
 
 if grep -q "WARNING: ThreadSanitizer:" $OUTPUT_FILE; then
     echo "Data races detected."
@@ -56,7 +56,7 @@ fi
 OUTPUT_FILE_2=$(mktemp)
 ./fast-chess -engine cmd=random_mover name=random_move_1 -engine cmd=random_mover name=random_move_2 \
     -each tc=2+0.02s -rounds 5 -repeat -concurrency 2 \
-    -openings file=tests/data/openings.pgn format=pgn order=random -log file=log.txt level=info  2>&1 | tee $OUTPUT_FILE_2
+    -openings file=app/tests/data/openings.pgn format=pgn order=random -log file=log.txt level=info  2>&1 | tee $OUTPUT_FILE_2
 
 if grep -q "WARNING: ThreadSanitizer:" $OUTPUT_FILE_2; then
     echo "Data races detected."

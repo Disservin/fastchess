@@ -23,7 +23,7 @@ update-man: man ## Update man like page
 	rm temp.hpp
 	clang-format -i ./app/src/cli/man.hpp
 
-tests: ## Run tests
+tests: fetch-subs ## Run tests
 	@echo "Running tests.."
 	$(MAKE) -C app tests BINARY_PATH=$(ROOT_DIR)
 	@echo "Done."

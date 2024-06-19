@@ -52,7 +52,12 @@ class OpeningBook {
 
     // Shrink book vector
     void shrink() {
-        const auto shrink = [](auto& vec) { vec.shrink_to_fit(); };
+        const auto shrink = [](auto& vec) {
+            using BookType = std::decay_t<decltype(vec)>;
+            std::vector<typename BookType::value_type> tmp(vec.begin(), vec.end());
+            vec.swap(tmp);
+            vec.shrink_to_fit();
+        };
 
         std::visit(shrink, book_);
     }

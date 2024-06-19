@@ -308,7 +308,7 @@ void parseSprt(const std::vector<std::string> &params, ArgumentData &argument_da
     parseDashOptions(params, [&](const std::string &key, const std::string &value) {
         argument_data.tournament_options.sprt.enabled = true;
 
-        if (argument_data.tournament_options.rounds == 0) {
+        if (argument_data.tournament_options.rounds == 2) {
             argument_data.tournament_options.rounds = 500000;
         }
 

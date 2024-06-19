@@ -106,8 +106,6 @@ void BaseTournament::playGame(const std::pair<EngineConfiguration, EngineConfigu
     }
 
     finish({match_data}, match_data.reason);
-
-    if (atomic::stop) return;
 }
 
 int BaseTournament::getMaxAffinity(const std::vector<EngineConfiguration> &configs) const noexcept {

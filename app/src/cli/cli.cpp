@@ -1,5 +1,7 @@
 #include <cli/cli.hpp>
 
+#include <random>
+
 #include <matchmaking/output/output_factory.hpp>
 #include <matchmaking/result.hpp>
 #include <types/engine_config.hpp>
@@ -511,6 +513,11 @@ void parseRecover(const std::vector<std::string> &, ArgumentData &argument_data)
 
 void parseRandomSeed(const std::vector<std::string> &, ArgumentData &argument_data) {
     argument_data.tournament_options.randomseed = true;
+
+    std::random_device rd;
+    std::mt19937_64 gen(rd());
+    std::uniform_int_distribution<uint64_t> dist(0, std::numeric_limits<uint64_t>::max());
+    argument_data.tournament_options.seed = dist(gen);
 }
 
 void parseRepeat(const std::vector<std::string> &params, ArgumentData &argument_data) {

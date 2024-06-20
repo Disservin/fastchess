@@ -10,13 +10,6 @@ TournamentManager::TournamentManager(const options::Tournament& tournament_confi
     Logger::log<Logger::Level::TRACE>("Creating tournament...");
     validateEngines();
 
-    std::random_device rd;
-    util::random::mersenne_rand.seed((static_cast<uint64_t>(rd()) << 32) | rd());
-    std::uniform_int_distribution<uint64_t> dist(0, std::numeric_limits<uint64_t>::max());
-    while (tournament_options_.randomseed && tournament_options_.seed == 951356066) {
-        tournament_options_.seed = dist(util::random::mersenne_rand);
-    }
-
     // Set the seed for the random number generator
     Logger::log<Logger::Level::TRACE>("Seeding random number generator with seed: {}", tournament_options_.seed);
     util::random::mersenne_rand.seed(tournament_options_.seed);

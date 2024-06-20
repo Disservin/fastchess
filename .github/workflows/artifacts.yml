@@ -83,9 +83,7 @@ jobs:
         with:
           name: fast-chess-${{ matrix.config.os }}
           path: |
-            src
-            tests
-            third_party
+            app
             .clang-format
             config.json
             Makefile

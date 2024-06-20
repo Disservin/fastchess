@@ -202,6 +202,7 @@ class Process : public IProcess {
     }
 
     void restart() override {
+        Logger::trace<true>("Restarting {}", log_name_);
         killProcess();
         init(command_, args_, log_name_);
     }

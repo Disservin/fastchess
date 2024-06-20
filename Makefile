@@ -1,15 +1,15 @@
 ROOT_DIR:=$(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 
-all: fetch-subs ## Build the project
+all: ## Build the project
 	echo $(MAKEFLAGS)
 	@echo "Building.."
 	$(MAKE) -C app BINARY_PATH=$(ROOT_DIR)
 	@echo "Done."
 
-fetch-subs: ## Fetch submodules
-	@echo "Fetching submodules.."
-	git submodule init
-	git submodule update
+update-fmt: ## Fetch submodules
+	@echo "Updating fmt.."
+	git fetch https://github.com/fmtlib/fmt.git master
+	git subtree pull --prefix=app/third_party/fmt https://github.com/fmtlib/fmt.git master --squash
 	@echo "Done."
 
 .PHONY: all fetch-subs
@@ -23,7 +23,7 @@ update-man: man ## Update man like page
 	rm temp.hpp
 	clang-format -i ./app/src/cli/man.hpp
 
-tests: fetch-subs ## Run tests
+tests: ## Run tests
 	@echo "Running tests.."
 	$(MAKE) -C app tests BINARY_PATH=$(ROOT_DIR)
 	@echo "Done."

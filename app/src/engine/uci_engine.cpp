@@ -125,9 +125,7 @@ bool UciEngine::refreshUci() {
         Logger::trace<true>("Engine {} failed to refresh. Restarting engine.", config_.name);
 
         restart();
-        uci();
-
-        if (!uciok()) {
+        if (!uci() || !uciok()) {
             return false;
         }
 

@@ -28,6 +28,8 @@ short time controls (0.2+0.002s), it exhibits minimal timeout issues, with only
 - **GZIP Compression for logs**: The logs are now compressed using GZIP to
   reduce disk space usage. You can enable this feature adding `ZLIB=true` to
   the `make` command and the enabling the `compress=true` option for the log.
+  **Compiling with ZLIB=true will include _gzstream_ a wrapper for zlib from**  
+  **Deepak Bandyopadhyay and Lutz Kettner, which is licensed under LGPL.**
 
 ## Quick start
 

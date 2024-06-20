@@ -136,16 +136,14 @@ class Process : public IProcess {
         }
     }
 
-    bool alive() const override {
+    bool alive() const noexcept override {
         assert(is_initalized_);
 
         int status;
         const pid_t r = waitpid(process_pid_, &status, WNOHANG);
 
-        if (r == -1)
-            throw std::runtime_error("Error: waitpid() failed");
-        else
-            return r == 0;
+        if (r == -1) return false;
+        return r == 0;
     }
 
     std::string signalToString(int status) {
@@ -173,7 +171,7 @@ class Process : public IProcess {
         }
     }
 
-    void setAffinity(const std::vector<int> &cpus) override {
+    void setAffinity(const std::vector<int> &cpus) noexcept override {
         assert(is_initalized_);
         if (!cpus.empty()) {
 #    if defined(__APPLE__)
@@ -310,18 +308,18 @@ class Process : public IProcess {
         return Status::OK;
     }
 
-    void writeProcess(const std::string &input) override {
+    bool writeProcess(const std::string &input) noexcept override {
         assert(is_initalized_);
-        Logger::writeToEngine(input, util::time::datetime_precise(), log_name_);
 
         if (!alive()) {
-            throw std::runtime_error("IProcess is not alive and write occured with message: " + input);
+            return false;
         }
 
-        // Write the input and a newline to the output pipe
         if (write(out_pipe_.get(), input.c_str(), input.size()) == -1) {
-            throw std::runtime_error("Failed to write to pipe");
+            return false;
         }
+
+        return true;
     }
 
    private:

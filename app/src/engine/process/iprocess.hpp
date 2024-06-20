@@ -25,9 +25,9 @@ class IProcess {
     virtual void init(const std::string &command, const std::string &args, const std::string &log_name) = 0;
 
     // Returns true if the process is alive
-    [[nodiscard]] virtual bool alive() const = 0;
+    [[nodiscard]] virtual bool alive() const noexcept = 0;
 
-    virtual void setAffinity(const std::vector<int> &cpus) = 0;
+    virtual void setAffinity(const std::vector<int> &cpus) noexcept = 0;
 
     virtual void restart() = 0;
 
@@ -38,7 +38,7 @@ class IProcess {
                                std::chrono::milliseconds threshold) = 0;
 
     // Write input to the engine's stdin
-    virtual void writeProcess(const std::string &input) = 0;
+    virtual bool writeProcess(const std::string &input) noexcept = 0;
 };
 
 }  // namespace fast_chess::engine::process

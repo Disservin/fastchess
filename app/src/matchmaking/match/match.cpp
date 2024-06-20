@@ -130,20 +130,22 @@ void Match::start(engine::UciEngine& engine1, engine::UciEngine& engine2, const 
     data_.end_time = util::time::datetime("%Y-%m-%dT%H:%M:%S %z");
     data_.duration = util::time::duration(chrono::duration_cast<chrono::seconds>(end - start));
 
-    data_.players = std::make_pair(MatchData::PlayerInfo{engine1.getConfig(), player_1.result, player_1.color},
-                                   MatchData::PlayerInfo{engine2.getConfig(), player_2.result, player_2.color});
+    data_.players = std::make_pair(MatchData::PlayerInfo{engine1.getConfig(), player_1.getResult(), player_1.color},
+                                   MatchData::PlayerInfo{engine2.getConfig(), player_2.getResult(), player_2.color});
 }
 
-bool Match::playMove(Player& us, Player& opponent) {
+bool Match::playMove(Player& us, Player& them) {
     const auto gameover = board_.isGameOver();
     const auto name     = us.engine.getConfig().name;
 
     if (gameover.second == GameResult::DRAW) {
-        setDraw(us, opponent);
+        us.setDraw();
+        them.setDraw();
     }
 
     if (gameover.second == GameResult::LOSE) {
-        setLose(us, opponent);
+        us.setLost();
+        them.setWon();
     }
 
     if (gameover.first != GameResultReason::NONE) {
@@ -153,13 +155,7 @@ bool Match::playMove(Player& us, Player& opponent) {
 
     // disconnect
     if (!us.engine.isResponsive()) {
-        setLose(us, opponent);
-
-        crash_or_disconnect_ = true;
-
-        data_.termination = MatchTermination::DISCONNECT;
-        data_.reason      = name + Match::DISCONNECT_MSG;
-
+        setEngineCrashStatus(us, them);
         return false;
     }
 
@@ -168,22 +164,24 @@ bool Match::playMove(Player& us, Player& opponent) {
     std::transform(data_.moves.begin(), data_.moves.end(), std::back_inserter(uci_moves),
                    [](const MoveData& data) { return data.move; });
 
-    us.engine.writeEngine(Player::buildPositionInput(uci_moves, start_position_));
+    auto success = us.engine.writeEngine(Player::buildPositionInput(uci_moves, start_position_));
+    if (!success) {
+        setEngineCrashStatus(us, them);
+        return false;
+    }
 
     // wait for readyok
     if (!us.engine.isResponsive()) {
-        setLose(us, opponent);
-
-        crash_or_disconnect_ = true;
-
-        data_.termination = MatchTermination::DISCONNECT;
-        data_.reason      = name + Match::DISCONNECT_MSG;
-
+        setEngineCrashStatus(us, them);
         return false;
     }
 
     // write go command
-    us.engine.writeEngine(us.buildGoInput(board_.sideToMove(), opponent.getTimeControl()));
+    success = us.engine.writeEngine(us.buildGoInput(board_.sideToMove(), them.getTimeControl()));
+    if (!success) {
+        setEngineCrashStatus(us, them);
+        return false;
+    }
 
     // wait for bestmove
     auto t0     = clock::now();
@@ -193,14 +191,8 @@ bool Match::playMove(Player& us, Player& opponent) {
     us.engine.writeLog();
 
     if (status == engine::process::Status::ERR || !us.engine.isResponsive()) {
-        setLose(us, opponent);
-
-        crash_or_disconnect_ = true;
-
-        data_.termination = MatchTermination::DISCONNECT;
-        data_.reason      = name + Match::DISCONNECT_MSG;
-
-        throw std::runtime_error("Error: Failed to read from engine");
+        setEngineCrashStatus(us, them);
+        return false;
     }
 
     if (atomic::stop) {
@@ -219,7 +211,8 @@ bool Match::playMove(Player& us, Player& opponent) {
     addMoveData(us, elapsed_millis, legal);
 
     if (!legal) {
-        setLose(us, opponent);
+        us.setLost();
+        them.setWon();
 
         data_.termination = MatchTermination::ILLEGAL_MOVE;
         data_.reason      = name + Match::ILLEGAL_MSG;
@@ -231,7 +224,8 @@ bool Match::playMove(Player& us, Player& opponent) {
 
     // Time forfeit
     if (!us.updateTime(elapsed_millis)) {
-        setLose(us, opponent);
+        us.setLost();
+        them.setWon();
 
         data_.termination = MatchTermination::TIMEOUT;
         data_.reason      = name + Match::TIMEOUT_MSG;
@@ -262,7 +256,8 @@ bool Match::playMove(Player& us, Player& opponent) {
                          board_.halfMoveClock());
     resign_tracker_.update(us.engine.lastScore(), us.engine.lastScoreType(), ~board_.sideToMove());
     maxmoves_tracker_.update(us.engine.lastScore(), us.engine.lastScoreType());
-    return !adjudicate(us, opponent);
+
+    return !adjudicate(us, them);
 }
 
 bool Match::isLegal(Move move) const noexcept {
@@ -270,6 +265,16 @@ bool Match::isLegal(Move move) const noexcept {
     movegen::legalmoves(moves, board_);
 
     return std::find(moves.begin(), moves.end(), move) != moves.end();
+}
+
+void Match::setEngineCrashStatus(Player& loser, Player& winner) {
+    loser.setLost();
+    winner.setWon();
+
+    crash_or_disconnect_ = true;
+
+    data_.termination = MatchTermination::DISCONNECT;
+    data_.reason      = loser.engine.getConfig().name + Match::DISCONNECT_MSG;
 }
 
 bool Match::isUciMove(const std::string& move) noexcept {
@@ -321,24 +326,10 @@ void Match::verifyPvLines(const Player& us) {
     }
 }
 
-void Match::setDraw(Player& us, Player& them) noexcept {
-    us.result   = GameResult::DRAW;
-    them.result = GameResult::DRAW;
-}
-
-void Match::setWin(Player& us, Player& them) noexcept {
-    us.result   = GameResult::WIN;
-    them.result = GameResult::LOSE;
-}
-
-void Match::setLose(Player& us, Player& them) noexcept {
-    us.result   = GameResult::LOSE;
-    them.result = GameResult::WIN;
-}
-
 bool Match::adjudicate(Player& us, Player& them) noexcept {
     if (tournament_options_.resign.enabled && resign_tracker_.resignable() && us.engine.lastScore() < 0) {
-        setLose(us, them);
+        us.setLost();
+        them.setWon();
 
         data_.termination = MatchTermination::ADJUDICATION;
         data_.reason      = them.engine.getConfig().name + Match::ADJUDICATION_WIN_MSG;
@@ -347,7 +338,8 @@ bool Match::adjudicate(Player& us, Player& them) noexcept {
     }
 
     if (tournament_options_.draw.enabled && draw_tracker_.adjudicatable()) {
-        setDraw(us, them);
+        us.setDraw();
+        them.setDraw();
 
         data_.termination = MatchTermination::ADJUDICATION;
         data_.reason      = Match::ADJUDICATION_MSG;
@@ -356,7 +348,8 @@ bool Match::adjudicate(Player& us, Player& them) noexcept {
     }
 
     if (tournament_options_.maxmoves.enabled && maxmoves_tracker_.maxmovesreached()) {
-        setDraw(us, them);
+        us.setDraw();
+        them.setDraw();
 
         data_.termination = MatchTermination::ADJUDICATION;
         data_.reason      = Match::ADJUDICATION_MSG;

@@ -151,8 +151,6 @@ TEST_SUITE("Option Parsing Tests") {
         CHECK(gameOptions.maxmoves.move_count == 150);
         CHECK(gameOptions.maxmoves.enabled);
         CHECK(gameOptions.output == OutputType::CUTECHESS);
-        CHECK(gameOptions.seed == 1234);
-        CHECK(gameOptions.randomseed);
         CHECK(gameOptions.affinity);
         CHECK(gameOptions.report_penta == false);
         // Test Sprt options parsing

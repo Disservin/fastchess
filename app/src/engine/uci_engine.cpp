@@ -129,7 +129,7 @@ void UciEngine::refreshUci() {
 
         if (!ucinewgame() && !isResponsive(ping_time_)) {
             Logger::log<Logger::Level::TRACE, true>(
-                fmt::format("Engine {} esponded to uci but not to ucinewgame/isready.", config_.name));
+                fmt::format("Engine {} responded to uci but not to ucinewgame/isready.", config_.name));
             throw std::runtime_error("Warning; Something went wrong when pinging the engine.");
         }
     }

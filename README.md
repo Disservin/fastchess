@@ -25,6 +25,10 @@ short time controls (0.2+0.002s), it exhibits minimal timeout issues, with only
   matches between two engines with a specified book. Specify
   `-quick cmd=ENGINE1 cmd=ENGINE2 book=BOOK` to swiftly initiate a match.
 
+- **GZIP Compression for logs**: The logs are now compressed using GZIP to
+  reduce disk space usage. You can enable this feature adding `ZLIB=true` to
+  the `make` command and the enabling the `compress=true` option for the log.
+
 ## Quick start
 
 ### Building from source

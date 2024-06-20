@@ -147,8 +147,9 @@ OPTIONS
             Automatically picks a random seed value between 0 and (2^64 - 1)
             for opening book randomization.
 
-        -log file=NAME level=LEVEL
-            Specify a log file with a specific log level.
+        -log file=NAME level=LEVEL compress=(true|false)
+            Specify a log file with a specific log level. 
+            Set compress to true if you want the log file to be gzipped.
 
             LEVEL
                 trace

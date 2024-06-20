@@ -1,9 +1,7 @@
-ROOT_DIR:=$(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
-
 all: ## Build the project
 	echo $(MAKEFLAGS)
 	@echo "Building.."
-	$(MAKE) -C app BINARY_PATH=$(ROOT_DIR)
+	$(MAKE) -C app BINARY_PATH=../
 	@echo "Done."
 
 update-fmt: ## Fetch submodules
@@ -25,7 +23,7 @@ update-man: man ## Update man like page
 
 tests: ## Run tests
 	@echo "Running tests.."
-	$(MAKE) -C app tests BINARY_PATH=$(ROOT_DIR)
+	$(MAKE) -C app tests BINARY_PATH=../
 	@echo "Done."
 
 format: ## Format code
@@ -38,5 +36,5 @@ clean: ## Clean up
 	$(MAKE) -C app clean
 	@echo "Done."
 
-help:
+help: ## Print this help
 	@egrep -h '\s##\s' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m  %-30s\033[0m %s\n", $$1, $$2}'

@@ -74,12 +74,7 @@ void UciEngine::loadConfig(const EngineConfiguration &config) { config_ = config
 
 void UciEngine::quit() {
     Logger::trace<true>("Sending quit to engine {}", config_.name);
-
-    try {
-        writeEngine("quit");
-    } catch (const std::exception &e) {
-        Logger::trace<true>("Raised Exception when quitting engine: {}", e.what());
-    }
+    writeEngine("quit");
 }
 
 void UciEngine::sendSetoption(const std::string &name, const std::string &value) {
@@ -110,11 +105,11 @@ void UciEngine::start() {
     initialized_ = true;
 }
 
-void UciEngine::refreshUci() {
+bool UciEngine::refreshUci() {
     Logger::trace<true>("Refreshing engine {}", config_.name);
     start();
 
-    if (!ucinewgame() && !isResponsive(ping_time_)) {
+    if (!ucinewgame()) {
         // restart the engine
         Logger::trace<true>(fmt::format("Engine {} failed to refresh. Restarting engine.", config_.name));
 
@@ -123,12 +118,12 @@ void UciEngine::refreshUci() {
 
         if (!uciok()) {
             Logger::trace<true>("Engine {} failed to start.", config_.name);
-            throw std::runtime_error(fmt::format("{} failed to start.", config_.name));
+            return false;
         }
 
-        if (!ucinewgame() && !isResponsive(ping_time_)) {
+        if (!ucinewgame()) {
             Logger::trace<true>(fmt::format("Engine {} responded to uci but not to ucinewgame/isready.", config_.name));
-            throw std::runtime_error("Warning; Something went wrong when pinging the engine.");
+            return false;
         }
     }
 
@@ -142,8 +137,10 @@ void UciEngine::refreshUci() {
 
     if (!ucinewgame()) {
         Logger::trace<true>("Engine {} didn't respond to ucinewgame.", config_.name);
-        throw std::runtime_error(config_.name + " failed to start.");
+        return false;
     }
+
+    return true;
 }
 
 process::Status UciEngine::readEngine(std::string_view last_word, std::chrono::milliseconds threshold) {
@@ -169,14 +166,9 @@ std::string UciEngine::lastInfoLine() const {
     return {};
 }
 
-void UciEngine::writeEngine(const std::string &input) {
-    try {
-        writeProcess(input + "\n");
-    } catch (const std::exception &e) {
-        Logger::trace<true>("Warning; Raised Exception in writeProcess: {}", e.what());
-
-        throw e;
-    }
+bool UciEngine::writeEngine(const std::string &input) {
+    Logger::writeToEngine(input, util::time::datetime_precise(), config_.name);
+    return writeProcess(input + "\n");
 }
 
 std::optional<std::string> UciEngine::bestmove() const {

@@ -117,21 +117,19 @@ class Match {
     [[nodiscard]] bool isCrashOrDisconnect() const noexcept { return crash_or_disconnect_; }
 
    private:
+    void setEngineCrashStatus(Player& loser, Player& winner);
+
     static bool isUciMove(const std::string& move) noexcept;
     void verifyPvLines(const Player& us);
 
     // Add opening moves to played moves
     void prepare();
 
-    static void setDraw(Player& us, Player& them) noexcept;
-    static void setWin(Player& us, Player& them) noexcept;
-    static void setLose(Player& us, Player& them) noexcept;
-
     // append the move data to the match data
     void addMoveData(const Player& player, int64_t measured_time_ms, bool legal);
 
     // returns false if the next move could not be played
-    [[nodiscard]] bool playMove(Player& us, Player& opponent);
+    [[nodiscard]] bool playMove(Player& us, Player& them);
 
     // returns true if adjudicated
     [[nodiscard]] bool adjudicate(Player& us, Player& them) noexcept;

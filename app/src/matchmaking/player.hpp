@@ -84,10 +84,16 @@ class Player {
 
     engine::UciEngine &engine;
 
-    chess::Color color       = chess::Color::NONE;
-    chess::GameResult result = chess::GameResult::NONE;
+    chess::Color color = chess::Color::NONE;
+
+    void setLost() { result = chess::GameResult::LOSE; }
+    void setDraw() { result = chess::GameResult::DRAW; }
+    void setWon() { result = chess::GameResult::WIN; }
+
+    [[nodiscard]] chess::GameResult getResult() const { return result; }
 
    private:
+    chess::GameResult result = chess::GameResult::NONE;
     TimeControl time_control_;
 };
 

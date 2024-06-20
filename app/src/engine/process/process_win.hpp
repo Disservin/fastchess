@@ -72,14 +72,14 @@ class Process : public IProcess {
         is_initalized_ = true;
     }
 
-    [[nodiscard]] bool alive() const override {
+    [[nodiscard]] bool alive() const noexcept override {
         assert(is_initalized_);
         DWORD exitCode = 0;
         GetExitCodeProcess(pi_.hProcess, &exitCode);
         return exitCode == STILL_ACTIVE;
     }
 
-    void setAffinity(const std::vector<int> &cpus) override {
+    void setAffinity(const std::vector<int> &cpus) noexcept override {
         assert(is_initalized_);
         if (!cpus.empty()) {
             affinity::setAffinity(cpus, pi_.hProcess);
@@ -165,18 +165,19 @@ class Process : public IProcess {
         return Status::OK;
     }
 
-    void writeProcess(const std::string &input) override {
+    bool writeProcess(const std::string &input) noexcept override {
         assert(is_initalized_);
-        Logger::writeToEngine(input, util::time::datetime_precise(), log_name_);
 
         if (!alive()) {
             killProcess();
         }
 
         DWORD bytesWritten;
-        WriteFile(child_std_in_, input.c_str(), input.length(), &bytesWritten, nullptr);
+        auto res = WriteFile(child_std_in_, input.c_str(), input.length(), &bytesWritten, nullptr);
 
         assert(bytesWritten == input.length());
+
+        return res;
     }
 
    private:

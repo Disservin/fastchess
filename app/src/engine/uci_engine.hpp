@@ -28,7 +28,7 @@ class UciEngine : protected process::Process {
 
     void start();
 
-    void refreshUci();
+    bool refreshUci();
 
     void uci();
     void quit();
@@ -46,8 +46,8 @@ class UciEngine : protected process::Process {
 
     [[nodiscard]] std::string lastInfoLine() const;
 
-    // Writes the input to the engine. May throw if the write fails.
-    void writeEngine(const std::string &input);
+    // Writes the input to the engine.
+    bool writeEngine(const std::string &input);
 
     void setCpus(const std::vector<int> &cpus) { setAffinity(cpus); }
 

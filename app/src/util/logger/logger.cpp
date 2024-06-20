@@ -24,18 +24,12 @@ void Logger::writeToEngine(const std::string &msg, const std::string &time, cons
         return;
     }
 
-    std::stringstream ss;
+    const auto id = std::this_thread::get_id();
 
-    ss                                                                 //
-        << "[" << time << "] "                                         //
-        << " <" << std::setw(3) << std::this_thread::get_id() << "> "  //
-        << name                                                        //
-        << " <--- " << msg                                             //
-        << std::endl;
+    auto fmt_message = fmt::format("[{:<6}] [{}] <{:>3}> {} <--- {}\n", "Engine", time, id, name, msg);
 
-    // Acquire the lock
     const std::lock_guard<std::mutex> lock(log_mutex_);
-    log_ << ss.str() << std::flush;
+    log_ << fmt_message << std::flush;
 }
 
 void Logger::readFromEngine(const std::string &msg, const std::string &time, const std::string &name, bool err) {
@@ -43,17 +37,13 @@ void Logger::readFromEngine(const std::string &msg, const std::string &time, con
         return;
     }
 
-    std::stringstream ss;
-    ss                                                                                        //
-        << "[" << time << "] " << " <" << std::setw(3) << std::this_thread::get_id() << "> "  //
-        << name                                                                               //
-        << (err ? " 1 " : " 2 ")                                                              //
-        << "---> " << msg                                                                     //
-        << std::endl;
+    const auto id = std::this_thread::get_id();
 
-    // Acquire the lock
+    auto fmt_message =
+        fmt::format("[{:<6}] [{}] <{:>3}> {} {} ---> {}\n", "Engine", time, id, name, (err ? "1" : "2"), msg);
+
     const std::lock_guard<std::mutex> lock(log_mutex_);
-    log_ << ss.str() << std::flush;
+    log_ << fmt_message << std::flush;
 }
 
 }  // namespace fast_chess

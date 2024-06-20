@@ -12,6 +12,7 @@
 
 #define FMT_HEADER_ONLY
 #include "../../../third_party/fmt/include/fmt/core.h"
+#include "../../../third_party/fmt/include/fmt/std.h"
 
 namespace fast_chess {
 
@@ -74,23 +75,40 @@ class Logger {
             return;
         }
 
-        std::stringstream file_ss;
+        std::string label;
+
+        switch (level) {
+            case Level::TRACE:
+                label = "TRACE";
+                break;
+            case Level::WARN:
+                label = "WARN";
+                break;
+            case Level::INFO:
+                label = "INFO";
+                break;
+            case Level::ERR:
+                label = "ERR";
+                break;
+            case Level::FATAL:
+                label = "FATAL";
+                break;
+            default:
+                break;
+        }
+
+        std::string fmt_message;
 
         if constexpr (thread) {
-            file_ss << "[" << util::time::datetime_precise() << "] "               //
-                    << " <" << std::setw(3) << std::this_thread::get_id() << "> "  //
-                    << "fastchess"                                                 //
-                    << " --- "                                                     //
-                    << message;
+            fmt_message = fmt::format("[{:<6}] [{}] <{:>3}> fastchess --- {}", label, util::time::datetime_precise(),
+                                      std::this_thread::get_id(), message);
         } else {
-            file_ss << "[" << util::time::datetime_precise() << "] "  //
-                    << " <fastchess>"                                 //
-                    << message;
+            fmt_message = fmt::format("[{:<6}] [{}] <fastchess> {}", label, util::time::datetime_precise(), message);
         }
 
         const std::lock_guard<std::mutex> lock(log_mutex_);
 
-        log_ << file_ss.str() << std::endl;
+        log_ << fmt_message << std::flush;
     }
 
     Logger() {}

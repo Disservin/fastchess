@@ -30,7 +30,7 @@ class UciEngine : protected process::Process {
 
     bool refreshUci();
 
-    void uci();
+    [[nodiscard]] bool uci();
     void quit();
     [[nodiscard]] bool uciok();
     [[nodiscard]] bool ucinewgame();

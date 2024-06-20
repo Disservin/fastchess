@@ -43,21 +43,32 @@ bool UciEngine::isResponsive(std::chrono::milliseconds threshold) {
 }
 
 bool UciEngine::ucinewgame() {
-    Logger::trace<true>("Sending ucinewgame to engine {}", config_.name);
-
     try {
-        writeEngine("ucinewgame");
-        const auto res = isResponsive(initialize_time);
-        return res;
+        Logger::trace<true>("Sending ucinewgame to engine {}", config_.name);
+        auto res = writeEngine("ucinewgame");
+
+        if (!res) {
+            Logger::trace<true>("Failed to send ucinewgame to engine {}", config_.name);
+            return false;
+        }
+
+        return isResponsive(initialize_time);
     } catch (const std::exception &e) {
         Logger::trace<true>("Raised Exception in ucinewgame: {}", e.what());
         return false;
     }
 }
 
-void UciEngine::uci() {
+bool UciEngine::uci() {
     Logger::trace<true>("Sending uci to engine {}", config_.name);
-    writeEngine("uci");
+    const auto res = writeEngine("uci");
+
+    if (!res) {
+        Logger::trace<true>("Failed to send uci to engine {}", config_.name);
+        return false;
+    }
+
+    return res;
 }
 
 bool UciEngine::uciok() {
@@ -65,7 +76,7 @@ bool UciEngine::uciok() {
 
     const auto res = readEngine("uciok") == process::Status::OK;
 
-    Logger::trace<true>("Engine {} is {}", config_.name, res ? "responsive." : "not responsive.");
+    Logger::trace<true>("Engine {} did not respond to uciok in time.", config_.name);
 
     return res;
 }
@@ -79,7 +90,9 @@ void UciEngine::quit() {
 
 void UciEngine::sendSetoption(const std::string &name, const std::string &value) {
     Logger::trace<true>("Sending setoption to engine {} {} {}", config_.name, name, value);
-    writeEngine("setoption name " + name + " value " + value);
+    if (!writeEngine(fmt::format("setoption name {} value {}", name, value))) {
+        Logger::trace<true>("Failed to send setoption to engine {} {} {}", config_.name, name, value);
+    }
 }
 
 void UciEngine::start() {
@@ -96,9 +109,7 @@ void UciEngine::start() {
     Logger::trace<true>("Starting engine {} at {}", config_.name, path);
 
     init(path, config_.args, config_.name);
-    uci();
-
-    if (!uciok()) {
+    if (!uci() || !uciok()) {
         throw std::runtime_error(fmt::format("{} failed to start.", config_.name));
     }
 
@@ -111,18 +122,15 @@ bool UciEngine::refreshUci() {
 
     if (!ucinewgame()) {
         // restart the engine
-        Logger::trace<true>(fmt::format("Engine {} failed to refresh. Restarting engine.", config_.name));
+        Logger::trace<true>("Engine {} failed to refresh. Restarting engine.", config_.name);
 
         restart();
-        uci();
-
-        if (!uciok()) {
-            Logger::trace<true>("Engine {} failed to start.", config_.name);
+        if (!uci() || !uciok()) {
             return false;
         }
 
         if (!ucinewgame()) {
-            Logger::trace<true>(fmt::format("Engine {} responded to uci but not to ucinewgame/isready.", config_.name));
+            Logger::trace<true>("Engine {} responded to uci but not to ucinewgame/isready.", config_.name);
             return false;
         }
     }
@@ -173,14 +181,14 @@ bool UciEngine::writeEngine(const std::string &input) {
 
 std::optional<std::string> UciEngine::bestmove() const {
     if (output_.empty()) {
-        Logger::warn<true>("Warning; No output from engine.");
+        Logger::warn<true>("Warning; No output from {}", config_.name);
         return std::nullopt;
     }
 
     const auto bm = str_utils::findElement<std::string>(str_utils::splitString(output_.back().line, ' '), "bestmove");
 
     if (!bm.has_value()) {
-        Logger::warn<true>("Warning; Could not extract bestmove.");
+        Logger::warn<true>("Warning; No bestmove found in the last line from {}", config_.name);
         return std::nullopt;
     }
 
@@ -190,7 +198,10 @@ std::optional<std::string> UciEngine::bestmove() const {
 std::vector<std::string> UciEngine::lastInfo() const {
     const auto last_info = lastInfoLine();
     if (last_info.empty()) {
-        Logger::warn<true>("Warning; Could not extract last uci info line.");
+        Logger::warn<true>(
+            "Warning; No info line found in the last line which includes the "
+            "score from {}",
+            config_.name);
         return {};
     }
 
@@ -207,7 +218,8 @@ int UciEngine::lastScore() const {
     const auto score = lastScoreType();
 
     if (score == ScoreType::ERR) {
-        Logger::warn<true>("Warning; Could not extract last uci score.");
+        Logger::warn<true>("Warning; No info string found in the last line from {} which includes the score",
+                           config_.name);
         return 0;
     }
 

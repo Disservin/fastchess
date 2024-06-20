@@ -1,15 +1,13 @@
-ROOT_DIR:=$(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
-
-all: fetch-subs ## Build the project
+all: ## Build the project
 	echo $(MAKEFLAGS)
 	@echo "Building.."
-	$(MAKE) -C app BINARY_PATH=$(ROOT_DIR)
+	$(MAKE) -C app BINARY_PATH=../
 	@echo "Done."
 
-fetch-subs: ## Fetch submodules
-	@echo "Fetching submodules.."
-	git submodule init
-	git submodule update
+update-fmt: ## Fetch submodules
+	@echo "Updating fmt.."
+	git fetch https://github.com/fmtlib/fmt.git master
+	git subtree pull --prefix=app/third_party/fmt https://github.com/fmtlib/fmt.git master --squash
 	@echo "Done."
 
 .PHONY: all fetch-subs
@@ -23,9 +21,9 @@ update-man: man ## Update man like page
 	rm temp.hpp
 	clang-format -i ./app/src/cli/man.hpp
 
-tests: fetch-subs ## Run tests
+tests: ## Run tests
 	@echo "Running tests.."
-	$(MAKE) -C app tests BINARY_PATH=$(ROOT_DIR)
+	$(MAKE) -C app tests BINARY_PATH=../
 	@echo "Done."
 
 format: ## Format code
@@ -38,5 +36,5 @@ clean: ## Clean up
 	$(MAKE) -C app clean
 	@echo "Done."
 
-help:
+help: ## Print this help
 	@egrep -h '\s##\s' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m  %-30s\033[0m %s\n", $$1, $$2}'

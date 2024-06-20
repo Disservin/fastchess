@@ -515,7 +515,7 @@ void parseRandomSeed(const std::vector<std::string> &, ArgumentData &argument_da
     argument_data.tournament_options.randomseed = true;
 
     std::random_device rd;
-    std::mt19937_64 gen(rd());
+    std::mt19937_64 gen((static_cast<uint64_t>(rd()) << 32) | rd());
     std::uniform_int_distribution<uint64_t> dist(0, std::numeric_limits<uint64_t>::max());
     argument_data.tournament_options.seed = dist(gen);
 }

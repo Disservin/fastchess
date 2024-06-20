@@ -24,9 +24,9 @@ util::ThreadVector<pid_t> process_list;
 void stopProcesses() {
 #ifdef _WIN64
     for (const auto &pid : process_list) {
-        Logger::log<Logger::Level::TRACE>("Terminating process {}", pid);
+        Logger::trace("Terminating process {}", pid);
         TerminateProcess(pid, 1);
-        Logger::log<Logger::Level::TRACE>("Closing handle for process {}", pid);
+        Logger::trace("Closing handle for process {}", pid);
         CloseHandle(pid);
     }
 #else
@@ -55,7 +55,7 @@ BOOL WINAPI handler(DWORD signal) {
 
 void setCtrlCHandler() {
     if (!SetConsoleCtrlHandler(handler, TRUE)) {
-        Logger::log<Logger::Level::FATAL>("Could not set control handler.");
+        Logger::fatal("Could not set control handler.");
     }
 }
 

@@ -25,7 +25,7 @@ class BaseTournament {
                    const stats_map &results);
 
     virtual ~BaseTournament() {
-        Logger::log<Logger::Level::TRACE>("Destroying tournament...");
+        Logger::trace("Destroying tournament...");
         saveJson();
     }
 
@@ -36,7 +36,7 @@ class BaseTournament {
 
     [[nodiscard]] stats_map getResults() noexcept { return result_.getResults(); }
     void setResults(const stats_map &results) noexcept {
-        Logger::log<Logger::Level::TRACE>("Setting results...");
+        Logger::trace("Setting results...");
 
         result_.setResults(results);
 

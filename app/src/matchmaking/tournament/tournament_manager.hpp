@@ -13,7 +13,7 @@ class TournamentManager {
                       const stats_map &results);
 
     ~TournamentManager() {
-        Logger::log<Logger::Level::INFO>("Finished match.");
+        Logger::info("Finished match.");
         stop();
     }
 

@@ -7,18 +7,18 @@ namespace fast_chess {
 TournamentManager::TournamentManager(const options::Tournament& tournament_config,
                                      const std::vector<EngineConfiguration>& engine_configs, const stats_map& results)
     : engine_configs_(engine_configs), tournament_options_(tournament_config) {
-    Logger::log<Logger::Level::TRACE>("Creating tournament...");
+    Logger::trace("Creating tournament...");
     validateEngines();
 
     // Set the seed for the random number generator
-    Logger::log<Logger::Level::TRACE>("Seeding random number generator with seed: {}", tournament_options_.seed);
+    Logger::trace("Seeding random number generator with seed: {}", tournament_options_.seed);
     util::random::mersenne_rand.seed(tournament_options_.seed);
 
     round_robin_ = std::make_unique<RoundRobin>(fixConfig(tournament_options_), engine_configs_, results);
 }
 
 void TournamentManager::start() {
-    Logger::log<Logger::Level::INFO>("Starting tournament...");
+    Logger::info("Starting tournament...");
 
     round_robin_->start();
 }
@@ -54,7 +54,7 @@ options::Tournament TournamentManager::fixConfig(options::Tournament config) {
         }
 
         if (config.sprt.model == "bayesian" && config.report_penta) {
-            Logger::log<Logger::Level::WARN>(
+            Logger::warn(
                 "Warning: Bayesian SPRT model not available with pentanomial statistics. Disabling "
                 "pentanomial reports...");
             config.report_penta = false;
@@ -68,15 +68,14 @@ options::Tournament TournamentManager::fixConfig(options::Tournament config) {
     }
 
     if (config.opening.file.empty()) {
-        Logger::log<Logger::Level::WARN>(
+        Logger::warn(
             "Warning: No opening book specified! Consider using one, otherwise all games will be "
             "played from the starting position.");
     }
 
     if (config.opening.format != FormatType::EPD && config.opening.format != FormatType::PGN) {
-        Logger::log<Logger::Level::WARN>(
-            "Warning: Unknown opening format, {}. All games will be played from the starting position.",
-            int(config.opening.format));
+        Logger::warn("Warning: Unknown opening format, {}. All games will be played from the starting position.",
+                     int(config.opening.format));
     }
 
     if (config.ratinginterval == 0) config.ratinginterval = std::numeric_limits<int>::max();
@@ -85,7 +84,7 @@ options::Tournament TournamentManager::fixConfig(options::Tournament config) {
 
     if (config.seed == 951356066 && !config.randomseed && !config.opening.file.empty() &&
         config.opening.order == OrderType::RANDOM) {
-        Logger::log<Logger::Level::WARN>(
+        Logger::warn(
             "Warning: No opening book seed specified! Consider specifying one, otherwise the match "
             "will be played using the default seed of 951356066.");
     }
@@ -94,7 +93,7 @@ options::Tournament TournamentManager::fixConfig(options::Tournament config) {
 }
 
 void TournamentManager::validateEngines() const {
-    Logger::log<Logger::Level::TRACE>("Validating engine configs...");
+    Logger::trace("Validating engine configs...");
 
     if (engine_configs_.size() < 2) {
         throw std::runtime_error("Error: Need at least two engines to start!");

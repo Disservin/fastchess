@@ -35,7 +35,7 @@ BaseTournament::BaseTournament(const options::Tournament &config,
 }
 
 void BaseTournament::start() {
-    Logger::log<Logger::Level::TRACE>("Starting tournament...");
+    Logger::trace("Starting tournament...");
 
     create();
 }
@@ -45,18 +45,18 @@ void BaseTournament::saveJson() {
     jsonfile["engines"]             = engine_configs_;
     jsonfile["stats"]               = getResults();
 
-    Logger::log<Logger::Level::TRACE>("Saving results...");
+    Logger::trace("Saving results...");
 
     std::ofstream file(tournament_options_.config_name.empty() ? "config.json" : tournament_options_.config_name);
     file << std::setw(4) << jsonfile << std::endl;
 
-    Logger::log<Logger::Level::INFO>("Saved results.");
+    Logger::info("Saved results.");
 }
 
 void BaseTournament::stop() {
-    Logger::log<Logger::Level::TRACE>("Stopped!");
+    Logger::trace("Stopped!");
     atomic::stop = true;
-    Logger::log<Logger::Level::TRACE>("Stopping threads...");
+    Logger::trace("Stopping threads...");
     pool_.kill();
 }
 
@@ -69,8 +69,7 @@ void BaseTournament::playGame(const std::pair<EngineConfiguration, EngineConfigu
     auto engine_one = util::ScopeGuard(engine_cache_.getEntry(configs.first.name, configs.first));
     auto engine_two = util::ScopeGuard(engine_cache_.getEntry(configs.second.name, configs.second));
 
-    Logger::log<Logger::Level::TRACE>("Playing game {} between {} and {}", game_id + 1, configs.first.name,
-                                      configs.second.name);
+    Logger::trace("Playing game {} between {} and {}", game_id + 1, configs.first.name, configs.second.name);
 
     start();
 
@@ -80,14 +79,14 @@ void BaseTournament::playGame(const std::pair<EngineConfiguration, EngineConfigu
     if (match.isCrashOrDisconnect()) {
         // restart the engine when recover is enabled
         if (tournament_options_.recover) {
-            Logger::log<Logger::Level::TRACE>("Restarting engine...");
+            Logger::trace("Restarting engine...");
             if (!engine_one.get().get().isResponsive()) {
-                Logger::log<Logger::Level::TRACE>("Restarting engine {}", configs.first.name);
+                Logger::trace("Restarting engine {}", configs.first.name);
                 engine_one.get().get().refreshUci();
             }
 
             if (!engine_two.get().get().isResponsive()) {
-                Logger::log<Logger::Level::TRACE>("Restarting engine {}", configs.second.name);
+                Logger::trace("Restarting engine {}", configs.second.name);
                 engine_two.get().get().refreshUci();
             }
         } else {

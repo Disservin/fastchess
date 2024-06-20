@@ -19,7 +19,7 @@ RoundRobin::RoundRobin(const options::Tournament& tournament_config,
 }
 
 void RoundRobin::start() {
-    Logger::log<Logger::Level::TRACE>("Starting round robin tournament...");
+    Logger::trace("Starting round robin tournament...");
 
     BaseTournament::start();
 
@@ -40,7 +40,7 @@ void RoundRobin::start() {
 }
 
 void RoundRobin::create() {
-    Logger::log<Logger::Level::TRACE>("Creating matches...");
+    Logger::trace("Creating matches...");
 
     total_ = (engine_configs_.size() * (engine_configs_.size() - 1) / 2) * tournament_options_.rounds *
              tournament_options_.games;
@@ -150,7 +150,7 @@ void RoundRobin::updateSprtStatus(const std::vector<EngineConfiguration>& engine
     if (sprt_.getResult(llr) != SPRT_CONTINUE || match_count_ == total_) {
         atomic::stop = true;
 
-        Logger::log<Logger::Level::INFO>("SPRT test finished: {} {}", sprt_.getBounds(), sprt_.getElo());
+        Logger::info("SPRT test finished: {} {}", sprt_.getBounds(), sprt_.getElo());
         output_->printResult(stats, engine_configs[0].name, engine_configs[1].name);
         output_->printInterval(sprt_, stats, engine_configs[0].name, engine_configs[1].name);
         output_->endTournament();

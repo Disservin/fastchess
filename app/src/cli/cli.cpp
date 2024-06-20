@@ -408,7 +408,7 @@ void parseLog(const std::vector<std::string> &params, ArgumentData &) {
 
 namespace config {
 void loadJson(ArgumentData &argument_data, const std::string &filename) {
-    Logger::log<Logger::Level::INFO>("Loading config file: {}", filename);
+    Logger::info("Loading config file: {}", filename);
     std::ifstream f(filename);
     json jsonfile = json::parse(f);
 
@@ -435,7 +435,7 @@ void parseConfig(const std::vector<std::string> &params, ArgumentData &argument_
         } else if (key == "outname") {
             argument_data.tournament_options.config_name = value;
         } else if (key == "discard" && value == "true") {
-            Logger::log<Logger::Level::INFO>("Discarding config file");
+            Logger::info("Discarding config file");
             argument_data.tournament_options = argument_data.old_tournament_options;
             argument_data.configs            = argument_data.old_configs;
             argument_data.stats.clear();
@@ -605,7 +605,7 @@ void parseDebug(const std::vector<std::string> &, ArgumentData &) {
 }
 
 OptionsParser::OptionsParser(int argc, char const *argv[]) {
-    Logger::log<Logger::Level::TRACE>("Reading options...");
+    Logger::trace("Reading options...");
 
     if (argc == 1) {
         printHelp();

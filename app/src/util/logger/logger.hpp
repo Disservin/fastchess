@@ -28,6 +28,39 @@ class Logger {
 
     static void openFile(const std::string &file);
 
+    template <bool thread = false, typename... Args>
+    static void trace(const std::string &format, Args &&...args) {
+        log<Level::TRACE, thread>(format, std::forward<Args>(args)...);
+    }
+
+    template <bool thread = false, typename... Args>
+    static void warn(const std::string &format, Args &&...args) {
+        log<Level::WARN, thread>(format, std::forward<Args>(args)...);
+    }
+
+    template <bool thread = false, typename... Args>
+    static void info(const std::string &format, Args &&...args) {
+        log<Level::INFO, thread>(format, std::forward<Args>(args)...);
+    }
+
+    template <bool thread = false, typename... Args>
+    static void err(const std::string &format, Args &&...args) {
+        log<Level::ERR, thread>(format, std::forward<Args>(args)...);
+    }
+
+    template <bool thread = false, typename... Args>
+    static void fatal(const std::string &format, Args &&...args) {
+        log<Level::FATAL, thread>(format, std::forward<Args>(args)...);
+    }
+
+    static void writeToEngine(const std::string &msg, const std::string &time, const std::string &name);
+
+    static void readFromEngine(const std::string &msg, const std::string &time, const std::string &name,
+                               bool err = false);
+
+    static std::atomic_bool should_log_;
+
+   private:
     template <Level level = Level::WARN, bool thread = false, typename... Args>
     static void log(const std::string &format, Args &&...args) {
         if (level < level_) {
@@ -60,14 +93,6 @@ class Logger {
         log_ << file_ss.str() << std::endl;
     }
 
-    static void writeToEngine(const std::string &msg, const std::string &time, const std::string &name);
-
-    static void readFromEngine(const std::string &msg, const std::string &time, const std::string &name,
-                               bool err = false);
-
-    static std::atomic_bool should_log_;
-
-   private:
     Logger() {}
 
     static Level level_;

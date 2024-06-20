@@ -224,8 +224,7 @@ bool Match::playMove(Player& us, Player& opponent) {
         data_.termination = MatchTermination::ILLEGAL_MOVE;
         data_.reason      = name + Match::ILLEGAL_MSG;
 
-        Logger::log<Logger::Level::WARN, true>("Warning; Illegal move {} played by {}",
-                                               best_move ? *best_move : "<none>", name);
+        Logger::warn<true>("Warning; Illegal move {} played by {}", best_move ? *best_move : "<none>", name);
 
         return false;
     }
@@ -237,7 +236,7 @@ bool Match::playMove(Player& us, Player& opponent) {
         data_.termination = MatchTermination::TIMEOUT;
         data_.reason      = name + Match::TIMEOUT_MSG;
 
-        Logger::log<Logger::Level::WARN, true>("Warning; Engine {} loses on time", name);
+        Logger::warn<true>("Warning; Engine {} loses on time", name);
 
         // we send a stop command to the engine to prevent it from thinking
         // and wait for a bestmove to appear
@@ -303,7 +302,7 @@ void Match::verifyPvLines(const Player& us) {
             movegen::legalmoves(moves, board);
 
             if (std::find(moves.begin(), moves.end(), uci::uciToMove(board, *it_start)) == moves.end()) {
-                Logger::log<Logger::Level::WARN, true>("Warning; Illegal pv move {} pv: {}", *it_start, info);
+                Logger::warn<true>("Warning; Illegal pv move {} pv: {}", *it_start, info);
                 break;
             }
 

@@ -13,9 +13,9 @@ class Fastchess : public IOutput {
 
     void printInterval(const SPRT& sprt, const Stats& stats, const std::string& first,
                        const std::string& second, 
-                       std::vector<std::pair<std::string, std::string>>& options1, 
-                       std::vector<std::pair<std::string, std::string>>& options2,
-                       Limit& limit1, Limit& limit2, const std::string& book) override {
+                       const std::vector<std::pair<std::string, std::string>>& options1, 
+                       const std::vector<std::pair<std::string, std::string>>& options2,
+                       const Limit& limit1, const Limit& limit2, const std::string& book) override {
         std::cout << "--------------------------------------------------\n" << std::flush;
         printElo(stats, first, second, options1, options2, limit1, limit2, book);
         printSprt(sprt, stats);
@@ -27,22 +27,22 @@ class Fastchess : public IOutput {
     }
 
     void printElo(const Stats& stats, const std::string& first, const std::string& second,
-                  std::vector<std::pair<std::string, std::string>>& options1, 
-                  std::vector<std::pair<std::string, std::string>>& options2,
-                  Limit& limit1, Limit& limit2, const std::string& book) override {
+                  const std::vector<std::pair<std::string, std::string>>& options1, 
+                  const std::vector<std::pair<std::string, std::string>>& options2,
+                  const Limit& limit1, const Limit& limit2, const std::string& book) override {
         std::unique_ptr<elo::EloBase> elo;
         int movestogo1 = limit1.tc.moves;
         int movestogo2 = limit2.tc.moves;
-        int fixed_time1 = limit1.tc.fixed_time;
-        int fixed_time2 = limit2.tc.fixed_time;
+        //int fixed_time1 = limit1.tc.fixed_time;
+        //int fixed_time2 = limit2.tc.fixed_time;
         int tc1 = limit1.tc.time;
         int tc2 = limit2.tc.time;
         int inc1 = limit1.tc.increment;
         int inc2 = limit2.tc.increment;
-        int nodes1 = limit1.nodes;
-        int nodes2 = limit2.nodes;
-        int plies1 = limit1.plies;
-        int plies2 = limit2.plies;
+        //int nodes1 = limit1.nodes;
+        //int nodes2 = limit2.nodes;
+        //int plies1 = limit1.plies;
+        //int plies2 = limit2.plies;
         std::string threads1 = "{}";
         std::string threads2 = "{}";
         std::string hash1 = "{}";

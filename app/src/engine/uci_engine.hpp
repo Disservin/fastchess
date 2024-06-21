@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #include <chess.hpp>
@@ -79,9 +80,13 @@ class UciEngine : protected process::Process {
 #endif
     );
 
+    [[nodiscard]] std::optional<std::string> getOption(const std::string &name) const;
+
    private:
     void loadConfig(const EngineConfiguration &config);
     void sendSetoption(const std::string &name, const std::string &value);
+
+    std::unordered_map<std::string, std::string> uci_options_;
 
     EngineConfiguration config_;
 

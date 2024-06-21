@@ -47,7 +47,7 @@ class Fastchess : public IOutput {
         if (inc1 != 0)
             ss << "+" << inc1 / 1000.0;
        
-        if (tc1 != tc2 && movestogo1 != movestogo2 && inc1 != inc2) {
+        if (tc1 != tc2 || movestogo1 != movestogo2 || inc1 != inc2) {
              ss << " - ";
            
             if (movestogo2 != 0)

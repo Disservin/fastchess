@@ -9,8 +9,11 @@ namespace fast_chess {
 class Cutechess : public IOutput {
    public:
     void printInterval(const SPRT& sprt, const Stats& stats, const std::string& first,
-                       const std::string& second) override {
-        printElo(stats, first, second);
+                       const std::string& second, 
+                       std::vector<std::pair<std::string, std::string>>& options1, 
+                       std::vector<std::pair<std::string, std::string>>& options2,
+                       Limit& limit1, Limit& limit2, const std::string& book) override {
+        printElo(stats, first, second, options1, options2, limit1, limit2);
         printSprt(sprt, stats);
     };
 

@@ -23,7 +23,7 @@ class IOutput {
     virtual void printInterval(const SPRT& sprt, const Stats& stats, const std::string& first,
                                const std::string& second) {
         std::cout << "--------------------------------------------------\n";
-        printElo(stats, first, second);
+        printElo(stats, first, second, options1, options2, limit1, limit2, book);
         printSprt(sprt, stats);
         std::cout << "--------------------------------------------------\n";
     };

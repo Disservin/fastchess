@@ -41,10 +41,10 @@ class Fastchess : public IOutput {
         int nodes2 = limit2.nodes;
         int plies1 = limit1.plies;
         int plies2 = limit2.plies;
-        std::string threads1 = "{}"
-        std::string threads2 = "{}"
-        std::string hash1 = "{}"
-        std::string hash2 = "{}"
+        std::string threads1 = "{}";
+        std::string threads2 = "{}";
+        std::string hash1 = "{}";
+        std::string hash2 = "{}";
         auto hash1it = std::find_if(options1.begin(), options1.end(),
                            [](const std::pair<std::string, std::string>& element) {
                                return element.first == "Hash";

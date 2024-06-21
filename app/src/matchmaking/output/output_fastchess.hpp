@@ -46,20 +46,46 @@ class Fastchess : public IOutput {
 
         if (inc1 != 0)
             ss << "+" << inc1 / 1000.0;
+       
+        if (tc1 != tc2 && movestogo1 != movestogo2 && inc1 != inc2) {
+             ss << " - ";
+           
+            if (movestogo2 != 0)
+                ss << movestogo2 << "/";
+   
+            ss << tc2 / 1000.0;
+   
+            if (inc2 != 0)
+                ss << "+" << inc2 / 1000.0;
+        }
 
         ss << ", "
            << threads1
-           << "t - "
-           << threads2
-           << "t, "
-           << hash1
-           << "MB - "
-           << hash2
-           << "MB, "
-           << book
-           << "):\n";
+           << "t";
+       
+        if (threads1 != threads2) {
+            ss << " - "
+               << threads2
+               << "t";
+        }
 
-        ss << "Elo: "        //
+        ss << ", "
+           << hash1
+           << "MB";
+
+        if (hash1 != hash2) {
+            ss << " - "
+               << hash2
+               << "MB";
+        }
+           
+        if (!book.empty()) {
+            ss << ", "
+               << book;
+        }
+       
+        ss << "):\n"
+           << "Elo: "        //
            << elo->getElo()  //
            << ", nElo: "     //
            << elo->nElo()    //

@@ -17,7 +17,7 @@ class Fastchess : public IOutput {
                        std::vector<std::pair<std::string, std::string>>& options2,
                        Limit& limit1, Limit& limit2, const std::string& book) override {
         std::cout << "--------------------------------------------------\n" << std::flush;
-        printElo(stats, first, second, options1, options2, limit1, limit2);
+        printElo(stats, first, second, options1, options2, limit1, limit2, book);
         printSprt(sprt, stats);
         std::cout << "--------------------------------------------------\n" << std::flush;
     };

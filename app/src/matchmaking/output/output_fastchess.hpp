@@ -36,6 +36,8 @@ class Fastchess : public IOutput {
         int tc2 = limit2.tc.time;
         int nodes1 = limit1.nodes;
         int nodes2 = limit2.nodes;
+        int plies1 = limit1.plies;
+        int plies2 = limit2.plies;
 
         if (report_penta_) {
             elo = std::make_unique<elo::EloPentanomial>(stats);

@@ -28,7 +28,14 @@ class Fastchess : public IOutput {
                   std::vector<std::pair<std::string, std::string>>& options2,
                   Limit& limit1, Limit& limit2) override {
         std::unique_ptr<elo::EloBase> elo;
-        int movestogo1 = limit1.movestogo
+        int movestogo1 = limit1.tc.moves;
+        int movestogo2 = limit2.tc.moves;
+        int fixed_time1 = limit1.tc.fixed_time;
+        int fixed_time2 = limit2.tc.fixed_time
+        int tc1 = limit1.tc.time;
+        int tc2 = limit2.tc.time;
+        int nodes1 = limit1.nodes;
+        int nodes2 = limit2.nodes;
 
         if (report_penta_) {
             elo = std::make_unique<elo::EloPentanomial>(stats);

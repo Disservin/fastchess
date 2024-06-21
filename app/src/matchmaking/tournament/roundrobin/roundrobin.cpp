@@ -115,7 +115,8 @@ void RoundRobin::create() {
             // penta stats.
             if ((report && ratinginterval_index % tournament_options_.ratinginterval == 0) ||
                 match_count_ + 1 == total_) {
-                output_->printInterval(sprt_, updated_stats, first.name, second.name);
+                output_->printInterval(sprt_, updated_stats, first.name, second.name, first.options, second.options, 
+                                       first.limit, second.limit, tournament_options_.opening.file);
             }
 
             updateSprtStatus({first, second});

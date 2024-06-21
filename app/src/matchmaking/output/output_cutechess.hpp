@@ -13,7 +13,7 @@ class Cutechess : public IOutput {
                        std::vector<std::pair<std::string, std::string>>& options1, 
                        std::vector<std::pair<std::string, std::string>>& options2,
                        Limit& limit1, Limit& limit2, const std::string& book) override {
-        printElo(stats, first, second, options1, options2, limit1, limit2);
+        printElo(stats, first, second, options1, options2, limit1, limit2, book);
         printSprt(sprt, stats);
     };
 

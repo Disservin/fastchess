@@ -124,14 +124,11 @@ void UciEngine::quit() {
 
 void UciEngine::sendSetoption(const std::string &name, const std::string &value) {
     Logger::trace<true>("Sending setoption to engine {} {} {}", config_.name, name, value);
-<<<<<<< HEAD
     if (!writeEngine(fmt::format("setoption name {} value {}", name, value))) {
         Logger::trace<true>("Failed to send setoption to engine {} {} {}", config_.name, name, value);
+    } else {
+        uci_options_[name] = value;
     }
-=======
-    writeEngine("setoption name " + name + " value " + value);
-    uci_options_[name] = value;
->>>>>>> feat: add logic to get set options from engine
 }
 
 void UciEngine::start() {

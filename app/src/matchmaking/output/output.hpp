@@ -36,9 +36,9 @@ class IOutput {
 
     // Print current H2H elo stats.
     virtual void printElo(const Stats& stats, const std::string& first, const std::string& second,
-                          std::vector<std::pair<std::string, std::string>>& options1, 
-                          std::vector<std::pair<std::string, std::string>>& options2,
-                          Limit& limit1, Limit& limit2, const std::string& book) = 0;
+                          const std::vector<std::pair<std::string, std::string>>& options1, 
+                          const std::vector<std::pair<std::string, std::string>>& options2,
+                          const Limit& limit1, const Limit& limit2, const std::string& book) = 0;
 
     // Print current SPRT stats.
     virtual void printSprt(const SPRT& sprt, const Stats& stats) = 0;

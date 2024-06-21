@@ -12,9 +12,12 @@ class Fastchess : public IOutput {
     Fastchess(bool report_penta = true) : report_penta_(report_penta) {}
 
     void printInterval(const SPRT& sprt, const Stats& stats, const std::string& first,
-                       const std::string& second) override {
+                       const std::string& second, 
+                       std::vector<std::pair<std::string, std::string>>& options1, 
+                       std::vector<std::pair<std::string, std::string>>& options2,
+                       Limit& limit1, Limit& limit2, const std::string& book) override {
         std::cout << "--------------------------------------------------\n" << std::flush;
-        printElo(stats, first, second);
+        printElo(stats, first, second, options1, options2, limit1, limit2);
         printSprt(sprt, stats);
         std::cout << "--------------------------------------------------\n" << std::flush;
     };

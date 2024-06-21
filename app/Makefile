@@ -33,8 +33,6 @@ endif
 
 TARGET   := $(BINARY_PATH)/$(TARGET)
 
-OBJECTS   := $(patsubst %.cpp,$(BUILDDIR)/%.o,$(SRC_FILES))
-DEPENDS   := $(patsubst %.cpp,$(BUILDDIR)/%.d,$(SRC_FILES))
 DEPFLAGS  := -MMD -MP
 MKDIR	  := mkdir -p
 
@@ -109,6 +107,15 @@ ifeq ($(USE_CUTE), true)
 	CXXFLAGS += -DUSE_CUTE
 endif
 
+ifeq ($(ZLIB), true)
+	CXXFLAGS += -DUSE_ZLIB
+	SRC_FILES += third_party/gzip/gzstream.cpp
+	LDFLAGS += -lz
+endif
+
+OBJECTS   := $(patsubst %.cpp,$(BUILDDIR)/%.o,$(SRC_FILES))
+DEPENDS   := $(patsubst %.cpp,$(BUILDDIR)/%.d,$(SRC_FILES))
+
 .PHONY: clean all tests FORCE
 
 all: fetch-subs $(TARGET)
@@ -133,6 +140,7 @@ build_directories:
 	@$(MKDIR) $(BUILDDIR)
 	@find src -type d -exec $(MKDIR) $(BUILDDIR)/{} \;
 	@find tests -type d -exec $(MKDIR) $(BUILDDIR)/{} \;
+	@find third_party -type d -exec $(MKDIR) $(BUILDDIR)/{} \;
 
 clean:
 	rm -rf $(BUILDDIR) $(TARGET) $(TARGET).exe

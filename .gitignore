@@ -73,5 +73,8 @@ tmp
 
 #
 log.txt
+log
+log*.gz
 
 !app/tests/data/*
+

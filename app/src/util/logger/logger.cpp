@@ -1,23 +1,44 @@
 #include <util/logger/logger.hpp>
 
+#include <chrono>
 #include <iomanip>
 #include <thread>
+#include <variant>
 
 #include <util/date.hpp>
 
+#ifdef USE_ZLIB
+#    include "../../../third_party/gzip/gzstream.h"
+#endif
+
 namespace fast_chess {
 
+bool Logger::compress_               = false;
+Logger::Level Logger::level_         = Logger::Level::WARN;
 std::atomic_bool Logger::should_log_ = false;
-std::ofstream Logger::log_;
+
 std::mutex Logger::log_mutex_;
-Logger::Level Logger::level_ = Logger::Level::WARN;
+Logger::log_file_type Logger::log_;
 
 void Logger::openFile(const std::string &file) {
-    Logger::log_.open(file, std::ios::app);
+#ifdef USE_ZLIB
+    if (compress_) {
+        auto t   = std::chrono::system_clock::now();
+        auto fmt = fmt::format("{}{:%Y-%m-%dT.%H.%M.%S}.gz", file, t);
+        log_.emplace<ogzstream>(fmt.c_str(), std::ios::out);
+    } else {
+        log_.emplace<std::ofstream>(file.c_str(), std::ios::app);
+    }
+#else
+    if (!compress_) {
+        log_.emplace<std::ofstream>(file.c_str(), std::ios::app);
+    } else {
+        throw std::runtime_error("Compress is enabled but program wasn't compiled with zlib.");
+    }
+#endif
+
     Logger::should_log_ = true;
 }
-
-void Logger::setLevel(Level level) { Logger::level_ = level; }
 
 void Logger::writeToEngine(const std::string &msg, const std::string &time, const std::string &name) {
     if (!should_log_) {
@@ -29,7 +50,7 @@ void Logger::writeToEngine(const std::string &msg, const std::string &time, cons
     auto fmt_message = fmt::format("[{:<6}] [{}] <{:>3}> {} <--- {}\n", "Engine", time, id, name, msg);
 
     const std::lock_guard<std::mutex> lock(log_mutex_);
-    log_ << fmt_message << std::flush;
+    std::visit([&](auto &&arg) { arg << fmt_message << std::flush; }, log_);
 }
 
 void Logger::readFromEngine(const std::string &msg, const std::string &time, const std::string &name, bool err) {
@@ -43,7 +64,7 @@ void Logger::readFromEngine(const std::string &msg, const std::string &time, con
         fmt::format("[{:<6}] [{}] <{:>3}> {} {} ---> {}\n", "Engine", time, id, name, (err ? "1" : "2"), msg);
 
     const std::lock_guard<std::mutex> lock(log_mutex_);
-    log_ << fmt_message << std::flush;
+    std::visit([&](auto &&arg) { arg << fmt_message << std::flush; }, log_);
 }
 
 }  // namespace fast_chess

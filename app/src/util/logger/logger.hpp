@@ -7,6 +7,7 @@
 #include <sstream>
 #include <string>
 #include <thread>
+#include <variant>
 
 #include <util/date.hpp>
 
@@ -14,18 +15,30 @@
 #include "../../../third_party/fmt/include/fmt/core.h"
 #include "../../../third_party/fmt/include/fmt/std.h"
 
+#ifdef USE_ZLIB
+#    include "../../../third_party/gzip/gzstream.h"
+#endif
+
 namespace fast_chess {
 
 // Singleton class for logging messages to the console/file.
 class Logger {
    public:
+#ifdef USE_ZLIB
+    using log_file_type = std::variant<std::ofstream, ogzstream>;
+#else
+    using log_file_type = std::variant<std::ofstream>;
+#endif
+
     enum class Level { ALL, TRACE, WARN, INFO, ERR, FATAL };
 
     Logger(Logger const &) = delete;
 
     void operator=(Logger const &) = delete;
 
-    static void setLevel(Level level);
+    static void setLevel(Level level) { Logger::level_ = level; }
+
+    static void setCompress(bool compress) { compress_ = compress; }
 
     static void openFile(const std::string &file);
 
@@ -108,14 +121,15 @@ class Logger {
 
         const std::lock_guard<std::mutex> lock(log_mutex_);
 
-        log_ << fmt_message << std::flush;
+        std::visit([&](auto &&arg) { arg << fmt_message << std::flush; }, log_);
     }
 
     Logger() {}
 
     static Level level_;
+    static bool compress_;
 
-    static std::ofstream log_;
+    static log_file_type log_;
     static std::mutex log_mutex_;
 };
 

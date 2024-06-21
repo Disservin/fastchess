@@ -398,6 +398,8 @@ void parseLog(const std::vector<std::string> &params, ArgumentData &) {
             } else {
                 OptionsParser::throwMissing("log level", key, value);
             }
+        } else if (key == "compress" && is_bool(value)) {
+            Logger::setCompress(value == "true");
         } else {
             OptionsParser::throwMissing("log", key, value);
         }

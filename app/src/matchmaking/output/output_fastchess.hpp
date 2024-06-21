@@ -37,7 +37,27 @@ class Fastchess : public IOutput {
            << first          //
            << " vs "         //
            << second         //
-           << ": \n";
+           << " (";
+
+        if (movestogo1 != 0)
+            ss << movestogo1 << "/";
+
+        ss << tc1 / 1000.0;
+
+        if (inc1 != 0)
+            ss << "+" << inc1 / 1000.0;
+
+        ss << ", "
+           << threads1
+           << "t - "
+           << threads2
+           << "t, "
+           << hash1
+           << "MB - "
+           << hash2
+           << "MB, "
+           << book
+           << "):\n";
 
         ss << "Elo: "        //
            << elo->getElo()  //

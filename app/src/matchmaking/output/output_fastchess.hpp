@@ -26,7 +26,7 @@ class Fastchess : public IOutput {
     void printElo(const Stats& stats, const std::string& first, const std::string& second,
                   std::vector<std::pair<std::string, std::string>>& options1, 
                   std::vector<std::pair<std::string, std::string>>& options2,
-                  Limit& limit1, Limit& limit2) override {
+                  Limit& limit1, Limit& limit2, const std::string& book) override {
         std::unique_ptr<elo::EloBase> elo;
         int movestogo1 = limit1.tc.moves;
         int movestogo2 = limit2.tc.moves;
@@ -38,6 +38,30 @@ class Fastchess : public IOutput {
         int nodes2 = limit2.nodes;
         int plies1 = limit1.plies;
         int plies2 = limit2.plies;
+        std::string threads1 = "{}"
+        std::string threads2 = "{}"
+        std::string hash1 = "{}"
+        std::string hash2 = "{}"
+        auto hash1it = std::find_if(options1.begin(), options1.end(),
+                           [](const std::pair<std::string, std::string>& element) {
+                               return element.first == "Hash";
+                           });
+        auto hash2it = std::find_if(options2.begin(), options2.end(),
+                           [](const std::pair<std::string, std::string>& element) {
+                               return element.first == "Hash";
+                           });
+        auto threads1it = std::find_if(options1.begin(), options1.end(),
+                           [](const std::pair<std::string, std::string>& element) {
+                               return element.first == "Threads";
+                           });
+        auto threads2it = std::find_if(options2.begin(), options2.end(),
+                           [](const std::pair<std::string, std::string>& element) {
+                               return element.first == "Threads";
+                           });
+        if (hash1it != options1.end()) hash1 = hash1it->second;
+        if (hash2it != options2.end()) hash2 = hash2it->second;
+        if (threads1it != options1.end()) threads1 = threads1it->second;
+        if (threads2it != options2.end()) threads1 = threads2it->second;
 
         if (report_penta_) {
             elo = std::make_unique<elo::EloPentanomial>(stats);

@@ -107,6 +107,10 @@ void TournamentManager::validateEngines() const {
         if (engine_configs_[i].name.empty()) {
             throw std::runtime_error("Error; please specify a name for each engine!");
         }
+        if (engine_configs_[i].limit.tc.time == 0 && engine_configs_[i].limit.tc.fixed_time == 0 && 
+            engine_configs_[i].limit.nodes == 0 && engine_configs_[i].limit.plies == 0) {
+            throw std::runtime_error("Error; no TimeControl specified!");
+        }
         for (std::size_t j = 0; j < i; j++) {
             if (engine_configs_[i].name == engine_configs_[j].name) {
                 throw std::runtime_error("Error: Engine with the same name are not allowed!: " +

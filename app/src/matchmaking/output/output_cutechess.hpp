@@ -37,7 +37,10 @@ class Cutechess : public IOutput {
         std::cout << ss.str() << std::flush;
     }
 
-    void printElo(const Stats& stats, const std::string&, const std::string&) override {
+    void printElo(const Stats& stats, const std::string&, const std::string&,
+                  std::vector<std::pair<std::string, std::string>>&, 
+                  std::vector<std::pair<std::string, std::string>>&,
+                  Limit&, Limit&, const std::string&) override {
         const elo::EloWDL elo(stats);
 
         std::stringstream ss;

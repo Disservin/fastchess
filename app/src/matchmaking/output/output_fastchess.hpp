@@ -23,7 +23,10 @@ class Fastchess : public IOutput {
         // do nothing
     }
 
-    void printElo(const Stats& stats, const std::string& first, const std::string& second) override {
+    void printElo(const Stats& stats, const std::string& first, const std::string& second,
+                  std::vector<std::pair<std::string, std::string>>& options1, 
+                  std::vector<std::pair<std::string, std::string>>& options2,
+                  Limit& limit1, Limit& limit2) override {
         std::unique_ptr<elo::EloBase> elo;
 
         if (report_penta_) {

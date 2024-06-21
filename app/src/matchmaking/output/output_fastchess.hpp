@@ -37,6 +37,8 @@ class Fastchess : public IOutput {
         int fixed_time2 = limit2.tc.fixed_time;
         int tc1 = limit1.tc.time;
         int tc2 = limit2.tc.time;
+        int inc1 = limit1.tc.increment;
+        int inc2 = limit2.tc.increment;
         int nodes1 = limit1.nodes;
         int nodes2 = limit2.nodes;
         int plies1 = limit1.plies;

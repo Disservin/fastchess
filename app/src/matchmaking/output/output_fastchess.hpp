@@ -75,8 +75,7 @@ class Fastchess : public IOutput {
         }
 
         std::stringstream ss;
-        ss << "Results of "  //
-           << first          //
+        ss << first          //
            << " vs "         //
            << second         //
            << " (";

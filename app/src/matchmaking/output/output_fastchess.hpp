@@ -31,7 +31,7 @@ class Fastchess : public IOutput {
         int movestogo1 = limit1.tc.moves;
         int movestogo2 = limit2.tc.moves;
         int fixed_time1 = limit1.tc.fixed_time;
-        int fixed_time2 = limit2.tc.fixed_time
+        int fixed_time2 = limit2.tc.fixed_time;
         int tc1 = limit1.tc.time;
         int tc2 = limit2.tc.time;
         int nodes1 = limit1.nodes;
@@ -72,7 +72,7 @@ class Fastchess : public IOutput {
                 ss << "+" << inc2 / 1000.0;
         }
 
-        ss << ", "
+        ss << "s, "
            << threads1
            << "t";
        

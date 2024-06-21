@@ -33,16 +33,16 @@ class Fastchess : public IOutput {
         std::unique_ptr<elo::EloBase> elo;
         int movestogo1 = limit1.tc.moves;
         int movestogo2 = limit2.tc.moves;
-        //int fixed_time1 = limit1.tc.fixed_time;
-        //int fixed_time2 = limit2.tc.fixed_time;
-        int tc1 = limit1.tc.time;
-        int tc2 = limit2.tc.time;
+        int fixed_time1 = limit1.tc.fixed_time;
+        int fixed_time2 = limit2.tc.fixed_time;
+        int time1 = limit1.tc.time;
+        int time2 = limit2.tc.time;
         int inc1 = limit1.tc.increment;
         int inc2 = limit2.tc.increment;
-        //int nodes1 = limit1.nodes;
-        //int nodes2 = limit2.nodes;
-        //int plies1 = limit1.plies;
-        //int plies2 = limit2.plies;
+        int nodes1 = limit1.nodes;
+        int nodes2 = limit2.nodes;
+        int plies1 = limit1.plies;
+        int plies2 = limit2.plies;
         std::string threads1 = "{}";
         std::string threads2 = "{}";
         std::string hash1 = "{}";
@@ -66,7 +66,7 @@ class Fastchess : public IOutput {
         if (hash1it != options1.end()) hash1 = hash1it->second;
         if (hash2it != options2.end()) hash2 = hash2it->second;
         if (threads1it != options1.end()) threads1 = threads1it->second;
-        if (threads2it != options2.end()) threads1 = threads2it->second;
+        if (threads2it != options2.end()) threads2 = threads2it->second;
 
         if (report_penta_) {
             elo = std::make_unique<elo::EloPentanomial>(stats);
@@ -82,27 +82,38 @@ class Fastchess : public IOutput {
            << " (";
 
         if (movestogo1 != 0)
-            ss << movestogo1 << "/";
+            ss << movestogo1 << "moves" << "/";
 
-        ss << tc1 / 1000.0;
+        if (time1 > 0)
+            ss << time1 / 1000.0 << "s";
+        else if (fixed_time1 > 0)
+            ss << fixed_time1 / 1000.0 << "s/move";
+        else if (plies1 > 0)
+            ss << plies1 << "plies";
+        else if (nodes1 > 0)
+            ss << nodes1 << "nodes";
 
         if (inc1 != 0)
-            ss << "+" << inc1 / 1000.0;
-
-        ss << "s";
+            ss << "+" << inc1 / 1000.0 << "s";
        
-        if (tc1 != tc2 || movestogo1 != movestogo2 || inc1 != inc2) {
+        if (time1 != time2 || movestogo1 != movestogo2 || inc1 != inc2 ||
+            fixed_time1 != fixed_time2 || plies1 != plies2 || nodes1 != nodes2) {
              ss << " - ";
            
             if (movestogo2 != 0)
-                ss << movestogo2 << "/";
+                ss << movestogo2 << "moves" << "/";
    
-            ss << tc2 / 1000.0;
-   
-            if (inc2 != 0)
-                ss << "+" << inc2 / 1000.0;
+            if (time2 > 0)
+                ss << time2 / 1000.0 << "s";
+            else if (fixed_time2 > 0)
+                ss << fixed_time2 / 1000.0 << "s/move";
+            else if (plies2 > 0)
+                ss << plies2 << "plies";
+            else if (nodes2 > 0)
+                ss << nodes2 << "nodes";
 
-            ss << "s";
+            if (inc2 != 0)
+                ss << "+" << inc2 / 1000.0 << "s";
         }
 
         ss << ", "

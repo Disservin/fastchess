@@ -126,13 +126,14 @@ class Fastchess : public IOutput {
         }
 
         std::size_t pos = book.find_last_of("/\\");
+        std::string bookname = book;
         if (pos != std::string::npos) {
-            book = book.substr(pos + 1);
+            bookname = book.substr(pos + 1);
         }
        
         if (!book.empty()) {
             ss << ", "
-               << book;
+               << bookname;
         }
        
         ss << "):\n"

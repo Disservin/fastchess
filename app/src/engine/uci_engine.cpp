@@ -14,8 +14,6 @@ bool UciEngine::isResponsive(std::chrono::milliseconds threshold) {
     try {
         if (!alive()) return false;
 
-        Logger::trace<true>("Pinging engine {}", config_.name);
-
         writeEngine("isready");
 
         std::vector<process::Line> output;
@@ -29,9 +27,6 @@ bool UciEngine::isResponsive(std::chrono::milliseconds threshold) {
             Logger::trace<true>("Engine {} didn't respond to isready.", config_.name);
             Logger::warn<true>("Warning; Engine {} is not responsive.", config_.name);
         }
-
-        Logger::trace<true>("Engine {} is {}", config_.name,
-                            res == process::Status::OK ? "responsive." : "not responsive.");
 
         return res == process::Status::OK;
 

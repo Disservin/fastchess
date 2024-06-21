@@ -22,9 +22,9 @@ class IOutput {
     // Interval output. Get's displayed every n `ratinginterval`.
     virtual void printInterval(const SPRT& sprt, const Stats& stats, const std::string& first,
                                const std::string& second, 
-                               std::vector<std::pair<std::string, std::string>>& options1, 
-                               std::vector<std::pair<std::string, std::string>>& options2,
-                               Limit& limit1, Limit& limit2, const std::string& book) {
+                               const std::vector<std::pair<std::string, std::string>>& options1, 
+                               const std::vector<std::pair<std::string, std::string>>& options2,
+                               const Limit& limit1, const Limit& limit2, const std::string& book) {
         std::cout << "--------------------------------------------------\n";
         printElo(stats, first, second, options1, options2, limit1, limit2, book);
         printSprt(sprt, stats);

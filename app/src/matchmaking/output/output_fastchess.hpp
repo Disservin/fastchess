@@ -88,6 +88,8 @@ class Fastchess : public IOutput {
 
         if (inc1 != 0)
             ss << "+" << inc1 / 1000.0;
+
+        ss << "s";
        
         if (tc1 != tc2 || movestogo1 != movestogo2 || inc1 != inc2) {
              ss << " - ";
@@ -99,9 +101,11 @@ class Fastchess : public IOutput {
    
             if (inc2 != 0)
                 ss << "+" << inc2 / 1000.0;
+
+            ss << "s";
         }
 
-        ss << "s, "
+        ss << ", "
            << threads1
            << "t";
        
@@ -120,7 +124,12 @@ class Fastchess : public IOutput {
                << hash2
                << "MB";
         }
-           
+
+        std::size_t pos = book.find_last_of("/\\");
+        if (pos != std::string::npos) {
+            book = book.substr(pos + 1);
+        }
+       
         if (!book.empty()) {
             ss << ", "
                << book;

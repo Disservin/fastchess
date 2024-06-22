@@ -19,7 +19,7 @@ class Fastchess : public IOutput {
     Fastchess(bool report_penta = true) : report_penta_(report_penta) {}
 
     void printInterval(const SPRT& sprt, const Stats& stats, const std::string& first, const std::string& second,
-                       const std::pair<engine::UciEngine, engine::UciEngine>& engines,
+                       const std::pair<const engine::UciEngine&, const engine::UciEngine&>& engines,
                        const std::string& book) override {
         std::cout << "--------------------------------------------------\n" << std::flush;
         printElo(stats, first, second, engines, book);
@@ -32,42 +32,8 @@ class Fastchess : public IOutput {
     }
 
     void printElo(const Stats& stats, const std::string& first, const std::string& second,
-                  const std::pair<engine::UciEngine, engine::UciEngine>& engines, const std::string& book) override {
-        // int movestogo1       = limit1.tc.moves;
-        // int movestogo2       = limit2.tc.moves;
-        // int fixed_time1      = limit1.tc.fixed_time;
-        // int fixed_time2      = limit2.tc.fixed_time;
-        // int time1            = limit1.tc.time;
-        // int time2            = limit2.tc.time;
-        // int inc1             = limit1.tc.increment;
-        // int inc2             = limit2.tc.increment;
-        // int nodes1           = limit1.nodes;
-        // int nodes2           = limit2.nodes;
-        // int plies1           = limit1.plies;
-        // int plies2           = limit2.plies;
-        // std::string threads1 = "{}";
-        // std::string threads2 = "{}";
-        // std::string hash1    = "{}";
-        // std::string hash2    = "{}";
-        // auto hash1it =
-        //     std::find_if(options1.begin(), options1.end(),
-        //                  [](const std::pair<std::string, std::string>& element) { return element.first == "Hash"; });
-        // auto hash2it =
-        //     std::find_if(options2.begin(), options2.end(),
-        //                  [](const std::pair<std::string, std::string>& element) { return element.first == "Hash"; });
-        // auto threads1it =
-        //     std::find_if(options1.begin(), options1.end(),
-        //                  [](const std::pair<std::string, std::string>& element) { return element.first == "Threads";
-        //                  });
-        // auto threads2it =
-        //     std::find_if(options2.begin(), options2.end(),
-        //                  [](const std::pair<std::string, std::string>& element) { return element.first == "Threads";
-        //                  });
-        // if (hash1it != options1.end()) hash1 = hash1it->second;
-        // if (hash2it != options2.end()) hash2 = hash2it->second;
-        // if (threads1it != options1.end()) threads1 = threads1it->second;
-        // if (threads2it != options2.end()) threads2 = threads2it->second;
-
+                  const std::pair<const engine::UciEngine&, const engine::UciEngine&>& engines,
+                  const std::string& book) override {
         std::unique_ptr<elo::EloBase> elo;
 
         if (report_penta_) {
@@ -111,107 +77,7 @@ class Fastchess : public IOutput {
 
         auto lines = fmt::format("{}\n{}\n{}\n{}\n{}\n{}", line1, line2, line3, line4, line5);
 
-        // std::stringstream ss;
-        // ss << first   //
-        //    << " vs "  //
-        //    << second  //
-        //    << " (";
-
-        // if (movestogo1 != 0) ss << movestogo1 << "moves" << "/";
-
-        // if (time1 > 0)
-        //     ss << time1 / 1000.0 << "s";
-        // else if (fixed_time1 > 0)
-        //     ss << fixed_time1 / 1000.0 << "s/move";
-        // else if (plies1 > 0)
-        //     ss << plies1 << "plies";
-        // else if (nodes1 > 0)
-        //     ss << nodes1 << "nodes";
-
-        // if (inc1 != 0) ss << "+" << inc1 / 1000.0 << "s";
-
-        // if (time1 != time2 || movestogo1 != movestogo2 || inc1 != inc2 || fixed_time1 != fixed_time2 ||
-        //     plies1 != plies2 || nodes1 != nodes2) {
-        //     ss << " - ";
-
-        //     if (movestogo2 != 0) ss << movestogo2 << "moves" << "/";
-
-        //     if (time2 > 0)
-        //         ss << time2 / 1000.0 << "s";
-        //     else if (fixed_time2 > 0)
-        //         ss << fixed_time2 / 1000.0 << "s/move";
-        //     else if (plies2 > 0)
-        //         ss << plies2 << "plies";
-        //     else if (nodes2 > 0)
-        //         ss << nodes2 << "nodes";
-
-        //     if (inc2 != 0) ss << "+" << inc2 / 1000.0 << "s";
-        // }
-
-        // ss << ", " << threads1 << "t";
-
-        // if (threads1 != threads2) {
-        //     ss << " - " << threads2 << "t";
-        // }
-
-        // ss << ", " << hash1 << "MB";
-
-        // if (hash1 != hash2) {
-        //     ss << " - " << hash2 << "MB";
-        // }
-
-        // std::size_t pos      = book.find_last_of("/\\");
-        // std::string bookname = book;
-        // if (pos != std::string::npos) {
-        //     bookname = book.substr(pos + 1);
-        // }
-
-        // if (!book.empty()) {
-        //     ss << ", " << bookname;
-        // }
-
-        // ss << "):\n"
-        //    << "Elo: "        //
-        //    << elo->getElo()  //
-        //    << ", nElo: "     //
-        //    << elo->nElo()    //
-        //    << "\n";          //
-
-        // ss << "LOS: "                 //
-        //    << elo->los()              //
-        //    << ", DrawRatio: "         //
-        //    << elo->drawRatio(stats);  //
-
-        // const double pairsRatio =
-        //     static_cast<double>(stats.penta_WW + stats.penta_WD) / (stats.penta_LD + stats.penta_LL);
-        // if (report_penta_) {
-        //     ss << ", PairsRatio: " << std::fixed << std::setprecision(2) << pairsRatio << "\n";
-        // } else {
-        //     ss << "\n";
-        // }
-
-        // const double points = stats.wins + 0.5 * stats.draws;
-        // ss << "Games: "                                                                                       //
-        //    << stats.wins + stats.losses + stats.draws                                                         //
-        //    << ", Wins: "                                                                                      //
-        //    << stats.wins                                                                                      //
-        //    << ", Losses: "                                                                                    //
-        //    << stats.losses                                                                                    //
-        //    << ", Draws: "                                                                                     //
-        //    << stats.draws                                                                                     //
-        //    << std::fixed << std::setprecision(1) << ", Points: "                                              //
-        //    << points                                                                                          //
-        //    << " ("                                                                                            //
-        //    << std::fixed << std::setprecision(2) << points / (stats.wins + stats.losses + stats.draws) * 100  //
-        //    << " %)\n";
-
-        // if (report_penta_) {
-        //     ss << "Ptnml(0-2): "
-        //        << "[" << stats.penta_LL << ", " << stats.penta_LD << ", " << stats.penta_WL + stats.penta_DD << ", "
-        //        << stats.penta_WD << ", " << stats.penta_WW << "]\n";
-        // }
-
-        std::cout << lines << std::flush;
+        std::cout << lines << std::endl;
     }
 
     void printSprt(const SPRT& sprt, const Stats& stats) override {

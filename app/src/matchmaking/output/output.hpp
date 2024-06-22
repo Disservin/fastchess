@@ -27,7 +27,7 @@ class IOutput {
     // Interval output. Get's displayed every n `ratinginterval`.
     virtual void printInterval(const SPRT& sprt, const Stats& stats, const std::string& first,
                                const std::string& second,
-                               const std::pair<engine::UciEngine, engine::UciEngine>& engines,
+                               const std::pair<const engine::UciEngine&, const engine::UciEngine&>& engines,
                                const std::string& book) {
         std::cout << "--------------------------------------------------\n";
         printElo(stats, first, second, engines, book);
@@ -40,7 +40,8 @@ class IOutput {
 
     // Print current H2H elo stats.
     virtual void printElo(const Stats& stats, const std::string& first, const std::string& second,
-                          const std::pair<engine::UciEngine, engine::UciEngine>& engines, const std::string& book) = 0;
+                          const std::pair<const engine::UciEngine&, const engine::UciEngine&>& engines,
+                          const std::string& book) = 0;
 
     // Print current SPRT stats.
     virtual void printSprt(const SPRT& sprt, const Stats& stats) = 0;

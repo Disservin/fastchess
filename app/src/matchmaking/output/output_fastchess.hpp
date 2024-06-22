@@ -73,7 +73,7 @@ class Fastchess : public IOutput {
         }
 
         // engine, engine2, tc, threads, hash, book
-        auto line1 = fmt::format("Results of {} vs {} ({}, {}, {}, {}):", first, second, tc, threads, hash, book);
+        auto line1 = fmt::format("Results of {} vs {} ({}, {}, {}, {}):", first, second, tc, threads, hash, bookname);
         auto line2 = fmt::format("Elo: {}, nElo: {}", elo->getElo(), elo->nElo());
         auto line3 =
             fmt::format("LOS: {}, DrawRatio: {}, PairsRatio: {:.2f}", elo->los(), elo->drawRatio(stats), pairsRatio);

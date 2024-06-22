@@ -65,7 +65,12 @@ class Fastchess : public IOutput {
         const auto pairsRatio =
             static_cast<double>(stats.penta_WW + stats.penta_WD) / (stats.penta_LD + stats.penta_LL);
 
-        const auto bookname = book.substr(book.find_last_of("/\\") + 1);
+        auto bookname   = book;
+        std::size_t pos = bookname.find_last_of("/\\");
+
+        if (pos != std::string::npos) {
+            bookname = bookname.substr(pos + 1);
+        }
 
         // engine, engine2, tc, threads, hash, book
         auto line1 = fmt::format("Results of {} vs {} ({}, {}, {}, {}):", first, second, tc, threads, hash, book);
@@ -157,7 +162,7 @@ class Fastchess : public IOutput {
     }
 
     std::string getHash(const engine::UciEngine& engine) {
-        return fmt::format("{}", engine.getOption("Hash").value_or("NaN"));
+        return fmt::format("{}", engine.getOption("Hash").value_or(""));
     }
 
     bool report_penta_;

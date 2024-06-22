@@ -82,13 +82,15 @@ void RoundRobin::create() {
         }
 
         // callback functions, do not capture by reference
-        const auto start = [this, configs, game_id, stm]() {
+        const auto start = [this, configs, game_id,
+                            stm](const std::pair<const engine::UciEngine&, const engine::UciEngine&>&) {
             output_->startGame(normalize_stm_configs(configs, stm), game_id, total_);
         };
 
         // callback functions, do not capture by reference
-        const auto finish = [this, configs, first, second, game_id, round_id, stm](const Stats& stats,
-                                                                                   const std::string& reason) {
+        const auto finish = [this, configs, first, second, game_id, round_id, stm](
+                                const Stats& stats, const std::string& reason,
+                                const std::pair<const engine::UciEngine&, const engine::UciEngine&>& engines) {
             const auto normalized_configs = normalize_stm_configs(configs, stm);
             const auto normalized_stats   = normalize_stats(stats, stm);
 
@@ -115,11 +117,11 @@ void RoundRobin::create() {
             // penta stats.
             if ((report && ratinginterval_index % tournament_options_.ratinginterval == 0) ||
                 match_count_ + 1 == total_) {
-                output_->printInterval(sprt_, updated_stats, first.name, second.name, first.options, second.options, 
-                                       first.limit, second.limit, tournament_options_.opening.file);
+                output_->printInterval(sprt_, updated_stats, first.name, second.name, engines,
+                                       tournament_options_.opening.file);
             }
 
-            updateSprtStatus({first, second});
+            updateSprtStatus({first, second}, engines);
 
             match_count_++;
         };
@@ -142,7 +144,8 @@ void RoundRobin::create() {
     }
 }
 
-void RoundRobin::updateSprtStatus(const std::vector<EngineConfiguration>& engine_configs) {
+void RoundRobin::updateSprtStatus(const std::vector<EngineConfiguration>& engine_configs,
+                                  const std::pair<const engine::UciEngine&, const engine::UciEngine&>& engines) {
     if (!sprt_.isEnabled()) return;
 
     const auto stats = result_.getStats(engine_configs[0].name, engine_configs[1].name);
@@ -153,9 +156,7 @@ void RoundRobin::updateSprtStatus(const std::vector<EngineConfiguration>& engine
 
         Logger::info("SPRT test finished: {} {}", sprt_.getBounds(), sprt_.getElo());
         output_->printResult(stats, engine_configs[0].name, engine_configs[1].name);
-        output_->printInterval(sprt_, stats, engine_configs[0].name, engine_configs[1].name, 
-                               engine_configs[0].options, engine_configs[1].options,
-                               engine_configs[0].limit, engine_configs[1].limit,
+        output_->printInterval(sprt_, stats, engine_configs[0].name, engine_configs[1].name, engines,
                                tournament_options_.opening.file);
         output_->endTournament();
 

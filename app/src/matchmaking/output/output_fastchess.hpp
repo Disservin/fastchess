@@ -76,9 +76,9 @@ class Fastchess : public IOutput {
                                  stats.wins, stats.losses, stats.draws, points, pointsRatio);
         auto line5 = fmt::format("Ptnml(0-2): [{}, {}, {}, {}, {}]", stats.penta_LL, stats.penta_LD,
                                  stats.penta_WL + stats.penta_DD, stats.penta_WD, stats.penta_WW);
-        auto lines = fmt::format("{}\n{}\n{}\n{}\n{}", line1, line2, line3, line4, line5);
+        auto lines = fmt::format("{}\n{}\n{}\n{}\n{}\n", line1, line2, line3, line4, line5);
 
-        std::cout << lines << std::endl;
+        std::cout << lines << std::flush;
     }
 
     void printSprt(const SPRT& sprt, const Stats& stats) override {

@@ -82,7 +82,10 @@ class Logger {
         }
 
         auto message = fmt::format(format + "\n", std::forward<Args>(args)...);
-        std::cout << message << std::flush;
+
+        if (level >= Level::WARN) {
+            std::cout << message << std::flush;
+        }
 
         if (!should_log_) {
             return;

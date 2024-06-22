@@ -65,8 +65,10 @@ class BaseTournament {
     // creates the matches
     virtual void create() = 0;
 
-    using start_callback    = std::function<void()>;
-    using finished_callback = std::function<void(const Stats &stats, const std::string &reason)>;
+    using start_callback = std::function<void(const std::pair<const engine::UciEngine &, const engine::UciEngine &> &)>;
+    using finished_callback =
+        std::function<void(const Stats &stats, const std::string &reason,
+                           const std::pair<const engine::UciEngine &, const engine::UciEngine &> &)>;
 
     // Function to save the config file
     void saveJson();

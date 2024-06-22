@@ -76,9 +76,43 @@ bool UciEngine::uciok() {
 
     const auto res = readEngine("uciok") == process::Status::OK;
 
+    for (const auto &line : output_) {
+        Logger::readFromEngine(line.line, line.time, config_.name, line.std == process::Standard::ERR);
+
+        std::istringstream iss(line.line);
+        std::string token;
+
+        std::string key;
+        std::string value;
+
+        bool nextIsKey   = false;
+        bool nextIsValue = false;
+
+        while (iss >> token) {
+            if (token == "name") {
+                nextIsKey = true;
+            } else if (token == "default") {
+                nextIsValue = true;
+            } else if (nextIsKey) {
+                key       = token;
+                nextIsKey = false;
+            } else if (nextIsValue) {
+                value       = token;
+                nextIsValue = false;
+            }
+        }
+
+        uci_options_[key] = value;
+    }
+
     Logger::trace<true>("Engine {} did not respond to uciok in time.", config_.name);
 
     return res;
+}
+
+std::optional<std::string> UciEngine::getOption(const std::string &name) const {
+    const auto it = uci_options_.find(name);
+    return it != uci_options_.end() ? std::optional(it->second) : std::nullopt;
 }
 
 void UciEngine::loadConfig(const EngineConfiguration &config) { config_ = config; }
@@ -92,6 +126,8 @@ void UciEngine::sendSetoption(const std::string &name, const std::string &value)
     Logger::trace<true>("Sending setoption to engine {} {} {}", config_.name, name, value);
     if (!writeEngine(fmt::format("setoption name {} value {}", name, value))) {
         Logger::trace<true>("Failed to send setoption to engine {} {} {}", config_.name, name, value);
+    } else {
+        uci_options_[name] = value;
     }
 }
 

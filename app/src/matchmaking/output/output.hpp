@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <utility>
 
 #include <cli/cli.hpp>
 #include <matchmaking/sprt/sprt.hpp>
@@ -13,6 +14,10 @@ namespace fast_chess {
 
 using pair_config = std::pair<EngineConfiguration, EngineConfiguration>;
 
+namespace engine {
+class UciEngine;
+}
+
 // Interface for outputting current tournament state to the user.
 class IOutput {
    public:
@@ -21,12 +26,11 @@ class IOutput {
 
     // Interval output. Get's displayed every n `ratinginterval`.
     virtual void printInterval(const SPRT& sprt, const Stats& stats, const std::string& first,
-                               const std::string& second, 
-                               const std::vector<std::pair<std::string, std::string>>& options1, 
-                               const std::vector<std::pair<std::string, std::string>>& options2,
-                               const Limit& limit1, const Limit& limit2, const std::string& book) {
+                               const std::string& second,
+                               const std::pair<engine::UciEngine, engine::UciEngine>& engines,
+                               const std::string& book) {
         std::cout << "--------------------------------------------------\n";
-        printElo(stats, first, second, options1, options2, limit1, limit2, book);
+        printElo(stats, first, second, engines, book);
         printSprt(sprt, stats);
         std::cout << "--------------------------------------------------\n";
     };
@@ -36,9 +40,7 @@ class IOutput {
 
     // Print current H2H elo stats.
     virtual void printElo(const Stats& stats, const std::string& first, const std::string& second,
-                          const std::vector<std::pair<std::string, std::string>>& options1, 
-                          const std::vector<std::pair<std::string, std::string>>& options2,
-                          const Limit& limit1, const Limit& limit2, const std::string& book) = 0;
+                          const std::pair<engine::UciEngine, engine::UciEngine>& engines, const std::string& book) = 0;
 
     // Print current SPRT stats.
     virtual void printSprt(const SPRT& sprt, const Stats& stats) = 0;

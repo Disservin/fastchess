@@ -34,7 +34,8 @@ class RoundRobin : public BaseTournament {
 
    private:
     // update the current running sprt. SPRT Config has to be valid.
-    void updateSprtStatus(const std::vector<EngineConfiguration> &engine_configs);
+    void updateSprtStatus(const std::vector<EngineConfiguration> &engine_configs,
+                          const std::pair<engine::UciEngine, engine::UciEngine> &engines);
 
     SPRT sprt_ = SPRT();
 

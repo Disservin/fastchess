@@ -71,7 +71,7 @@ void BaseTournament::playGame(const std::pair<EngineConfiguration, EngineConfigu
 
     Logger::trace("Playing game {} between {} and {}", game_id + 1, configs.first.name, configs.second.name);
 
-    start();
+    start({engine_one.get().get(), engine_two.get().get()});
 
     auto match = Match(tournament_options_, opening);
     match.start(engine_one.get().get(), engine_two.get().get(), core.get().cpus);
@@ -103,7 +103,7 @@ void BaseTournament::playGame(const std::pair<EngineConfiguration, EngineConfigu
         if (!tournament_options_.epd.file.empty())
             file_writer_epd->write(epd::EpdBuilder(match_data, tournament_options_).get());
 
-        finish({match_data}, match_data.reason);
+        finish({match_data}, match_data.reason, {engine_one.get().get(), engine_two.get().get()});
     }
 }
 

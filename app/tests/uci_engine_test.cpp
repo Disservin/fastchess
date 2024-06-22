@@ -93,7 +93,9 @@ TEST_SUITE("Uci Engine Communication Tests") {
         CHECK(uci_engine.output()[1].line == "argv[2]: arg2");
         CHECK(uci_engine.output()[2].line == "argv[3]: arg3");
 
-        uci_engine.uci();
+        auto uciSuccess = uci_engine.uci();
+        CHECK(uciSuccess);
+
         auto uci       = uci_engine.uciok();
         auto uciOutput = uci_engine.output();
 

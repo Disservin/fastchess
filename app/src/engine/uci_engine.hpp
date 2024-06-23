@@ -25,6 +25,11 @@ class UciEngine : protected process::Process {
         output_.reserve(100);
     }
 
+    UciEngine(const UciEngine &)            = delete;
+    UciEngine(UciEngine &&)                 = delete;
+    UciEngine &operator=(const UciEngine &) = delete;
+    UciEngine &operator=(UciEngine &&)      = delete;
+
     ~UciEngine() override { quit(); }
 
     // Starts the engine, does nothing after the first call.
@@ -37,8 +42,13 @@ class UciEngine : protected process::Process {
     [[nodiscard]] bool uciok();
     [[nodiscard]] bool ucinewgame();
 
-    // Sends "isready" to the engine and waits for a response.
+    // Sends "isready" to the engine
     [[nodiscard]] bool isready(std::chrono::milliseconds threshold = ping_time_);
+
+    // Sends "position" to the engine and waits for a response.
+    [[nodiscard]] bool position(const std::vector<std::string> &moves, const std::string &fen);
+
+    [[nodiscard]] bool go(const TimeControl &our_tc, const TimeControl &enemy_tc, chess::Color stm);
 
     void quit();
 

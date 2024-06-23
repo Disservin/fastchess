@@ -164,7 +164,7 @@ bool Match::playMove(Player& us, Player& them) {
     std::transform(data_.moves.begin(), data_.moves.end(), std::back_inserter(uci_moves),
                    [](const MoveData& data) { return data.move; });
 
-    auto success = us.engine.writeEngine(Player::buildPositionInput(uci_moves, start_position_));
+    auto success = us.engine.position(uci_moves, start_position_);
     if (!success) {
         setEngineCrashStatus(us, them);
         return false;
@@ -177,7 +177,7 @@ bool Match::playMove(Player& us, Player& them) {
     }
 
     // write go command
-    success = us.engine.writeEngine(us.buildGoInput(board_.sideToMove(), them.getTimeControl()));
+    success = us.engine.go(us.getTimeControl(), them.getTimeControl(), board_.sideToMove());
     if (!success) {
         setEngineCrashStatus(us, them);
         return false;

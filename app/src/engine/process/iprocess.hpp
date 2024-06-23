@@ -21,6 +21,12 @@ class IProcess {
    public:
     virtual ~IProcess() = default;
 
+    IProcess()                            = default;
+    IProcess(const IProcess &)            = delete;
+    IProcess(IProcess &&)                 = delete;
+    IProcess &operator=(const IProcess &) = delete;
+    IProcess &operator=(IProcess &&)      = delete;
+
     // Initialize the process
     virtual void init(const std::string &command, const std::string &args, const std::string &log_name) = 0;
 

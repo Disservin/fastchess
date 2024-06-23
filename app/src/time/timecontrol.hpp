@@ -38,8 +38,8 @@ class TimeControl {
 
     TimeControl(const Limits &limits);
 
-    [[nodiscard]] std::chrono::milliseconds getTimeoutThreshold() const;
-    [[nodiscard]] bool updateTime(const int64_t elapsed_millis);
+    [[nodiscard]] std::chrono::milliseconds getTimeoutThreshold() const noexcept;
+    [[nodiscard]] bool updateTime(const int64_t elapsed_millis) noexcept;
 
     [[nodiscard]] int64_t getTimeLeft() const { return time_left_; }
     [[nodiscard]] int64_t getMovesLeft() const { return moves_left_; }

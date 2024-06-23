@@ -42,6 +42,52 @@ bool UciEngine::isready(std::chrono::milliseconds threshold) {
     }
 }
 
+bool UciEngine::position(const std::vector<std::string> &moves, const std::string &fen) {
+    auto position = fmt::format("position {}", fen == "startpos" ? "startpos" : ("fen " + fen));
+
+    if (!moves.empty()) {
+        position += " moves";
+        for (const auto &move : moves) {
+            position += " " + move;
+        }
+    }
+
+    return writeEngine(position);
+}
+
+bool UciEngine::go(const TimeControl &our_tc, const TimeControl &enemy_tc, chess::Color stm) {
+    std::stringstream input;
+    input << "go";
+
+    if (config_.limit.nodes != 0) input << " nodes " << config_.limit.nodes;
+
+    if (config_.limit.plies != 0) input << " depth " << config_.limit.plies;
+
+    // We cannot use st and tc together
+    if (our_tc.isFixedTime()) {
+        input << " movetime " << our_tc.getFixedTime();
+    } else {
+        auto white = stm == chess::Color::WHITE ? our_tc : enemy_tc;
+        auto black = stm == chess::Color::WHITE ? enemy_tc : our_tc;
+
+        if (our_tc.isTimed()) {
+            if (white.isTimed()) input << " wtime " << white.getTimeLeft();
+            if (black.isTimed()) input << " btime " << black.getTimeLeft();
+        }
+
+        if (our_tc.isIncrement()) {
+            if (white.isIncrement()) input << " winc " << white.getIncrement();
+            if (black.isIncrement()) input << " binc " << black.getIncrement();
+        }
+
+        if (our_tc.isMoves()) {
+            input << " movestogo " << our_tc.getMovesLeft();
+        }
+    }
+
+    return writeEngine(input.str());
+}
+
 bool UciEngine::ucinewgame() {
     try {
         Logger::trace<true>("Sending ucinewgame to engine {}", config_.name);

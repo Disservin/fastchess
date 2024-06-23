@@ -58,7 +58,7 @@ void Match::addMoveData(const Player& player, int64_t measured_time_ms, bool leg
 
     move_data.score_string = ss.str();
 
-    verifyPvLines(player);
+    verifyPvLines(player, start_position_);
 
     data_.moves.push_back(move_data);
 }
@@ -322,9 +322,8 @@ bool Match::isUciMove(const std::string& move) noexcept {
     return is_uci;
 }
 
-void Match::verifyPvLines(const Player& us) {
-    const static auto verifyPv = [this](Board board, const std::vector<std::string>& tokens, std::string_view info) {
-        const auto fen = start_position_;
+void Match::verifyPvLines(const Player& us, const std::string& fen) {
+    const static auto verifyPv = [this](Board board, const std::vector<std::string>& tokens, std::string_view info, std::string fen) {
         auto it_start  = std::find(tokens.begin(), tokens.end(), "pv") + 1;
         auto it_end    = std::find_if(it_start, tokens.end(), [](const auto& token) { return !isUciMove(token); });
 
@@ -356,7 +355,7 @@ void Match::verifyPvLines(const Player& us) {
         // skip lines without pv
         if (!str_utils::contains(tokens, "pv")) continue;
 
-        verifyPv(board_, tokens, info.line);
+        verifyPv(board_, tokens, info.line, fen);
     }
 }
 

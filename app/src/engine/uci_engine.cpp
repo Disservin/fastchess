@@ -105,7 +105,7 @@ bool UciEngine::uciok() {
         uci_options_[key] = value;
     }
 
-    Logger::trace<true>("Engine {} did not respond to uciok in time.", config_.name);
+    if (!res) Logger::trace<true>("Engine {} did not respond to uciok in time.", config_.name);
 
     return res;
 }

@@ -104,7 +104,7 @@ class Fastchess : public IOutput {
 
     void endGame(const pair_config& configs, const Stats& stats, const std::string& annotation,
                  std::size_t id) override {
-        auto fmt = fmt::format("Finished game {} ({} vs {}): {} {}\n", id, configs.first.name, configs.second.name,
+        auto fmt = fmt::format("Finished game {} ({} vs {}): {} {{{}}}\n", id, configs.first.name, configs.second.name,
                                formatStats(stats), annotation);
 
         std::cout << fmt << std::flush;

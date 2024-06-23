@@ -18,6 +18,8 @@
 #include <types/engine_config.hpp>
 #include <types/tournament_options.hpp>
 
+#include "../../third_party/fmt/include/fmt/core.h"
+
 namespace fast_chess::cli {
 
 constexpr auto version = "alpha 0.9.0 ";

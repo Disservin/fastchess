@@ -323,7 +323,7 @@ bool Match::isUciMove(const std::string& move) noexcept {
 }
 
 void Match::verifyPvLines(const Player& us, const std::string& fen) {
-    const static auto verifyPv = [this](Board board, const std::vector<std::string>& tokens, std::string_view info, std::string fen) {
+    const static auto verifyPv = [](Board board, const std::vector<std::string>& tokens, std::string_view info, std::string fen) {
         auto it_start  = std::find(tokens.begin(), tokens.end(), "pv") + 1;
         auto it_end    = std::find_if(it_start, tokens.end(), [](const auto& token) { return !isUciMove(token); });
 

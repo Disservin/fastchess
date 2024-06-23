@@ -42,7 +42,7 @@ class UciEngine : protected process::Process {
     [[nodiscard]] bool uciok();
     [[nodiscard]] bool ucinewgame();
 
-    // Sends "isready" to the engine and waits for a response.
+    // Sends "isready" to the engine
     [[nodiscard]] bool isready(std::chrono::milliseconds threshold = ping_time_);
 
     // Sends "position" to the engine and waits for a response.

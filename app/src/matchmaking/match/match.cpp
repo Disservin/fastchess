@@ -298,20 +298,27 @@ bool Match::isUciMove(const std::string& move) noexcept {
 
 void Match::verifyPvLines(const Player& us) {
     const static auto verifyPv = [](Board board, const std::vector<std::string>& tokens, std::string_view info) {
-        auto it_start = std::find(tokens.begin(), tokens.end(), "pv") + 1;
-        auto it_end   = std::find_if(it_start, tokens.end(), [](const auto& token) { return !isUciMove(token); });
+        const auto fen = board.getFen();
+        auto it_start  = std::find(tokens.begin(), tokens.end(), "pv") + 1;
+        auto it_end    = std::find_if(it_start, tokens.end(), [](const auto& token) { return !isUciMove(token); });
 
         Movelist moves;
+        std::string uci_moves;
 
         while (it_start != it_end) {
             movegen::legalmoves(moves, board);
 
             if (std::find(moves.begin(), moves.end(), uci::uciToMove(board, *it_start)) == moves.end()) {
-                Logger::warn<true>("Warning; Illegal pv move {} pv: {}", *it_start, info);
+                auto fmt  = fmt::format("Warning; Illegal pv move {} pv: {}", *it_start, info);
+                auto fmt2 = fmt::format("From; position fen {} moves{}", fen, uci_moves);
+                Logger::warn<true>(fmt + "\n" + fmt2);
+
                 break;
             }
 
+            uci_moves += " " + *it_start;
             board.makeMove(uci::uciToMove(board, *it_start));
+
             it_start++;
         }
     };

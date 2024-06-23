@@ -1,10 +1,9 @@
 all: ## Build the project
-	echo $(MAKEFLAGS)
 	@echo "Building.."
 	$(MAKE) -C app BINARY_PATH=../
 	@echo "Done."
 
-update-fmt: ## Fetch submodules
+update-fmt: ## Fetch subtree fmt
 	@echo "Updating fmt.."
 	git fetch https://github.com/fmtlib/fmt.git master
 	git subtree pull --prefix=app/third_party/fmt https://github.com/fmtlib/fmt.git master --squash

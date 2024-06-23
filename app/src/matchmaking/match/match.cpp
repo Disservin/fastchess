@@ -233,6 +233,11 @@ bool Match::playMove(Player& us, Player& them) {
         return false;
     }
 
+    if (timeout) {
+        setEngineTimeoutStatus(us, them);
+        return false;
+    }
+
     board_.makeMove(move);
 
     // CuteChess uses plycount/2 for its movenumber, which is wrong for epd books as it doesnt take

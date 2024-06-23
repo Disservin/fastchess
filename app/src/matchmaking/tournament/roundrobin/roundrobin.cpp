@@ -82,15 +82,13 @@ void RoundRobin::create() {
         }
 
         // callback functions, do not capture by reference
-        const auto start = [this, configs, game_id,
-                            stm](const std::pair<const engine::UciEngine&, const engine::UciEngine&>&) {
+        const auto start = [this, configs, game_id, stm]() {
             output_->startGame(normalize_stm_configs(configs, stm), game_id, total_);
         };
 
         // callback functions, do not capture by reference
         const auto finish = [this, configs, first, second, game_id, round_id, stm](
-                                const Stats& stats, const std::string& reason,
-                                const std::pair<const engine::UciEngine&, const engine::UciEngine&>& engines) {
+                                const Stats& stats, const std::string& reason, const engines& engines) {
             const auto normalized_configs = normalize_stm_configs(configs, stm);
             const auto normalized_stats   = normalize_stats(stats, stm);
 
@@ -144,8 +142,7 @@ void RoundRobin::create() {
     }
 }
 
-void RoundRobin::updateSprtStatus(const std::vector<EngineConfiguration>& engine_configs,
-                                  const std::pair<const engine::UciEngine&, const engine::UciEngine&>& engines) {
+void RoundRobin::updateSprtStatus(const std::vector<EngineConfiguration>& engine_configs, const engines& engines) {
     if (!sprt_.isEnabled()) return;
 
     const auto stats = result_.getStats(engine_configs[0].name, engine_configs[1].name);

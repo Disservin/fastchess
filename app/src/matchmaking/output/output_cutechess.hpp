@@ -9,8 +9,7 @@ namespace fast_chess {
 class Cutechess : public IOutput {
    public:
     void printInterval(const SPRT& sprt, const Stats& stats, const std::string& first, const std::string& second,
-                       const std::pair<const engine::UciEngine&, const engine::UciEngine&>& engines,
-                       const std::string& book) override {
+                       const engines& engines, const std::string& book) override {
         printElo(stats, first, second, engines, book);
         printSprt(sprt, stats);
     };
@@ -24,8 +23,8 @@ class Cutechess : public IOutput {
         std::cout << fmt << std::flush;
     }
 
-    void printElo(const Stats& stats, const std::string&, const std::string&,
-                  const std::pair<const engine::UciEngine&, const engine::UciEngine&>&, const std::string&) override {
+    void printElo(const Stats& stats, const std::string&, const std::string&, const engines&,
+                  const std::string&) override {
         const elo::EloWDL elo(stats);
 
         auto fmt =

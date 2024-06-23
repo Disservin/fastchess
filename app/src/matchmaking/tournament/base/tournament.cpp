@@ -71,7 +71,7 @@ void BaseTournament::playGame(const std::pair<EngineConfiguration, EngineConfigu
 
     Logger::trace("Playing game {} between {} and {}", game_id + 1, configs.first.name, configs.second.name);
 
-    start({engine_one.get().get(), engine_two.get().get()});
+    start();
 
     auto match = Match(tournament_options_, opening);
     match.start(engine_one.get().get(), engine_two.get().get(), core.get().cpus);
@@ -80,12 +80,12 @@ void BaseTournament::playGame(const std::pair<EngineConfiguration, EngineConfigu
         // restart the engine when recover is enabled
         if (tournament_options_.recover) {
             Logger::trace("Restarting engine...");
-            if (!engine_one.get().get().isResponsive()) {
+            if (!engine_one.get().get().isready()) {
                 Logger::trace("Restarting engine {}", configs.first.name);
                 engine_one.get().get().refreshUci();
             }
 
-            if (!engine_two.get().get().isResponsive()) {
+            if (!engine_two.get().get().isready()) {
                 Logger::trace("Restarting engine {}", configs.second.name);
                 engine_two.get().get().refreshUci();
             }

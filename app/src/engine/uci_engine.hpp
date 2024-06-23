@@ -27,33 +27,38 @@ class UciEngine : protected process::Process {
 
     ~UciEngine() override { quit(); }
 
+    // Starts the engine, does nothing after the first call.
     void start();
 
+    // Restarts the engine, if necessary and reapplies the options.
     bool refreshUci();
 
     [[nodiscard]] bool uci();
-    void quit();
     [[nodiscard]] bool uciok();
     [[nodiscard]] bool ucinewgame();
 
     // Sends "isready" to the engine and waits for a response.
-    [[nodiscard]] bool isResponsive(std::chrono::milliseconds threshold = ping_time_);
+    [[nodiscard]] bool isready(std::chrono::milliseconds threshold = ping_time_);
+
+    void quit();
+
+    // Writes the input to the engine. Appends a newline to the input.
+    bool writeEngine(const std::string &input);
 
     // Waits for the engine to output the last_word or until the threshold_ms is reached.
     // May throw if the read fails.
     process::Status readEngine(std::string_view last_word, std::chrono::milliseconds threshold = ping_time_);
 
+    // Logs are not written in realtime to avoid slowing down the engine.
+    // This function writes the logs to the logger.
     void writeLog() const;
-
-    [[nodiscard]] std::string lastInfoLine() const;
-
-    // Writes the input to the engine.
-    bool writeEngine(const std::string &input);
 
     void setCpus(const std::vector<int> &cpus) { setAffinity(cpus); }
 
     // Get the bestmove from the last output.
     [[nodiscard]] std::optional<std::string> bestmove() const;
+
+    [[nodiscard]] std::string lastInfoLine() const;
 
     // Get the last info from the last output.
     [[nodiscard]] std::vector<std::string> lastInfo() const;
@@ -69,6 +74,7 @@ class UciEngine : protected process::Process {
 
     [[nodiscard]] const std::vector<process::Line> &output() const noexcept { return output_; }
     [[nodiscard]] const EngineConfiguration &getConfig() const noexcept { return config_; }
+    [[nodiscard]] std::optional<std::string> getUciOptionValue(const std::string &name) const;
 
     // @TODO: expose this to the user
     static constexpr std::chrono::milliseconds initialize_time = std::chrono::milliseconds(60000);
@@ -80,17 +86,13 @@ class UciEngine : protected process::Process {
 #endif
     );
 
-    [[nodiscard]] std::optional<std::string> getOption(const std::string &name) const;
-
    private:
     void loadConfig(const EngineConfiguration &config);
     void sendSetoption(const std::string &name, const std::string &value);
 
     std::unordered_map<std::string, std::string> uci_options_;
-
-    EngineConfiguration config_;
-
     std::vector<process::Line> output_;
+    EngineConfiguration config_;
 
     // init on first use
     bool initialized_ = false;

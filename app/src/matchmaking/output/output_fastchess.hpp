@@ -19,8 +19,7 @@ class Fastchess : public IOutput {
     Fastchess(bool report_penta = true) : report_penta_(report_penta) {}
 
     void printInterval(const SPRT& sprt, const Stats& stats, const std::string& first, const std::string& second,
-                       const std::pair<const engine::UciEngine&, const engine::UciEngine&>& engines,
-                       const std::string& book) override {
+                       const engines& engines, const std::string& book) override {
         std::cout << "--------------------------------------------------\n" << std::flush;
         printElo(stats, first, second, engines, book);
         printSprt(sprt, stats);
@@ -31,8 +30,7 @@ class Fastchess : public IOutput {
         // do nothing
     }
 
-    void printElo(const Stats& stats, const std::string& first, const std::string& second,
-                  const std::pair<const engine::UciEngine&, const engine::UciEngine&>& engines,
+    void printElo(const Stats& stats, const std::string& first, const std::string& second, const engines& engines,
                   const std::string& book) override {
         std::unique_ptr<elo::EloBase> elo;
 
@@ -138,11 +136,11 @@ class Fastchess : public IOutput {
     }
 
     std::string getThreads(const engine::UciEngine& engine) {
-        return fmt::format("{}", engine.getOption("Threads").value_or("1"));
+        return fmt::format("{}", engine.getUciOptionValue("Threads").value_or("1"));
     }
 
     std::string getHash(const engine::UciEngine& engine) {
-        return fmt::format("{}", engine.getOption("Hash").value_or(""));
+        return fmt::format("{}", engine.getUciOptionValue("Hash").value_or(""));
     }
 
     bool report_penta_;

@@ -154,7 +154,7 @@ bool Match::playMove(Player& us, Player& them) {
     }
 
     // disconnect
-    if (!us.engine.isResponsive()) {
+    if (!us.engine.isready()) {
         setEngineCrashStatus(us, them);
         return false;
     }
@@ -171,7 +171,7 @@ bool Match::playMove(Player& us, Player& them) {
     }
 
     // wait for readyok
-    if (!us.engine.isResponsive()) {
+    if (!us.engine.isready()) {
         setEngineCrashStatus(us, them);
         return false;
     }
@@ -190,7 +190,7 @@ bool Match::playMove(Player& us, Player& them) {
 
     us.engine.writeLog();
 
-    if (status == engine::process::Status::ERR || !us.engine.isResponsive()) {
+    if (status == engine::process::Status::ERR || !us.engine.isready()) {
         setEngineCrashStatus(us, them);
         return false;
     }

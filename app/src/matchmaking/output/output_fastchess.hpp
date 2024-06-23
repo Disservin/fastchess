@@ -65,7 +65,7 @@ class Fastchess : public IOutput {
         const auto pairsRatio =
             static_cast<double>(stats.penta_WW + stats.penta_WD) / (stats.penta_LD + stats.penta_LL);
 
-        auto bookname   = book.empty() ? "startpos" : book;
+        auto bookname   = book;
         std::size_t pos = bookname.find_last_of("/\\");
 
         if (pos != std::string::npos) {
@@ -73,7 +73,8 @@ class Fastchess : public IOutput {
         }
 
         // engine, engine2, tc, threads, hash, book
-        auto line1 = fmt::format("Results of {} vs {} ({}, {}, {}, {}):", first, second, tc, threads, hash, bookname);
+        auto line1 = fmt::format("Results of {} vs {} ({}, {}, {}, {}):", first, second, tc, threads, hash, book.empty() 
+                                                                                                            ? "startpos" : bookname);
         auto line2 = fmt::format("Elo: {}, nElo: {}", elo->getElo(), elo->nElo());
         auto line3 =
             fmt::format("LOS: {}, DrawRatio: {}, PairsRatio: {:.2f}", elo->los(), elo->drawRatio(stats), pairsRatio);

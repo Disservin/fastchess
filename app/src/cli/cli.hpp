@@ -20,7 +20,7 @@
 
 namespace fast_chess::cli {
 
-constexpr auto version = "alpha 0.8.2 ";
+constexpr auto version = "alpha 0.9.0 ";
 
 // Holds the data of the OptionParser
 struct ArgumentData {

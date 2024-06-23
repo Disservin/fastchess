@@ -65,7 +65,7 @@ class Fastchess : public IOutput {
         const auto pairsRatio =
             static_cast<double>(stats.penta_WW + stats.penta_WD) / (stats.penta_LD + stats.penta_LL);
 
-        auto bookname   = book;
+        auto bookname   = book.empty() ? "startpos" : book;
         std::size_t pos = bookname.find_last_of("/\\");
 
         if (pos != std::string::npos) {

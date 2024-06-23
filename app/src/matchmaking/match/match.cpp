@@ -301,9 +301,9 @@ void Match::verifyPvLines(const Player& us) {
         const auto fen = board.getFen();
         auto it_start  = std::find(tokens.begin(), tokens.end(), "pv") + 1;
         auto it_end    = std::find_if(it_start, tokens.end(), [](const auto& token) { return !isUciMove(token); });
-        std::string uci_moves;
 
         Movelist moves;
+        std::string uci_moves;
 
         while (it_start != it_end) {
             movegen::legalmoves(moves, board);

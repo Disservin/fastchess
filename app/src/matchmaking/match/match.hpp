@@ -118,6 +118,8 @@ class Match {
 
    private:
     void setEngineCrashStatus(Player& loser, Player& winner);
+    void setEngineTimeoutStatus(Player& loser, Player& winner);
+    void setEngineIllegalMoveStatus(Player& loser, Player& winner, const std::optional<std::string>& best_move);
 
     static bool isUciMove(const std::string& move) noexcept;
     void verifyPvLines(const Player& us);

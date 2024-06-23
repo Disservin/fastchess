@@ -310,7 +310,7 @@ void Match::verifyPvLines(const Player& us) {
 
             if (std::find(moves.begin(), moves.end(), uci::uciToMove(board, *it_start)) == moves.end()) {
                 auto fmt  = fmt::format("Warning; Illegal pv move {} pv: {}", *it_start, info);
-                auto fmt2 = fmt::format("From: position fen {} moves{}", fen, uci_moves);
+                auto fmt2 = fmt::format("From; position fen {} moves{}", fen, uci_moves);
                 Logger::warn<true>(fmt + "\n" + fmt2);
 
                 break;

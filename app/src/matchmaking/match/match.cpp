@@ -324,7 +324,7 @@ bool Match::isUciMove(const std::string& move) noexcept {
 
 void Match::verifyPvLines(const Player& us) {
     const static auto verifyPv = [](Board board, const std::vector<std::string>& tokens, std::string_view info) {
-        const auto fen = board.getFen();
+        const auto fen = start_position_;
         auto it_start  = std::find(tokens.begin(), tokens.end(), "pv") + 1;
         auto it_end    = std::find_if(it_start, tokens.end(), [](const auto& token) { return !isUciMove(token); });
 
@@ -336,7 +336,8 @@ void Match::verifyPvLines(const Player& us) {
 
             if (std::find(moves.begin(), moves.end(), uci::uciToMove(board, *it_start)) == moves.end()) {
                 auto fmt  = fmt::format("Warning; Illegal pv move {} pv: {}", *it_start, info);
-                auto fmt2 = fmt::format("From; position fen {} moves{}", fen, uci_moves);
+                auto fmt2 = fmt::format("From; position {} moves{}", fen == chess::constants::STARTPOS 
+                                                                    ? "startpos" : fmt::format("fen {}", fen), uci_moves);
                 Logger::warn<true>(fmt + "\n" + fmt2);
 
                 break;

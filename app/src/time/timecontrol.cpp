@@ -24,11 +24,11 @@ TimeControl::TimeControl(const Limits &limits) : limits_(limits) {
     moves_left_ = limits_.moves;
 }
 
-std::chrono::milliseconds TimeControl::getTimeoutThreshold() const {
+std::chrono::milliseconds TimeControl::getTimeoutThreshold() const noexcept {
     return std::chrono::milliseconds(time_left_ + limits_.timemargin + 100);
 }
 
-bool TimeControl::updateTime(const int64_t elapsed_millis) {
+bool TimeControl::updateTime(const int64_t elapsed_millis) noexcept {
     if (limits_.moves > 0) {
         if (moves_left_ == 1) {
             moves_left_ = limits_.moves;

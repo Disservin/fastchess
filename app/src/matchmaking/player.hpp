@@ -80,17 +80,17 @@ class Player {
         return input.str();
     }
 
-    [[nodiscard]] const TimeControl &getTimeControl() const { return time_control_; }
+    [[nodiscard]] const TimeControl &getTimeControl() const noexcept { return time_control_; }
+
+    void setLost() noexcept { result = chess::GameResult::LOSE; }
+    void setDraw() noexcept { result = chess::GameResult::DRAW; }
+    void setWon() noexcept { result = chess::GameResult::WIN; }
+
+    [[nodiscard]] chess::GameResult getResult() const noexcept { return result; }
 
     engine::UciEngine &engine;
 
     chess::Color color = chess::Color::NONE;
-
-    void setLost() { result = chess::GameResult::LOSE; }
-    void setDraw() { result = chess::GameResult::DRAW; }
-    void setWon() { result = chess::GameResult::WIN; }
-
-    [[nodiscard]] chess::GameResult getResult() const { return result; }
 
    private:
     chess::GameResult result = chess::GameResult::NONE;

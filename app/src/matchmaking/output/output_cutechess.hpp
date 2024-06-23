@@ -18,89 +18,44 @@ class Cutechess : public IOutput {
     void printResult(const Stats& stats, const std::string& first, const std::string& second) override {
         const elo::EloWDL elo(stats);
 
-        std::stringstream ss;
-        ss << "Score of "                              //
-           << first                                    //
-           << " vs "                                   //
-           << second                                   //
-           << ": "                                     //
-           << stats.wins                               //
-           << " - "                                    //
-           << stats.losses                             //
-           << " - "                                    //
-           << stats.draws                              //
-           << " ["                                     //
-           << elo.printScore()                         //
-           << "] "                                     //
-           << stats.wins + stats.losses + stats.draws  //
-           << "\n";
+        auto fmt = fmt::format("Score of {} vs {}: {} - {} - {} [{}] {}\n", first, second, stats.wins, stats.losses,
+                               stats.draws, elo.printScore(), stats.wins + stats.losses + stats.draws);
 
-        std::cout << ss.str() << std::flush;
+        std::cout << fmt << std::flush;
     }
 
     void printElo(const Stats& stats, const std::string&, const std::string&,
                   const std::pair<const engine::UciEngine&, const engine::UciEngine&>&, const std::string&) override {
         const elo::EloWDL elo(stats);
 
-        std::stringstream ss;
-        ss << "Elo difference: "    //
-           << elo.getElo()          //
-           << ", "                  //
-           << "LOS: "               //
-           << elo.los()             //
-           << ", "                  //
-           << "DrawRatio: "         //
-           << elo.drawRatio(stats)  //
-           << "\n";
+        auto fmt =
+            fmt::format("Elo difference: {}, LOS: {}, DrawRatio: {}\n", elo.getElo(), elo.los(), elo.drawRatio(stats));
 
-        std::cout << ss.str() << std::flush;
+        std::cout << fmt << std::flush;
     }
 
     void printSprt(const SPRT& sprt, const Stats& stats) override {
         if (sprt.isEnabled()) {
-            std::stringstream ss;
+            auto fmt = fmt::format("LLR: {:.2f} {} {}\n", sprt.getLLR(stats.wins, stats.draws, stats.losses),
+                                   sprt.getBounds(), sprt.getElo());
 
-            ss << "LLR: " << std::fixed << std::setprecision(2) << sprt.getLLR(stats.wins, stats.draws, stats.losses)
-               << " " << sprt.getBounds() << " " << sprt.getElo() << "\n";
-            std::cout << ss.str() << std::flush;
+            std::cout << fmt << std::flush;
         }
     };
 
     void startGame(const pair_config& configs, std::size_t current_game_count, std::size_t max_game_count) override {
-        std::stringstream ss;
+        auto fmt = fmt::format("Started game {} of {} ({} vs {})\n", current_game_count, max_game_count,
+                               configs.first.name, configs.second.name);
 
-        ss << "Started game "      //
-           << current_game_count   //
-           << " of "               //
-           << max_game_count       //
-           << " ("                 //
-           << configs.first.name   //
-           << " vs "               //
-           << configs.second.name  //
-           << ")"                  //
-           << "\n";
-
-        std::cout << ss.str() << std::flush;
+        std::cout << fmt << std::flush;
     }
 
     void endGame(const pair_config& configs, const Stats& stats, const std::string& annotation,
                  std::size_t id) override {
-        std::stringstream ss;
+        auto fmt = fmt::format("Finished game {} ({} vs {}): {} {}\n", id, configs.first.name, configs.second.name,
+                               formatStats(stats), annotation);
 
-        ss << "Finished game "     //
-           << id                   //
-           << " ("                 //
-           << configs.first.name   //
-           << " vs "               //
-           << configs.second.name  //
-           << "): "                //
-           << formatStats(stats)   //
-           << " {"                 //
-           << annotation           //
-           << "}"                  //
-           << "\n";
-
-        std::cout << ss.str() << std::flush;
+        std::cout << fmt << std::flush;
     }
 
     void endTournament() override { std::cout << "Tournament finished" << std::endl; }

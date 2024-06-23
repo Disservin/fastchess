@@ -73,8 +73,8 @@ class Fastchess : public IOutput {
         }
 
         // engine, engine2, tc, threads, hash, book
-        auto line1 = fmt::format("Results of {} vs {} ({}, {}, {}{}):", first, second, tc, threads, hash, book.empty() 
-                                                                                  ? "" : fmt::format(", {}",bookname));
+        auto line1 = fmt::format("Results of {} vs {} ({}, {}, {}{}):", first, second, tc, threads, hash,
+                                 book.empty() ? "" : fmt::format(", {}", bookname));
         auto line2 = fmt::format("Elo: {}, nElo: {}", elo->getElo(), elo->nElo());
         auto line3 =
             fmt::format("LOS: {}, DrawRatio: {}, PairsRatio: {:.2f}", elo->los(), elo->drawRatio(stats), pairsRatio);
@@ -91,51 +91,25 @@ class Fastchess : public IOutput {
         if (sprt.isEnabled()) {
             double llr = sprt.getLLR(stats, report_penta_);
 
-            std::stringstream ss;
+            auto fmt = fmt::format("LLR: {:.2f} {} {}\n", llr, sprt.getBounds(), sprt.getElo());
 
-            ss << "LLR: " << std::fixed << std::setprecision(2) << llr  //
-               << " " << sprt.getBounds()                               //
-               << " " << sprt.getElo() << "\n";
-
-            std::cout << ss.str() << std::flush;
+            std::cout << fmt << std::flush;
         }
     }
 
     void startGame(const pair_config& configs, std::size_t current_game_count, std::size_t max_game_count) override {
-        std::stringstream ss;
+        auto fmt = fmt::format("Started game {} of {} ({} vs {})\n", current_game_count, max_game_count,
+                               configs.first.name, configs.second.name);
 
-        ss << "Started game "      //
-           << current_game_count   //
-           << " of "               //
-           << max_game_count       //
-           << " ("                 //
-           << configs.first.name   //
-           << " vs "               //
-           << configs.second.name  //
-           << ")"                  //
-           << "\n";
-
-        std::cout << ss.str() << std::flush;
+        std::cout << fmt << std::flush;
     }
 
     void endGame(const pair_config& configs, const Stats& stats, const std::string& annotation,
                  std::size_t id) override {
-        std::stringstream ss;
+        auto fmt = fmt::format("Finished game {} ({} vs {}): {} {}\n", id, configs.first.name, configs.second.name,
+                               formatStats(stats), annotation);
 
-        ss << "Finished game "     //
-           << id                   //
-           << " ("                 //
-           << configs.first.name   //
-           << " vs "               //
-           << configs.second.name  //
-           << "): "                //
-           << formatStats(stats)   //
-           << " {"                 //
-           << annotation           //
-           << "}"                  //
-           << "\n";
-
-        std::cout << ss.str() << std::flush;
+        std::cout << fmt << std::flush;
     }
 
     void endTournament() override { std::cout << "Tournament finished" << std::endl; }
@@ -143,14 +117,13 @@ class Fastchess : public IOutput {
    private:
     std::string getTime(const engine::UciEngine& engine) {
         if (engine.getConfig().limit.tc.time > 0) {
-            return fmt::format("{}{:.2g}{}", 
-                               engine.getConfig().limit.tc.moves > 0
-                                   ? fmt::format("{}/", engine.getConfig().limit.tc.moves)
-                                   : "",
-                               engine.getConfig().limit.tc.time / 1000.0,
-                               engine.getConfig().limit.tc.increment > 0
-                                   ? fmt::format("+{:.2g}", engine.getConfig().limit.tc.increment / 1000.0)
-                                   : "");
+            return fmt::format(
+                "{}{:.2g}{}",
+                engine.getConfig().limit.tc.moves > 0 ? fmt::format("{}/", engine.getConfig().limit.tc.moves) : "",
+                engine.getConfig().limit.tc.time / 1000.0,
+                engine.getConfig().limit.tc.increment > 0
+                    ? fmt::format("+{:.2g}", engine.getConfig().limit.tc.increment / 1000.0)
+                    : "");
         } else if (engine.getConfig().limit.tc.fixed_time > 0) {
             return fmt::format("{:.2f}/move", engine.getConfig().limit.tc.fixed_time / 1000.0);
         } else if (engine.getConfig().limit.plies > 0) {

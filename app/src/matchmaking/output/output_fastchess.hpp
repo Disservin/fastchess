@@ -116,20 +116,22 @@ class Fastchess : public IOutput {
 
    private:
     std::string getTime(const engine::UciEngine& engine) {
-        if (engine.getConfig().limit.tc.time > 0) {
-            return fmt::format(
-                "{}{:.2g}{}",
-                engine.getConfig().limit.tc.moves > 0 ? fmt::format("{}/", engine.getConfig().limit.tc.moves) : "",
-                engine.getConfig().limit.tc.time / 1000.0,
-                engine.getConfig().limit.tc.increment > 0
-                    ? fmt::format("+{:.2g}", engine.getConfig().limit.tc.increment / 1000.0)
-                    : "");
-        } else if (engine.getConfig().limit.tc.fixed_time > 0) {
-            return fmt::format("{:.2f}/move", engine.getConfig().limit.tc.fixed_time / 1000.0);
-        } else if (engine.getConfig().limit.plies > 0) {
-            return fmt::format("{} plies", engine.getConfig().limit.plies);
-        } else if (engine.getConfig().limit.nodes > 0) {
-            return fmt::format("{} nodes", engine.getConfig().limit.nodes);
+        const auto& limit = engine.getConfig().limit;
+
+        if (limit.tc.time > 0) {
+            auto moves     = limit.tc.moves > 0 ? fmt::format("{}/", limit.tc.moves) : "";
+            auto time      = limit.tc.time / 1000.0;
+            auto increment = limit.tc.increment > 0 ? fmt::format("+{:.2g}", limit.tc.increment / 1000.0) : "";
+
+            return fmt::format("{}{:.2g}{}", moves, time, increment);
+        } else if (limit.tc.fixed_time > 0) {
+            auto time = limit.tc.fixed_time / 1000.0;
+
+            return fmt::format("{:.2f}/move", time);
+        } else if (limit.plies > 0) {
+            return fmt::format("{} plies", limit.plies);
+        } else if (limit.nodes > 0) {
+            return fmt::format("{} nodes", limit.nodes);
         }
 
         return "";

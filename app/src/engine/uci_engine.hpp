@@ -25,6 +25,11 @@ class UciEngine : protected process::Process {
         output_.reserve(100);
     }
 
+    UciEngine(const UciEngine &)            = delete;
+    UciEngine(UciEngine &&)                 = delete;
+    UciEngine &operator=(const UciEngine &) = delete;
+    UciEngine &operator=(UciEngine &&)      = delete;
+
     ~UciEngine() override { quit(); }
 
     // Starts the engine, does nothing after the first call.

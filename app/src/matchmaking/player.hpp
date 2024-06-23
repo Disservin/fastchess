@@ -26,11 +26,13 @@ class Player {
 
     // remove the elapsed time from the participant's time control.
     // Returns false if the time control has been exceeded.
-    [[nodiscard]] bool updateTime(const int64_t elapsed_millis) { return time_control_.updateTime(elapsed_millis); }
+    [[nodiscard]] bool updateTime(const int64_t elapsed_millis) noexcept {
+        return time_control_.updateTime(elapsed_millis);
+    }
 
     // Build the uci position input from the given moves and fen.
     [[nodiscard]] static std::string buildPositionInput(const std::vector<std::string> &moves, const std::string &fen) {
-        std::string position = fen == "startpos" ? "position startpos" : ("position fen " + fen);
+        auto position = fmt::format("position {}", fen == "startpos" ? "startpos" : ("fen " + fen));
 
         if (!moves.empty()) {
             position += " moves";

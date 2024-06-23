@@ -18,6 +18,8 @@ namespace engine {
 class UciEngine;
 }
 
+using engines = std::pair<const engine::UciEngine&, const engine::UciEngine&>;
+
 // Interface for outputting current tournament state to the user.
 class IOutput {
    public:
@@ -26,9 +28,7 @@ class IOutput {
 
     // Interval output. Get's displayed every n `ratinginterval`.
     virtual void printInterval(const SPRT& sprt, const Stats& stats, const std::string& first,
-                               const std::string& second,
-                               const std::pair<const engine::UciEngine&, const engine::UciEngine&>& engines,
-                               const std::string& book) {
+                               const std::string& second, const engines& engines, const std::string& book) {
         std::cout << "--------------------------------------------------\n";
         printElo(stats, first, second, engines, book);
         printSprt(sprt, stats);
@@ -40,8 +40,7 @@ class IOutput {
 
     // Print current H2H elo stats.
     virtual void printElo(const Stats& stats, const std::string& first, const std::string& second,
-                          const std::pair<const engine::UciEngine&, const engine::UciEngine&>& engines,
-                          const std::string& book) = 0;
+                          const engines& engines, const std::string& book) = 0;
 
     // Print current SPRT stats.
     virtual void printSprt(const SPRT& sprt, const Stats& stats) = 0;

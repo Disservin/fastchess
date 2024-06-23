@@ -10,7 +10,7 @@
 
 namespace fast_chess::engine {
 
-bool UciEngine::isResponsive(std::chrono::milliseconds threshold) {
+bool UciEngine::isready(std::chrono::milliseconds threshold) {
     try {
         if (!alive()) return false;
 
@@ -36,7 +36,7 @@ bool UciEngine::isResponsive(std::chrono::milliseconds threshold) {
         return res == process::Status::OK;
 
     } catch (const std::exception &e) {
-        Logger::trace<true>("Raised Exception in isResponsive: {}", e.what());
+        Logger::trace<true>("Raised Exception in isready: {}", e.what());
 
         return false;
     }
@@ -52,7 +52,7 @@ bool UciEngine::ucinewgame() {
             return false;
         }
 
-        return isResponsive(initialize_time);
+        return isready(initialize_time);
     } catch (const std::exception &e) {
         Logger::trace<true>("Raised Exception in ucinewgame: {}", e.what());
         return false;
@@ -110,7 +110,7 @@ bool UciEngine::uciok() {
     return res;
 }
 
-std::optional<std::string> UciEngine::getOption(const std::string &name) const {
+std::optional<std::string> UciEngine::getUciOptionValue(const std::string &name) const {
     const auto it = uci_options_.find(name);
     return it != uci_options_.end() ? std::optional(it->second) : std::nullopt;
 }

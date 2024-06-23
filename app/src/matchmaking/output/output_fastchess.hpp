@@ -142,12 +142,16 @@ class Fastchess : public IOutput {
    private:
     std::string getTime(const engine::UciEngine& engine) {
         if (engine.getConfig().limit.tc.time > 0) {
-            return fmt::format("{:.2g}{}", engine.getConfig().limit.tc.time / 1000.0,
+            return fmt::format("{}{:.2g}{}", 
+                               engine.getConfig().limit.tc.moves > 0
+                                   ? fmt::format("{}/", engine.getConfig().limit.tc.moves)
+                                   : "",
+                               engine.getConfig().limit.tc.time / 1000.0,
                                engine.getConfig().limit.tc.increment > 0
                                    ? fmt::format("+{:.2g}", engine.getConfig().limit.tc.increment / 1000.0)
                                    : "");
         } else if (engine.getConfig().limit.tc.fixed_time > 0) {
-            return fmt::format("{:.2f}move", engine.getConfig().limit.tc.fixed_time / 1000.0);
+            return fmt::format("{:.2f}/move", engine.getConfig().limit.tc.fixed_time / 1000.0);
         } else if (engine.getConfig().limit.plies > 0) {
             return fmt::format("{} plies", engine.getConfig().limit.plies);
         } else if (engine.getConfig().limit.nodes > 0) {

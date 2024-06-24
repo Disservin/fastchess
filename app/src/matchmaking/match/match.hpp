@@ -151,6 +151,8 @@ class Match {
     ResignTracker resign_tracker_     = ResignTracker(tournament_options_);
     MaxMovesTracker maxmoves_tracker_ = MaxMovesTracker(tournament_options_);
 
+    std::vector<std::string> uci_moves_;
+
     // start position, required for the uci position command
     // is either startpos or the fen of the opening
     std::string start_position_;

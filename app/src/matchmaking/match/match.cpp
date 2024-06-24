@@ -29,6 +29,7 @@ void Match::addMoveData(const Player& player, int64_t measured_time_ms, bool leg
 
     if (player.engine.output().size() <= 1) {
         data_.moves.push_back(move_data);
+        uci_moves_.push_back(move);
         return;
     }
 
@@ -61,6 +62,7 @@ void Match::addMoveData(const Player& player, int64_t measured_time_ms, bool leg
     verifyPvLines(player);
 
     data_.moves.push_back(move_data);
+    uci_moves_.push_back(move);
 }
 
 void Match::prepare() {
@@ -91,6 +93,9 @@ void Match::prepare() {
 
 void Match::start(engine::UciEngine& engine1, engine::UciEngine& engine2, const std::vector<int>& cpus) {
     prepare();
+
+    std::transform(data_.moves.begin(), data_.moves.end(), std::back_inserter(uci_moves_),
+                   [](const MoveData& data) { return data.move; });
 
     Player player_1 = Player(engine1);
     Player player_2 = Player(engine2);
@@ -160,11 +165,7 @@ bool Match::playMove(Player& us, Player& them) {
     }
 
     // write new uci position
-    std::vector<std::string> uci_moves;
-    std::transform(data_.moves.begin(), data_.moves.end(), std::back_inserter(uci_moves),
-                   [](const MoveData& data) { return data.move; });
-
-    auto success = us.engine.position(uci_moves, start_position_);
+    auto success = us.engine.position(uci_moves_, start_position_);
     if (!success) {
         setEngineCrashStatus(us, them);
         return false;
@@ -323,26 +324,31 @@ bool Match::isUciMove(const std::string& move) noexcept {
 }
 
 void Match::verifyPvLines(const Player& us) {
-    const static auto verifyPv = [](Board board, const std::vector<std::string>& tokens, std::string_view info) {
+    const static auto verifyPv = [](Board board, const std::string& startpos, const std::vector<std::string>& uci_moves,
+                                    const std::string& info) {
+        // skip lines without pv
+        const auto tokens = str_utils::splitString(info, ' ');
+        if (!str_utils::contains(tokens, "pv")) return;
+
         const auto fen = board.getFen();
         auto it_start  = std::find(tokens.begin(), tokens.end(), "pv") + 1;
         auto it_end    = std::find_if(it_start, tokens.end(), [](const auto& token) { return !isUciMove(token); });
 
         Movelist moves;
-        std::string uci_moves;
 
         while (it_start != it_end) {
             movegen::legalmoves(moves, board);
 
             if (std::find(moves.begin(), moves.end(), uci::uciToMove(board, *it_start)) == moves.end()) {
-                auto fmt  = fmt::format("Warning; Illegal pv move {} pv: {}", *it_start, info);
-                auto fmt2 = fmt::format("From; position fen {} moves{}", fen, uci_moves);
+                auto fmt      = fmt::format("Warning; Illegal pv move {} pv: {}", *it_start, info);
+                auto position = fmt::format("position {}", startpos == "startpos" ? "startpos" : ("fen " + startpos));
+                auto fmt2     = fmt::format("From; {} moves {}", position, str_utils::join(uci_moves, " "));
+
                 Logger::warn<true>(fmt + "\n" + fmt2);
 
                 break;
             }
 
-            uci_moves += " " + *it_start;
             board.makeMove(uci::uciToMove(board, *it_start));
 
             it_start++;
@@ -350,12 +356,7 @@ void Match::verifyPvLines(const Player& us) {
     };
 
     for (const auto& info : us.engine.output()) {
-        const auto tokens = str_utils::splitString(info.line, ' ');
-
-        // skip lines without pv
-        if (!str_utils::contains(tokens, "pv")) continue;
-
-        verifyPv(board_, tokens, info.line);
+        verifyPv(board_, start_position_, uci_moves_, info.line);
     }
 }
 

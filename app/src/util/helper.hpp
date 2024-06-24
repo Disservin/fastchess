@@ -84,4 +84,13 @@ template <typename T>
         return haystack[index + 1];
 }
 
+[[nodiscard]] inline std::string join(const std::vector<std::string> &strings, const std::string &delimiter) {
+    std::string result;
+
+    for (const auto &string : strings) {
+        result += string + delimiter;
+    }
+
+    return result;
+}
 }  // namespace fast_chess::str_utils

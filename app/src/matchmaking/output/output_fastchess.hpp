@@ -137,12 +137,12 @@ class Fastchess : public IOutput {
 
     std::string getThreads(const engine::UciEngine& engine) {
         return fmt::format("{}{}", engine.getUciOptionValue("Threads").value_or("NULL"),
-                                   engine.getUciOptionValue("Threads").has_value ? "t" : "");
+                                   engine.getUciOptionValue("Threads").has_value() ? "t" : "");
     }
 
     std::string getHash(const engine::UciEngine& engine) {
         return fmt::format("{}{}", engine.getUciOptionValue("Hash").value_or("NULL"),
-                                   engine.getUciOptionValue("Hash").has_value ? "MB" : "");
+                                   engine.getUciOptionValue("Hash").has_value() ? "MB" : "");
     }
 
     bool report_penta_;

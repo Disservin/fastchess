@@ -14,10 +14,10 @@
 namespace fast_chess {
 
 TimeControl::TimeControl(const Limits &limits) : limits_(limits) {
-    if (limits_.fixed_time != 0) {
-        time_left_ = limits_.fixed_time;
-    } else if (limits_.time != 0) {
+    if (limits_.time > 0) {
         time_left_ = limits_.time;
+    } else if (limits_.fixed_time > 0) {
+        time_left_ = limits_.fixed_time;
     } else {
         time_left_ = 0;
     }

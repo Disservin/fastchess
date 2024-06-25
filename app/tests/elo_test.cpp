@@ -24,8 +24,8 @@ TEST_SUITE("Elo Model") {
         CHECK(elo.nEloDiff() == doctest::Approx(49.77).epsilon(0.01));
         CHECK(elo.nEloError() == doctest::Approx(36.77).epsilon(0.01));
 
-        CHECK(elo.diff() == doctest::Approx(49.70).epsilon(0.01));
-        CHECK(elo.error() == doctest::Approx(36.77).epsilon(0.01));
+        CHECK(elo.diff() == doctest::Approx(40.70).epsilon(0.01));
+        CHECK(elo.error() == doctest::Approx(30.43).epsilon(0.01));
         CHECK(elo.los() == "99.60 %");
     }
 

@@ -111,6 +111,9 @@ void TournamentManager::validateEngines() const {
             engine_configs_[i].limit.nodes == 0 && engine_configs_[i].limit.plies == 0) {
             throw std::runtime_error("Error; no TimeControl specified!");
         }
+        if ((engine_configs_[i].limit.tc.time != 0 + engine_configs_[i].limit.tc.fixed_time != 0) > 1) {
+            throw std::runtime_error("Error; cannot use tc and st together!");
+        }
         for (std::size_t j = 0; j < i; j++) {
             if (engine_configs_[i].name == engine_configs_[j].name) {
                 throw std::runtime_error("Error: Engine with the same name are not allowed!: " +

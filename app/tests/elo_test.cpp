@@ -14,6 +14,7 @@ TEST_SUITE("Elo Model") {
 
         CHECK(elo.nEloDiff() == doctest::Approx(-20.76).epsilon(0.01));
         CHECK(elo.nEloError() == doctest::Approx(40.13).epsilon(0.01));
+        CHECK(elo.los() == "15.53 %");
     }
 
     TEST_CASE("EloWDL 2") {
@@ -22,9 +23,13 @@ TEST_SUITE("Elo Model") {
 
         CHECK(elo.nEloDiff() == doctest::Approx(49.77).epsilon(0.01));
         CHECK(elo.nEloError() == doctest::Approx(36.77).epsilon(0.01));
+
+        CHECK(elo.diff() == doctest::Approx(49.70).epsilon(0.01));
+        CHECK(elo.error() == doctest::Approx(36.77).epsilon(0.01));
+        CHECK(elo.los() == "99.60 %");
     }
 
-    TEST_CASE("EloPentanomial 3") {
+    TEST_CASE("EloWDL 3") {
         Stats stats(34, 356, 0);
         elo::EloWDL elo(stats);
 
@@ -41,6 +46,7 @@ TEST_SUITE("Elo Model") {
 
         CHECK(elo.diff() == doctest::Approx(55.58).epsilon(0.01));
         CHECK(elo.error() == doctest::Approx(27.65).epsilon(0.01));
+        CHECK(elo.los() == "100.00 %");
     }
 
     TEST_CASE("EloPentanomial 2") {
@@ -52,6 +58,7 @@ TEST_SUITE("Elo Model") {
 
         CHECK(elo.diff() == doctest::Approx(-8.64).epsilon(0.01));
         CHECK(elo.error() == doctest::Approx(10.33).epsilon(0.01));
+        CHECK(elo.los() == "5.05 %");
     }
 
     TEST_CASE("EloPentanomial 3") {

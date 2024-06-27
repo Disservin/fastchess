@@ -50,13 +50,7 @@ class TimeControl {
     void setIncrement(int64_t inc) { limits_.increment = inc; }
     void setTime(int64_t time) { limits_.time = time; }
     void setFixedTime(int64_t fixed_time) { limits_.fixed_time = fixed_time; }
-    void setTimemargin(int64_t timemargin) {
-        limits_.timemargin = timemargin;
-
-        if (timemargin < 0) {
-            throw std::runtime_error("Error; timemargin cannot be a negative number");
-        }
-    }
+    void setTimemargin(int64_t timemargin) { limits_.timemargin = timemargin; }
 
     [[nodiscard]] bool isFixedTime() const noexcept { return limits_.fixed_time != 0; }
     [[nodiscard]] bool isTimed() const noexcept { return limits_.time != 0; }

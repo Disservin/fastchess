@@ -47,14 +47,14 @@ class Fastchess : public IOutput {
 
         auto threadsFirst  = getThreads(engines.first);
         auto threadsSecond = getThreads(engines.second);
-        auto threads       = threadsFirst == threadsSecond ? fmt::format("{}t", threadsFirst)
-                                                           : fmt::format("{}t - {}t", threadsFirst, threadsSecond);
+        auto threads       = threadsFirst == threadsSecond ? fmt::format("{}", threadsFirst)
+                                                           : fmt::format("{} - {}", threadsFirst, threadsSecond);
 
         auto hashFirst  = getHash(engines.first);
         auto hashSecond = getHash(engines.second);
 
-        auto hash = hashFirst == hashSecond ? fmt::format("{}MB", hashFirst)
-                                            : fmt::format("{}MB - {}MB", hashFirst, hashSecond);
+        auto hash = hashFirst == hashSecond ? fmt::format("{}", hashFirst)
+                                            : fmt::format("{} - {}", hashFirst, hashSecond);
 
         const auto games       = stats.wins + stats.losses + stats.draws;
         const auto points      = stats.wins + 0.5 * stats.draws;
@@ -136,11 +136,13 @@ class Fastchess : public IOutput {
     }
 
     std::string getThreads(const engine::UciEngine& engine) {
-        return fmt::format("{}", engine.getUciOptionValue("Threads").value_or("1"));
+        return fmt::format("{}{}", engine.getUciOptionValue("Threads").value_or("NULL"),
+                                   engine.getUciOptionValue("Threads").has_value() ? "t" : "");
     }
 
     std::string getHash(const engine::UciEngine& engine) {
-        return fmt::format("{}", engine.getUciOptionValue("Hash").value_or(""));
+        return fmt::format("{}{}", engine.getUciOptionValue("Hash").value_or("NULL"),
+                                   engine.getUciOptionValue("Hash").has_value() ? "MB" : "");
     }
 
     bool report_penta_;

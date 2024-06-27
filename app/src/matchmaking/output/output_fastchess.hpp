@@ -121,11 +121,11 @@ class Fastchess : public IOutput {
             auto time      = limit.tc.time / 1000.0;
             auto increment = limit.tc.increment > 0 ? fmt::format("+{:.2g}", limit.tc.increment / 1000.0) : "";
 
-            return fmt::format("{}{:.2g}{}", moves, time, increment);
+            return fmt::format("{}{}{}", moves, time, increment);
         } else if (limit.tc.fixed_time > 0) {
             auto time = limit.tc.fixed_time / 1000.0;
 
-            return fmt::format("{:.2f}/move", time);
+            return fmt::format("{}/move", time);
         } else if (limit.plies > 0) {
             return fmt::format("{} plies", limit.plies);
         } else if (limit.nodes > 0) {

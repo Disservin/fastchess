@@ -117,9 +117,12 @@ class Match {
     [[nodiscard]] bool isCrashOrDisconnect() const noexcept { return crash_or_disconnect_; }
 
    private:
-    void setEngineCrashStatus(Player& loser, Player& winner);
-    void setEngineTimeoutStatus(Player& loser, Player& winner);
-    void setEngineIllegalMoveStatus(Player& loser, Player& winner, const std::optional<std::string>& best_move);
+    void setEngineCrashStatus(Player& loser, Player& winner, const std::string &startpos, 
+                              const std::vector<std::string> &uci_moves, const std::string &go_string);
+    void setEngineTimeoutStatus(Player& loser, Player& winner, const std::string &startpos, 
+                                const std::vector<std::string> &uci_moves, const std::string &go_string);
+    void setEngineIllegalMoveStatus(Player& loser, Player& winner, const std::optional<std::string>& best_move, 
+                                    const std::string &startpos, const std::vector<std::string> &uci_moves, const std::string &go_string);
 
     static bool isUciMove(const std::string& move) noexcept;
     void verifyPvLines(const Player& us);

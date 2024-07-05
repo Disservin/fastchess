@@ -35,8 +35,22 @@ class Cutechess : public IOutput {
 
     std::string printSprt(const SPRT& sprt, const Stats& stats) override {
         if (sprt.isEnabled()) {
-            auto fmt = fmt::format("LLR: {:.2f} {} {}\n", sprt.getLLR(stats.wins, stats.draws, stats.losses),
-                                   sprt.getBounds(), sprt.getElo());
+            double lowerBound = sprt.getLowerBound();
+            double upperBound = sprt.getUpperBound();
+            double llr = sprt.getLLR(stats.wins, stats.draws, stats.losses);
+            double percentage = llr < 0 ? llr / lowerBound * 100 : llr / upperBound * 100;
+           
+            std::string result;
+            if (llr >= upperBound) {
+                result = " - H1 was accepted";
+            } else if (llr < lowerBound) {
+                result = " - H0 was accepted";
+            } else {
+                result = "";
+            }
+           
+            std::string fmt = fmt::format("SPRT: llr {.2f} ({.1f}%), lbound {}, ubound {}{}\n", 
+                              llr, percentage, lowerBound, upperBound, result);
 
             return fmt;
         }

@@ -143,6 +143,7 @@ bool Match::playMove(Player& us, Player& them) {
     const auto gameover = board_.isGameOver();
     const auto name     = us.engine.getConfig().name;
     std::string goinput;
+    std::vector<std::string> moves = uci_moves_;
 
     if (gameover.second == GameResult::DRAW) {
         us.setDraw();
@@ -161,20 +162,20 @@ bool Match::playMove(Player& us, Player& them) {
 
     // disconnect
     if (!us.engine.isready()) {
-        setEngineCrashStatus(us, them, start_position_, uci_moves_, goinput);
+        setEngineCrashStatus(us, them, start_position_, moves, goinput);
         return false;
     }
 
     // write new uci position
     auto success = us.engine.position(uci_moves_, start_position_);
     if (!success) {
-        setEngineCrashStatus(us, them, start_position_, uci_moves_, goinput);
+        setEngineCrashStatus(us, them, start_position_, moves, goinput);
         return false;
     }
 
     // wait for readyok
     if (!us.engine.isready()) {
-        setEngineCrashStatus(us, them, start_position_, uci_moves_, goinput);
+        setEngineCrashStatus(us, them, start_position_, moves, goinput);
         return false;
     }
 
@@ -182,7 +183,7 @@ bool Match::playMove(Player& us, Player& them) {
     goinput = us.engine.goinput(us.getTimeControl(), them.getTimeControl(), board_.sideToMove());
     success = us.engine.go(goinput);
     if (!success) {
-        setEngineCrashStatus(us, them, start_position_, uci_moves_, goinput);
+        setEngineCrashStatus(us, them, start_position_, moves, goinput);
         return false;
     }
 
@@ -194,7 +195,7 @@ bool Match::playMove(Player& us, Player& them) {
     us.engine.writeLog();
 
     if (status == engine::process::Status::ERR || !us.engine.isready()) {
-        setEngineCrashStatus(us, them, start_position_, uci_moves_, goinput);
+        setEngineCrashStatus(us, them, start_position_, moves, goinput);
         return false;
     }
 
@@ -222,9 +223,9 @@ bool Match::playMove(Player& us, Player& them) {
     if (best_move == std::nullopt) {
         // Time forfeit
         if (timeout) {
-            setEngineTimeoutStatus(us, them, start_position_, uci_moves_, goinput);
+            setEngineTimeoutStatus(us, them, start_position_, moves, goinput);
         } else {
-            setEngineIllegalMoveStatus(us, them, best_move, start_position_, uci_moves_, goinput);
+            setEngineIllegalMoveStatus(us, them, best_move, start_position_, moves, goinput);
         }
 
         return false;
@@ -232,12 +233,12 @@ bool Match::playMove(Player& us, Player& them) {
 
     // illegal move
     if (!legal) {
-        setEngineIllegalMoveStatus(us, them, best_move, start_position_, uci_moves_, goinput);
+        setEngineIllegalMoveStatus(us, them, best_move, start_position_, moves, goinput);
         return false;
     }
 
     if (timeout) {
-        setEngineTimeoutStatus(us, them, start_position_, uci_moves_, goinput);
+        setEngineTimeoutStatus(us, them, start_position_, moves, goinput);
         return false;
     }
 
@@ -273,12 +274,9 @@ void Match::setEngineCrashStatus(Player& loser, Player& winner, const std::strin
     data_.termination = MatchTermination::DISCONNECT;
     data_.reason      = name + Match::DISCONNECT_MSG;
 
-    auto moves = uci_moves;
-    if (moves.size() >= 1) moves.pop_back();
-
     auto fmt      = fmt::format("Warning; Engine {} disconnected", name);
     auto position = fmt::format("position {}", startpos == "startpos" ? "startpos" : ("fen " + startpos));
-    auto fmt2     = fmt::format("From; {} moves {}", position, str_utils::join(moves, " "));
+    auto fmt2     = fmt::format("From; {} moves {}", position, str_utils::join(uci_moves, " "));
     auto fmt3     = fmt::format("Command; {}", go_string);
     auto message  = go_string.empty() ? fmt : fmt::format(fmt + "\n" + fmt2 + "\n" + fmt3);
 
@@ -295,12 +293,9 @@ void Match::setEngineTimeoutStatus(Player& loser, Player& winner, const std::str
     data_.termination = MatchTermination::TIMEOUT;
     data_.reason      = name + Match::TIMEOUT_MSG;
 
-    auto moves = uci_moves;
-    if (moves.size() >= 1) moves.pop_back();
-
     auto fmt      = fmt::format("Warning; Engine {} loses on time", name);
     auto position = fmt::format("position {}", startpos == "startpos" ? "startpos" : ("fen " + startpos));
-    auto fmt2     = fmt::format("From; {} moves {}", position, str_utils::join(moves, " "));
+    auto fmt2     = fmt::format("From; {} moves {}", position, str_utils::join(uci_moves, " "));
     auto fmt3     = fmt::format("Command; {}", go_string);
 
     Logger::warn<true>(fmt + "\n" + fmt2 + "\n" + fmt3);
@@ -326,12 +321,9 @@ void Match::setEngineIllegalMoveStatus(Player& loser, Player& winner, const std:
     data_.termination = MatchTermination::ILLEGAL_MOVE;
     data_.reason      = name + Match::ILLEGAL_MSG;
 
-    auto moves = uci_moves;
-    if (moves.size() >= 1) moves.pop_back();
-
     auto fmt      = fmt::format("Warning; Illegal move {} played by {}", best_move ? *best_move : "<none>", name);
     auto position = fmt::format("position {}", startpos == "startpos" ? "startpos" : ("fen " + startpos));
-    auto fmt2     = fmt::format("From; {} moves {}", position, str_utils::join(moves, " "));
+    auto fmt2     = fmt::format("From; {} moves {}", position, str_utils::join(uci_moves, " "));
     auto fmt3     = fmt::format("Command; {}", go_string);
 
     Logger::warn<true>(fmt + "\n" + fmt2 + "\n" + fmt3);

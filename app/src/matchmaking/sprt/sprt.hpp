@@ -28,6 +28,8 @@ class SPRT {
     [[nodiscard]] SPRTResult getResult(double llr) const noexcept;
     [[nodiscard]] std::string getBounds() const noexcept;
     [[nodiscard]] std::string getElo() const noexcept;
+    [[nodiscard]] double getLowerBound() const noexcept;
+    [[nodiscard]] double getUpperBound() const noexcept;
 
    private:
     double lower_ = 0.0;

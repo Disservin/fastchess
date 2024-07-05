@@ -276,9 +276,10 @@ void Match::setEngineCrashStatus(Player& loser, Player& winner, const std::strin
     auto fmt      = fmt::format("Warning; Engine {} disconnected", name);
     auto position = fmt::format("position {}", startpos == "startpos" ? "startpos" : ("fen " + startpos));
     auto fmt2     = fmt::format("From; {} moves {}", position, str_utils::join(uci_moves, " "));
-    auto fmt3     = fmt::format("{}", go_string.empty() ? "" : fmt::format("Command; {}", go_string));
+    auto fmt3     = fmt::format("Command; {}", go_string);
+    auto message  = go_string.empty() ? fmt : fmt::format(fmt + "\n" + fmt2 + "\n" + fmt3)
 
-    Logger::warn<true>(fmt + "\n" + fmt2 + "\n" + fmt3);
+    Logger::warn<true>(message);
 }
 
 void Match::setEngineTimeoutStatus(Player& loser, Player& winner, const std::string &startpos, 
@@ -294,7 +295,7 @@ void Match::setEngineTimeoutStatus(Player& loser, Player& winner, const std::str
     auto fmt      = fmt::format("Warning; Engine {} loses on time", name);
     auto position = fmt::format("position {}", startpos == "startpos" ? "startpos" : ("fen " + startpos));
     auto fmt2     = fmt::format("From; {} moves {}", position, str_utils::join(uci_moves, " "));
-    auto fmt3     = fmt::format("{}", go_string.empty() ? "" : fmt::format("Command; {}", go_string));
+    auto fmt3     = fmt::format("Command; {}", go_string);
 
     Logger::warn<true>(fmt + "\n" + fmt2 + "\n" + fmt3);
 
@@ -322,7 +323,7 @@ void Match::setEngineIllegalMoveStatus(Player& loser, Player& winner, const std:
     auto fmt      = fmt::format("Warning; Illegal move {} played by {}", best_move ? *best_move : "<none>", name);
     auto position = fmt::format("position {}", startpos == "startpos" ? "startpos" : ("fen " + startpos));
     auto fmt2     = fmt::format("From; {} moves {}", position, str_utils::join(uci_moves, " "));
-    auto fmt3     = fmt::format("{}", go_string.empty() ? "" : fmt::format("Command; {}", go_string));
+    auto fmt3     = fmt::format("Command; {}", go_string);
 
     Logger::warn<true>(fmt + "\n" + fmt2 + "\n" + fmt3);
 }

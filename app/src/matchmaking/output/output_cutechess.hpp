@@ -10,8 +10,8 @@ class Cutechess : public IOutput {
    public:
     void printInterval(const SPRT& sprt, const Stats& stats, const std::string& first, const std::string& second,
                        const engines& engines, const std::string& book) override {
-        printElo(stats, first, second, engines, book);
-        printSprt(sprt, stats);
+        std::cout << printElo(stats, first, second, engines, book) <<
+        printSprt(sprt, stats); << std::flush;
     };
 
     void printResult(const Stats& stats, const std::string& first, const std::string& second) override {
@@ -23,23 +23,24 @@ class Cutechess : public IOutput {
         std::cout << fmt << std::flush;
     }
 
-    void printElo(const Stats& stats, const std::string&, const std::string&, const engines&,
+    std::string printElo(const Stats& stats, const std::string&, const std::string&, const engines&,
                   const std::string&) override {
         const elo::EloWDL elo(stats);
 
         auto fmt =
             fmt::format("Elo difference: {}, LOS: {}, DrawRatio: {}\n", elo.getElo(), elo.los(), elo.drawRatio(stats));
 
-        std::cout << fmt << std::flush;
+        return fmt;
     }
 
-    void printSprt(const SPRT& sprt, const Stats& stats) override {
+    std::string printSprt(const SPRT& sprt, const Stats& stats) override {
         if (sprt.isEnabled()) {
             auto fmt = fmt::format("LLR: {:.2f} {} {}\n", sprt.getLLR(stats.wins, stats.draws, stats.losses),
                                    sprt.getBounds(), sprt.getElo());
 
-            std::cout << fmt << std::flush;
+            return fmt;
         }
+        return "";
     };
 
     void startGame(const pair_config& configs, std::size_t current_game_count, std::size_t max_game_count) override {

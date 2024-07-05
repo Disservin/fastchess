@@ -22,8 +22,8 @@ class Fastchess : public IOutput {
                        const engines& engines, const std::string& book) override {
         std::cout 
         << "--------------------------------------------------\n" <<
-        printElo(stats, first, second, engines, book); <<
-        printSprt(sprt, stats); <<
+        printElo(stats, first, second, engines, book) <<
+        printSprt(sprt, stats) <<
         << "--------------------------------------------------\n" << std::flush;
     };
 

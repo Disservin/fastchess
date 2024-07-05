@@ -88,7 +88,7 @@ std::string UciEngine::goinput(const TimeControl &our_tc, const TimeControl &ene
     return input.str();
 }
 
-bool UciEngine::go(std::string &input) {
+bool UciEngine::go(const std::string &input) {
     return writeEngine(input);
 }
 

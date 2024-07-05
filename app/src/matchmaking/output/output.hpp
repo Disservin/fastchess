@@ -39,11 +39,11 @@ class IOutput {
     virtual void printResult(const Stats& stats, const std::string& first, const std::string& second) = 0;
 
     // Print current H2H elo stats.
-    virtual void printElo(const Stats& stats, const std::string& first, const std::string& second,
+    virtual std::string printElo(const Stats& stats, const std::string& first, const std::string& second,
                           const engines& engines, const std::string& book) = 0;
 
     // Print current SPRT stats.
-    virtual void printSprt(const SPRT& sprt, const Stats& stats) = 0;
+    virtual std::string printSprt(const SPRT& sprt, const Stats& stats) = 0;
 
     // Print game start.
     virtual void startGame(const pair_config& configs, std::size_t current_game_count, std::size_t max_game_count) = 0;

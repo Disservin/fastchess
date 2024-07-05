@@ -268,7 +268,7 @@ void Match::setEngineCrashStatus(Player& loser, Player& winner) {
 
     const auto name = loser.engine.getConfig().name;
     data_.termination = MatchTermination::DISCONNECT;
-    data_.reason      = loser.engine.getConfig().name + Match::DISCONNECT_MSG;
+    data_.reason      = name + Match::DISCONNECT_MSG;
 
     Logger::warn<true>("Warning; Engine {} disconnected", name);
 }

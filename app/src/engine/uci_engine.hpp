@@ -48,7 +48,8 @@ class UciEngine : protected process::Process {
     // Sends "position" to the engine and waits for a response.
     [[nodiscard]] bool position(const std::vector<std::string> &moves, const std::string &fen);
 
-    [[nodiscard]] bool go(const TimeControl &our_tc, const TimeControl &enemy_tc, chess::Color stm);
+    [[nodiscard]] std::string goinput(const TimeControl &our_tc, const TimeControl &enemy_tc, chess::Color stm);
+    [[nodiscard]] bool go(const std::string &input);
 
     void quit();
 

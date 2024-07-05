@@ -86,3 +86,39 @@ if grep -q "loses on time" $OUTPUT_FILE_2; then
     echo "Loses on time detected."
     exit 1
 fi
+
+# Fixed time-per-move test
+
+OUTPUT_FILE_3=$(mktemp)
+./fast-chess -engine cmd=random_mover name=random_move_1 -engine cmd=random_mover name=random_move_2 \
+    -each st=1 -rounds 5 -repeat -concurrency 2 \
+    -openings file=app/tests/data/openings.pgn format=pgn order=random -log file=log.txt level=info  2>&1 | tee $OUTPUT_FILE_3
+
+if grep -q "WARNING: ThreadSanitizer:" $OUTPUT_FILE_3; then
+    echo "Data races detected."
+    exit 1
+fi
+
+# Check if "Saved results." is in the output, else fail
+if ! grep -q "Saved results." $OUTPUT_FILE_3; then
+    echo "Failed to save results."
+    exit 1
+fi
+
+# If the output contains "illegal move" then fail
+if grep -q "illegal move" $OUTPUT_FILE_3; then
+    echo "Illegal move detected."
+    exit 1
+fi
+
+# If the output contains "disconnects" then fail
+if grep -q "disconnects" $OUTPUT_FILE_3; then
+    echo "Disconnect detected."
+    exit 1
+fi
+
+# If the output contains "loses on time" then fail
+if grep -q "loses on time" $OUTPUT_FILE_3; then
+    echo "Loses on time detected."
+    exit 1
+fi

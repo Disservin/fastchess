@@ -273,9 +273,12 @@ void Match::setEngineCrashStatus(Player& loser, Player& winner, const std::strin
     data_.termination = MatchTermination::DISCONNECT;
     data_.reason      = name + Match::DISCONNECT_MSG;
 
+    auto moves = uci_moves;
+    if (moves.size() >= 1) moves.pop_back();
+
     auto fmt      = fmt::format("Warning; Engine {} disconnected", name);
     auto position = fmt::format("position {}", startpos == "startpos" ? "startpos" : ("fen " + startpos));
-    auto fmt2     = fmt::format("From; {} moves {}", position, str_utils::join(uci_moves, " "));
+    auto fmt2     = fmt::format("From; {} moves {}", position, str_utils::join(moves, " "));
     auto fmt3     = fmt::format("Command; {}", go_string);
     auto message  = go_string.empty() ? fmt : fmt::format(fmt + "\n" + fmt2 + "\n" + fmt3);
 
@@ -292,9 +295,12 @@ void Match::setEngineTimeoutStatus(Player& loser, Player& winner, const std::str
     data_.termination = MatchTermination::TIMEOUT;
     data_.reason      = name + Match::TIMEOUT_MSG;
 
+    auto moves = uci_moves;
+    if (moves.size() >= 1) moves.pop_back();
+
     auto fmt      = fmt::format("Warning; Engine {} loses on time", name);
     auto position = fmt::format("position {}", startpos == "startpos" ? "startpos" : ("fen " + startpos));
-    auto fmt2     = fmt::format("From; {} moves {}", position, str_utils::join(uci_moves, " "));
+    auto fmt2     = fmt::format("From; {} moves {}", position, str_utils::join(moves, " "));
     auto fmt3     = fmt::format("Command; {}", go_string);
 
     Logger::warn<true>(fmt + "\n" + fmt2 + "\n" + fmt3);
@@ -320,9 +326,12 @@ void Match::setEngineIllegalMoveStatus(Player& loser, Player& winner, const std:
     data_.termination = MatchTermination::ILLEGAL_MOVE;
     data_.reason      = name + Match::ILLEGAL_MSG;
 
+    auto moves = uci_moves;
+    if (moves.size() >= 1) moves.pop_back();
+
     auto fmt      = fmt::format("Warning; Illegal move {} played by {}", best_move ? *best_move : "<none>", name);
     auto position = fmt::format("position {}", startpos == "startpos" ? "startpos" : ("fen " + startpos));
-    auto fmt2     = fmt::format("From; {} moves {}", position, str_utils::join(uci_moves, " "));
+    auto fmt2     = fmt::format("From; {} moves {}", position, str_utils::join(moves, " "));
     auto fmt3     = fmt::format("Command; {}", go_string);
 
     Logger::warn<true>(fmt + "\n" + fmt2 + "\n" + fmt3);

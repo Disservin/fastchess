@@ -20,17 +20,18 @@ class Fastchess : public IOutput {
 
     void printInterval(const SPRT& sprt, const Stats& stats, const std::string& first, const std::string& second,
                        const engines& engines, const std::string& book) override {
-        std::cout << "--------------------------------------------------\n" << std::flush;
-        printElo(stats, first, second, engines, book);
-        printSprt(sprt, stats);
-        std::cout << "--------------------------------------------------\n" << std::flush;
+        std::cout <<
+        "--------------------------------------------------\n" <<
+        printElo(stats, first, second, engines, book) <<
+        printSprt(sprt, stats) <<
+        "--------------------------------------------------\n" << std::flush;
     };
 
     void printResult(const Stats&, const std::string&, const std::string&) override {
         // do nothing
     }
 
-    void printElo(const Stats& stats, const std::string& first, const std::string& second, const engines& engines,
+    std::string printElo(const Stats& stats, const std::string& first, const std::string& second, const engines& engines,
                   const std::string& book) override {
         std::unique_ptr<elo::EloBase> elo;
 
@@ -82,17 +83,18 @@ class Fastchess : public IOutput {
                                  stats.penta_WL + stats.penta_DD, stats.penta_WD, stats.penta_WW);
         auto lines = fmt::format("{}\n{}\n{}\n{}\n{}\n", line1, line2, line3, line4, line5);
 
-        std::cout << lines << std::flush;
+        return lines;
     }
 
-    void printSprt(const SPRT& sprt, const Stats& stats) override {
+    std::string printSprt(const SPRT& sprt, const Stats& stats) override {
         if (sprt.isEnabled()) {
             double llr = sprt.getLLR(stats, report_penta_);
 
             auto fmt = fmt::format("LLR: {:.2f} {} {}\n", llr, sprt.getBounds(), sprt.getElo());
 
-            std::cout << fmt << std::flush;
+            return fmt;
         }
+        return "";
     }
 
     void startGame(const pair_config& configs, std::size_t current_game_count, std::size_t max_game_count) override {

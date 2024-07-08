@@ -270,7 +270,7 @@ void Match::setEngineCrashStatus(Player& loser, Player& winner) {
     data_.termination = MatchTermination::DISCONNECT;
     data_.reason      = name + Match::DISCONNECT_MSG;
 
-    Logger::warn<true>("Warning; Engine {} disconnected", name);
+    Logger::warn<true>("Warning; Engine {} disconnects", name);
 }
 
 void Match::setEngineTimeoutStatus(Player& loser, Player& winner) {

@@ -55,7 +55,7 @@ bool UciEngine::position(const std::vector<std::string> &moves, const std::strin
     return writeEngine(position);
 }
 
-std::string UciEngine::goinput(const TimeControl &our_tc, const TimeControl &enemy_tc, chess::Color stm) {
+std::string UciEngine::go(const TimeControl &our_tc, const TimeControl &enemy_tc, chess::Color stm) {
     std::stringstream input;
     input << "go";
 
@@ -86,10 +86,6 @@ std::string UciEngine::goinput(const TimeControl &our_tc, const TimeControl &ene
     }
 
     return input.str();
-}
-
-bool UciEngine::go(const std::string &input) {
-    return writeEngine(input);
 }
 
 bool UciEngine::ucinewgame() {

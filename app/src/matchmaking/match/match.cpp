@@ -274,7 +274,7 @@ void Match::setEngineCrashStatus(Player& loser, Player& winner, const std::strin
     data_.termination = MatchTermination::DISCONNECT;
     data_.reason      = name + Match::DISCONNECT_MSG;
 
-    auto fmt      = fmt::format("Warning; Engine {} disconnected", name);
+    auto fmt      = fmt::format("Warning; Engine {} disconnects", name);
     auto position = fmt::format("position {}", startpos == "startpos" ? "startpos" : ("fen " + startpos));
     auto fmt2     = fmt::format("From; {} moves {}", position, str_utils::join(uci_moves, " "));
     auto fmt3     = fmt::format("Command; {}", go_string);

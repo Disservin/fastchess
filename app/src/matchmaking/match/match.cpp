@@ -142,7 +142,7 @@ void Match::start(engine::UciEngine& engine1, engine::UciEngine& engine2, const 
 bool Match::playMove(Player& us, Player& them) {
     const auto gameover = board_.isGameOver();
     const auto name     = us.engine.getConfig().name;
-    std::string goinput;
+    std::string go_string;
     std::vector<std::string> moves = uci_moves_;
 
     if (gameover.second == GameResult::DRAW) {
@@ -162,28 +162,28 @@ bool Match::playMove(Player& us, Player& them) {
 
     // disconnect
     if (!us.engine.isready()) {
-        setEngineCrashStatus(us, them, start_position_, moves, goinput);
+        setEngineCrashStatus(us, them, start_position_, moves, go_string);
         return false;
     }
 
     // write new uci position
     auto success = us.engine.position(uci_moves_, start_position_);
     if (!success) {
-        setEngineCrashStatus(us, them, start_position_, moves, goinput);
+        setEngineCrashStatus(us, them, start_position_, moves, go_string);
         return false;
     }
 
     // wait for readyok
     if (!us.engine.isready()) {
-        setEngineCrashStatus(us, them, start_position_, moves, goinput);
+        setEngineCrashStatus(us, them, start_position_, moves, go_string);
         return false;
     }
 
     // write go command
-    goinput = us.engine.goinput(us.getTimeControl(), them.getTimeControl(), board_.sideToMove());
-    success = us.engine.go(goinput);
+    go_string = us.engine.go(us.getTimeControl(), them.getTimeControl(), board_.sideToMove());
+    success = us.engine.writeEngine(go_string);
     if (!success) {
-        setEngineCrashStatus(us, them, start_position_, moves, goinput);
+        setEngineCrashStatus(us, them, start_position_, moves, go_string);
         return false;
     }
 
@@ -195,7 +195,7 @@ bool Match::playMove(Player& us, Player& them) {
     us.engine.writeLog();
 
     if (status == engine::process::Status::ERR || !us.engine.isready()) {
-        setEngineCrashStatus(us, them, start_position_, moves, goinput);
+        setEngineCrashStatus(us, them, start_position_, moves, go_string);
         return false;
     }
 
@@ -223,9 +223,9 @@ bool Match::playMove(Player& us, Player& them) {
     if (best_move == std::nullopt) {
         // Time forfeit
         if (timeout) {
-            setEngineTimeoutStatus(us, them, start_position_, moves, goinput);
+            setEngineTimeoutStatus(us, them, start_position_, moves, go_string);
         } else {
-            setEngineIllegalMoveStatus(us, them, best_move, start_position_, moves, goinput);
+            setEngineIllegalMoveStatus(us, them, best_move, start_position_, moves, go_string);
         }
 
         return false;
@@ -233,12 +233,12 @@ bool Match::playMove(Player& us, Player& them) {
 
     // illegal move
     if (!legal) {
-        setEngineIllegalMoveStatus(us, them, best_move, start_position_, moves, goinput);
+        setEngineIllegalMoveStatus(us, them, best_move, start_position_, moves, go_string);
         return false;
     }
 
     if (timeout) {
-        setEngineTimeoutStatus(us, them, start_position_, moves, goinput);
+        setEngineTimeoutStatus(us, them, start_position_, moves, go_string);
         return false;
     }
 

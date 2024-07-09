@@ -261,7 +261,7 @@ std::string Match::formatWarningMessage(std::string &warning, const std::string 
     auto fmt  = fmt::format("From; {}", position_string);
     auto fmt2 = fmt::format("Command; {}", go_string);
     if (!go_string.empty()){
-        return fmt:format("{}\n{}\n{}", warning, fmt, fmt2);
+        return fmt::format("{}\n{}\n{}", warning, fmt, fmt2);
     }
     return warning;
 }

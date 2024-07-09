@@ -257,7 +257,7 @@ bool Match::playMove(Player& us, Player& them) {
     return !adjudicate(us, them);
 }
 
-std::string Match::formatWarningMessage(std::string &warning, std::string &position_string, std::string &go_string) {
+std::string Match::formatWarningMessage(std::string &warning, const std::string &position_string, const std::string &go_string) {
     auto fmt  = fmt::format("From; {}", position_string);
     auto fmt2 = fmt::format("Command; {}", go_string);
     if (!go_string.empty()){
@@ -273,7 +273,7 @@ bool Match::isLegal(Move move) const noexcept {
     return std::find(moves.begin(), moves.end(), move) != moves.end();
 }
 
-void Match::setEngineCrashStatus(Player& loser, Player& winner, std::string &go_string, std::string &position_string) {
+void Match::setEngineCrashStatus(Player& loser, Player& winner, const std::string &go_string, const std::string &position_string) {
     loser.setLost();
     winner.setWon();
 
@@ -289,7 +289,7 @@ void Match::setEngineCrashStatus(Player& loser, Player& winner, std::string &go_
     Logger::warn<true>("{}", warning);
 }
 
-void Match::setEngineTimeoutStatus(Player& loser, Player& winner, std::string &go_string, std::string &position_string) {
+void Match::setEngineTimeoutStatus(Player& loser, Player& winner, const std::string &go_string, const std::string &position_string) {
     loser.setLost();
     winner.setWon();
 
@@ -315,7 +315,7 @@ void Match::setEngineTimeoutStatus(Player& loser, Player& winner, std::string &g
 }
 
 void Match::setEngineIllegalMoveStatus(Player& loser, Player& winner, const std::optional<std::string>& best_move, 
-                                       std::string &go_string, std::string &position_string) {
+                                       const std::string &go_string, const std::string &position_string) {
     loser.setLost();
     winner.setWon();
 

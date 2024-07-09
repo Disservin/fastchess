@@ -117,6 +117,7 @@ class Match {
     [[nodiscard]] bool isCrashOrDisconnect() const noexcept { return crash_or_disconnect_; }
 
    private:
+    std::string formatWarningMessage(std::string &warning, std::string &position_string, std::string &go_string);
     void setEngineCrashStatus(Player& loser, Player& winner);
     void setEngineTimeoutStatus(Player& loser, Player& winner);
     void setEngineIllegalMoveStatus(Player& loser, Player& winner, const std::optional<std::string>& best_move);

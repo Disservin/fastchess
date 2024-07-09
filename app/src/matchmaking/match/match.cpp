@@ -140,8 +140,10 @@ void Match::start(engine::UciEngine& engine1, engine::UciEngine& engine2, const 
 }
 
 bool Match::playMove(Player& us, Player& them) {
-    const auto gameover = board_.isGameOver();
-    const auto name     = us.engine.getConfig().name;
+    const auto gameover  = board_.isGameOver();
+    const auto name      = us.engine.getConfig().name;
+    auto go_string       = us.engine.goString();
+    auto position_string = us.engine.positionString();
 
     if (gameover.second == GameResult::DRAW) {
         us.setDraw();
@@ -166,6 +168,7 @@ bool Match::playMove(Player& us, Player& them) {
 
     // write new uci position
     auto success = us.engine.position(uci_moves_, start_position_);
+    position_string = us.engine.positionString();
     if (!success) {
         setEngineCrashStatus(us, them);
         return false;
@@ -179,6 +182,7 @@ bool Match::playMove(Player& us, Player& them) {
 
     // write go command
     success = us.engine.go(us.getTimeControl(), them.getTimeControl(), board_.sideToMove());
+    go_string = us.engine.goString();
     if (!success) {
         setEngineCrashStatus(us, them);
         return false;

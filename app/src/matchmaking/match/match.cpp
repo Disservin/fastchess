@@ -257,6 +257,15 @@ bool Match::playMove(Player& us, Player& them) {
     return !adjudicate(us, them);
 }
 
+std::string Match::formatWarningMessage(std::string &warning, std::string &position_string, std::string &go_string) {
+    auto fmt  = fmt::format("From; {}", position_string);
+    auto fmt2 = fmt::format("Command; {}", go_string);
+    if (!go_string.empty()){
+        return fmt:format("{}\n{}\n{}", warning, fmt, fmt2);
+    }
+    return warning;
+}
+
 bool Match::isLegal(Move move) const noexcept {
     Movelist moves;
     movegen::legalmoves(moves, board_);

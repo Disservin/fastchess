@@ -162,7 +162,7 @@ bool Match::playMove(Player& us, Player& them) {
 
     // disconnect
     if (!us.engine.isready()) {
-        setEngineCrashStatus(us, them);
+        setEngineCrashStatus(us, them, go_string, position_string);
         return false;
     }
 
@@ -170,13 +170,13 @@ bool Match::playMove(Player& us, Player& them) {
     auto success = us.engine.position(uci_moves_, start_position_);
     position_string = us.engine.positionString();
     if (!success) {
-        setEngineCrashStatus(us, them);
+        setEngineCrashStatus(us, them, go_string, position_string);
         return false;
     }
 
     // wait for readyok
     if (!us.engine.isready()) {
-        setEngineCrashStatus(us, them);
+        setEngineCrashStatus(us, them, go_string, position_string);
         return false;
     }
 
@@ -184,7 +184,7 @@ bool Match::playMove(Player& us, Player& them) {
     success = us.engine.go(us.getTimeControl(), them.getTimeControl(), board_.sideToMove());
     go_string = us.engine.goString();
     if (!success) {
-        setEngineCrashStatus(us, them);
+        setEngineCrashStatus(us, them, go_string, position_string);
         return false;
     }
 
@@ -196,7 +196,7 @@ bool Match::playMove(Player& us, Player& them) {
     us.engine.writeLog();
 
     if (status == engine::process::Status::ERR || !us.engine.isready()) {
-        setEngineCrashStatus(us, them);
+        setEngineCrashStatus(us, them, go_string, position_string);
         return false;
     }
 
@@ -224,9 +224,9 @@ bool Match::playMove(Player& us, Player& them) {
     if (best_move == std::nullopt) {
         // Time forfeit
         if (timeout) {
-            setEngineTimeoutStatus(us, them);
+            setEngineTimeoutStatus(us, them, go_string, position_string);
         } else {
-            setEngineIllegalMoveStatus(us, them, best_move);
+            setEngineIllegalMoveStatus(us, them, best_move, go_string, position_string);
         }
 
         return false;
@@ -234,12 +234,12 @@ bool Match::playMove(Player& us, Player& them) {
 
     // illegal move
     if (!legal) {
-        setEngineIllegalMoveStatus(us, them, best_move);
+        setEngineIllegalMoveStatus(us, them, best_move, go_string, position_string);
         return false;
     }
 
     if (timeout) {
-        setEngineTimeoutStatus(us, them);
+        setEngineTimeoutStatus(us, them, go_string, position_string);
         return false;
     }
 

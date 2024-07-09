@@ -273,7 +273,7 @@ bool Match::isLegal(Move move) const noexcept {
     return std::find(moves.begin(), moves.end(), move) != moves.end();
 }
 
-void Match::setEngineCrashStatus(Player& loser, Player& winner) {
+void Match::setEngineCrashStatus(Player& loser, Player& winner, std::string &go_string, std::string &position_string) {
     loser.setLost();
     winner.setWon();
 
@@ -283,10 +283,13 @@ void Match::setEngineCrashStatus(Player& loser, Player& winner) {
     data_.termination = MatchTermination::DISCONNECT;
     data_.reason      = name + Match::DISCONNECT_MSG;
 
-    Logger::warn<true>("Warning; Engine {} disconnects", name);
+    std::string warning = fmt::format("Warning; Engine {} disconnects", name);
+    warning = formatWarningMessage(warning, position_string, go_string);
+
+    Logger::warn<true>("{}", warning);
 }
 
-void Match::setEngineTimeoutStatus(Player& loser, Player& winner) {
+void Match::setEngineTimeoutStatus(Player& loser, Player& winner, std::string &go_string, std::string &position_string) {
     loser.setLost();
     winner.setWon();
 
@@ -295,7 +298,10 @@ void Match::setEngineTimeoutStatus(Player& loser, Player& winner) {
     data_.termination = MatchTermination::TIMEOUT;
     data_.reason      = name + Match::TIMEOUT_MSG;
 
-    Logger::warn<true>("Warning; Engine {} loses on time", name);
+    std::string warning = fmt::format("Warning; Engine {} loses on time", name);
+    warning = formatWarningMessage(warning, position_string, go_string);
+
+    Logger::warn<true>("{}", warning);
 
     // we send a stop command to the engine to prevent it from thinking
     // and wait for a bestmove to appear
@@ -308,7 +314,8 @@ void Match::setEngineTimeoutStatus(Player& loser, Player& winner) {
     }
 }
 
-void Match::setEngineIllegalMoveStatus(Player& loser, Player& winner, const std::optional<std::string>& best_move) {
+void Match::setEngineIllegalMoveStatus(Player& loser, Player& winner, const std::optional<std::string>& best_move, 
+                                       std::string &go_string, std::string &position_string) {
     loser.setLost();
     winner.setWon();
 
@@ -317,7 +324,10 @@ void Match::setEngineIllegalMoveStatus(Player& loser, Player& winner, const std:
     data_.termination = MatchTermination::ILLEGAL_MOVE;
     data_.reason      = name + Match::ILLEGAL_MSG;
 
-    Logger::warn<true>("Warning; Illegal move {} played by {}", best_move ? *best_move : "<none>", name);
+    std::string warning = fmt::format("Warning; Illegal move {} played by {}", best_move ? *best_move : "<none>", name);
+    warning = formatWarningMessage(warning, position_string, go_string);
+
+    Logger::warn<true>("{}", warning);
 }
 
 bool Match::isUciMove(const std::string& move) noexcept {

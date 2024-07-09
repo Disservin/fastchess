@@ -85,7 +85,7 @@ class Fastchess : public IOutput {
             auto line5 = fmt::format("Ptnml(0-2): [{}, {}, {}, {}, {}], WL/DD Ratio: {:.2f}", stats.penta_LL, stats.penta_LD,
                                      stats.penta_WL + stats.penta_DD, stats.penta_WD, stats.penta_WW, WLDDRatio);
 
-            return fmt::format("{}\n{}\n{}\n{}\n", line1, line2, line3, line4, line5);
+            return fmt::format("{}\n{}\n{}\n{}\n{}\n", line1, line2, line3, line4, line5);
         }
 
         return fmt::format("{}\n{}\n{}\n{}\n", line1, line2, line3, line4);

@@ -140,8 +140,8 @@ void Match::start(engine::UciEngine& engine1, engine::UciEngine& engine2, const 
 }
 
 bool Match::playMove(Player& us, Player& them) {
-    const auto gameover  = board_.isGameOver();
-    const auto name      = us.engine.getConfig().name;
+    const auto gameover = board_.isGameOver();
+    const auto name     = us.engine.getConfig().name;
     std::string go_string;
     std::string position_string;
 

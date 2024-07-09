@@ -260,8 +260,10 @@ bool Match::playMove(Player& us, Player& them) {
 std::string Match::formatWarningMessage(std::string &warning, const std::string &position_string, const std::string &go_string) {
     auto fmt  = fmt::format("From; {}", position_string);
     auto fmt2 = fmt::format("Command; {}", go_string);
-    if (!go_string.empty()){
+    if (!go_string.empty() && !position_string.empty()){
         return fmt::format("{}\n{}\n{}", warning, fmt, fmt2);
+    } else if (go_string.empty() && !position_string.empty()) {
+        return fmt::format("{}\n{}", warning, fmt);
     }
     return warning;
 }

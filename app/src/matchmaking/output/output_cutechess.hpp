@@ -45,14 +45,9 @@ class Cutechess : public IOutput {
                 result = " - H1 was accepted";
             } else if (llr < lowerBound) {
                 result = " - H0 was accepted";
-            } else {
-                result = "";
             }
-           
-            std::string fmt = fmt::format("SPRT: llr {.2f} ({.1f}%), lbound {}, ubound {}{}\n", 
-                              llr, percentage, lowerBound, upperBound, result);
 
-            return fmt;
+            return fmt::format("SPRT: llr {.2f} ({.1f}%), lbound {}, ubound {}{}\n", llr, percentage, lowerBound, upperBound, result);
         }
         return "";
     };

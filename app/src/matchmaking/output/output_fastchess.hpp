@@ -80,15 +80,15 @@ class Fastchess : public IOutput {
             fmt::format("LOS: {}, DrawRatio: {}, PairsRatio: {:.2f}", elo->los(), elo->drawRatio(stats), pairsRatio);
         auto line4 = fmt::format("Games: {}, Wins: {}, Losses: {}, Draws: {}, Points: {:.1f} ({:.2f} %)", games,
                                  stats.wins, stats.losses, stats.draws, points, pointsRatio);
-        auto line5 = fmt::format("Ptnml(0-2): [{}, {}, {}, {}, {}], WL/DD Ratio: {:.2f}", stats.penta_LL, stats.penta_LD,
-                                 stats.penta_WL + stats.penta_DD, stats.penta_WD, stats.penta_WW, WLDDRatio);
-        std::string lines;
-        if (report_penta_)
-            lines = fmt::format("{}\n{}\n{}\n{}\n{}\n", line1, line2, line3, line4, line5);
-        else
-            lines = fmt::format("{}\n{}\n{}\n{}\n", line1, line2, line3, line4);
 
-        return lines;
+        if (report_penta_) {
+            auto line5 = fmt::format("Ptnml(0-2): [{}, {}, {}, {}, {}], WL/DD Ratio: {:.2f}", stats.penta_LL, stats.penta_LD,
+                                     stats.penta_WL + stats.penta_DD, stats.penta_WD, stats.penta_WW, WLDDRatio);
+
+            return fmt::format("{}\n{}\n{}\n{}\n", line1, line2, line3, line4, line5);
+        }
+
+        return fmt::format("{}\n{}\n{}\n{}\n", line1, line2, line3, line4);
     }
 
     std::string printSprt(const SPRT& sprt, const Stats& stats) override {

@@ -103,6 +103,8 @@ class UciEngine : protected process::Process {
     std::unordered_map<std::string, std::string> uci_options_;
     std::vector<process::Line> output_;
     EngineConfiguration config_;
+    std::string position_string_;
+    std::string go_string_;
 
     // init on first use
     bool initialized_ = false;

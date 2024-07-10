@@ -136,7 +136,7 @@ class Match {
     // returns true if adjudicated
     [[nodiscard]] bool adjudicate(Player& us, Player& them) noexcept;
 
-    [[nodiscard]] static std::string convertChessReason(const std::string& engine_name,
+    [[nodiscard]] static std::string convertChessReason(const std::string& engine_color,
                                                         chess::GameResultReason reason) noexcept;
 
     bool isLegal(chess::Move move) const noexcept;

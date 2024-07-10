@@ -143,6 +143,12 @@ bool Match::playMove(Player& us, Player& them) {
     const auto gameover = board_.isGameOver();
     const auto name     = us.engine.getConfig().name;
 
+
+    std::string color;
+
+    if(us.engine.getConfig().color == chess::Color::WHITE) color = "white";
+    else color = "black";
+
     if (gameover.second == GameResult::DRAW) {
         us.setDraw();
         them.setDraw();
@@ -154,7 +160,7 @@ bool Match::playMove(Player& us, Player& them) {
     }
 
     if (gameover.first != GameResultReason::NONE) {
-        data_.reason = convertChessReason(name, gameover.first);
+        data_.reason = convertChessReason(color, gameover.first);
         return false;
     }
 
@@ -369,7 +375,10 @@ bool Match::adjudicate(Player& us, Player& them) noexcept {
         them.setWon();
 
         data_.termination = MatchTermination::ADJUDICATION;
-        data_.reason      = them.engine.getConfig().name + Match::ADJUDICATION_WIN_MSG;
+        std::string color;
+        if(them.engine.getConfig().color == chess::Color::WHITE) color = "white";
+        else color = "black";
+        data_.reason      = color + Match::ADJUDICATION_WIN_MSG;
 
         return true;
     }
@@ -397,9 +406,9 @@ bool Match::adjudicate(Player& us, Player& them) noexcept {
     return false;
 }
 
-std::string Match::convertChessReason(const std::string& engine_name, GameResultReason reason) noexcept {
+std::string Match::convertChessReason(const std::string& engine_color, GameResultReason reason) noexcept {
     if (reason == GameResultReason::CHECKMATE) {
-        return engine_name + Match::CHECKMATE_MSG;
+        return engine_color + Match::CHECKMATE_MSG;
     }
 
     if (reason == GameResultReason::STALEMATE) {

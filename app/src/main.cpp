@@ -26,5 +26,7 @@ int main(int argc, char const *argv[]) {
 
     stopProcesses();
 
+    Logger::info("Finished match");
+
     return 0;
 }

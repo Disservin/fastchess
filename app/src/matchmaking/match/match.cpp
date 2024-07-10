@@ -144,10 +144,7 @@ bool Match::playMove(Player& us, Player& them) {
     const auto name     = us.engine.getConfig().name;
 
 
-    std::string color;
-
-    if (board_.sideToMove() == chess::Color::WHITE) color = "White";
-    else color = "Black";
+    std::string color = board_.sideToMove() == chess::Color::WHITE ? "White" : "Black";
 
     if (gameover.second == GameResult::DRAW) {
         us.setDraw();
@@ -375,9 +372,7 @@ bool Match::adjudicate(Player& us, Player& them) noexcept {
         them.setWon();
 
         data_.termination = MatchTermination::ADJUDICATION;
-        std::string color;
-        if(~board_.sideToMove() == chess::Color::WHITE) color = "White";
-        else color = "Black";
+        std::string color = ~board_.sideToMove() == chess::Color::WHITE ? "White" : "Black";
         data_.reason      = color + Match::ADJUDICATION_WIN_MSG;
 
         return true;

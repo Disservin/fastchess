@@ -160,6 +160,14 @@ std::string SPRT::getElo() const noexcept {
     return ss.str();
 }
 
+double SPRT::getLowerBound() const noexcept {
+    return lower_;
+}
+
+double SPRT::getUpperBound() const noexcept {
+    return upper_;
+}
+
 bool SPRT::isEnabled() const noexcept { return enabled_; }
 
 }  // namespace fast_chess

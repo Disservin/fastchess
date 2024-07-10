@@ -161,11 +161,11 @@ std::string SPRT::getElo() const noexcept {
 }
 
 double SPRT::getLowerBound() const noexcept {
-    return elo0_;
+    return lower_;
 }
 
 double SPRT::getUpperBound() const noexcept {
-    return elo1_;
+    return upper_;
 }
 
 bool SPRT::isEnabled() const noexcept { return enabled_; }

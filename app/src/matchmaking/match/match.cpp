@@ -271,7 +271,8 @@ void Match::setEngineCrashStatus(Player& loser, Player& winner) {
 
     const auto name = loser.engine.getConfig().name;
     data_.termination = MatchTermination::DISCONNECT;
-    data_.reason      = name + Match::DISCONNECT_MSG;
+    const std::string color = board_.sideToMove() == chess::Color::WHITE ? "White" : "Black";
+    data_.reason      = color + Match::DISCONNECT_MSG;
 
     Logger::warn<true>("Warning; Engine {} disconnects", name);
 }
@@ -283,7 +284,8 @@ void Match::setEngineTimeoutStatus(Player& loser, Player& winner) {
     const auto name = loser.engine.getConfig().name;
 
     data_.termination = MatchTermination::TIMEOUT;
-    data_.reason      = name + Match::TIMEOUT_MSG;
+    const std::string color = board_.sideToMove() == chess::Color::WHITE ? "White" : "Black";
+    data_.reason      = color + Match::TIMEOUT_MSG;
 
     Logger::warn<true>("Warning; Engine {} loses on time", name);
 
@@ -305,7 +307,8 @@ void Match::setEngineIllegalMoveStatus(Player& loser, Player& winner, const std:
     const auto name = loser.engine.getConfig().name;
 
     data_.termination = MatchTermination::ILLEGAL_MOVE;
-    data_.reason      = name + Match::ILLEGAL_MSG;
+    const std::string color = board_.sideToMove() == chess::Color::WHITE ? "White" : "Black";
+    data_.reason      = color + Match::ILLEGAL_MSG;
 
     Logger::warn<true>("Warning; Illegal move {} played by {}", best_move ? *best_move : "<none>", name);
 }
@@ -372,7 +375,7 @@ bool Match::adjudicate(Player& us, Player& them) noexcept {
         them.setWon();
 
         data_.termination = MatchTermination::ADJUDICATION;
-        std::string color = ~board_.sideToMove() == chess::Color::WHITE ? "White" : "Black";
+        const std::string color = ~board_.sideToMove() == chess::Color::WHITE ? "White" : "Black";
         data_.reason      = color + Match::ADJUDICATION_WIN_MSG;
 
         return true;

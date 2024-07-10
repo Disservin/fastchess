@@ -375,7 +375,7 @@ bool Match::adjudicate(Player& us, Player& them) noexcept {
         them.setWon();
 
         data_.termination = MatchTermination::ADJUDICATION;
-        const std::string color = ~board_.sideToMove() == chess::Color::WHITE ? "White" : "Black";
+        const std::string color = board_.sideToMove() == chess::Color::WHITE ? "White" : "Black";
         data_.reason      = color + Match::ADJUDICATION_WIN_MSG;
 
         return true;

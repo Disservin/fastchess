@@ -118,13 +118,9 @@ DEPENDS   := $(patsubst %.cpp,$(BUILDDIR)/%.d,$(SRC_FILES))
 
 .PHONY: clean all tests FORCE
 
-all: fetch-subs $(TARGET)
+all: $(TARGET)
 
-fetch-subs:
-	@git submodule init
-	@git submodule update
-
-tests: fetch-subs $(TARGET)
+tests: $(TARGET)
 	$(CXX) $(CXXFLAGS) ./tests/mock/engine/dummy_engine.cpp -o ./tests/mock/engine/dummy_engine$(SUFFIX) $(LDFLAGS)
 
 format: $(SRC_FILES) $(HEADERS)

@@ -160,7 +160,7 @@ void parseEngineKeyValues(EngineConfiguration &engineConfig, const std::string &
 
 void validateEnginePath(std::string dir, std::string &cmd) {
     // engine path with dir
-    auto engine_path = dir == "." ? "" : dir + cmd;
+    auto engine_path = (dir == "." ? "" : dir) + cmd;
 
 #ifndef NO_STD_FILESYSTEM
     if (!std::filesystem::exists(engine_path)) {

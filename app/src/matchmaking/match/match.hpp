@@ -161,7 +161,7 @@ class Match {
 
     inline static constexpr char INSUFFICIENT_MSG[]     = "Draw by insufficient material";
     inline static constexpr char REPETITION_MSG[]       = "Draw by 3-fold repetition";
-    inline static constexpr char ILLEGAL_MSG[]          = " made an illegal move";
+    inline static constexpr char ILLEGAL_MSG[]          = " makes an illegal move";
     inline static constexpr char ADJUDICATION_WIN_MSG[] = " wins by adjudication";
     inline static constexpr char ADJUDICATION_MSG[]     = "Draw by adjudication";
     inline static constexpr char FIFTY_MSG[]            = "Draw by 50-move rule";

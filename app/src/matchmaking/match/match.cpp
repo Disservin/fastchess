@@ -146,7 +146,7 @@ bool Match::playMove(Player& us, Player& them) {
 
     std::string color;
 
-    if(us.engine.getConfig().color == chess::Color::WHITE) color = "White";
+    if (board_.sideToMove() == chess::Color::WHITE) color = "White";
     else color = "Black";
 
     if (gameover.second == GameResult::DRAW) {
@@ -376,7 +376,7 @@ bool Match::adjudicate(Player& us, Player& them) noexcept {
 
         data_.termination = MatchTermination::ADJUDICATION;
         std::string color;
-        if(them.engine.getConfig().color == chess::Color::WHITE) color = "White";
+        if(~board_.sideToMove() == chess::Color::WHITE) color = "White";
         else color = "Black";
         data_.reason      = color + Match::ADJUDICATION_WIN_MSG;
 

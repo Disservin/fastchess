@@ -1,6 +1,7 @@
 #include <thread>
 
 #include <cli/cli.hpp>
+#include <config/sanitize.hpp>
 #include <globals/globals.hpp>
 #include <matchmaking/tournament/tournament_manager.hpp>
 
@@ -11,8 +12,14 @@ int main(int argc, char const *argv[]) {
 
     auto options = cli::OptionsParser(argc, argv);
 
+    auto config         = options.getGameOptions();
+    auto engine_configs = options.getEngineConfigs();
+
+    config::sanitize(config);
+    config::sanitize(engine_configs);
+
     {
-        auto tour = TournamentManager(options.getGameOptions(), options.getEngineConfigs(), options.getResults());
+        auto tour = TournamentManager(config, engine_configs, options.getResults());
 
         tour.start();
     }

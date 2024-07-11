@@ -193,7 +193,9 @@ bool Match::playMove(Player& us, Player& them) {
     auto status = us.engine.readEngine("bestmove", us.getTimeoutThreshold());
     auto t1     = clock::now();
 
-    us.engine.writeLog();
+    if (tournament_options_.realtime_logging) {
+        us.engine.writeLog();
+    }
 
     if (status == engine::process::Status::ERR || !us.engine.isready()) {
         setEngineCrashStatus(us, them, go_string, position_string);
@@ -281,7 +283,7 @@ void Match::setEngineCrashStatus(Player& loser, Player& winner, const std::strin
 
     crash_or_disconnect_ = true;
 
-    const auto name = loser.engine.getConfig().name;
+    const auto name   = loser.engine.getConfig().name;
     data_.termination = MatchTermination::DISCONNECT;
     data_.reason      = name + Match::DISCONNECT_MSG;
 

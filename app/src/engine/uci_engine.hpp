@@ -20,9 +20,11 @@ enum class ScoreType { CP, MATE, ERR };
 
 class UciEngine : protected process::Process {
    public:
-    explicit UciEngine(const EngineConfiguration &config) {
+    explicit UciEngine(const EngineConfiguration &config, bool realtime_logging) {
         loadConfig(config);
         output_.reserve(100);
+
+        setRealtimeLogging(realtime_logging);
     }
 
     UciEngine(const UciEngine &)            = delete;

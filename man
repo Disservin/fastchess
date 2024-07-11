@@ -147,11 +147,13 @@ OPTIONS
             Automatically picks a random seed value between 0 and (2^64 - 1)
             for opening book randomization.
 
-        -log file=NAME level=LEVEL compress=(true|false)
+        -log file=NAME level=LEVEL compress=(true|false) realtime=(true|false)
             Specify a log file with a specific log level. 
             Set compress to true if you want the log file to be gzipped. Default is false.
             Specifying a level will only print/save the specified level and the levels above that.
             Level "trace" is only ever saved to a file and never printed to the console.
+            By default engine logs will be written in realtime this adds a small overhead which
+            might lead to timeouts for very short time controls, to counteract this set it to false.
 
             LEVEL
                 trace

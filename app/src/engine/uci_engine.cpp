@@ -203,6 +203,7 @@ void UciEngine::start() {
     Logger::trace<true>("Starting engine {} at {}", config_.name, path);
 
     init(path, config_.args, config_.name);
+
     if (!uci() || !uciok()) {
         throw std::runtime_error(fmt::format("{} failed to start.", config_.name));
     }

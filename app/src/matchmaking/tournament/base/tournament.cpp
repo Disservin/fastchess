@@ -66,8 +66,10 @@ void BaseTournament::playGame(const std::pair<EngineConfiguration, EngineConfigu
 
     const auto core = util::ScopeGuard(cores_->consume());
 
-    auto engine_one = util::ScopeGuard(engine_cache_.getEntry(configs.first.name, configs.first));
-    auto engine_two = util::ScopeGuard(engine_cache_.getEntry(configs.second.name, configs.second));
+    auto engine_one = util::ScopeGuard(
+        engine_cache_.getEntry(configs.first.name, configs.first, tournament_options_.realtime_logging));
+    auto engine_two = util::ScopeGuard(
+        engine_cache_.getEntry(configs.second.name, configs.second, tournament_options_.realtime_logging));
 
     Logger::trace("Playing game {} between {} and {}", game_id + 1, configs.first.name, configs.second.name);
 

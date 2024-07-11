@@ -85,6 +85,10 @@ class OptionsParser {
 #    endif
 #endif
 
+#ifdef USE_CUTE
+        ss << " (compiled with cutechess output)";
+#endif
+
         std::cout << ss.str() << std::endl;
         std::exit(0);
     }

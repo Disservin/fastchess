@@ -379,7 +379,7 @@ void parseAutoSaveInterval(const std::vector<std::string> &params, ArgumentData 
     parseValue(params, argument_data.tournament_options.autosaveinterval);
 }
 
-void parseLog(const std::vector<std::string> &params, ArgumentData &) {
+void parseLog(const std::vector<std::string> &params, ArgumentData &argument_data) {
     std::string filename;
     parseDashOptions(params, [&](const std::string &key, const std::string &value) {
         if (key == "file") {
@@ -400,6 +400,8 @@ void parseLog(const std::vector<std::string> &params, ArgumentData &) {
             }
         } else if (key == "compress" && is_bool(value)) {
             Logger::setCompress(value == "true");
+        } else if (key == "realtime" && is_bool(value)) {
+            argument_data.tournament_options.realtime_logging = value == "true";
         } else {
             OptionsParser::throwMissing("log", key, value);
         }

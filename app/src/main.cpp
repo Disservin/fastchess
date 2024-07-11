@@ -19,7 +19,7 @@ int main(int argc, char const *argv[]) {
     config::sanitize(engine_configs);
 
     {
-        auto tour = TournamentManager(options.getGameOptions(), options.getEngineConfigs(), options.getResults());
+        auto tour = TournamentManager(config, engine_configs, options.getResults());
 
         tour.start();
     }

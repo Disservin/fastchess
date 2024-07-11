@@ -14,7 +14,8 @@ const std::string path = "./app/tests/mock/engine/";
 namespace {
 class MockUciEngine : public engine::UciEngine {
    public:
-    explicit MockUciEngine(const EngineConfiguration& config) : engine::UciEngine(config) {}
+    explicit MockUciEngine(const EngineConfiguration& config, bool realtime_logging)
+        : engine::UciEngine(config, realtime_logging) {}
 
     void restart() { engine::UciEngine::restart(); }
 };
@@ -30,7 +31,7 @@ TEST_SUITE("Uci Engine Communication Tests") {
 #endif
         config.args = "arg1 arg2 arg3";
 
-        engine::UciEngine uci_engine = engine::UciEngine(config);
+        engine::UciEngine uci_engine = engine::UciEngine(config, false);
 
         uci_engine.start();
 
@@ -57,7 +58,7 @@ TEST_SUITE("Uci Engine Communication Tests") {
             "--weights=lc0/BT4-1024x15x32h-swa-6147500.pb.gz --minibatch-size=132 "
             "--nncache=50000000 --threads=5";
 
-        engine::UciEngine uci_engine = engine::UciEngine(config);
+        engine::UciEngine uci_engine = engine::UciEngine(config, false);
 
         uci_engine.start();
 
@@ -84,7 +85,7 @@ TEST_SUITE("Uci Engine Communication Tests") {
 #endif
         config.args = "arg1 arg2 arg3";
 
-        engine::UciEngine uci_engine = engine::UciEngine(config);
+        engine::UciEngine uci_engine = engine::UciEngine(config, false);
 
         uci_engine.start();
 
@@ -124,7 +125,7 @@ TEST_SUITE("Uci Engine Communication Tests") {
 #else
         config.cmd = path + "dummy_engine";
 #endif
-        engine::UciEngine uci_engine = engine::UciEngine(config);
+        engine::UciEngine uci_engine = engine::UciEngine(config, false);
 
         uci_engine.start();
 
@@ -163,7 +164,7 @@ TEST_SUITE("Uci Engine Communication Tests") {
 #else
         config.cmd = path + "dummy_engine";
 #endif
-        MockUciEngine uci_engine = MockUciEngine(config);
+        MockUciEngine uci_engine = MockUciEngine(config, false);
 
         uci_engine.start();
 

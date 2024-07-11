@@ -523,13 +523,11 @@ void parseRandomSeed(const std::vector<std::string> &, ArgumentData &argument_da
 }
 
 void parseRepeat(const std::vector<std::string> &params, ArgumentData &argument_data) {
-#ifndef USE_CUTE
     if (params.size() == 1 && is_number(params[0])) {
         parseValue(params, argument_data.tournament_options.games);
     } else {
         argument_data.tournament_options.games = 2;
     }
-#endif
 }
 
 void parseVariant(const std::vector<std::string> &params, ArgumentData &argument_data) {

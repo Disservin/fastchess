@@ -147,6 +147,10 @@ class Process : public IProcess {
 
                     lines.emplace_back(Line{current_line_, util::time::datetime_precise()});
 
+                    if (realtime_logging_) {
+                        Logger::readFromEngine(current_line_, util::time::datetime_precise(), log_name_);
+                    }
+
                     if (current_line_.rfind(last_word, 0) == 0) {
                         return Status::OK;
                     }

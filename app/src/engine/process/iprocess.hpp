@@ -27,6 +27,8 @@ class IProcess {
     IProcess &operator=(const IProcess &) = delete;
     IProcess &operator=(IProcess &&)      = delete;
 
+    void setRealtimeLogging(bool realtime_logging) noexcept { realtime_logging_ = realtime_logging; }
+
     // Initialize the process
     virtual void init(const std::string &command, const std::string &args, const std::string &log_name) = 0;
 
@@ -45,6 +47,8 @@ class IProcess {
 
     // Write input to the engine's stdin
     virtual bool writeProcess(const std::string &input) noexcept = 0;
+
+    bool realtime_logging_ = true;
 };
 
 }  // namespace fast_chess::engine::process

@@ -248,6 +248,11 @@ class Process : public IProcess {
             // timeout
             else if (ready == 0) {
                 lines.emplace_back(Line{current_line_, util::time::datetime_precise()});
+
+                if (realtime_logging_) {
+                    Logger::readFromEngine(current_line_, util::time::datetime_precise(), log_name_);
+                }
+
                 return Status::TIMEOUT;
             }
 
@@ -270,6 +275,10 @@ class Process : public IProcess {
                     // Dont add empty lines
                     if (!current_line_.empty()) {
                         lines.emplace_back(Line{current_line_, util::time::datetime_precise()});
+
+                        if (realtime_logging_) {
+                            Logger::readFromEngine(current_line_, util::time::datetime_precise(), log_name_);
+                        }
 
                         if (current_line_.rfind(last_word, 0) == 0) {
                             return Status::OK;
@@ -299,6 +308,10 @@ class Process : public IProcess {
                     // Dont add empty lines
                     if (!current_line_.empty()) {
                         lines.emplace_back(Line{current_line_, util::time::datetime_precise(), Standard::ERR});
+
+                        if (realtime_logging_) {
+                            Logger::readFromEngine(current_line_, util::time::datetime_precise(), log_name_, true);
+                        }
 
                         current_line_.clear();
                     }

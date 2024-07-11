@@ -94,12 +94,13 @@ struct Tournament {
     OutputType output = OutputType::CUTECHESS;
     int ratinginterval   = 0;
     int autosaveinterval = 0;
-    
+    int rounds           = 1;
 #else
     // output format, fastchess or cutechess
     OutputType output = OutputType::FASTCHESS;
     int ratinginterval   = 10;
     int autosaveinterval = 20;
+    int rounds           = 2;
 #endif
 
     uint64_t seed = 951356066;
@@ -107,7 +108,6 @@ struct Tournament {
     int scoreinterval    = 1;
 
     int games       = 2;
-    int rounds      = 2;
     int concurrency = 1;
     int overhead    = 0;
 

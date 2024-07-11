@@ -50,9 +50,9 @@ void BaseTournament::saveJson() {
     std::ofstream file(tournament_options_.config_name.empty() ? "config.json" : tournament_options_.config_name);
     file << std::setw(4) << jsonfile << std::endl;
 
-#ifndef USE_CUTE
-    Logger::info("Saved results.");
-#endif
+
+    Logger::trace("Saved results.");
+
 }
 
 void BaseTournament::stop() {

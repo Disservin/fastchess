@@ -5,10 +5,10 @@
 
 #include <cli/cli.hpp>
 #include <matchmaking/sprt/sprt.hpp>
+#include <matchmaking/stats.hpp>
 #include <types/engine_config.hpp>
 #include <types/enums.hpp>
 #include <types/match_data.hpp>
-#include <types/stats.hpp>
 
 namespace fast_chess {
 
@@ -40,7 +40,7 @@ class IOutput {
 
     // Print current H2H elo stats.
     virtual std::string printElo(const Stats& stats, const std::string& first, const std::string& second,
-                          const engines& engines, const std::string& book) = 0;
+                                 const engines& engines, const std::string& book) = 0;
 
     // Print current SPRT stats.
     virtual std::string printSprt(const SPRT& sprt, const Stats& stats) = 0;

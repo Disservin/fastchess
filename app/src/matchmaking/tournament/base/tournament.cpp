@@ -54,7 +54,10 @@ void BaseTournament::saveJson() {
     std::ofstream file(filename);
     file << std::setw(4) << jsonfile << std::endl;
 
-    Logger::info("Saved results.");
+    if (config.output == OutputType::FASTCHESS)
+        Logger::info("Saved results.");
+    else
+        Logger::trace("Saved results.");
 }
 
 void BaseTournament::stop() {

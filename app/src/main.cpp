@@ -16,8 +16,8 @@ int main(int argc, char const* argv[]) {
 
     config::sanitize(engine_configs);
 
-    config::TournamentOptions.setup([&options]() -> std::unique_ptr<config::Tournament> {
-        return std::make_unique<config::Tournament>(options.getGameOptions());
+    config::Tournament.setup([&options]() -> std::unique_ptr<config::TournamentType> {
+        return std::make_unique<config::TournamentType>(options.getGameOptions());
     });
 
     {

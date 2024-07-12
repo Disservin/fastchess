@@ -29,9 +29,9 @@ constexpr auto version = "alpha 0.9.0 ";
 // Holds the data of the OptionParser
 struct ArgumentData {
     // Holds all the relevant settings for the handling of the games
-    fast_chess::config::Tournament tournament_options;
+    fast_chess::config::TournamentType tournament_options;
     /*previous olded values before config*/
-    fast_chess::config::Tournament old_tournament_options;
+    fast_chess::config::TournamentType old_tournament_options;
 
     stats_map stats;
 
@@ -102,7 +102,9 @@ class OptionsParser {
 
     [[nodiscard]] std::vector<EngineConfiguration> getEngineConfigs() const { return argument_data_.configs; }
 
-    [[nodiscard]] fast_chess::config::Tournament getGameOptions() const { return argument_data_.tournament_options; }
+    [[nodiscard]] fast_chess::config::TournamentType getGameOptions() const {
+        return argument_data_.tournament_options;
+    }
 
     [[nodiscard]] stats_map getResults() const { return argument_data_.stats; }
 

@@ -71,7 +71,7 @@ struct MaxMovesAdjudication {
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(MaxMovesAdjudication, move_count, enabled)
 
-struct Tournament {
+struct TournamentType {
     Opening opening = {};
     Pgn pgn         = {};
     Epd epd         = {};
@@ -116,9 +116,9 @@ struct Tournament {
     bool randomseed       = false;
     bool realtime_logging = true;
 };
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(Tournament, resign, draw, maxmoves, opening, pgn, epd, sprt, event_name,
-                                                site, config_name, output, seed, variant, ratinginterval, scoreinterval,
-                                                autosaveinterval, games, rounds, concurrency, overhead, recover,
-                                                report_penta, affinity, randomseed, realtime_logging)
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(TournamentType, resign, draw, maxmoves, opening, pgn, epd, sprt,
+                                                event_name, site, config_name, output, seed, variant, ratinginterval,
+                                                scoreinterval, autosaveinterval, games, rounds, concurrency, overhead,
+                                                recover, report_penta, affinity, randomseed, realtime_logging)
 
 }  // namespace fast_chess::config

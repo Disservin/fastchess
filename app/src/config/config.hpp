@@ -5,6 +5,6 @@
 
 namespace fast_chess::config {
 
-inline Lazy<Tournament> TournamentOptions;
+inline Lazy<TournamentType> Tournament;
 
 }  // namespace fast_chess::config

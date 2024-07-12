@@ -8,14 +8,14 @@ namespace fast_chess {
 
 class OutputFactory {
    public:
-    [[nodiscard]] static std::unique_ptr<IOutput> create(const config::Tournament& config) {
-        switch (config.output) {
+    [[nodiscard]] static std::unique_ptr<IOutput> create() {
+        switch (config::Tournament.get().output) {
             case OutputType::FASTCHESS:
-                return std::make_unique<Fastchess>(config.report_penta);
+                return std::make_unique<Fastchess>(config::Tournament.get().report_penta);
             case OutputType::CUTECHESS:
                 return std::make_unique<Cutechess>();
             default:
-                return std::make_unique<Fastchess>(config.report_penta);
+                return std::make_unique<Fastchess>(config::Tournament.get().report_penta);
         }
     }
 

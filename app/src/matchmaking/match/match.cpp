@@ -66,7 +66,7 @@ void Match::addMoveData(const Player& player, int64_t measured_time_ms, bool leg
 }
 
 void Match::prepare() {
-    board_.set960(config::TournamentOptions.get().variant == VariantType::FRC);
+    board_.set960(config::Tournament.get().variant == VariantType::FRC);
     if (isFen(opening_.fen)) {
         board_.setFen(opening_.fen);
     } else {
@@ -189,7 +189,7 @@ bool Match::playMove(Player& us, Player& them) {
     auto status = us.engine.readEngine("bestmove", us.getTimeoutThreshold());
     auto t1     = clock::now();
 
-    if (!config::TournamentOptions.get().realtime_logging) {
+    if (!config::Tournament.get().realtime_logging) {
         us.engine.writeLog();
     }
 
@@ -372,7 +372,7 @@ void Match::verifyPvLines(const Player& us) {
 }
 
 bool Match::adjudicate(Player& us, Player& them) noexcept {
-    if (config::TournamentOptions.get().resign.enabled && resign_tracker_.resignable() && us.engine.lastScore() < 0) {
+    if (config::Tournament.get().resign.enabled && resign_tracker_.resignable() && us.engine.lastScore() < 0) {
         us.setLost();
         them.setWon();
 
@@ -384,7 +384,7 @@ bool Match::adjudicate(Player& us, Player& them) noexcept {
         return true;
     }
 
-    if (config::TournamentOptions.get().draw.enabled && draw_tracker_.adjudicatable()) {
+    if (config::Tournament.get().draw.enabled && draw_tracker_.adjudicatable()) {
         us.setDraw();
         them.setDraw();
 
@@ -394,7 +394,7 @@ bool Match::adjudicate(Player& us, Player& them) noexcept {
         return true;
     }
 
-    if (config::TournamentOptions.get().maxmoves.enabled && maxmoves_tracker_.maxmovesreached()) {
+    if (config::Tournament.get().maxmoves.enabled && maxmoves_tracker_.maxmovesreached()) {
         us.setDraw();
         them.setDraw();
 

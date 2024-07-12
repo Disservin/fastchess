@@ -121,6 +121,8 @@ class Process : public IProcess {
         lines.clear();
         current_line_.clear();
 
+        auto id = std::this_thread::get_id();
+
         auto readFuture = std::async(std::launch::async, [this, &last_word, &lines]() {
             char buffer[4096];
             DWORD bytesRead;
@@ -148,7 +150,7 @@ class Process : public IProcess {
                     lines.emplace_back(Line{current_line_, util::time::datetime_precise()});
 
                     if (realtime_logging_) {
-                        Logger::readFromEngine(current_line_, util::time::datetime_precise(), log_name_);
+                        Logger::readFromEngine(current_line_, util::time::datetime_precise(), log_name_, false, id);
                     }
 
                     if (current_line_.rfind(last_word, 0) == 0) {

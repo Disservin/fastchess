@@ -18,7 +18,7 @@
 namespace fast_chess {
 
 BaseTournament::BaseTournament(const stats_map &results) {
-    output_ = OutputFactory::create();
+    output_ = OutputFactory::create(config::Tournament.get().output, config::Tournament.get().report_penta);
     cores_  = std::make_unique<affinity::AffinityManager>(config::Tournament.get().affinity,
                                                           getMaxAffinity(config::EngineConfigs.get()));
 
@@ -102,7 +102,7 @@ void BaseTournament::playGame(const std::pair<EngineConfiguration, EngineConfigu
     // If the game was interrupted(didn't completely finish)
     if (match_data.termination != MatchTermination::INTERRUPT) {
         if (!config::Tournament.get().pgn.file.empty())
-            file_writer_pgn->write(pgn::PgnBuilder(config::Tournament.get(), match_data, game_id + 1).get());
+            file_writer_pgn->write(pgn::PgnBuilder(config::Tournament.get().pgn, match_data, game_id + 1).get());
         if (!config::Tournament.get().epd.file.empty())
             file_writer_epd->write(epd::EpdBuilder(config::Tournament.get().variant, match_data).get());
 

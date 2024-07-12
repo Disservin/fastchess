@@ -123,7 +123,7 @@ class Process : public IProcess {
 
         auto id = std::this_thread::get_id();
 
-        auto readFuture = std::async(std::launch::async, [this, &last_word, &lines]() {
+        auto readFuture = std::async(std::launch::async, [this, &last_word, &lines, id]() {
             char buffer[4096];
             DWORD bytesRead;
 

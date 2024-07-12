@@ -11,10 +11,7 @@ using namespace fast_chess;
 int main(int argc, char const* argv[]) {
     setCtrlCHandler();
 
-    auto options        = cli::OptionsParser(argc, argv);
-    auto engine_configs = options.getEngineConfigs();
-
-    config::sanitize(engine_configs);
+    auto options = cli::OptionsParser(argc, argv);
 
     config::Tournament.setup([&options]() -> std::unique_ptr<config::TournamentType> {
         auto cnf = options.getGameOptions();
@@ -24,8 +21,16 @@ int main(int argc, char const* argv[]) {
         return std::make_unique<config::TournamentType>(cnf);
     });
 
+    config::EngineConfigs.setup([&options]() -> std::unique_ptr<std::vector<EngineConfiguration>> {
+        auto cnf = options.getEngineConfigs();
+
+        config::sanitize(cnf);
+
+        return std::make_unique<std::vector<EngineConfiguration>>(cnf);
+    });
+
     {
-        auto tour = TournamentManager(engine_configs, options.getResults());
+        auto tour = TournamentManager(options.getResults());
 
         tour.start();
     }

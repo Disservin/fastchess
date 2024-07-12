@@ -9,7 +9,7 @@ namespace fast_chess {
 // different tournament types
 class TournamentManager {
    public:
-    TournamentManager(const std::vector<EngineConfiguration> &engine_configs, const stats_map &results);
+    TournamentManager(const stats_map &results);
 
     ~TournamentManager() {
         Logger::trace("Finished tournament.");
@@ -22,8 +22,6 @@ class TournamentManager {
     [[nodiscard]] RoundRobin *roundRobin() { return round_robin_.get(); }
 
    private:
-    std::vector<EngineConfiguration> engine_configs_;
-
     std::unique_ptr<RoundRobin> round_robin_;
 };
 

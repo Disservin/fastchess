@@ -10,8 +10,7 @@
 
 namespace fast_chess {
 
-RoundRobin::RoundRobin(const std::vector<EngineConfiguration>& engine_configs, const stats_map& results)
-    : BaseTournament(engine_configs, results) {
+RoundRobin::RoundRobin(const stats_map& results) : BaseTournament(results) {
     // Initialize the SPRT test
     sprt_ = SPRT(config::Tournament.get().sprt.alpha, config::Tournament.get().sprt.beta,
                  config::Tournament.get().sprt.elo0, config::Tournament.get().sprt.elo1,
@@ -42,8 +41,8 @@ void RoundRobin::start() {
 void RoundRobin::create() {
     Logger::trace("Creating matches...");
 
-    total_ = (engine_configs_.size() * (engine_configs_.size() - 1) / 2) * config::Tournament.get().rounds *
-             config::Tournament.get().games;
+    total_ = (config::EngineConfigs.get().size() * (config::EngineConfigs.get().size() - 1) / 2) *
+             config::Tournament.get().rounds * config::Tournament.get().games;
 
     const auto create_match = [this](std::size_t i, std::size_t j, std::size_t round_id, int g,
                                      std::optional<std::size_t> opening_id) {
@@ -73,9 +72,9 @@ void RoundRobin::create() {
 
         const std::size_t game_id = round_id * config::Tournament.get().games + (g + 1);
         const auto stm            = opening.stm;
-        const auto first          = engine_configs_[i];
-        const auto second         = engine_configs_[j];
-        auto configs              = std::pair{engine_configs_[i], engine_configs_[j]};
+        const auto first          = config::EngineConfigs.get()[i];
+        const auto second         = config::EngineConfigs.get()[j];
+        auto configs              = std::pair{config::EngineConfigs.get()[i], config::EngineConfigs.get()[j]};
 
         if (g == 1) {
             std::swap(configs.first, configs.second);
@@ -127,8 +126,8 @@ void RoundRobin::create() {
         playGame(configs, start, finish, opening, round_id);
     };
 
-    for (std::size_t i = 0; i < engine_configs_.size(); i++) {
-        for (std::size_t j = i + 1; j < engine_configs_.size(); j++) {
+    for (std::size_t i = 0; i < config::EngineConfigs.get().size(); i++) {
+        for (std::size_t j = i + 1; j < config::EngineConfigs.get().size(); j++) {
             int offset = initial_matchcount_ / config::Tournament.get().games;
             for (int k = offset; k < config::Tournament.get().rounds; k++) {
                 // both players get the same opening

@@ -21,7 +21,7 @@ extern std::atomic_bool stop;
 
 class BaseTournament {
    public:
-    BaseTournament(const std::vector<EngineConfiguration> &engine_configs, const stats_map &results);
+    BaseTournament(const stats_map &results);
 
     virtual ~BaseTournament() {
         Logger::trace("Destroying tournament...");
@@ -75,8 +75,6 @@ class BaseTournament {
     std::unique_ptr<util::FileWriter> file_writer_pgn;
     std::unique_ptr<util::FileWriter> file_writer_epd;
     std::unique_ptr<book::OpeningBook> book_;
-
-    std::vector<EngineConfiguration> engine_configs_;
 
     util::CachePool<engine::UciEngine, std::string> engine_cache_ = util::CachePool<engine::UciEngine, std::string>();
     Result result_                                                = Result();

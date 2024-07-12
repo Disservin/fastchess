@@ -17,11 +17,10 @@
 
 namespace fast_chess {
 
-BaseTournament::BaseTournament(const std::vector<EngineConfiguration> &engine_configs, const stats_map &results) {
-    engine_configs_ = engine_configs;
-    output_         = OutputFactory::create();
-    cores_ =
-        std::make_unique<affinity::AffinityManager>(config::Tournament.get().affinity, getMaxAffinity(engine_configs));
+BaseTournament::BaseTournament(const stats_map &results) {
+    output_ = OutputFactory::create();
+    cores_  = std::make_unique<affinity::AffinityManager>(config::Tournament.get().affinity,
+                                                          getMaxAffinity(config::EngineConfigs.get()));
 
     if (!config::Tournament.get().pgn.file.empty())
         file_writer_pgn = std::make_unique<util::FileWriter>(config::Tournament.get().pgn.file);
@@ -43,7 +42,7 @@ void BaseTournament::start() {
 
 void BaseTournament::saveJson() {
     nlohmann::ordered_json jsonfile = config::Tournament.get();
-    jsonfile["engines"]             = engine_configs_;
+    jsonfile["engines"]             = config::EngineConfigs.get();
     jsonfile["stats"]               = getResults();
 
     Logger::trace("Saving results...");

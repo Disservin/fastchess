@@ -137,8 +137,8 @@ class Match {
     [[nodiscard]] static std::string convertChessReason(const std::string& engine_color,
                                                         chess::GameResultReason reason) noexcept;
 
-    [[nodiscard]] std::string getColorString() const noexcept {
-        return board_.sideToMove() == chess::Color::WHITE ? "White" : "Black";
+    [[nodiscard]] std::string getColorString(chess::Color color) const noexcept {
+        return color == chess::Color::WHITE ? "White" : "Black";
     }
 
     bool isLegal(chess::Move move) const noexcept;

@@ -2,7 +2,7 @@
 
 #include <algorithm>
 
-#include <config/types.hpp>
+#include <types/tournament.hpp>
 #include <util/date.hpp>
 #include <util/helper.hpp>
 #include <util/logger/logger.hpp>

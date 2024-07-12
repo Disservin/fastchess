@@ -1,7 +1,7 @@
 #pragma once
 
-#include <config/types.hpp>
 #include <types/engine_config.hpp>
+#include <types/tournament.hpp>
 
 namespace fast_chess::config {
 

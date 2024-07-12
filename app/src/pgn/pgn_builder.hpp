@@ -10,7 +10,7 @@
 
 #include <matchmaking/match/match.hpp>
 
-#include <config/types.hpp>
+#include <types/tournament.hpp>
 
 namespace fast_chess::pgn {
 

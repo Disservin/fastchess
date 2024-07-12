@@ -9,8 +9,8 @@
 #include <chess.hpp>
 
 #include <config/config.hpp>
-#include <config/types.hpp>
 #include <matchmaking/match/match.hpp>
+#include <types/tournament.hpp>
 
 namespace fast_chess::epd {
 

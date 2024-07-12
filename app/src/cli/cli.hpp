@@ -15,9 +15,9 @@
 
 #include <cli/man.hpp>
 #include <config/config.hpp>
-#include <config/types.hpp>
 #include <matchmaking/result.hpp>
 #include <types/engine_config.hpp>
+#include <types/tournament.hpp>
 
 #define FMT_HEADER_ONLY
 #include "../../third_party/fmt/include/fmt/core.h"

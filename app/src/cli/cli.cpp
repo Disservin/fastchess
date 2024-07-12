@@ -2,10 +2,10 @@
 
 #include <random>
 
-#include <config/types.hpp>
 #include <matchmaking/output/output_factory.hpp>
 #include <matchmaking/result.hpp>
 #include <types/engine_config.hpp>
+#include <types/tournament.hpp>
 #include <util/file_system.hpp>
 #include <util/logger/logger.hpp>
 

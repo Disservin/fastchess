@@ -1,12 +1,12 @@
 #pragma once
 
 #include <affinity/affinity_manager.hpp>
-#include <config/types.hpp>
 #include <matchmaking/match/match.hpp>
 #include <matchmaking/result.hpp>
 #include <matchmaking/sprt/sprt.hpp>
 #include <pgn/pgn_reader.hpp>
 #include <types/stats.hpp>
+#include <types/tournament.hpp>
 #include <util/cache.hpp>
 #include <util/file_writer.hpp>
 #include <util/rand.hpp>

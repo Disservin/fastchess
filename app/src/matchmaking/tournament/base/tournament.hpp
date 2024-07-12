@@ -4,10 +4,10 @@
 
 #include <affinity/affinity_manager.hpp>
 #include <book/opening_book.hpp>
-#include <config/types.hpp>
 #include <engine/uci_engine.hpp>
 #include <matchmaking/output/output.hpp>
 #include <matchmaking/result.hpp>
+#include <types/tournament.hpp>
 #include <util/cache.hpp>
 #include <util/file_writer.hpp>
 #include <util/logger/logger.hpp>

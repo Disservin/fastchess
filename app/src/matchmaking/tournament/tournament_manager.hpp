@@ -1,7 +1,7 @@
 #pragma once
 
-#include <config/types.hpp>
 #include <matchmaking/tournament/roundrobin/roundrobin.hpp>
+#include <types/tournament.hpp>
 
 namespace fast_chess {
 

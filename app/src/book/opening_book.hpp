@@ -6,9 +6,9 @@
 #include <vector>
 
 #include <config/config.hpp>
-#include <config/types.hpp>
 #include <pgn/pgn_reader.hpp>
 #include <types/enums.hpp>
+#include <types/tournament.hpp>
 #include <util/rand.hpp>
 
 namespace fast_chess::book {

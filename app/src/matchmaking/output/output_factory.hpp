@@ -1,8 +1,8 @@
 #pragma once
 
-#include <config/types.hpp>
 #include <matchmaking/output/output_cutechess.hpp>
 #include <matchmaking/output/output_fastchess.hpp>
+#include <types/tournament.hpp>
 
 namespace fast_chess {
 

@@ -22,8 +22,8 @@ TEST_SUITE("PGN Builder Tests") {
 
         match_data.reason = "engine2 got checkmated";
 
-        config::TournamentType options;
-        options.site = "localhost";
+        config::Pgn pgn_config;
+        pgn_config.site = "localhost";
 
         std::string expected = R"([Event "Fast-Chess Tournament"]
 [Site "localhost"]
@@ -39,7 +39,7 @@ Nf6 {+10.15/18, 1.821s, engine2 got checkmated} 1-0
 
 )";
 
-        pgn::PgnBuilder pgn_builder = pgn::PgnBuilder(options, match_data, 1);
+        pgn::PgnBuilder pgn_builder = pgn::PgnBuilder(pgn_config, match_data, 1);
         CHECK(pgn_builder.get() == expected);
     }
 
@@ -61,8 +61,8 @@ Nf6 {+10.15/18, 1.821s, engine2 got checkmated} 1-0
 
         match_data.reason = "engine1 got checkmated";
 
-        config::TournamentType options;
-        options.site = "localhost";
+        config::Pgn pgn_config;
+        pgn_config.site = "localhost";
 
         std::string expected = R"([Event "Fast-Chess Tournament"]
 [Site "localhost"]
@@ -78,7 +78,7 @@ Nf6 {+10.15/18, 1.821s, engine1 got checkmated} 0-1
 
 )";
 
-        pgn::PgnBuilder pgn_builder = pgn::PgnBuilder(options, match_data, 1);
+        pgn::PgnBuilder pgn_builder = pgn::PgnBuilder(pgn_config, match_data, 1);
         CHECK(pgn_builder.get() == expected);
     }
 
@@ -99,8 +99,8 @@ Nf6 {+10.15/18, 1.821s, engine1 got checkmated} 0-1
 
         match_data.reason = "aborted";
 
-        config::TournamentType options;
-        options.site = "localhost";
+        config::Pgn pgn_config;
+        pgn_config.site = "localhost";
 
         std::string expected = R"([Event "Fast-Chess Tournament"]
 [Site "localhost"]
@@ -118,7 +118,7 @@ Nc5 {+1.45/16, 0.310s, aborted} *
 
 )";
 
-        pgn::PgnBuilder pgn_builder = pgn::PgnBuilder(options, match_data, 1);
+        pgn::PgnBuilder pgn_builder = pgn::PgnBuilder(pgn_config, match_data, 1);
         CHECK(pgn_builder.get() == expected);
     }
 
@@ -141,8 +141,8 @@ Nc5 {+1.45/16, 0.310s, aborted} *
 
         match_data.reason = "aborted";
 
-        config::TournamentType options;
-        options.site = "localhost";
+        config::Pgn pgn_config;
+        pgn_config.site = "localhost";
 
         std::string expected = R"([Event "Fast-Chess Tournament"]
 [Site "localhost"]
@@ -160,7 +160,7 @@ Nc5 {+1.45/16, 0.310s, aborted} *
 
 )";
 
-        pgn::PgnBuilder pgn_builder = pgn::PgnBuilder(options, match_data, 1);
+        pgn::PgnBuilder pgn_builder = pgn::PgnBuilder(pgn_config, match_data, 1);
         CHECK(pgn_builder.get() == expected);
     }
 
@@ -183,8 +183,8 @@ Nc5 {+1.45/16, 0.310s, aborted} *
 
         match_data.reason = "aborted";
 
-        config::TournamentType options;
-        options.site = "localhost";
+        config::Pgn pgn_config;
+        pgn_config.site = "localhost";
 
         std::string expected = R"([Event "Fast-Chess Tournament"]
 [Site "localhost"]
@@ -203,7 +203,7 @@ Nc5 {+1.45/16, 0.310s, aborted} *
 
 )";
 
-        pgn::PgnBuilder pgn_builder = pgn::PgnBuilder(options, match_data, 1);
+        pgn::PgnBuilder pgn_builder = pgn::PgnBuilder(pgn_config, match_data, 1);
         CHECK(pgn_builder.get() == expected);
     }
 }

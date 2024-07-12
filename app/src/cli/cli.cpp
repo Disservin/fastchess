@@ -480,11 +480,11 @@ void parseConcurrency(const std::vector<std::string> &params, ArgumentData &argu
 }
 
 void parseEvent(const std::vector<std::string> &params, ArgumentData &argument_data) {
-    argument_data.tournament_options.event_name = concat(params);
+    argument_data.tournament_options.pgn.event_name = concat(params);
 }
 
 void parseSite(const std::vector<std::string> &params, ArgumentData &argument_data) {
-    parseValue(params, argument_data.tournament_options.site);
+    parseValue(params, argument_data.tournament_options.pgn.site);
 }
 
 void parseGames(const std::vector<std::string> &params, ArgumentData &argument_data) {

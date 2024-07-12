@@ -17,6 +17,9 @@ struct Opening {
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(Opening, file, format, order, plies, start)
 
 struct Pgn {
+    std::string event_name = "Fast-Chess Tournament";
+    std::string site       = "?";
+
     std::string file;
     NotationType notation = NotationType::SAN;
     bool track_nodes      = false;
@@ -26,8 +29,8 @@ struct Pgn {
     bool track_tbhits     = false;
     bool min              = false;
 };
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(Pgn, file, notation, track_nodes, track_seldepth, track_nps,
-                                                track_hashfull, track_tbhits, min)
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(Pgn, event_name, site, file, notation, track_nodes, track_seldepth,
+                                                track_nps, track_hashfull, track_tbhits, min)
 
 struct Epd {
     std::string file;
@@ -78,9 +81,6 @@ struct TournamentType {
 
     Sprt sprt = {};
 
-    std::string event_name = "Fast-Chess Tournament";
-    std::string site       = "?";
-
     std::string config_name;
 
     DrawAdjudication draw         = {};
@@ -117,8 +117,8 @@ struct TournamentType {
     bool realtime_logging = true;
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(TournamentType, resign, draw, maxmoves, opening, pgn, epd, sprt,
-                                                event_name, site, config_name, output, seed, variant, ratinginterval,
-                                                scoreinterval, autosaveinterval, games, rounds, concurrency, overhead,
-                                                recover, report_penta, affinity, randomseed, realtime_logging)
+                                                config_name, output, seed, variant, ratinginterval, scoreinterval,
+                                                autosaveinterval, games, rounds, concurrency, overhead, recover,
+                                                report_penta, affinity, randomseed, realtime_logging)
 
 }  // namespace fast_chess::config

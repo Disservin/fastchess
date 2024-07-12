@@ -132,6 +132,8 @@ void Match::start(engine::UciEngine& engine1, engine::UciEngine& engine2, const 
 
     const auto end = clock::now();
 
+    data_.variant = config::Tournament.get().variant;
+
     data_.end_time = util::time::datetime("%Y-%m-%dT%H:%M:%S %z");
     data_.duration = util::time::duration(chrono::duration_cast<chrono::seconds>(end - start));
 

@@ -80,6 +80,8 @@ struct MatchData {
     // It will be used for the PGN Header.
     MatchTermination termination = MatchTermination::None;
 
+    VariantType variant;
+
     bool needs_restart = false;
 };
 

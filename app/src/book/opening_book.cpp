@@ -51,7 +51,8 @@ void OpeningBook::setup(const std::string& file, FormatType type) {
     }
 
     if (type == FormatType::NONE) return;
-
+    
+    Logger:info("Indexing opening suite...");
     if (order_ == OrderType::RANDOM) {
         shuffle();
     }

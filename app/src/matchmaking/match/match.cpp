@@ -143,6 +143,9 @@ bool Match::playMove(Player& us, Player& them) {
     const auto gameover = board_.isGameOver();
     const auto name     = us.engine.getConfig().name;
 
+
+    std::string color = board_.sideToMove() == chess::Color::WHITE ? "White" : "Black";
+
     if (gameover.second == GameResult::DRAW) {
         us.setDraw();
         them.setDraw();
@@ -154,7 +157,7 @@ bool Match::playMove(Player& us, Player& them) {
     }
 
     if (gameover.first != GameResultReason::NONE) {
-        data_.reason = convertChessReason(name, gameover.first);
+        data_.reason = convertChessReason(color, gameover.first);
         return false;
     }
 
@@ -270,7 +273,8 @@ void Match::setEngineCrashStatus(Player& loser, Player& winner) {
 
     const auto name   = loser.engine.getConfig().name;
     data_.termination = MatchTermination::DISCONNECT;
-    data_.reason      = name + Match::DISCONNECT_MSG;
+    const std::string color = board_.sideToMove() == chess::Color::WHITE ? "White" : "Black";
+    data_.reason      = color + Match::DISCONNECT_MSG;
 
     Logger::warn<true>("Warning; Engine {} disconnects", name);
 }
@@ -282,7 +286,8 @@ void Match::setEngineTimeoutStatus(Player& loser, Player& winner) {
     const auto name = loser.engine.getConfig().name;
 
     data_.termination = MatchTermination::TIMEOUT;
-    data_.reason      = name + Match::TIMEOUT_MSG;
+    const std::string color = board_.sideToMove() == chess::Color::WHITE ? "White" : "Black";
+    data_.reason      = color + Match::TIMEOUT_MSG;
 
     Logger::warn<true>("Warning; Engine {} loses on time", name);
 
@@ -304,7 +309,8 @@ void Match::setEngineIllegalMoveStatus(Player& loser, Player& winner, const std:
     const auto name = loser.engine.getConfig().name;
 
     data_.termination = MatchTermination::ILLEGAL_MOVE;
-    data_.reason      = name + Match::ILLEGAL_MSG;
+    const std::string color = board_.sideToMove() == chess::Color::WHITE ? "White" : "Black";
+    data_.reason      = color + Match::ILLEGAL_MSG;
 
     Logger::warn<true>("Warning; Illegal move {} played by {}", best_move ? *best_move : "<none>", name);
 }
@@ -371,7 +377,8 @@ bool Match::adjudicate(Player& us, Player& them) noexcept {
         them.setWon();
 
         data_.termination = MatchTermination::ADJUDICATION;
-        data_.reason      = them.engine.getConfig().name + Match::ADJUDICATION_WIN_MSG;
+        const std::string color = board_.sideToMove() == chess::Color::WHITE ? "White" : "Black";
+        data_.reason      = color + Match::ADJUDICATION_WIN_MSG;
 
         return true;
     }
@@ -399,9 +406,9 @@ bool Match::adjudicate(Player& us, Player& them) noexcept {
     return false;
 }
 
-std::string Match::convertChessReason(const std::string& engine_name, GameResultReason reason) noexcept {
+std::string Match::convertChessReason(const std::string& engine_color, GameResultReason reason) noexcept {
     if (reason == GameResultReason::CHECKMATE) {
-        return engine_name + Match::CHECKMATE_MSG;
+        return engine_color + Match::CHECKMATE_MSG;
     }
 
     if (reason == GameResultReason::STALEMATE) {

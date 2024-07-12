@@ -2,7 +2,7 @@
 
 #include "doctest/doctest.hpp"
 
-#include <types/stats.hpp>
+#include <matchmaking/stats.hpp>
 
 using namespace fast_chess;
 

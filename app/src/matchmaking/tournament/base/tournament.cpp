@@ -19,16 +19,16 @@ namespace fast_chess {
 
 BaseTournament::BaseTournament(const std::vector<EngineConfiguration> &engine_configs, const stats_map &results) {
     engine_configs_ = engine_configs;
-    output_         = OutputFactory::create(config::TournamentOptions);
-    cores_ =
-        std::make_unique<affinity::AffinityManager>(config::TournamentOptions.affinity, getMaxAffinity(engine_configs));
+    output_         = OutputFactory::create(config::TournamentOptions.get());
+    cores_          = std::make_unique<affinity::AffinityManager>(config::TournamentOptions.get().affinity,
+                                                                  getMaxAffinity(engine_configs));
 
-    if (!config::TournamentOptions.pgn.file.empty())
-        file_writer_pgn = std::make_unique<util::FileWriter>(config::TournamentOptions.pgn.file);
-    if (!config::TournamentOptions.epd.file.empty())
-        file_writer_epd = std::make_unique<util::FileWriter>(config::TournamentOptions.epd.file);
+    if (!config::TournamentOptions.get().pgn.file.empty())
+        file_writer_pgn = std::make_unique<util::FileWriter>(config::TournamentOptions.get().pgn.file);
+    if (!config::TournamentOptions.get().epd.file.empty())
+        file_writer_epd = std::make_unique<util::FileWriter>(config::TournamentOptions.get().epd.file);
 
-    pool_.resize(config::TournamentOptions.concurrency);
+    pool_.resize(config::TournamentOptions.get().concurrency);
 
     setResults(results);
 
@@ -42,14 +42,15 @@ void BaseTournament::start() {
 }
 
 void BaseTournament::saveJson() {
-    nlohmann::ordered_json jsonfile = config::TournamentOptions;
+    nlohmann::ordered_json jsonfile = config::TournamentOptions.get();
     jsonfile["engines"]             = engine_configs_;
     jsonfile["stats"]               = getResults();
 
     Logger::trace("Saving results...");
 
-    std::ofstream file(config::TournamentOptions.config_name.empty() ? "config.json"
-                                                                     : config::TournamentOptions.config_name);
+    std::ofstream file(config::TournamentOptions.get().config_name.empty()
+                           ? "config.json"
+                           : config::TournamentOptions.get().config_name);
     file << std::setw(4) << jsonfile << std::endl;
 
     Logger::info("Saved results.");
@@ -69,9 +70,9 @@ void BaseTournament::playGame(const std::pair<EngineConfiguration, EngineConfigu
     const auto core = util::ScopeGuard(cores_->consume());
 
     auto engine_one = util::ScopeGuard(
-        engine_cache_.getEntry(configs.first.name, configs.first, config::TournamentOptions.realtime_logging));
+        engine_cache_.getEntry(configs.first.name, configs.first, config::TournamentOptions.get().realtime_logging));
     auto engine_two = util::ScopeGuard(
-        engine_cache_.getEntry(configs.second.name, configs.second, config::TournamentOptions.realtime_logging));
+        engine_cache_.getEntry(configs.second.name, configs.second, config::TournamentOptions.get().realtime_logging));
 
     Logger::trace("Playing game {} between {} and {}", game_id + 1, configs.first.name, configs.second.name);
 
@@ -82,7 +83,7 @@ void BaseTournament::playGame(const std::pair<EngineConfiguration, EngineConfigu
 
     if (match.isCrashOrDisconnect()) {
         // restart the engine when recover is enabled
-        if (config::TournamentOptions.recover) {
+        if (config::TournamentOptions.get().recover) {
             Logger::trace("Restarting engine...");
             if (!engine_one.get().get().isready()) {
                 Logger::trace("Restarting engine {}", configs.first.name);
@@ -102,9 +103,10 @@ void BaseTournament::playGame(const std::pair<EngineConfiguration, EngineConfigu
 
     // If the game was interrupted(didn't completely finish)
     if (match_data.termination != MatchTermination::INTERRUPT) {
-        if (!config::TournamentOptions.pgn.file.empty())
+        if (!config::TournamentOptions.get().pgn.file.empty())
             file_writer_pgn->write(pgn::PgnBuilder(match_data, game_id + 1).get());
-        if (!config::TournamentOptions.epd.file.empty()) file_writer_epd->write(epd::EpdBuilder(match_data).get());
+        if (!config::TournamentOptions.get().epd.file.empty())
+            file_writer_epd->write(epd::EpdBuilder(match_data).get());
 
         finish({match_data}, match_data.reason, {engine_one.get().get(), engine_two.get().get()});
     }

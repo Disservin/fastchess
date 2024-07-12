@@ -9,8 +9,8 @@ TournamentManager::TournamentManager(const std::vector<EngineConfiguration>& eng
     Logger::trace("Creating tournament...");
 
     // Set the seed for the random number generator
-    Logger::trace("Seeding random number generator with seed: {}", config::TournamentOptions.seed);
-    util::random::mersenne_rand.seed(config::TournamentOptions.seed);
+    Logger::trace("Seeding random number generator with seed: {}", config::TournamentOptions.get().seed);
+    util::random::mersenne_rand.seed(config::TournamentOptions.get().seed);
 
     round_robin_ = std::make_unique<RoundRobin>(engine_configs_, results);
 }

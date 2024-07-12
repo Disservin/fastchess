@@ -1,9 +1,10 @@
 #pragma once
 
 #include <config/types.hpp>
+#include <util/lazy.hpp>
 
 namespace fast_chess::config {
 
-inline Tournament TournamentOptions = {};
+inline Lazy<Tournament> TournamentOptions;
 
 }  // namespace fast_chess::config

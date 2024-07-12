@@ -18,7 +18,7 @@ class EpdBuilder {
    public:
     EpdBuilder(const MatchData &match) {
         chess::Board board = chess::Board();
-        board.set960(config::TournamentOptions.variant == VariantType::FRC);
+        board.set960(config::TournamentOptions.get().variant == VariantType::FRC);
         board.setFen(match.fen);
 
         for (const auto &move : match.moves) {

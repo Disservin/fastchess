@@ -27,8 +27,8 @@ PgnBuilder::PgnBuilder(const MatchData &match, std::size_t round_id) {
     const auto black_player =
         match.players.first.color == chess::Color::BLACK ? match.players.first : match.players.second;
 
-    addHeader("Event", config::TournamentOptions.event_name);
-    addHeader("Site", config::TournamentOptions.site);
+    addHeader("Event", config::TournamentOptions.get().event_name);
+    addHeader("Site", config::TournamentOptions.get().site);
     addHeader("Date", match_.date);
     addHeader("Round", std::to_string(round_id));
     addHeader("White", white_player.config.name);
@@ -40,11 +40,11 @@ PgnBuilder::PgnBuilder(const MatchData &match, std::size_t round_id) {
         addHeader("FEN", match_.fen);
     }
 
-    if (config::TournamentOptions.variant == VariantType::FRC) {
+    if (config::TournamentOptions.get().variant == VariantType::FRC) {
         addHeader("Variant", "Chess960");
     }
 
-    if (!config::TournamentOptions.pgn.min) {
+    if (!config::TournamentOptions.get().pgn.min) {
         addHeader("GameDuration", match_.duration);
         addHeader("GameStartTime", match_.start_time);
         addHeader("GameEndTime", match_.end_time);
@@ -66,7 +66,7 @@ PgnBuilder::PgnBuilder(const MatchData &match, std::size_t round_id) {
     // otherwise move the move onto the next line
 
     chess::Board board = chess::Board();
-    board.set960(config::TournamentOptions.variant == VariantType::FRC);
+    board.set960(config::TournamentOptions.get().variant == VariantType::FRC);
     board.setFen(match_.fen);
 
     std::size_t move_number = int(board.sideToMove() == chess::Color::BLACK) + 1;
@@ -116,9 +116,9 @@ void PgnBuilder::addHeader(std::string_view name, const T &value) noexcept {
 }
 
 std::string PgnBuilder::moveNotation(chess::Board &board, const std::string &move) const noexcept {
-    if (config::TournamentOptions.pgn.notation == NotationType::SAN) {
+    if (config::TournamentOptions.get().pgn.notation == NotationType::SAN) {
         return chess::uci::moveToSan(board, chess::uci::uciToMove(board, move));
-    } else if (config::TournamentOptions.pgn.notation == NotationType::LAN) {
+    } else if (config::TournamentOptions.get().pgn.notation == NotationType::LAN) {
         return chess::uci::moveToLan(board, chess::uci::uciToMove(board, move));
     } else {
         return move;
@@ -133,18 +133,19 @@ std::string PgnBuilder::addMove(chess::Board &board, const MoveData &move, std::
                                              : "");
     ss << (illegal ? move.move : moveNotation(board, move.move));
 
-    if (!config::TournamentOptions.pgn.min) {
+    if (!config::TournamentOptions.get().pgn.min) {
         if (move.book) {
             ss << addComment("book");
         } else {
             ss << addComment(
                 (move.score_string + "/" + std::to_string(move.depth)),                                           //
                 formatTime(move.elapsed_millis),                                                                  //
-                config::TournamentOptions.pgn.track_nodes ? "n=" + std::to_string(move.nodes) : "",               //
-                config::TournamentOptions.pgn.track_seldepth ? "sd=" + std::to_string(move.seldepth) : "",        //
-                config::TournamentOptions.pgn.track_nps ? "nps=" + std::to_string(move.nps) : "",                 //
-                config::TournamentOptions.pgn.track_hashfull ? "hashfull=" + std::to_string(move.hashfull) : "",  //
-                config::TournamentOptions.pgn.track_tbhits ? "tbhits=" + std::to_string(move.tbhits) : "",        //
+                config::TournamentOptions.get().pgn.track_nodes ? "n=" + std::to_string(move.nodes) : "",         //
+                config::TournamentOptions.get().pgn.track_seldepth ? "sd=" + std::to_string(move.seldepth) : "",  //
+                config::TournamentOptions.get().pgn.track_nps ? "nps=" + std::to_string(move.nps) : "",           //
+                config::TournamentOptions.get().pgn.track_hashfull ? "hashfull=" + std::to_string(move.hashfull)
+                                                                   : "",                                          //
+                config::TournamentOptions.get().pgn.track_tbhits ? "tbhits=" + std::to_string(move.tbhits) : "",  //
                 last ? match_.reason : ""                                                                         //
             );
         }

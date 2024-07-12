@@ -13,9 +13,9 @@ namespace fast_chess {
 class DrawTracker {
    public:
     DrawTracker() noexcept {
-        move_number_ = config::TournamentOptions.draw.move_number;
-        move_count_  = config::TournamentOptions.draw.move_count;
-        draw_score   = config::TournamentOptions.draw.score;
+        move_number_ = config::TournamentOptions.get().draw.move_number;
+        move_count_  = config::TournamentOptions.get().draw.move_count;
+        draw_score   = config::TournamentOptions.get().draw.score;
     }
 
     void update(const int score, const int move_count, engine::ScoreType score_type, const int hmvc) noexcept {
@@ -43,9 +43,9 @@ class DrawTracker {
 class ResignTracker {
    public:
     ResignTracker() noexcept {
-        resign_score = config::TournamentOptions.resign.score;
-        move_count_  = config::TournamentOptions.resign.move_count;
-        twosided_    = config::TournamentOptions.resign.twosided;
+        resign_score = config::TournamentOptions.get().resign.score;
+        move_count_  = config::TournamentOptions.get().resign.move_count;
+        twosided_    = config::TournamentOptions.get().resign.twosided;
     }
 
     void update(const int score, engine::ScoreType score_type, chess::Color color) noexcept {
@@ -87,7 +87,7 @@ class ResignTracker {
 
 class MaxMovesTracker {
    public:
-    MaxMovesTracker() noexcept { move_count_ = config::TournamentOptions.maxmoves.move_count; }
+    MaxMovesTracker() noexcept { move_count_ = config::TournamentOptions.get().maxmoves.move_count; }
 
     void update(const int score, engine::ScoreType score_type) noexcept {
         max_moves++;

@@ -247,10 +247,12 @@ bool Match::playMove(Player& us, Player& them) {
     // into account the fullmove counter of the starting FEN, leading to different behavior between
     // pgn and epd adjudication. fast-chess fixes this by using the fullmove counter from the board
     // object directly
-    draw_tracker_.update(us.engine.lastScore(), board_.fullMoveNumber() - 1, us.engine.lastScoreType(),
-                         board_.halfMoveClock());
-    resign_tracker_.update(us.engine.lastScore(), us.engine.lastScoreType(), ~board_.sideToMove());
-    maxmoves_tracker_.update(us.engine.lastScore(), us.engine.lastScoreType());
+    auto score = us.engine.lastScore();
+    auto type  = us.engine.lastScoreType();
+
+    draw_tracker_.update(score, board_.fullMoveNumber() - 1, type, board_.halfMoveClock());
+    resign_tracker_.update(score, type, ~board_.sideToMove());
+    maxmoves_tracker_.update(score, type);
 
     return !adjudicate(us, them);
 }

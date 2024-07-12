@@ -9,16 +9,16 @@
 
 namespace fast_chess::book {
 
-OpeningBook::OpeningBook(std::size_t initial_matchcount) {
-    start_  = config::Tournament.get().opening.start;
-    games_  = config::Tournament.get().games;
-    rounds_ = config::Tournament.get().rounds;
-    order_  = config::Tournament.get().opening.order;
-    plies_  = config::Tournament.get().opening.plies;
+OpeningBook::OpeningBook(const config::TournamentType& config, std::size_t initial_matchcount) {
+    start_  = config.opening.start;
+    games_  = config.games;
+    rounds_ = config.rounds;
+    order_  = config.opening.order;
+    plies_  = config.opening.plies;
 
     // - 1 because start starts at 1 in the opening options
     offset_ = start_ - 1 + initial_matchcount / games_;
-    setup(config::Tournament.get().opening.file, config::Tournament.get().opening.format);
+    setup(config.opening.file, config.opening.format);
 }
 
 void OpeningBook::setup(const std::string& file, FormatType type) {

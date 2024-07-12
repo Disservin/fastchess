@@ -16,7 +16,7 @@ namespace fast_chess::book {
 class OpeningBook {
    public:
     OpeningBook() = default;
-    explicit OpeningBook(std::size_t initial_matchcount = 0);
+    explicit OpeningBook(const config::TournamentType& config, std::size_t initial_matchcount = 0);
 
     // Fisher-Yates / Knuth shuffle
     void shuffle() {

@@ -16,7 +16,7 @@ namespace fast_chess::pgn {
 
 class PgnBuilder {
    public:
-    PgnBuilder(const MatchData &match, std::size_t round_id);
+    PgnBuilder(const config::TournamentType &config, const MatchData &match, std::size_t round_id);
 
     // Get the newly created pgn
     [[nodiscard]] std::string get() const noexcept { return pgn_.str() + "\n\n"; }

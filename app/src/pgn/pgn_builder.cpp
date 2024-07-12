@@ -19,7 +19,7 @@ std::string to_string(const T &obj) {
 }
 }  // namespace str
 
-PgnBuilder::PgnBuilder(const MatchData &match, std::size_t round_id) {
+PgnBuilder::PgnBuilder(const config::TournamentType &config, const MatchData &match, std::size_t round_id) {
     match_ = match;
 
     const auto white_player =

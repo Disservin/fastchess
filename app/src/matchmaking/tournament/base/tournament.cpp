@@ -31,7 +31,7 @@ BaseTournament::BaseTournament(const stats_map &results) {
 
     setResults(results);
 
-    book_ = std::make_unique<book::OpeningBook>(initial_matchcount_);
+    book_ = std::make_unique<book::OpeningBook>(config::Tournament.get(), initial_matchcount_);
 }
 
 void BaseTournament::start() {
@@ -102,8 +102,9 @@ void BaseTournament::playGame(const std::pair<EngineConfiguration, EngineConfigu
     // If the game was interrupted(didn't completely finish)
     if (match_data.termination != MatchTermination::INTERRUPT) {
         if (!config::Tournament.get().pgn.file.empty())
-            file_writer_pgn->write(pgn::PgnBuilder(match_data, game_id + 1).get());
-        if (!config::Tournament.get().epd.file.empty()) file_writer_epd->write(epd::EpdBuilder(match_data).get());
+            file_writer_pgn->write(pgn::PgnBuilder(config::Tournament.get(), match_data, game_id + 1).get());
+        if (!config::Tournament.get().epd.file.empty())
+            file_writer_epd->write(epd::EpdBuilder(config::Tournament.get(), match_data).get());
 
         finish({match_data}, match_data.reason, {engine_one.get().get(), engine_two.get().get()});
     }

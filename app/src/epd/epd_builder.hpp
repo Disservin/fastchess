@@ -16,9 +16,9 @@ namespace fast_chess::epd {
 
 class EpdBuilder {
    public:
-    EpdBuilder(const MatchData &match) {
+    EpdBuilder(const config::TournamentType &config, const MatchData &match) {
         chess::Board board = chess::Board();
-        board.set960(config::Tournament.get().variant == VariantType::FRC);
+        board.set960(config.variant == VariantType::FRC);
         board.setFen(match.fen);
 
         for (const auto &move : match.moves) {

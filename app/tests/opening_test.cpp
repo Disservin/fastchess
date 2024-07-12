@@ -7,7 +7,7 @@ using namespace fast_chess;
 
 TEST_SUITE("Opening Book Test") {
     TEST_CASE("Test fewer openings than rounds") {
-        config::Tournament tournament;
+        config::TournamentType tournament;
         tournament.rounds         = 10;
         tournament.opening.file   = "app/tests/data/test.epd";
         tournament.opening.format = FormatType::EPD;
@@ -77,7 +77,7 @@ TEST_SUITE("Opening Book Test") {
     }
 
     TEST_CASE("Test equal openings to rounds") {
-        config::Tournament tournament;
+        config::TournamentType tournament;
         tournament.rounds         = 3;
         tournament.opening.file   = "app/tests/data/test.epd";
         tournament.opening.format = FormatType::EPD;
@@ -105,7 +105,7 @@ TEST_SUITE("Opening Book Test") {
     }
 
     TEST_CASE("Test more openings than rounds") {
-        config::Tournament tournament;
+        config::TournamentType tournament;
         tournament.rounds         = 2;
         tournament.opening.file   = "app/tests/data/openings.epd";
         tournament.opening.format = FormatType::EPD;
@@ -127,7 +127,7 @@ TEST_SUITE("Opening Book Test") {
     }
 
     TEST_CASE("Test more openings than rounds, Initial Matchcount 1") {
-        config::Tournament tournament;
+        config::TournamentType tournament;
         tournament.rounds         = 2;
         tournament.opening.file   = "app/tests/data/openings.epd";
         tournament.opening.format = FormatType::EPD;
@@ -143,7 +143,7 @@ TEST_SUITE("Opening Book Test") {
     }
 
     TEST_CASE("Test more openings than rounds, Initial Matchcount 2") {
-        config::Tournament tournament;
+        config::TournamentType tournament;
         tournament.rounds         = 2;
         tournament.opening.file   = "app/tests/data/openings.epd";
         tournament.opening.format = FormatType::EPD;
@@ -159,7 +159,7 @@ TEST_SUITE("Opening Book Test") {
     }
 
     TEST_CASE("Test fewer openings than rounds random") {
-        config::Tournament tournament;
+        config::TournamentType tournament;
         tournament.rounds         = 4;
         tournament.opening.file   = "app/tests/data/test.epd";
         tournament.opening.format = FormatType::EPD;
@@ -184,7 +184,7 @@ TEST_SUITE("Opening Book Test") {
     }
 
     TEST_CASE("Test equal openings to rounds random") {
-        config::Tournament tournament;
+        config::TournamentType tournament;
         tournament.rounds         = 3;
         tournament.opening.file   = "app/tests/data/test.epd";
         tournament.opening.format = FormatType::EPD;
@@ -215,7 +215,7 @@ TEST_SUITE("Opening Book Test") {
     }
 
     TEST_CASE("Test more openings than rounds random") {
-        config::Tournament tournament;
+        config::TournamentType tournament;
         tournament.rounds         = 2;
         tournament.opening.file   = "app/tests/data/openings.epd";
         tournament.opening.format = FormatType::EPD;

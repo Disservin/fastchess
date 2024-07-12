@@ -13,11 +13,11 @@ TEST_SUITE("EPD Builder Tests") {
 
         match_data.fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
-        config::Tournament options;
+        config::TournamentType options;
 
         std::string expected = "rnbqkb1r/pppp1ppp/5n2/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - hmvc 2; fmvn 3;\n";
 
-        epd::EpdBuilder epd_builder = epd::EpdBuilder(match_data, options);
+        epd::EpdBuilder epd_builder = epd::EpdBuilder(options, match_data);
         CHECK(epd_builder.get() == expected);
     }
 
@@ -29,11 +29,11 @@ TEST_SUITE("EPD Builder Tests") {
 
         match_data.fen = "r2qk2r/1bpp2pp/n3pn2/p2P1p2/1bP5/2N1BNP1/1PQ1PPBP/R3K2R b KQkq - 0 1";
 
-        config::Tournament options;
+        config::TournamentType options;
 
         std::string expected = "r2q1rk1/1bpp2pp/4pn2/p1nP1p2/1bP5/2N1BNP1/1PQ1PPBP/R4RK1 w - - hmvc 3; fmvn 3;\n";
 
-        epd::EpdBuilder epd_builder = epd::EpdBuilder(match_data, options);
+        epd::EpdBuilder epd_builder = epd::EpdBuilder(options, match_data);
         CHECK(epd_builder.get() == expected);
     }
 }

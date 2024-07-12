@@ -5,6 +5,7 @@
 #include <vector>
 
 #include <util/file_system.hpp>
+#include <util/filepath.hpp>
 #include <util/helper.hpp>
 #include <util/logger/logger.hpp>
 
@@ -180,13 +181,7 @@ void UciEngine::sendSetoption(const std::string &name, const std::string &value)
 void UciEngine::start() {
     if (initialized_) return;
 
-    std::string path = (config_.dir == "." ? "" : config_.dir) + config_.cmd;
-
-#ifndef NO_STD_FILESYSTEM
-    // convert path to a filesystem path
-    auto p = std::filesystem::path(config_.dir) / std::filesystem::path(config_.cmd);
-    path   = p.string();
-#endif
+    const auto path = util::buildPath(config_.dir, config_.cmd);
 
     Logger::trace<true>("Starting engine {} at {}", config_.name, path);
 

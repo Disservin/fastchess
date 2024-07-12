@@ -6,6 +6,7 @@
 #include <utility>
 #include <vector>
 
+#include <util/filepath.hpp>
 #include <util/logger/logger.hpp>
 
 namespace fast_chess::config {
@@ -16,7 +17,7 @@ void sanitize(config::Tournament& config) {
         std::swap(config.games, config.rounds);
 
         if (config.games > 2) {
-            throw std::runtime_error("Error: Exceeded -game limit! Must be less than 2");
+            throw std::runtime_error("Error; Exceeded -game limit! Must be less than 2");
         }
     }
 
@@ -42,7 +43,7 @@ void sanitize(config::Tournament& config) {
 
         if (config.sprt.model == "bayesian" && config.report_penta) {
             Logger::warn(
-                "Warning: Bayesian SPRT model not available with pentanomial statistics. Disabling "
+                "Warning; Bayesian SPRT model not available with pentanomial statistics. Disabling "
                 "pentanomial reports...");
             config.report_penta = false;
         }
@@ -56,12 +57,12 @@ void sanitize(config::Tournament& config) {
 
     if (config.opening.file.empty()) {
         Logger::warn(
-            "Warning: No opening book specified! Consider using one, otherwise all games will be "
+            "Warning; No opening book specified! Consider using one, otherwise all games will be "
             "played from the starting position.");
     }
 
     if (config.opening.format != FormatType::EPD && config.opening.format != FormatType::PGN) {
-        Logger::warn("Warning: Unknown opening format, {}. All games will be played from the starting position.",
+        Logger::warn("Warning; Unknown opening format, {}. All games will be played from the starting position.",
                      int(config.opening.format));
     }
 
@@ -72,18 +73,18 @@ void sanitize(config::Tournament& config) {
     if (config.seed == 951356066 && !config.randomseed && !config.opening.file.empty() &&
         config.opening.order == OrderType::RANDOM) {
         Logger::warn(
-            "Warning: No opening book seed specified! Consider specifying one, otherwise the match "
+            "Warning; No opening book seed specified! Consider specifying one, otherwise the match "
             "will be played using the default seed of 951356066.");
     }
 }
 
 void sanitize(std::vector<EngineConfiguration>& configs) {
     if (configs.size() < 2) {
-        throw std::runtime_error("Error: Need at least two engines to start!");
+        throw std::runtime_error("Error; Need at least two engines to start!");
     }
 
     if (configs.size() > 2) {
-        throw std::runtime_error("Error: Exceeded -engine limit! Must be 2!");
+        throw std::runtime_error("Error; Exceeded -engine limit! Must be 2!");
     }
 
     for (std::size_t i = 0; i < configs.size(); i++) {
@@ -100,11 +101,21 @@ void sanitize(std::vector<EngineConfiguration>& configs) {
         if (configs[i].limit.tc.time == 0 && (configs[i].limit.tc.increment != 0 || configs[i].limit.tc.moves != 0)) {
             throw std::runtime_error("Error; invalid TimeControl!");
         }
+
         for (std::size_t j = 0; j < i; j++) {
             if (configs[i].name == configs[j].name) {
-                throw std::runtime_error("Error: Engine with the same name are not allowed!: " + configs[i].name);
+                throw std::runtime_error("Error; Engine with the same name are not allowed!: " + configs[i].name);
             }
         }
+
+#ifndef NO_STD_FILESYSTEM
+        // check that all paths are valid
+
+        auto path = util::buildPath(configs[i].dir, configs[i].cmd);
+        if (path.empty() || !std::filesystem::exists(path)) {
+            throw std::runtime_error("Error; Invalid path to engine: " + path);
+        }
+#endif
     }
 }
 

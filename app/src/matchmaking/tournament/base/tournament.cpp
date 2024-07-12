@@ -104,7 +104,7 @@ void BaseTournament::playGame(const std::pair<EngineConfiguration, EngineConfigu
         if (!config::Tournament.get().pgn.file.empty())
             file_writer_pgn->write(pgn::PgnBuilder(config::Tournament.get(), match_data, game_id + 1).get());
         if (!config::Tournament.get().epd.file.empty())
-            file_writer_epd->write(epd::EpdBuilder(config::Tournament.get(), match_data).get());
+            file_writer_epd->write(epd::EpdBuilder(config::Tournament.get().variant, match_data).get());
 
         finish({match_data}, match_data.reason, {engine_one.get().get(), engine_two.get().get()});
     }

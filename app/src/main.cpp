@@ -14,7 +14,7 @@ int main(int argc, char const* argv[]) {
     auto options = cli::OptionsParser(argc, argv);
 
     config::TournamentConfig.setup([&options]() -> std::unique_ptr<config::Tournament> {
-        auto cnf = options.getTournament();
+        auto cnf = options.getTournamentConfig();
 
         config::sanitize(cnf);
 

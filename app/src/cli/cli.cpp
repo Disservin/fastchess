@@ -208,26 +208,26 @@ void parsePgnOut(const std::vector<std::string> &params, ArgumentData &argument_
     if (containsEqualSign(params)) {
         parseDashOptions(params, [&](const std::string &key, const std::string &value) {
             if (key == "file") {
-                argument_data.tournament_options.pgn.file = value;
+                argument_data.tournament_config.pgn.file = value;
             } else if (key == "nodes" && is_bool(value)) {
-                argument_data.tournament_options.pgn.track_nodes = value == "true";
+                argument_data.tournament_config.pgn.track_nodes = value == "true";
             } else if (key == "seldepth" && is_bool(value)) {
-                argument_data.tournament_options.pgn.track_seldepth = value == "true";
+                argument_data.tournament_config.pgn.track_seldepth = value == "true";
             } else if (key == "nps" && is_bool(value)) {
-                argument_data.tournament_options.pgn.track_nps = value == "true";
+                argument_data.tournament_config.pgn.track_nps = value == "true";
             } else if (key == "hashfull" && is_bool(value)) {
-                argument_data.tournament_options.pgn.track_hashfull = value == "true";
+                argument_data.tournament_config.pgn.track_hashfull = value == "true";
             } else if (key == "tbhits" && is_bool(value)) {
-                argument_data.tournament_options.pgn.track_tbhits = value == "true";
+                argument_data.tournament_config.pgn.track_tbhits = value == "true";
             } else if (key == "min" && is_bool(value)) {
-                argument_data.tournament_options.pgn.min = value == "true";
+                argument_data.tournament_config.pgn.min = value == "true";
             } else if (key == "notation") {
                 if (value == "san") {
-                    argument_data.tournament_options.pgn.notation = NotationType::SAN;
+                    argument_data.tournament_config.pgn.notation = NotationType::SAN;
                 } else if (value == "lan") {
-                    argument_data.tournament_options.pgn.notation = NotationType::LAN;
+                    argument_data.tournament_config.pgn.notation = NotationType::LAN;
                 } else if (value == "uci") {
-                    argument_data.tournament_options.pgn.notation = NotationType::UCI;
+                    argument_data.tournament_config.pgn.notation = NotationType::UCI;
                 } else {
                     OptionsParser::throwMissing("pgnout notation", key, value);
                 }
@@ -237,10 +237,10 @@ void parsePgnOut(const std::vector<std::string> &params, ArgumentData &argument_
         });
     } else {
         // try to read as cutechess pgnout
-        argument_data.tournament_options.pgn.file = params[0];
-        argument_data.tournament_options.pgn.min  = std::find(params.begin(), params.end(), "min") != params.end();
+        argument_data.tournament_config.pgn.file = params[0];
+        argument_data.tournament_config.pgn.min  = std::find(params.begin(), params.end(), "min") != params.end();
     }
-    if (argument_data.tournament_options.pgn.file.empty())
+    if (argument_data.tournament_config.pgn.file.empty())
         throw std::runtime_error("Error; Please specify filename for pgn output.");
 }
 
@@ -248,27 +248,27 @@ void parseEpdOut(const std::vector<std::string> &params, ArgumentData &argument_
     if (containsEqualSign(params)) {
         parseDashOptions(params, [&](const std::string &key, const std::string &value) {
             if (key == "file") {
-                argument_data.tournament_options.epd.file = value;
+                argument_data.tournament_config.epd.file = value;
             } else {
                 OptionsParser::throwMissing("epdout", key, value);
             }
         });
     } else {
         // try to read as cutechess epdout
-        parseValue(params, argument_data.tournament_options.epd.file);
+        parseValue(params, argument_data.tournament_config.epd.file);
     }
-    if (argument_data.tournament_options.epd.file.empty())
+    if (argument_data.tournament_config.epd.file.empty())
         throw std::runtime_error("Error; Please specify filename for epd output.");
 }
 
 void parseOpening(const std::vector<std::string> &params, ArgumentData &argument_data) {
     parseDashOptions(params, [&](const std::string &key, const std::string &value) {
         if (key == "file") {
-            argument_data.tournament_options.opening.file = value;
+            argument_data.tournament_config.opening.file = value;
             if (str_utils::endsWith(value, ".epd")) {
-                argument_data.tournament_options.opening.format = FormatType::EPD;
+                argument_data.tournament_config.opening.format = FormatType::EPD;
             } else if (str_utils::endsWith(value, ".pgn")) {
-                argument_data.tournament_options.opening.format = FormatType::PGN;
+                argument_data.tournament_config.opening.format = FormatType::PGN;
             }
 
 #ifndef NO_STD_FILESYSTEM
@@ -278,25 +278,25 @@ void parseOpening(const std::vector<std::string> &params, ArgumentData &argument
 #endif
         } else if (key == "format") {
             if (value == "epd") {
-                argument_data.tournament_options.opening.format = FormatType::EPD;
+                argument_data.tournament_config.opening.format = FormatType::EPD;
             } else if (value == "pgn") {
-                argument_data.tournament_options.opening.format = FormatType::PGN;
+                argument_data.tournament_config.opening.format = FormatType::PGN;
             } else {
                 OptionsParser::throwMissing("openings format", key, value);
             }
         } else if (key == "order") {
             if (value == "sequential") {
-                argument_data.tournament_options.opening.order = OrderType::SEQUENTIAL;
+                argument_data.tournament_config.opening.order = OrderType::SEQUENTIAL;
             } else if (value == "random") {
-                argument_data.tournament_options.opening.order = OrderType::RANDOM;
+                argument_data.tournament_config.opening.order = OrderType::RANDOM;
             } else {
                 OptionsParser::throwMissing("openings order", key, value);
             }
         } else if (key == "plies") {
-            argument_data.tournament_options.opening.plies = std::stoi(value);
+            argument_data.tournament_config.opening.plies = std::stoi(value);
         } else if (key == "start") {
-            argument_data.tournament_options.opening.start = std::stoi(value);
-            if (argument_data.tournament_options.opening.start < 1)
+            argument_data.tournament_config.opening.start = std::stoi(value);
+            if (argument_data.tournament_config.opening.start < 1)
                 throw std::runtime_error("Starting offset must be at least 1!");
         } else if (key == "policy") {
             if (value != "round") throw std::runtime_error("Error; Unsupported opening book policy");
@@ -308,22 +308,22 @@ void parseOpening(const std::vector<std::string> &params, ArgumentData &argument
 
 void parseSprt(const std::vector<std::string> &params, ArgumentData &argument_data) {
     parseDashOptions(params, [&](const std::string &key, const std::string &value) {
-        argument_data.tournament_options.sprt.enabled = true;
+        argument_data.tournament_config.sprt.enabled = true;
 
-        if (argument_data.tournament_options.rounds == 0) {
-            argument_data.tournament_options.rounds = 500000;
+        if (argument_data.tournament_config.rounds == 0) {
+            argument_data.tournament_config.rounds = 500000;
         }
 
         if (key == "elo0") {
-            argument_data.tournament_options.sprt.elo0 = std::stod(value);
+            argument_data.tournament_config.sprt.elo0 = std::stod(value);
         } else if (key == "elo1") {
-            argument_data.tournament_options.sprt.elo1 = std::stod(value);
+            argument_data.tournament_config.sprt.elo1 = std::stod(value);
         } else if (key == "alpha") {
-            argument_data.tournament_options.sprt.alpha = std::stod(value);
+            argument_data.tournament_config.sprt.alpha = std::stod(value);
         } else if (key == "beta") {
-            argument_data.tournament_options.sprt.beta = std::stod(value);
+            argument_data.tournament_config.sprt.beta = std::stod(value);
         } else if (key == "model") {
-            argument_data.tournament_options.sprt.model = value;
+            argument_data.tournament_config.sprt.model = value;
         } else {
             OptionsParser::throwMissing("sprt", key, value);
         }
@@ -332,15 +332,15 @@ void parseSprt(const std::vector<std::string> &params, ArgumentData &argument_da
 
 void parseDraw(const std::vector<std::string> &params, ArgumentData &argument_data) {
     parseDashOptions(params, [&](const std::string &key, const std::string &value) {
-        argument_data.tournament_options.draw.enabled = true;
+        argument_data.tournament_config.draw.enabled = true;
 
         if (key == "movenumber") {
-            argument_data.tournament_options.draw.move_number = std::stoi(value);
+            argument_data.tournament_config.draw.move_number = std::stoi(value);
         } else if (key == "movecount") {
-            argument_data.tournament_options.draw.move_count = std::stoi(value);
+            argument_data.tournament_config.draw.move_count = std::stoi(value);
         } else if (key == "score") {
             if (std::stoi(value) >= 0) {
-                argument_data.tournament_options.draw.score = std::stoi(value);
+                argument_data.tournament_config.draw.score = std::stoi(value);
             } else {
                 throw std::runtime_error("Score cannot be negative");
             }
@@ -352,15 +352,15 @@ void parseDraw(const std::vector<std::string> &params, ArgumentData &argument_da
 
 void parseResign(const std::vector<std::string> &params, ArgumentData &argument_data) {
     parseDashOptions(params, [&](const std::string &key, const std::string &value) {
-        argument_data.tournament_options.resign.enabled = true;
+        argument_data.tournament_config.resign.enabled = true;
 
         if (key == "movecount") {
-            argument_data.tournament_options.resign.move_count = std::stoi(value);
+            argument_data.tournament_config.resign.move_count = std::stoi(value);
         } else if (key == "twosided" && is_bool(value)) {
-            argument_data.tournament_options.resign.twosided = value == "true";
+            argument_data.tournament_config.resign.twosided = value == "true";
         } else if (key == "score") {
             if (std::stoi(value) >= 0) {
-                argument_data.tournament_options.resign.score = std::stoi(value);
+                argument_data.tournament_config.resign.score = std::stoi(value);
             } else {
                 throw std::runtime_error("Score cannot be negative");
             }
@@ -371,12 +371,12 @@ void parseResign(const std::vector<std::string> &params, ArgumentData &argument_
 }
 
 void parseMaxMoves(const std::vector<std::string> &params, ArgumentData &argument_data) {
-    parseValue(params, argument_data.tournament_options.maxmoves.move_count);
-    argument_data.tournament_options.maxmoves.enabled = true;
+    parseValue(params, argument_data.tournament_config.maxmoves.move_count);
+    argument_data.tournament_config.maxmoves.enabled = true;
 }
 
 void parseAutoSaveInterval(const std::vector<std::string> &params, ArgumentData &argument_data) {
-    parseValue(params, argument_data.tournament_options.autosaveinterval);
+    parseValue(params, argument_data.tournament_config.autosaveinterval);
 }
 
 void parseLog(const std::vector<std::string> &params, ArgumentData &argument_data) {
@@ -401,7 +401,7 @@ void parseLog(const std::vector<std::string> &params, ArgumentData &argument_dat
         } else if (key == "compress" && is_bool(value)) {
             Logger::setCompress(value == "true");
         } else if (key == "realtime" && is_bool(value)) {
-            argument_data.tournament_options.realtime_logging = value == "true";
+            argument_data.tournament_config.realtime_logging = value == "true";
         } else {
             OptionsParser::throwMissing("log", key, value);
         }
@@ -410,16 +410,16 @@ void parseLog(const std::vector<std::string> &params, ArgumentData &argument_dat
     Logger::openFile(filename);
 }
 
-namespace config {
+namespace json_config {
 void loadJson(ArgumentData &argument_data, const std::string &filename) {
     Logger::info("Loading config file: {}", filename);
     std::ifstream f(filename);
     json jsonfile = json::parse(f);
 
-    argument_data.old_configs            = argument_data.configs;
-    argument_data.old_tournament_options = argument_data.tournament_options;
+    argument_data.old_configs           = argument_data.configs;
+    argument_data.old_tournament_config = argument_data.tournament_config;
 
-    argument_data.tournament_options = jsonfile.get<fast_chess::config::Tournament>();
+    argument_data.tournament_config = jsonfile.get<config::Tournament>();
 
     argument_data.configs.clear();
 
@@ -437,11 +437,11 @@ void parseConfig(const std::vector<std::string> &params, ArgumentData &argument_
         if (key == "file") {
             loadJson(argument_data, value);
         } else if (key == "outname") {
-            argument_data.tournament_options.config_name = value;
+            argument_data.tournament_config.config_name = value;
         } else if (key == "discard" && value == "true") {
             Logger::info("Discarding config file");
-            argument_data.tournament_options = argument_data.old_tournament_options;
-            argument_data.configs            = argument_data.old_configs;
+            argument_data.tournament_config = argument_data.old_tournament_config;
+            argument_data.configs           = argument_data.old_configs;
             argument_data.stats.clear();
         } else if (key == "stats") {
             drop_stats = value == "false";
@@ -453,12 +453,12 @@ void parseConfig(const std::vector<std::string> &params, ArgumentData &argument_
     }
 }
 
-}  // namespace config
+}  // namespace json_config
 
 void parseReport(const std::vector<std::string> &params, ArgumentData &argument_data) {
     parseDashOptions(params, [&](const std::string &key, const std::string &value) {
         if (key == "penta" && is_bool(value)) {
-            argument_data.tournament_options.report_penta = value == "true";
+            argument_data.tournament_config.report_penta = value == "true";
         } else {
             OptionsParser::throwMissing("report", key, value);
         }
@@ -468,7 +468,7 @@ void parseReport(const std::vector<std::string> &params, ArgumentData &argument_
 void parseOutput(const std::vector<std::string> &params, ArgumentData &argument_data) {
     parseDashOptions(params, [&](const std::string &key, const std::string &value) {
         if (key == "format" && (value == "cutechess" || value == "fastchess")) {
-            argument_data.tournament_options.output = OutputFactory::getType(value);
+            argument_data.tournament_config.output = OutputFactory::getType(value);
         } else {
             OptionsParser::throwMissing("output", key, value);
         }
@@ -476,35 +476,35 @@ void parseOutput(const std::vector<std::string> &params, ArgumentData &argument_
 }
 
 void parseConcurrency(const std::vector<std::string> &params, ArgumentData &argument_data) {
-    parseValue(params, argument_data.tournament_options.concurrency);
+    parseValue(params, argument_data.tournament_config.concurrency);
 }
 
 void parseEvent(const std::vector<std::string> &params, ArgumentData &argument_data) {
-    argument_data.tournament_options.pgn.event_name = concat(params);
+    argument_data.tournament_config.pgn.event_name = concat(params);
 }
 
 void parseSite(const std::vector<std::string> &params, ArgumentData &argument_data) {
-    parseValue(params, argument_data.tournament_options.pgn.site);
+    parseValue(params, argument_data.tournament_config.pgn.site);
 }
 
 void parseGames(const std::vector<std::string> &params, ArgumentData &argument_data) {
-    parseValue(params, argument_data.tournament_options.games);
+    parseValue(params, argument_data.tournament_config.games);
 }
 
 void parseRounds(const std::vector<std::string> &params, ArgumentData &argument_data) {
-    parseValue(params, argument_data.tournament_options.rounds);
+    parseValue(params, argument_data.tournament_config.rounds);
 }
 
 void parseRatinginterval(const std::vector<std::string> &params, ArgumentData &argument_data) {
-    parseValue(params, argument_data.tournament_options.ratinginterval);
+    parseValue(params, argument_data.tournament_config.ratinginterval);
 }
 
 void parseScoreinterval(const std::vector<std::string> &params, ArgumentData &argument_data) {
-    parseValue(params, argument_data.tournament_options.scoreinterval);
+    parseValue(params, argument_data.tournament_config.scoreinterval);
 }
 
 void parseSRand(const std::vector<std::string> &params, ArgumentData &argument_data) {
-    parseValue(params, argument_data.tournament_options.seed);
+    parseValue(params, argument_data.tournament_config.seed);
 }
 
 void parseVersion(const std::vector<std::string> &, ArgumentData &) { OptionsParser::printVersion(); }
@@ -512,23 +512,23 @@ void parseVersion(const std::vector<std::string> &, ArgumentData &) { OptionsPar
 void parseHelp(const std::vector<std::string> &, ArgumentData &) { OptionsParser::printHelp(); }
 
 void parseRecover(const std::vector<std::string> &, ArgumentData &argument_data) {
-    argument_data.tournament_options.recover = true;
+    argument_data.tournament_config.recover = true;
 }
 
 void parseRandomSeed(const std::vector<std::string> &, ArgumentData &argument_data) {
-    argument_data.tournament_options.randomseed = true;
+    argument_data.tournament_config.randomseed = true;
 
     std::random_device rd;
     std::mt19937_64 gen((static_cast<uint64_t>(rd()) << 32) | rd());
     std::uniform_int_distribution<uint64_t> dist(0, std::numeric_limits<uint64_t>::max());
-    argument_data.tournament_options.seed = dist(gen);
+    argument_data.tournament_config.seed = dist(gen);
 }
 
 void parseRepeat(const std::vector<std::string> &params, ArgumentData &argument_data) {
     if (params.size() == 1 && is_number(params[0])) {
-        parseValue(params, argument_data.tournament_options.games);
+        parseValue(params, argument_data.tournament_config.games);
     } else {
-        argument_data.tournament_options.games = 2;
+        argument_data.tournament_config.games = 2;
     }
 }
 
@@ -537,7 +537,7 @@ void parseVariant(const std::vector<std::string> &params, ArgumentData &argument
 
     parseValue(params, val);
 
-    if (val == "fischerandom") argument_data.tournament_options.variant = VariantType::FRC;
+    if (val == "fischerandom") argument_data.tournament_config.variant = VariantType::FRC;
     if (val != "fischerandom" && val != "standard") throw std::runtime_error("Error; Unknown variant");
 }
 
@@ -561,12 +561,12 @@ void parseQuick(const std::vector<std::string> &params, ArgumentData &argument_d
 
             engine::validateEnginePath(argument_data.configs.back().dir, argument_data.configs.back().cmd);
         } else if (key == "book") {
-            argument_data.tournament_options.opening.file  = value;
-            argument_data.tournament_options.opening.order = OrderType::RANDOM;
+            argument_data.tournament_config.opening.file  = value;
+            argument_data.tournament_config.opening.order = OrderType::RANDOM;
             if (str_utils::endsWith(value, ".pgn"))
-                argument_data.tournament_options.opening.format = FormatType::PGN;
+                argument_data.tournament_config.opening.format = FormatType::PGN;
             else if (str_utils::endsWith(value, ".epd"))
-                argument_data.tournament_options.opening.format = FormatType::EPD;
+                argument_data.tournament_config.opening.format = FormatType::EPD;
             else
                 throw std::runtime_error("Error; please include the .png or .epd file extension for the opening book");
         } else {
@@ -579,24 +579,24 @@ void parseQuick(const std::vector<std::string> &params, ArgumentData &argument_d
         argument_data.configs[1].name += "2";
     }
 
-    argument_data.tournament_options.games  = 2;
-    argument_data.tournament_options.rounds = 25000;
+    argument_data.tournament_config.games  = 2;
+    argument_data.tournament_config.rounds = 25000;
 
-    argument_data.tournament_options.concurrency =
+    argument_data.tournament_config.concurrency =
         std::max(static_cast<int>(1), static_cast<int>(std::thread::hardware_concurrency() - 2));
 
-    argument_data.tournament_options.recover = true;
+    argument_data.tournament_config.recover = true;
 
-    argument_data.tournament_options.draw.enabled     = true;
-    argument_data.tournament_options.draw.move_number = 30;
-    argument_data.tournament_options.draw.move_count  = 8;
-    argument_data.tournament_options.draw.score       = 8;
+    argument_data.tournament_config.draw.enabled     = true;
+    argument_data.tournament_config.draw.move_number = 30;
+    argument_data.tournament_config.draw.move_count  = 8;
+    argument_data.tournament_config.draw.score       = 8;
 
-    argument_data.tournament_options.output = OutputType::CUTECHESS;
+    argument_data.tournament_config.output = OutputType::CUTECHESS;
 }
 
 void parseAffinity(const std::vector<std::string> &, ArgumentData &argument_data) {
-    argument_data.tournament_options.affinity = true;
+    argument_data.tournament_config.affinity = true;
 }
 
 void parseDebug(const std::vector<std::string> &, ArgumentData &) {
@@ -626,7 +626,7 @@ OptionsParser::OptionsParser(int argc, char const *argv[]) {
     addOption("maxmoves", parseMaxMoves);
     addOption("autosaveinterval", parseAutoSaveInterval);
     addOption("log", parseLog);
-    addOption("config", config::parseConfig);
+    addOption("config", json_config::parseConfig);
     addOption("report", parseReport);
     addOption("output", parseOutput);
     addOption("concurrency", parseConcurrency);
@@ -656,7 +656,7 @@ OptionsParser::OptionsParser(int argc, char const *argv[]) {
 
     // apply the variant type to all configs
     for (auto &config : argument_data_.configs) {
-        config.variant = argument_data_.tournament_options.variant;
+        config.variant = argument_data_.tournament_config.variant;
     }
 }
 

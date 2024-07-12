@@ -112,7 +112,12 @@ struct Tournament {
     bool report_penta     = true;
     bool affinity         = false;
     bool randomseed       = false;
+
+#ifdef _WIN32
+    bool realtime_logging = false;
+#else
     bool realtime_logging = true;
+#endif
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(Tournament, resign, draw, maxmoves, opening, pgn, epd, sprt, event_name,
                                                 site, config_name, output, seed, variant, ratinginterval, scoreinterval,

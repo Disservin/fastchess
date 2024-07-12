@@ -8,17 +8,17 @@
 
 #include <chess.hpp>
 
+#include <config/config.hpp>
 #include <matchmaking/match/match.hpp>
-
-#include <types/tournament_options.hpp>
+#include <types/tournament.hpp>
 
 namespace fast_chess::epd {
 
 class EpdBuilder {
    public:
-    EpdBuilder(const MatchData &match, const options::Tournament &tournament_options) {
+    EpdBuilder(const VariantType &variant, const MatchData &match) {
         chess::Board board = chess::Board();
-        board.set960(tournament_options.variant == VariantType::FRC);
+        board.set960(variant == VariantType::FRC);
         board.setFen(match.fen);
 
         for (const auto &move : match.moves) {

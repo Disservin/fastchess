@@ -9,7 +9,7 @@ update-fmt: ## Fetch subtree fmt
 	git subtree pull --prefix=app/third_party/fmt https://github.com/fmtlib/fmt.git master --squash
 	@echo "Done."
 
-.PHONY: all tests
+.PHONY:
 
 update-man: man ## Update man like page
 	xxd -i man | sed 's/unsigned char/inline char/g' | sed 's/unsigned int/inline unsigned int/g' > temp.hpp

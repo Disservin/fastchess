@@ -4,9 +4,9 @@
 #include <matchmaking/match/match.hpp>
 #include <matchmaking/result.hpp>
 #include <matchmaking/sprt/sprt.hpp>
+#include <matchmaking/stats.hpp>
 #include <pgn/pgn_reader.hpp>
-#include <types/stats.hpp>
-#include <types/tournament_options.hpp>
+#include <types/tournament.hpp>
 #include <util/cache.hpp>
 #include <util/file_writer.hpp>
 #include <util/rand.hpp>
@@ -22,8 +22,7 @@ extern std::atomic_bool stop;
 
 class RoundRobin : public BaseTournament {
    public:
-    explicit RoundRobin(const options::Tournament &tournament_config,
-                        const std::vector<EngineConfiguration> &engine_configs, const stats_map &results);
+    explicit RoundRobin(const stats_map &results);
 
     // starts the round robin
     void start() override;

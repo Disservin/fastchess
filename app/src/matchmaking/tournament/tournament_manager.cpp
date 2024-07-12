@@ -4,16 +4,14 @@
 
 namespace fast_chess {
 
-TournamentManager::TournamentManager(const options::Tournament& tournament_config,
-                                     const std::vector<EngineConfiguration>& engine_configs, const stats_map& results)
-    : engine_configs_(engine_configs), tournament_options_(tournament_config) {
+TournamentManager::TournamentManager(const stats_map& results) {
     Logger::trace("Creating tournament...");
 
     // Set the seed for the random number generator
-    Logger::trace("Seeding random number generator with seed: {}", tournament_options_.seed);
-    util::random::mersenne_rand.seed(tournament_options_.seed);
+    Logger::trace("Seeding random number generator with seed: {}", config::TournamentConfig.get().seed);
+    util::random::mersenne_rand.seed(config::TournamentConfig.get().seed);
 
-    round_robin_ = std::make_unique<RoundRobin>(tournament_options_, engine_configs_, results);
+    round_robin_ = std::make_unique<RoundRobin>(results);
 }
 
 void TournamentManager::start() {

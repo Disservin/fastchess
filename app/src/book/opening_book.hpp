@@ -5,9 +5,10 @@
 #include <variant>
 #include <vector>
 
+#include <config/config.hpp>
 #include <pgn/pgn_reader.hpp>
 #include <types/enums.hpp>
-#include <types/tournament_options.hpp>
+#include <types/tournament.hpp>
 #include <util/rand.hpp>
 
 namespace fast_chess::book {
@@ -15,7 +16,7 @@ namespace fast_chess::book {
 class OpeningBook {
    public:
     OpeningBook() = default;
-    explicit OpeningBook(const options::Tournament& tournament, std::size_t initial_matchcount = 0);
+    explicit OpeningBook(const config::Tournament& config, std::size_t initial_matchcount = 0);
 
     // Fisher-Yates / Knuth shuffle
     void shuffle() {

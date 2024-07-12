@@ -2,20 +2,20 @@
 
 #include <matchmaking/output/output_cutechess.hpp>
 #include <matchmaking/output/output_fastchess.hpp>
-#include <types/tournament_options.hpp>
+#include <types/tournament.hpp>
 
 namespace fast_chess {
 
 class OutputFactory {
    public:
-    [[nodiscard]] static std::unique_ptr<IOutput> create(const options::Tournament& config) {
-        switch (config.output) {
+    [[nodiscard]] static std::unique_ptr<IOutput> create(OutputType type, bool report_penta) {
+        switch (type) {
             case OutputType::FASTCHESS:
-                return std::make_unique<Fastchess>(config.report_penta);
+                return std::make_unique<Fastchess>(report_penta);
             case OutputType::CUTECHESS:
                 return std::make_unique<Cutechess>();
             default:
-                return std::make_unique<Fastchess>(config.report_penta);
+                return std::make_unique<Fastchess>(report_penta);
         }
     }
 

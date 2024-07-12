@@ -10,13 +10,13 @@
 
 #include <matchmaking/match/match.hpp>
 
-#include <types/tournament_options.hpp>
+#include <types/tournament.hpp>
 
 namespace fast_chess::pgn {
 
 class PgnBuilder {
    public:
-    PgnBuilder(const MatchData &match, const options::Tournament &tournament_options, std::size_t round_id);
+    PgnBuilder(const config::Pgn &pgn_config, const MatchData &match, std::size_t round_id);
 
     // Get the newly created pgn
     [[nodiscard]] std::string get() const noexcept { return pgn_.str() + "\n\n"; }
@@ -58,8 +58,8 @@ class PgnBuilder {
 
     [[nodiscard]] static std::string convertMatchTermination(const MatchTermination &res) noexcept;
 
-    MatchData match_;
-    options::Tournament game_options_;
+    const config::Pgn &pgn_config_;
+    const MatchData &match_;
 
     std::stringstream pgn_;
 };

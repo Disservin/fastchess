@@ -10,7 +10,13 @@ namespace fast_chess::config {
 struct Opening {
     std::string file;
     FormatType format = FormatType::NONE;
+
+#ifdef USE_CUTE
+    OrderType order   = OrderType::SEQUENTIAL;
+#else
     OrderType order   = OrderType::RANDOM;
+#endif
+
     int plies         = -1;
     int start         = 1;
 };

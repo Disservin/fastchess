@@ -189,7 +189,7 @@ bool Match::playMove(Player& us, Player& them) {
     auto status = us.engine.readEngine("bestmove", us.getTimeoutThreshold());
     auto t1     = clock::now();
 
-    if (tournament_options_.realtime_logging) {
+    if (!tournament_options_.realtime_logging) {
         us.engine.writeLog();
     }
 

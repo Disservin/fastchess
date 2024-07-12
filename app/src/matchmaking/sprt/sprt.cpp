@@ -4,7 +4,7 @@
 #include <iomanip>
 #include <sstream>
 
-#include <types/stats.hpp>
+#include <matchmaking/stats.hpp>
 #include <util/logger/logger.hpp>
 
 namespace fast_chess {
@@ -160,13 +160,9 @@ std::string SPRT::getElo() const noexcept {
     return ss.str();
 }
 
-double SPRT::getLowerBound() const noexcept {
-    return lower_;
-}
+double SPRT::getLowerBound() const noexcept { return lower_; }
 
-double SPRT::getUpperBound() const noexcept {
-    return upper_;
-}
+double SPRT::getUpperBound() const noexcept { return upper_; }
 
 bool SPRT::isEnabled() const noexcept { return enabled_; }
 

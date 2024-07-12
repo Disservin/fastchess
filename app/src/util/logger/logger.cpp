@@ -53,12 +53,11 @@ void Logger::writeToEngine(const std::string &msg, const std::string &time, cons
     std::visit([&](auto &&arg) { arg << fmt_message << std::flush; }, log_);
 }
 
-void Logger::readFromEngine(const std::string &msg, const std::string &time, const std::string &name, bool err) {
+void Logger::readFromEngine(const std::string &msg, const std::string &time, const std::string &name, bool err,
+                            std::thread::id id) {
     if (!should_log_) {
         return;
     }
-
-    const auto id = std::this_thread::get_id();
 
     auto fmt_message =
         fmt::format("[{:<6}] [{}] <{:>3}> {}{} ---> {}\n", "Engine", time, id, (err ? " <stderr>" : ""), name, msg);

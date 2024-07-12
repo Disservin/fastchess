@@ -70,7 +70,7 @@ class Logger {
     static void writeToEngine(const std::string &msg, const std::string &time, const std::string &name);
 
     static void readFromEngine(const std::string &msg, const std::string &time, const std::string &name,
-                               bool err = false);
+                               bool err = false, std::thread::id id = std::this_thread::get_id());
 
     static std::atomic_bool should_log_;
 

@@ -19,33 +19,34 @@ std::string to_string(const T &obj) {
 }
 }  // namespace str
 
-PgnBuilder::PgnBuilder(const MatchData &match, const options::Tournament &tournament_options, std::size_t round_id) {
-    match_        = match;
-    game_options_ = tournament_options;
+PgnBuilder::PgnBuilder(const config::Pgn &pgn_config, const MatchData &match, std::size_t round_id)
+    : pgn_config_(pgn_config), match_(match) {
+    const auto &first  = match.players.first;
+    const auto &second = match.players.second;
 
-    const auto white_player =
-        match.players.first.color == chess::Color::WHITE ? match.players.first : match.players.second;
-    const auto black_player =
-        match.players.first.color == chess::Color::BLACK ? match.players.first : match.players.second;
+    const auto &white_player = first.color == chess::Color::WHITE ? first : second;
+    const auto &black_player = first.color == chess::Color::BLACK ? first : second;
 
-    addHeader("Event", tournament_options.event_name);
-    addHeader("Site", game_options_.site);
+    const auto is_frc_variant = match.variant == VariantType::FRC;
+
+    addHeader("Event", pgn_config_.event_name);
+    addHeader("Site", pgn_config_.site);
     addHeader("Date", match_.date);
     addHeader("Round", std::to_string(round_id));
     addHeader("White", white_player.config.name);
     addHeader("Black", black_player.config.name);
     addHeader("Result", getResultFromMatch(white_player, black_player));
 
-    if (match_.fen != chess::constants::STARTPOS || match_.players.first.config.variant == VariantType::FRC) {
+    if (match_.fen != chess::constants::STARTPOS || is_frc_variant) {
         addHeader("SetUp", "1");
         addHeader("FEN", match_.fen);
     }
 
-    if (game_options_.variant == VariantType::FRC) {
+    if (is_frc_variant) {
         addHeader("Variant", "Chess960");
     }
 
-    if (!game_options_.pgn.min) {
+    if (!pgn_config_.min) {
         addHeader("GameDuration", match_.duration);
         addHeader("GameStartTime", match_.start_time);
         addHeader("GameEndTime", match_.end_time);
@@ -67,7 +68,7 @@ PgnBuilder::PgnBuilder(const MatchData &match, const options::Tournament &tourna
     // otherwise move the move onto the next line
 
     chess::Board board = chess::Board();
-    board.set960(game_options_.variant == VariantType::FRC);
+    board.set960(is_frc_variant);
     board.setFen(match_.fen);
 
     std::size_t move_number = int(board.sideToMove() == chess::Color::BLACK) + 1;
@@ -117,9 +118,9 @@ void PgnBuilder::addHeader(std::string_view name, const T &value) noexcept {
 }
 
 std::string PgnBuilder::moveNotation(chess::Board &board, const std::string &move) const noexcept {
-    if (game_options_.pgn.notation == NotationType::SAN) {
+    if (pgn_config_.notation == NotationType::SAN) {
         return chess::uci::moveToSan(board, chess::uci::uciToMove(board, move));
-    } else if (game_options_.pgn.notation == NotationType::LAN) {
+    } else if (pgn_config_.notation == NotationType::LAN) {
         return chess::uci::moveToLan(board, chess::uci::uciToMove(board, move));
     } else {
         return move;
@@ -134,18 +135,18 @@ std::string PgnBuilder::addMove(chess::Board &board, const MoveData &move, std::
                                              : "");
     ss << (illegal ? move.move : moveNotation(board, move.move));
 
-    if (!game_options_.pgn.min) {
+    if (!pgn_config_.min) {
         if (move.book) {
             ss << addComment("book");
         } else {
-            ss << addComment((move.score_string + "/" + std::to_string(move.depth)),                               //
-                             formatTime(move.elapsed_millis),                                                      //
-                             game_options_.pgn.track_nodes ? "n=" + std::to_string(move.nodes) : "",               //
-                             game_options_.pgn.track_seldepth ? "sd=" + std::to_string(move.seldepth) : "",        //
-                             game_options_.pgn.track_nps ? "nps=" + std::to_string(move.nps) : "",                 //
-                             game_options_.pgn.track_hashfull ? "hashfull=" + std::to_string(move.hashfull) : "",  //
-                             game_options_.pgn.track_tbhits ? "tbhits=" + std::to_string(move.tbhits) : "",        //
-                             last ? match_.reason : ""                                                             //
+            ss << addComment((move.score_string + "/" + std::to_string(move.depth)),                         //
+                             formatTime(move.elapsed_millis),                                                //
+                             pgn_config_.track_nodes ? "n=" + std::to_string(move.nodes) : "",               //
+                             pgn_config_.track_seldepth ? "sd=" + std::to_string(move.seldepth) : "",        //
+                             pgn_config_.track_nps ? "nps=" + std::to_string(move.nps) : "",                 //
+                             pgn_config_.track_hashfull ? "hashfull=" + std::to_string(move.hashfull) : "",  //
+                             pgn_config_.track_tbhits ? "tbhits=" + std::to_string(move.tbhits) : "",        //
+                             last ? match_.reason : ""                                                       //
             );
         }
     }

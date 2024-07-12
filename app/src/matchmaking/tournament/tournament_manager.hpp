@@ -1,7 +1,7 @@
 #pragma once
 
 #include <matchmaking/tournament/roundrobin/roundrobin.hpp>
-#include <types/tournament_options.hpp>
+#include <types/tournament.hpp>
 
 namespace fast_chess {
 
@@ -9,11 +9,10 @@ namespace fast_chess {
 // different tournament types
 class TournamentManager {
    public:
-    TournamentManager(const options::Tournament &game_config, const std::vector<EngineConfiguration> &engine_configs,
-                      const stats_map &results);
+    TournamentManager(const stats_map &results);
 
     ~TournamentManager() {
-        Logger::info("Finished match.");
+        Logger::trace("Finished tournament.");
         stop();
     }
 
@@ -23,9 +22,6 @@ class TournamentManager {
     [[nodiscard]] RoundRobin *roundRobin() { return round_robin_.get(); }
 
    private:
-    std::vector<EngineConfiguration> engine_configs_;
-    options::Tournament tournament_options_;
-
     std::unique_ptr<RoundRobin> round_robin_;
 };
 

@@ -4,20 +4,21 @@
 #include <optional>
 #include <string>
 
+#include <config/config.hpp>
 #include <util/safe_getline.hpp>
 
 namespace fast_chess::book {
 
-OpeningBook::OpeningBook(const options::Tournament& tournament, std::size_t initial_matchcount) {
-    start_  = tournament.opening.start;
-    games_  = tournament.games;
-    rounds_ = tournament.rounds;
-    order_  = tournament.opening.order;
-    plies_  = tournament.opening.plies;
+OpeningBook::OpeningBook(const config::Tournament& config, std::size_t initial_matchcount) {
+    start_  = config.opening.start;
+    games_  = config.games;
+    rounds_ = config.rounds;
+    order_  = config.opening.order;
+    plies_  = config.opening.plies;
 
     // - 1 because start starts at 1 in the opening options
     offset_ = start_ - 1 + initial_matchcount / games_;
-    setup(tournament.opening.file, tournament.opening.format);
+    setup(config.opening.file, config.opening.format);
 }
 
 void OpeningBook::setup(const std::string& file, FormatType type) {

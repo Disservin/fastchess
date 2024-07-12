@@ -2,7 +2,7 @@
 
 #include <algorithm>
 
-#include <types/tournament_options.hpp>
+#include <types/tournament.hpp>
 #include <util/date.hpp>
 #include <util/helper.hpp>
 #include <util/logger/logger.hpp>
@@ -66,7 +66,8 @@ void Match::addMoveData(const Player& player, int64_t measured_time_ms, bool leg
 }
 
 void Match::prepare() {
-    board_.set960(tournament_options_.variant == VariantType::FRC);
+    board_.set960(config::TournamentConfig.get().variant == VariantType::FRC);
+
     if (isFen(opening_.fen)) {
         board_.setFen(opening_.fen);
     } else {
@@ -86,9 +87,9 @@ void Match::prepare() {
 
     std::transform(opening_.moves.begin(), opening_.moves.end(), std::back_inserter(data_.moves), insert_move);
 
-    draw_tracker_     = DrawTracker(tournament_options_);
-    resign_tracker_   = ResignTracker(tournament_options_);
-    maxmoves_tracker_ = MaxMovesTracker(tournament_options_);
+    draw_tracker_     = DrawTracker();
+    resign_tracker_   = ResignTracker();
+    maxmoves_tracker_ = MaxMovesTracker();
 }
 
 void Match::start(engine::UciEngine& engine1, engine::UciEngine& engine2, const std::vector<int>& cpus) {
@@ -132,6 +133,8 @@ void Match::start(engine::UciEngine& engine1, engine::UciEngine& engine2, const 
 
     const auto end = clock::now();
 
+    data_.variant = config::TournamentConfig.get().variant;
+
     data_.end_time = util::time::datetime("%Y-%m-%dT%H:%M:%S %z");
     data_.duration = util::time::duration(chrono::duration_cast<chrono::seconds>(end - start));
 
@@ -156,7 +159,7 @@ bool Match::playMove(Player& us, Player& them) {
     }
 
     if (gameover.first != GameResultReason::NONE) {
-        data_.reason = convertChessReason(name, gameover.first);
+        data_.reason = convertChessReason(getColorString(), gameover.first);
         return false;
     }
 
@@ -193,7 +196,7 @@ bool Match::playMove(Player& us, Player& them) {
     auto status = us.engine.readEngine("bestmove", us.getTimeoutThreshold());
     auto t1     = clock::now();
 
-    if (!tournament_options_.realtime_logging) {
+    if (!config::TournamentConfig.get().realtime_logging) {
         us.engine.writeLog();
     }
 
@@ -251,10 +254,12 @@ bool Match::playMove(Player& us, Player& them) {
     // into account the fullmove counter of the starting FEN, leading to different behavior between
     // pgn and epd adjudication. fast-chess fixes this by using the fullmove counter from the board
     // object directly
-    draw_tracker_.update(us.engine.lastScore(), board_.fullMoveNumber() - 1, us.engine.lastScoreType(),
-                         board_.halfMoveClock());
-    resign_tracker_.update(us.engine.lastScore(), us.engine.lastScoreType(), ~board_.sideToMove());
-    maxmoves_tracker_.update(us.engine.lastScore(), us.engine.lastScoreType());
+    auto score = us.engine.lastScore();
+    auto type  = us.engine.lastScoreType();
+
+    draw_tracker_.update(score, board_.fullMoveNumber() - 1, type, board_.halfMoveClock());
+    resign_tracker_.update(score, type, ~board_.sideToMove());
+    maxmoves_tracker_.update(score, type);
 
     return !adjudicate(us, them);
 }
@@ -283,9 +288,11 @@ void Match::setEngineCrashStatus(Player& loser, Player& winner, const std::strin
 
     crash_or_disconnect_ = true;
 
-    const auto name   = loser.engine.getConfig().name;
+    const auto name  = loser.engine.getConfig().name;
+    const auto color = getColorString();
+
     data_.termination = MatchTermination::DISCONNECT;
-    data_.reason      = name + Match::DISCONNECT_MSG;
+    data_.reason      = color + Match::DISCONNECT_MSG;
 
     std::string warning = fmt::format("Warning; Engine {} disconnects", name);
     warning = formatWarningMessage(warning, position_string, go_string);
@@ -297,10 +304,11 @@ void Match::setEngineTimeoutStatus(Player& loser, Player& winner, const std::str
     loser.setLost();
     winner.setWon();
 
-    const auto name = loser.engine.getConfig().name;
+    const auto name  = loser.engine.getConfig().name;
+    const auto color = getColorString();
 
     data_.termination = MatchTermination::TIMEOUT;
-    data_.reason      = name + Match::TIMEOUT_MSG;
+    data_.reason      = color + Match::TIMEOUT_MSG;
 
     std::string warning = fmt::format("Warning; Engine {} loses on time", name);
     warning = formatWarningMessage(warning, position_string, go_string);
@@ -323,10 +331,11 @@ void Match::setEngineIllegalMoveStatus(Player& loser, Player& winner, const std:
     loser.setLost();
     winner.setWon();
 
-    const auto name = loser.engine.getConfig().name;
+    const auto name  = loser.engine.getConfig().name;
+    const auto color = getColorString();
 
     data_.termination = MatchTermination::ILLEGAL_MOVE;
-    data_.reason      = name + Match::ILLEGAL_MSG;
+    data_.reason      = color + Match::ILLEGAL_MSG;
 
     std::string warning = fmt::format("Warning; Illegal move {} played by {}", best_move ? *best_move : "<none>", name);
     warning = formatWarningMessage(warning, position_string, go_string);
@@ -391,17 +400,19 @@ void Match::verifyPvLines(const Player& us) {
 }
 
 bool Match::adjudicate(Player& us, Player& them) noexcept {
-    if (tournament_options_.resign.enabled && resign_tracker_.resignable() && us.engine.lastScore() < 0) {
+    if (config::TournamentConfig.get().resign.enabled && resign_tracker_.resignable() && us.engine.lastScore() < 0) {
         us.setLost();
         them.setWon();
 
+        const auto color = getColorString();
+
         data_.termination = MatchTermination::ADJUDICATION;
-        data_.reason      = them.engine.getConfig().name + Match::ADJUDICATION_WIN_MSG;
+        data_.reason      = color + Match::ADJUDICATION_WIN_MSG;
 
         return true;
     }
 
-    if (tournament_options_.draw.enabled && draw_tracker_.adjudicatable()) {
+    if (config::TournamentConfig.get().draw.enabled && draw_tracker_.adjudicatable()) {
         us.setDraw();
         them.setDraw();
 
@@ -411,7 +422,7 @@ bool Match::adjudicate(Player& us, Player& them) noexcept {
         return true;
     }
 
-    if (tournament_options_.maxmoves.enabled && maxmoves_tracker_.maxmovesreached()) {
+    if (config::TournamentConfig.get().maxmoves.enabled && maxmoves_tracker_.maxmovesreached()) {
         us.setDraw();
         them.setDraw();
 
@@ -424,9 +435,9 @@ bool Match::adjudicate(Player& us, Player& them) noexcept {
     return false;
 }
 
-std::string Match::convertChessReason(const std::string& engine_name, GameResultReason reason) noexcept {
+std::string Match::convertChessReason(const std::string& engine_color, GameResultReason reason) noexcept {
     if (reason == GameResultReason::CHECKMATE) {
-        return engine_name + Match::CHECKMATE_MSG;
+        return engine_color + Match::CHECKMATE_MSG;
     }
 
     if (reason == GameResultReason::STALEMATE) {

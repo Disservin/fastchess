@@ -129,7 +129,7 @@ TEST_SUITE("Option Parsing Tests") {
                                       "tbhits=true",
                                       "min=true"};
         cli::OptionsParser options = cli::OptionsParser(56, argv);
-        auto gameOptions           = options.getGameOptions();
+        auto gameOptions           = options.getTournamentConfig();
 
         // Test proper cli settings
         CHECK(gameOptions.recover);

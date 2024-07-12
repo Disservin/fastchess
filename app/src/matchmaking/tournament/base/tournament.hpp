@@ -4,10 +4,10 @@
 
 #include <affinity/affinity_manager.hpp>
 #include <book/opening_book.hpp>
+#include <config/types.hpp>
 #include <engine/uci_engine.hpp>
 #include <matchmaking/output/output.hpp>
 #include <matchmaking/result.hpp>
-#include <types/tournament_options.hpp>
 #include <util/cache.hpp>
 #include <util/file_writer.hpp>
 #include <util/logger/logger.hpp>
@@ -21,8 +21,7 @@ extern std::atomic_bool stop;
 
 class BaseTournament {
    public:
-    BaseTournament(const options::Tournament &config, const std::vector<EngineConfiguration> &engine_configs,
-                   const stats_map &results);
+    BaseTournament(const std::vector<EngineConfiguration> &engine_configs, const stats_map &results);
 
     virtual ~BaseTournament() {
         Logger::trace("Destroying tournament...");
@@ -53,10 +52,6 @@ class BaseTournament {
         initial_matchcount_ = match_count_;
     }
 
-    void setGameConfig(const options::Tournament &tournament_config) noexcept {
-        tournament_options_ = tournament_config;
-    }
-
    protected:
     // number of games played
     std::atomic<std::uint64_t> match_count_;
@@ -81,7 +76,6 @@ class BaseTournament {
     std::unique_ptr<util::FileWriter> file_writer_epd;
     std::unique_ptr<book::OpeningBook> book_;
 
-    options::Tournament tournament_options_;
     std::vector<EngineConfiguration> engine_configs_;
 
     util::CachePool<engine::UciEngine, std::string> engine_cache_ = util::CachePool<engine::UciEngine, std::string>();

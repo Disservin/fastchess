@@ -10,12 +10,12 @@
 
 namespace fast_chess {
 
-RoundRobin::RoundRobin(const options::Tournament& tournament_config,
-                       const std::vector<EngineConfiguration>& engine_configs, const stats_map& results)
-    : BaseTournament(tournament_config, engine_configs, results) {
+RoundRobin::RoundRobin(const std::vector<EngineConfiguration>& engine_configs, const stats_map& results)
+    : BaseTournament(engine_configs, results) {
     // Initialize the SPRT test
-    sprt_ = SPRT(tournament_options_.sprt.alpha, tournament_options_.sprt.beta, tournament_options_.sprt.elo0,
-                 tournament_options_.sprt.elo1, tournament_options_.sprt.model, tournament_options_.sprt.enabled);
+    sprt_ = SPRT(config::TournamentOptions.sprt.alpha, config::TournamentOptions.sprt.beta,
+                 config::TournamentOptions.sprt.elo0, config::TournamentOptions.sprt.elo1,
+                 config::TournamentOptions.sprt.model, config::TournamentOptions.sprt.enabled);
 }
 
 void RoundRobin::start() {
@@ -24,7 +24,7 @@ void RoundRobin::start() {
     BaseTournament::start();
 
     // If autosave is enabled, save the results every save_interval games
-    const auto save_interval = tournament_options_.autosaveinterval;
+    const auto save_interval = config::TournamentOptions.autosaveinterval;
     // Account for the initial matchcount
     auto save_iter = initial_matchcount_ + save_interval;
 
@@ -42,8 +42,8 @@ void RoundRobin::start() {
 void RoundRobin::create() {
     Logger::trace("Creating matches...");
 
-    total_ = (engine_configs_.size() * (engine_configs_.size() - 1) / 2) * tournament_options_.rounds *
-             tournament_options_.games;
+    total_ = (engine_configs_.size() * (engine_configs_.size() - 1) / 2) * config::TournamentOptions.rounds *
+             config::TournamentOptions.games;
 
     const auto create_match = [this](std::size_t i, std::size_t j, std::size_t round_id, int g,
                                      std::optional<std::size_t> opening_id) {
@@ -71,7 +71,7 @@ void RoundRobin::create() {
 
         const auto opening = (*book_)[opening_id];
 
-        const std::size_t game_id = round_id * tournament_options_.games + (g + 1);
+        const std::size_t game_id = round_id * config::TournamentOptions.games + (g + 1);
         const auto stm            = opening.stm;
         const auto first          = engine_configs_[i];
         const auto second         = engine_configs_[j];
@@ -96,27 +96,27 @@ void RoundRobin::create() {
 
             bool report = true;
 
-            if (tournament_options_.report_penta)
+            if (config::TournamentOptions.report_penta)
                 report = result_.updatePairStats(configs, first.name, stats, round_id);
             else
                 result_.updateStats(configs, stats);
 
             // round_id and match_count_ starts 0 so we add 1
-            const auto ratinginterval_index = tournament_options_.report_penta ? round_id + 1 : match_count_ + 1;
+            const auto ratinginterval_index = config::TournamentOptions.report_penta ? round_id + 1 : match_count_ + 1;
             const auto scoreinterval_index  = match_count_ + 1;
             const auto updated_stats        = result_.getStats(first.name, second.name);
 
             // print score result based on scoreinterval if output format is cutechess
-            if ((scoreinterval_index % tournament_options_.scoreinterval == 0) || match_count_ + 1 == total_) {
+            if ((scoreinterval_index % config::TournamentOptions.scoreinterval == 0) || match_count_ + 1 == total_) {
                 output_->printResult(updated_stats, first.name, second.name);
             }
 
             // Only print the interval if the pair is complete or we are not tracking
             // penta stats.
-            if ((report && ratinginterval_index % tournament_options_.ratinginterval == 0) ||
+            if ((report && ratinginterval_index % config::TournamentOptions.ratinginterval == 0) ||
                 match_count_ + 1 == total_) {
                 output_->printInterval(sprt_, updated_stats, first.name, second.name, engines,
-                                       tournament_options_.opening.file);
+                                       config::TournamentOptions.opening.file);
             }
 
             updateSprtStatus({first, second}, engines);
@@ -129,12 +129,12 @@ void RoundRobin::create() {
 
     for (std::size_t i = 0; i < engine_configs_.size(); i++) {
         for (std::size_t j = i + 1; j < engine_configs_.size(); j++) {
-            int offset = initial_matchcount_ / tournament_options_.games;
-            for (int k = offset; k < tournament_options_.rounds; k++) {
+            int offset = initial_matchcount_ / config::TournamentOptions.games;
+            for (int k = offset; k < config::TournamentOptions.rounds; k++) {
                 // both players get the same opening
                 const auto opening = book_->fetchId();
 
-                for (int g = 0; g < tournament_options_.games; g++) {
+                for (int g = 0; g < config::TournamentOptions.games; g++) {
                     pool_.enqueue(create_match, i, j, k, g, opening);
                 }
             }
@@ -146,7 +146,7 @@ void RoundRobin::updateSprtStatus(const std::vector<EngineConfiguration>& engine
     if (!sprt_.isEnabled()) return;
 
     const auto stats = result_.getStats(engine_configs[0].name, engine_configs[1].name);
-    const auto llr   = sprt_.getLLR(stats, tournament_options_.report_penta);
+    const auto llr   = sprt_.getLLR(stats, config::TournamentOptions.report_penta);
 
     if (sprt_.getResult(llr) != SPRT_CONTINUE || match_count_ == total_) {
         atomic::stop = true;
@@ -154,7 +154,7 @@ void RoundRobin::updateSprtStatus(const std::vector<EngineConfiguration>& engine
         Logger::info("SPRT test finished: {} {}", sprt_.getBounds(), sprt_.getElo());
         output_->printResult(stats, engine_configs[0].name, engine_configs[1].name);
         output_->printInterval(sprt_, stats, engine_configs[0].name, engine_configs[1].name, engines,
-                               tournament_options_.opening.file);
+                               config::TournamentOptions.opening.file);
         output_->endTournament();
 
         stop();

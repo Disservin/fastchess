@@ -1,11 +1,11 @@
 #pragma once
 
+#include <config/types.hpp>
 #include <types/engine_config.hpp>
-#include <types/tournament_options.hpp>
 
 namespace fast_chess::config {
 
-void sanitize(options::Tournament&);
+void sanitize(config::Tournament&);
 
 void sanitize(std::vector<EngineConfiguration>&);
 

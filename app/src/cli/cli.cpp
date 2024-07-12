@@ -2,10 +2,10 @@
 
 #include <random>
 
+#include <config/types.hpp>
 #include <matchmaking/output/output_factory.hpp>
 #include <matchmaking/result.hpp>
 #include <types/engine_config.hpp>
-#include <types/tournament_options.hpp>
 #include <util/file_system.hpp>
 #include <util/logger/logger.hpp>
 
@@ -419,7 +419,7 @@ void loadJson(ArgumentData &argument_data, const std::string &filename) {
     argument_data.old_configs            = argument_data.configs;
     argument_data.old_tournament_options = argument_data.tournament_options;
 
-    argument_data.tournament_options = jsonfile.get<options::Tournament>();
+    argument_data.tournament_options = jsonfile.get<fast_chess::config::Tournament>();
 
     argument_data.configs.clear();
 

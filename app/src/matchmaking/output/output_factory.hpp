@@ -1,14 +1,14 @@
 #pragma once
 
+#include <config/types.hpp>
 #include <matchmaking/output/output_cutechess.hpp>
 #include <matchmaking/output/output_fastchess.hpp>
-#include <types/tournament_options.hpp>
 
 namespace fast_chess {
 
 class OutputFactory {
    public:
-    [[nodiscard]] static std::unique_ptr<IOutput> create(const options::Tournament& config) {
+    [[nodiscard]] static std::unique_ptr<IOutput> create(const config::Tournament& config) {
         switch (config.output) {
             case OutputType::FASTCHESS:
                 return std::make_unique<Fastchess>(config.report_penta);

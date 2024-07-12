@@ -3,6 +3,7 @@
 #include <chess.hpp>
 
 #include <cli/cli.hpp>
+#include <config/config.hpp>
 #include <matchmaking/player.hpp>
 #include <pgn/pgn_reader.hpp>
 #include <types/match_data.hpp>
@@ -11,10 +12,10 @@ namespace fast_chess {
 
 class DrawTracker {
    public:
-    DrawTracker(const options::Tournament& tournament_config) noexcept {
-        move_number_ = tournament_config.draw.move_number;
-        move_count_  = tournament_config.draw.move_count;
-        draw_score   = tournament_config.draw.score;
+    DrawTracker() noexcept {
+        move_number_ = config::TournamentOptions.draw.move_number;
+        move_count_  = config::TournamentOptions.draw.move_count;
+        draw_score   = config::TournamentOptions.draw.score;
     }
 
     void update(const int score, const int move_count, engine::ScoreType score_type, const int hmvc) noexcept {
@@ -41,10 +42,10 @@ class DrawTracker {
 
 class ResignTracker {
    public:
-    ResignTracker(const options::Tournament& tournament_config) noexcept {
-        resign_score = tournament_config.resign.score;
-        move_count_  = tournament_config.resign.move_count;
-        twosided_    = tournament_config.resign.twosided;
+    ResignTracker() noexcept {
+        resign_score = config::TournamentOptions.resign.score;
+        move_count_  = config::TournamentOptions.resign.move_count;
+        twosided_    = config::TournamentOptions.resign.twosided;
     }
 
     void update(const int score, engine::ScoreType score_type, chess::Color color) noexcept {
@@ -86,9 +87,7 @@ class ResignTracker {
 
 class MaxMovesTracker {
    public:
-    MaxMovesTracker(const options::Tournament& tournament_config) noexcept {
-        move_count_ = tournament_config.maxmoves.move_count;
-    }
+    MaxMovesTracker() noexcept { move_count_ = config::TournamentOptions.maxmoves.move_count; }
 
     void update(const int score, engine::ScoreType score_type) noexcept {
         max_moves++;
@@ -105,8 +104,7 @@ class MaxMovesTracker {
 
 class Match {
    public:
-    Match(const options::Tournament& tournament_config, const pgn::Opening& opening)
-        : tournament_options_(tournament_config), opening_(opening) {}
+    Match(const pgn::Opening& opening) : opening_(opening) {}
 
     // starts the match
     void start(engine::UciEngine& engine1, engine::UciEngine& engine2, const std::vector<int>& cpus);
@@ -145,15 +143,14 @@ class Match {
 
     bool isLegal(chess::Move move) const noexcept;
 
-    const options::Tournament& tournament_options_;
     const pgn::Opening& opening_;
 
     MatchData data_     = {};
     chess::Board board_ = chess::Board();
 
-    DrawTracker draw_tracker_         = DrawTracker(tournament_options_);
-    ResignTracker resign_tracker_     = ResignTracker(tournament_options_);
-    MaxMovesTracker maxmoves_tracker_ = MaxMovesTracker(tournament_options_);
+    DrawTracker draw_tracker_         = DrawTracker();
+    ResignTracker resign_tracker_     = ResignTracker();
+    MaxMovesTracker maxmoves_tracker_ = MaxMovesTracker();
 
     std::vector<std::string> uci_moves_;
 

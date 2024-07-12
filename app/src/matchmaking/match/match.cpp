@@ -2,7 +2,7 @@
 
 #include <algorithm>
 
-#include <types/tournament_options.hpp>
+#include <config/types.hpp>
 #include <util/date.hpp>
 #include <util/helper.hpp>
 #include <util/logger/logger.hpp>
@@ -66,7 +66,7 @@ void Match::addMoveData(const Player& player, int64_t measured_time_ms, bool leg
 }
 
 void Match::prepare() {
-    board_.set960(tournament_options_.variant == VariantType::FRC);
+    board_.set960(config::TournamentOptions.variant == VariantType::FRC);
     if (isFen(opening_.fen)) {
         board_.setFen(opening_.fen);
     } else {
@@ -86,9 +86,9 @@ void Match::prepare() {
 
     std::transform(opening_.moves.begin(), opening_.moves.end(), std::back_inserter(data_.moves), insert_move);
 
-    draw_tracker_     = DrawTracker(tournament_options_);
-    resign_tracker_   = ResignTracker(tournament_options_);
-    maxmoves_tracker_ = MaxMovesTracker(tournament_options_);
+    draw_tracker_     = DrawTracker();
+    resign_tracker_   = ResignTracker();
+    maxmoves_tracker_ = MaxMovesTracker();
 }
 
 void Match::start(engine::UciEngine& engine1, engine::UciEngine& engine2, const std::vector<int>& cpus) {
@@ -189,7 +189,7 @@ bool Match::playMove(Player& us, Player& them) {
     auto status = us.engine.readEngine("bestmove", us.getTimeoutThreshold());
     auto t1     = clock::now();
 
-    if (!tournament_options_.realtime_logging) {
+    if (!config::TournamentOptions.realtime_logging) {
         us.engine.writeLog();
     }
 
@@ -372,7 +372,7 @@ void Match::verifyPvLines(const Player& us) {
 }
 
 bool Match::adjudicate(Player& us, Player& them) noexcept {
-    if (tournament_options_.resign.enabled && resign_tracker_.resignable() && us.engine.lastScore() < 0) {
+    if (config::TournamentOptions.resign.enabled && resign_tracker_.resignable() && us.engine.lastScore() < 0) {
         us.setLost();
         them.setWon();
 
@@ -384,7 +384,7 @@ bool Match::adjudicate(Player& us, Player& them) noexcept {
         return true;
     }
 
-    if (tournament_options_.draw.enabled && draw_tracker_.adjudicatable()) {
+    if (config::TournamentOptions.draw.enabled && draw_tracker_.adjudicatable()) {
         us.setDraw();
         them.setDraw();
 
@@ -394,7 +394,7 @@ bool Match::adjudicate(Player& us, Player& them) noexcept {
         return true;
     }
 
-    if (tournament_options_.maxmoves.enabled && maxmoves_tracker_.maxmovesreached()) {
+    if (config::TournamentOptions.maxmoves.enabled && maxmoves_tracker_.maxmovesreached()) {
         us.setDraw();
         them.setDraw();
 

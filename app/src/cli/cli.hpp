@@ -102,9 +102,7 @@ class OptionsParser {
 
     [[nodiscard]] std::vector<EngineConfiguration> getEngineConfigs() const { return argument_data_.configs; }
 
-    [[nodiscard]] fast_chess::config::TournamentType getGameOptions() const {
-        return argument_data_.tournament_options;
-    }
+    [[nodiscard]] fast_chess::config::TournamentType getTournament() const { return argument_data_.tournament_options; }
 
     [[nodiscard]] stats_map getResults() const { return argument_data_.stats; }
 

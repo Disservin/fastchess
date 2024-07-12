@@ -412,7 +412,8 @@ bool Match::adjudicate(Player& us, Player& them) noexcept {
 
 std::string Match::convertChessReason(const std::string& engine_color, GameResultReason reason) noexcept {
     if (reason == GameResultReason::CHECKMATE) {
-        return engine_color + Match::CHECKMATE_MSG;
+        std::string color = engine_color == "White" ? "Black" : "White";
+        return color + Match::CHECKMATE_MSG;
     }
 
     if (reason == GameResultReason::STALEMATE) {

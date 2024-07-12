@@ -36,15 +36,17 @@ struct Tournament {
     OutputType output    = OutputType::CUTECHESS;
     int autosaveinterval = 0;
     int ratinginterval   = 0;
-    int games       = 1;
-    int rounds      = 1;
+    int games            = 1;
+    int rounds           = 1;
+    bool report_penta    = false;
 #else
     // output format, fastchess or cutechess
     OutputType output    = OutputType::FASTCHESS;
     int autosaveinterval = 20;
     int ratinginterval   = 10;
-    int games       = 2;
-    int rounds      = 2;
+    int games            = 2;
+    int rounds           = 2;
+    bool report_penta    = true;
 #endif
 
     uint64_t seed = 951356066;
@@ -55,7 +57,6 @@ struct Tournament {
     int overhead    = 0;
 
     bool recover          = false;
-    bool report_penta     = true;
     bool affinity         = false;
     bool randomseed       = false;
     bool realtime_logging = true;

@@ -143,9 +143,6 @@ bool Match::playMove(Player& us, Player& them) {
     const auto gameover = board_.isGameOver();
     const auto name     = us.engine.getConfig().name;
 
-
-    std::string color = board_.sideToMove() == chess::Color::WHITE ? "White" : "Black";
-
     if (gameover.second == GameResult::DRAW) {
         us.setDraw();
         them.setDraw();
@@ -157,7 +154,7 @@ bool Match::playMove(Player& us, Player& them) {
     }
 
     if (gameover.first != GameResultReason::NONE) {
-        data_.reason = convertChessReason(color, gameover.first);
+        data_.reason = convertChessReason(getColorString(), gameover.first);
         return false;
     }
 
@@ -271,9 +268,10 @@ void Match::setEngineCrashStatus(Player& loser, Player& winner) {
 
     crash_or_disconnect_ = true;
 
-    const auto name   = loser.engine.getConfig().name;
+    const auto name  = loser.engine.getConfig().name;
+    const auto color = getColorString();
+
     data_.termination = MatchTermination::DISCONNECT;
-    const std::string color = board_.sideToMove() == chess::Color::WHITE ? "White" : "Black";
     data_.reason      = color + Match::DISCONNECT_MSG;
 
     Logger::warn<true>("Warning; Engine {} disconnects", name);
@@ -283,10 +281,10 @@ void Match::setEngineTimeoutStatus(Player& loser, Player& winner) {
     loser.setLost();
     winner.setWon();
 
-    const auto name = loser.engine.getConfig().name;
+    const auto name  = loser.engine.getConfig().name;
+    const auto color = getColorString();
 
     data_.termination = MatchTermination::TIMEOUT;
-    const std::string color = board_.sideToMove() == chess::Color::WHITE ? "White" : "Black";
     data_.reason      = color + Match::TIMEOUT_MSG;
 
     Logger::warn<true>("Warning; Engine {} loses on time", name);
@@ -306,10 +304,10 @@ void Match::setEngineIllegalMoveStatus(Player& loser, Player& winner, const std:
     loser.setLost();
     winner.setWon();
 
-    const auto name = loser.engine.getConfig().name;
+    const auto name  = loser.engine.getConfig().name;
+    const auto color = getColorString();
 
     data_.termination = MatchTermination::ILLEGAL_MOVE;
-    const std::string color = board_.sideToMove() == chess::Color::WHITE ? "White" : "Black";
     data_.reason      = color + Match::ILLEGAL_MSG;
 
     Logger::warn<true>("Warning; Illegal move {} played by {}", best_move ? *best_move : "<none>", name);
@@ -376,8 +374,9 @@ bool Match::adjudicate(Player& us, Player& them) noexcept {
         us.setLost();
         them.setWon();
 
+        const auto color = getColorString();
+
         data_.termination = MatchTermination::ADJUDICATION;
-        const std::string color = board_.sideToMove() == chess::Color::WHITE ? "White" : "Black";
         data_.reason      = color + Match::ADJUDICATION_WIN_MSG;
 
         return true;

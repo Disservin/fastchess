@@ -67,6 +67,7 @@ void Match::addMoveData(const Player& player, int64_t measured_time_ms, bool leg
 
 void Match::prepare() {
     board_.set960(config::TournamentConfig.get().variant == VariantType::FRC);
+
     if (isFen(opening_.fen)) {
         board_.setFen(opening_.fen);
     } else {

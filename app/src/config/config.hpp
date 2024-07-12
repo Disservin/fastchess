@@ -6,7 +6,7 @@
 
 namespace fast_chess::config {
 
-inline Lazy<Tournament> TournamentConfig;
-inline Lazy<std::vector<EngineConfiguration>> EngineConfigs;
+inline util::Lazy<Tournament> TournamentConfig;
+inline util::Lazy<std::vector<EngineConfiguration>> EngineConfigs;
 
 }  // namespace fast_chess::config

@@ -13,12 +13,12 @@ int main(int argc, char const* argv[]) {
 
     auto options = cli::OptionsParser(argc, argv);
 
-    config::Tournament.setup([&options]() -> std::unique_ptr<config::TournamentType> {
+    config::TournamentConfig.setup([&options]() -> std::unique_ptr<config::Tournament> {
         auto cnf = options.getTournament();
 
         config::sanitize(cnf);
 
-        return std::make_unique<config::TournamentType>(cnf);
+        return std::make_unique<config::Tournament>(cnf);
     });
 
     config::EngineConfigs.setup([&options]() -> std::unique_ptr<std::vector<EngineConfiguration>> {

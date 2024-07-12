@@ -419,7 +419,7 @@ void loadJson(ArgumentData &argument_data, const std::string &filename) {
     argument_data.old_configs            = argument_data.configs;
     argument_data.old_tournament_options = argument_data.tournament_options;
 
-    argument_data.tournament_options = jsonfile.get<fast_chess::config::TournamentType>();
+    argument_data.tournament_options = jsonfile.get<fast_chess::config::Tournament>();
 
     argument_data.configs.clear();
 

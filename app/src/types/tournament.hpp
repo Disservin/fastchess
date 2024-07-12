@@ -16,7 +16,7 @@
 
 namespace fast_chess::config {
 
-struct TournamentType {
+struct Tournament {
     Opening opening = {};
     Pgn pgn         = {};
     Epd epd         = {};
@@ -58,7 +58,7 @@ struct TournamentType {
     bool randomseed       = false;
     bool realtime_logging = true;
 };
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(TournamentType, resign, draw, maxmoves, opening, pgn, epd, sprt,
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(Tournament, resign, draw, maxmoves, opening, pgn, epd, sprt,
                                                 config_name, output, seed, variant, ratinginterval, scoreinterval,
                                                 autosaveinterval, games, rounds, concurrency, overhead, recover,
                                                 report_penta, affinity, randomseed, realtime_logging)

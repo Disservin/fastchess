@@ -10,7 +10,7 @@
 
 namespace fast_chess::config {
 
-void sanitize(config::TournamentType& config) {
+void sanitize(config::Tournament& config) {
     if (config.games > 2) {
         // wrong config, lets try to fix it
         std::swap(config.games, config.rounds);

@@ -5,7 +5,7 @@
 
 namespace fast_chess::config {
 
-void sanitize(config::TournamentType&);
+void sanitize(config::Tournament&);
 
 void sanitize(std::vector<EngineConfiguration>&);
 

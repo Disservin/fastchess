@@ -9,7 +9,7 @@
 
 namespace fast_chess::book {
 
-OpeningBook::OpeningBook(const config::TournamentType& config, std::size_t initial_matchcount) {
+OpeningBook::OpeningBook(const config::Tournament& config, std::size_t initial_matchcount) {
     start_  = config.opening.start;
     games_  = config.games;
     rounds_ = config.rounds;

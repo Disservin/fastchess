@@ -137,8 +137,8 @@ class Match {
     [[nodiscard]] static std::string convertChessReason(const std::string& engine_color,
                                                         chess::GameResultReason reason) noexcept;
 
-    [[nodiscard]] std::string getColorString(chess::Color color) const noexcept {
-        return color == chess::Color::WHITE ? "White" : "Black";
+    [[nodiscard]] std::string getColorString() const noexcept {
+        return board_.sideToMove() == chess::Color::WHITE ? "White" : "Black";
     }
 
     bool isLegal(chess::Move move) const noexcept;
@@ -167,7 +167,7 @@ class Match {
     inline static constexpr char ADJUDICATION_MSG[]     = "Draw by adjudication";
     inline static constexpr char FIFTY_MSG[]            = "Draw by 50-move rule";
     inline static constexpr char STALEMATE_MSG[]        = "Draw by stalemate";
-    inline static constexpr char CHECKMATE_MSG[]        = /*..*/ " got checkmated";
+    inline static constexpr char CHECKMATE_MSG[]        = /*..*/ " mates";
     inline static constexpr char TIMEOUT_MSG[]          = /*.. */ " loses on time";
     inline static constexpr char DISCONNECT_MSG[]       = /*.. */ " disconnects";
 };

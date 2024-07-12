@@ -41,14 +41,17 @@ void BaseTournament::start() {
 }
 
 void BaseTournament::saveJson() {
-    nlohmann::ordered_json jsonfile = config::TournamentConfig.get();
+    Logger::trace("Saving results...");
+
+    const auto &config = config::TournamentConfig.get();
+
+    nlohmann::ordered_json jsonfile = config;
     jsonfile["engines"]             = config::EngineConfigs.get();
     jsonfile["stats"]               = getResults();
 
-    Logger::trace("Saving results...");
+    auto filename = config.config_name.empty() ? "config.json" : config.config_name;
 
-    std::ofstream file(config::TournamentConfig.get().config_name.empty() ? "config.json"
-                                                                          : config::TournamentConfig.get().config_name);
+    std::ofstream file(filename);
     file << std::setw(4) << jsonfile << std::endl;
 
     Logger::info("Saved results.");
@@ -61,18 +64,21 @@ void BaseTournament::stop() {
     pool_.kill();
 }
 
-void BaseTournament::playGame(const std::pair<EngineConfiguration, EngineConfiguration> &configs, start_callback start,
-                              finished_callback finish, const pgn::Opening &opening, std::size_t game_id) {
+void BaseTournament::playGame(const std::pair<EngineConfiguration, EngineConfiguration> &engine_configs,
+                              start_callback start, finished_callback finish, const pgn::Opening &opening,
+                              std::size_t game_id) {
     if (atomic::stop) return;
 
-    const auto core = util::ScopeGuard(cores_->consume());
+    const auto &config = config::TournamentConfig.get();
+    const auto core    = util::ScopeGuard(cores_->consume());
 
     auto engine_one = util::ScopeGuard(
-        engine_cache_.getEntry(configs.first.name, configs.first, config::TournamentConfig.get().realtime_logging));
+        engine_cache_.getEntry(engine_configs.first.name, engine_configs.first, config.realtime_logging));
     auto engine_two = util::ScopeGuard(
-        engine_cache_.getEntry(configs.second.name, configs.second, config::TournamentConfig.get().realtime_logging));
+        engine_cache_.getEntry(engine_configs.second.name, engine_configs.second, config.realtime_logging));
 
-    Logger::trace("Playing game {} between {} and {}", game_id + 1, configs.first.name, configs.second.name);
+    Logger::trace("Playing game {} between {} and {}", game_id + 1, engine_configs.first.name,
+                  engine_configs.second.name);
 
     start();
 
@@ -81,15 +87,15 @@ void BaseTournament::playGame(const std::pair<EngineConfiguration, EngineConfigu
 
     if (match.isCrashOrDisconnect()) {
         // restart the engine when recover is enabled
-        if (config::TournamentConfig.get().recover) {
+        if (config.recover) {
             Logger::trace("Restarting engine...");
             if (!engine_one.get().get().isready()) {
-                Logger::trace("Restarting engine {}", configs.first.name);
+                Logger::trace("Restarting engine {}", engine_configs.first.name);
                 engine_one.get().get().refreshUci();
             }
 
             if (!engine_two.get().get().isready()) {
-                Logger::trace("Restarting engine {}", configs.second.name);
+                Logger::trace("Restarting engine {}", engine_configs.second.name);
                 engine_two.get().get().refreshUci();
             }
         } else {
@@ -101,10 +107,9 @@ void BaseTournament::playGame(const std::pair<EngineConfiguration, EngineConfigu
 
     // If the game was interrupted(didn't completely finish)
     if (match_data.termination != MatchTermination::INTERRUPT) {
-        if (!config::TournamentConfig.get().pgn.file.empty())
-            file_writer_pgn->write(pgn::PgnBuilder(config::TournamentConfig.get().pgn, match_data, game_id + 1).get());
-        if (!config::TournamentConfig.get().epd.file.empty())
-            file_writer_epd->write(epd::EpdBuilder(config::TournamentConfig.get().variant, match_data).get());
+        if (!config.pgn.file.empty())
+            file_writer_pgn->write(pgn::PgnBuilder(config.pgn, match_data, game_id + 1).get());
+        if (!config.epd.file.empty()) file_writer_epd->write(epd::EpdBuilder(config.variant, match_data).get());
 
         finish({match_data}, match_data.reason, {engine_one.get().get(), engine_two.get().get()});
     }

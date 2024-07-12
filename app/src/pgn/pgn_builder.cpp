@@ -20,13 +20,12 @@ std::string to_string(const T &obj) {
 }  // namespace str
 
 PgnBuilder::PgnBuilder(const config::Pgn &pgn_config, const MatchData &match, std::size_t round_id)
-    : pgn_config_(pgn_config) {
-    match_ = match;
+    : pgn_config_(pgn_config), match_(match) {
+    const auto &first  = match.players.first;
+    const auto &second = match.players.second;
 
-    const auto white_player =
-        match.players.first.color == chess::Color::WHITE ? match.players.first : match.players.second;
-    const auto black_player =
-        match.players.first.color == chess::Color::BLACK ? match.players.first : match.players.second;
+    const auto &white_player = first.color == chess::Color::WHITE ? first : second;
+    const auto &black_player = first.color == chess::Color::BLACK ? first : second;
 
     const auto is_frc_variant = match.variant == VariantType::FRC;
 

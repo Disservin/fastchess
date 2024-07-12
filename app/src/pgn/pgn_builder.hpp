@@ -59,8 +59,7 @@ class PgnBuilder {
     [[nodiscard]] static std::string convertMatchTermination(const MatchTermination &res) noexcept;
 
     const config::Pgn &pgn_config_;
-
-    MatchData match_;
+    const MatchData &match_;
 
     std::stringstream pgn_;
 };

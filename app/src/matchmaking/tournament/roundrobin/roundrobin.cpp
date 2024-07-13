@@ -104,6 +104,10 @@ void RoundRobin::create() {
         };
 
         playGame(configs, start, finish, opening, round_id);
+
+        if (g == 1) {
+            std::swap(configs.first, configs.second);
+        }
     };
 
     for (std::size_t i = 0; i < config::EngineConfigs.get().size(); i++) {

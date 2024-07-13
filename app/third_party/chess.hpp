@@ -25,7 +25,7 @@ THIS FILE IS AUTO GENERATED DO NOT CHANGE MANUALLY.
 
 Source: https://github.com/Disservin/chess-library
 
-VERSION: 0.6.47
+VERSION: 0.6.52
 */
 
 #ifndef CHESS_HPP
@@ -39,17 +39,17 @@ VERSION: 0.6.47
 
 
 #if __cplusplus >= 202002L
-#include <bit>
+#    include <bit>
 #endif
-#include <string>
-#include <bitset>
 #include <algorithm>
-#include <iostream>
+#include <bitset>
 #include <cassert>
+#include <iostream>
+#include <string>
 
 #if defined(_MSC_VER)
-#include <intrin.h>
-#include <nmmintrin.h>
+#    include <intrin.h>
+#    include <nmmintrin.h>
 #endif
 
 
@@ -147,9 +147,7 @@ namespace utils {
     return result;
 }
 
-constexpr char tolower(char c) {
-    return (c >= 'A' && c <= 'Z') ? (c - 'A' + 'a') : c;
-}
+constexpr char tolower(char c) { return (c >= 'A' && c <= 'Z') ? (c - 'A' + 'a') : c; }
 
 }  // namespace utils
 
@@ -545,21 +543,20 @@ class Bitboard {
 #if !defined(_MSC_VER)
     constexpr
 #endif
-        int
-        lsb() const noexcept {
+        int lsb() const noexcept {
         assert(bits != 0);
 #if __cplusplus >= 202002L
         return std::countr_zero(bits);
 #else
-#if defined(__GNUC__)
+#    if defined(__GNUC__)
         return __builtin_ctzll(bits);
-#elif defined(_MSC_VER)
+#    elif defined(_MSC_VER)
         unsigned long idx;
         _BitScanForward64(&idx, bits);
         return static_cast<int>(idx);
-#else
-#error "Compiler not supported."
-#endif
+#    else
+#        error "Compiler not supported."
+#    endif
 #endif
     }
 
@@ -567,22 +564,21 @@ class Bitboard {
 #if !defined(_MSC_VER)
     constexpr
 #endif
-        int
-        msb() const noexcept {
+        int msb() const noexcept {
         assert(bits != 0);
 
 #if __cplusplus >= 202002L
         return std::countl_zero(bits) ^ 63;
 #else
-#if defined(__GNUC__)
+#    if defined(__GNUC__)
         return 63 ^ __builtin_clzll(bits);
-#elif defined(_MSC_VER)
+#    elif defined(_MSC_VER)
         unsigned long idx;
         _BitScanReverse64(&idx, bits);
         return static_cast<int>(idx);
-#else
-#error "Compiler not supported."
-#endif
+#    else
+#        error "Compiler not supported."
+#    endif
 #endif
     }
 
@@ -590,16 +586,15 @@ class Bitboard {
 #if !defined(_MSC_VER)
     constexpr
 #endif
-        int
-        count() const noexcept {
+        int count() const noexcept {
 #if __cplusplus >= 202002L
         return std::popcount(bits);
 #else
-#if defined(_MSC_VER) || defined(__INTEL_COMPILER)
+#    if defined(_MSC_VER) || defined(__INTEL_COMPILER)
         return static_cast<int>(_mm_popcnt_u64(bits));
-#else
+#    else
         return __builtin_popcountll(bits);
-#endif
+#    endif
 #endif
     }
 
@@ -607,8 +602,7 @@ class Bitboard {
 #if !defined(_MSC_VER)
     constexpr
 #endif
-        std::uint8_t
-        pop() noexcept {
+        std::uint8_t pop() noexcept {
         assert(bits != 0);
         std::uint8_t index = lsb();
         bits &= bits - 1;
@@ -1872,6 +1866,7 @@ class Board {
         return ss;
     }
 
+    template <bool EXACT = false>
     void makeMove(const Move move) {
         const auto capture  = at(move.to()) != Piece::NONE && move.typeOf() != Move::CASTLING;
         const auto captured = at(move.to());
@@ -1927,9 +1922,28 @@ class Board {
 
                 // add enpassant hash if enemy pawns are attacking the square
                 if (static_cast<bool>(ep_mask & pieces(PieceType::PAWN, ~stm_))) {
-                    assert(at(move.to().ep_square()) == Piece::NONE);
-                    ep_sq_ = move.to().ep_square();
-                    key_ ^= Zobrist::enpassant(move.to().ep_square().file());
+                    if constexpr (EXACT) {
+                        static constexpr auto is_legal = [](const Board &board, Move move) {
+                            static Movelist moves;
+                            movegen::legalmoves(moves, board);
+
+                            return std::find(moves.begin(), moves.end(), move) != moves.end();
+                        };
+
+                        while (ep_mask) {
+                            const auto possible_move = Move::make(ep_mask.pop(), move.to().ep_square());
+                            if (is_legal(*this, possible_move)) {
+                                assert(at(move.to().ep_square()) == Piece::NONE);
+                                ep_sq_ = move.to().ep_square();
+                                key_ ^= Zobrist::enpassant(move.to().ep_square().file());
+                                break;
+                            }
+                        }
+                    } else {
+                        assert(at(move.to().ep_square()) == Piece::NONE);
+                        ep_sq_ = move.to().ep_square();
+                        key_ ^= Zobrist::enpassant(move.to().ep_square().file());
+                    }
                 }
             }
         }
@@ -2421,13 +2435,13 @@ class Board {
         static auto split_fen = [](std::string_view fen) {
             std::array<std::optional<std::string_view>, 6> arr = {};
 
-            size_t start = 0;
-            size_t end   = 0;
+            std::size_t start = 0;
+            std::size_t end   = 0;
 
-            for (size_t i = 0; i < 6; i++) {
+            for (std::size_t i = 0; i < 6; i++) {
                 end = fen.find(' ', start);
                 if (end == std::string::npos) {
-                    if (i == 5) arr[i] = fen.substr(start);
+                    arr[i] = fen.substr(start);
                     break;
                 }
                 arr[i] = fen.substr(start, end - start);
@@ -3413,8 +3427,12 @@ class Visitor {
 };
 
 template <std::size_t BUFFER_SIZE =
-#ifdef __unix__
+#if defined(__unix__) || defined(__unix) || defined(unix) || defined(__APPLE__) || defined(__MACH__)
+#    if defined(__APPLE__) || defined(__MACH__)
+              256
+#    else
               1024
+#    endif
 #else
               256
 #endif

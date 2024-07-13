@@ -74,7 +74,7 @@ void BaseTournament::playGame(const GamePair<EngineConfiguration, EngineConfigur
     const auto core    = util::ScopeGuard(cores_->consume());
 
     auto engine_white = util::ScopeGuard(
-        engine_cache_.getEntry(engine_configs.white.name, engine_configs.black, config.realtime_logging));
+        engine_cache_.getEntry(engine_configs.white.name, engine_configs.white, config.realtime_logging));
     auto engine_black = util::ScopeGuard(
         engine_cache_.getEntry(engine_configs.black.name, engine_configs.black, config.realtime_logging));
 

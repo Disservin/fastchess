@@ -92,7 +92,7 @@ void RoundRobin::create() {
             const auto normalized_configs = normalize_stm_configs(configs, stm);
             const auto normalized_stats   = normalize_stats(stats, stm);
 
-            output_->endGame(normalized_configs, normalized_stats, reason, game_id);
+            output_->endGame(configs, stats, reason, game_id);
 
             bool report = true;
 

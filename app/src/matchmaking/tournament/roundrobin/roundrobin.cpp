@@ -76,9 +76,9 @@ void RoundRobin::create() {
         const auto second         = config::EngineConfigs.get()[j];
         auto configs              = std::pair{config::EngineConfigs.get()[i], config::EngineConfigs.get()[j]};
 
-        //if (g == 1) {
-        //    std::swap(configs.first, configs.second);
-        //}
+        if (g == 1 || true) {
+            std::swap(configs.first, configs.second);
+        }
 
         // callback functions, do not capture by reference
         const auto start = [this, configs, game_id, stm]() {

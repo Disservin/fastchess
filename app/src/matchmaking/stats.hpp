@@ -20,7 +20,7 @@ class Stats {
     Stats(const MatchData &match_data) {
         if (match_data.players.white.result == chess::GameResult::WIN) {
             wins++;
-        } else if (match_data.players.black.result == chess::GameResult::LOSE) {
+        } else if (match_data.players.white.result == chess::GameResult::LOSE) {
             losses++;
         } else {
             draws++;

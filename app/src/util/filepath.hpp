@@ -6,7 +6,7 @@
 
 namespace fast_chess::util {
 
-std::string buildPath(const std::string &dir, const std::string &path) {
+inline std::string buildPath(const std::string &dir, const std::string &path) {
     std::string full_path = (dir == "." ? "" : dir) + path;
 
 #ifndef NO_STD_FILESYSTEM

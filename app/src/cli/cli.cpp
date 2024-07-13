@@ -158,39 +158,12 @@ void parseEngineKeyValues(EngineConfiguration &engineConfig, const std::string &
         OptionsParser::throwMissing("engine", key, value);
 }
 
-void validateEnginePath([[maybe_unused]] std::string dir, [[maybe_unused]] std::string &cmd) {
-#ifndef NO_STD_FILESYSTEM
-    // engine path with dir
-    auto p = std::filesystem::path(dir) / std::filesystem::path(cmd);
-    auto engine_path   = p.string();
-
-    if (!std::filesystem::exists(engine_path)) {
-        // append .exe to cmd if it is missing on windows
-#    ifdef _WIN64
-        if (engine_path.find(".exe") == std::string::npos) {
-            auto original_path = engine_path;
-
-            cmd += ".exe";
-            engine_path += ".exe";
-        }
-        if (!std::filesystem::exists(engine_path)) {
-            throw std::runtime_error("Engine not found at: " + engine_path);
-        }
-#    else
-        throw std::runtime_error("Engine not found at: " + engine_path);
-#    endif
-    }
-#endif
-}
-
 void parseEngine(const std::vector<std::string> &params, ArgumentData &argument_data) {
     argument_data.configs.emplace_back();
 
     parseDashOptions(params, [&](const std::string &key, const std::string &value) {
         engine::parseEngineKeyValues(argument_data.configs.back(), key, value);
     });
-
-    engine::validateEnginePath(argument_data.configs.back().dir, argument_data.configs.back().cmd);
 }
 
 }  // namespace engine
@@ -557,8 +530,6 @@ void parseQuick(const std::vector<std::string> &params, ArgumentData &argument_d
             argument_data.configs.back().limit.tc.increment = 100;
 
             argument_data.configs.back().recover = true;
-
-            engine::validateEnginePath(argument_data.configs.back().dir, argument_data.configs.back().cmd);
         } else if (key == "book") {
             argument_data.tournament_config.opening.file  = value;
             argument_data.tournament_config.opening.order = OrderType::RANDOM;

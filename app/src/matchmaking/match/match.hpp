@@ -165,7 +165,7 @@ class Match {
     inline static constexpr char ILLEGAL_MSG[]          = " makes an illegal move";
     inline static constexpr char ADJUDICATION_WIN_MSG[] = " wins by adjudication";
     inline static constexpr char ADJUDICATION_MSG[]     = "Draw by adjudication";
-    inline static constexpr char FIFTY_MSG[]            = "Draw by 50-move rule";
+    inline static constexpr char FIFTY_MSG[]            = "Draw by fifty moves rule";
     inline static constexpr char STALEMATE_MSG[]        = "Draw by stalemate";
     inline static constexpr char CHECKMATE_MSG[]        = /*..*/ " mates";
     inline static constexpr char TIMEOUT_MSG[]          = /*.. */ " loses on time";

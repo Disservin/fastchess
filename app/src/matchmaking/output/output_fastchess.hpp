@@ -40,18 +40,21 @@ class Fastchess : public IOutput {
             elo = std::make_unique<elo::EloWDL>(stats);
         }
 
-        auto timeFirst  = getTime(engines.first);
-        auto timeSecond = getTime(engines.second);
+        const auto& first_engine  = engines.first.getConfig().name == first ? engines.first : engines.second;
+        const auto& second_engine = engines.first.getConfig().name == second ? engines.first : engines.second;
+
+        auto timeFirst  = getTime(first_engine);
+        auto timeSecond = getTime(second_engine);
         auto tc =
             timeFirst == timeSecond ? fmt::format("{}", timeFirst) : fmt::format("{} - {}", timeFirst, timeSecond);
 
-        auto threadsFirst  = getThreads(engines.first);
-        auto threadsSecond = getThreads(engines.second);
+        auto threadsFirst  = getThreads(first_engine);
+        auto threadsSecond = getThreads(second_engine);
         auto threads       = threadsFirst == threadsSecond ? fmt::format("{}", threadsFirst)
                                                            : fmt::format("{} - {}", threadsFirst, threadsSecond);
 
-        auto hashFirst  = getHash(engines.first);
-        auto hashSecond = getHash(engines.second);
+        auto hashFirst  = getHash(first_engine);
+        auto hashSecond = getHash(second_engine);
 
         auto hash =
             hashFirst == hashSecond ? fmt::format("{}", hashFirst) : fmt::format("{} - {}", hashFirst, hashSecond);

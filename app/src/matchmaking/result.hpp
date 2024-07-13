@@ -52,7 +52,7 @@ inline void to_json(nlohmann::ordered_json& j, const stats_map& map) {
     j = jtmp;
 }
 
-inline void from_json(const nlohmann::ordered_json& j, stats_map& map) {
+inline void from_json(const nlohmann::json& j, stats_map& map) {
     for (const auto& item : j) {
         const auto key   = item.at("key").get<std::string>();
         const auto value = item.at("value").get<Stats>();

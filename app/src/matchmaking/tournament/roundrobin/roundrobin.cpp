@@ -82,7 +82,8 @@ void RoundRobin::create() {
 
         // callback functions, do not capture by reference
         const auto start = [this, configs, game_id, stm]() {
-            output_->startGame(normalize_stm_configs(configs, stm), game_id, total_);
+            //output_->startGame(normalize_stm_configs(configs, stm), game_id, total_);
+            output_->startGame(configs, game_id, total_);
         };
 
         // callback functions, do not capture by reference

@@ -48,6 +48,25 @@ void RoundRobin::create() {
                                      std::optional<std::size_t> opening_id) {
         assert(g < 2);
 
+        constexpr static auto normalize_stm_configs = [](const pair_config& configs, const chess::Color stm) {
+            // swap players if the opening is for black, to ensure that
+            // reporting the result is always white vs black
+            if (stm == chess::Color::BLACK) {
+                return std::pair{configs.second, configs.first};
+            }
+
+            return configs;
+        };
+
+        constexpr static auto normalize_stats = [](const Stats& stats, const chess::Color stm) {
+            // swap stats if the opening is for black, to ensure that
+            // reporting the result is always white vs black
+            if (stm == chess::Color::BLACK) {
+                return ~stats;
+            }
+
+            return stats;
+        };
 
         const auto opening = (*book_)[opening_id];
 
@@ -63,13 +82,16 @@ void RoundRobin::create() {
 
         // callback functions, do not capture by reference
         const auto start = [this, configs, game_id, stm]() {
-            output_->startGame(configs, game_id, total_);
+            output_->startGame(normalize_stm_configs(configs, stm), game_id, total_);
         };
 
         // callback functions, do not capture by reference
         const auto finish = [this, configs, first, second, game_id, round_id, stm](
                                 const Stats& stats, const std::string& reason, const engines& engines) {
-            output_->endGame(configs, stats, reason, game_id);
+            const auto normalized_configs = normalize_stm_configs(configs, stm);
+            const auto normalized_stats   = normalize_stats(stats, stm);
+
+            output_->endGame(normalized_configs, normalized_stats, reason, game_id);
 
             bool report = true;
 

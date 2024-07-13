@@ -80,7 +80,8 @@ void RoundRobin::create() {
             std::swap(configs.first, configs.second);
         }
         
-        if (g == 1) {
+        if (g == 1 && ((stm == chess::Color::WHITE && config::TournamentConfig.get().games == 2) ||
+            config::TournamentConfig.get().games == 1)) {
             std::swap(configs.first, configs.second);
         }
 

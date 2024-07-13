@@ -171,10 +171,9 @@ void validateEnginePath([[maybe_unused]] std::string dir, [[maybe_unused]] std::
 
             cmd += ".exe";
             engine_path += ".exe";
-
-            if (!std::filesystem::exists(engine_path)) {
+        }
+        if (!std::filesystem::exists(engine_path)) {
                 throw std::runtime_error("Engine not found at: " + engine_path);
-            }
         }
 #    else
         throw std::runtime_error("Engine not found at: " + engine_path);

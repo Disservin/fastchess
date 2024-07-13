@@ -1,3 +1,4 @@
+#include <cstdlib>
 #include <thread>
 
 #include <cli/cli.hpp>
@@ -11,31 +12,36 @@ using namespace fast_chess;
 int main(int argc, char const* argv[]) {
     setCtrlCHandler();
 
-    auto options = cli::OptionsParser(argc, argv);
+    try {
+        auto options = cli::OptionsParser(argc, argv);
 
-    config::TournamentConfig.setup([&options]() -> std::unique_ptr<config::Tournament> {
-        auto cnf = options.getTournamentConfig();
+        config::TournamentConfig.setup([&options]() -> std::unique_ptr<config::Tournament> {
+            auto cnf = options.getTournamentConfig();
 
-        config::sanitize(cnf);
+            config::sanitize(cnf);
 
-        return std::make_unique<config::Tournament>(cnf);
-    });
+            return std::make_unique<config::Tournament>(cnf);
+        });
 
-    config::EngineConfigs.setup([&options]() -> std::unique_ptr<std::vector<EngineConfiguration>> {
-        auto cnf = options.getEngineConfigs();
+        config::EngineConfigs.setup([&options]() -> std::unique_ptr<std::vector<EngineConfiguration>> {
+            auto cnf = options.getEngineConfigs();
 
-        config::sanitize(cnf);
+            config::sanitize(cnf);
 
-        return std::make_unique<std::vector<EngineConfiguration>>(cnf);
-    });
+            return std::make_unique<std::vector<EngineConfiguration>>(cnf);
+        });
 
-    {
-        auto tour = TournamentManager(options.getResults());
+        {
+            auto tour = TournamentManager(options.getResults());
 
-        tour.start();
+            tour.start();
+        }
+
+        stopProcesses();
+    } catch (const std::exception& e) {
+        std::cerr << e.what() << std::endl;
+        return EXIT_FAILURE;
     }
-
-    stopProcesses();
 
     Logger::info("Finished match");
 

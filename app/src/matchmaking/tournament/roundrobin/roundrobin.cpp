@@ -76,12 +76,11 @@ void RoundRobin::create() {
         const auto second         = config::EngineConfigs.get()[j];
         auto configs              = std::pair{config::EngineConfigs.get()[i], config::EngineConfigs.get()[j]};
 
-        if (g == 0 && stm == chess::Color::BLACK && config::TournamentConfig.get().games == 2) {
+        if (g == 0 && stm == chess::Color::BLACK) {
             std::swap(configs.first, configs.second);
         }
         
-        if (g == 1 && ((stm == chess::Color::WHITE && config::TournamentConfig.get().games == 2) ||
-            config::TournamentConfig.get().games == 1)) {
+        if (g == 1 && stm == chess::Color::WHITE) {
             std::swap(configs.first, configs.second);
         }
 

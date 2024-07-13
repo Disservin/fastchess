@@ -10,6 +10,7 @@
 #include <types/tournament.hpp>
 #include <util/cache.hpp>
 #include <util/file_writer.hpp>
+#include <util/game_pair.hpp>
 #include <util/logger/logger.hpp>
 #include <util/threadpool.hpp>
 
@@ -70,7 +71,7 @@ class BaseTournament {
     void saveJson();
 
     // play one game and write it to the pgn file
-    void playGame(const std::pair<EngineConfiguration, EngineConfiguration> &configs, start_callback start,
+    void playGame(const GamePair<EngineConfiguration, EngineConfiguration> &configs, start_callback start,
                   finished_callback finish, const pgn::Opening &opening, std::size_t game_id);
 
     std::unique_ptr<IOutput> output_;

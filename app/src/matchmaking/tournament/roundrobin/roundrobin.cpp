@@ -48,54 +48,28 @@ void RoundRobin::create() {
                                      std::optional<std::size_t> opening_id) {
         assert(g < 2);
 
-        constexpr static auto normalize_stm_configs = [](const pair_config& configs, const chess::Color stm) {
-            // swap players if the opening is for black, to ensure that
-            // reporting the result is always white vs black
-            if (stm == chess::Color::BLACK) {
-                return std::pair{configs.second, configs.first};
-            }
-
-            return configs;
-        };
-
-        constexpr static auto normalize_stats = [](const Stats& stats, const chess::Color stm) {
-            // swap stats if the opening is for black, to ensure that
-            // reporting the result is always white vs black
-            if (stm == chess::Color::BLACK) {
-                return ~stats;
-            }
-
-            return stats;
-        };
-
-        const auto opening = (*book_)[opening_id];
-
-        const std::size_t game_id = round_id * config::TournamentConfig.get().games + (g + 1);
+        const auto opening        = (*book_)[opening_id];
         const auto stm            = opening.stm;
         const auto first          = config::EngineConfigs.get()[i];
         const auto second         = config::EngineConfigs.get()[j];
-        auto configs              = std::pair{config::EngineConfigs.get()[i], config::EngineConfigs.get()[j]};
+        const std::size_t game_id = round_id * config::TournamentConfig.get().games + (g + 1);
+
+        GamePair<EngineConfiguration, EngineConfiguration> configs = {first, second};
 
         if (g == 1) {
-            std::swap(configs.first, configs.second);
+            std::swap(configs.white, configs.black);
         }
 
-        auto fmt = fmt::format("Playing game {} between {} and {}", game_id, configs.first.name, configs.second.name);
-
-        std::cout << fmt << std::endl;
-
         // callback functions, do not capture by reference
-        const auto start = [this, configs, game_id, stm]() {
-            output_->startGame(normalize_stm_configs(configs, stm), game_id, total_);
-        };
+        const auto start = [this, configs, game_id, stm]() { output_->startGame(configs, game_id, total_); };
 
         // callback functions, do not capture by reference
         const auto finish = [this, configs, first, second, game_id, round_id, stm](
                                 const Stats& stats, const std::string& reason, const engines& engines) {
-            const auto normalized_configs = normalize_stm_configs(configs, stm);
-            const auto normalized_stats   = normalize_stats(stats, stm);
+            const auto normalized_configs = configs;
+            const auto normalized_stats   = stats;
 
-            output_->endGame(normalized_configs, normalized_stats, reason, game_id);
+            output_->endGame(configs, normalized_stats, reason, game_id);
 
             bool report = true;
 

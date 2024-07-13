@@ -38,8 +38,8 @@ struct PlayerPairKey {
     };
 };
 
-using stats_map   = std::unordered_map<PlayerPairKey, Stats, PlayerPairKey::Hash>;
-using pair_config = std::pair<EngineConfiguration, EngineConfiguration>;
+using stats_map = std::unordered_map<PlayerPairKey, Stats, PlayerPairKey::Hash>;
+// using pair_config = std::pair<EngineConfiguration, EngineConfiguration>;
 
 inline void to_json(nlohmann::ordered_json& j, const stats_map& map) {
     nlohmann::ordered_json jtmp;
@@ -64,12 +64,12 @@ inline void from_json(const nlohmann::ordered_json& j, stats_map& map) {
 
 class StatsMap {
    public:
-    Stats& operator[](const pair_config& configs) noexcept {
-        return results_[PlayerPairKey(configs.first.name, configs.second.name)];
+    Stats& operator[](const GamePair<EngineConfiguration, EngineConfiguration>& configs) noexcept {
+        return results_[PlayerPairKey(configs.white.name, configs.black.name)];
     }
 
-    const Stats& operator[](const pair_config& configs) const noexcept {
-        return results_.at(PlayerPairKey(configs.first.name, configs.second.name));
+    const Stats& operator[](const GamePair<EngineConfiguration, EngineConfiguration>& configs) const noexcept {
+        return results_.at(PlayerPairKey(configs.white.name, configs.black.name));
     }
 
     Stats& operator[](const std::pair<std::string, std::string>& players) noexcept {
@@ -89,13 +89,14 @@ class StatsMap {
 class Result {
    public:
     // Updates the stats of engine1 vs engine2
-    void updateStats(const pair_config& configs, const Stats& stats) noexcept {
+    void updateStats(const GamePair<EngineConfiguration, EngineConfiguration>& configs, const Stats& stats) noexcept {
         std::lock_guard<std::mutex> lock(results_mutex_);
         results_[configs] += stats;
     }
 
     // Update the stats in pair batches to keep track of pentanomial stats.
-    [[nodiscard]] bool updatePairStats(const pair_config& configs, const Stats& stats, uint64_t round_id) noexcept {
+    [[nodiscard]] bool updatePairStats(const GamePair<EngineConfiguration, EngineConfiguration>& configs,
+                                       const Stats& stats, uint64_t round_id) noexcept {
         std::lock_guard<std::mutex> lock(game_pair_cache_mutex_);
 
         const auto is_first_game = game_pair_cache_.find(round_id) == game_pair_cache_.end();

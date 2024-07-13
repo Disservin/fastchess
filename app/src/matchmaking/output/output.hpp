@@ -12,7 +12,7 @@
 
 namespace fast_chess {
 
-using pair_config = std::pair<EngineConfiguration, EngineConfiguration>;
+// using pair_config = GamePair<EngineConfiguration, EngineConfiguration>;
 
 namespace engine {
 class UciEngine;
@@ -46,11 +46,12 @@ class IOutput {
     virtual std::string printSprt(const SPRT& sprt, const Stats& stats) = 0;
 
     // Print game start.
-    virtual void startGame(const pair_config& configs, std::size_t current_game_count, std::size_t max_game_count) = 0;
+    virtual void startGame(const GamePair<EngineConfiguration, EngineConfiguration>& configs,
+                           std::size_t current_game_count, std::size_t max_game_count) = 0;
 
     // Print game end.
-    virtual void endGame(const pair_config& configs, const Stats& stats, const std::string& annotation,
-                         std::size_t id) = 0;
+    virtual void endGame(const GamePair<EngineConfiguration, EngineConfiguration>& configs, const Stats& stats,
+                         const std::string& annotation, std::size_t id) = 0;
 
     // Print tournament end.
     virtual void endTournament() = 0;

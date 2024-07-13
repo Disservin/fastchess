@@ -20,19 +20,18 @@ class Fastchess : public IOutput {
 
     void printInterval(const SPRT& sprt, const Stats& stats, const std::string& first, const std::string& second,
                        const engines& engines, const std::string& book) override {
-        std::cout <<
-        "--------------------------------------------------\n" <<
-        printElo(stats, first, second, engines, book) <<
-        printSprt(sprt, stats) <<
-        "--------------------------------------------------\n" << std::flush;
+        std::cout << "--------------------------------------------------\n"
+                  << printElo(stats, first, second, engines, book) << printSprt(sprt, stats)
+                  << "--------------------------------------------------\n"
+                  << std::flush;
     };
 
     void printResult(const Stats&, const std::string&, const std::string&) override {
         // do nothing
     }
 
-    std::string printElo(const Stats& stats, const std::string& first, const std::string& second, const engines& engines,
-                  const std::string& book) override {
+    std::string printElo(const Stats& stats, const std::string& first, const std::string& second,
+                         const engines& engines, const std::string& book) override {
         std::unique_ptr<elo::EloBase> elo;
 
         if (report_penta_) {
@@ -54,8 +53,8 @@ class Fastchess : public IOutput {
         auto hashFirst  = getHash(engines.first);
         auto hashSecond = getHash(engines.second);
 
-        auto hash = hashFirst == hashSecond ? fmt::format("{}", hashFirst)
-                                            : fmt::format("{} - {}", hashFirst, hashSecond);
+        auto hash =
+            hashFirst == hashSecond ? fmt::format("{}", hashFirst) : fmt::format("{} - {}", hashFirst, hashSecond);
 
         const auto games       = stats.wins + stats.losses + stats.draws;
         const auto points      = stats.wins + 0.5 * stats.draws;
@@ -82,8 +81,9 @@ class Fastchess : public IOutput {
                                  stats.wins, stats.losses, stats.draws, points, pointsRatio);
 
         if (report_penta_) {
-            auto line5 = fmt::format("Ptnml(0-2): [{}, {}, {}, {}, {}], WL/DD Ratio: {:.2f}", stats.penta_LL, stats.penta_LD,
-                                     stats.penta_WL + stats.penta_DD, stats.penta_WD, stats.penta_WW, WLDDRatio);
+            auto line5 =
+                fmt::format("Ptnml(0-2): [{}, {}, {}, {}, {}], WL/DD Ratio: {:.2f}", stats.penta_LL, stats.penta_LD,
+                            stats.penta_WL + stats.penta_DD, stats.penta_WD, stats.penta_WW, WLDDRatio);
 
             return fmt::format("{}\n{}\n{}\n{}\n{}\n", line1, line2, line3, line4, line5);
         }
@@ -102,16 +102,17 @@ class Fastchess : public IOutput {
         return "";
     }
 
-    void startGame(const pair_config& configs, std::size_t current_game_count, std::size_t max_game_count) override {
+    void startGame(const GamePair<EngineConfiguration, EngineConfiguration>& configs, std::size_t current_game_count,
+                   std::size_t max_game_count) override {
         auto fmt = fmt::format("Started game {} of {} ({} vs {})\n", current_game_count, max_game_count,
-                               configs.first.name, configs.second.name);
+                               configs.white.name, configs.black.name);
 
         std::cout << fmt << std::flush;
     }
 
-    void endGame(const pair_config& configs, const Stats& stats, const std::string& annotation,
-                 std::size_t id) override {
-        auto fmt = fmt::format("Finished game {} ({} vs {}): {} {{{}}}\n", id, configs.first.name, configs.second.name,
+    void endGame(const GamePair<EngineConfiguration, EngineConfiguration>& configs, const Stats& stats,
+                 const std::string& annotation, std::size_t id) override {
+        auto fmt = fmt::format("Finished game {} ({} vs {}): {} {{{}}}\n", id, configs.white.name, configs.black.name,
                                formatStats(stats), annotation);
 
         std::cout << fmt << std::flush;
@@ -144,12 +145,12 @@ class Fastchess : public IOutput {
 
     std::string getThreads(const engine::UciEngine& engine) {
         return fmt::format("{}{}", engine.getUciOptionValue("Threads").value_or("NULL"),
-                                   engine.getUciOptionValue("Threads").has_value() ? "t" : "");
+                           engine.getUciOptionValue("Threads").has_value() ? "t" : "");
     }
 
     std::string getHash(const engine::UciEngine& engine) {
         return fmt::format("{}{}", engine.getUciOptionValue("Hash").value_or("NULL"),
-                                   engine.getUciOptionValue("Hash").has_value() ? "MB" : "");
+                           engine.getUciOptionValue("Hash").has_value() ? "MB" : "");
     }
 
     bool report_penta_;

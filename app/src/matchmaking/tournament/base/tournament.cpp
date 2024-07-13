@@ -65,7 +65,7 @@ void BaseTournament::stop() {
     pool_.kill();
 }
 
-void BaseTournament::playGame(const std::pair<EngineConfiguration, EngineConfiguration> &engine_configs,
+void BaseTournament::playGame(const GamePair<EngineConfiguration, EngineConfiguration> &engine_configs,
                               start_callback start, finished_callback finish, const pgn::Opening &opening,
                               std::size_t game_id) {
     if (atomic::stop) return;
@@ -73,31 +73,31 @@ void BaseTournament::playGame(const std::pair<EngineConfiguration, EngineConfigu
     const auto &config = config::TournamentConfig.get();
     const auto core    = util::ScopeGuard(cores_->consume());
 
-    auto engine_one = util::ScopeGuard(
-        engine_cache_.getEntry(engine_configs.first.name, engine_configs.first, config.realtime_logging));
-    auto engine_two = util::ScopeGuard(
-        engine_cache_.getEntry(engine_configs.second.name, engine_configs.second, config.realtime_logging));
+    auto engine_white = util::ScopeGuard(
+        engine_cache_.getEntry(engine_configs.white.name, engine_configs.black, config.realtime_logging));
+    auto engine_black = util::ScopeGuard(
+        engine_cache_.getEntry(engine_configs.black.name, engine_configs.black, config.realtime_logging));
 
-    Logger::trace("Playing game {} between {} and {}", game_id + 1, engine_configs.first.name,
-                  engine_configs.second.name);
+    Logger::trace("Playing game {} between {} and {}", game_id + 1, engine_configs.white.name,
+                  engine_configs.black.name);
 
     start();
 
     auto match = Match(opening);
-    match.start(engine_one.get().get(), engine_two.get().get(), core.get().cpus);
+    match.start(engine_white.get().get(), engine_black.get().get(), core.get().cpus);
 
     if (match.isCrashOrDisconnect()) {
         // restart the engine when recover is enabled
         if (config.recover) {
             Logger::trace("Restarting engine...");
-            if (!engine_one.get().get().isready()) {
-                Logger::trace("Restarting engine {}", engine_configs.first.name);
-                engine_one.get().get().refreshUci();
+            if (!engine_white.get().get().isready()) {
+                Logger::trace("Restarting engine {}", engine_configs.white.name);
+                engine_white.get().get().refreshUci();
             }
 
-            if (!engine_two.get().get().isready()) {
-                Logger::trace("Restarting engine {}", engine_configs.second.name);
-                engine_two.get().get().refreshUci();
+            if (!engine_black.get().get().isready()) {
+                Logger::trace("Restarting engine {}", engine_configs.black.name);
+                engine_black.get().get().refreshUci();
             }
         } else {
             atomic::stop = true;
@@ -112,7 +112,7 @@ void BaseTournament::playGame(const std::pair<EngineConfiguration, EngineConfigu
             file_writer_pgn->write(pgn::PgnBuilder(config.pgn, match_data, game_id + 1).get());
         if (!config.epd.file.empty()) file_writer_epd->write(epd::EpdBuilder(config.variant, match_data).get());
 
-        finish({match_data}, match_data.reason, {engine_one.get().get(), engine_two.get().get()});
+        finish({match_data}, match_data.reason, {engine_white.get().get(), engine_black.get().get()});
     }
 }
 

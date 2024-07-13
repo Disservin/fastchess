@@ -131,10 +131,11 @@ class OptionsParser {
                 options_.at(arg)(params, argument_data_);
 
             } catch (const std::exception &e) {
-                auto err = fmt::format("\nError while reading option \"{}\" with value \"{}\"\nReason: {}\n", arg,
-                                       std::string(argv[i]), e.what());
+                auto err =
+                    fmt::format("Error while reading option \"{}\" with value \"{}\"", arg, std::string(argv[i]));
+                auto msg = fmt::format("Reason: {}", e.what());
 
-                throw std::runtime_error(err);
+                throw std::runtime_error(err + "\n" + msg);
             }
         }
     }

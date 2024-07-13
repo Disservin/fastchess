@@ -135,7 +135,7 @@ void parseEngineKeyValues(EngineConfiguration &engineConfig, const std::string &
     else if (key == "timemargin") {
         engineConfig.limit.tc.timemargin = std::stoi(value);
         if (engineConfig.limit.tc.timemargin < 0) {
-            throw std::runtime_error("Error; timemargin cannot be a negative number");
+            throw std::runtime_error("The value for timemargin cannot be a negative number.");
         }
     } else if (key == "nodes")
         engineConfig.limit.nodes = std::stoll(value);
@@ -152,17 +152,17 @@ void parseEngineKeyValues(EngineConfiguration &engineConfig, const std::string &
         engineConfig.options.emplace_back(strippedKey, value);
     } else if (key == "proto") {
         if (value != "uci") {
-            throw std::runtime_error("Error; unsupported protocol");
+            throw std::runtime_error("Unsupported protocol.");
         }
     } else
         OptionsParser::throwMissing("engine", key, value);
 }
 
-void validateEnginePath(std::string dir, std::string &cmd) {
+void validateEnginePath([[maybe_unused]] std::string dir, [[maybe_unused]] std::string &cmd) {
+#ifndef NO_STD_FILESYSTEM
     // engine path with dir
     auto engine_path = (dir == "." ? "" : dir) + cmd;
 
-#ifndef NO_STD_FILESYSTEM
     if (!std::filesystem::exists(engine_path)) {
         // append .exe to cmd if it is missing on windows
 #    ifdef _WIN64
@@ -173,12 +173,11 @@ void validateEnginePath(std::string dir, std::string &cmd) {
             engine_path += ".exe";
 
             if (!std::filesystem::exists(engine_path)) {
-                throw std::runtime_error("Error; Engine not found: " + original_path);
+                throw std::runtime_error("Engine not found at: " + engine_path);
             }
         }
 #    else
-        throw std::runtime_error("Error; Engine not found: " + engine_path);
-
+        throw std::runtime_error("Engine not found at: " + engine_path);
 #    endif
     }
 #endif
@@ -241,7 +240,7 @@ void parsePgnOut(const std::vector<std::string> &params, ArgumentData &argument_
         argument_data.tournament_config.pgn.min  = std::find(params.begin(), params.end(), "min") != params.end();
     }
     if (argument_data.tournament_config.pgn.file.empty())
-        throw std::runtime_error("Error; Please specify filename for pgn output.");
+        throw std::runtime_error("Please specify filename for pgn output.");
 }
 
 void parseEpdOut(const std::vector<std::string> &params, ArgumentData &argument_data) {
@@ -258,7 +257,7 @@ void parseEpdOut(const std::vector<std::string> &params, ArgumentData &argument_
         parseValue(params, argument_data.tournament_config.epd.file);
     }
     if (argument_data.tournament_config.epd.file.empty())
-        throw std::runtime_error("Error; Please specify filename for epd output.");
+        throw std::runtime_error("Please specify filename for epd output.");
 }
 
 void parseOpening(const std::vector<std::string> &params, ArgumentData &argument_data) {
@@ -299,7 +298,7 @@ void parseOpening(const std::vector<std::string> &params, ArgumentData &argument
             if (argument_data.tournament_config.opening.start < 1)
                 throw std::runtime_error("Starting offset must be at least 1!");
         } else if (key == "policy") {
-            if (value != "round") throw std::runtime_error("Error; Unsupported opening book policy");
+            if (value != "round") throw std::runtime_error("Unsupported opening book policy.");
         } else {
             OptionsParser::throwMissing("openings", key, value);
         }
@@ -342,7 +341,7 @@ void parseDraw(const std::vector<std::string> &params, ArgumentData &argument_da
             if (std::stoi(value) >= 0) {
                 argument_data.tournament_config.draw.score = std::stoi(value);
             } else {
-                throw std::runtime_error("Score cannot be negative");
+                throw std::runtime_error("Score cannot be negative.");
             }
         } else {
             OptionsParser::throwMissing("draw", key, value);
@@ -362,7 +361,7 @@ void parseResign(const std::vector<std::string> &params, ArgumentData &argument_
             if (std::stoi(value) >= 0) {
                 argument_data.tournament_config.resign.score = std::stoi(value);
             } else {
-                throw std::runtime_error("Score cannot be negative");
+                throw std::runtime_error("Score cannot be negative.");
             }
         } else {
             OptionsParser::throwMissing("resign", key, value);
@@ -406,7 +405,7 @@ void parseLog(const std::vector<std::string> &params, ArgumentData &argument_dat
             OptionsParser::throwMissing("log", key, value);
         }
     });
-    if (filename.empty()) throw std::runtime_error("Error; Please specify filename for log output.");
+    if (filename.empty()) throw std::runtime_error("Please specify filename for log output.");
     Logger::openFile(filename);
 }
 
@@ -538,7 +537,7 @@ void parseVariant(const std::vector<std::string> &params, ArgumentData &argument
     parseValue(params, val);
 
     if (val == "fischerandom") argument_data.tournament_config.variant = VariantType::FRC;
-    if (val != "fischerandom" && val != "standard") throw std::runtime_error("Error; Unknown variant");
+    if (val != "fischerandom" && val != "standard") throw std::runtime_error("Unknown variant.");
 }
 
 void parseTournament(const std::vector<std::string> &params, ArgumentData &) {
@@ -568,7 +567,7 @@ void parseQuick(const std::vector<std::string> &params, ArgumentData &argument_d
             else if (str_utils::endsWith(value, ".epd"))
                 argument_data.tournament_config.opening.format = FormatType::EPD;
             else
-                throw std::runtime_error("Error; please include the .png or .epd file extension for the opening book");
+                throw std::runtime_error("Please include the .png or .epd file extension for the opening book.");
         } else {
             OptionsParser::throwMissing("quick", key, value);
         }
@@ -602,7 +601,7 @@ void parseAffinity(const std::vector<std::string> &, ArgumentData &argument_data
 void parseDebug(const std::vector<std::string> &, ArgumentData &) {
     // throw error
     std::string error_message =
-        "Error; 'debug' option does not exist in fast-chess."
+        "The 'debug' option does not exist in fast-chess."
         " Use the 'log' option instead to write all engine input"
         " and output into a text file.";
     throw std::runtime_error(error_message);

@@ -180,12 +180,21 @@ void UciEngine::sendSetoption(const std::string &name, const std::string &value)
 void UciEngine::start() {
     if (initialized_) return;
 
+#ifdef _WIN64
+    if (config_.cmd.find(".exe") == std::string::npos) {
+        config_.cmd += ".exe";
+    }
+#endif
+
     std::string path = (config_.dir == "." ? "" : config_.dir) + config_.cmd;
 
 #ifndef NO_STD_FILESYSTEM
     // convert path to a filesystem path
     auto p = std::filesystem::path(config_.dir) / std::filesystem::path(config_.cmd);
     path   = p.string();
+    if (!std::filesystem::exists(path)) {
+        throw std::runtime_error("Engine not found at: " + path);
+    }
 #endif
 
     Logger::trace<true>("Starting engine {} at {}", config_.name, path);

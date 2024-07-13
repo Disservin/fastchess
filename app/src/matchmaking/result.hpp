@@ -53,11 +53,11 @@ inline void to_json(nlohmann::ordered_json& j, const stats_map& map) {
 }
 
 inline void from_json(const nlohmann::json& j, stats_map& map) {
-    for (const auto& item : j) {
-        const auto key   = item.at("key").get<std::string>();
-        const auto value = item.at("value").get<Stats>();
+    for (const auto& [key, value] : j.items()) {
+        const auto first  = key.substr(0, key.find(" vs "));
+        const auto second = key.substr(key.find(" vs ") + 4);
 
-        map[PlayerPairKey(key.substr(0, key.find(" vs ")), key.substr(key.find(" vs ") + 4))] = value;
+        map[PlayerPairKey(first, second)] = value;
     }
 }
 

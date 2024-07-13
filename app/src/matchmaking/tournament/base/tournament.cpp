@@ -47,7 +47,8 @@ void BaseTournament::saveJson() {
 
     nlohmann::ordered_json jsonfile = config;
     jsonfile["engines"]             = config::EngineConfigs.get();
-    jsonfile["stats"]               = getResults();
+    // @TODO
+    jsonfile["stats"] = getResults();
 
     auto filename = config.config_name.empty() ? "config.json" : config.config_name;
 

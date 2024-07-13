@@ -80,6 +80,10 @@ void RoundRobin::create() {
             std::swap(configs.first, configs.second);
         }
 
+        auto fmt = fmt::format("Playing game {} between {} and {}", game_id, configs.first.name, configs.second.name);
+
+        std::cout << fmt << std::endl;
+
         // callback functions, do not capture by reference
         const auto start = [this, configs, game_id, stm]() {
             output_->startGame(normalize_stm_configs(configs, stm), game_id, total_);
@@ -96,9 +100,10 @@ void RoundRobin::create() {
             bool report = true;
 
             if (config::TournamentConfig.get().report_penta)
-                report = result_.updatePairStats(configs, first.name, stats, round_id);
-            else
+                report = result_.updatePairStats(configs, stats, round_id);
+            else {
                 result_.updateStats(configs, stats);
+            }
 
             // round_id and match_count_ starts 0 so we add 1
             const auto ratinginterval_index =

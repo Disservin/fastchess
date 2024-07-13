@@ -39,7 +39,6 @@ struct PlayerPairKey {
 };
 
 using stats_map = std::unordered_map<PlayerPairKey, Stats, PlayerPairKey::Hash>;
-// using pair_config = std::pair<EngineConfiguration, EngineConfiguration>;
 
 inline void to_json(nlohmann::ordered_json& j, const stats_map& map) {
     nlohmann::ordered_json jtmp;

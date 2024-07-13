@@ -12,8 +12,6 @@
 
 namespace fast_chess {
 
-// using pair_config = GamePair<EngineConfiguration, EngineConfiguration>;
-
 namespace engine {
 class UciEngine;
 }

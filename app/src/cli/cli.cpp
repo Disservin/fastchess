@@ -426,7 +426,7 @@ void loadJson(ArgumentData &argument_data, const std::string &filename) {
         argument_data.configs.push_back(engine.get<EngineConfiguration>());
     }
 
-    // argument_data.stats = jsonfile["stats"].get<stats_map>();
+    argument_data.stats = jsonfile["stats"].get<stats_map>();
 }
 
 void parseConfig(const std::vector<std::string> &params, ArgumentData &argument_data) {

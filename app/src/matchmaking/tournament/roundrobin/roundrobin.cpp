@@ -66,37 +66,31 @@ void RoundRobin::create() {
         // callback functions, do not capture by reference
         const auto finish = [this, configs, first, second, game_id, round_id, stm](
                                 const Stats& stats, const std::string& reason, const engines& engines) {
-            const auto normalized_configs = configs;
-            const auto normalized_stats   = stats;
+            output_->endGame(configs, stats, reason, game_id);
 
-            output_->endGame(configs, normalized_stats, reason, game_id);
+            const auto& cfg = config::TournamentConfig.get();
+            bool report     = true;
 
-            bool report = true;
-
-            if (config::TournamentConfig.get().report_penta)
+            if (cfg.report_penta)
                 report = result_.updatePairStats(configs, stats, round_id);
             else {
                 result_.updateStats(configs, stats);
             }
 
             // round_id and match_count_ starts 0 so we add 1
-            const auto ratinginterval_index =
-                config::TournamentConfig.get().report_penta ? round_id + 1 : match_count_ + 1;
-            const auto scoreinterval_index = match_count_ + 1;
-            const auto updated_stats       = result_.getStats(first.name, second.name);
+            const auto ratinginterval_index = cfg.report_penta ? round_id + 1 : match_count_ + 1;
+            const auto scoreinterval_index  = match_count_ + 1;
+            const auto updated_stats        = result_.getStats(first.name, second.name);
 
             // print score result based on scoreinterval if output format is cutechess
-            if ((scoreinterval_index % config::TournamentConfig.get().scoreinterval == 0) ||
-                match_count_ + 1 == total_) {
+            if ((scoreinterval_index % cfg.scoreinterval == 0) || match_count_ + 1 == total_) {
                 output_->printResult(updated_stats, first.name, second.name);
             }
 
             // Only print the interval if the pair is complete or we are not tracking
             // penta stats.
-            if ((report && ratinginterval_index % config::TournamentConfig.get().ratinginterval == 0) ||
-                match_count_ + 1 == total_) {
-                output_->printInterval(sprt_, updated_stats, first.name, second.name, engines,
-                                       config::TournamentConfig.get().opening.file);
+            if ((report && ratinginterval_index % cfg.ratinginterval == 0) || match_count_ + 1 == total_) {
+                output_->printInterval(sprt_, updated_stats, first.name, second.name, engines, cfg.opening.file);
             }
 
             updateSprtStatus({first, second}, engines);

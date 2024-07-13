@@ -161,7 +161,7 @@ void parseEngineKeyValues(EngineConfiguration &engineConfig, const std::string &
 void validateEnginePath([[maybe_unused]] std::string dir, [[maybe_unused]] std::string &cmd) {
 #ifndef NO_STD_FILESYSTEM
     // engine path with dir
-    auto p = std::filesystem::path(config_.dir) / std::filesystem::path(config_.cmd);
+    auto p = std::filesystem::path(dir) / std::filesystem::path(cmd);
     auto engine_path   = p.string();
 
     if (!std::filesystem::exists(engine_path)) {

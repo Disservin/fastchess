@@ -61,10 +61,10 @@ void RoundRobin::create() {
         }
 
         // callback functions, do not capture by reference
-        const auto start = [this, configs, game_id, stm]() { output_->startGame(configs, game_id, total_); };
+        const auto start = [this, configs, game_id]() { output_->startGame(configs, game_id, total_); };
 
         // callback functions, do not capture by reference
-        const auto finish = [this, configs, first, second, game_id, round_id, stm](
+        const auto finish = [this, configs, first, second, game_id, round_id](
                                 const Stats& stats, const std::string& reason, const engines& engines) {
             output_->endGame(configs, stats, reason, game_id);
 

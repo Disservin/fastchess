@@ -165,6 +165,10 @@ bool Match::playMove(Player& us, Player& them) {
         return false;
     }
 
+    if (adjudicate(us, them)) {
+        return false;
+    }
+
     // disconnect
     if (!us.engine.isready()) {
         setEngineCrashStatus(us, them);
@@ -261,7 +265,7 @@ bool Match::playMove(Player& us, Player& them) {
     resign_tracker_.update(score, type, ~board_.sideToMove());
     maxmoves_tracker_.update(score, type);
 
-    return !adjudicate(us, them);
+    return true;
 }
 
 bool Match::isLegal(Move move) const noexcept {

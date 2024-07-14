@@ -17,7 +17,7 @@ class Cutechess : public IOutput {
     void printResult(const Stats& stats, const std::string& first, const std::string& second) override {
         const elo::EloWDL elo(stats);
 
-        auto fmt = fmt::format("Score of {} vs {}: {} - {} - {} [{}] {}\n", first, second, stats.wins, stats.losses,
+        auto fmt = fmt::format("Score of {} vs {}: {} - {} - {}  [{}] {}\n", first, second, stats.wins, stats.losses,
                                stats.draws, elo.printScore(), stats.wins + stats.losses + stats.draws);
 
         std::cout << fmt << std::flush;

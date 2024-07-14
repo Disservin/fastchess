@@ -13,13 +13,13 @@ class Cutechess : public IOutput {
         std::cout << printElo(stats, first, second, engines, book) << printSprt(sprt, stats) << std::flush;
     };
 
-    void printResult(const Stats& stats, const std::string& first, const std::string& second) override {
+    std::string printResult(const Stats& stats, const std::string& first, const std::string& second) override {
         const elo::EloWDL elo(stats);
 
         auto fmt = fmt::format("Score of {} vs {}: {} - {} - {}  [{}] {}\n", first, second, stats.wins, stats.losses,
                                stats.draws, elo.printScore(), stats.wins + stats.losses + stats.draws);
 
-        std::cout << fmt << std::flush;
+        return fmt;
     }
 
     std::string printElo(const Stats& stats, const std::string&, const std::string&, const engines&,

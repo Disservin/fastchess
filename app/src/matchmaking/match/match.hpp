@@ -107,7 +107,7 @@ class Match {
     Match(const pgn::Opening& opening) : opening_(opening) {}
 
     // starts the match
-    void start(engine::UciEngine& engine1, engine::UciEngine& engine2, const std::vector<int>& cpus);
+    void start(engine::UciEngine& white, engine::UciEngine& black, const std::vector<int>& cpus);
 
     // returns the match data, only valid after the match has finished
     [[nodiscard]] const MatchData& get() const { return data_; }

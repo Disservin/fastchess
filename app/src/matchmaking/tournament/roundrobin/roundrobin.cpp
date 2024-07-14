@@ -48,76 +48,49 @@ void RoundRobin::create() {
                                      std::optional<std::size_t> opening_id) {
         assert(g < 2);
 
-        constexpr static auto normalize_stm_configs = [](const pair_config& configs, const chess::Color stm) {
-            // swap players if the opening is for black, to ensure that
-            // reporting the result is always white vs black
-            if (stm == chess::Color::BLACK) {
-                return std::pair{configs.second, configs.first};
-            }
-
-            return configs;
-        };
-
-        constexpr static auto normalize_stats = [](const Stats& stats, const chess::Color stm) {
-            // swap stats if the opening is for black, to ensure that
-            // reporting the result is always white vs black
-            if (stm == chess::Color::BLACK) {
-                return ~stats;
-            }
-
-            return stats;
-        };
-
-        const auto opening = (*book_)[opening_id];
-
-        const std::size_t game_id = round_id * config::TournamentConfig.get().games + (g + 1);
+        const auto opening        = (*book_)[opening_id];
         const auto stm            = opening.stm;
         const auto first          = config::EngineConfigs.get()[i];
         const auto second         = config::EngineConfigs.get()[j];
-        auto configs              = std::pair{config::EngineConfigs.get()[i], config::EngineConfigs.get()[j]};
+        const std::size_t game_id = round_id * config::TournamentConfig.get().games + (g + 1);
+
+        GamePair<EngineConfiguration, EngineConfiguration> configs = {first, second};
 
         if (g == 1) {
-            std::swap(configs.first, configs.second);
+            std::swap(configs.white, configs.black);
         }
 
         // callback functions, do not capture by reference
-        const auto start = [this, configs, game_id, stm]() {
-            output_->startGame(normalize_stm_configs(configs, stm), game_id, total_);
-        };
+        const auto start = [this, configs, game_id, stm]() { output_->startGame(configs, game_id, total_); };
 
         // callback functions, do not capture by reference
         const auto finish = [this, configs, first, second, game_id, round_id, stm](
                                 const Stats& stats, const std::string& reason, const engines& engines) {
-            const auto normalized_configs = normalize_stm_configs(configs, stm);
-            const auto normalized_stats   = normalize_stats(stats, stm);
+            output_->endGame(configs, stats, reason, game_id);
 
-            output_->endGame(normalized_configs, normalized_stats, reason, game_id);
+            const auto& cfg = config::TournamentConfig.get();
+            bool report     = true;
 
-            bool report = true;
-
-            if (config::TournamentConfig.get().report_penta)
-                report = result_.updatePairStats(configs, first.name, stats, round_id);
-            else
+            if (cfg.report_penta)
+                report = result_.updatePairStats(configs, stats, round_id);
+            else {
                 result_.updateStats(configs, stats);
+            }
 
             // round_id and match_count_ starts 0 so we add 1
-            const auto ratinginterval_index =
-                config::TournamentConfig.get().report_penta ? round_id + 1 : match_count_ + 1;
-            const auto scoreinterval_index = match_count_ + 1;
-            const auto updated_stats       = result_.getStats(first.name, second.name);
+            const auto ratinginterval_index = cfg.report_penta ? round_id + 1 : match_count_ + 1;
+            const auto scoreinterval_index  = match_count_ + 1;
+            const auto updated_stats        = result_.getStats(first.name, second.name);
 
             // print score result based on scoreinterval if output format is cutechess
-            if ((scoreinterval_index % config::TournamentConfig.get().scoreinterval == 0) ||
-                match_count_ + 1 == total_) {
+            if ((scoreinterval_index % cfg.scoreinterval == 0) || match_count_ + 1 == total_) {
                 output_->printResult(updated_stats, first.name, second.name);
             }
 
             // Only print the interval if the pair is complete or we are not tracking
             // penta stats.
-            if ((report && ratinginterval_index % config::TournamentConfig.get().ratinginterval == 0) ||
-                match_count_ + 1 == total_) {
-                output_->printInterval(sprt_, updated_stats, first.name, second.name, engines,
-                                       config::TournamentConfig.get().opening.file);
+            if ((report && ratinginterval_index % cfg.ratinginterval == 0) || match_count_ + 1 == total_) {
+                output_->printInterval(sprt_, updated_stats, first.name, second.name, engines, cfg.opening.file);
             }
 
             updateSprtStatus({first, second}, engines);

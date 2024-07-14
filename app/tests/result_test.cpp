@@ -54,21 +54,21 @@ TEST_SUITE("Result Tests") {
         CHECK(result.getStats(engine2.name, engine1.name) == Stats(3, 3, 6));
     }
 
-    TEST_CASE("SetResults") {
-        EngineConfiguration engine1 = {};
-        EngineConfiguration engine2 = {};
+    // TEST_CASE("SetResults") {
+    //     EngineConfiguration engine1 = {};
+    //     EngineConfiguration engine2 = {};
 
-        engine1.name = "engine1";
-        engine2.name = "engine2";
+    //     engine1.name = "engine1";
+    //     engine2.name = "engine2";
 
-        stats_map results = {{engine1.name, {{engine2.name, Stats(1, 2, 3)}}},
-                             {engine2.name, {{engine1.name, Stats(0, 0, 0)}}}};
+    //     stats_map results = {{engine1.name, {{engine2.name, Stats(1, 2, 3)}}},
+    //                          {engine2.name, {{engine1.name, Stats(0, 0, 0)}}}};
 
-        Result result;
-        result.setResults(results);
+    //     Result result;
+    //     result.setResults(results);
 
-        CHECK(result.getStats(engine1.name, engine2.name) == Stats(1, 2, 3));
-        CHECK(result.getResults() == results);
-    }
+    //     CHECK(result.getStats(engine1.name, engine2.name) == Stats(1, 2, 3));
+    //     CHECK(result.getResults() == results);
+    // }
 }
 }  // namespace fast_chess

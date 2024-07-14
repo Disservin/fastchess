@@ -55,7 +55,7 @@ void RoundRobin::create() {
 
         GamePair<EngineConfiguration, EngineConfiguration> configs = {first, second};
 
-        if (g == 1) {
+        if (g == 1 && !config::TournamentConfig.get().noswap) {
             std::swap(configs.white, configs.black);
         }
 

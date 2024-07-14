@@ -65,7 +65,6 @@ void RoundRobin::create() {
         // callback functions, do not capture by reference
         const auto finish = [this, configs, first, second, game_id, round_id](
                                 const Stats& stats, const std::string& reason, const engines& engines) {
-
             const auto& cfg = config::TournamentConfig.get();
 
             // lock to avoid chaotic output, i.e.

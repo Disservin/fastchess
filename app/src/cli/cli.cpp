@@ -3,7 +3,7 @@
 #include <random>
 
 #include <matchmaking/output/output_factory.hpp>
-#include <matchmaking/result.hpp>
+#include <matchmaking/scoreboard.hpp>
 #include <types/engine_config.hpp>
 #include <types/tournament.hpp>
 #include <util/file_system.hpp>

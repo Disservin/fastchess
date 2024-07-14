@@ -7,7 +7,7 @@
 #include <matchmaking/match/match.hpp>
 #include <matchmaking/output/output.hpp>
 #include <matchmaking/output/output_factory.hpp>
-#include <matchmaking/result.hpp>
+#include <matchmaking/scoreboard.hpp>
 #include <pgn/pgn_builder.hpp>
 #include <types/tournament.hpp>
 #include <util/cache.hpp>

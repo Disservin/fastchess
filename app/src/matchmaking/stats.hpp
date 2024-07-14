@@ -18,9 +18,9 @@ class Stats {
         penta_WW = ww;
     }
     Stats(const MatchData &match_data) {
-        if (match_data.players.first.result == chess::GameResult::WIN) {
+        if (match_data.players.white.result == chess::GameResult::WIN) {
             wins++;
-        } else if (match_data.players.first.result == chess::GameResult::LOSE) {
+        } else if (match_data.players.white.result == chess::GameResult::LOSE) {
             losses++;
         } else {
             draws++;

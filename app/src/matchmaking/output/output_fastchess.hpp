@@ -26,8 +26,9 @@ class Fastchess : public IOutput {
                   << std::flush;
     };
 
-    void printResult(const Stats&, const std::string&, const std::string&) override {
+    std::string printResult(const Stats&, const std::string&, const std::string&) override {
         // do nothing
+        return "";
     }
 
     std::string printElo(const Stats& stats, const std::string& first, const std::string& second,

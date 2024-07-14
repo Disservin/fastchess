@@ -15,7 +15,7 @@ TournamentManager::TournamentManager(const stats_map& results) {
 }
 
 void TournamentManager::start() {
-    Logger::info("Starting tournament...");
+    Logger::trace("Starting tournament...");
 
     round_robin_->start();
 }

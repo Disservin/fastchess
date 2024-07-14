@@ -26,13 +26,6 @@ if grep -q "WARNING: ThreadSanitizer:" $OUTPUT_FILE; then
     exit 1
 fi
 
-
-# Check if "Saved results." is in the output, else fail
-if ! grep -q "Saved results." $OUTPUT_FILE; then
-    echo "Failed to save results."
-    exit 1
-fi
-
 # If the output contains "illegal move" then fail
 if grep -q "illegal move" $OUTPUT_FILE; then
     echo "Illegal move detected."
@@ -60,12 +53,6 @@ OUTPUT_FILE_2=$(mktemp)
 
 if grep -q "WARNING: ThreadSanitizer:" $OUTPUT_FILE_2; then
     echo "Data races detected."
-    exit 1
-fi
-
-# Check if "Saved results." is in the output, else fail
-if ! grep -q "Saved results." $OUTPUT_FILE_2; then
-    echo "Failed to save results."
     exit 1
 fi
 

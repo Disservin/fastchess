@@ -467,7 +467,7 @@ void parseRounds(const std::vector<std::string> &params, ArgumentData &argument_
     parseValue(params, argument_data.tournament_config.rounds);
 }
 
-void parseNoswap(const std::vector<std::string> &params, ArgumentData &argument_data) {
+void parseNoswap(const std::vector<std::string> &, ArgumentData &argument_data) {
     argument_data.tournament_config.noswap = true;
 }
 

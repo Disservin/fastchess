@@ -20,7 +20,7 @@ SPRT::SPRT(double alpha, double beta, double elo0, double elo1, std::string mode
 
         model_ = model;
 
-        Logger::info("Initialized valid SPRT configuration.");
+        Logger::trace("Initialized valid SPRT configuration.");
     }
 }
 

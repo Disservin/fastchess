@@ -92,23 +92,26 @@ void Match::prepare() {
     maxmoves_tracker_ = MaxMovesTracker();
 }
 
-void Match::start(engine::UciEngine& engine1, engine::UciEngine& engine2, const std::vector<int>& cpus) {
+void Match::start(engine::UciEngine& white, engine::UciEngine& black, const std::vector<int>& cpus) {
     prepare();
 
     std::transform(data_.moves.begin(), data_.moves.end(), std::back_inserter(uci_moves_),
                    [](const MoveData& data) { return data.move; });
 
-    Player player_1 = Player(engine1);
-    Player player_2 = Player(engine2);
+    Player white_player = Player(white);
+    Player black_player = Player(black);
 
-    player_1.color = board_.sideToMove();
-    player_2.color = ~board_.sideToMove();
+    white_player.color = Color::WHITE;
+    black_player.color = Color::BLACK;
 
-    player_1.engine.refreshUci();
-    player_2.engine.refreshUci();
+    white_player.engine.refreshUci();
+    black_player.engine.refreshUci();
 
-    player_1.engine.setCpus(cpus);
-    player_2.engine.setCpus(cpus);
+    white_player.engine.setCpus(cpus);
+    black_player.engine.setCpus(cpus);
+
+    auto& first  = board_.sideToMove() == Color::WHITE ? white_player : black_player;
+    auto& second = board_.sideToMove() == Color::WHITE ? black_player : white_player;
 
     const auto start = clock::now();
 
@@ -119,14 +122,14 @@ void Match::start(engine::UciEngine& engine1, engine::UciEngine& engine2, const 
                 break;
             }
 
-            if (!playMove(player_1, player_2)) break;
+            if (!playMove(first, second)) break;
 
             if (atomic::stop.load()) {
                 data_.termination = MatchTermination::INTERRUPT;
                 break;
             }
 
-            if (!playMove(player_2, player_1)) break;
+            if (!playMove(second, first)) break;
         }
     } catch (const std::exception& e) {
     }
@@ -138,8 +141,9 @@ void Match::start(engine::UciEngine& engine1, engine::UciEngine& engine2, const 
     data_.end_time = util::time::datetime("%Y-%m-%dT%H:%M:%S %z");
     data_.duration = util::time::duration(chrono::duration_cast<chrono::seconds>(end - start));
 
-    data_.players = std::make_pair(MatchData::PlayerInfo{engine1.getConfig(), player_1.getResult(), player_1.color},
-                                   MatchData::PlayerInfo{engine2.getConfig(), player_2.getResult(), player_2.color});
+    data_.players =
+        GamePair(MatchData::PlayerInfo{white_player.engine.getConfig(), white_player.getResult(), white_player.color},
+                 MatchData::PlayerInfo{black_player.engine.getConfig(), black_player.getResult(), black_player.color});
 }
 
 bool Match::playMove(Player& us, Player& them) {
@@ -412,7 +416,8 @@ bool Match::adjudicate(Player& us, Player& them) noexcept {
 
 std::string Match::convertChessReason(const std::string& engine_color, GameResultReason reason) noexcept {
     if (reason == GameResultReason::CHECKMATE) {
-        return engine_color + Match::CHECKMATE_MSG;
+        std::string color = engine_color == "White" ? "Black" : "White";
+        return color + Match::CHECKMATE_MSG;
     }
 
     if (reason == GameResultReason::STALEMATE) {

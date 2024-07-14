@@ -9,6 +9,7 @@
 
 #include <types/engine_config.hpp>
 #include <util/date.hpp>
+#include <util/game_pair.hpp>
 
 namespace fast_chess {
 
@@ -62,7 +63,7 @@ struct MatchData {
         date       = util::time::datetime("%Y.%m.%d");
     }
 
-    std::pair<PlayerInfo, PlayerInfo> players;
+    GamePair<PlayerInfo, PlayerInfo> players;
 
     std::string start_time;
     std::string end_time;

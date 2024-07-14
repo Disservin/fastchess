@@ -10,6 +10,7 @@
 #include <types/tournament.hpp>
 #include <util/cache.hpp>
 #include <util/file_writer.hpp>
+#include <util/game_pair.hpp>
 #include <util/logger/logger.hpp>
 #include <util/threadpool.hpp>
 
@@ -34,6 +35,7 @@ class BaseTournament {
     virtual void stop();
 
     [[nodiscard]] stats_map getResults() noexcept { return result_.getResults(); }
+
     void setResults(const stats_map &results) noexcept {
         Logger::trace("Setting results...");
 
@@ -42,11 +44,9 @@ class BaseTournament {
         match_count_ = 0;
 
         for (const auto &pair1 : result_.getResults()) {
-            const auto &inner_map = pair1.second;
-            for (const auto &pair2 : inner_map) {
-                const auto &stats = pair2.second;
-                match_count_ += stats.wins + stats.losses + stats.draws;
-            }
+            const auto &stats = pair1.second;
+
+            match_count_ += stats.wins + stats.losses + stats.draws;
         }
 
         initial_matchcount_ = match_count_;
@@ -67,7 +67,7 @@ class BaseTournament {
     void saveJson();
 
     // play one game and write it to the pgn file
-    void playGame(const std::pair<EngineConfiguration, EngineConfiguration> &configs, start_callback start,
+    void playGame(const GamePair<EngineConfiguration, EngineConfiguration> &configs, start_callback start,
                   finished_callback finish, const pgn::Opening &opening, std::size_t game_id);
 
     std::unique_ptr<IOutput> output_;

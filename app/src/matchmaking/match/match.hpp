@@ -107,7 +107,7 @@ class Match {
     Match(const pgn::Opening& opening) : opening_(opening) {}
 
     // starts the match
-    void start(engine::UciEngine& engine1, engine::UciEngine& engine2, const std::vector<int>& cpus);
+    void start(engine::UciEngine& white, engine::UciEngine& black, const std::vector<int>& cpus);
 
     // returns the match data, only valid after the match has finished
     [[nodiscard]] const MatchData& get() const { return data_; }
@@ -165,9 +165,9 @@ class Match {
     inline static constexpr char ILLEGAL_MSG[]          = " makes an illegal move";
     inline static constexpr char ADJUDICATION_WIN_MSG[] = " wins by adjudication";
     inline static constexpr char ADJUDICATION_MSG[]     = "Draw by adjudication";
-    inline static constexpr char FIFTY_MSG[]            = "Draw by 50-move rule";
+    inline static constexpr char FIFTY_MSG[]            = "Draw by fifty moves rule";
     inline static constexpr char STALEMATE_MSG[]        = "Draw by stalemate";
-    inline static constexpr char CHECKMATE_MSG[]        = /*..*/ " got checkmated";
+    inline static constexpr char CHECKMATE_MSG[]        = /*..*/ " mates";
     inline static constexpr char TIMEOUT_MSG[]          = /*.. */ " loses on time";
     inline static constexpr char DISCONNECT_MSG[]       = /*.. */ " disconnects";
 };

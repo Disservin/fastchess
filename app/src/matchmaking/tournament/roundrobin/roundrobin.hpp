@@ -2,7 +2,7 @@
 
 #include <affinity/affinity_manager.hpp>
 #include <matchmaking/match/match.hpp>
-#include <matchmaking/result.hpp>
+#include <matchmaking/scoreboard.hpp>
 #include <matchmaking/sprt/sprt.hpp>
 #include <matchmaking/stats.hpp>
 #include <pgn/pgn_reader.hpp>

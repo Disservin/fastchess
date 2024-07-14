@@ -7,7 +7,7 @@
 #include <matchmaking/match/match.hpp>
 #include <matchmaking/output/output.hpp>
 #include <matchmaking/output/output_factory.hpp>
-#include <matchmaking/result.hpp>
+#include <matchmaking/scoreboard.hpp>
 #include <pgn/pgn_builder.hpp>
 #include <types/tournament.hpp>
 #include <util/cache.hpp>
@@ -55,11 +55,10 @@ void BaseTournament::saveJson() {
     std::ofstream file(filename);
     file << std::setw(4) << jsonfile << std::endl;
 
-    Logger::info("Saved results.");
+    Logger::trace("Saved results.");
 }
 
 void BaseTournament::stop() {
-    Logger::trace("Stopped!");
     atomic::stop = true;
     Logger::trace("Stopping threads...");
     pool_.kill();
@@ -73,31 +72,34 @@ void BaseTournament::playGame(const GamePair<EngineConfiguration, EngineConfigur
     const auto &config = config::TournamentConfig.get();
     const auto core    = util::ScopeGuard(cores_->consume());
 
-    auto engine_white = util::ScopeGuard(
-        engine_cache_.getEntry(engine_configs.white.name, engine_configs.white, config.realtime_logging));
-    auto engine_black = util::ScopeGuard(
-        engine_cache_.getEntry(engine_configs.black.name, engine_configs.black, config.realtime_logging));
+    const auto white_name = engine_configs.white.name;
+    const auto black_name = engine_configs.black.name;
 
-    Logger::trace("Playing game {} between {} and {}", game_id + 1, engine_configs.white.name,
-                  engine_configs.black.name);
+    auto &white_engine = engine_cache_.getEntry(white_name, engine_configs.white, config.realtime_logging);
+    auto &black_engine = engine_cache_.getEntry(black_name, engine_configs.black, config.realtime_logging);
+
+    util::ScopeGuard lock1(white_engine);
+    util::ScopeGuard lock2(black_engine);
+
+    Logger::trace("Playing game {} between {} and {}", game_id + 1, white_name, black_name);
 
     start();
 
     auto match = Match(opening);
-    match.start(engine_white.get().get(), engine_black.get().get(), core.get().cpus);
+    match.start(white_engine.get(), black_engine.get(), core.get().cpus);
 
     if (match.isCrashOrDisconnect()) {
         // restart the engine when recover is enabled
         if (config.recover) {
             Logger::trace("Restarting engine...");
-            if (!engine_white.get().get().isready()) {
-                Logger::trace("Restarting engine {}", engine_configs.white.name);
-                engine_white.get().get().refreshUci();
+            if (!white_engine.get().isready()) {
+                Logger::trace("Restarting engine {}", white_name);
+                white_engine.get().refreshUci();
             }
 
-            if (!engine_black.get().get().isready()) {
-                Logger::trace("Restarting engine {}", engine_configs.black.name);
-                engine_black.get().get().refreshUci();
+            if (!black_engine.get().isready()) {
+                Logger::trace("Restarting engine {}", black_name);
+                black_engine.get().refreshUci();
             }
         } else {
             atomic::stop = true;
@@ -108,11 +110,15 @@ void BaseTournament::playGame(const GamePair<EngineConfiguration, EngineConfigur
 
     // If the game was interrupted(didn't completely finish)
     if (match_data.termination != MatchTermination::INTERRUPT) {
-        if (!config.pgn.file.empty())
+        if (!config.pgn.file.empty()) {
             file_writer_pgn->write(pgn::PgnBuilder(config.pgn, match_data, game_id + 1).get());
-        if (!config.epd.file.empty()) file_writer_epd->write(epd::EpdBuilder(config.variant, match_data).get());
+        }
 
-        finish({match_data}, match_data.reason, {engine_white.get().get(), engine_black.get().get()});
+        if (!config.epd.file.empty()) {
+            file_writer_epd->write(epd::EpdBuilder(config.variant, match_data).get());
+        }
+
+        finish({match_data}, match_data.reason, {white_engine.get(), black_engine.get()});
     }
 }
 

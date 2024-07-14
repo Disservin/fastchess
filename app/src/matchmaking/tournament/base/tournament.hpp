@@ -6,7 +6,7 @@
 #include <book/opening_book.hpp>
 #include <engine/uci_engine.hpp>
 #include <matchmaking/output/output.hpp>
-#include <matchmaking/result.hpp>
+#include <matchmaking/scoreboard.hpp>
 #include <types/tournament.hpp>
 #include <util/cache.hpp>
 #include <util/file_writer.hpp>
@@ -34,16 +34,16 @@ class BaseTournament {
     // forces the tournament to stop
     virtual void stop();
 
-    [[nodiscard]] stats_map getResults() noexcept { return result_.getResults(); }
+    [[nodiscard]] stats_map getResults() noexcept { return scoreboard_.getResults(); }
 
     void setResults(const stats_map &results) noexcept {
         Logger::trace("Setting results...");
 
-        result_.setResults(results);
+        scoreboard_.setResults(results);
 
         match_count_ = 0;
 
-        for (const auto &pair1 : result_.getResults()) {
+        for (const auto &pair1 : scoreboard_.getResults()) {
             const auto &stats = pair1.second;
 
             match_count_ += stats.wins + stats.losses + stats.draws;
@@ -77,7 +77,7 @@ class BaseTournament {
     std::unique_ptr<book::OpeningBook> book_;
 
     util::CachePool<engine::UciEngine, std::string> engine_cache_ = util::CachePool<engine::UciEngine, std::string>();
-    Result result_                                                = Result();
+    ScoreBoard scoreboard_                                        = ScoreBoard();
     util::ThreadPool pool_                                        = util::ThreadPool(1);
 
    private:

@@ -63,6 +63,8 @@ class TimeControl {
         return limits_ == rhs.limits_ && time_left_ == rhs.time_left_ && moves_left_ == rhs.moves_left_;
     }
 
+    static constexpr int64_t MARGIN = 100;
+
     NLOHMANN_DEFINE_TYPE_INTRUSIVE_ORDERED_JSON(TimeControl, limits_, time_left_, moves_left_)
    private:
     Limits limits_;

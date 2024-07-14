@@ -63,39 +63,43 @@ inline void from_json(const nlohmann::json& j, stats_map& map) {
 
 class StatsMap {
    public:
-    Stats& operator[](const GamePair<EngineConfiguration, EngineConfiguration>& configs) noexcept {
+    [[nodiscard]] Stats& operator[](const GamePair<EngineConfiguration, EngineConfiguration>& configs) {
         return results_[PlayerPairKey(configs.white.name, configs.black.name)];
     }
 
-    const Stats& operator[](const GamePair<EngineConfiguration, EngineConfiguration>& configs) const noexcept {
+    [[nodiscard]] const Stats& operator[](const GamePair<EngineConfiguration, EngineConfiguration>& configs) const {
         return results_.at(PlayerPairKey(configs.white.name, configs.black.name));
     }
 
-    Stats& operator[](const std::pair<std::string, std::string>& players) noexcept {
+    [[nodiscard]] Stats& operator[](const std::pair<std::string, std::string>& players) {
         return results_[PlayerPairKey(players.first, players.second)];
     }
 
-    const Stats& operator[](const std::pair<std::string, std::string>& players) const noexcept {
+    [[nodiscard]] const Stats& operator[](const std::pair<std::string, std::string>& players) const {
         return results_.at(PlayerPairKey(players.first, players.second));
     }
 
-    friend class Result;
+    friend class ScoreBoard;
 
    private:
     stats_map results_;
 };
 
-class Result {
+class ScoreBoard {
    public:
     // Updates the stats of engine1 vs engine2
-    void updateStats(const GamePair<EngineConfiguration, EngineConfiguration>& configs, const Stats& stats) noexcept {
+    // Always returns true because it was immediately updated
+    bool updateNonPair(const GamePair<EngineConfiguration, EngineConfiguration>& configs, const Stats& stats) {
         std::lock_guard<std::mutex> lock(results_mutex_);
         results_[configs] += stats;
+
+        return true;
     }
 
     // Update the stats in pair batches to keep track of pentanomial stats.
-    [[nodiscard]] bool updatePairStats(const GamePair<EngineConfiguration, EngineConfiguration>& configs,
-                                       const Stats& stats, uint64_t round_id) noexcept {
+    // Returns true if the pair was completed, false otherwise.
+    bool updatePair(const GamePair<EngineConfiguration, EngineConfiguration>& configs, const Stats& stats,
+                    uint64_t round_id) {
         std::lock_guard<std::mutex> lock(game_pair_cache_mutex_);
 
         const auto is_first_game = game_pair_cache_.find(round_id) == game_pair_cache_.end();
@@ -116,7 +120,7 @@ class Result {
         lookup.penta_LD += lookup.losses == 1 && lookup.draws == 1;
         lookup.penta_LL += lookup.losses == 2;
 
-        updateStats(configs, lookup);
+        updateNonPair(configs, lookup);
 
         game_pair_cache_.erase(round_id);
 
@@ -124,7 +128,7 @@ class Result {
     }
 
     // Stats of engine1 vs engine2 + engine2 vs engine1, adjusted with the perspective
-    [[nodiscard]] Stats getStats(const std::string& engine1, const std::string& engine2) noexcept {
+    [[nodiscard]] Stats getStats(const std::string& engine1, const std::string& engine2) {
         std::lock_guard<std::mutex> lock(results_mutex_);
 
         const auto stats1 = results_[{engine1, engine2}];
@@ -133,12 +137,12 @@ class Result {
         return stats1 + ~stats2;
     }
 
-    [[nodiscard]] stats_map getResults() noexcept {
+    [[nodiscard]] stats_map getResults() {
         std::lock_guard<std::mutex> lock(results_mutex_);
         return results_.results_;
     }
 
-    void setResults(const stats_map& results) noexcept {
+    void setResults(const stats_map& results) {
         std::lock_guard<std::mutex> lock(results_mutex_);
         results_.results_ = results;
     }

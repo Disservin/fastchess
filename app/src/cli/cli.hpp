@@ -15,7 +15,7 @@
 
 #include <cli/man.hpp>
 #include <config/config.hpp>
-#include <matchmaking/result.hpp>
+#include <matchmaking/scoreboard.hpp>
 #include <types/engine_config.hpp>
 #include <types/tournament.hpp>
 

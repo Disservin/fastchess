@@ -69,7 +69,6 @@ void RoundRobin::create() {
             output_->endGame(configs, stats, reason, game_id);
 
             const auto& cfg = config::TournamentConfig.get();
-            bool report     = true;
 
             // lock to avoid chaotic output, i.e.
             // Finished game 187 (Engine1 vs Engine2): 0-1 {White loses on time}
@@ -78,16 +77,13 @@ void RoundRobin::create() {
             // Score of Engine1 vs Engine2: 94 - 92 - 0  [0.505] 186
             std::lock_guard<std::mutex> lock(output_mutex_);
 
-            if (cfg.report_penta)
-                report = result_.updatePairStats(configs, stats, round_id);
-            else {
-                result_.updateStats(configs, stats);
-            }
+            bool report = cfg.report_penta ? scoreboard_.updatePair(configs, stats, round_id)
+                                           : scoreboard_.updateNonPair(configs, stats);
 
             // round_id and match_count_ starts 0 so we add 1
             const auto ratinginterval_index = cfg.report_penta ? round_id + 1 : match_count_ + 1;
             const auto scoreinterval_index  = match_count_ + 1;
-            const auto updated_stats        = result_.getStats(first.name, second.name);
+            const auto updated_stats        = scoreboard_.getStats(first.name, second.name);
 
             // print score result based on scoreinterval if output format is cutechess
             if ((scoreinterval_index % cfg.scoreinterval == 0) || match_count_ + 1 == total_) {
@@ -126,7 +122,7 @@ void RoundRobin::create() {
 void RoundRobin::updateSprtStatus(const std::vector<EngineConfiguration>& engine_configs, const engines& engines) {
     if (!sprt_.isEnabled()) return;
 
-    const auto stats = result_.getStats(engine_configs[0].name, engine_configs[1].name);
+    const auto stats = scoreboard_.getStats(engine_configs[0].name, engine_configs[1].name);
     const auto llr   = sprt_.getLLR(stats, config::TournamentConfig.get().report_penta);
 
     if (sprt_.getResult(llr) != SPRT_CONTINUE || match_count_ == total_) {

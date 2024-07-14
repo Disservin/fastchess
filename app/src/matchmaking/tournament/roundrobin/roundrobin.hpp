@@ -22,7 +22,7 @@ extern std::atomic_bool stop;
 
 class RoundRobin : public BaseTournament {
    public:
-    explicit RoundRobin(const stats_map &results);
+    explicit RoundRobin(const stats_map& results);
 
     // starts the round robin
     void start() override;
@@ -33,10 +33,11 @@ class RoundRobin : public BaseTournament {
 
    private:
     // update the current running sprt. SPRT Config has to be valid.
-    void updateSprtStatus(const std::vector<EngineConfiguration> &engine_configs,
-                          const std::pair<const engine::UciEngine &, const engine::UciEngine &> &engines);
+    void updateSprtStatus(const std::vector<EngineConfiguration>& engine_configs, const engines& engines);
 
     SPRT sprt_ = SPRT();
+
+    std::mutex output_mutex_;
 
     // number of games to be played
     std::atomic<uint64_t> total_ = 0;

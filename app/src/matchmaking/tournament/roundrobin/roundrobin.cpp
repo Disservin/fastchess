@@ -71,6 +71,13 @@ void RoundRobin::create() {
             const auto& cfg = config::TournamentConfig.get();
             bool report     = true;
 
+            // lock to avoid chaotic output, i.e.
+            // Finished game 187 (Engine1 vs Engine2): 0-1 {White loses on time}
+            // Finished game 186 (Engine2 vs Engine1): 0-1 {White loses on time}
+            // Score of Engine1 vs Engine2: 95 - 92 - 0  [0.508] 187
+            // Score of Engine1 vs Engine2: 94 - 92 - 0  [0.505] 186
+            std::lock_guard<std::mutex> lock(output_mutex_);
+
             if (cfg.report_penta)
                 report = result_.updatePairStats(configs, stats, round_id);
             else {

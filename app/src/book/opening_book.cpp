@@ -6,6 +6,7 @@
 
 #include <config/config.hpp>
 #include <util/safe_getline.hpp>
+#include <util/logger/logger.hpp>
 
 namespace fast_chess::book {
 
@@ -53,6 +54,7 @@ void OpeningBook::setup(const std::string& file, FormatType type) {
     if (type == FormatType::NONE) return;
 
     if (order_ == OrderType::RANDOM) {
+        Logger::info("Indexing opening suite...");
         shuffle();
     }
 

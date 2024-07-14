@@ -54,7 +54,7 @@ void BaseTournament::saveJson() {
     std::ofstream file(filename);
     file << std::setw(4) << jsonfile << std::endl;
 
-    Logger::info("Saved results.");
+    Logger::trace("Saved results.");
 }
 
 void BaseTournament::stop() {

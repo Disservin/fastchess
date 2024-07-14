@@ -65,7 +65,7 @@ void RoundRobin::create() {
         // callback functions, do not capture by reference
         const auto finish = [this, configs, first, second, game_id, round_id](
                                 const Stats& stats, const std::string& reason, const engines& engines) {
-            output_->endGame(configs, stats, reason, game_id);
+            std::string finish_message = output_->endGame(configs, stats, reason, game_id);
 
             const auto& cfg = config::TournamentConfig.get();
 
@@ -86,8 +86,10 @@ void RoundRobin::create() {
 
             // print score result based on scoreinterval if output format is cutechess
             if ((scoreinterval_index % cfg.scoreinterval == 0) || match_count_ + 1 == total_) {
-                output_->printResult(updated_stats, first.name, second.name);
+                finish_message += output_->printResult(updated_stats, first.name, second.name);
             }
+
+            std::cout << finish_message << std::flush;
 
             // Only print the interval if the pair is complete or we are not tracking
             // penta stats.

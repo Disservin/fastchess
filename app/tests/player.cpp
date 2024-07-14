@@ -45,7 +45,7 @@ TEST_SUITE("Player Test") {
         Player player = Player(uci_engine);
 
         CHECK(player.getTimeControl().isFixedTime() == true);
-        CHECK(player.getTimeControl().getTimeoutThreshold() == std::chrono::milliseconds(1000 + 100));
+        CHECK(player.getTimeControl().getTimeoutThreshold() == std::chrono::milliseconds(1000 + TimeControl::MARGIN));
 
         CHECK(player.updateTime(1000) == true);
         CHECK(player.getTimeControl().getTimeLeft() == 1000);
@@ -76,7 +76,7 @@ TEST_SUITE("Player Test") {
         Player player = Player(uci_engine);
 
         CHECK(player.getTimeControl().isFixedTime() == false);
-        CHECK(player.getTimeControl().getTimeoutThreshold() == std::chrono::milliseconds(1000 + 100));
+        CHECK(player.getTimeControl().getTimeoutThreshold() == std::chrono::milliseconds(1000 + TimeControl::MARGIN));
 
         CHECK(player.updateTime(1000) == true);
         CHECK(player.getTimeControl().getTimeLeft() == 0);

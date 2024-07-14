@@ -49,7 +49,6 @@ void RoundRobin::create() {
         assert(g < 2);
 
         const auto opening        = (*book_)[opening_id];
-        const auto stm            = opening.stm;
         const auto first          = config::EngineConfigs.get()[i];
         const auto second         = config::EngineConfigs.get()[j];
         const std::size_t game_id = round_id * config::TournamentConfig.get().games + (g + 1);

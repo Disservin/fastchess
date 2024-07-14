@@ -164,6 +164,7 @@ std::optional<std::string> UciEngine::getUciOptionValue(const std::string &name)
 void UciEngine::loadConfig(const EngineConfiguration &config) { config_ = config; }
 
 void UciEngine::quit() {
+    if (!initialized_) return;
     Logger::trace<true>("Sending quit to engine {}", config_.name);
     writeEngine("quit");
 }

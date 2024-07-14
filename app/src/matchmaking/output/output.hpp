@@ -34,7 +34,7 @@ class IOutput {
     };
 
     // Print current H2H score result stats.
-    virtual void printResult(const Stats& stats, const std::string& first, const std::string& second) = 0;
+    virtual std::string printResult(const Stats& stats, const std::string& first, const std::string& second) = 0;
 
     // Print current H2H elo stats.
     virtual std::string printElo(const Stats& stats, const std::string& first, const std::string& second,
@@ -48,8 +48,8 @@ class IOutput {
                            std::size_t current_game_count, std::size_t max_game_count) = 0;
 
     // Print game end.
-    virtual void endGame(const GamePair<EngineConfiguration, EngineConfiguration>& configs, const Stats& stats,
-                         const std::string& annotation, std::size_t id) = 0;
+    virtual std::string endGame(const GamePair<EngineConfiguration, EngineConfiguration>& configs, const Stats& stats,
+                                const std::string& annotation, std::size_t id) = 0;
 
     // Print tournament end.
     virtual void endTournament() = 0;

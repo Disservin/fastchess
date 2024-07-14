@@ -160,7 +160,7 @@ class Match {
 
     bool crash_or_disconnect_ = false;
 
-    inline static constexpr char INSUFFICIENT_MSG[]     = "Draw by insufficient material";
+    inline static constexpr char INSUFFICIENT_MSG[]     = "Draw by insufficient mating material";
     inline static constexpr char REPETITION_MSG[]       = "Draw by 3-fold repetition";
     inline static constexpr char ILLEGAL_MSG[]          = " makes an illegal move";
     inline static constexpr char ADJUDICATION_WIN_MSG[] = " wins by adjudication";

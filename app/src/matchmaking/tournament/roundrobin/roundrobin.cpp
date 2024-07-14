@@ -65,7 +65,6 @@ void RoundRobin::create() {
         // callback functions, do not capture by reference
         const auto finish = [this, configs, first, second, game_id, round_id](
                                 const Stats& stats, const std::string& reason, const engines& engines) {
-            std::string finish_message = output_->endGame(configs, stats, reason, game_id);
 
             const auto& cfg = config::TournamentConfig.get();
 
@@ -75,6 +74,8 @@ void RoundRobin::create() {
             // Score of Engine1 vs Engine2: 95 - 92 - 0  [0.508] 187
             // Score of Engine1 vs Engine2: 94 - 92 - 0  [0.505] 186
             std::lock_guard<std::mutex> lock(output_mutex_);
+            
+            std::string finish_message = output_->endGame(configs, stats, reason, game_id);
 
             bool report = cfg.report_penta ? scoreboard_.updatePair(configs, stats, round_id)
                                            : scoreboard_.updateNonPair(configs, stats);

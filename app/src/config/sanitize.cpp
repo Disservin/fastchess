@@ -13,7 +13,6 @@ namespace fast_chess::config {
 
 void sanitize(config::Tournament& config) {
     if (config.randomize_seed) {
-        Logger::trace("Randomizing the opening book seed...");
         std::random_device rd;
         std::mt19937_64 gen((static_cast<uint64_t>(rd()) << 32) | rd());
         std::uniform_int_distribution<uint64_t> dist(0, std::numeric_limits<uint64_t>::max());

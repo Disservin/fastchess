@@ -12,7 +12,7 @@ struct Opening {
     FormatType format = FormatType::NONE;
 
 #ifdef USE_CUTE
-    OrderType order   = OrderType::SEQUENTIAL;
+    OrderType order   = OrderType::NONE;
 #else
     OrderType order   = OrderType::RANDOM;
 #endif

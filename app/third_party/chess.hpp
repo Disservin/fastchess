@@ -25,7 +25,7 @@ THIS FILE IS AUTO GENERATED DO NOT CHANGE MANUALLY.
 
 Source: https://github.com/Disservin/chess-library
 
-VERSION: 0.6.53
+VERSION: 0.6.54
 */
 
 #ifndef CHESS_HPP
@@ -1754,16 +1754,27 @@ class Board {
         int hm = 0;
         int fm = 1;
 
+        static auto parseStringViewToInt = [](std::string_view sv) -> std::optional<int> {
+            if (!sv.empty() && sv.back() == ';') sv.remove_suffix(1);
+            try {
+                size_t pos;
+                int value = std::stoi(std::string(sv), &pos);
+                if (pos == sv.size()) return value;
+            } catch (...) {
+            }
+            return std::nullopt;
+        };
+
         if (auto it = std::find(parts.begin(), parts.end(), "hmvc"); it != parts.end()) {
             auto num = *(it + 1);
 
-            hm = std::stoi(std::string(num));
+            hm = parseStringViewToInt(num).value_or(0);
         }
 
         if (auto it = std::find(parts.begin(), parts.end(), "fmvn"); it != parts.end()) {
             auto num = *(it + 1);
 
-            fm = std::stoi(std::string(num));
+            fm = parseStringViewToInt(num).value_or(1);
         }
 
         auto fen = std::string(parts[0]) + " " + std::string(parts[1]) + " " + std::string(parts[2]) + " " +
@@ -2454,11 +2465,22 @@ class Board {
         const auto half_move  = params[4].has_value() ? *params[4] : "0";
         const auto full_move  = params[5].has_value() ? *params[5] : "1";
 
+        static auto parseStringViewToInt = [](std::string_view sv) -> std::optional<int> {
+            if (!sv.empty() && sv.back() == ';') sv.remove_suffix(1);
+            try {
+                size_t pos;
+                int value = std::stoi(std::string(sv), &pos);
+                if (pos == sv.size()) return value;
+            } catch (...) {
+            }
+            return std::nullopt;
+        };
+
         // Half move clock
-        hfm_ = std::stoi(std::string(half_move));
+        hfm_ = parseStringViewToInt(half_move).value_or(0);
 
         // Full move number
-        plies_ = std::stoi(std::string(full_move));
+        plies_ = parseStringViewToInt(full_move).value_or(1);
 
         plies_ = plies_ * 2 - 2;
         ep_sq_ = en_passant == "-" ? Square::underlying::NO_SQ : Square(en_passant);

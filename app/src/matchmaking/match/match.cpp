@@ -265,7 +265,7 @@ bool Match::playMove(Player& us, Player& them) {
     resign_tracker_.update(score, type, ~board_.sideToMove());
     maxmoves_tracker_.update(score, type);
 
-    if (!adjudicate(us, them)) adjudicate_ = true;
+    if (adjudicate(us, them)) adjudicate_ = true;
 
     return true;
 }

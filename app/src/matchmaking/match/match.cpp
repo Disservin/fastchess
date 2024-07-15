@@ -165,7 +165,7 @@ bool Match::playMove(Player& us, Player& them) {
         return false;
     }
 
-    if (adjudicate(us, them)) {
+    if (adjudicate_) {
         return false;
     }
 
@@ -264,6 +264,8 @@ bool Match::playMove(Player& us, Player& them) {
     draw_tracker_.update(score, board_.fullMoveNumber() - 1, type, board_.halfMoveClock());
     resign_tracker_.update(score, type, ~board_.sideToMove());
     maxmoves_tracker_.update(score, type);
+
+    if (!adjudicate(us, them)) adjudicate_ = true;
 
     return true;
 }
@@ -387,7 +389,7 @@ bool Match::adjudicate(Player& us, Player& them) noexcept {
         us.setLost();
         them.setWon();
 
-        const auto color = getColorString(~board_.sideToMove());
+        const auto color = getColorString();
 
         data_.termination = MatchTermination::ADJUDICATION;
         data_.reason      = color + Match::ADJUDICATION_WIN_MSG;

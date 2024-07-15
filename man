@@ -226,7 +226,7 @@ OPTIONS
 EXAMPLES
         To start a match between two engines using a random order of openings from book.epd:
             $ fast-chess -engine cmd=Engine1.exe name=Engine1 -engine cmd=Engine2.exe \
-              name=Engine2 -openings file=book.epd format=epd -randomseed \
+              name=Engine2 -openings file=book.epd format=epd \
               -each tc=10+0.1 -rounds 200 -repeat -concurrency 4
 
         To resume a match from a saved configuration:

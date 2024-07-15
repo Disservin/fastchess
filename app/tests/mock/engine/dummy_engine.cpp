@@ -29,7 +29,6 @@ int main(int argc, char const *argv[]) {
         } else if (cmd == "uci") {
             cout << "line0" << endl;
             cout << "line1" << endl;
-            cout << "option name Hash type spin default 16 min 1 max 33554432" << endl;
             cout << "uciok" << endl;
         } else if (cmd == "info") {
             int ms = 0;

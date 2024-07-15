@@ -488,13 +488,8 @@ void parseRecover(const std::vector<std::string> &, ArgumentData &argument_data)
     argument_data.tournament_config.recover = true;
 }
 
-void parseRandomSeed(const std::vector<std::string> &, ArgumentData &argument_data) {
-    argument_data.tournament_config.randomseed = true;
-
-    std::random_device rd;
-    std::mt19937_64 gen((static_cast<uint64_t>(rd()) << 32) | rd());
-    std::uniform_int_distribution<uint64_t> dist(0, std::numeric_limits<uint64_t>::max());
-    argument_data.tournament_config.seed = dist(gen);
+void parseRandomSeed(const std::vector<std::string> &, ArgumentData &) {
+    // do nothing
 }
 
 void parseRepeat(const std::vector<std::string> &params, ArgumentData &argument_data) {

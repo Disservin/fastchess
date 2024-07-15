@@ -276,6 +276,9 @@ void parseOpening(const std::vector<std::string> &params, ArgumentData &argument
             OptionsParser::throwMissing("openings", key, value);
         }
     });
+    if (argument_data.tournament_config.opening.order == OrderType::NONE) {
+        throw std::runtime_error("Opening order not specified.");
+    }
 }
 
 void parseSprt(const std::vector<std::string> &params, ArgumentData &argument_data) {

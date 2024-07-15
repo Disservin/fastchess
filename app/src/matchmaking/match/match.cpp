@@ -261,7 +261,7 @@ bool Match::playMove(Player& us, Player& them) {
     auto score = us.engine.lastScore();
     auto type  = us.engine.lastScoreType();
 
-    draw_tracker_.update(score, data_.moves.size() / 2, type, board_.halfMoveClock());
+    draw_tracker_.update(score, data_.moves.size() / 2 + 1, type, board_.halfMoveClock());
     resign_tracker_.update(score, type, ~board_.sideToMove());
     maxmoves_tracker_.update(score, type);
 

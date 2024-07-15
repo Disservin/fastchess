@@ -4,9 +4,7 @@
 #include <thread>
 #include <vector>
 
-bool contains(std::string_view haystack, std::string_view needle) {
-    return haystack.find(needle) != std::string::npos;
-}
+bool contains(std::string_view haystack, std::string_view needle) { return haystack.find(needle) != std::string::npos; }
 
 using namespace std;
 

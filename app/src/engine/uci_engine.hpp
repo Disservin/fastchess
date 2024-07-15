@@ -12,6 +12,8 @@
 #    include <engine/process/process_posix.hpp>
 #endif
 
+#include <engine/option/option_factory.hpp>
+#include <engine/option/options.hpp>
 #include <types/engine_config.hpp>
 
 namespace fast_chess::engine {
@@ -86,7 +88,6 @@ class UciEngine : protected process::Process {
 
     [[nodiscard]] const std::vector<process::Line> &output() const noexcept { return output_; }
     [[nodiscard]] const EngineConfiguration &getConfig() const noexcept { return config_; }
-    [[nodiscard]] std::optional<std::string> getUciOptionValue(const std::string &name) const;
 
     // @TODO: expose this to the user
     static constexpr std::chrono::milliseconds initialize_time = std::chrono::milliseconds(60000);
@@ -98,11 +99,14 @@ class UciEngine : protected process::Process {
 #endif
     );
 
+    [[nodiscard]] const UCIOptions &uciOptions() const noexcept { return uci_options_; }
+    UCIOptions &uciOptions() noexcept { return uci_options_; }
+
    private:
     void loadConfig(const EngineConfiguration &config);
     void sendSetoption(const std::string &name, const std::string &value);
 
-    std::unordered_map<std::string, std::string> uci_options_;
+    UCIOptions uci_options_;
     std::vector<process::Line> output_;
     EngineConfiguration config_;
 

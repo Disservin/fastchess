@@ -73,3 +73,45 @@ if grep -q "loses on time" $OUTPUT_FILE_2; then
     echo "Loses on time detected."
     exit 1
 fi
+
+
+# Invalid UciOptions Test
+
+OUTPUT_FILE_3=$(mktemp)
+./fast-chess -engine cmd=random_mover name=random_move_1 -engine cmd=random_mover name=random_move_2 \
+    -each tc=2+0.02s option.Hash=-16 option.Threads=2 -rounds 5 -repeat -concurrency 2 \
+    -openings file=app/tests/data/openings.pgn format=pgn order=random -log file=log.txt level=info  2>&1 | tee $OUTPUT_FILE_3
+
+if ! grep -q "Warning: random_move_1 doesn't have option Threads" $OUTPUT_FILE_3; then
+    echo "Failed to save results."
+    exit 1
+fi
+
+if ! grep -q "Warning: Invalid value for option Hash: -16" $OUTPUT_FILE_3; then
+    echo "Failed to save results."
+    exit 1
+fi
+
+
+if grep -q "WARNING: ThreadSanitizer:" $OUTPUT_FILE_3; then
+    echo "Data races detected."
+    exit 1
+fi
+
+# If the output contains "illegal move" then fail
+if grep -q "illegal move" $OUTPUT_FILE_3; then
+    echo "Illegal move detected."
+    exit 1
+fi
+
+# If the output contains "disconnects" then fail
+if grep -q "disconnects" $OUTPUT_FILE_3; then
+    echo "Disconnect detected."
+    exit 1
+fi
+
+# If the output contains "loses on time" then fail
+if grep -q "loses on time" $OUTPUT_FILE_3; then
+    echo "Loses on time detected."
+    exit 1
+fi

@@ -166,6 +166,7 @@ bool Match::playMove(Player& us, Player& them) {
     }
 
     if (adjudicate_) {
+        data_.termination = MatchTermination::ADJUDICATION;
         return false;
     }
 
@@ -389,9 +390,7 @@ bool Match::adjudicate(Player& us, Player& them) noexcept {
         us.setLost();
         them.setWon();
 
-        const auto color = getColorString();
-
-        data_.termination = MatchTermination::ADJUDICATION;
+        const auto color  = getColorString();
         data_.reason      = color + Match::ADJUDICATION_WIN_MSG;
 
         return true;
@@ -401,7 +400,6 @@ bool Match::adjudicate(Player& us, Player& them) noexcept {
         us.setDraw();
         them.setDraw();
 
-        data_.termination = MatchTermination::ADJUDICATION;
         data_.reason      = Match::ADJUDICATION_MSG;
 
         return true;
@@ -411,7 +409,6 @@ bool Match::adjudicate(Player& us, Player& them) noexcept {
         us.setDraw();
         them.setDraw();
 
-        data_.termination = MatchTermination::ADJUDICATION;
         data_.reason      = Match::ADJUDICATION_MSG;
 
         return true;

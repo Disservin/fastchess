@@ -37,7 +37,7 @@ short time controls (0.2+0.002s), it exhibits minimal timeout issues, with only
 
 Building Fast-Chess from source is straightforward. Just follow these steps:
 
-1. Clone the repository `git clone --recurse-submodules https://github.com/Disservin/fast-chess.git`
+1. Clone the repository `git clone https://github.com/Disservin/fast-chess.git`
 2. Navigate to the fast-chess directory `cd fast-chess`
 3. Build the executable `make -j` for GCC and `make -j CXX=clang++` for Clang
 

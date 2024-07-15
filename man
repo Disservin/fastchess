@@ -141,11 +141,7 @@ OPTIONS
 
         -srand SEED
             Set the seed for opening book randomization.
-            Default seed is 951356066.
-
-        -randomseed
-            Automatically picks a random seed value between 0 and (2^64 - 1)
-            for opening book randomization.
+            Can be any integer value between 0 and (2^64 - 1).
 
         -log file=NAME level=LEVEL compress=(true|false) realtime=(true|false)
             Specify a log file with a specific log level. 

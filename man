@@ -86,7 +86,7 @@ OPTIONS
 
                 format - the file format, either epd or pgn.
                 ORDER  - the order of openings to be played, either random or sequential.
-                         Default is random.
+                         Default is sequential.
                 PLIES  - the number of plies to use (for pgn only).
                          If not specified, uses the maximum available plies.
                 START  - the starting index of the opening book.
@@ -229,7 +229,7 @@ OPTIONS
 EXAMPLES
         To start a match between two engines using a random order of openings from book.epd:
             $ fast-chess -engine cmd=Engine1.exe name=Engine1 -engine cmd=Engine2.exe \
-              name=Engine2 -openings file=book.epd format=epd \
+              name=Engine2 -openings file=book.epd format=epd order=random \
               -each tc=10+0.1 -rounds 200 -repeat -concurrency 4
 
         To resume a match from a saved configuration:

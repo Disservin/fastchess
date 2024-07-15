@@ -147,10 +147,6 @@ void Match::start(engine::UciEngine& white, engine::UciEngine& black, const std:
 }
 
 bool Match::playMove(Player& us, Player& them) {
-    if (adjudicate(them, us)) {
-        return false;
-    }
-
     const auto gameover = board_.isGameOver();
     const auto name     = us.engine.getConfig().name;
     std::string go_string;
@@ -168,6 +164,10 @@ bool Match::playMove(Player& us, Player& them) {
 
     if (gameover.first != GameResultReason::NONE) {
         data_.reason = convertChessReason(getColorString(), gameover.first);
+        return false;
+    }
+
+    if (adjudicate(them, us)) {
         return false;
     }
 

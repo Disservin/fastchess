@@ -387,7 +387,7 @@ bool Match::adjudicate(Player& us, Player& them) noexcept {
         us.setLost();
         them.setWon();
 
-        const auto color = getColorString();
+        const auto color = getColorString(~board_.sideToMove());
 
         data_.termination = MatchTermination::ADJUDICATION;
         data_.reason      = color + Match::ADJUDICATION_WIN_MSG;

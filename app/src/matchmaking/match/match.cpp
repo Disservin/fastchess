@@ -254,10 +254,6 @@ bool Match::playMove(Player& us, Player& them) {
 
     board_.makeMove(move);
 
-    // CuteChess uses plycount/2 for its movenumber, which is wrong for epd books as it doesnt take
-    // into account the fullmove counter of the starting FEN, leading to different behavior between
-    // pgn and epd adjudication. fast-chess fixes this by using the fullmove counter from the board
-    // object directly
     auto score = us.engine.lastScore();
     auto type  = us.engine.lastScoreType();
 

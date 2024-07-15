@@ -55,7 +55,7 @@ void RoundRobin::create() {
 
         GamePair<EngineConfiguration, EngineConfiguration> configs = {first, second};
 
-        if (g == 1) {
+        if (game_id % 2 == 0 && !config::TournamentConfig.get().noswap) {
             std::swap(configs.white, configs.black);
         }
 
@@ -65,8 +65,6 @@ void RoundRobin::create() {
         // callback functions, do not capture by reference
         const auto finish = [this, configs, first, second, game_id, round_id](
                                 const Stats& stats, const std::string& reason, const engines& engines) {
-            output_->endGame(configs, stats, reason, game_id);
-
             const auto& cfg = config::TournamentConfig.get();
 
             // lock to avoid chaotic output, i.e.
@@ -75,6 +73,8 @@ void RoundRobin::create() {
             // Score of Engine1 vs Engine2: 95 - 92 - 0  [0.508] 187
             // Score of Engine1 vs Engine2: 94 - 92 - 0  [0.505] 186
             std::lock_guard<std::mutex> lock(output_mutex_);
+
+            output_->endGame(configs, stats, reason, game_id);
 
             bool report = cfg.report_penta ? scoreboard_.updatePair(configs, stats, round_id)
                                            : scoreboard_.updateNonPair(configs, stats);

@@ -167,6 +167,10 @@ bool Match::playMove(Player& us, Player& them) {
         return false;
     }
 
+    if (adjudicate(us, them)) {
+        return false;
+    }
+
     // disconnect
     if (!us.engine.isready()) {
         setEngineCrashStatus(us, them, go_string, position_string);
@@ -265,7 +269,7 @@ bool Match::playMove(Player& us, Player& them) {
     resign_tracker_.update(score, type, ~board_.sideToMove());
     maxmoves_tracker_.update(score, type);
 
-    return !adjudicate(us, them);
+    return true;
 }
 
 std::string Match::formatWarningMessage(std::string &warning, const std::string &position_string, const std::string &go_string) {
@@ -408,7 +412,7 @@ bool Match::adjudicate(Player& us, Player& them) noexcept {
         us.setLost();
         them.setWon();
 
-        const auto color = getColorString();
+        const auto color = getColorString(~board_.sideToMove());
 
         data_.termination = MatchTermination::ADJUDICATION;
         data_.reason      = color + Match::ADJUDICATION_WIN_MSG;

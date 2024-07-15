@@ -140,8 +140,8 @@ OPTIONS
                     normalized - uses nElo for elo0 and elo1. (default)
 
         -srand SEED
-            Set the seed for opening book randomization.
-            Can be any integer value between 0 and (2^64 - 1).
+            Specify the seed for opening book randomization. Otherwise, the chosen seed will be 
+            a random integer value between 0 and (2^64 - 1).
 
         -log file=NAME level=LEVEL compress=(true|false) realtime=(true|false)
             Specify a log file with a specific log level. 

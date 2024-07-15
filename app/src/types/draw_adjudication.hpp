@@ -8,9 +8,9 @@
 namespace fast_chess::config {
 
 struct DrawAdjudication {
-    int move_number = 0;
-    int move_count  = 1;
-    int score       = 0;
+    uint32_t move_number = 0;
+    int move_count       = 1;
+    int score            = 0;
 
     bool enabled = false;
 };

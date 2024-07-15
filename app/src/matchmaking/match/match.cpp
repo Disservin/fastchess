@@ -147,6 +147,10 @@ void Match::start(engine::UciEngine& white, engine::UciEngine& black, const std:
 }
 
 bool Match::playMove(Player& us, Player& them) {
+    if (adjudicate(them, us)) {
+        return false;
+    }
+
     const auto gameover = board_.isGameOver();
     const auto name     = us.engine.getConfig().name;
 
@@ -162,10 +166,6 @@ bool Match::playMove(Player& us, Player& them) {
 
     if (gameover.first != GameResultReason::NONE) {
         data_.reason = convertChessReason(getColorString(), gameover.first);
-        return false;
-    }
-
-    if (adjudicate(us, them)) {
         return false;
     }
 
@@ -261,7 +261,7 @@ bool Match::playMove(Player& us, Player& them) {
     auto score = us.engine.lastScore();
     auto type  = us.engine.lastScoreType();
 
-    draw_tracker_.update(score, board_.fullMoveNumber() - 1, type, board_.halfMoveClock());
+    draw_tracker_.update(score, type, board_.halfMoveClock());
     resign_tracker_.update(score, type, ~board_.sideToMove());
     maxmoves_tracker_.update(score, type);
 
@@ -387,7 +387,7 @@ bool Match::adjudicate(Player& us, Player& them) noexcept {
         us.setLost();
         them.setWon();
 
-        const auto color = getColorString(~board_.sideToMove());
+        const auto color = getColorString(board_.sideToMove());
 
         data_.termination = MatchTermination::ADJUDICATION;
         data_.reason      = color + Match::ADJUDICATION_WIN_MSG;
@@ -395,7 +395,7 @@ bool Match::adjudicate(Player& us, Player& them) noexcept {
         return true;
     }
 
-    if (config::TournamentConfig.get().draw.enabled && draw_tracker_.adjudicatable()) {
+    if (config::TournamentConfig.get().draw.enabled && draw_tracker_.adjudicatable(board_.fullMoveNumber() - 1)) {
         us.setDraw();
         them.setDraw();
 

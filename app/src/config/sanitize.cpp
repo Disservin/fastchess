@@ -5,12 +5,22 @@
 #include <thread>
 #include <utility>
 #include <vector>
+#include <random>
 
 #include <util/logger/logger.hpp>
 
 namespace fast_chess::config {
 
 void sanitize(config::Tournament& config) {
+    if (config.randomize_seed) {
+        std::random_device rd;
+        std::mt19937_64 gen((static_cast<uint64_t>(rd()) << 32) | rd());
+        std::uniform_int_distribution<uint64_t> dist(0, std::numeric_limits<uint64_t>::max());
+        config.seed = dist(gen);
+        // make sure that seed isnt randomized when saved and loaded from config
+        config.randomize_seed = false;
+    }
+    
     if (config.games > 2) {
         // wrong config, lets try to fix it
         std::swap(config.games, config.rounds);
@@ -68,13 +78,6 @@ void sanitize(config::Tournament& config) {
     if (config.ratinginterval == 0) config.ratinginterval = std::numeric_limits<int>::max();
 
     if (config.scoreinterval == 0) config.scoreinterval = std::numeric_limits<int>::max();
-
-    if (config.seed == 951356066 && !config.randomseed && !config.opening.file.empty() &&
-        config.opening.order == OrderType::RANDOM) {
-        Logger::warn(
-            "Warning: No opening book seed specified! Consider specifying one, otherwise the match "
-            "will be played using the default seed of 951356066.");
-    }
 }
 
 void sanitize(std::vector<EngineConfiguration>& configs) {

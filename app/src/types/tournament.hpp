@@ -58,12 +58,12 @@ struct Tournament {
 
     bool recover          = false;
     bool affinity         = false;
-    bool randomseed       = false;
+    bool randomize_seed   = true;
     bool realtime_logging = true;
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(Tournament, resign, draw, maxmoves, opening, pgn, epd, sprt,
                                                 config_name, output, seed, variant, ratinginterval, scoreinterval,
                                                 autosaveinterval, games, rounds, concurrency, overhead, recover,
-                                                report_penta, affinity, randomseed, realtime_logging)
+                                                report_penta, affinity, randomize_seed, realtime_logging)
 
 }  // namespace fast_chess::config

@@ -6,6 +6,7 @@
 #include <utility>
 #include <vector>
 
+#include <util/file_system.hpp>
 #include <util/logger/logger.hpp>
 
 namespace fast_chess::config {

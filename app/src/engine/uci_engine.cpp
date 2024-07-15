@@ -127,7 +127,7 @@ bool UciEngine::uciok() {
 
         auto option = UCIOptionFactory::parseUCIOptionLine(line.line);
 
-        if (option) {
+        if (option != nullptr) {
             uci_options_.addOption(std::move(option));
         }
     }

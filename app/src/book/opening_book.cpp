@@ -5,8 +5,8 @@
 #include <string>
 
 #include <config/config.hpp>
-#include <util/safe_getline.hpp>
 #include <util/logger/logger.hpp>
+#include <util/safe_getline.hpp>
 
 namespace fast_chess::book {
 

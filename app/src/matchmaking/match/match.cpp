@@ -165,7 +165,7 @@ bool Match::playMove(Player& us, Player& them) {
         return false;
     }
 
-    if (adjudicate(us, them)) {
+    if (adjudicate(them, us)) {
         return false;
     }
 
@@ -387,7 +387,7 @@ bool Match::adjudicate(Player& us, Player& them) noexcept {
         us.setLost();
         them.setWon();
 
-        const auto color = getColorString(~board_.sideToMove());
+        const auto color = getColorString(board_.sideToMove());
 
         data_.termination = MatchTermination::ADJUDICATION;
         data_.reason      = color + Match::ADJUDICATION_WIN_MSG;

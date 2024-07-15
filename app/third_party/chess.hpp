@@ -25,7 +25,7 @@ THIS FILE IS AUTO GENERATED DO NOT CHANGE MANUALLY.
 
 Source: https://github.com/Disservin/chess-library
 
-VERSION: 0.6.52
+VERSION: 0.6.53
 */
 
 #ifndef CHESS_HPP
@@ -859,7 +859,6 @@ class attacks {
 
 #include <array>
 #include <cctype>
-#include <charconv>
 #include <optional>
 
 
@@ -1757,18 +1756,14 @@ class Board {
 
         if (auto it = std::find(parts.begin(), parts.end(), "hmvc"); it != parts.end()) {
             auto num = *(it + 1);
-            auto max = num.size() - 1;
 
-            auto [p, ec] = std::from_chars(num.data(), num.data() + max, hm);
-            if (ec != std::errc()) throw std::runtime_error("Invalid EPD");
+            hm = std::stoi(std::string(num));
         }
 
         if (auto it = std::find(parts.begin(), parts.end(), "fmvn"); it != parts.end()) {
-            auto num     = *(it + 1);
-            auto max     = num.size() - 1;
-            auto [p, ec] = std::from_chars(num.data(), num.data() + max, fm);
+            auto num = *(it + 1);
 
-            if (ec != std::errc()) throw std::runtime_error("Invalid EPD");
+            fm = std::stoi(std::string(num));
         }
 
         auto fen = std::string(parts[0]) + " " + std::string(parts[1]) + " " + std::string(parts[2]) + " " +
@@ -2460,10 +2455,10 @@ class Board {
         const auto full_move  = params[5].has_value() ? *params[5] : "1";
 
         // Half move clock
-        std::from_chars(half_move.data(), half_move.data() + half_move.size(), hfm_);
+        hfm_ = std::stoi(std::string(half_move));
 
         // Full move number
-        std::from_chars(full_move.data(), full_move.data() + full_move.size(), plies_);
+        plies_ = std::stoi(std::string(full_move));
 
         plies_ = plies_ * 2 - 2;
         ep_sq_ = en_passant == "-" ? Square::underlying::NO_SQ : Square(en_passant);

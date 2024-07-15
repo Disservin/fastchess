@@ -18,16 +18,21 @@ class DrawTracker {
         draw_score   = config::TournamentConfig.get().draw.score;
     }
 
-    void update(const int score, const int move_count, engine::ScoreType score_type, const int hmvc) noexcept {
+    void update(const int score, engine::ScoreType score_type, const int hmvc) noexcept {
         if (hmvc == 0) draw_moves = 0;
-        if (move_count >= move_number_ && std::abs(score) <= draw_score && score_type == engine::ScoreType::CP) {
-            draw_moves++;
-        } else {
-            draw_moves = 0;
+
+        if (move_count_ > 0) {
+            if (std::abs(score) <= draw_score && score_type == engine::ScoreType::CP) {
+                draw_moves++;
+            } else {
+                draw_moves = 0;
+            }
         }
     }
 
-    [[nodiscard]] bool adjudicatable() const noexcept { return draw_moves >= move_count_ * 2; }
+    [[nodiscard]] bool adjudicatable(uint32_t plies) const noexcept {
+        return plies >= move_number_ && draw_moves >= move_count_ * 2;
+    }
 
    private:
     // number of moves below the draw threshold
@@ -36,8 +41,8 @@ class DrawTracker {
     int draw_score = 0;
 
     // config
-    int move_number_ = 0;
-    int move_count_  = 0;
+    uint32_t move_number_ = 0;
+    int move_count_       = 0;
 };
 
 class ResignTracker {

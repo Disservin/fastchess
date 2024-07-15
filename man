@@ -156,8 +156,8 @@ OPTIONS
             might lead to timeouts for very short time controls, to counteract this set it to false.
 
             LEVEL
-                trace
-                warn (default)
+                trace (default)
+                warn
                 info 
                 err
                 fatal

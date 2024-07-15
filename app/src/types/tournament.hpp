@@ -56,6 +56,7 @@ struct Tournament {
     int concurrency = 1;
     int overhead    = 0;
 
+    bool noswap           = false;
     bool recover          = false;
     bool affinity         = false;
     bool randomize_seed   = true;

@@ -58,7 +58,11 @@ void OpeningBook::setup(const std::string& file, FormatType type) {
         shuffle();
     }
 
-    rotate(offset_);
+    if (offset_ > 0) {
+        Logger::trace("Applying opening book offset...");
+        rotate(offset_);
+    }
+    
     truncate(rounds_);
     shrink();
 }

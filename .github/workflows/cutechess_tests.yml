@@ -1,0 +1,32 @@
+name: cutechess tests
+
+on:
+  workflow_call:
+
+jobs:
+  Tests:
+    name: ${{matrix.config.name}}
+    runs-on: ${{matrix.config.os}}
+    strategy:
+      matrix:
+        config:
+          - { name: "Ubuntu 22.04", os: ubuntu-22.04, shell: "bash {0}" }
+
+    defaults:
+      run:
+        shell: ${{ matrix.config.shell }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Installing required packages
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          clang++ --version
+          g++ --version
+
+      - name: Run cutechess tests
+        run: |
+          bash app/tests/cutechess/cutechess.sh

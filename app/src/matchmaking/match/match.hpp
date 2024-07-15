@@ -94,7 +94,7 @@ class MaxMovesTracker {
    public:
     MaxMovesTracker() noexcept { move_count_ = config::TournamentConfig.get().maxmoves.move_count; }
 
-    void update(const int score, engine::ScoreType score_type) noexcept {
+    void update() noexcept {
         max_moves++;
     }
 

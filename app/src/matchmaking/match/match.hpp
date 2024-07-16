@@ -94,9 +94,7 @@ class MaxMovesTracker {
    public:
     MaxMovesTracker() noexcept { move_count_ = config::TournamentConfig.get().maxmoves.move_count; }
 
-    void update() noexcept {
-        max_moves++;
-    }
+    void update() noexcept { max_moves++; }
 
     [[nodiscard]] bool maxmovesreached() const noexcept { return max_moves >= move_count_ * 2; }
 
@@ -118,6 +116,9 @@ class Match {
     [[nodiscard]] bool isCrashOrDisconnect() const noexcept { return crash_or_disconnect_; }
 
    private:
+    // returns the reason and the result of the game, different order than chess lib function
+    [[nodiscard]] std::pair<chess::GameResultReason, chess::GameResult> isGameOver() const;
+
     void setEngineCrashStatus(Player& loser, Player& winner);
     void setEngineTimeoutStatus(Player& loser, Player& winner);
     void setEngineIllegalMoveStatus(Player& loser, Player& winner, const std::optional<std::string>& best_move);

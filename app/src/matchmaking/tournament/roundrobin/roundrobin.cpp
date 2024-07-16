@@ -111,13 +111,7 @@ void RoundRobin::create() {
                 const auto opening = book_->fetchId();
 
                 for (int g = 0; g < config::TournamentConfig.get().games; g++) {
-                    pool_.enqueue([this, create_match, i, j, k, g, opening] {
-                        // wrap create_match in try catch so that it never throws (which it shouldnt anyway)
-                        try {
-                            create_match(i, j, k, g, opening);
-                        } catch (...) {
-                        }
-                    });
+                    pool_.enqueue(create_match, i, j, k, g, opening);
                 }
             }
         }

@@ -70,8 +70,8 @@ class ThreadPool {
                 TerminateThread(worker.native_handle(), 0);
 #else
                 pthread_cancel(worker.native_handle());
-                worker.join();
 #endif
+                worker.join();
             }
         }
 

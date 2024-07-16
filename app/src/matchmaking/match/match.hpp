@@ -94,10 +94,8 @@ class MaxMovesTracker {
    public:
     MaxMovesTracker() noexcept { move_count_ = config::TournamentConfig.get().maxmoves.move_count; }
 
-    void update(const int score, engine::ScoreType score_type) noexcept {
+    void update() noexcept {
         max_moves++;
-        // in case checkmate happens at the exact same time as maxmoves
-        if (score == 1 && score_type == engine::ScoreType::MATE) max_moves--;
     }
 
     [[nodiscard]] bool maxmovesreached() const noexcept { return max_moves >= move_count_ * 2; }

@@ -165,6 +165,7 @@ bool Match::playMove(Player& us, Player& them) {
         return false;
     }
 
+    // make sure adjudicate is placed after normal termination as it has lower priority
     if (adjudicate(them, us)) {
         return false;
     }
@@ -263,7 +264,7 @@ bool Match::playMove(Player& us, Player& them) {
 
     draw_tracker_.update(score, type, board_.halfMoveClock());
     resign_tracker_.update(score, type, ~board_.sideToMove());
-    maxmoves_tracker_.update(score, type);
+    maxmoves_tracker_.update();
 
     return true;
 }

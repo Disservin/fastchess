@@ -32,7 +32,7 @@ format: ## Format code
 
 clean: ## Clean up
 	@echo "Cleaning up.."
-	$(MAKE) -C app clean
+	$(MAKE) -C app clean BINARY_PATH=../
 	@echo "Done."
 
 help: ## Print this help

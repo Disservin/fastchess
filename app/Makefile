@@ -139,6 +139,6 @@ build_directories:
 	@find third_party -type d -exec $(MKDIR) $(BUILDDIR)/{} \;
 
 clean:
-	rm -rf $(BUILDDIR) $(TARGET) $(TARGET).exe
+	rm -rf $(BUILDDIR) $(TARGET) $(TARGET)-tests.exe $(TARGET).exe
 
 -include $(DEPENDS)

@@ -66,6 +66,11 @@ class ThreadPool {
 
         for (auto &worker : workers_) {
             if (worker.joinable()) {
+#ifdef _WIN65
+                TerminateThread(worker.native_handle(), 0);
+#else
+                pthread_cancel(worker.native_handle());
+#endif
                 worker.join();
             }
         }

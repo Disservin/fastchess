@@ -147,7 +147,7 @@ void Match::start(engine::UciEngine& white, engine::UciEngine& black, const std:
 }
 
 bool Match::playMove(Player& us, Player& them) {
-    const auto gameover = board_.isGameOver();
+    const auto gameover = isGameOver();
     const auto name     = us.engine.getConfig().name;
 
     if (gameover.second == GameResult::DRAW) {
@@ -274,6 +274,26 @@ bool Match::isLegal(Move move) const noexcept {
     movegen::legalmoves(moves, board_);
 
     return std::find(moves.begin(), moves.end(), move) != moves.end();
+}
+
+std::pair<chess::GameResultReason, chess::GameResult> Match::isGameOver() const {
+    Movelist movelist;
+    movegen::legalmoves(movelist, board_);
+
+    if (movelist.empty()) {
+        if (board_.inCheck()) return {GameResultReason::CHECKMATE, GameResult::LOSE};
+        return {GameResultReason::STALEMATE, GameResult::DRAW};
+    }
+
+    if (board_.isInsufficientMaterial()) return {GameResultReason::INSUFFICIENT_MATERIAL, GameResult::DRAW};
+
+    if (board_.isRepetition()) return {GameResultReason::THREEFOLD_REPETITION, GameResult::DRAW};
+
+    if (board_.isHalfMoveDraw()) {
+        return board_.getHalfMoveDrawType();
+    }
+
+    return {GameResultReason::NONE, GameResult::NONE};
 }
 
 void Match::setEngineCrashStatus(Player& loser, Player& winner) {

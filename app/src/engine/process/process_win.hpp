@@ -147,10 +147,12 @@ class Process : public IProcess {
                     // don't add empty lines
                     if (current_line_.empty()) continue;
 
-                    lines.emplace_back(Line{current_line_, util::time::datetime_precise()});
+                    const auto time = Logger::should_log_ ? util::time::datetime_precise() : "";
+
+                    lines.emplace_back(Line{current_line_, time});
 
                     if (realtime_logging_) {
-                        Logger::readFromEngine(current_line_, util::time::datetime_precise(), log_name_, false, id);
+                        Logger::readFromEngine(current_line_, time, log_name_, false, id);
                     }
 
                     if (current_line_.rfind(last_word, 0) == 0) {

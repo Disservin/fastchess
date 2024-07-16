@@ -291,8 +291,6 @@ int UciEngine::lastScore() const {
     const auto score = lastScoreType();
 
     if (score == ScoreType::ERR) {
-        Logger::warn<true>("Warning; No info string found in the last line from {} which includes the score",
-                           config_.name);
         return 0;
     }
 

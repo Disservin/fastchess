@@ -34,8 +34,8 @@ TEST_SUITE("PGN Builder Tests") {
 [PlyCount "4"]
 [TimeControl "-"]
 
-1. e4 {+1.00/15, 1.321s} e5 {+1.23/15, 0.430s} 2. Nf3 {+1.45/16, 0.310s}
-Nf6 {+10.15/18, 1.821s, engine2 got checkmated} 1-0
+1. e4 {+1.00/15 1.321s} e5 {+1.23/15 0.430s} 2. Nf3 {+1.45/16 0.310s}
+Nf6 {+10.15/18 1.821s engine2 got checkmated} 1-0
 
 )";
 
@@ -73,8 +73,8 @@ Nf6 {+10.15/18, 1.821s, engine2 got checkmated} 1-0
 [PlyCount "4"]
 [TimeControl "-"]
 
-1. e4 {+1.00/15, 1.321s} e5 {+1.23/15, 0.430s} 2. Nf3 {+1.45/16, 0.310s}
-Nf6 {+10.15/18, 1.821s, engine1 got checkmated} 0-1
+1. e4 {+1.00/15 1.321s} e5 {+1.23/15 0.430s} 2. Nf3 {+1.45/16 0.310s}
+Nf6 {+10.15/18 1.821s engine1 got checkmated} 0-1
 
 )";
 
@@ -113,8 +113,7 @@ Nf6 {+10.15/18, 1.821s, engine1 got checkmated} 0-1
 [PlyCount "3"]
 [TimeControl "-"]
 
-1... O-O {+1.00/15, 1.321s} 2. O-O {+1.23/15, 0.430s}
-Nc5 {+1.45/16, 0.310s, aborted} *
+1... O-O {+1.00/15 1.321s} 2. O-O {+1.23/15 0.430s} Nc5 {+1.45/16 0.310s aborted} *
 
 )";
 
@@ -155,8 +154,7 @@ Nc5 {+1.45/16, 0.310s, aborted} *
 [PlyCount "3"]
 [TimeControl "1/move"]
 
-1... O-O {+1.00/15, 1.321s} 2. O-O {+1.23/15, 0.430s}
-Nc5 {+1.45/16, 0.310s, aborted} *
+1... O-O {+1.00/15 1.321s} 2. O-O {+1.23/15 0.430s} Nc5 {+1.45/16 0.310s aborted} *
 
 )";
 
@@ -198,8 +196,7 @@ Nc5 {+1.45/16, 0.310s, aborted} *
 [WhiteTimeControl "1/move"]
 [BlackTimeControl "0.2/move"]
 
-1... O-O {+1.00/15, 1.321s} 2. O-O {+1.23/15, 0.430s}
-Nc5 {+1.45/16, 0.310s, aborted} *
+1... O-O {+1.00/15 1.321s} 2. O-O {+1.23/15 0.430s} Nc5 {+1.45/16 0.310s aborted} *
 
 )";
 

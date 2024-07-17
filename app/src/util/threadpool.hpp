@@ -12,6 +12,10 @@
 #include <type_traits>
 #include <vector>
 
+namespace fast_chess::atomic {
+extern std::atomic_bool signal;
+}  // namespace fast_chess::atomic
+
 namespace fast_chess::util {
 
 class ThreadPool {
@@ -66,11 +70,14 @@ class ThreadPool {
 
         for (auto &worker : workers_) {
             if (worker.joinable()) {
+                if (atomic::signal) {
 #ifdef _WIN64
-                TerminateThread(reinterpret_cast<HANDLE>(worker.native_handle()), 0);
+                    TerminateThread(reinterpret_cast<HANDLE>(worker.native_handle()), 0);
 #else
-                pthread_cancel(worker.native_handle());
+                    pthread_cancel(worker.native_handle());
 #endif
+                }
+
                 worker.join();
             }
         }

@@ -8,8 +8,9 @@ namespace fast_chess {
 #include <atomic>
 
 namespace atomic {
-std::atomic_bool stop = false;
-}
+std::atomic_bool stop   = false;
+std::atomic_bool signal = false;
+}  // namespace atomic
 
 #ifdef _WIN64
 #    include <windows.h>
@@ -37,7 +38,10 @@ void stopProcesses() {
 #endif
 }
 
-void consoleHandlerAction() { atomic::stop = true; }
+void consoleHandlerAction() {
+    atomic::stop   = true;
+    atomic::signal = true;
+}
 
 #ifdef _WIN64
 BOOL WINAPI handler(DWORD signal) {

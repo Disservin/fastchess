@@ -287,11 +287,11 @@ std::pair<chess::GameResultReason, chess::GameResult> Match::isGameOver() const 
 
     if (board_.isInsufficientMaterial()) return {GameResultReason::INSUFFICIENT_MATERIAL, GameResult::DRAW};
 
-    if (board_.isRepetition()) return {GameResultReason::THREEFOLD_REPETITION, GameResult::DRAW};
-
     if (board_.isHalfMoveDraw()) {
         return board_.getHalfMoveDrawType();
     }
+
+    if (board_.isRepetition()) return {GameResultReason::THREEFOLD_REPETITION, GameResult::DRAW};
 
     return {GameResultReason::NONE, GameResult::NONE};
 }

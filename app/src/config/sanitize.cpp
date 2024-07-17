@@ -18,7 +18,7 @@ void sanitize(config::Tournament& config) {
         std::mt19937_64 gen((static_cast<uint64_t>(rd()) << 32) | rd());
         std::uniform_int_distribution<uint64_t> dist(0, std::numeric_limits<uint64_t>::max());
         config.seed = dist(gen);
-        // make sure that seed isnt randomized when saved and loaded from config
+        // make sure that seed is not randomized when saved and loaded from config
         config.randomize_seed = false;
     }
     

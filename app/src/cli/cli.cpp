@@ -492,10 +492,6 @@ void parseRecover(const std::vector<std::string> &, ArgumentData &argument_data)
     argument_data.tournament_config.recover = true;
 }
 
-void parseRandomSeed(const std::vector<std::string> &, ArgumentData &) {
-    // do nothing
-}
-
 void parseRepeat(const std::vector<std::string> &params, ArgumentData &argument_data) {
     if (params.size() == 1 && is_number(params[0])) {
         parseValue(params, argument_data.tournament_config.games);
@@ -615,7 +611,6 @@ OptionsParser::OptionsParser(int argc, char const *argv[]) {
     addOption("help", parseHelp);
     addOption("-help", parseHelp);
     addOption("recover", parseRecover);
-    addOption("randomseed", parseRandomSeed);
     addOption("repeat", parseRepeat);
     addOption("variant", parseVariant);
     addOption("tournament", parseTournament);

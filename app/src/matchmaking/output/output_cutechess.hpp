@@ -46,7 +46,7 @@ class Cutechess : public IOutput {
                 result = " - H0 was accepted";
             }
 
-            return fmt::format("SPRT: llr {:.2f} ({:.1f}%), lbound {}, ubound {}{}\n", llr, percentage, lowerBound,
+            return fmt::format("SPRT: llr {:.2f} ({:.1f}%), lbound {:.2f}, ubound {:.2f}{}\n", llr, percentage, lowerBound,
                                upperBound, result);
         }
         return "";

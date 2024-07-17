@@ -59,7 +59,7 @@ void OpeningBook::setup(const std::string& file, FormatType type) {
     }
 
     if (offset_ > 0) {
-        Logger::trace("Applying opening book offset...");
+        Logger::trace("Offsetting the opening book by {} openings...", offset_);
         rotate(offset_);
     }
     

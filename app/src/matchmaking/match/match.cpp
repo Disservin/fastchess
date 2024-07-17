@@ -416,8 +416,7 @@ bool Match::adjudicate(Player& us, Player& them) noexcept {
         return true;
     }
 
-    if (config::TournamentConfig.get().draw.enabled && 
-        draw_tracker_.adjudicatable(board_.fullMoveNumber() - (~board_.sideToMove() == chess::Color::BLACK ? 1 : 0))) {
+    if (config::TournamentConfig.get().draw.enabled && draw_tracker_.adjudicatable(board_.fullMoveNumber() - 1)) {
         us.setDraw();
         them.setDraw();
 

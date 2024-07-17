@@ -114,7 +114,6 @@ TEST_SUITE("Option Parsing Tests") {
                                       "format=cutechess",
                                       "-srand",
                                       "1234",
-                                      "-randomseed",
                                       "-report",
                                       "penta=false",
                                       "-use-affinity",

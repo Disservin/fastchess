@@ -31,7 +31,7 @@ class DrawTracker {
     }
 
     [[nodiscard]] bool adjudicatable(uint32_t plies) const noexcept {
-        return plies >= move_number_ && draw_moves >= move_count_ * 2;
+        return plies > move_number_ && draw_moves >= move_count_ * 2;
     }
 
    private:

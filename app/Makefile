@@ -264,27 +264,6 @@ build_directories:
 	@$(MKDIR) $(BUILDDIR)/tests/e2e
 	@$(MKDIR) $(BUILDDIR)/tests/"mock/engine"
 	@$(MKDIR) $(BUILDDIR)/third_party
-	@$(MKDIR) $(BUILDDIR)/third_party/fmt
-	@$(MKDIR) $(BUILDDIR)/third_party/fmt/".github"
-	@$(MKDIR) $(BUILDDIR)/third_party/fmt/".github"/workflows
-	@$(MKDIR) $(BUILDDIR)/third_party/fmt/doc
-	@$(MKDIR) $(BUILDDIR)/third_party/fmt/"include/fmt"
-	@$(MKDIR) $(BUILDDIR)/third_party/fmt/src
-	@$(MKDIR) $(BUILDDIR)/third_party/fmt/support
-	@$(MKDIR) $(BUILDDIR)/third_party/fmt/support/bazel
-	@$(MKDIR) $(BUILDDIR)/third_party/fmt/support/cmake
-	@$(MKDIR) $(BUILDDIR)/third_party/fmt/support/"python/mkdocstrings_handlers/cxx"
-	@$(MKDIR) $(BUILDDIR)/third_party/fmt/support/"python/mkdocstrings_handlers/cxx"/templates
-	@$(MKDIR) $(BUILDDIR)/third_party/fmt/test
-	@$(MKDIR) $(BUILDDIR)/third_party/fmt/test/add-subdirectory-test
-	@$(MKDIR) $(BUILDDIR)/third_party/fmt/test/compile-error-test
-	@$(MKDIR) $(BUILDDIR)/third_party/fmt/test/cuda-test
-	@$(MKDIR) $(BUILDDIR)/third_party/fmt/test/find-package-test
-	@$(MKDIR) $(BUILDDIR)/third_party/fmt/test/fuzzing
-	@$(MKDIR) $(BUILDDIR)/third_party/fmt/test/gtest
-	@$(MKDIR) $(BUILDDIR)/third_party/fmt/test/gtest/gmock
-	@$(MKDIR) $(BUILDDIR)/third_party/fmt/test/gtest/gtest
-	@$(MKDIR) $(BUILDDIR)/third_party/fmt/test/static-export-test
 	@$(MKDIR) $(BUILDDIR)/third_party/gzip
 
 clean:

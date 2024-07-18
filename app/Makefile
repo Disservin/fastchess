@@ -48,9 +48,74 @@ SRC_FILES_TEST   := \
 	$(TESTDIR)/scoreboard_test.cpp \
 	$(TESTDIR)/sprt_test.cpp \
 	$(TESTDIR)/uci_engine_test.cpp
-HEADERS          := $(shell find $(SRCDIR) -name "*.hpp") $(shell find $(TESTDIR) -maxdepth 1 -name "*.hpp")
-
-# Windows file extension
+HEADERS          := \
+	$(SRCDIR)/affinity/cpuinfo/cpu_info.hpp \
+	$(SRCDIR)/affinity/cpuinfo/cpuinfo_mac.hpp \
+	$(SRCDIR)/affinity/cpuinfo/cpuinfo_posix.hpp \
+	$(SRCDIR)/affinity/cpuinfo/cpuinfo_win.hpp \
+	$(SRCDIR)/affinity/affinity.hpp \
+	$(SRCDIR)/affinity/affinity_manager.hpp \
+	$(SRCDIR)/book/opening_book.hpp \
+	$(SRCDIR)/cli/cli.hpp \
+	$(SRCDIR)/cli/man.hpp \
+	$(SRCDIR)/config/config.hpp \
+	$(SRCDIR)/config/sanitize.hpp \
+	$(SRCDIR)/elo/elo.hpp \
+	$(SRCDIR)/elo/elo_wdl.hpp \
+	$(SRCDIR)/elo/elo_pentanomial.hpp \
+	$(SRCDIR)/engine/option/button_option.hpp \
+	$(SRCDIR)/engine/option/check_option.hpp \
+	$(SRCDIR)/engine/option/combo_option.hpp \
+	$(SRCDIR)/engine/option/option_factory.hpp \
+	$(SRCDIR)/engine/option/options.hpp \
+	$(SRCDIR)/engine/option/spin_option.hpp \
+	$(SRCDIR)/engine/option/string_option.hpp \
+	$(SRCDIR)/engine/option/ucioption.hpp \
+	$(SRCDIR)/engine/process/iprocess.hpp \
+	$(SRCDIR)/engine/process/process_posix.hpp \
+	$(SRCDIR)/engine/option/process_win.hpp \
+	$(SRCDIR)/engine/uci_engine.hpp \
+	$(SRCDIR)/epd/epd_builder.hpp \
+	$(SRCDIR)/globals/globals.hpp \
+	$(SRCDIR)/matchmaking/match/match.hpp \
+	$(SRCDIR)/matchmaking/output/output.hpp \
+	$(SRCDIR)/matchmaking/output/output_cutechess.hpp \
+	$(SRCDIR)/matchmaking/output/output_factory.hpp \
+	$(SRCDIR)/matchmaking/output/output_fastchess.hpp \
+	$(SRCDIR)/matchmaking/sprt/sprt.hpp \
+	$(SRCDIR)/matchmaking/tournament/base/tournament.hpp \
+	$(SRCDIR)/matchmaking/tournament/roundrobin/roundrobin.hpp \
+	$(SRCDIR)/matchmaking/tournament/tournament_manager.hpp \
+	$(SRCDIR)/matchmaking/player.hpp \
+	$(SRCDIR)/matchmaking/scoreboard.hpp \
+	$(SRCDIR)/matchmaking/stats.hpp \
+	$(SRCDIR)/pgn/pgn_builder.hpp \
+	$(SRCDIR)/pgn/pgn_reader.hpp \
+	$(SRCDIR)/time/timecontrol.hpp \
+	$(SRCDIR)/types/draw_adjucation.hpp \
+	$(SRCDIR)/types/engine_config.hpp \
+	$(SRCDIR)/types/enums.hpp \
+	$(SRCDIR)/types/epd.hpp \
+	$(SRCDIR)/types/match_data.hpp \
+	$(SRCDIR)/types/max_moves_adjudication.hpp \
+	$(SRCDIR)/types/opening.hpp \
+	$(SRCDIR)/types/pgn.hpp \
+	$(SRCDIR)/types/resign_adjudication.hpp \
+	$(SRCDIR)/types/sprt.hpp \
+	$(SRCDIR)/types/tournament.hpp \
+	$(SRCDIR)/util/logger/logger.hpp \
+	$(SRCDIR)/util/cache.hpp \
+	$(SRCDIR)/util/date.hpp \
+	$(SRCDIR)/util/file_system.hpp \
+	$(SRCDIR)/util/file_writer.hpp \
+	$(SRCDIR)/util/game_pair.hpp \
+	$(SRCDIR)/util/helper.hpp \
+	$(SRCDIR)/util/lazy.hpp \
+	$(SRCDIR)/util/rand.hpp \
+	$(SRCDIR)/util/safe_getline.hpp \
+	$(SRCDIR)/util/scope_guard.hpp \
+	$(SRCDIR)/util/thread_vector.hpp \
+	$(SRCDIR)/util/threadpool.hpp
 SUFFIX           := .exe
 
 NATIVE 	         := -march=native

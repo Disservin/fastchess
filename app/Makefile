@@ -15,9 +15,42 @@ CXXFLAGS         := -O3 -std=c++17 -Wall -Wextra -DNDEBUG
 CXXFLAGS_TEST	 := -O2 -std=c++17 -Wall -Wextra -pedantic -Wuninitialized -g3 -fno-omit-frame-pointer
 INC              := -I$(INCDIR) -Ithird_party
 
-SRC_FILES        := $(shell find $(SRCDIR) -name "*.cpp")
-SRC_FILES_TEST   := $(shell find $(TESTDIR) -maxdepth 1 -name "*.cpp")
-HEADERS          := $(shell find $(SRCDIR) -name "*.hpp") $(shell find $(TESTDIR) -maxdepth 1 -name "*.hpp")
+SRC_FILES        := \
+	$(SRCDIR)/book/opening_book.cpp \
+	$(SRCDIR)/cli/cli.cpp \
+	$(SRCDIR)/config/sanitize.cpp \
+	$(SRCDIR)/elo/elo_wdl.cpp \
+	$(SRCDIR)/elo/elo_pentanomial.cpp \
+	$(SRCDIR)/engine/uci_engine.cpp \
+	$(SRCDIR)/globals/globals.cpp \
+	$(SRCDIR)/matchmaking/match/match.cpp \
+	$(SRCDIR)/matchmaking/sprt/sprt.cpp \
+	$(SRCDIR)/matchmaking/tournament/base/tournament.cpp \
+	$(SRCDIR)/matchmaking/tournament/roundrobin/roundrobin.cpp \
+	$(SRCDIR)/matchmaking/tournament/tournament_manager.cpp \
+	$(SRCDIR)/pgn/pgn_builder.cpp \
+	$(SRCDIR)/pgn/pgn_reader.cpp \
+	$(SRCDIR)/time/timecontrol.cpp \
+	$(SRCDIR)/util/logger/logger.cpp \
+	$(SRCDIR)/main.cpp
+
+SRC_FILES_TEST   := \
+	$(TESTDIR)/elo_test.cpp \
+	$(TESTDIR)/epd_builder_test.cpp \
+	$(TESTDIR)/functions_test.cpp \
+	$(TESTDIR)/hash_test.cpp \
+	$(TESTDIR)/main.cpp \
+	$(TESTDIR)/opening_test.cpp \
+	$(TESTDIR)/options_test.cpp \
+	$(TESTDIR)/pgn_builder_test.cpp \
+	$(TESTDIR)/pgn_reader_test.cpp \
+	$(TESTDIR)/player.cpp \
+	$(TESTDIR)/scoreboard_test.cpp \
+	$(TESTDIR)/sprt_test.cpp \
+	$(TESTDIR)/uci_engine_test.cpp
+
+# Only used for formatting
+HEADERS := $(shell find $(SRCDIR) -name "*.hpp") $(shell find $(TESTDIR) -maxdepth 1 -name "*.hpp")
 
 # Windows file extension
 SUFFIX           := .exe
@@ -133,10 +166,7 @@ $(BUILDDIR)/%.o: %.cpp | build_directories
 	$(CXX) $(CXXFLAGS) $(NATIVE) $(INC) $(DEPFLAGS) -c $< -o $@
 
 build_directories:
-	@$(MKDIR) $(BUILDDIR)
-	@find src -type d -exec $(MKDIR) $(BUILDDIR)/{} \;
-	@find tests -type d -exec $(MKDIR) $(BUILDDIR)/{} \;
-	@find third_party -type d -exec $(MKDIR) $(BUILDDIR)/{} \;
+	@$(shell mkdir -p $(sort $(dir $(OBJECTS))))
 
 clean:
 	rm -rf $(BUILDDIR) $(TARGET) $(TARGET)-tests $(TARGET)-tests.exe $(TARGET).exe

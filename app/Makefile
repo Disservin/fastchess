@@ -252,6 +252,7 @@ build_directories:
 	@$(MKDIR) $(BUILDDIR)/src/matchmaking/tournament
 	@$(MKDIR) $(BUILDDIR)/src/matchmaking/tournament/base
 	@$(MKDIR) $(BUILDDIR)/src/matchmaking/tournament/roundrobin
+	@$(MKDIR) $(BUILDDIR)/src/pgn
 	@$(MKDIR) $(BUILDDIR)/src/time
 	@$(MKDIR) $(BUILDDIR)/src/types
 	@$(MKDIR) $(BUILDDIR)/src/util

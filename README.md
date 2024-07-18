@@ -39,7 +39,7 @@ Building Fast-Chess from source is straightforward. Just follow these steps:
 
 1. Clone the repository `git clone https://github.com/Disservin/fast-chess.git`
 2. Navigate to the fast-chess directory `cd fast-chess`
-3. Build the executable `make -j` for GCC and `make -j CXX=clang++` for Clang (requires GCC > 7.3.0 or Clang > 8.0.0).
+3. Build the executable `make -j` for GCC and `make -j CXX=clang++` for Clang (requires GCC >= 7.3.0 or Clang >= 8.0.0).
 
 ### Download the latest release
 

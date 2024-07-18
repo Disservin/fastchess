@@ -34,7 +34,20 @@ SRC_FILES        := \
 	$(SRCDIR)/time/timecontrol.cpp \
 	$(SRCDIR)/util/logger/logger.cpp \
 	$(SRCDIR)/main.cpp
-SRC_FILES_TEST   := $(shell find $(TESTDIR) -maxdepth 1 -name "*.cpp")
+SRC_FILES_TEST   := \
+	$(TESTDIR)/elo_test.cpp \
+	$(TESTDIR)/epd_builder_test.cpp \
+	$(TESTDIR)/functions_test.cpp \
+	$(TESTDIR)/hash_test.cpp \
+	$(TESTDIR)/main.cpp \
+	$(TESTDIR)/opening_test.cpp \
+	$(TESTDIR)/options_test.cpp \
+	$(TESTDIR)/pgn_builder_test.cpp \
+	$(TESTDIR)/pgn_reader_test.cpp \
+	$(TESTDIR)/player.cpp \
+	$(TESTDIR)/scoreboard_test.cpp \
+	$(TESTDIR)/sprt_test.cpp \
+	$(TESTDIR)/uci_engine_test.cpp
 HEADERS          := $(shell find $(SRCDIR) -name "*.hpp") $(shell find $(TESTDIR) -maxdepth 1 -name "*.hpp")
 
 # Windows file extension

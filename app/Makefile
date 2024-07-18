@@ -18,7 +18,6 @@ INC              := -I$(INCDIR) -Ithird_party
 SRC_FILES        := \
 	$(SRCDIR)/book/opening_book.cpp \
 	$(SRCDIR)/cli/cli.cpp \
-	$(SRCDIR)/cli/cli.cpp \
 	$(SRCDIR)/config/sanitize.cpp \
 	$(SRCDIR)/elo/elo_wdl.cpp \
 	$(SRCDIR)/elo/elo_pentanomial.cpp \
@@ -34,6 +33,7 @@ SRC_FILES        := \
 	$(SRCDIR)/time/timecontrol.cpp \
 	$(SRCDIR)/util/logger/logger.cpp \
 	$(SRCDIR)/main.cpp
+
 SRC_FILES_TEST   := \
 	$(TESTDIR)/elo_test.cpp \
 	$(TESTDIR)/epd_builder_test.cpp \
@@ -48,6 +48,7 @@ SRC_FILES_TEST   := \
 	$(TESTDIR)/scoreboard_test.cpp \
 	$(TESTDIR)/sprt_test.cpp \
 	$(TESTDIR)/uci_engine_test.cpp
+
 HEADERS          := \
 	$(SRCDIR)/affinity/cpuinfo/cpu_info.hpp \
 	$(SRCDIR)/affinity/cpuinfo/cpuinfo_mac.hpp \
@@ -116,6 +117,7 @@ HEADERS          := \
 	$(SRCDIR)/util/scope_guard.hpp \
 	$(SRCDIR)/util/thread_vector.hpp \
 	$(SRCDIR)/util/threadpool.hpp
+
 SUFFIX           := .exe
 
 NATIVE 	         := -march=native

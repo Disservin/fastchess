@@ -118,6 +118,7 @@ HEADERS          := \
 	$(SRCDIR)/util/thread_vector.hpp \
 	$(SRCDIR)/util/threadpool.hpp
 
+# Windows file extension
 SUFFIX           := .exe
 
 NATIVE 	         := -march=native
@@ -232,9 +233,58 @@ $(BUILDDIR)/%.o: %.cpp | build_directories
 
 build_directories:
 	@$(MKDIR) $(BUILDDIR)
-	@find src -type d -exec $(MKDIR) $(BUILDDIR)/{} \;
-	@find tests -type d -exec $(MKDIR) $(BUILDDIR)/{} \;
-	@find third_party -type d -exec $(MKDIR) $(BUILDDIR)/{} \;
+	@$(MKDIR) $(BUILDDIR)/src
+	@$(MKDIR) $(BUILDDIR)/src/affinity
+	@$(MKDIR) $(BUILDDIR)/src/affinity/cpuinfo
+	@$(MKDIR) $(BUILDDIR)/src/book
+	@$(MKDIR) $(BUILDDIR)/src/cli
+	@$(MKDIR) $(BUILDDIR)/src/config
+	@$(MKDIR) $(BUILDDIR)/src/elo
+	@$(MKDIR) $(BUILDDIR)/src/engine
+	@$(MKDIR) $(BUILDDIR)/src/engine/option
+	@$(MKDIR) $(BUILDDIR)/src/engine/process
+	@$(MKDIR) $(BUILDDIR)/src/epd
+	@$(MKDIR) $(BUILDDIR)/src/globals
+	@$(MKDIR) $(BUILDDIR)/src/matchmaking
+	@$(MKDIR) $(BUILDDIR)/src/matchmaking/match
+	@$(MKDIR) $(BUILDDIR)/src/matchmaking/output
+	@$(MKDIR) $(BUILDDIR)/src/matchmaking/sprt
+	@$(MKDIR) $(BUILDDIR)/src/matchmaking/tournament
+	@$(MKDIR) $(BUILDDIR)/src/matchmaking/tournament/base
+	@$(MKDIR) $(BUILDDIR)/src/matchmaking/tournament/roundrobin
+	@$(MKDIR) $(BUILDDIR)/src/time
+	@$(MKDIR) $(BUILDDIR)/src/types
+	@$(MKDIR) $(BUILDDIR)/src/util
+	@$(MKDIR) $(BUILDDIR)/src/util/logger
+	@$(MKDIR) $(BUILDDIR)/tests
+	@$(MKDIR) $(BUILDDIR)/tests/cutechess
+	@$(MKDIR) $(BUILDDIR)/tests/data
+	@$(MKDIR) $(BUILDDIR)/tests/doctest
+	@$(MKDIR) $(BUILDDIR)/tests/e2e
+	@$(MKDIR) $(BUILDDIR)/tests/"mock/engine"
+	@$(MKDIR) $(BUILDDIR)/third_party
+	@$(MKDIR) $(BUILDDIR)/third_party/fmt
+	@$(MKDIR) $(BUILDDIR)/third_party/fmt/".github"
+	@$(MKDIR) $(BUILDDIR)/third_party/fmt/".github"/workflows
+	@$(MKDIR) $(BUILDDIR)/third_party/fmt/doc
+	@$(MKDIR) $(BUILDDIR)/third_party/fmt/"include/fmt"
+	@$(MKDIR) $(BUILDDIR)/third_party/fmt/src
+	@$(MKDIR) $(BUILDDIR)/third_party/fmt/support
+	@$(MKDIR) $(BUILDDIR)/third_party/fmt/support/bazel
+	@$(MKDIR) $(BUILDDIR)/third_party/fmt/support/cmake
+	@$(MKDIR) $(BUILDDIR)/third_party/fmt/support/"python/mkdocstrings_handlers/cxx"
+	@$(MKDIR) $(BUILDDIR)/third_party/fmt/support/"python/mkdocstrings_handlers/cxx"/templates
+	@$(MKDIR) $(BUILDDIR)/third_party/fmt/test
+	@$(MKDIR) $(BUILDDIR)/third_party/fmt/test/add-subdirectory-test
+	@$(MKDIR) $(BUILDDIR)/third_party/fmt/test/compile-error-test
+	@$(MKDIR) $(BUILDDIR)/third_party/fmt/test/cuda-test
+	@$(MKDIR) $(BUILDDIR)/third_party/fmt/test/find-package-test
+	@$(MKDIR) $(BUILDDIR)/third_party/fmt/test/fuzzing
+	@$(MKDIR) $(BUILDDIR)/third_party/fmt/test/gtest
+	@$(MKDIR) $(BUILDDIR)/third_party/fmt/test/gtest/gmock
+	@$(MKDIR) $(BUILDDIR)/third_party/fmt/test/gtest/gtest
+	@$(MKDIR) $(BUILDDIR)/third_party/fmt/test/static-export-test
+	@$(MKDIR) $(BUILDDIR)/third_party/gzip
 
 clean:
 	rm -rf $(BUILDDIR) $(TARGET) $(TARGET)-tests $(TARGET)-tests.exe $(TARGET).exe

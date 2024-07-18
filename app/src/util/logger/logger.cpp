@@ -60,7 +60,7 @@ void Logger::readFromEngine(const std::string &msg, const std::string &time, con
     }
 
     auto fmt_message =
-        fmt::format("[{:<6}] [{}] <{:>3}> {}{} ---> {}\n", "Engine", time, id, (err ? " <stderr>" : ""), name, msg);
+        fmt::format("[{:<6}] [{}] <{:>3}> {}{} ---> {}\n", "Engine", time, id, (err ? "<stderr> " : ""), name, msg);
 
     const std::lock_guard<std::mutex> lock(log_mutex_);
     std::visit([&](auto &&arg) { arg << fmt_message << std::flush; }, log_);

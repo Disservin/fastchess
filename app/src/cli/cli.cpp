@@ -627,7 +627,7 @@ OptionsParser::OptionsParser(int argc, char const *argv[]) {
 
     argument_data_.tournament_config.seed = util::random::random_uint64();
 
-    util::random::seed(seed);
+    util::random::seed(argument_data_.tournament_config.seed);
 }
 
 }  // namespace fast_chess::cli

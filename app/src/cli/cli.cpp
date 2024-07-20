@@ -625,7 +625,7 @@ OptionsParser::OptionsParser(int argc, char const *argv[]) {
         config.variant = argument_data_.tournament_config.variant;
     }
 
-    const auto seed = util::random::random_uint64();
+    argument_data_.tournament_config.seed = util::random::random_uint64();
 
     util::random::seed(seed);
 }

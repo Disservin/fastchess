@@ -482,6 +482,7 @@ void parseScoreinterval(const std::vector<std::string> &params, ArgumentData &ar
 
 void parseSRand(const std::vector<std::string> &params, ArgumentData &argument_data) {
     parseValue(params, argument_data.tournament_config.seed);
+    argument_data.tournament_config.randomize_seed = false;
 }
 
 void parseVersion(const std::vector<std::string> &, ArgumentData &) { OptionsParser::printVersion(); }

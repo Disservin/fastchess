@@ -581,6 +581,10 @@ OptionsParser::OptionsParser(int argc, char const *argv[]) {
         printHelp();
     }
 
+    argument_data_.tournament_config.seed = util::random::random_uint64();
+
+    util::random::seed(argument_data_.tournament_config.seed);
+
     addOption("engine", engine::parseEngine);
     addOption("each", parseEach);
     addOption("pgnout", parsePgnOut);
@@ -624,10 +628,6 @@ OptionsParser::OptionsParser(int argc, char const *argv[]) {
     for (auto &config : argument_data_.configs) {
         config.variant = argument_data_.tournament_config.variant;
     }
-
-    argument_data_.tournament_config.seed = util::random::random_uint64();
-
-    util::random::seed(argument_data_.tournament_config.seed);
 }
 
 }  // namespace fast_chess::cli

@@ -19,7 +19,7 @@ std::string to_string(const T &obj) {
 }
 }  // namespace str
 
-PgnBuilder::PgnBuilder(const config::Pgn &pgn_config, const MatchData &match, std::size_t round_id)
+PgnBuilder::PgnBuilder(const config::Pgn &pgn_config, const MatchData &match, std::size_t round_id, std::size_t game_id, int games)
     : pgn_config_(pgn_config), match_(match) {
     const auto &white_player = match.players.white;
     const auto &black_player = match.players.black;
@@ -29,7 +29,12 @@ PgnBuilder::PgnBuilder(const config::Pgn &pgn_config, const MatchData &match, st
     addHeader("Event", pgn_config_.event_name);
     addHeader("Site", pgn_config_.site);
     addHeader("Date", match_.date);
-    addHeader("Round", std::to_string(round_id));
+
+    if (games == 1)
+        addHeader("Round", std::to_string(round_id));
+    else
+        addHeader("Round", std::to_string(round_id) + "." + std::to_string((game_id - 1) % 2));
+
     addHeader("White", white_player.config.name);
     addHeader("Black", black_player.config.name);
     addHeader("Result", getResultFromMatch(white_player, black_player));

@@ -13,6 +13,11 @@
 namespace fast_chess::config {
 
 void sanitize(config::Tournament& config) {
+    if (config.randomize_seed) {
+        uint64_t seed = util::random::random_uint64();
+        util::random::seed(seed);
+    }
+    
     if (config.games > 2) {
         // wrong config, lets try to fix it
         std::swap(config.games, config.rounds);

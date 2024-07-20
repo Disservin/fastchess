@@ -8,6 +8,7 @@
 #include <types/tournament.hpp>
 #include <util/file_system.hpp>
 #include <util/logger/logger.hpp>
+#include <util/rand.hpp>
 
 namespace {
 // Parse -name key=value key=value
@@ -481,7 +482,6 @@ void parseScoreinterval(const std::vector<std::string> &params, ArgumentData &ar
 
 void parseSRand(const std::vector<std::string> &params, ArgumentData &argument_data) {
     parseValue(params, argument_data.tournament_config.seed);
-    argument_data.tournament_config.randomize_seed = false;
 }
 
 void parseVersion(const std::vector<std::string> &, ArgumentData &) { OptionsParser::printVersion(); }
@@ -624,6 +624,10 @@ OptionsParser::OptionsParser(int argc, char const *argv[]) {
     for (auto &config : argument_data_.configs) {
         config.variant = argument_data_.tournament_config.variant;
     }
+
+    const auto seed = util::random::random_uint64();
+
+    util::random::seed(seed);
 }
 
 }  // namespace fast_chess::cli

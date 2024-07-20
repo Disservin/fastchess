@@ -167,7 +167,7 @@ TEST_SUITE("Opening Book Test") {
         tournament.opening.start  = 3256;
         tournament.seed           = 123456789;
 
-        util::random::mersenne_rand.seed(tournament.seed);
+        util::random::seed(tournament.seed);
 
         auto book = book::OpeningBook(tournament);
         auto id   = book.fetchId();
@@ -192,7 +192,7 @@ TEST_SUITE("Opening Book Test") {
         tournament.opening.start  = 3256;
         tournament.seed           = 123456789;
 
-        util::random::mersenne_rand.seed(tournament.seed);
+        util::random::seed(tournament.seed);
 
         auto book = book::OpeningBook(tournament);
         auto id   = book.fetchId();
@@ -223,7 +223,7 @@ TEST_SUITE("Opening Book Test") {
         tournament.opening.start  = 3256;
         tournament.seed           = 123456789;
 
-        util::random::mersenne_rand.seed(tournament.seed);
+        util::random::seed(tournament.seed);
 
         auto book = book::OpeningBook(tournament);
         auto id   = book.fetchId();

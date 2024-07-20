@@ -6,6 +6,7 @@
 #include <config/sanitize.hpp>
 #include <globals/globals.hpp>
 #include <matchmaking/tournament/tournament_manager.hpp>
+#include <util/rand.hpp>
 
 using namespace fast_chess;
 
@@ -30,6 +31,8 @@ int main(int argc, char const* argv[]) {
 
             return std::make_unique<std::vector<EngineConfiguration>>(cnf);
         });
+
+        util::random::seed(config::TournamentConfig.get().seed);
 
         {
             auto tour = TournamentManager(options.getResults());

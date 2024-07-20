@@ -2,10 +2,10 @@
 
 #include <algorithm>
 #include <limits>
+#include <random>
 #include <thread>
 #include <utility>
 #include <vector>
-#include <random>
 
 #include <util/file_system.hpp>
 #include <util/logger/logger.hpp>
@@ -13,15 +13,6 @@
 namespace fast_chess::config {
 
 void sanitize(config::Tournament& config) {
-    if (config.randomize_seed && config.opening.order == OrderType::RANDOM) {
-        std::random_device rd;
-        std::mt19937_64 gen((static_cast<uint64_t>(rd()) << 32) | rd());
-        std::uniform_int_distribution<uint64_t> dist(0, std::numeric_limits<uint64_t>::max());
-        config.seed = dist(gen);
-        // make sure that seed is not randomized when saved and loaded from config
-        config.randomize_seed = false;
-    }
-    
     if (config.games > 2) {
         // wrong config, lets try to fix it
         std::swap(config.games, config.rounds);

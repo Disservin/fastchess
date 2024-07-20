@@ -3,6 +3,7 @@
 #include <string>
 
 #include <util/helper.hpp>
+#include <util/rand.hpp>
 
 #include <types/draw_adjudication.hpp>
 #include <types/engine_config.hpp>

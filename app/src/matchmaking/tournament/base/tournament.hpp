@@ -68,7 +68,7 @@ class BaseTournament {
 
     // play one game and write it to the pgn file
     void playGame(const GamePair<EngineConfiguration, EngineConfiguration> &configs, start_callback start,
-                  finished_callback finish, const pgn::Opening &opening, std::size_t round_id);
+                  finished_callback finish, const pgn::Opening &opening, std::size_t round_id, std::size_t game_id);
 
     std::unique_ptr<IOutput> output_;
     std::unique_ptr<affinity::AffinityManager> cores_;

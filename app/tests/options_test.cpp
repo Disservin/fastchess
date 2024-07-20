@@ -38,7 +38,7 @@ TEST_SUITE("Option Parsing Tests") {
                               "-pgnout",
                               "file=PGNs/Alexandria-EA649FED_vs_Alexandria-27E42728"};
 
-        cli::OptionsParser options = cli::OptionsParser(31, argv);
+        cli::OptionsParser options = cli::OptionsParser(sizeof(argv) / sizeof(argv[0]), argv);
 
         auto configs = options.getEngineConfigs();
 
@@ -117,6 +117,8 @@ TEST_SUITE("Option Parsing Tests") {
                                       "-report",
                                       "penta=false",
                                       "-use-affinity",
+                                      "-srand",
+                                      "1234",
                                       "-epdout",
                                       "file=EPDs/Alexandria-EA649FED_vs_Alexandria-27E42728",
                                       "-pgnout",
@@ -127,7 +129,7 @@ TEST_SUITE("Option Parsing Tests") {
                                       "hashfull=true",
                                       "tbhits=true",
                                       "min=true"};
-        cli::OptionsParser options = cli::OptionsParser(55, argv);
+        cli::OptionsParser options = cli::OptionsParser(sizeof(argv) / sizeof(argv[0]), argv);
         auto gameOptions           = options.getTournamentConfig();
 
         // Test proper cli settings
@@ -151,6 +153,7 @@ TEST_SUITE("Option Parsing Tests") {
         CHECK(gameOptions.maxmoves.enabled);
         CHECK(gameOptions.output == OutputType::CUTECHESS);
         CHECK(gameOptions.affinity);
+        CHECK(gameOptions.seed == 1234);
         CHECK(gameOptions.report_penta == false);
         // Test Sprt options parsing
         CHECK(gameOptions.sprt.enabled);

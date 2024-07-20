@@ -3,7 +3,6 @@
 #include <string>
 
 #include <util/helper.hpp>
-#include <util/rand.hpp>
 
 #include <types/draw_adjudication.hpp>
 #include <types/engine_config.hpp>
@@ -50,7 +49,7 @@ struct Tournament {
     bool report_penta    = true;
 #endif
 
-    uint64_t seed = util::random::random_uint64();
+    uint64_t seed = 951356066;
 
     int scoreinterval = 1;
 
@@ -61,10 +60,11 @@ struct Tournament {
     bool recover          = false;
     bool affinity         = false;
     bool realtime_logging = true;
+    bool randomize_seed   = true;
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(Tournament, resign, draw, maxmoves, opening, pgn, epd, sprt,
                                                 config_name, output, seed, variant, ratinginterval, scoreinterval,
                                                 autosaveinterval, games, rounds, concurrency, overhead, recover, noswap,
-                                                report_penta, affinity, realtime_logging)
+                                                report_penta, affinity, realtime_logging, randomize_seed)
 
 }  // namespace fast_chess::config

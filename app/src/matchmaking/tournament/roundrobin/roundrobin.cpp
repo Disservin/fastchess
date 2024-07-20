@@ -100,7 +100,7 @@ void RoundRobin::create() {
             match_count_++;
         };
 
-        playGame(configs, start, finish, opening, round_id);
+        playGame(configs, start, finish, opening, round_id, game_id);
     };
 
     for (std::size_t i = 0; i < config::EngineConfigs.get().size(); i++) {

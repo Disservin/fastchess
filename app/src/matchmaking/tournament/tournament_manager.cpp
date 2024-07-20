@@ -7,10 +7,6 @@ namespace fast_chess {
 TournamentManager::TournamentManager(const stats_map& results) {
     Logger::trace("Creating tournament...");
 
-    // Set the seed for the random number generator
-    Logger::trace("Seeding random number generator with seed: {}", config::TournamentConfig.get().seed);
-    util::random::mersenne_rand.seed(config::TournamentConfig.get().seed);
-
     round_robin_ = std::make_unique<RoundRobin>(results);
 }
 

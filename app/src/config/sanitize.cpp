@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <limits>
+#include <random>
 #include <thread>
 #include <utility>
 #include <vector>
@@ -69,13 +70,6 @@ void sanitize(config::Tournament& config) {
     if (config.ratinginterval == 0) config.ratinginterval = std::numeric_limits<int>::max();
 
     if (config.scoreinterval == 0) config.scoreinterval = std::numeric_limits<int>::max();
-
-    if (config.seed == 951356066 && !config.randomseed && !config.opening.file.empty() &&
-        config.opening.order == OrderType::RANDOM) {
-        Logger::warn(
-            "Warning: No opening book seed specified! Consider specifying one, otherwise the match "
-            "will be played using the default seed of 951356066.");
-    }
 }
 
 void sanitize(std::vector<EngineConfiguration>& configs) {

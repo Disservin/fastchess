@@ -86,7 +86,7 @@ OPTIONS
 
                 format - the file format, either epd or pgn.
                 ORDER  - the order of openings to be played, either random or sequential.
-                         Default is random.
+                         Default is sequential.
                 PLIES  - the number of plies to use (for pgn only).
                          If not specified, uses the maximum available plies.
                 START  - the starting index of the opening book.
@@ -143,12 +143,8 @@ OPTIONS
                     normalized - uses nElo for elo0 and elo1. (default)
 
         -srand SEED
-            Set the seed for opening book randomization.
-            Default seed is 951356066.
-
-        -randomseed
-            Automatically picks a random seed value between 0 and (2^64 - 1)
-            for opening book randomization.
+            Specify the seed for opening book randomization. Otherwise, the chosen seed will be 
+            a random integer value between 0 and (2^64 - 1).
 
         -log file=NAME level=LEVEL compress=(true|false) realtime=(true|false)
             Specify a log file with a specific log level. 
@@ -233,7 +229,7 @@ OPTIONS
 EXAMPLES
         To start a match between two engines using a random order of openings from book.epd:
             $ fast-chess -engine cmd=Engine1.exe name=Engine1 -engine cmd=Engine2.exe \
-              name=Engine2 -openings file=book.epd format=epd -randomseed \
+              name=Engine2 -openings file=book.epd format=epd order=random \
               -each tc=10+0.1 -rounds 200 -repeat -concurrency 4
 
         To resume a match from a saved configuration:

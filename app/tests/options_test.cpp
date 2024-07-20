@@ -114,7 +114,6 @@ TEST_SUITE("Option Parsing Tests") {
                                       "format=cutechess",
                                       "-srand",
                                       "1234",
-                                      "-randomseed",
                                       "-report",
                                       "penta=false",
                                       "-use-affinity",
@@ -128,7 +127,7 @@ TEST_SUITE("Option Parsing Tests") {
                                       "hashfull=true",
                                       "tbhits=true",
                                       "min=true"};
-        cli::OptionsParser options = cli::OptionsParser(56, argv);
+        cli::OptionsParser options = cli::OptionsParser(55, argv);
         auto gameOptions           = options.getTournamentConfig();
 
         // Test proper cli settings

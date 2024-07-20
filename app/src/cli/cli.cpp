@@ -8,6 +8,7 @@
 #include <types/tournament.hpp>
 #include <util/file_system.hpp>
 #include <util/logger/logger.hpp>
+#include <util/rand.hpp>
 
 namespace {
 // Parse -name key=value key=value
@@ -491,15 +492,6 @@ void parseRecover(const std::vector<std::string> &, ArgumentData &argument_data)
     argument_data.tournament_config.recover = true;
 }
 
-void parseRandomSeed(const std::vector<std::string> &, ArgumentData &argument_data) {
-    argument_data.tournament_config.randomseed = true;
-
-    std::random_device rd;
-    std::mt19937_64 gen((static_cast<uint64_t>(rd()) << 32) | rd());
-    std::uniform_int_distribution<uint64_t> dist(0, std::numeric_limits<uint64_t>::max());
-    argument_data.tournament_config.seed = dist(gen);
-}
-
 void parseRepeat(const std::vector<std::string> &params, ArgumentData &argument_data) {
     if (params.size() == 1 && is_number(params[0])) {
         parseValue(params, argument_data.tournament_config.games);
@@ -619,7 +611,6 @@ OptionsParser::OptionsParser(int argc, char const *argv[]) {
     addOption("help", parseHelp);
     addOption("-help", parseHelp);
     addOption("recover", parseRecover);
-    addOption("randomseed", parseRandomSeed);
     addOption("repeat", parseRepeat);
     addOption("variant", parseVariant);
     addOption("tournament", parseTournament);
@@ -633,6 +624,10 @@ OptionsParser::OptionsParser(int argc, char const *argv[]) {
     for (auto &config : argument_data_.configs) {
         config.variant = argument_data_.tournament_config.variant;
     }
+
+    const auto seed = util::random::random_uint64();
+
+    util::random::seed(seed);
 }
 
 }  // namespace fast_chess::cli

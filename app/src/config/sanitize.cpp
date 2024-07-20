@@ -8,6 +8,7 @@
 #include <vector>
 
 #include <util/file_system.hpp>
+#include <util/rand.hpp>
 #include <util/logger/logger.hpp>
 
 namespace fast_chess::config {

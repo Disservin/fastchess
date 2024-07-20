@@ -4,7 +4,6 @@
 #include <limits>
 #include <random>
 
-#include <config/config.hpp>
 #include <util/logger/logger.hpp>
 
 namespace fast_chess::util::random {

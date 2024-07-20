@@ -66,7 +66,7 @@ void BaseTournament::stop() {
 
 void BaseTournament::playGame(const GamePair<EngineConfiguration, EngineConfiguration> &engine_configs,
                               start_callback start, finished_callback finish, const pgn::Opening &opening,
-                              std::size_t round_id) {
+                              std::size_t round_id, std::size_t game_id) {
     if (atomic::stop) return;
 
     const auto &config = config::TournamentConfig.get();
@@ -81,7 +81,7 @@ void BaseTournament::playGame(const GamePair<EngineConfiguration, EngineConfigur
     util::ScopeGuard lock1(white_engine);
     util::ScopeGuard lock2(black_engine);
 
-    Logger::trace("Playing game {} between {} and {}", round_id + 1, white_name, black_name);
+    Logger::trace("Playing game {} between {} and {}", game_id, white_name, black_name);
 
     start();
 

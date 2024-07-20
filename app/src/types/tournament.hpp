@@ -49,7 +49,7 @@ struct Tournament {
     bool report_penta    = true;
 #endif
 
-    uint64_t seed = 951356066;
+    uint64_t seed = util::random::random_uint64();
 
     int scoreinterval = 1;
 

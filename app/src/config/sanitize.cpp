@@ -16,6 +16,9 @@ void sanitize(config::Tournament& config) {
     if (config.randomize_seed) {
         uint64_t seed = util::random::random_uint64();
         util::random::seed(seed);
+        
+        // make sure that seed does not get randomized when loading from config
+        config.randomize_seed = false;
     }
     
     if (config.games > 2) {

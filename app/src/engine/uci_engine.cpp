@@ -4,7 +4,6 @@
 #include <string>
 #include <vector>
 
-#include <config/config.hpp>
 #include <util/file_system.hpp>
 #include <util/helper.hpp>
 #include <util/logger/logger.hpp>
@@ -22,11 +21,8 @@ bool UciEngine::isready(std::chrono::milliseconds threshold) {
         std::vector<process::Line> output;
         const auto res = readProcess(output, "readyok", threshold);
 
-        // print output in case we are using delayed logging
-        if (!config::TournamentConfig.get().log.realtime) {
-            for (const auto &line : output) {
-                Logger::readFromEngine(line.line, line.time, config_.name, line.std == process::Standard::ERR);
-            }
+        for (const auto &line : output) {
+            Logger::readFromEngine(line.line, line.time, config_.name, line.std == process::Standard::ERR);
         }
 
         if (res != process::Status::OK) {

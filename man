@@ -33,7 +33,7 @@ OPTIONS
             stats - load the stats from the config file. Defaults to true.
 
         -concurrency N
-            Plays N matches concurrently. Default value is 1.
+            Play N games concurrently. Default value is 1.
 
         -rounds N
             Play N rounds of games. Default value is 2.
@@ -48,7 +48,7 @@ OPTIONS
             fischerandom - play Fischer Random Chess
 
         -repeat
-            Sets the number of games to 2. This is equivalent to -games 2.
+            Set the number of games to 2. This is equivalent to -games 2.
 
         -recover
             Enables crash recovery. This will attempt to recover the engine after a crash,

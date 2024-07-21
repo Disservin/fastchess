@@ -1,6 +1,6 @@
 # fast-chess
 
-[![FastChess](https://github.com/Disservin/fast-chess/actions/workflows/fastchess.yml/badge.svg?branch=master)](https://github.com/Disservin/fast-chess/actions/workflows/fastchess.yml)
+[![fast-chess](https://github.com/Disservin/fast-chess/actions/workflows/fast-chess.yml/badge.svg?branch=master)](https://github.com/Disservin/fast-chess/actions/workflows/fast-chess.yml)
 
 fast-chess is a versatile command-line tool designed for running chess engine
 tournaments.  

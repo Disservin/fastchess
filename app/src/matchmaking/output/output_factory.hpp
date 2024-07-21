@@ -1,7 +1,7 @@
 #pragma once
 
 #include <matchmaking/output/output_cutechess.hpp>
-#include <matchmaking/output/output_fastchess.hpp>
+#include <matchmaking/output/output_fast-chess.hpp>
 #include <types/tournament.hpp>
 
 namespace fast_chess {
@@ -20,7 +20,7 @@ class OutputFactory {
     }
 
     [[nodiscard]] static OutputType getType(const std::string& type) {
-        if (type == "fastchess") {
+        if (type == "fast-chess") {
             return OutputType::FASTCHESS;
         }
 

@@ -116,10 +116,10 @@ class Logger {
         std::string fmt_message;
 
         if constexpr (thread) {
-            fmt_message = fmt::format("[{:<6}] [{}] <{:>3}> fastchess --- {}", label, util::time::datetime_precise(),
+            fmt_message = fmt::format("[{:<6}] [{}] <{:>3}> fast-chess --- {}", label, util::time::datetime_precise(),
                                       std::this_thread::get_id(), message);
         } else {
-            fmt_message = fmt::format("[{:<6}] [{}] <fastchess> {}", label, util::time::datetime_precise(), message);
+            fmt_message = fmt::format("[{:<6}] [{}] <fast-chess> {}", label, util::time::datetime_precise(), message);
         }
 
         const std::lock_guard<std::mutex> lock(log_mutex_);

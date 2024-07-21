@@ -33,7 +33,7 @@ struct Tournament {
     VariantType variant = VariantType::STANDARD;
 
 #ifdef USE_CUTE
-    // output format, fastchess or cutechess
+    // output format, fast-chess or cutechess
     OutputType output    = OutputType::CUTECHESS;
     int autosaveinterval = 0;
     int ratinginterval   = 0;
@@ -41,7 +41,7 @@ struct Tournament {
     int rounds           = 1;
     bool report_penta    = false;
 #else
-    // output format, fastchess or cutechess
+    // output format, fast-chess or cutechess
     OutputType output    = OutputType::FASTCHESS;
     int autosaveinterval = 20;
     int ratinginterval   = 10;

@@ -7,7 +7,7 @@ SYNOPSIS
        fast-chess [OPTIONS]
 
 DESCRIPTION
-        Fast-chess is a command-line tool designed to manage and orchestrate
+        fast-chess is a command-line tool designed to manage and orchestrate
         chess games between engines. It provides a range of options to configure
         game settings, engine parameters, concurrency, and output formats.
 
@@ -93,8 +93,8 @@ OPTIONS
                          Default value is 1.
 
         -output format=FORMAT
-            Choose the output format for game results (cutechess or fastchess).
-            Default is fastchess.
+            Choose the output format for game results (cutechess or fast-chess).
+            Default is fast-chess.
 
         -pgnout file=NAME notation=(san|lan|uci) [nodes=(true|false)] [seldepth=(true|false)] [nps=(true|false)] [hashfull=(true|false)] [tbhits=(true|false)] [min=(true|false)]
             Export games in PGN format with specified notations and optional tracking of nodes, seldepth, nps, hashfull, and tbhits.
@@ -165,7 +165,7 @@ OPTIONS
             Enable thread affinity for bindings engines to specific CPU cores.
 
         -report penta=(true|false)
-            Reports pentanomial statistics (only for fastchess output). Defaults to true.
+            Reports pentanomial statistics (only for fast-chess output). Defaults to true.
             For more information see https://www.chessprogramming.org/Match_Statistics
 
         -version

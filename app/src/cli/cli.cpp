@@ -440,7 +440,7 @@ void parseReport(const std::vector<std::string> &params, ArgumentData &argument_
 
 void parseOutput(const std::vector<std::string> &params, ArgumentData &argument_data) {
     parseDashOptions(params, [&](const std::string &key, const std::string &value) {
-        if (key == "format" && (value == "cutechess" || value == "fastchess")) {
+        if (key == "format" && (value == "cutechess" || value == "fast-chess")) {
             argument_data.tournament_config.output = OutputFactory::getType(value);
         } else {
             OptionsParser::throwMissing("output", key, value);

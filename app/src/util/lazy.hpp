@@ -13,6 +13,7 @@ class Lazy {
 
     template <typename Func, typename... Args>
     void setup(Func&& func, Args&&... args) {
+        reset();
         initializer_ = std::bind(std::forward<Func>(func), std::forward<Args>(args)...);
     }
 
@@ -22,13 +23,27 @@ class Lazy {
     Lazy& operator=(Lazy&&)      = delete;
 
     const T& get() const {
-        std::call_once(init_flag_, [this]() { instance_ = initializer_(); });
+        if (!init_flag_) {
+            std::lock_guard<std::mutex> lock(mutex_);
+            if (!init_flag_) {
+                instance_  = initializer_();
+                init_flag_ = true;
+            }
+        }
+
         return *instance_;
     }
 
    private:
-    mutable std::once_flag init_flag_;
+    void reset() const {
+        std::lock_guard<std::mutex> lock(mutex_);
+        instance_.reset();
+        init_flag_ = false;
+    }
+
+    mutable bool init_flag_ = false;
     mutable std::unique_ptr<T> instance_;
+    mutable std::mutex mutex_;
 
     std::function<std::unique_ptr<T>()> initializer_;
 };

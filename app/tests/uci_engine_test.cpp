@@ -1,3 +1,4 @@
+#include <config/config.hpp>
 #include <engine/uci_engine.hpp>
 #include <types/engine_config.hpp>
 
@@ -22,6 +23,17 @@ class MockUciEngine : public engine::UciEngine {
 }  // namespace
 
 TEST_SUITE("Uci Engine Communication Tests") {
+    const auto foo = []() {
+        config::TournamentConfig.setup(
+            []() -> std::unique_ptr<config::Tournament> { return std::make_unique<config::Tournament>(); });
+
+        config::EngineConfigs.setup([]() -> std::unique_ptr<std::vector<EngineConfiguration>> {
+            return std::make_unique<std::vector<EngineConfiguration>>();
+        });
+
+        return 0;
+    }();
+
     TEST_CASE("Test engine::UciEngine Args Simple") {
         EngineConfiguration config;
 #ifdef _WIN64

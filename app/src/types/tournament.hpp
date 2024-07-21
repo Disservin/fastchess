@@ -9,6 +9,7 @@
 #include <types/engine_config.hpp>
 #include <types/enums.hpp>
 #include <types/epd.hpp>
+#include <types/log.hpp>
 #include <types/max_moves_adjudication.hpp>
 #include <types/opening.hpp>
 #include <types/pgn.hpp>
@@ -57,14 +58,15 @@ struct Tournament {
     int concurrency = 1;
     int overhead    = 0;
 
-    bool noswap           = false;
-    bool recover          = false;
-    bool affinity         = false;
-    bool realtime_logging = true;
+    bool noswap   = false;
+    bool recover  = false;
+    bool affinity = false;
+
+    Log log = {};
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(Tournament, resign, draw, maxmoves, opening, pgn, epd, sprt,
                                                 config_name, output, seed, variant, ratinginterval, scoreinterval,
                                                 autosaveinterval, games, rounds, concurrency, overhead, recover, noswap,
-                                                report_penta, affinity, realtime_logging)
+                                                report_penta, affinity, log)
 
 }  // namespace fast_chess::config

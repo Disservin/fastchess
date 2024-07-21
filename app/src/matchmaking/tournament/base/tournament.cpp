@@ -81,24 +81,27 @@ void BaseTournament::playGame(const GamePair<EngineConfiguration, EngineConfigur
     util::ScopeGuard lock1(white_engine);
     util::ScopeGuard lock2(black_engine);
 
-    Logger::trace("Playing game {} between {} and {}", game_id, white_name, black_name);
+    Logger::trace<true>("Game {} between {} and {} starting", game_id, white_name, black_name);
 
     start();
 
     auto match = Match(opening);
     match.start(white_engine.get(), black_engine.get(), core.get().cpus);
 
+    Logger::trace<true>("Game {} between {} and {} finished", game_id, white_name, black_name);
+
     if (match.isCrashOrDisconnect()) {
+        Logger::trace<true>("Game {} between {} and {} crashed / disconnected", game_id, white_name, black_name);
         // restart the engine when recover is enabled
         if (config.recover) {
-            Logger::trace("Restarting engine...");
+            Logger::trace<true>("Restarting engine...");
             if (!white_engine.get().isready()) {
-                Logger::trace("Restarting engine {}", white_name);
+                Logger::trace<true>("Restarting engine {}", white_name);
                 white_engine.get().refreshUci();
             }
 
             if (!black_engine.get().isready()) {
-                Logger::trace("Restarting engine {}", black_name);
+                Logger::trace<true>("Restarting engine {}", black_name);
                 black_engine.get().refreshUci();
             }
         } else {
@@ -117,6 +120,9 @@ void BaseTournament::playGame(const GamePair<EngineConfiguration, EngineConfigur
         if (!config.epd.file.empty()) {
             file_writer_epd->write(epd::EpdBuilder(config.variant, match_data).get());
         }
+
+        const auto result = pgn::PgnBuilder::getResultFromMatch(match_data.players.white, match_data.players.black);
+        Logger::trace<true>("Game {} finished with result {}", game_id, result);
 
         finish({match_data}, match_data.reason, {white_engine.get(), black_engine.get()});
     }

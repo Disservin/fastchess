@@ -23,6 +23,11 @@ class PgnBuilder {
 
     static constexpr int LINE_LENGTH = 80;
 
+    [[nodiscard]] static std::string convertMatchTermination(const MatchTermination &res) noexcept;
+
+    [[nodiscard]] static std::string getResultFromMatch(const MatchData::PlayerInfo &white,
+                                                        const MatchData::PlayerInfo &black) noexcept;
+
    private:
     // Converts a UCI move to either SAN, LAN or keeps it as UCI
     [[nodiscard]] std::string moveNotation(chess::Board &board, const std::string &move) const noexcept;
@@ -52,11 +57,6 @@ class PgnBuilder {
         ss << std::setprecision(3) << std::fixed << millis / 1000.0 << "s";
         return ss.str();
     }
-
-    [[nodiscard]] static std::string getResultFromMatch(const MatchData::PlayerInfo &white,
-                                                        const MatchData::PlayerInfo &black) noexcept;
-
-    [[nodiscard]] static std::string convertMatchTermination(const MatchTermination &res) noexcept;
 
     const config::Pgn &pgn_config_;
     const MatchData &match_;

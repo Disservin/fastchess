@@ -10,10 +10,13 @@
 #include <vector>
 
 #include <affinity/cpuinfo/cpu_info.hpp>
+#include <util/logger/logger.hpp>
 
 namespace fast_chess::affinity::cpu_info {
 
 inline CpuInfo getCpuInfo() {
+    Logger::trace("Getting CPU info");
+
     std::ifstream cpuinfo("/proc/cpuinfo");
 
     std::string line;

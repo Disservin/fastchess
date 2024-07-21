@@ -10,10 +10,13 @@
 #include <chess.hpp>  // poplsb
 
 #include <affinity/cpuinfo/cpu_info.hpp>
+#include <util/logger/logger.hpp>
 
 namespace fast_chess::affinity::cpu_info {
 
 inline CpuInfo getCpuInfo() noexcept(false) {
+    Logger::trace("Getting CPU info");
+
     DWORD byte_length = 0;
 
     GetLogicalProcessorInformationEx(RelationProcessorCore, nullptr, &byte_length);

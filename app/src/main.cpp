@@ -32,6 +32,10 @@ int main(int argc, char const* argv[]) {
             return std::make_unique<std::vector<EngineConfiguration>>(cnf);
         });
 
+        Logger::setLevel(config::TournamentConfig.get().log.level);
+        Logger::setCompress(config::TournamentConfig.get().log.compress);
+        Logger::openFile(config::TournamentConfig.get().log.file);
+
         util::random::seed(config::TournamentConfig.get().seed);
 
         {

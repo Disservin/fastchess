@@ -358,29 +358,33 @@ void parseLog(const std::vector<std::string> &params, ArgumentData &argument_dat
         if (key == "file") {
             filename = value;
         } else if (key == "level") {
+            Logger::Level level;
+
             if (value == "trace") {
-                Logger::setLevel(Logger::Level::TRACE);
+                level = Logger::Level::TRACE;
             } else if (value == "warn") {
-                Logger::setLevel(Logger::Level::WARN);
+                level = Logger::Level::WARN;
             } else if (value == "info") {
-                Logger::setLevel(Logger::Level::INFO);
+                level = Logger::Level::INFO;
             } else if (value == "err") {
-                Logger::setLevel(Logger::Level::ERR);
+                level = Logger::Level::ERR;
             } else if (value == "fatal") {
-                Logger::setLevel(Logger::Level::FATAL);
+                level = Logger::Level::FATAL;
             } else {
                 OptionsParser::throwMissing("log level", key, value);
             }
+
+            argument_data.tournament_config.log.level = level;
         } else if (key == "compress" && is_bool(value)) {
-            Logger::setCompress(value == "true");
+            argument_data.tournament_config.log.compress = value == "true";
         } else if (key == "realtime" && is_bool(value)) {
-            argument_data.tournament_config.realtime_logging = value == "true";
+            argument_data.tournament_config.log.realtime = value == "true";
         } else {
             OptionsParser::throwMissing("log", key, value);
         }
     });
+
     if (filename.empty()) throw std::runtime_error("Please specify filename for log output.");
-    Logger::openFile(filename);
 }
 
 namespace json_config {

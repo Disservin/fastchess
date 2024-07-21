@@ -359,7 +359,7 @@ void parseLog(const std::vector<std::string> &params, ArgumentData &argument_dat
             filename                                 = value;
             argument_data.tournament_config.log.file = value;
         } else if (key == "level") {
-            Logger::Level level;
+            Logger::Level level = Logger::Level::WARN;
 
             if (value == "trace") {
                 level = Logger::Level::TRACE;

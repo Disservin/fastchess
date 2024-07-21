@@ -263,10 +263,6 @@ std::optional<std::string> UciEngine::bestmove() const {
     if (!bm.has_value()) {
         Logger::warn<true>("Warning; No bestmove found in the last line from {}", config_.name);
 
-        for (const auto &line : output_) {
-            std::cout << ":" << line.line << ":" << std::endl;
-        }
-
         return std::nullopt;
     }
 

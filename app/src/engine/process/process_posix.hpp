@@ -35,6 +35,28 @@ namespace fast_chess {
 extern util::ThreadVector<pid_t> process_list;
 
 namespace engine::process {
+inline bool fileReady(const std::string &path) {
+    std::ifstream file(path);
+    return file.is_open() && file.good();
+}
+
+inline bool isZombie(const std::string &path, const std::string &traget_name) {
+    while (true) {
+        std::ifstream statFile(path);
+        std::string line;
+
+        while (getline(statFile, line)) {
+            if (line.rfind("Name:", 0) == 0 && line.find(traget_name) == std::string::npos) {
+                return false;  // Name has changed
+            }
+
+            if (line.find("Z (zombie)") != std::string::npos) {
+                return true;
+            }
+        }
+    }
+}
+
 class Pipes {
     int pipe_[2];
 
@@ -77,7 +99,7 @@ class Process : public IProcess {
    public:
     virtual ~Process() override { killProcess(); }
 
-    void init(const std::string &command, const std::string &args, const std::string &log_name) override {
+    bool init(const std::string &command, const std::string &args, const std::string &log_name) override {
         assert(!is_initalized_);
 
         command_  = command;
@@ -121,18 +143,33 @@ class Process : public IProcess {
             // If it fails, it returns -1 and we throw an exception.
             // Is the _exit(0) necessary?
             // execv is replacing the current process with the new process
-            if (execv(command.c_str(), execv_argv) == -1) {
-                throw std::runtime_error("Failed to execute engine");
-            }
+            execv(command.c_str(), execv_argv);
 
-            _exit(0);
+            _exit(EXIT_FAILURE);
         }
         // This is the parent process
         else {
+            // wait until the file exists
+            const std::string base_path   = "/proc/";
+            const std::string status_file = "/status";
+            const auto path               = base_path + std::to_string(fork_pid) + status_file;
+
+            while (!fileReady(path)) {
+                std::this_thread::sleep_for(std::chrono::milliseconds(10));
+            }
+
+            // wait until the process is spawned and the name has been changed away from
+            // Name:   fast-chess to the actual name of the process
+            if (isZombie(path, "fast-chess")) {
+                return false;
+            }
+
             process_pid_ = fork_pid;
 
             // append the process to the list of running processes
             process_list.push(process_pid_);
+
+            return true;
         }
     }
 

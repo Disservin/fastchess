@@ -29,7 +29,7 @@ class Process : public IProcess {
    public:
     ~Process() override { killProcess(); }
 
-    void init(const std::string &command, const std::string &args, const std::string &log_name) override {
+    bool init(const std::string &command, const std::string &args, const std::string &log_name) override {
         command_  = command;
         args_     = args;
         log_name_ = log_name;
@@ -70,6 +70,8 @@ class Process : public IProcess {
 
         process_list.push(pi_.hProcess);
         is_initalized_ = true;
+
+        return true;
     }
 
     [[nodiscard]] bool alive() const noexcept override {

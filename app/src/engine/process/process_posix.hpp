@@ -247,7 +247,7 @@ class Process : public IProcess {
             }
             // timeout
             else if (ready == 0) {
-                lines.emplace_back(Line{current_line_, util::time::datetime_precise()});
+                if (!current_line_.empty()) lines.emplace_back(Line{current_line_, util::time::datetime_precise()});
 
                 if (realtime_logging_) {
                     Logger::readFromEngine(current_line_, util::time::datetime_precise(), log_name_);

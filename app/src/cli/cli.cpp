@@ -356,7 +356,8 @@ void parseLog(const std::vector<std::string> &params, ArgumentData &argument_dat
     std::string filename;
     parseDashOptions(params, [&](const std::string &key, const std::string &value) {
         if (key == "file") {
-            filename = value;
+            filename                                 = value;
+            argument_data.tournament_config.log.file = value;
         } else if (key == "level") {
             Logger::Level level;
 

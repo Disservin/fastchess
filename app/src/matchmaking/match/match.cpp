@@ -196,19 +196,27 @@ bool Match::playMove(Player& us, Player& them) {
         return false;
     }
 
+    Logger::trace<true>("Engine {} is thinking", name);
+
     // wait for bestmove
     auto t0     = clock::now();
     auto status = us.engine.readEngine("bestmove", us.getTimeoutThreshold());
     auto t1     = clock::now();
 
+    Logger::trace<true>("Engine {} is done thinking", name);
+
     if (!config::TournamentConfig.get().log.realtime) {
         us.engine.writeLog();
     }
+
+    Logger::trace<true>("Check if engine {} is in a ready state", name);
 
     if (status == engine::process::Status::ERR || !us.engine.isready()) {
         setEngineCrashStatus(us, them);
         return false;
     }
+
+    Logger::trace<true>("Engine {} is in a ready state", name);
 
     if (atomic::stop) {
         data_.termination = MatchTermination::INTERRUPT;

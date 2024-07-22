@@ -111,30 +111,57 @@ class Process : public IProcess {
         err_pipe_.setOpen(0);
 
         posix_spawn_file_actions_t file_actions;
-        posix_spawn_file_actions_init(&file_actions);
+
+        if (posix_spawn_file_actions_init(&file_actions) != 0) {
+            goto err;
+        }
 
         // Redirect the child's standard input to the read end of the output pipe
-        posix_spawn_file_actions_adddup2(&file_actions, out_pipe_.get(0), STDIN_FILENO);
+
+        if (posix_spawn_file_actions_adddup2(&file_actions, out_pipe_.get(0), STDIN_FILENO) != 0) {
+            goto err;
+        }
+
+        if (posix_spawn_file_actions_addclose(&file_actions, out_pipe_.get(0)) != 0) {
+            goto err;
+        }
 
         // Redirect the child's standard output to the write end of the input pipe
-        posix_spawn_file_actions_adddup2(&file_actions, in_pipe_.get(1), STDOUT_FILENO);
-        posix_spawn_file_actions_adddup2(&file_actions, err_pipe_.get(1), STDERR_FILENO);
+        // do the same for stderr
 
-        pid_t pid;
-        int status = posix_spawn(&pid, command.c_str(), &file_actions, nullptr, execv_argv, environ);
+        if (posix_spawn_file_actions_adddup2(&file_actions, in_pipe_.get(1), STDOUT_FILENO) != 0) {
+            goto err;
+        }
+
+        if (posix_spawn_file_actions_addclose(&file_actions, in_pipe_.get(1)) != 0) {
+            goto err;
+        }
+
+        if (posix_spawn_file_actions_adddup2(&file_actions, err_pipe_.get(1), STDERR_FILENO) != 0) {
+            goto err;
+        }
+
+        if (posix_spawn_file_actions_addclose(&file_actions, err_pipe_.get(1)) != 0) {
+            goto err;
+        }
+
+        if (posix_spawn(&process_pid_, command.c_str(), &file_actions, nullptr, execv_argv, environ) != 0) {
+            goto err;
+        }
 
         posix_spawn_file_actions_destroy(&file_actions);
 
-        if (status != 0) {
-            return false;
-        }
-
-        process_pid_ = pid;
+        startup_error_ = false;
 
         // Append the process to the list of running processes
         process_list.push(process_pid_);
 
         return true;
+
+    err:
+        startup_error_ = true;
+        posix_spawn_file_actions_destroy(&file_actions);
+        return false;
     }
 
     bool alive() const noexcept override {
@@ -184,7 +211,13 @@ class Process : public IProcess {
     }
 
     void killProcess() {
+        if (startup_error_) {
+            is_initalized_ = false;
+            return;
+        }
+
         if (!is_initalized_) return;
+
         process_list.remove(process_pid_);
 
         int status;
@@ -349,6 +382,7 @@ class Process : public IProcess {
 
     // True if the process has been initialized
     bool is_initalized_ = false;
+    bool startup_error_ = false;
 
     // The process id of the engine
     pid_t process_pid_;

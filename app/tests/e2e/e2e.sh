@@ -122,7 +122,7 @@ fi
 OUTPUT_FILE_4=$(mktemp)
 ./fast-chess -engine cmd=app/tests/mock/engine/missing_shebang.sh name=random_move_1 -engine cmd=random_mover name=random_move_2 \
     -each tc=2+0.02s option.Hash=-16 option.Threads=2 -rounds 5 -repeat -concurrency 2 \
-    -openings file=app/tests/data/openings.pgn format=pgn order=random -log file=log.txt level=info  2>&1 | tee $OUTPUT_FILE_4
+    -openings file=app/tests/data/openings.pgn format=pgn order=random -log file=log.txt level=warn  2>&1 | tee $OUTPUT_FILE_4
 
 # Warning: Cannot start engine sf2:
 # Cannot execute command: ../python-chess-engine/pythonchess.sh

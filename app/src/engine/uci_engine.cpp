@@ -74,9 +74,9 @@ bool UciEngine::go(const TimeControl &our_tc, const TimeControl &enemy_tc, chess
         auto white = stm == chess::Color::WHITE ? our_tc : enemy_tc;
         auto black = stm == chess::Color::WHITE ? enemy_tc : our_tc;
 
-        if (our_tc.isTimed()) {
-            if (white.isTimed()) input << " wtime " << white.getTimeLeft();
-            if (black.isTimed()) input << " btime " << black.getTimeLeft();
+        if (our_tc.isTimed() || our_tc.isIncrement()) {
+            if (white.isTimed() || white.isIncrement()) input << " wtime " << white.getTimeLeft();
+            if (black.isTimed() || black.isIncrement()) input << " btime " << black.getTimeLeft();
         }
 
         if (our_tc.isIncrement()) {

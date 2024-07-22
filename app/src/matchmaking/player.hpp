@@ -14,9 +14,7 @@ class Player {
     // The timeout threshold for the read engine command.
     // This has nothing to do with the time control itself.
     [[nodiscard]] std::chrono::milliseconds getTimeoutThreshold() const {
-        if (engine.getConfig().limit.nodes != 0     //
-            || engine.getConfig().limit.plies != 0  //
-            || time_control_.isFixedTime()) {
+        if (engine.getConfig().limit.nodes != 0 || engine.getConfig().limit.plies != 0) {
             // no timeout
             return std::chrono::milliseconds(0);
         }

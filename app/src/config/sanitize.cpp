@@ -82,6 +82,13 @@ void sanitize(std::vector<EngineConfiguration>& configs) {
     }
 
     for (std::size_t i = 0; i < configs.size(); i++) {
+#ifdef _WIN64
+        // add .exe if . is not present
+        if (configs[i].cmd.find('.') == std::string::npos) {
+            configs[i].cmd += ".exe";
+        }
+#endif
+
 #ifndef NO_STD_FILESYSTEM
         // convert path to a filesystem path
         auto p    = std::filesystem::path(configs[i].dir) / std::filesystem::path(configs[i].cmd);

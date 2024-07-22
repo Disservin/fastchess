@@ -19,11 +19,17 @@
 #    include <fcntl.h>  // fcntl
 #    include <poll.h>   // poll
 #    include <signal.h>
+#    include <spawn.h>
 #    include <string.h>
 #    include <sys/types.h>  // pid_t
 #    include <sys/wait.h>
 #    include <unistd.h>  // _exit, fork
+#    include <unistd.h>
 #    include <wordexp.h>
+#    include <csignal>
+#    include <stdexcept>
+#    include <string>
+#    include <vector>
 
 #    include <affinity/affinity.hpp>
 #    include <util/logger/logger.hpp>
@@ -35,27 +41,8 @@ namespace fast_chess {
 extern util::ThreadVector<pid_t> process_list;
 
 namespace engine::process {
-inline bool fileReady(const std::string &path) {
-    std::ifstream file(path);
-    return file.is_open() && file.good();
-}
 
-inline bool isZombie(const std::string &path, const std::string &traget_name) {
-    while (true) {
-        std::ifstream statFile(path);
-        std::string line;
-
-        while (getline(statFile, line)) {
-            if (line.rfind("Name:", 0) == 0 && line.find(traget_name) == std::string::npos) {
-                return false;  // Name has changed
-            }
-
-            if (line.find("Z (zombie)") != std::string::npos) {
-                return true;
-            }
-        }
-    }
-}
+inline char **environ;
 
 class Pipes {
     int pipe_[2];
@@ -89,6 +76,11 @@ class Pipes {
         return pipe_[open_];
     }
 
+    [[nodiscard]] int get(int fd) const noexcept {
+        assert(open_ != -1);
+        return pipe_[fd];
+    }
+
     ~Pipes() {
         close(pipe_[0]);
         close(pipe_[1]);
@@ -110,67 +102,39 @@ class Process : public IProcess {
 
         current_line_.reserve(300);
 
-        // Fork the current process, this makes a copy of the current process
-        // and returns the process id of the child process to the parent process.
-        pid_t fork_pid = fork();
-
-        if (fork_pid < 0) {
-            throw std::runtime_error("Failed to fork process");
-        }
+        argv_split parser(command);
+        parser.parse(args);
+        char *const *execv_argv = (char *const *)parser.argv();
 
         out_pipe_.setOpen(1);
         in_pipe_.setOpen(0);
         err_pipe_.setOpen(0);
 
-        if (fork_pid == 0) {
-            // This is the child process, set up the pipes and start the engine.
+        posix_spawn_file_actions_t file_actions;
+        posix_spawn_file_actions_init(&file_actions);
 
-            // Ignore signals, because the main process takes care of them
-            signal(SIGINT, SIG_IGN);
+        // Redirect the child's standard input to the read end of the output pipe
+        posix_spawn_file_actions_adddup2(&file_actions, out_pipe_.get(0), STDIN_FILENO);
 
-            // Redirect the child's standard input to the read end of the output pipe
-            out_pipe_.dup2(0, STDIN_FILENO);
+        // Redirect the child's standard output to the write end of the input pipe
+        posix_spawn_file_actions_adddup2(&file_actions, in_pipe_.get(1), STDOUT_FILENO);
+        posix_spawn_file_actions_adddup2(&file_actions, err_pipe_.get(1), STDERR_FILENO);
 
-            // Redirect the child's standard output to the write end of the input pipe
-            in_pipe_.dup2(1, STDOUT_FILENO);
-            err_pipe_.dup2(1, STDERR_FILENO);
+        pid_t pid;
+        int status = posix_spawn(&pid, command.c_str(), &file_actions, nullptr, execv_argv, environ);
 
-            argv_split parser(command);
-            parser.parse(args);
-            char *const *execv_argv = (char *const *)parser.argv();
+        posix_spawn_file_actions_destroy(&file_actions);
 
-            // Execute the engine, execv does not return if successful
-            // If it fails, it returns -1 and we throw an exception.
-            // Is the _exit(0) necessary?
-            // execv is replacing the current process with the new process
-            execv(command.c_str(), execv_argv);
-
-            _exit(EXIT_FAILURE);
+        if (status != 0) {
+            return false;
         }
-        // This is the parent process
-        else {
-            // wait until the file exists
-            const std::string base_path   = "/proc/";
-            const std::string status_file = "/status";
-            const auto path               = base_path + std::to_string(fork_pid) + status_file;
 
-            while (!fileReady(path)) {
-                std::this_thread::sleep_for(std::chrono::milliseconds(10));
-            }
+        process_pid_ = pid;
 
-            // wait until the process is spawned and the name has been changed away from
-            // Name:   fast-chess to the actual name of the process
-            if (isZombie(path, "fast-chess")) {
-                return false;
-            }
+        // Append the process to the list of running processes
+        process_list.push(process_pid_);
 
-            process_pid_ = fork_pid;
-
-            // append the process to the list of running processes
-            process_list.push(process_pid_);
-
-            return true;
-        }
+        return true;
     }
 
     bool alive() const noexcept override {

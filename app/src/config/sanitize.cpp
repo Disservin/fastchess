@@ -100,14 +100,14 @@ void sanitize(std::vector<EngineConfiguration>& configs) {
         if (configs[i].name.empty()) {
             throw std::runtime_error("Error; please specify a name for each engine!");
         }
-        if (configs[i].limit.tc.time == 0 && configs[i].limit.tc.fixed_time == 0 && configs[i].limit.nodes == 0 &&
-            configs[i].limit.plies == 0) {
+        if (configs[i].limit.tc.time + configs[i].limit.tc.increment == 0 && configs[i].limit.tc.fixed_time == 0 && 
+            configs[i].limit.nodes == 0 && configs[i].limit.plies == 0) {
             throw std::runtime_error("Error; no TimeControl specified!");
         }
-        if (((configs[i].limit.tc.time != 0) + (configs[i].limit.tc.fixed_time != 0)) > 1) {
+        if (((configs[i].limit.tc.time + configs[i].limit.tc.increment != 0) + (configs[i].limit.tc.fixed_time != 0)) > 1) {
             throw std::runtime_error("Error; cannot use tc and st together!");
         }
-        if (configs[i].limit.tc.time == 0 && (configs[i].limit.tc.increment != 0 || configs[i].limit.tc.moves != 0)) {
+        if (configs[i].limit.tc.time + configs[i].limit.tc.increment == 0 && configs[i].limit.tc.moves != 0) {
             throw std::runtime_error("Error; invalid TimeControl!");
         }
         for (std::size_t j = 0; j < i; j++) {

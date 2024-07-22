@@ -63,7 +63,7 @@ std::ostream &operator<<(std::ostream &os, const TimeControl &tc) {
         return os;
     }
 
-    if (tc.limits_.moves == 0 && tc.limits_.time + tc.limits_.increment == 0) {
+    if (tc.limits_.moves == 0 && tc.limits_.time == 0 && tc.limits_.increment == 0) {
         os << "-";
     }
 

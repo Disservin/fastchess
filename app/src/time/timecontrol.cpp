@@ -36,7 +36,7 @@ bool TimeControl::updateTime(const int64_t elapsed_millis) noexcept {
         }
     }
 
-    if (limits_.fixed_time == 0 && limits_.time == 0 && limits_.increment == 0) {
+    if (limits_.fixed_time == 0 && limits_.time + limits_.increment == 0) {
         return true;
     }
 
@@ -63,7 +63,7 @@ std::ostream &operator<<(std::ostream &os, const TimeControl &tc) {
         return os;
     }
 
-    if (tc.limits_.moves == 0 && tc.limits_.time == 0 && tc.limits_.increment == 0) {
+    if (tc.limits_.moves == 0 && tc.limits_.time + tc.limits_.increment == 0) {
         os << "-";
     }
 

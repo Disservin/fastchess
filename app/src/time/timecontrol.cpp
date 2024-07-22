@@ -17,7 +17,7 @@ TimeControl::TimeControl(const Limits &limits) : limits_(limits) {
     if (limits_.fixed_time != 0) {
         time_left_ = limits_.fixed_time;
     } else if (limits_.time != 0) {
-        time_left_ = limits_.time;
+        time_left_ = limits_.time + limits_.increment;
     } else {
         time_left_ = 0;
     }

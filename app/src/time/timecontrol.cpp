@@ -17,7 +17,7 @@ TimeControl::TimeControl(const Limits &limits) : limits_(limits) {
     if (limits_.fixed_time != 0) {
         time_left_ = limits_.fixed_time;
     } else {
-        time_left_ = limits_.time;
+        time_left_ = limits_.time + limits_.increment;
     }
     moves_left_ = limits_.moves;
 }
@@ -30,7 +30,7 @@ bool TimeControl::updateTime(const int64_t elapsed_millis) noexcept {
     if (limits_.moves > 0) {
         if (moves_left_ == 1) {
             moves_left_ = limits_.moves;
-            time_left_ += limits_.time + limits_.increment;
+            time_left_ += limits_.time;
         } else {
             moves_left_--;
         }

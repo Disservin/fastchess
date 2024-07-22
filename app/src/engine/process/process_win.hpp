@@ -70,9 +70,7 @@ class Process : public IProcess {
         startup_error_ = !success;
         is_initalized_ = true;
 
-        if (success) {
-            process_list.push(pi_.hProcess);
-        }
+        process_list.push(pi_.hProcess);
 
         return success;
     }
@@ -92,11 +90,6 @@ class Process : public IProcess {
     }
 
     void killProcess() {
-        if (startup_error_) {
-            is_initalized_ = false;
-            return;
-        }
-
         if (!is_initalized_) return;
 
         process_list.remove(pi_.hProcess);

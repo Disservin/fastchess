@@ -23,7 +23,7 @@ bool UciEngine::isready(std::chrono::milliseconds threshold) {
         const auto res = readProcess(output, "readyok", threshold);
 
         // print output in case we are using delayed logging
-        if (!config::TournamentConfig.get().log.realtime) {
+        if (!realtime_logging_) {
             for (const auto &line : output) {
                 Logger::readFromEngine(line.line, line.time, config_.name, line.std == process::Standard::ERR);
             }
@@ -102,7 +102,7 @@ bool UciEngine::ucinewgame() {
             return false;
         }
 
-        return isready(initialize_time);
+        return isready(ucinewgame_time_);
     } catch (const std::exception &e) {
         Logger::trace<true>("Raised Exception in ucinewgame: {}", e.what());
         return false;
@@ -121,10 +121,10 @@ bool UciEngine::uci() {
     return res;
 }
 
-bool UciEngine::uciok() {
+bool UciEngine::uciok(std::chrono::milliseconds threshold) {
     Logger::trace<true>("Waiting for uciok from engine {}", config_.name);
 
-    const auto res = readEngine("uciok") == process::Status::OK;
+    const auto res = readEngine("uciok", threshold) == process::Status::OK;
 
     for (const auto &line : output_) {
         Logger::readFromEngine(line.line, line.time, config_.name, line.std == process::Standard::ERR);
@@ -190,8 +190,8 @@ bool UciEngine::start() {
         return false;
     }
 
-    if (!uci() || !uciok()) {
-        Logger::warn<true>("Engine {} didn't respond to uci/uciok after startup.", config_.name);
+    if (!uci() || !uciok(startup_time_)) {
+        Logger::warn<true>("Engine {} didn't respond to uci with uciok after startup.", config_.name);
         return false;
     }
 

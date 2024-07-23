@@ -10,9 +10,10 @@
 
 using namespace fast_chess;
 
+namespace {
+
 const std::string path = "./app/tests/mock/engine/";
 
-namespace {
 class MockUciEngine : public engine::UciEngine {
    public:
     explicit MockUciEngine(const EngineConfiguration& config, bool realtime_logging)
@@ -20,20 +21,10 @@ class MockUciEngine : public engine::UciEngine {
 
     void restart() { engine::UciEngine::restart(); }
 };
+
 }  // namespace
 
 TEST_SUITE("Uci Engine Communication Tests") {
-    const auto foo = []() {
-        config::TournamentConfig.setup(
-            []() -> std::unique_ptr<config::Tournament> { return std::make_unique<config::Tournament>(); });
-
-        config::EngineConfigs.setup([]() -> std::unique_ptr<std::vector<EngineConfiguration>> {
-            return std::make_unique<std::vector<EngineConfiguration>>();
-        });
-
-        return 0;
-    }();
-
     TEST_CASE("Test engine::UciEngine Args Simple") {
         EngineConfiguration config;
 #ifdef _WIN64

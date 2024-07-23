@@ -167,6 +167,7 @@ bool Match::playMove(Player& us, Player& them) {
     }
 
     if (gameover.first != GameResultReason::NONE) {
+        data_.termination = MatchTermination::NORMAL;
         data_.reason = convertChessReason(getColorString(), gameover.first);
         return false;
     }

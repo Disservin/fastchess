@@ -166,6 +166,8 @@ std::string PgnBuilder::getResultFromMatch(const MatchData::PlayerInfo &white,
 
 std::string PgnBuilder::convertMatchTermination(const MatchTermination &res) noexcept {
     switch (res) {
+        case MatchTermination::NORMAL:
+            return "normal";
         case MatchTermination::ADJUDICATION:
             return "adjudication";
         case MatchTermination::DISCONNECT:

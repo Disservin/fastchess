@@ -41,6 +41,7 @@ struct MoveData {
 };
 
 enum class MatchTermination {
+    NORMAL,
     ADJUDICATION,
     TIMEOUT,
     DISCONNECT,

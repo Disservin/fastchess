@@ -261,9 +261,11 @@ class Process : public IProcess {
             // to the vector and reset the current_line_.
             // Dont add empty lines
             if (!current_line_.empty()) {
-                lines.emplace_back(Line{current_line_, util::time::datetime_precise()});
+                const auto time = Logger::should_log_ ? util::time::datetime_precise() : "";
 
-                if (realtime_logging_) Logger::readFromEngine(current_line_, util::time::datetime_precise(), log_name_);
+                lines.emplace_back(Line{current_line_, time});
+
+                if (realtime_logging_) Logger::readFromEngine(current_line_, time, log_name_);
                 if (!searchword.empty() && current_line_.rfind(searchword, 0) == 0) return Status::OK;
 
                 current_line_.clear();

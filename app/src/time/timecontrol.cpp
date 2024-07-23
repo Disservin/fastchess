@@ -16,10 +16,8 @@ namespace fast_chess {
 TimeControl::TimeControl(const Limits &limits) : limits_(limits) {
     if (limits_.fixed_time != 0) {
         time_left_ = limits_.fixed_time;
-    } else if (limits_.time != 0) {
-        time_left_ = limits_.time;
     } else {
-        time_left_ = 0;
+        time_left_ = limits_.time + limits_.increment;
     }
     moves_left_ = limits_.moves;
 }
@@ -38,7 +36,7 @@ bool TimeControl::updateTime(const int64_t elapsed_millis) noexcept {
         }
     }
 
-    if (limits_.fixed_time == 0 && limits_.time == 0) {
+    if (limits_.fixed_time == 0 && limits_.time + limits_.increment == 0) {
         return true;
     }
 

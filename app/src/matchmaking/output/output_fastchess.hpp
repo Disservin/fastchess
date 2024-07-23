@@ -127,7 +127,7 @@ class Fastchess : public IOutput {
     std::string getTime(const engine::UciEngine& engine) {
         const auto& limit = engine.getConfig().limit;
 
-        if (limit.tc.time > 0) {
+        if (limit.tc.time + limit.tc.increment > 0) {
             auto moves     = limit.tc.moves > 0 ? fmt::format("{}/", limit.tc.moves) : "";
             auto time      = limit.tc.time / 1000.0;
             auto increment = limit.tc.increment > 0 ? fmt::format("+{:.2g}", limit.tc.increment / 1000.0) : "";

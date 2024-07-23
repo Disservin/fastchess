@@ -18,6 +18,7 @@ class PGNVisitor : public chess::pgn::Visitor {
         pgn_.fen = chess::constants::STARTPOS;
         pgn_.moves.clear();
         plie_count_ = 0;
+        early_stop_ = false;
     }
 
     void header(std::string_view key, std::string_view value) {
@@ -30,6 +31,7 @@ class PGNVisitor : public chess::pgn::Visitor {
     void startMoves() {}
 
     void move(std::string_view move, std::string_view) {
+        if (early_stop_) return;
         if (plie_count_++ >= plies_limit_ && plies_limit_ != -1) return;
 
         chess::Move move_i;
@@ -38,6 +40,7 @@ class PGNVisitor : public chess::pgn::Visitor {
             move_i = chess::uci::parseSan(board_, move);
         } catch (const chess::uci::SanParseError& e) {
             std::cerr << e.what() << '\n';
+            early_stop_ = true;
             return;
         }
 
@@ -55,7 +58,8 @@ class PGNVisitor : public chess::pgn::Visitor {
     pgn::Opening pgn_;
     chess::Board board_;
     const int plies_limit_;
-    int plie_count_ = 0;
+    int plie_count_  = 0;
+    bool early_stop_ = false;
 };
 
 PgnReader::PgnReader(const std::string& pgn_file_path, int plies_limit) : plies_limit_(plies_limit) {

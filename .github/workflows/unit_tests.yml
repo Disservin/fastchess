@@ -8,6 +8,7 @@ jobs:
     name: ${{matrix.config.name}}
     runs-on: ${{matrix.config.os}}
     strategy:
+      fail-fast: false
       matrix:
         config:
           - { name: "Ubuntu 22.04", os: ubuntu-22.04, shell: "bash {0}" }

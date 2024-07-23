@@ -23,7 +23,7 @@ bool UciEngine::isready(std::chrono::milliseconds threshold) {
         const auto res = readProcess(output, "readyok", threshold);
 
         // print output in case we are using delayed logging
-        if (!config::TournamentConfig.get().log.realtime) {
+        if (!realtime_logging_) {
             for (const auto &line : output) {
                 Logger::readFromEngine(line.line, line.time, config_.name, line.std == process::Standard::ERR);
             }

@@ -29,7 +29,7 @@ class Process : public IProcess {
    public:
     ~Process() override { killProcess(); }
 
-    void init(const std::string &command, const std::string &args, const std::string &log_name) override {
+    bool init(const std::string &command, const std::string &args, const std::string &log_name) override {
         command_  = command;
         args_     = args;
         log_name_ = log_name;
@@ -58,8 +58,8 @@ class Process : public IProcess {
         CREATE_NEW_PROCESS_GROUP flag is important here to disable all CTRL+C signals for the new
         process
         */
-        CreateProcessA(nullptr, const_cast<char *>((command + " " + args).c_str()), nullptr, nullptr, TRUE,
-                       CREATE_NEW_PROCESS_GROUP, nullptr, nullptr, &si, &pi_);
+        const auto success = CreateProcessA(nullptr, const_cast<char *>((command + " " + args).c_str()), nullptr,
+                                            nullptr, TRUE, CREATE_NEW_PROCESS_GROUP, nullptr, nullptr, &si, &pi_);
 
         // not needed
         CloseHandle(child_stdout_write);
@@ -67,9 +67,12 @@ class Process : public IProcess {
 
         child_std_out_ = child_stdout_read;
         child_std_in_  = child_stdin_write;
+        startup_error_ = !success;
+        is_initalized_ = true;
 
         process_list.push(pi_.hProcess);
-        is_initalized_ = true;
+
+        return success;
     }
 
     [[nodiscard]] bool alive() const noexcept override {
@@ -88,6 +91,7 @@ class Process : public IProcess {
 
     void killProcess() {
         if (!is_initalized_) return;
+
         process_list.remove(pi_.hProcess);
 
         try {
@@ -214,6 +218,7 @@ class Process : public IProcess {
 
     // True if the process has been initialized
     bool is_initalized_ = false;
+    bool startup_error_ = false;
 
     PROCESS_INFORMATION pi_;
     HANDLE child_std_out_;

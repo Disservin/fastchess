@@ -19,11 +19,17 @@
 #    include <fcntl.h>  // fcntl
 #    include <poll.h>   // poll
 #    include <signal.h>
+#    include <spawn.h>
 #    include <string.h>
 #    include <sys/types.h>  // pid_t
 #    include <sys/wait.h>
 #    include <unistd.h>  // _exit, fork
+#    include <unistd.h>
 #    include <wordexp.h>
+#    include <csignal>
+#    include <stdexcept>
+#    include <string>
+#    include <vector>
 
 #    include <affinity/affinity.hpp>
 #    include <util/logger/logger.hpp>
@@ -35,105 +41,54 @@ namespace fast_chess {
 extern util::ThreadVector<pid_t> process_list;
 
 namespace engine::process {
-class Pipes {
-    int pipe_[2];
 
-    int open_ = -1;
-
-   public:
-    Pipes() {
-        if (pipe(pipe_) == -1) {
-            throw std::runtime_error("Failed to create pipe.");
-        }
-    }
-
-    void dup2(int fd, int fd2) {
-        if (::dup2(pipe_[fd], fd2) == -1) {
-            throw std::runtime_error("Failed to duplicate pipe.");
-        }
-
-        close(pipe_[fd]);
-
-        // 1 -> 0, 0 -> 1
-        open_ = 1 - fd;
-    }
-
-    void setNonBlocking() const noexcept { fcntl(get(), F_SETFL, fcntl(get(), F_GETFL) | O_NONBLOCK); }
-
-    void setOpen(int fd) noexcept { open_ = fd; }
-
-    [[nodiscard]] int get() const noexcept {
-        assert(open_ != -1);
-        return pipe_[open_];
-    }
-
-    ~Pipes() {
-        close(pipe_[0]);
-        close(pipe_[1]);
-    }
-};
+inline char **environ;
 
 class Process : public IProcess {
    public:
     virtual ~Process() override { killProcess(); }
 
-    void init(const std::string &command, const std::string &args, const std::string &log_name) override {
+    bool init(const std::string &command, const std::string &args, const std::string &log_name) override {
         assert(!is_initalized_);
 
-        command_  = command;
-        args_     = args;
-        log_name_ = log_name;
-
+        command_       = command;
+        args_          = args;
+        log_name_      = log_name;
         is_initalized_ = true;
+        startup_error_ = false;
 
         current_line_.reserve(300);
 
-        // Fork the current process, this makes a copy of the current process
-        // and returns the process id of the child process to the parent process.
-        pid_t fork_pid = fork();
+        argv_split parser(command);
+        parser.parse(args);
 
-        if (fork_pid < 0) {
-            throw std::runtime_error("Failed to fork process");
-        }
+        char *const *execv_argv = (char *const *)parser.argv();
 
-        out_pipe_.setOpen(1);
-        in_pipe_.setOpen(0);
-        err_pipe_.setOpen(0);
+        posix_spawn_file_actions_t file_actions;
+        posix_spawn_file_actions_init(&file_actions);
 
-        if (fork_pid == 0) {
-            // This is the child process, set up the pipes and start the engine.
+        try {
+            setup_spawn_file_actions(file_actions, out_pipe_.read_end(), STDIN_FILENO);
+            setup_spawn_file_actions(file_actions, in_pipe_.write_end(), STDOUT_FILENO);
+            setup_spawn_file_actions(file_actions, err_pipe_.write_end(), STDERR_FILENO);
 
-            // Ignore signals, because the main process takes care of them
-            signal(SIGINT, SIG_IGN);
-
-            // Redirect the child's standard input to the read end of the output pipe
-            out_pipe_.dup2(0, STDIN_FILENO);
-
-            // Redirect the child's standard output to the write end of the input pipe
-            in_pipe_.dup2(1, STDOUT_FILENO);
-            err_pipe_.dup2(1, STDERR_FILENO);
-
-            argv_split parser(command);
-            parser.parse(args);
-            char *const *execv_argv = (char *const *)parser.argv();
-
-            // Execute the engine, execv does not return if successful
-            // If it fails, it returns -1 and we throw an exception.
-            // Is the _exit(0) necessary?
-            // execv is replacing the current process with the new process
-            if (execv(command.c_str(), execv_argv) == -1) {
-                throw std::runtime_error("Failed to execute engine");
+            if (posix_spawn(&process_pid_, command.c_str(), &file_actions, nullptr, execv_argv, environ) != 0) {
+                throw std::runtime_error("posix_spawn failed");
             }
 
-            _exit(0);
-        }
-        // This is the parent process
-        else {
-            process_pid_ = fork_pid;
+            posix_spawn_file_actions_destroy(&file_actions);
+        } catch (const std::exception &e) {
+            startup_error_ = true;
 
-            // append the process to the list of running processes
-            process_list.push(process_pid_);
+            posix_spawn_file_actions_destroy(&file_actions);
+            return false;
         }
+
+        // Append the process to the list of running processes
+        // which are killed when the program exits, as a last resort
+        process_list.push(process_pid_);
+
+        return true;
     }
 
     bool alive() const noexcept override {
@@ -142,48 +97,49 @@ class Process : public IProcess {
         int status;
         const pid_t r = waitpid(process_pid_, &status, WNOHANG);
 
-        if (r == -1) return false;
         return r == 0;
     }
 
     std::string signalToString(int status) {
-        if (WIFEXITED(status)) {
-            return std::to_string(WEXITSTATUS(status));
-        }
+        if (WIFEXITED(status)) return std::to_string(WEXITSTATUS(status));
+
 #    if defined(_GNU_SOURCE) && __GLIBC__ >= 2 && __GLIBC_MINOR__ >= 32
-        else if (WIFSTOPPED(status)) {
+        if (WIFSTOPPED(status)) {
             auto desc = sigdescr_np(WSTOPSIG(status));
             return desc ? desc : "Unknown child status";
-        } else if (WIFSIGNALED(status)) {
+        }
+
+        if (WIFSIGNALED(status)) {
             auto desc = sigdescr_np(WTERMSIG(status));
             return desc ? desc : "Unknown child status";
         }
 #    else
-        else if (WIFSIGNALED(status)) {
-            return "WIFSIGNALED status: " + std::to_string(WTERMSIG(status));
-        } else if (WIFSTOPPED(status)) {
-            return "WIFSTOPPED status: " + std::to_string(WSTOPSIG(status));
-        }
-#    endif
+        if (WIFSIGNALED(status)) return "WIFSIGNALED status: " + std::to_string(WTERMSIG(status));
 
-        else {
-            return "Unknown child status";
-        }
+        if (WIFSTOPPED(status)) return "WIFSTOPPED status: " + std::to_string(WSTOPSIG(status));
+#    endif
+        return "Unknown child status";
     }
 
     void setAffinity(const std::vector<int> &cpus) noexcept override {
         assert(is_initalized_);
+
         if (!cpus.empty()) {
-#    if defined(__APPLE__)
-// Apple does not support setting the affinity of a pid
-#    else
+            // Apple does not support setting the affinity of a pid
+#    ifndef __APPLE__
             affinity::setAffinity(cpus, process_pid_);
 #    endif
         }
     }
 
     void killProcess() {
+        if (startup_error_) {
+            is_initalized_ = false;
+            return;
+        }
+
         if (!is_initalized_) return;
+
         process_list.remove(process_pid_);
 
         int status;
@@ -208,14 +164,14 @@ class Process : public IProcess {
     }
 
    protected:
-    // Read stdout until the line matches last_word or timeout is reached
-    // 0 means no timeout
-    Status readProcess(std::vector<Line> &lines, std::string_view last_word,
+    // Read stdout until the line matches searchword or timeout is reached
+    // 0 means no timeout clears the lines vector
+    Status readProcess(std::vector<Line> &lines, std::string_view searchword,
                        std::chrono::milliseconds threshold) override {
         assert(is_initalized_);
 
-        lines.clear();
         current_line_.clear();
+        lines.clear();
 
         // Set up the timeout for poll
         if (threshold.count() <= 0) {
@@ -223,99 +179,48 @@ class Process : public IProcess {
             threshold = std::chrono::milliseconds(-1);
         }
 
-        char buffer[4096];
+        // buffer to read into
+        std::array<char, 4096> buffer;
 
-        // Disable blocking
-        in_pipe_.setNonBlocking();
-        err_pipe_.setNonBlocking();
-
+        // We prefer to use poll instead of select because
+        // poll is more efficient and select has a filedescriptor limit of 1024
+        // which can be a problem when running with a high concurrency
         std::array<pollfd, 2> pollfds;
-        pollfds[0].fd     = in_pipe_.get();
+        pollfds[0].fd     = in_pipe_.read_end();
         pollfds[0].events = POLLIN;
 
-        pollfds[1].fd     = err_pipe_.get();
+        pollfds[1].fd     = err_pipe_.read_end();
         pollfds[1].events = POLLIN;
 
-        // Continue reading output lines until the line matches the specified line or a timeout
-        // occurs
+        // Continue reading output lines until the line
+        // matches the specified searchword or a timeout occurs
         while (true) {
             const int ready = poll(pollfds.data(), pollfds.size(), threshold.count());
 
-            // errors
-            if (ready == -1) {
-                return Status::ERR;
-            }
-            // timeout
-            else if (ready == 0) {
-                if (!current_line_.empty()) lines.emplace_back(Line{current_line_, util::time::datetime_precise()});
+            // error
+            if (ready == -1) return Status::ERR;
 
-                if (realtime_logging_) {
-                    Logger::readFromEngine(current_line_, util::time::datetime_precise(), log_name_);
-                }
+            // timeout
+            if (ready == 0) {
+                if (!current_line_.empty()) lines.emplace_back(Line{current_line_, util::time::datetime_precise()});
+                if (realtime_logging_) Logger::readFromEngine(current_line_, util::time::datetime_precise(), log_name_);
 
                 return Status::TIMEOUT;
             }
 
-            // There is data to read
+            // data on stdin
             if (pollfds[0].revents & POLLIN) {
-                const auto bytesRead = read(in_pipe_.get(), buffer, sizeof(buffer));
+                const auto bytes_read = read(in_pipe_.read_end(), buffer.data(), sizeof(buffer));
 
-                if (bytesRead == -1) return Status::ERR;
-
-                // Iterate over each character in the buffer
-                for (ssize_t i = 0; i < bytesRead; i++) {
-                    // append the character to the current line
-                    if (buffer[i] != '\n') {
-                        current_line_ += buffer[i];
-                        continue;
-                    }
-
-                    // If we encounter a newline, add the current line
-                    // to the vector and reset the current_line_.
-                    // Dont add empty lines
-                    if (!current_line_.empty()) {
-                        lines.emplace_back(Line{current_line_, util::time::datetime_precise()});
-
-                        if (realtime_logging_) {
-                            Logger::readFromEngine(current_line_, util::time::datetime_precise(), log_name_);
-                        }
-
-                        if (current_line_.rfind(last_word, 0) == 0) {
-                            return Status::OK;
-                        }
-
-                        current_line_.clear();
-                    }
-                }
+                if (auto status = processBuffer(buffer, bytes_read, lines, searchword); status != Status::NONE)
+                    return status;
             }
 
-            // There is data to read
+            // data on stderr, we dont search for searchword here
             if (pollfds[1].revents & POLLIN) {
-                const auto bytesRead = read(err_pipe_.get(), buffer, sizeof(buffer));
+                const auto bytes_read = read(err_pipe_.read_end(), buffer.data(), sizeof(buffer));
 
-                if (bytesRead == -1) return Status::ERR;
-
-                // Iterate over each character in the buffer
-                for (ssize_t i = 0; i < bytesRead; i++) {
-                    // append the character to the current line
-                    if (buffer[i] != '\n') {
-                        current_line_ += buffer[i];
-                        continue;
-                    }
-
-                    // If we encounter a newline, add the current line
-                    // to the vector and reset the current_line_.
-                    // Dont add empty lines
-                    if (!current_line_.empty()) {
-                        lines.emplace_back(Line{current_line_, util::time::datetime_precise(), Standard::ERR});
-
-                        if (realtime_logging_) {
-                            Logger::readFromEngine(current_line_, util::time::datetime_precise(), log_name_, true);
-                        }
-
-                        current_line_.clear();
-                    }
-                }
+                if (auto status = processBuffer(buffer, bytes_read, lines, ""); status != Status::NONE) return status;
             }
         }
 
@@ -325,18 +230,67 @@ class Process : public IProcess {
     bool writeProcess(const std::string &input) noexcept override {
         assert(is_initalized_);
 
-        if (!alive()) {
-            return false;
-        }
+        if (!alive()) return false;
 
-        if (write(out_pipe_.get(), input.c_str(), input.size()) == -1) {
-            return false;
-        }
+        if (write(out_pipe_.write_end(), input.c_str(), input.size()) == -1) return false;
 
         return true;
     }
 
    private:
+    void setup_spawn_file_actions(posix_spawn_file_actions_t &file_actions, int fd, int target_fd) {
+        if (posix_spawn_file_actions_adddup2(&file_actions, fd, target_fd) != 0 ||
+            posix_spawn_file_actions_addclose(&file_actions, fd) != 0) {
+            throw std::runtime_error("posix_spawn_file_actions_add* failed");
+        }
+    }
+
+    [[nodiscard]] Status processBuffer(const std::array<char, 4096> &buffer, ssize_t bytes_read,
+                                       std::vector<Line> &lines, std::string_view searchword) {
+        if (bytes_read == -1) return Status::ERR;
+
+        // Iterate over each character in the buffer
+        for (ssize_t i = 0; i < bytes_read; i++) {
+            // append the character to the current line
+            if (buffer[i] != '\n') {
+                current_line_ += buffer[i];
+                continue;
+            }
+
+            // If we encounter a newline, add the current line
+            // to the vector and reset the current_line_.
+            // Dont add empty lines
+            if (!current_line_.empty()) {
+                const auto time = Logger::should_log_ ? util::time::datetime_precise() : "";
+
+                lines.emplace_back(Line{current_line_, time});
+
+                if (realtime_logging_) Logger::readFromEngine(current_line_, time, log_name_);
+                if (!searchword.empty() && current_line_.rfind(searchword, 0) == 0) return Status::OK;
+
+                current_line_.clear();
+            }
+        }
+
+        return Status::NONE;
+    }
+
+    struct Pipe {
+        std::array<int, 2> fds_;
+
+        Pipe() {
+            if (pipe(fds_.data()) != 0) throw std::runtime_error("pipe() failed");
+        }
+
+        ~Pipe() {
+            close(fds_[0]);
+            close(fds_[1]);
+        }
+
+        int read_end() const { return fds_[0]; }
+        int write_end() const { return fds_[1]; }
+    };
+
     // The command to execute
     std::string command_;
     // The arguments for the engine
@@ -348,11 +302,12 @@ class Process : public IProcess {
 
     // True if the process has been initialized
     bool is_initalized_ = false;
+    bool startup_error_ = false;
 
     // The process id of the engine
     pid_t process_pid_;
 
-    Pipes in_pipe_ = {}, out_pipe_ = {}, err_pipe_ = {};
+    Pipe in_pipe_ = {}, out_pipe_ = {}, err_pipe_ = {};
 };
 }  // namespace engine::process
 }  // namespace fast_chess

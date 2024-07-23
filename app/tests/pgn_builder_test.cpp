@@ -71,7 +71,7 @@ Nf6 {+10.15/18 1.821s engine2 got checkmated} 1-0
 
         std::string expected = R"([Event "Fast-Chess Tournament"]
 [Site "localhost"]
-[Round "1"]
+[Round "1.1"]
 [White "engine1"]
 [Black "engine2"]
 [Result "0-1"]

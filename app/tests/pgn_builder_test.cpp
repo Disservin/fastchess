@@ -75,7 +75,7 @@ Nf6 {+10.15/18 1.821s engine2 got checkmated} 1-0
 [White "engine1"]
 [Black "engine2"]
 [Result "0-1"]
-[PlyCount "4.1"]
+[PlyCount "4"]
 [Termination "normal"]
 [TimeControl "-"]
 

@@ -9,7 +9,7 @@
 namespace fast_chess::engine::process {
 
 enum class Standard { INPUT, OUTPUT, ERR };
-enum class Status { OK, ERR, TIMEOUT, NONE };
+enum class Status { OK, ERR, TIMEOUT };
 
 struct Line {
     std::string line;
@@ -30,7 +30,7 @@ class IProcess {
     void setRealtimeLogging(bool realtime_logging) noexcept { realtime_logging_ = realtime_logging; }
 
     // Initialize the process
-    virtual bool init(const std::string &command, const std::string &args, const std::string &log_name) = 0;
+    virtual void init(const std::string &command, const std::string &args, const std::string &log_name) = 0;
 
     // Returns true if the process is alive
     [[nodiscard]] virtual bool alive() const noexcept = 0;

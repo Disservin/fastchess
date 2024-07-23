@@ -32,7 +32,6 @@ void stopProcesses() {
     }
 #else
     for (const auto &pid : process_list) {
-        Logger::trace("Terminating process {}", pid);
         kill(pid, SIGINT);
         kill(pid, SIGKILL);
     }

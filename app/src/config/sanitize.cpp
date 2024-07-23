@@ -83,8 +83,7 @@ void sanitize(std::vector<EngineConfiguration>& configs) {
 
     for (std::size_t i = 0; i < configs.size(); i++) {
 #ifdef _WIN64
-        // add .exe if . is not present
-        if (configs[i].cmd.find('.') == std::string::npos) {
+        if (configs[i].cmd.find(".exe") == std::string::npos) {
             configs[i].cmd += ".exe";
         }
 #endif

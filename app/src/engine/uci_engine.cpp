@@ -171,8 +171,8 @@ void UciEngine::sendSetoption(const std::string &name, const std::string &value)
     option.value()->setValue(value);
 }
 
-bool UciEngine::start() {
-    if (initialized_) return true;
+void UciEngine::start() {
+    if (initialized_) return;
 
     std::string path = (config_.dir == "." ? "" : config_.dir) + config_.cmd;
 
@@ -184,23 +184,18 @@ bool UciEngine::start() {
 
     Logger::trace<true>("Starting engine {} at {}", config_.name, path);
 
-    if (!init(path, config_.args, config_.name)) {
-        Logger::warn<true>("Warning: Cannot start engine {}:", config_.name);
-        Logger::warn<true>("Cannot execute command: {}", path);
-        return false;
-    }
+    init(path, config_.args, config_.name);
 
     if (!uci() || !uciok()) {
-        Logger::warn<true>("Engine {} didn't respond to uci/uciok after startup.", config_.name);
-        return false;
+        throw std::runtime_error(fmt::format("{} failed to start.", config_.name));
     }
 
     initialized_ = true;
-    return true;
 }
 
 bool UciEngine::refreshUci() {
     Logger::trace<true>("Refreshing engine {}", config_.name);
+    start();
 
     if (!ucinewgame()) {
         // restart the engine

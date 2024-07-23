@@ -37,8 +37,7 @@ class UciEngine : protected process::Process {
     ~UciEngine() override { quit(); }
 
     // Starts the engine, does nothing after the first call.
-    // Returns false if the engine is not alive.
-    [[nodiscard]] bool start();
+    void start();
 
     // Restarts the engine, if necessary and reapplies the options.
     bool refreshUci();

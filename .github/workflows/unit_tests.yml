@@ -8,6 +8,7 @@ jobs:
     name: ${{matrix.config.name}}
     runs-on: ${{matrix.config.os}}
     strategy:
+      fail-fast: false
       matrix:
         config:
           - { name: "Ubuntu 22.04", os: ubuntu-22.04, shell: "bash {0}" }
@@ -16,7 +17,18 @@ jobs:
               name: "Windows GCC",
               os: windows-latest,
               msys_sys: "mingw64",
-              msys_env: "x86_64-gcc",
+              msys_env: "x86_64",
+              msys_comp: "gcc",
+              cxx: "g++",
+              shell: "msys2 {0}",
+            }
+          - {
+              name: "Windows clang",
+              os: windows-latest,
+              msys_sys: "clang64",
+              msys_env: "clang-x86_64",
+              msys_comp: "clang",
+              cxx: "clang++",
               shell: "msys2 {0}",
             }
 
@@ -43,7 +55,7 @@ jobs:
         uses: msys2/setup-msys2@v2
         with:
           msystem: ${{matrix.config.msys_sys}}
-          install: mingw-w64-${{matrix.config.msys_env}} make git expect
+          install: mingw-w64-${{matrix.config.msys_env}}-${{matrix.config.msys_comp}} make git expect
 
       - name: Macos clang version
         if: runner.os == 'Macos'
@@ -53,9 +65,9 @@ jobs:
       - name: Running Tests
         if: runner.os == 'Windows'
         run: |
-          g++ --version
+          ${{matrix.config.cxx}} --version
           make clean
-          make -j2 tests
+          make -j2 tests CXX=${{matrix.config.cxx}}
           ./fast-chess-tests*
 
       - name: Running fsanitize=address unit test

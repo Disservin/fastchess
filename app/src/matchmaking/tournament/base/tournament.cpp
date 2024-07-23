@@ -114,7 +114,7 @@ void BaseTournament::playGame(const GamePair<EngineConfiguration, EngineConfigur
     // If the game was interrupted(didn't completely finish)
     if (match_data.termination != MatchTermination::INTERRUPT) {
         if (!config.pgn.file.empty()) {
-            file_writer_pgn->write(pgn::PgnBuilder(config.pgn, match_data, round_id + 1).get());
+            file_writer_pgn->write(pgn::PgnBuilder(config.pgn, match_data, round_id + 1, game_id).get());
         }
 
         if (!config.epd.file.empty()) {

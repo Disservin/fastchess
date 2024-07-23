@@ -44,7 +44,7 @@ class UciEngine : protected process::Process {
     bool refreshUci();
 
     [[nodiscard]] bool uci();
-    [[nodiscard]] bool uciok();
+    [[nodiscard]] bool uciok(std::chrono::milliseconds threshold = ping_time_);
     [[nodiscard]] bool ucinewgame();
 
     // Sends "isready" to the engine
@@ -91,14 +91,9 @@ class UciEngine : protected process::Process {
     [[nodiscard]] const EngineConfiguration &getConfig() const noexcept { return config_; }
 
     // @TODO: expose this to the user
-    static constexpr std::chrono::milliseconds initialize_time = std::chrono::milliseconds(60000);
-    static constexpr std::chrono::milliseconds ping_time_      = std::chrono::milliseconds(
-#ifdef NDEBUG
-        60000
-#else
-        60000
-#endif
-    );
+    static constexpr std::chrono::milliseconds startup_time_    = std::chrono::seconds(5);
+    static constexpr std::chrono::milliseconds ucinewgame_time_ = std::chrono::seconds(60);
+    static constexpr std::chrono::milliseconds ping_time_       = std::chrono::seconds(60);
 
     [[nodiscard]] const UCIOptions &uciOptions() const noexcept { return uci_options_; }
     UCIOptions &uciOptions() noexcept { return uci_options_; }

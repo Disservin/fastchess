@@ -36,7 +36,7 @@ TEST_SUITE("Uci Engine Communication Tests") {
 
         engine::UciEngine uci_engine = engine::UciEngine(config, false);
 
-        uci_engine.start();
+        CHECK(uci_engine.start());
 
         for (const auto& line : uci_engine.output()) {
             std::cout << line.line << std::endl;
@@ -63,7 +63,7 @@ TEST_SUITE("Uci Engine Communication Tests") {
 
         engine::UciEngine uci_engine = engine::UciEngine(config, false);
 
-        uci_engine.start();
+        CHECK(uci_engine.start());
 
         for (const auto& line : uci_engine.output()) {
             std::cout << line.line << std::endl;
@@ -90,7 +90,7 @@ TEST_SUITE("Uci Engine Communication Tests") {
 
         engine::UciEngine uci_engine = engine::UciEngine(config, false);
 
-        uci_engine.start();
+        CHECK(uci_engine.start());
 
         CHECK(uci_engine.output().size() == 6);
         CHECK(uci_engine.output()[0].line == "argv[1]: arg1");
@@ -130,7 +130,7 @@ TEST_SUITE("Uci Engine Communication Tests") {
 #endif
         engine::UciEngine uci_engine = engine::UciEngine(config, false);
 
-        uci_engine.start();
+        CHECK(uci_engine.start());
 
         uci_engine.writeEngine("uci");
         const auto res = uci_engine.readEngine("uciok");
@@ -169,7 +169,7 @@ TEST_SUITE("Uci Engine Communication Tests") {
 #endif
         MockUciEngine uci_engine = MockUciEngine(config, false);
 
-        uci_engine.start();
+        CHECK(uci_engine.start());
 
         uci_engine.writeEngine("uci");
         const auto res = uci_engine.readEngine("uciok");

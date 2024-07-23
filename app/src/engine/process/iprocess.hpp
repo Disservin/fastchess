@@ -9,7 +9,7 @@
 namespace fast_chess::engine::process {
 
 enum class Standard { INPUT, OUTPUT, ERR };
-enum class Status { OK, ERR, TIMEOUT };
+enum class Status { OK, ERR, TIMEOUT, NONE };
 
 struct Line {
     std::string line;

@@ -42,7 +42,7 @@ Nf6 {+10.15/18 1.821s engine2 got checkmated} 1-0
 
 )";
 
-        pgn::PgnBuilder pgn_builder = pgn::PgnBuilder(pgn_config, match_data, 1);
+        pgn::PgnBuilder pgn_builder = pgn::PgnBuilder(pgn_config, 1, match_data, 1, 7);
         CHECK(pgn_builder.get() == expected);
     }
 
@@ -75,7 +75,7 @@ Nf6 {+10.15/18 1.821s engine2 got checkmated} 1-0
 [White "engine1"]
 [Black "engine2"]
 [Result "0-1"]
-[PlyCount "4"]
+[PlyCount "4.1"]
 [Termination "normal"]
 [TimeControl "-"]
 
@@ -84,7 +84,7 @@ Nf6 {+10.15/18 1.821s engine1 got checkmated} 0-1
 
 )";
 
-        pgn::PgnBuilder pgn_builder = pgn::PgnBuilder(pgn_config, match_data, 1);
+        pgn::PgnBuilder pgn_builder = pgn::PgnBuilder(pgn_config, 2, match_data, 1, 9);
         CHECK(pgn_builder.get() == expected);
     }
 
@@ -110,7 +110,7 @@ Nf6 {+10.15/18 1.821s engine1 got checkmated} 0-1
 
         std::string expected = R"([Event "Fast-Chess Tournament"]
 [Site "localhost"]
-[Round "1"]
+[Round "1.2"]
 [White "engine2"]
 [Black "engine1"]
 [Result "*"]
@@ -123,7 +123,7 @@ Nf6 {+10.15/18 1.821s engine1 got checkmated} 0-1
 
 )";
 
-        pgn::PgnBuilder pgn_builder = pgn::PgnBuilder(pgn_config, match_data, 1);
+        pgn::PgnBuilder pgn_builder = pgn::PgnBuilder(pgn_config, 2, match_data, 1, 18);
         CHECK(pgn_builder.get() == expected);
     }
 
@@ -151,7 +151,7 @@ Nf6 {+10.15/18 1.821s engine1 got checkmated} 0-1
 
         std::string expected = R"([Event "Fast-Chess Tournament"]
 [Site "localhost"]
-[Round "1"]
+[Round "1.1"]
 [White "engine2"]
 [Black "engine1"]
 [Result "*"]
@@ -164,7 +164,7 @@ Nf6 {+10.15/18 1.821s engine1 got checkmated} 0-1
 
 )";
 
-        pgn::PgnBuilder pgn_builder = pgn::PgnBuilder(pgn_config, match_data, 1);
+        pgn::PgnBuilder pgn_builder = pgn::PgnBuilder(pgn_config, 2, match_data, 1, 1);
         CHECK(pgn_builder.get() == expected);
     }
 
@@ -192,7 +192,7 @@ Nf6 {+10.15/18 1.821s engine1 got checkmated} 0-1
 
         std::string expected = R"([Event "Fast-Chess Tournament"]
 [Site "localhost"]
-[Round "1"]
+[Round "1.2"]
 [White "engine2"]
 [Black "engine1"]
 [Result "*"]
@@ -206,7 +206,7 @@ Nf6 {+10.15/18 1.821s engine1 got checkmated} 0-1
 
 )";
 
-        pgn::PgnBuilder pgn_builder = pgn::PgnBuilder(pgn_config, match_data, 1);
+        pgn::PgnBuilder pgn_builder = pgn::PgnBuilder(pgn_config, 2, match_data, 1, 2);
         CHECK(pgn_builder.get() == expected);
     }
 }

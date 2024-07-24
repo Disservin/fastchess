@@ -44,8 +44,14 @@ class PGNVisitor : public chess::pgn::Visitor {
             return;
         }
 
-        pgn_.moves.push_back(move_i);
         board_.makeMove(move_i);
+
+        if (board_.isGameOver().second != chess::GameResult::NONE) {
+            early_stop_ = true;
+            return;
+        }
+
+        pgn_.moves.push_back(move_i);
     }
 
     void endPgn() {

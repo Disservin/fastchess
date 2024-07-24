@@ -134,10 +134,15 @@ TEST_SUITE("PGN Reader") {
         pgn::PgnReader reader("app/tests/data/test_invalid.pgn");
         const auto games = reader.getOpenings();
 
-        CHECK(games.size() == 1);
+        CHECK(games.size() == 2);
 
         CHECK(games[0].fen == chess::constants::STARTPOS);
         CHECK(games[0].moves.size() == 6);
+
+        CHECK(games[1].fen == chess::constants::STARTPOS);
+        CHECK(games[1].moves.size() == 13);
+        CHECK(games[1].moves[12] == chess::Move::make(chess::Square::underlying::SQ_G1,
+                                                      chess::Square::underlying::SQ_F3, chess::PieceType::KNIGHT));
     }
 }
 }  // namespace fast_chess

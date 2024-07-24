@@ -58,13 +58,6 @@ void BaseTournament::saveJson() {
     Logger::trace("Saved results.");
 }
 
-void BaseTournament::stop() {
-    Logger::trace("Stopping threads...");
-    triggerStop();
-    pool_.kill();
-    Logger::trace("Threads stopped.");
-}
-
 void BaseTournament::playGame(const GamePair<EngineConfiguration, EngineConfiguration> &engine_configs,
                               start_callback start, finished_callback finish, const pgn::Opening &opening,
                               std::size_t round_id, std::size_t game_id) {

@@ -28,13 +28,11 @@ class BaseTournament {
     virtual ~BaseTournament() {
         Logger::trace("~BaseTournament()");
         saveJson();
+        Logger::trace("Instructing engines to stop...");
         triggerStop();
     }
 
     virtual void start();
-
-    // forces the tournament to stop
-    virtual void stop();
 
     [[nodiscard]] stats_map getResults() noexcept { return scoreboard_.getResults(); }
 

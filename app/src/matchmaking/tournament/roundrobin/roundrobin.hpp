@@ -24,10 +24,7 @@ class RoundRobin : public BaseTournament {
    public:
     explicit RoundRobin(const stats_map& results);
 
-    ~RoundRobin() {
-        Logger::trace("~RoundRobin()");
-        stop();
-    }
+    ~RoundRobin() { Logger::trace("~RoundRobin()"); }
 
     // starts the round robin
     void start() override;

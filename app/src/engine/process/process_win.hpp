@@ -22,7 +22,6 @@
 #    include <util/thread_vector.hpp>
 
 namespace fast_chess {
-// extern util::ThreadVector<HANDLE> process_list;
 
 extern util::ThreadVector<ProcessInformation> process_list;
 
@@ -77,8 +76,6 @@ class Process : public IProcess {
         startup_error_ = !success;
         is_initalized_ = true;
 
-        // process_list.push(pi_.hProcess);
-
         process_list.push(ProcessInformation{pi_.hProcess, child_std_out_});
 
         return success;
@@ -101,7 +98,7 @@ class Process : public IProcess {
     void killProcess() {
         if (!is_initalized_) return;
 
-        process_list.remove_if([this](const ProcessInformation &info) { return info.pid == pi_.hProcess; });
+        process_list.remove_if([this](const ProcessInformation &pi) { return info.identifier == pi_.hProcess; });
 
         try {
             DWORD exitCode = 0;

@@ -91,7 +91,6 @@ class Process : public IProcess {
 
         // Append the process to the list of running processes
         // which are killed when the program exits, as a last resort
-        // process_list.push(process_pid_);
         process_list.push(ProcessInformation{process_pid_, in_pipe_.write_end()});
 
         return true;
@@ -146,14 +145,7 @@ class Process : public IProcess {
 
         if (!is_initalized_) return;
 
-        // process_list.remove(process_pid_);
-        // process_list.remove(ProcessInformation{process_pid_, in_pipe_.write_end()});
-        // auto it = std::find_if(process_list.begin(), process_list.end(),
-        //                        [this](const ProcessInformation &pi) { return pi.pid == process_pid_; });
-
-        // process_list.remove(*it);
-
-        process_list.remove_if([this](const ProcessInformation &pi) { return pi.pid == process_pid_; });
+        process_list.remove_if([this](const ProcessInformation &pi) { return pi.identifier == process_pid_; });
 
         int status;
         const pid_t pid = waitpid(process_pid_, &status, WNOHANG);
@@ -215,7 +207,9 @@ class Process : public IProcess {
             }
 
             // error
-            if (ready == -1) return Status::ERR;
+            if (ready == -1) {
+                return Status::ERR;
+            }
 
             // timeout
             if (ready == 0) {

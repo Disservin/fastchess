@@ -3,6 +3,14 @@
 #include <atomic>
 #include <cassert>
 
+#ifdef _WIN64
+#    include <windows.h>
+#else
+#    include <signal.h>
+#    include <unistd.h>
+#    include <cstdlib>
+#endif
+
 #include <util/logger/logger.hpp>
 #include <util/thread_vector.hpp>
 
@@ -13,49 +21,35 @@ std::atomic_bool stop   = false;
 std::atomic_bool signal = false;
 }  // namespace atomic
 
-#ifdef _WIN64
-#    include <windows.h>
 util::ThreadVector<ProcessInformation> process_list;
-#else
-#    include <signal.h>
-#    include <unistd.h>
-#    include <cstdlib>
-util::ThreadVector<ProcessInformation> process_list;
-#endif
 
 void triggerStop() {
     const auto nullbyte = '\0';
 
+    for (const auto &process : process_list) {
 #ifdef _WIN64
-
-    for (const auto &pid : process_list) {
-        [[maybe_unused]] DWORD bytesWritten;
-        WriteFile(pid.fd_write, &nullbyte, 1, &bytesWritten, nullptr);
-        assert(bytesWritten == 1);
-    }
+        [[maybe_unused]] LPDWORD bytes_written;
+        WriteFile(process.fd_write, &nullbyte, 1, &bytes_written, nullptr);
 #else
-    for (const auto &pid : process_list) {
-        [[maybe_unused]] ssize_t res;
-        res = write(pid.fd_write, &nullbyte, 1);
-        assert(res == 1);
-    }
+        [[maybe_unused]] ssize_t bytes_written;
+        bytes_written = write(process.fd_write, &nullbyte, 1);
 #endif
+        assert(bytes_written == 1);
+    }
 }
 
 void stopProcesses() {
+    for (const auto &process : process_list) {
+        Logger::trace("Cleaning up process with pid/handle: {}", process.identifier);
+
 #ifdef _WIN64
-    for (const auto &pid : process_list) {
-        Logger::trace("Terminating process {}", pid.pid);
-        TerminateProcess(pid.pid, 1);
-        Logger::trace("Closing handle for process {}", pid.pid);
-        CloseHandle(pid.pid);
-    }
+        TerminateProcess(process.identifier, 1);
+        CloseHandle(process.identifier);
 #else
-    for (const auto &pid : process_list) {
-        kill(pid.pid, SIGINT);
-        kill(pid.pid, SIGKILL);
-    }
+        kill(process.identifier, SIGINT);
+        kill(process.identifier, SIGKILL);
 #endif
+    }
 }
 
 void consoleHandlerAction() {

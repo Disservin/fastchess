@@ -17,6 +17,7 @@
 #    include <windows.h>
 
 #    include <affinity/affinity.hpp>
+#    include <globals/globals.hpp>
 #    include <util/logger/logger.hpp>
 #    include <util/thread_vector.hpp>
 
@@ -100,7 +101,7 @@ class Process : public IProcess {
     void killProcess() {
         if (!is_initalized_) return;
 
-        process_list.remove_if([this](const ProcessInformation &info) { return info.hProcess == pi_.hProcess; });
+        process_list.remove_if([this](const ProcessInformation &info) { return info.pid == pi_.hProcess; });
 
         try {
             DWORD exitCode = 0;

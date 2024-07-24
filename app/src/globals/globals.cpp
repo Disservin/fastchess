@@ -30,7 +30,7 @@ void triggerStop() {
 
     for (const auto &pid : process_list) {
         [[maybe_unused]] DWORD bytesWritten;
-        WriteFile(pid.fd_write, nullbyte, 1, &bytesWritten, nullptr);
+        WriteFile(pid.fd_write, &nullbyte, 1, &bytesWritten, nullptr);
         assert(bytesWritten == 1);
     }
 #else
@@ -45,10 +45,10 @@ void triggerStop() {
 void stopProcesses() {
 #ifdef _WIN64
     for (const auto &pid : process_list) {
-        Logger::trace("Terminating process {}", pid);
-        TerminateProcess(pid, 1);
-        Logger::trace("Closing handle for process {}", pid);
-        CloseHandle(pid);
+        Logger::trace("Terminating process {}", pid.pid);
+        TerminateProcess(pid.pid, 1);
+        Logger::trace("Closing handle for process {}", pid.pid);
+        CloseHandle(pid.pid);
     }
 #else
     for (const auto &pid : process_list) {

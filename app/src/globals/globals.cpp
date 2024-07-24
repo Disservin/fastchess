@@ -15,7 +15,7 @@ std::atomic_bool signal = false;
 
 #ifdef _WIN64
 #    include <windows.h>
-// util::ThreadVector<HANDLE> process_list;
+util::ThreadVector<ProcessInformation> process_list;
 #else
 #    include <signal.h>
 #    include <unistd.h>

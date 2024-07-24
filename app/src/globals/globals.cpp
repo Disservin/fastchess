@@ -25,6 +25,8 @@ util::ThreadVector<ProcessInformation> process_list;
 void triggerStop() {
     const auto nullbyte = '\0';
 
+    process_list.lock();
+
     for (const auto &process : process_list) {
 #ifdef _WIN64
         [[maybe_unused]] LPDWORD bytes_written;
@@ -35,9 +37,13 @@ void triggerStop() {
 #endif
         assert(bytes_written == 1);
     }
+
+    process_list.unlock();
 }
 
 void stopProcesses() {
+    process_list.lock();
+
     for (const auto &process : process_list) {
         Logger::trace("Cleaning up process with pid/handle: {}", process.identifier);
 
@@ -49,6 +55,8 @@ void stopProcesses() {
         kill(process.identifier, SIGKILL);
 #endif
     }
+
+    process_list.unlock();
 }
 
 void consoleHandlerAction() { atomic::stop = true; }

@@ -98,7 +98,7 @@ class Process : public IProcess {
     void killProcess() {
         if (!is_initalized_) return;
 
-        process_list.remove_if([this](const ProcessInformation &pi) { return info.identifier == pi_.hProcess; });
+        process_list.remove_if([this](const ProcessInformation &pi) { return pi.identifier == pi_.hProcess; });
 
         try {
             DWORD exitCode = 0;

@@ -91,7 +91,7 @@ class UciEngine : protected process::Process {
     [[nodiscard]] const EngineConfiguration &getConfig() const noexcept { return config_; }
 
     // @TODO: expose this to the user
-    static constexpr std::chrono::milliseconds startup_time_    = std::chrono::seconds(5);
+    static constexpr std::chrono::milliseconds startup_time_    = std::chrono::seconds(25);
     static constexpr std::chrono::milliseconds ucinewgame_time_ = std::chrono::seconds(60);
     static constexpr std::chrono::milliseconds ping_time_       = std::chrono::seconds(60);
 

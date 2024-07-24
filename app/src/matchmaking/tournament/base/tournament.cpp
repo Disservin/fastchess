@@ -61,7 +61,9 @@ void BaseTournament::saveJson() {
 void BaseTournament::stop() {
     atomic::stop = true;
     Logger::trace("Stopping threads...");
+    triggerStop();
     pool_.kill();
+    Logger::trace("Threads stopped.");
 }
 
 void BaseTournament::playGame(const GamePair<EngineConfiguration, EngineConfiguration> &engine_configs,

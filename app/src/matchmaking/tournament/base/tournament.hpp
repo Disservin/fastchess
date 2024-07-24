@@ -5,6 +5,7 @@
 #include <affinity/affinity_manager.hpp>
 #include <book/opening_book.hpp>
 #include <engine/uci_engine.hpp>
+#include <globals/globals.hpp>
 #include <matchmaking/output/output.hpp>
 #include <matchmaking/scoreboard.hpp>
 #include <types/tournament.hpp>
@@ -27,6 +28,7 @@ class BaseTournament {
     virtual ~BaseTournament() {
         Logger::trace("Destroying tournament...");
         saveJson();
+        triggerStop();
     }
 
     virtual void start();

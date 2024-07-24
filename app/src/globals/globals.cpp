@@ -1,11 +1,12 @@
 #include <globals/globals.hpp>
 
+#include <atomic>
+#include <cassert>
+
 #include <util/logger/logger.hpp>
 #include <util/thread_vector.hpp>
 
 namespace fast_chess {
-
-#include <atomic>
 
 namespace atomic {
 std::atomic_bool stop   = false;
@@ -14,13 +15,32 @@ std::atomic_bool signal = false;
 
 #ifdef _WIN64
 #    include <windows.h>
-util::ThreadVector<HANDLE> process_list;
+// util::ThreadVector<HANDLE> process_list;
 #else
 #    include <signal.h>
 #    include <unistd.h>
 #    include <cstdlib>
-util::ThreadVector<pid_t> process_list;
+util::ThreadVector<ProcessInformation> process_list;
 #endif
+
+void triggerStop() {
+    const auto nullbyte = '\0';
+
+#ifdef _WIN64
+
+    for (const auto &pid : process_list) {
+        [[maybe_unused]] DWORD bytesWritten;
+        WriteFile(pid.fd_write, nullbyte, 1, &bytesWritten, nullptr);
+        assert(bytesWritten == 1);
+    }
+#else
+    for (const auto &pid : process_list) {
+        [[maybe_unused]] ssize_t res;
+        res = write(pid.fd_write, &nullbyte, 1);
+        assert(res == 1);
+    }
+#endif
+}
 
 void stopProcesses() {
 #ifdef _WIN64
@@ -32,9 +52,8 @@ void stopProcesses() {
     }
 #else
     for (const auto &pid : process_list) {
-        Logger::trace("Terminating process {}", pid);
-        kill(pid, SIGINT);
-        kill(pid, SIGKILL);
+        kill(pid.pid, SIGINT);
+        kill(pid.pid, SIGKILL);
     }
 #endif
 }

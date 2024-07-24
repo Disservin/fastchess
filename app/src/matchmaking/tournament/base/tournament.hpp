@@ -26,7 +26,7 @@ class BaseTournament {
     BaseTournament(const stats_map &results);
 
     virtual ~BaseTournament() {
-        Logger::trace("Destroying tournament...");
+        Logger::trace("~BaseTournament()");
         saveJson();
         triggerStop();
     }

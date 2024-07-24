@@ -29,7 +29,7 @@ void triggerStop() {
 
     for (const auto &process : process_list) {
 #ifdef _WIN64
-        [[maybe_unused]] LPDWORD bytes_written;
+        [[maybe_unused]] DWORD bytes_written;
         WriteFile(process.fd_write, &nullbyte, 1, &bytes_written, nullptr);
 #else
         [[maybe_unused]] ssize_t bytes_written;

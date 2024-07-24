@@ -63,7 +63,8 @@ namespace fast_chess::str_utils {
     std::string segment;
     std::vector<std::string> seglist;
 
-    while (std::getline(string_stream, segment, delimiter)) seglist.emplace_back(segment);
+    while (std::getline(string_stream, segment, delimiter))
+        if (!segment.empty()) seglist.emplace_back(segment);
 
     return seglist;
 }

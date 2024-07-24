@@ -12,6 +12,8 @@ class TournamentManager {
     TournamentManager(const stats_map &results);
 
     ~TournamentManager() {
+        atomic::stop = true;
+
         Logger::trace("Finished tournament.");
         stop();
     }

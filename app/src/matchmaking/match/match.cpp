@@ -216,6 +216,12 @@ bool Match::playMove(Player& us, Player& them) {
         us.engine.writeLog();
     }
 
+    if (atomic::stop) {
+        data_.termination = MatchTermination::INTERRUPT;
+
+        return false;
+    }
+
     Logger::trace<true>("Check if engine {} is in a ready state", name);
 
     if (status == engine::process::Status::ERR || !us.engine.isready()) {
@@ -224,12 +230,6 @@ bool Match::playMove(Player& us, Player& them) {
     }
 
     Logger::trace<true>("Engine {} is in a ready state", name);
-
-    if (atomic::stop) {
-        data_.termination = MatchTermination::INTERRUPT;
-
-        return false;
-    }
 
     const auto elapsed_millis = chrono::duration_cast<chrono::milliseconds>(t1 - t0).count();
 

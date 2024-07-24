@@ -12,10 +12,6 @@
 #include <type_traits>
 #include <vector>
 
-namespace fast_chess::atomic {
-extern std::atomic_bool signal;
-}  // namespace fast_chess::atomic
-
 namespace fast_chess::util {
 
 class ThreadPool {

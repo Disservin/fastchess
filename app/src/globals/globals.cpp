@@ -17,8 +17,7 @@
 namespace fast_chess {
 
 namespace atomic {
-std::atomic_bool stop   = false;
-std::atomic_bool signal = false;
+std::atomic_bool stop = false;
 }  // namespace atomic
 
 util::ThreadVector<ProcessInformation> process_list;
@@ -52,10 +51,7 @@ void stopProcesses() {
     }
 }
 
-void consoleHandlerAction() {
-    atomic::stop   = true;
-    atomic::signal = true;
-}
+void consoleHandlerAction() { atomic::stop = true; }
 
 #ifdef _WIN64
 BOOL WINAPI handler(DWORD signal) {

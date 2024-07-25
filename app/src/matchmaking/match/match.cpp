@@ -402,7 +402,7 @@ void Match::verifyPvLines(const Player& us) {
                 auto position = fmt::format("position {}", startpos == "startpos" ? "startpos" : ("fen " + startpos));
                 auto fmt2     = fmt::format("From; {} moves {}", position, str_utils::join(uci_moves, " "));
 
-                Logger::warn<true>(fmt + "\n" + fmt2);
+                Logger::warn<true>("{} \n {}", fmt, "\n", fmt2);
 
                 break;
             }

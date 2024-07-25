@@ -1,5 +1,7 @@
 #include <engine/uci_engine.hpp>
 
+#include <condition_variable>
+#include <mutex>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -11,7 +13,30 @@
 
 namespace fast_chess::engine {
 
-std::counting_semaphore<16> sem(16);
+class ThreadLimiter {
+   public:
+    ThreadLimiter(int max_threads) : max_threads_(max_threads), current_threads_(0) {}
+
+    void acquire() {
+        std::unique_lock<std::mutex> lock(mtx_);
+        cond_.wait(lock, [this] { return current_threads_ < max_threads_; });
+        ++current_threads_;
+    }
+
+    void release() {
+        std::lock_guard<std::mutex> lock(mtx_);
+        --current_threads_;
+        cond_.notify_one();
+    }
+
+   private:
+    std::mutex mtx_;
+    std::condition_variable cond_;
+    int max_threads_;
+    int current_threads_;
+};
+
+ThreadLimiter limiter(16);
 
 bool UciEngine::isready(std::chrono::milliseconds threshold) {
     try {
@@ -178,7 +203,7 @@ bool UciEngine::start() {
         return true;
     }
 
-    sem.acquire();
+    limiter.acquire();
 
     std::string path = (config_.dir == "." ? "" : config_.dir) + config_.cmd;
 
@@ -193,20 +218,20 @@ bool UciEngine::start() {
     if (!init(path, config_.args, config_.name)) {
         Logger::warn<true>("Warning: Cannot start engine {}:", config_.name);
         Logger::warn<true>("Cannot execute command: {}", path);
-        sem.release();  // Increment the semaphore counter on failure
+        limiter.release();
 
         return false;
     }
 
     if (!uci() || !uciok(startup_time_)) {
         Logger::warn<true>("Engine {} didn't respond to uci with uciok after startup.", config_.name);
-        sem.release();  // Increment the semaphore counter on failure
+        limiter.release();
 
         return false;
     }
 
     initialized_ = true;
-    sem.release();  // Increment the semaphore counter on failure
+    limiter.release();
 
     return true;
 }

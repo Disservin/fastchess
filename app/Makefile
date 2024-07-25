@@ -11,8 +11,8 @@ BUILDDIR         := tmp
 INCDIR           := src
 
 #Flags, Libraries and Includes
-CXXFLAGS         := -O3 -std=c++20 -Wall -Wextra -DNDEBUG
-CXXFLAGS_TEST	 := -O2 -std=c++20 -Wall -Wextra -pedantic -Wuninitialized -g3 -fno-omit-frame-pointer
+CXXFLAGS         := -O3 -std=c++17 -Wall -Wextra -DNDEBUG
+CXXFLAGS_TEST	 := -O2 -std=c++17 -Wall -Wextra -pedantic -Wuninitialized -g3 -fno-omit-frame-pointer
 INC              := -I$(INCDIR) -Ithird_party
 
 SRC_FILES        := \
@@ -82,7 +82,7 @@ endif
 endif
 
 ifeq ($(build), debug)
-	CXXFLAGS := -O2 -std=c++20 -Wall -Wextra -pedantic -Wuninitialized -g3
+	CXXFLAGS := -O2 -std=c++17 -Wall -Wextra -pedantic -Wuninitialized -g3
 endif
 
 ifeq ($(build), release)

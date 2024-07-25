@@ -17,11 +17,17 @@
 #    include <windows.h>
 
 #    include <affinity/affinity.hpp>
+#    include <globals/globals.hpp>
 #    include <util/logger/logger.hpp>
 #    include <util/thread_vector.hpp>
 
 namespace fast_chess {
-extern util::ThreadVector<HANDLE> process_list;
+
+extern util::ThreadVector<ProcessInformation> process_list;
+
+namespace atomic {
+extern std::atomic_bool stop;
+}
 
 namespace engine::process {
 
@@ -70,7 +76,7 @@ class Process : public IProcess {
         startup_error_ = !success;
         is_initalized_ = true;
 
-        process_list.push(pi_.hProcess);
+        process_list.push(ProcessInformation{pi_.hProcess, child_std_out_});
 
         return success;
     }
@@ -92,7 +98,7 @@ class Process : public IProcess {
     void killProcess() {
         if (!is_initalized_) return;
 
-        process_list.remove(pi_.hProcess);
+        process_list.remove_if([this](const ProcessInformation &pi) { return pi.identifier == pi_.hProcess; });
 
         try {
             DWORD exitCode = 0;
@@ -127,12 +133,16 @@ class Process : public IProcess {
 
         auto id = std::this_thread::get_id();
 
-        auto readFuture = std::async(std::launch::async, [this, &last_word, &lines, id]() {
+        auto readFuture = std::async(std::launch::async, [this, &last_word, &lines, id, &atomic_stop = atomic::stop]() {
             char buffer[4096];
             DWORD bytesRead;
 
             while (true) {
                 if (!ReadFile(child_std_out_, buffer, sizeof(buffer), &bytesRead, nullptr)) {
+                    return Status::ERR;
+                }
+
+                if (atomic_stop) {
                     return Status::ERR;
                 }
 

@@ -5,6 +5,7 @@
 #include <affinity/affinity_manager.hpp>
 #include <book/opening_book.hpp>
 #include <engine/uci_engine.hpp>
+#include <globals/globals.hpp>
 #include <matchmaking/output/output.hpp>
 #include <matchmaking/scoreboard.hpp>
 #include <types/tournament.hpp>
@@ -25,14 +26,13 @@ class BaseTournament {
     BaseTournament(const stats_map &results);
 
     virtual ~BaseTournament() {
-        Logger::trace("Destroying tournament...");
+        Logger::trace("~BaseTournament()");
         saveJson();
+        Logger::trace("Instructing engines to stop...");
+        triggerStop();
     }
 
     virtual void start();
-
-    // forces the tournament to stop
-    virtual void stop();
 
     [[nodiscard]] stats_map getResults() noexcept { return scoreboard_.getResults(); }
 

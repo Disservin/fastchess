@@ -12,12 +12,11 @@ class TournamentManager {
     TournamentManager(const stats_map &results);
 
     ~TournamentManager() {
-        Logger::trace("Finished tournament.");
-        stop();
+        atomic::stop = true;
+        Logger::trace("~TournamentManager()");
     }
 
     void start();
-    void stop() { round_robin_->stop(); }
 
     [[nodiscard]] RoundRobin *roundRobin() { return round_robin_.get(); }
 

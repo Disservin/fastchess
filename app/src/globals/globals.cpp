@@ -1,48 +1,65 @@
 #include <globals/globals.hpp>
 
+#include <atomic>
+#include <cassert>
+
+#ifdef _WIN64
+#    include <windows.h>
+#else
+#    include <signal.h>
+#    include <unistd.h>
+#    include <cstdlib>
+#endif
+
 #include <util/logger/logger.hpp>
 #include <util/thread_vector.hpp>
 
 namespace fast_chess {
 
-#include <atomic>
-
 namespace atomic {
-std::atomic_bool stop   = false;
-std::atomic_bool signal = false;
+std::atomic_bool stop = false;
 }  // namespace atomic
 
+util::ThreadVector<ProcessInformation> process_list;
+
+void triggerStop() {
+    const auto nullbyte = '\0';
+
+    process_list.lock();
+
+    for (const auto &process : process_list) {
 #ifdef _WIN64
-#    include <windows.h>
-util::ThreadVector<HANDLE> process_list;
+        [[maybe_unused]] DWORD bytes_written;
+        WriteFile(process.fd_write, &nullbyte, 1, &bytes_written, nullptr);
 #else
-#    include <signal.h>
-#    include <unistd.h>
-#    include <cstdlib>
-util::ThreadVector<pid_t> process_list;
+        [[maybe_unused]] ssize_t bytes_written;
+        bytes_written = write(process.fd_write, &nullbyte, 1);
 #endif
+        assert(bytes_written == 1);
+    }
+
+    process_list.unlock();
+}
 
 void stopProcesses() {
+    process_list.lock();
+
+    for (const auto &process : process_list) {
+        Logger::trace("Cleaning up process with pid/handle: {}", process.identifier);
+
 #ifdef _WIN64
-    for (const auto &pid : process_list) {
-        Logger::trace("Terminating process {}", pid);
-        TerminateProcess(pid, 1);
-        Logger::trace("Closing handle for process {}", pid);
-        CloseHandle(pid);
-    }
+        TerminateProcess(process.identifier, 1);
+        CloseHandle(process.identifier);
 #else
-    for (const auto &pid : process_list) {
-        Logger::trace("Terminating process {}", pid);
-        kill(pid, SIGINT);
-        kill(pid, SIGKILL);
-    }
+        kill(process.identifier, SIGINT);
+        kill(process.identifier, SIGKILL);
 #endif
+    }
+
+    process_list.unlock();
 }
 
-void consoleHandlerAction() {
-    atomic::stop   = true;
-    atomic::signal = true;
-}
+void consoleHandlerAction() { atomic::stop = true; }
 
 #ifdef _WIN64
 BOOL WINAPI handler(DWORD signal) {

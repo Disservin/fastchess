@@ -58,12 +58,6 @@ void BaseTournament::saveJson() {
     Logger::trace("Saved results.");
 }
 
-void BaseTournament::stop() {
-    atomic::stop = true;
-    Logger::trace("Stopping threads...");
-    pool_.kill();
-}
-
 void BaseTournament::playGame(const GamePair<EngineConfiguration, EngineConfiguration> &engine_configs,
                               start_callback start, finished_callback finish, const pgn::Opening &opening,
                               std::size_t round_id, std::size_t game_id) {
@@ -112,7 +106,7 @@ void BaseTournament::playGame(const GamePair<EngineConfiguration, EngineConfigur
     const auto match_data = match.get();
 
     // If the game was interrupted(didn't completely finish)
-    if (match_data.termination != MatchTermination::INTERRUPT) {
+    if (match_data.termination != MatchTermination::INTERRUPT && !atomic::stop) {
         if (!config.pgn.file.empty()) {
             file_writer_pgn->write(pgn::PgnBuilder(config.pgn, match_data, round_id + 1).get());
         }

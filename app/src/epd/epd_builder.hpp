@@ -24,9 +24,7 @@ class EpdBuilder {
         for (const auto &move : match.moves) {
             const auto illegal = !move.legal;
 
-            if (illegal) {
-                break;
-            }
+            if (illegal) break;
 
             board.makeMove(chess::uci::uciToMove(board, move.move));
         }

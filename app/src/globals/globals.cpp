@@ -22,7 +22,7 @@ std::atomic_bool stop = false;
 
 util::ThreadVector<ProcessInformation> process_list;
 
-void triggerStop() {
+void writeToOpenPipes() {
     const auto nullbyte = '\0';
 
     process_list.lock();

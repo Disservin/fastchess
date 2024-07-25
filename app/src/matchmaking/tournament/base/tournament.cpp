@@ -18,20 +18,19 @@
 namespace fast_chess {
 
 BaseTournament::BaseTournament(const stats_map &results) {
-    output_ = OutputFactory::create(config::TournamentConfig.get().output, config::TournamentConfig.get().report_penta);
-    cores_  = std::make_unique<affinity::AffinityManager>(config::TournamentConfig.get().affinity,
-                                                          getMaxAffinity(config::EngineConfigs.get()));
+    const auto &config = config::TournamentConfig.get();
 
-    if (!config::TournamentConfig.get().pgn.file.empty())
-        file_writer_pgn = std::make_unique<util::FileWriter>(config::TournamentConfig.get().pgn.file);
-    if (!config::TournamentConfig.get().epd.file.empty())
-        file_writer_epd = std::make_unique<util::FileWriter>(config::TournamentConfig.get().epd.file);
+    output_ = OutputFactory::create(config.output, config.report_penta);
+    cores_  = std::make_unique<affinity::AffinityManager>(config.affinity, getMaxAffinity(config::EngineConfigs.get()));
 
-    pool_.resize(config::TournamentConfig.get().concurrency);
+    if (!config.pgn.file.empty()) file_writer_pgn = std::make_unique<util::FileWriter>(config.pgn.file);
+    if (!config.epd.file.empty()) file_writer_epd = std::make_unique<util::FileWriter>(config.epd.file);
+
+    pool_.resize(config.concurrency);
 
     setResults(results);
 
-    book_ = std::make_unique<book::OpeningBook>(config::TournamentConfig.get(), initial_matchcount_);
+    book_ = std::make_unique<book::OpeningBook>(config, initial_matchcount_);
 }
 
 void BaseTournament::start() {
@@ -47,8 +46,7 @@ void BaseTournament::saveJson() {
 
     nlohmann::ordered_json jsonfile = config;
     jsonfile["engines"]             = config::EngineConfigs.get();
-    // @TODO
-    jsonfile["stats"] = getResults();
+    jsonfile["stats"]               = getResults();
 
     auto filename = config.config_name.empty() ? "config.json" : config.config_name;
 
@@ -86,20 +84,22 @@ void BaseTournament::playGame(const GamePair<EngineConfiguration, EngineConfigur
 
     if (match.isCrashOrDisconnect()) {
         Logger::trace<true>("Game {} between {} and {} crashed / disconnected", game_id, white_name, black_name);
-        // restart the engine when recover is enabled
-        if (config.recover) {
-            Logger::trace<true>("Restarting engine...");
-            if (!white_engine.get().isready()) {
-                Logger::trace<true>("Restarting engine {}", white_name);
-                white_engine.get().refreshUci();
-            }
-
-            if (!black_engine.get().isready()) {
-                Logger::trace<true>("Restarting engine {}", black_name);
-                black_engine.get().refreshUci();
-            }
-        } else {
+        if (!config.recover) {
             atomic::stop = true;
+            return;
+        }
+
+        // restart the engine when recover is enabled
+
+        Logger::trace<true>("Restarting engine...");
+        if (!white_engine.get().isready()) {
+            Logger::trace<true>("Restarting engine {}", white_name);
+            white_engine.get().refreshUci();
+        }
+
+        if (!black_engine.get().isready()) {
+            Logger::trace<true>("Restarting engine {}", black_name);
+            black_engine.get().refreshUci();
         }
     }
 

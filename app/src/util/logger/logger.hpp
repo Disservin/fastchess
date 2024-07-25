@@ -42,29 +42,29 @@ class Logger {
 
     static void openFile(const std::string &file);
 
-    template <bool thread = false, typename... Args>
-    static void trace(const std::string &format, Args &&...args) {
-        log<Level::TRACE, thread>(format, std::forward<Args>(args)...);
+    template <bool thread = false, typename... T>
+    static void trace(fmt::format_string<T...> format, T &&...args) {
+        log<Level::TRACE, thread>(format, std::forward<T>(args)...);
     }
 
-    template <bool thread = false, typename... Args>
-    static void warn(const std::string &format, Args &&...args) {
-        log<Level::WARN, thread>(format, std::forward<Args>(args)...);
+    template <bool thread = false, typename... T>
+    static void warn(fmt::format_string<T...> format, T &&...args) {
+        log<Level::WARN, thread>(format, std::forward<T>(args)...);
     }
 
-    template <bool thread = false, typename... Args>
-    static void info(const std::string &format, Args &&...args) {
-        log<Level::INFO, thread>(format, std::forward<Args>(args)...);
+    template <bool thread = false, typename... T>
+    static void info(fmt::format_string<T...> format, T &&...args) {
+        log<Level::INFO, thread>(format, std::forward<T>(args)...);
     }
 
-    template <bool thread = false, typename... Args>
-    static void err(const std::string &format, Args &&...args) {
-        log<Level::ERR, thread>(format, std::forward<Args>(args)...);
+    template <bool thread = false, typename... T>
+    static void err(fmt::format_string<T...> format, T &&...args) {
+        log<Level::ERR, thread>(format, std::forward<T>(args)...);
     }
 
-    template <bool thread = false, typename... Args>
-    static void fatal(const std::string &format, Args &&...args) {
-        log<Level::FATAL, thread>(format, std::forward<Args>(args)...);
+    template <bool thread = false, typename... T>
+    static void fatal(fmt::format_string<T...> format, T &&...args) {
+        log<Level::FATAL, thread>(format, std::forward<T>(args)...);
     }
 
     static void writeToEngine(const std::string &msg, const std::string &time, const std::string &name);
@@ -75,13 +75,13 @@ class Logger {
     static std::atomic_bool should_log_;
 
    private:
-    template <Level level = Level::WARN, bool thread = false, typename... Args>
-    static void log(const std::string &format, Args &&...args) {
+    template <Level level = Level::WARN, bool thread = false, typename... T>
+    static void log(fmt::format_string<T...> format, T &&...args) {
         if (level < level_) {
             return;
         }
 
-        auto message = fmt::format(format + "\n", std::forward<Args>(args)...);
+        const auto message = fmt::format(format, std::forward<T>(args)...) + "\n";
 
         if (level >= Level::WARN) {
             std::cout << message << std::flush;

@@ -128,9 +128,7 @@ bool UciEngine::uciok(std::chrono::milliseconds threshold) {
 
     for (const auto &line : output_) {
         if (!realtime_logging_) {
-            for (const auto &line : output_) {
-                Logger::readFromEngine(line.line, line.time, config_.name, line.std == process::Standard::ERR);
-            }
+            Logger::readFromEngine(line.line, line.time, config_.name, line.std == process::Standard::ERR);
         }
 
         auto option = UCIOptionFactory::parseUCIOptionLine(line.line);

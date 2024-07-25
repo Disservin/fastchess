@@ -68,11 +68,10 @@ void Match::addMoveData(const Player& player, int64_t measured_time_ms, bool leg
 void Match::prepare() {
     board_.set960(config::TournamentConfig.get().variant == VariantType::FRC);
 
-    if (isFen(opening_.fen)) {
+    if (isFen(opening_.fen))
         board_.setFen(opening_.fen);
-    } else {
+    else
         board_.setEpd(opening_.fen);
-    }
 
     start_position_ = board_.getFen() == chess::constants::STARTPOS ? "startpos" : board_.getFen();
 
@@ -301,11 +300,7 @@ std::pair<chess::GameResultReason, chess::GameResult> Match::isGameOver() const 
     }
 
     if (board_.isInsufficientMaterial()) return {GameResultReason::INSUFFICIENT_MATERIAL, GameResult::DRAW};
-
-    if (board_.isHalfMoveDraw()) {
-        return board_.getHalfMoveDrawType();
-    }
-
+    if (board_.isHalfMoveDraw()) return board_.getHalfMoveDrawType();
     if (board_.isRepetition()) return {GameResultReason::THREEFOLD_REPETITION, GameResult::DRAW};
 
     return {GameResultReason::NONE, GameResult::NONE};

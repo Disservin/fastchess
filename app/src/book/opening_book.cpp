@@ -32,23 +32,18 @@ void OpeningBook::setup(const std::string& file, FormatType type) {
     if (type == FormatType::PGN) {
         book_ = pgn::PgnReader(file, plies_).getOpenings();
 
-        if (std::get<pgn_book>(book_).empty()) {
-            throw std::runtime_error("No openings found in PGN file: " + file);
-        }
+        if (std::get<pgn_book>(book_).empty()) throw std::runtime_error("No openings found in PGN file: " + file);
     } else if (type == FormatType::EPD) {
         std::ifstream openingFile;
         openingFile.open(file);
 
         std::string line;
-        while (util::safeGetline(openingFile, line)) {
+        while (util::safeGetline(openingFile, line))
             if (!line.empty()) std::get<epd_book>(book_).emplace_back(line);
-        }
 
         openingFile.close();
 
-        if (std::get<epd_book>(book_).empty()) {
-            throw std::runtime_error("No openings found in EPD file: " + file);
-        }
+        if (std::get<epd_book>(book_).empty()) throw std::runtime_error("No openings found in EPD file: " + file);
     }
 
     if (type == FormatType::NONE) return;
@@ -72,10 +67,7 @@ void OpeningBook::setup(const std::string& file, FormatType type) {
     const auto book_size =
         std::holds_alternative<epd_book>(book_) ? std::get<epd_book>(book_).size() : std::get<pgn_book>(book_).size();
 
-    if (book_size == 0) {
-        return std::nullopt;
-    }
-
+    if (book_size == 0) return std::nullopt;
     return idx % book_size;
 }
 

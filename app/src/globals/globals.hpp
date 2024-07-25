@@ -36,7 +36,7 @@ struct ProcessInformation {
 
 // Write a nullterminator to all engine processes, such that blocking read calls return.
 // This is used to stop the engines gracefully, afterwards we can check the stop flag.
-void triggerStop();
+void writeToOpenPipes();
 
 // Forcefully stop all processes, which we spawned for the engines.
 void stopProcesses();

@@ -29,7 +29,7 @@ class BaseTournament {
         Logger::trace("~BaseTournament()");
         saveJson();
         Logger::trace("Instructing engines to stop...");
-        triggerStop();
+        writeToOpenPipes();
     }
 
     virtual void start();

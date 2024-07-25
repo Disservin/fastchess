@@ -11,6 +11,8 @@
 
 namespace fast_chess::engine {
 
+std::counting_semaphore<16> sem(16);
+
 bool UciEngine::isready(std::chrono::milliseconds threshold) {
     try {
         if (!alive()) return false;
@@ -172,7 +174,11 @@ void UciEngine::sendSetoption(const std::string &name, const std::string &value)
 }
 
 bool UciEngine::start() {
-    if (initialized_) return true;
+    if (initialized_) {
+        return true;
+    }
+
+    sem.acquire();
 
     std::string path = (config_.dir == "." ? "" : config_.dir) + config_.cmd;
 
@@ -187,15 +193,21 @@ bool UciEngine::start() {
     if (!init(path, config_.args, config_.name)) {
         Logger::warn<true>("Warning: Cannot start engine {}:", config_.name);
         Logger::warn<true>("Cannot execute command: {}", path);
+        sem.release();  // Increment the semaphore counter on failure
+
         return false;
     }
 
     if (!uci() || !uciok(startup_time_)) {
         Logger::warn<true>("Engine {} didn't respond to uci with uciok after startup.", config_.name);
+        sem.release();  // Increment the semaphore counter on failure
+
         return false;
     }
 
     initialized_ = true;
+    sem.release();  // Increment the semaphore counter on failure
+
     return true;
 }
 

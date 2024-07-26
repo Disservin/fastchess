@@ -106,13 +106,14 @@ bool UciEngine::go(const TimeControl &our_tc, const TimeControl &enemy_tc, chess
         input << " depth " << config_.limit.plies;
     }
 
+    // We cannot use st and tc together
     if (our_tc.isFixedTime()) {
         input << " movetime " << our_tc.getFixedTime();
         return writeEngine(input.str());
     }
 
-    auto white = stm == chess::Color::WHITE ? our_tc : enemy_tc;
-    auto black = stm == chess::Color::WHITE ? enemy_tc : our_tc;
+    const auto &white = stm == chess::Color::WHITE ? our_tc : enemy_tc;
+    const auto &black = stm == chess::Color::WHITE ? enemy_tc : our_tc;
 
     if (our_tc.isTimed() || our_tc.isIncrement()) {
         if (white.isTimed() || white.isIncrement()) {

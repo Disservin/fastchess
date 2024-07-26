@@ -6,7 +6,7 @@
 #include <string_view>
 #include <vector>
 
-namespace fast_chess::engine::process {
+namespace fastchess::engine::process {
 
 enum class Standard { INPUT, OUTPUT, ERR };
 enum class Status { OK, ERR, TIMEOUT, NONE };
@@ -51,4 +51,4 @@ class IProcess {
     bool realtime_logging_ = true;
 };
 
-}  // namespace fast_chess::engine::process
+}  // namespace fastchess::engine::process

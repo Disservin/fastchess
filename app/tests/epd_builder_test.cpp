@@ -2,7 +2,7 @@
 
 #include "doctest/doctest.hpp"
 
-namespace fast_chess {
+namespace fastchess {
 TEST_SUITE("EPD Builder Tests") {
     TEST_CASE("EPD Creation White Start") {
         MatchData match_data;
@@ -33,4 +33,4 @@ TEST_SUITE("EPD Builder Tests") {
         CHECK(epd_builder.get() == expected);
     }
 }
-}  // namespace fast_chess
+}  // namespace fastchess

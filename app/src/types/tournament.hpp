@@ -16,7 +16,7 @@
 #include <types/resign_adjudication.hpp>
 #include <types/sprt.hpp>
 
-namespace fast_chess::config {
+namespace fastchess::config {
 
 struct Tournament {
     Opening opening = {};
@@ -69,4 +69,4 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(Tournament, resign, draw, maxmov
                                                 autosaveinterval, games, rounds, concurrency, overhead, recover, noswap,
                                                 report_penta, affinity, log)
 
-}  // namespace fast_chess::config
+}  // namespace fastchess::config

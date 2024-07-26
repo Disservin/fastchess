@@ -8,7 +8,7 @@
 #include <util/logger/logger.hpp>
 #include <util/safe_getline.hpp>
 
-namespace fast_chess::book {
+namespace fastchess::book {
 
 OpeningBook::OpeningBook(const config::Tournament& config, std::size_t initial_matchcount) {
     start_  = config.opening.start;
@@ -71,4 +71,4 @@ void OpeningBook::setup(const std::string& file, FormatType type) {
     return idx % book_size;
 }
 
-}  // namespace fast_chess::book
+}  // namespace fastchess::book

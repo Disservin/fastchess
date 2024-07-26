@@ -21,7 +21,7 @@
 #    include <util/logger/logger.hpp>
 #    include <util/thread_vector.hpp>
 
-namespace fast_chess {
+namespace fastchess {
 
 extern util::ThreadVector<ProcessInformation> process_list;
 
@@ -221,6 +221,6 @@ class Process : public IProcess {
 };
 
 }  // namespace engine::process
-}  // namespace fast_chess
+}  // namespace fastchess
 
 #endif

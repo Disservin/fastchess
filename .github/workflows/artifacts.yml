@@ -67,12 +67,12 @@ jobs:
 
       # Compiles
 
-      - name: Building Fast-Chess
+      - name: Building fastchess
         run: |
           make -j2 build=release
-          strip ./fast-chess$EXT
-          mv fast-chess$EXT fast-chess-$OS$EXT
-          ./fast-chess* -version
+          strip ./fastchess$EXT
+          mv fastchess$EXT fastchess-$OS$EXT
+          ./fastchess* -version
 
       - name: Find and remove empty files
         run: rm -rf *.o *.d sha
@@ -81,7 +81,7 @@ jobs:
       - name: Archive binaries
         uses: actions/upload-artifact@v3
         with:
-          name: fast-chess-${{ matrix.config.os }}
+          name: fastchess-${{ matrix.config.os }}
           path: |
             app
             .clang-format
@@ -90,4 +90,4 @@ jobs:
             man
             README.md
             LICENSE
-            fast-chess-${{ matrix.config.os }}${{ matrix.config.ext }}
+            fastchess-${{ matrix.config.os }}${{ matrix.config.ext }}

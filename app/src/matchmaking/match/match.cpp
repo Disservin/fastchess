@@ -7,7 +7,7 @@
 #include <util/helper.hpp>
 #include <util/logger/logger.hpp>
 
-namespace fast_chess {
+namespace fastchess {
 
 namespace atomic {
 extern std::atomic_bool stop;
@@ -271,7 +271,7 @@ bool Match::playMove(Player& us, Player& them) {
 
     // CuteChess uses plycount/2 for its movenumber, which is wrong for epd books as it doesnt take
     // into account the fullmove counter of the starting FEN, leading to different behavior between
-    // pgn and epd adjudication. fast-chess fixes this by using the fullmove counter from the board
+    // pgn and epd adjudication. fastchess fixes this by using the fullmove counter from the board
     // object directly
     auto score = us.engine.lastScore();
     auto type  = us.engine.lastScoreType();
@@ -474,4 +474,4 @@ std::string Match::convertChessReason(const std::string& engine_color, GameResul
     return "";
 }
 
-}  // namespace fast_chess
+}  // namespace fastchess

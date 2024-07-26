@@ -3,7 +3,7 @@
 #include <chess.hpp>
 #include "doctest/doctest.hpp"
 
-namespace fast_chess {
+namespace fastchess {
 TEST_SUITE("PGN Reader") {
     TEST_CASE("Read PGN file") {
         pgn::PgnReader reader("app/tests/data/test.pgn");
@@ -145,4 +145,4 @@ TEST_SUITE("PGN Reader") {
                                                       chess::Square::underlying::SQ_F3, chess::PieceType::KNIGHT));
     }
 }
-}  // namespace fast_chess
+}  // namespace fastchess

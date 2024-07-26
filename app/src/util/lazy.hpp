@@ -4,7 +4,7 @@
 #include <memory>
 #include <mutex>
 
-namespace fast_chess::util {
+namespace fastchess::util {
 
 template <typename T>
 class Lazy {
@@ -48,4 +48,4 @@ class Lazy {
     std::function<std::unique_ptr<T>()> initializer_;
 };
 
-}  // namespace fast_chess::util
+}  // namespace fastchess::util

@@ -1,13 +1,13 @@
-FAST-CHESS            General Commands Manual            FAST-CHESS
+FASTCHESS            General Commands Manual            FASTCHESS
 
 NAME
-       fast-chess - a command-line tool for managing chess games with engines
+       fastchess - a command-line tool for managing chess games with engines
 
 SYNOPSIS
-       fast-chess [OPTIONS]
+       fastchess [OPTIONS]
 
 DESCRIPTION
-        Fast-chess is a command-line tool designed to manage and orchestrate
+        fastchess is a command-line tool designed to manage and orchestrate
         chess games between engines. It provides a range of options to configure
         game settings, engine parameters, concurrency, and output formats.
 
@@ -228,15 +228,15 @@ OPTIONS
 
 EXAMPLES
         To start a match between two engines using a random order of openings from book.epd:
-            $ fast-chess -engine cmd=Engine1.exe name=Engine1 -engine cmd=Engine2.exe \
+            $ fastchess -engine cmd=Engine1.exe name=Engine1 -engine cmd=Engine2.exe \
               name=Engine2 -openings file=book.epd format=epd order=random \
               -each tc=10+0.1 -rounds 200 -repeat -concurrency 4
 
         To resume a match from a saved configuration:
-            $ fast-chess -config file=config.json
+            $ fastchess -config file=config.json
 
 AUTHORS
-        fast-chess was written by Disservin, Szil, PGG106, and contributors.
+        fastchess was written by Disservin, Szil, PGG106, and contributors.
 
 REPORTING BUGS
         Report any bugs to https://github.com/Disservin/fast-chess/issues.

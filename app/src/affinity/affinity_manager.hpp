@@ -20,7 +20,7 @@
 #include <util/logger/logger.hpp>
 #include <util/scope_guard.hpp>
 
-namespace fast_chess {
+namespace fastchess {
 
 namespace affinity {
 class AffinityManager {
@@ -122,4 +122,4 @@ class AffinityManager {
 };
 
 }  // namespace affinity
-}  // namespace fast_chess
+}  // namespace fastchess

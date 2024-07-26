@@ -5,7 +5,7 @@
 
 #include "ucioption.hpp"
 
-namespace fast_chess {
+namespace fastchess {
 
 class StringOption : public UCIOption {
    public:
@@ -30,4 +30,4 @@ class StringOption : public UCIOption {
     std::string value;
 };
 
-}  // namespace fast_chess
+}  // namespace fastchess

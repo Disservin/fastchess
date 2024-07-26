@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 
-namespace fast_chess {
+namespace fastchess {
 
 class UCIOption {
    public:
@@ -14,4 +14,4 @@ class UCIOption {
     virtual bool isValid(const std::string& value) const = 0;
 };
 
-}  // namespace fast_chess
+}  // namespace fastchess

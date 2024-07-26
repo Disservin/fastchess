@@ -4,7 +4,7 @@
 #include <matchmaking/output/output.hpp>
 #include <util/logger/logger.hpp>
 
-namespace fast_chess {
+namespace fastchess {
 
 class Cutechess : public IOutput {
    public:
@@ -71,4 +71,4 @@ class Cutechess : public IOutput {
     void endTournament() override { std::cout << "Tournament finished" << std::endl; }
 };
 
-}  // namespace fast_chess
+}  // namespace fastchess

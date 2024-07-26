@@ -15,7 +15,7 @@
 #include <util/logger/logger.hpp>
 #include <util/threadpool.hpp>
 
-namespace fast_chess {
+namespace fastchess {
 
 BaseTournament::BaseTournament(const stats_map &results) {
     const auto &config = config::TournamentConfig.get();
@@ -144,4 +144,4 @@ int BaseTournament::getMaxAffinity(const std::vector<EngineConfiguration> &confi
     return first_threads;
 }
 
-}  // namespace fast_chess
+}  // namespace fastchess

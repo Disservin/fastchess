@@ -2,7 +2,7 @@
 
 #include "doctest/doctest.hpp"
 
-namespace fast_chess {
+namespace fastchess {
 TEST_SUITE("PGN Builder Tests") {
     TEST_CASE("PGN Creation") {
         MatchData match_data;
@@ -27,7 +27,7 @@ TEST_SUITE("PGN Builder Tests") {
         config::Pgn pgn_config;
         pgn_config.site = "localhost";
 
-        std::string expected = R"([Event "Fast-Chess Tournament"]
+        std::string expected = R"([Event "Fastchess Tournament"]
 [Site "localhost"]
 [Round "1"]
 [White "engine1"]
@@ -69,7 +69,7 @@ Nf6 {+10.15/18 1.821s engine2 got checkmated} 1-0
         config::Pgn pgn_config;
         pgn_config.site = "localhost";
 
-        std::string expected = R"([Event "Fast-Chess Tournament"]
+        std::string expected = R"([Event "Fastchess Tournament"]
 [Site "localhost"]
 [Round "1"]
 [White "engine1"]
@@ -108,7 +108,7 @@ Nf6 {+10.15/18 1.821s engine1 got checkmated} 0-1
         config::Pgn pgn_config;
         pgn_config.site = "localhost";
 
-        std::string expected = R"([Event "Fast-Chess Tournament"]
+        std::string expected = R"([Event "Fastchess Tournament"]
 [Site "localhost"]
 [Round "1"]
 [White "engine2"]
@@ -149,7 +149,7 @@ Nf6 {+10.15/18 1.821s engine1 got checkmated} 0-1
         config::Pgn pgn_config;
         pgn_config.site = "localhost";
 
-        std::string expected = R"([Event "Fast-Chess Tournament"]
+        std::string expected = R"([Event "Fastchess Tournament"]
 [Site "localhost"]
 [Round "1"]
 [White "engine2"]
@@ -190,7 +190,7 @@ Nf6 {+10.15/18 1.821s engine1 got checkmated} 0-1
         config::Pgn pgn_config;
         pgn_config.site = "localhost";
 
-        std::string expected = R"([Event "Fast-Chess Tournament"]
+        std::string expected = R"([Event "Fastchess Tournament"]
 [Site "localhost"]
 [Round "1"]
 [White "engine2"]
@@ -210,4 +210,4 @@ Nf6 {+10.15/18 1.821s engine1 got checkmated} 0-1
         CHECK(pgn_builder.get() == expected);
     }
 }
-}  // namespace fast_chess
+}  // namespace fastchess

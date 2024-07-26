@@ -32,13 +32,18 @@
 #    include <vector>
 
 #    include <affinity/affinity.hpp>
+#    include <globals/globals.hpp>
 #    include <util/logger/logger.hpp>
 #    include <util/thread_vector.hpp>
 
 #    include <argv_split.hpp>
 
 namespace fast_chess {
-extern util::ThreadVector<pid_t> process_list;
+extern util::ThreadVector<ProcessInformation> process_list;
+
+namespace atomic {
+extern std::atomic_bool stop;
+}
 
 namespace engine::process {
 
@@ -86,7 +91,7 @@ class Process : public IProcess {
 
         // Append the process to the list of running processes
         // which are killed when the program exits, as a last resort
-        process_list.push(process_pid_);
+        process_list.push(ProcessInformation{process_pid_, in_pipe_.write_end()});
 
         return true;
     }
@@ -140,7 +145,7 @@ class Process : public IProcess {
 
         if (!is_initalized_) return;
 
-        process_list.remove(process_pid_);
+        process_list.remove_if([this](const ProcessInformation &pi) { return pi.identifier == process_pid_; });
 
         int status;
         const pid_t pid = waitpid(process_pid_, &status, WNOHANG);
@@ -197,8 +202,14 @@ class Process : public IProcess {
         while (true) {
             const int ready = poll(pollfds.data(), pollfds.size(), threshold.count());
 
+            if (atomic::stop) {
+                return Status::ERR;
+            }
+
             // error
-            if (ready == -1) return Status::ERR;
+            if (ready == -1) {
+                return Status::ERR;
+            }
 
             // timeout
             if (ready == 0) {

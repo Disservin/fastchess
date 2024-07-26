@@ -17,11 +17,17 @@
 #    include <windows.h>
 
 #    include <affinity/affinity.hpp>
+#    include <globals/globals.hpp>
 #    include <util/logger/logger.hpp>
 #    include <util/thread_vector.hpp>
 
 namespace fast_chess {
-extern util::ThreadVector<HANDLE> process_list;
+
+extern util::ThreadVector<ProcessInformation> process_list;
+
+namespace atomic {
+extern std::atomic_bool stop;
+}
 
 namespace engine::process {
 
@@ -70,40 +76,35 @@ class Process : public IProcess {
         startup_error_ = !success;
         is_initalized_ = true;
 
-        process_list.push(pi_.hProcess);
+        process_list.push(ProcessInformation{pi_.hProcess, child_std_out_});
 
         return success;
     }
 
     [[nodiscard]] bool alive() const noexcept override {
         assert(is_initalized_);
+
         DWORD exitCode = 0;
         GetExitCodeProcess(pi_.hProcess, &exitCode);
+
         return exitCode == STILL_ACTIVE;
     }
 
     void setAffinity(const std::vector<int> &cpus) noexcept override {
         assert(is_initalized_);
-        if (!cpus.empty()) {
-            affinity::setAffinity(cpus, pi_.hProcess);
-        }
+        if (!cpus.empty()) affinity::setAffinity(cpus, pi_.hProcess);
     }
 
     void killProcess() {
         if (!is_initalized_) return;
 
-        process_list.remove(pi_.hProcess);
+        process_list.remove_if([this](const ProcessInformation &pi) { return pi.identifier == pi_.hProcess; });
 
-        try {
-            DWORD exitCode = 0;
-            GetExitCodeProcess(pi_.hProcess, &exitCode);
+        DWORD exitCode = 0;
+        GetExitCodeProcess(pi_.hProcess, &exitCode);
 
-            if (exitCode == STILL_ACTIVE) {
-                UINT uExitCode = 0;
-                TerminateProcess(pi_.hProcess, uExitCode);
-            }
-
-        } catch (const std::exception &e) {
+        if (exitCode == STILL_ACTIVE) {
+            TerminateProcess(pi_.hProcess, 0);
         }
 
         is_initalized_ = false;
@@ -127,63 +128,56 @@ class Process : public IProcess {
 
         auto id = std::this_thread::get_id();
 
-        auto readFuture = std::async(std::launch::async, [this, &last_word, &lines, id]() {
-            char buffer[4096];
-            DWORD bytesRead;
+        auto read_future =
+            std::async(std::launch::async, [this, &last_word, &lines, id, &atomic_stop = atomic::stop]() {
+                char buffer[4096];
+                DWORD bytes_read;
 
-            while (true) {
-                if (!ReadFile(child_std_out_, buffer, sizeof(buffer), &bytesRead, nullptr)) {
-                    return Status::ERR;
+                while (true) {
+                    if (!ReadFile(child_std_out_, buffer, sizeof(buffer), &bytes_read, nullptr)) {
+                        return Status::ERR;
+                    }
+
+                    if (atomic_stop) return Status::ERR;
+                    if (bytes_read <= 0) continue;
+
+                    // Iterate over each character in the buffer
+                    for (DWORD i = 0; i < bytes_read; i++) {
+                        // If we encounter a newline, add the current line to the vector and reset
+                        // the current_line_ on Windows newlines are \r\n. Otherwise, append the
+                        // character to the current line
+                        if (buffer[i] != '\n' && buffer[i] != '\r') {
+                            current_line_ += buffer[i];
+                            continue;
+                        }
+
+                        // don't add empty lines
+                        if (current_line_.empty()) continue;
+
+                        const auto time = Logger::should_log_ ? util::time::datetime_precise() : "";
+
+                        lines.emplace_back(Line{current_line_, time});
+
+                        if (realtime_logging_) Logger::readFromEngine(current_line_, time, log_name_, false, id);
+
+                        if (current_line_.rfind(last_word, 0) == 0) return Status::OK;
+
+                        current_line_.clear();
+                    }
                 }
-
-                if (bytesRead <= 0) continue;
-
-                // Iterate over each character in the buffer
-                for (DWORD i = 0; i < bytesRead; i++) {
-                    // If we encounter a newline, add the current line to the vector and reset
-                    // the current_line_ on Windows newlines are \r\n. Otherwise, append the
-                    // character to the current line
-                    if (buffer[i] != '\n' && buffer[i] != '\r') {
-                        current_line_ += buffer[i];
-                        continue;
-                    }
-
-                    // don't add empty lines
-                    if (current_line_.empty()) continue;
-
-                    const auto time = Logger::should_log_ ? util::time::datetime_precise() : "";
-
-                    lines.emplace_back(Line{current_line_, time});
-
-                    if (realtime_logging_) {
-                        Logger::readFromEngine(current_line_, time, log_name_, false, id);
-                    }
-
-                    if (current_line_.rfind(last_word, 0) == 0) {
-                        return Status::OK;
-                    }
-
-                    current_line_.clear();
-                }
-            }
-        });
+            });
 
         // Check if the asynchronous operation is completed
-        const auto fut = readFuture.wait_for(threshold);
+        const auto fut = read_future.wait_for(threshold);
 
-        if (fut == std::future_status::timeout) {
-            return Status::TIMEOUT;
-        }
-
+        if (fut == std::future_status::timeout) return Status::TIMEOUT;
         return Status::OK;
     }
 
     bool writeProcess(const std::string &input) noexcept override {
         assert(is_initalized_);
 
-        if (!alive()) {
-            killProcess();
-        }
+        if (!alive()) killProcess();
 
         DWORD bytesWritten;
         auto res = WriteFile(child_std_in_, input.c_str(), input.length(), &bytesWritten, nullptr);
@@ -196,6 +190,7 @@ class Process : public IProcess {
    private:
     void closeHandles() const {
         assert(is_initalized_);
+
         try {
             CloseHandle(pi_.hThread);
             CloseHandle(pi_.hProcess);
@@ -203,7 +198,7 @@ class Process : public IProcess {
             CloseHandle(child_std_out_);
             CloseHandle(child_std_in_);
         } catch (const std::exception &e) {
-            std::cerr << e.what();
+            Logger::fatal("Error closing handles: {}", e.what());
         }
     }
 

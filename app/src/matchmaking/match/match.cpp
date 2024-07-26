@@ -68,11 +68,10 @@ void Match::addMoveData(const Player& player, int64_t measured_time_ms, bool leg
 void Match::prepare() {
     board_.set960(config::TournamentConfig.get().variant == VariantType::FRC);
 
-    if (isFen(opening_.fen)) {
+    if (isFen(opening_.fen))
         board_.setFen(opening_.fen);
-    } else {
+    else
         board_.setEpd(opening_.fen);
-    }
 
     start_position_ = board_.getFen() == chess::constants::STARTPOS ? "startpos" : board_.getFen();
 
@@ -216,6 +215,12 @@ bool Match::playMove(Player& us, Player& them) {
         us.engine.writeLog();
     }
 
+    if (atomic::stop) {
+        data_.termination = MatchTermination::INTERRUPT;
+
+        return false;
+    }
+
     Logger::trace<true>("Check if engine {} is in a ready state", name);
 
     if (status == engine::process::Status::ERR || !us.engine.isready()) {
@@ -224,12 +229,6 @@ bool Match::playMove(Player& us, Player& them) {
     }
 
     Logger::trace<true>("Engine {} is in a ready state", name);
-
-    if (atomic::stop) {
-        data_.termination = MatchTermination::INTERRUPT;
-
-        return false;
-    }
 
     const auto elapsed_millis = chrono::duration_cast<chrono::milliseconds>(t1 - t0).count();
 
@@ -301,11 +300,7 @@ std::pair<chess::GameResultReason, chess::GameResult> Match::isGameOver() const 
     }
 
     if (board_.isInsufficientMaterial()) return {GameResultReason::INSUFFICIENT_MATERIAL, GameResult::DRAW};
-
-    if (board_.isHalfMoveDraw()) {
-        return board_.getHalfMoveDrawType();
-    }
-
+    if (board_.isHalfMoveDraw()) return board_.getHalfMoveDrawType();
     if (board_.isRepetition()) return {GameResultReason::THREEFOLD_REPETITION, GameResult::DRAW};
 
     return {GameResultReason::NONE, GameResult::NONE};
@@ -402,7 +397,7 @@ void Match::verifyPvLines(const Player& us) {
                 auto position = fmt::format("position {}", startpos == "startpos" ? "startpos" : ("fen " + startpos));
                 auto fmt2     = fmt::format("From; {} moves {}", position, str_utils::join(uci_moves, " "));
 
-                Logger::warn<true>(fmt + "\n" + fmt2);
+                Logger::warn<true>("{} \n {}", fmt, "\n", fmt2);
 
                 break;
             }

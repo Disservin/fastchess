@@ -12,10 +12,6 @@
 #include <type_traits>
 #include <vector>
 
-namespace fast_chess::atomic {
-extern std::atomic_bool signal;
-}  // namespace fast_chess::atomic
-
 namespace fast_chess::util {
 
 class ThreadPool {
@@ -34,6 +30,7 @@ class ThreadPool {
             if (stop_) throw std::runtime_error("Error; enqueue on stopped ThreadPool");
             tasks_.emplace([task]() { (*task)(); });
         }
+
         condition_.notify_one();
     }
 
@@ -53,9 +50,7 @@ class ThreadPool {
     }
 
     void kill() {
-        if (stop_) {
-            return;
-        }
+        if (stop_) return;
 
         {
             std::unique_lock<std::mutex> lock(queue_mutex_);
@@ -66,17 +61,7 @@ class ThreadPool {
         condition_.notify_all();
 
         for (auto &worker : workers_) {
-            if (worker.joinable()) {
-                if (atomic::signal) {
-#ifdef _WIN64
-                    TerminateThread(reinterpret_cast<HANDLE>(worker.native_handle()), 0);
-#else
-                    pthread_cancel(worker.native_handle());
-#endif
-                }
-
-                worker.join();
-            }
+            if (worker.joinable()) worker.join();
         }
 
         workers_.clear();
@@ -95,6 +80,7 @@ class ThreadPool {
     void work() {
         while (!stop_) {
             std::function<void()> task;
+
             {
                 std::unique_lock<std::mutex> lock(queue_mutex_);
                 condition_.wait(lock, [this] { return stop_ || !tasks_.empty(); });
@@ -102,6 +88,7 @@ class ThreadPool {
                 task = std::move(tasks_.front());
                 tasks_.pop();
             }
+
             task();
         }
     }

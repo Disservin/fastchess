@@ -84,9 +84,7 @@ using json = nlohmann::json;
 
 namespace engine {
 TimeControl::Limits parseTc(const std::string &tcString) {
-    if (tcString == "infinite" || tcString == "inf") {
-        return {};
-    }
+    if (tcString == "infinite" || tcString == "inf") return {};
 
     TimeControl::Limits tc;
 

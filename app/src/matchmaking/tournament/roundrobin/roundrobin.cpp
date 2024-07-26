@@ -132,8 +132,6 @@ void RoundRobin::updateSprtStatus(const std::vector<EngineConfiguration>& engine
         output_->printInterval(sprt_, stats, engine_configs[0].name, engine_configs[1].name, engines,
                                config::TournamentConfig.get().opening.file);
         output_->endTournament();
-
-        stop();
     }
 }
 

@@ -53,38 +53,32 @@ CountingSemaphore semaphore(16);
 }
 
 bool UciEngine::isready(std::chrono::milliseconds threshold) {
-    try {
-        if (!alive()) return false;
+    if (alive() != process::Status::OK) return false;
 
-        Logger::trace<true>("Pinging engine {}", config_.name);
+    Logger::trace<true>("Pinging engine {}", config_.name);
 
-        writeEngine("isready");
+    writeEngine("isready");
 
-        std::vector<process::Line> output;
-        const auto res = readProcess(output, "readyok", threshold);
+    std::vector<process::Line> output;
+    const auto res = readProcess(output, "readyok", threshold);
 
-        // print output in case we are using delayed logging
-        if (!realtime_logging_) {
-            for (const auto &line : output) {
-                Logger::readFromEngine(line.line, line.time, config_.name, line.std == process::Standard::ERR);
-            }
+    // print output in case we are using delayed logging
+    if (!realtime_logging_) {
+        for (const auto &line : output) {
+            Logger::readFromEngine(line.line, line.time, config_.name, line.std == process::Standard::ERR);
         }
+    }
 
-        if (res != process::Status::OK) {
-            Logger::trace<true>("Engine {} didn't respond to isready.", config_.name);
-            Logger::warn<true>("Warning; Engine {} is not responsive.", config_.name);
-        }
-
-        Logger::trace<true>("Engine {} is {}", config_.name,
-                            res == process::Status::OK ? "responsive." : "not responsive.");
-
-        return res == process::Status::OK;
-
-    } catch (const std::exception &e) {
-        Logger::trace<true>("Raised Exception in isready: {}", e.what());
+    if (res != process::Status::OK) {
+        Logger::trace<true>("Engine {} didn't respond to isready.", config_.name);
+        Logger::warn<true>("Warning; Engine {} is not responsive.", config_.name);
 
         return false;
     }
+
+    Logger::trace<true>("Engine {} is {}", config_.name, "responsive.");
+
+    return res == process::Status::OK;
 }
 
 bool UciEngine::position(const std::vector<std::string> &moves, const std::string &fen) {
@@ -104,50 +98,59 @@ bool UciEngine::go(const TimeControl &our_tc, const TimeControl &enemy_tc, chess
     std::stringstream input;
     input << "go";
 
-    if (config_.limit.nodes != 0) input << " nodes " << config_.limit.nodes;
+    if (config_.limit.nodes) {
+        input << " nodes " << config_.limit.nodes;
+    }
 
-    if (config_.limit.plies != 0) input << " depth " << config_.limit.plies;
+    if (config_.limit.plies) {
+        input << " depth " << config_.limit.plies;
+    }
 
-    // We cannot use st and tc together
     if (our_tc.isFixedTime()) {
         input << " movetime " << our_tc.getFixedTime();
-    } else {
-        auto white = stm == chess::Color::WHITE ? our_tc : enemy_tc;
-        auto black = stm == chess::Color::WHITE ? enemy_tc : our_tc;
+        return writeEngine(input.str());
+    }
 
-        if (our_tc.isTimed() || our_tc.isIncrement()) {
-            if (white.isTimed() || white.isIncrement()) input << " wtime " << white.getTimeLeft();
-            if (black.isTimed() || black.isIncrement()) input << " btime " << black.getTimeLeft();
+    auto white = stm == chess::Color::WHITE ? our_tc : enemy_tc;
+    auto black = stm == chess::Color::WHITE ? enemy_tc : our_tc;
+
+    if (our_tc.isTimed() || our_tc.isIncrement()) {
+        if (white.isTimed() || white.isIncrement()) {
+            input << " wtime " << white.getTimeLeft();
         }
 
-        if (our_tc.isIncrement()) {
-            if (white.isIncrement()) input << " winc " << white.getIncrement();
-            if (black.isIncrement()) input << " binc " << black.getIncrement();
+        if (black.isTimed() || black.isIncrement()) {
+            input << " btime " << black.getTimeLeft();
+        }
+    }
+
+    if (our_tc.isIncrement()) {
+        if (white.isIncrement()) {
+            input << " winc " << white.getIncrement();
         }
 
-        if (our_tc.isMoves()) {
-            input << " movestogo " << our_tc.getMovesLeft();
+        if (black.isIncrement()) {
+            input << " binc " << black.getIncrement();
         }
+    }
+
+    if (our_tc.isMoves()) {
+        input << " movestogo " << our_tc.getMovesLeft();
     }
 
     return writeEngine(input.str());
 }
 
 bool UciEngine::ucinewgame() {
-    try {
-        Logger::trace<true>("Sending ucinewgame to engine {}", config_.name);
-        auto res = writeEngine("ucinewgame");
+    Logger::trace<true>("Sending ucinewgame to engine {}", config_.name);
+    auto res = writeEngine("ucinewgame");
 
-        if (!res) {
-            Logger::trace<true>("Failed to send ucinewgame to engine {}", config_.name);
-            return false;
-        }
-
-        return isready(ucinewgame_time_);
-    } catch (const std::exception &e) {
-        Logger::trace<true>("Raised Exception in ucinewgame: {}", e.what());
+    if (!res) {
+        Logger::trace<true>("Failed to send ucinewgame to engine {}", config_.name);
         return false;
     }
+
+    return isready(ucinewgame_time_);
 }
 
 bool UciEngine::uci() {
@@ -194,6 +197,7 @@ void UciEngine::quit() {
 
 void UciEngine::sendSetoption(const std::string &name, const std::string &value) {
     auto option = uci_options_.getOption(name);
+
     if (!option.has_value()) {
         Logger::info<true>("Warning: {} doesn't have option {}", config_.name, name);
         return;
@@ -223,7 +227,7 @@ bool UciEngine::start() {
     Logger::trace<true>("Starting engine {} at {}", config_.name, path);
 
     // Creates the engine process and sets the pipes
-    if (!init(path, config_.args, config_.name)) {
+    if (init(path, config_.args, config_.name) != process::Status::OK) {
         Logger::warn<true>("Warning: Cannot start engine {}:", config_.name);
         Logger::warn<true>("Cannot execute command: {}", path);
 
@@ -299,7 +303,7 @@ std::string UciEngine::lastInfoLine() const {
 
 bool UciEngine::writeEngine(const std::string &input) {
     Logger::writeToEngine(input, util::time::datetime_precise(), config_.name);
-    return writeProcess(input + "\n");
+    return writeProcess(input + "\n") == process::Status::OK;
 }
 
 std::optional<std::string> UciEngine::bestmove() const {
@@ -321,6 +325,7 @@ std::optional<std::string> UciEngine::bestmove() const {
 
 std::vector<std::string> UciEngine::lastInfo() const {
     const auto last_info = lastInfoLine();
+
     if (last_info.empty()) {
         Logger::warn<true>(
             "Warning; No info line found in the last line which includes the "

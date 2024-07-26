@@ -2,7 +2,7 @@
 
 #include "doctest/doctest.hpp"
 
-using namespace fast_chess;
+using namespace mercury;
 
 TEST_SUITE("Standalone Function Tests") {
     TEST_CASE("Testing the str_utils::startsWith function") {

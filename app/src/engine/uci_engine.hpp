@@ -16,7 +16,7 @@
 #include <engine/option/options.hpp>
 #include <types/engine_config.hpp>
 
-namespace fast_chess::engine {
+namespace mercury::engine {
 
 enum class ScoreType { CP, MATE, ERR };
 
@@ -109,4 +109,4 @@ class UciEngine : protected process::Process {
     // init on first use
     bool initialized_ = false;
 };
-}  // namespace fast_chess::engine
+}  // namespace mercury::engine

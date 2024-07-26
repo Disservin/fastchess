@@ -16,7 +16,7 @@
 #include <types/resign_adjudication.hpp>
 #include <types/sprt.hpp>
 
-namespace fast_chess::config {
+namespace mercury::config {
 
 struct Tournament {
     Opening opening = {};
@@ -34,7 +34,7 @@ struct Tournament {
     VariantType variant = VariantType::STANDARD;
 
 #ifdef USE_CUTE
-    // output format, fastchess or cutechess
+    // output format, mercury  or cutechess
     OutputType output    = OutputType::CUTECHESS;
     int autosaveinterval = 0;
     int ratinginterval   = 0;
@@ -42,7 +42,7 @@ struct Tournament {
     int rounds           = 1;
     bool report_penta    = false;
 #else
-    // output format, fastchess or cutechess
+    // output format, mercury  or cutechess
     OutputType output    = OutputType::FASTCHESS;
     int autosaveinterval = 20;
     int ratinginterval   = 10;
@@ -69,4 +69,4 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(Tournament, resign, draw, maxmov
                                                 autosaveinterval, games, rounds, concurrency, overhead, recover, noswap,
                                                 report_penta, affinity, log)
 
-}  // namespace fast_chess::config
+}  // namespace mercury::config

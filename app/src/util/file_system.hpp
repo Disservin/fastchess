@@ -1,6 +1,6 @@
 #pragma once
 
-namespace fast_chess::util {
+namespace mercury::util {
 
 #if defined(__MINGW32__) && defined(__GNUC__) && __GNUC__ == 8
 #    define NO_STD_FILESYSTEM
@@ -44,4 +44,4 @@ namespace fast_chess::util {
 #    endif
 #endif
 
-}  // namespace fast_chess::util
+}  // namespace mercury::util

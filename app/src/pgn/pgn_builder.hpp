@@ -12,7 +12,7 @@
 
 #include <types/tournament.hpp>
 
-namespace fast_chess::pgn {
+namespace mercury::pgn {
 
 class PgnBuilder {
    public:
@@ -64,4 +64,4 @@ class PgnBuilder {
     std::stringstream pgn_;
 };
 
-}  // namespace fast_chess::pgn
+}  // namespace mercury::pgn

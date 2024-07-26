@@ -5,7 +5,7 @@
 #include <types/enums.hpp>
 #include <util/helper.hpp>
 
-namespace fast_chess::config {
+namespace mercury::config {
 
 struct DrawAdjudication {
     uint32_t move_number = 0;
@@ -16,4 +16,4 @@ struct DrawAdjudication {
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(DrawAdjudication, move_number, move_count, score, enabled)
 
-}  // namespace fast_chess::config
+}  // namespace mercury::config

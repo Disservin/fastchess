@@ -5,7 +5,7 @@
 #include <types/enums.hpp>
 #include <util/helper.hpp>
 
-namespace fast_chess::config {
+namespace mercury::config {
 
 struct Sprt {
     bool enabled = false;
@@ -19,4 +19,4 @@ struct Sprt {
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(Sprt, alpha, beta, elo0, elo1, model, enabled)
 
-}  // namespace fast_chess::config
+}  // namespace mercury::config

@@ -3,7 +3,7 @@
 #include <atomic>
 #include <type_traits>
 
-namespace fast_chess::util {
+namespace mercury::util {
 
 // Base class for entries which are managed by a ScopeGuard.
 // Needs to be inherited by the managed class.
@@ -38,4 +38,4 @@ class ScopeGuard {
     T &entry_;
 };
 
-}  // namespace fast_chess::util
+}  // namespace mercury::util

@@ -5,7 +5,7 @@
 #include <types/enums.hpp>
 #include <util/helper.hpp>
 
-namespace fast_chess::config {
+namespace mercury::config {
 
 struct Opening {
     std::string file;
@@ -16,4 +16,4 @@ struct Opening {
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(Opening, file, format, order, plies, start)
 
-}  // namespace fast_chess::config
+}  // namespace mercury::config

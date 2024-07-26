@@ -79,7 +79,7 @@ bool containsEqualSign(const std::vector<std::string> &params) {
 }
 }  // namespace
 
-namespace fast_chess::cli {
+namespace mercury::cli {
 using json = nlohmann::json;
 
 namespace engine {
@@ -443,7 +443,7 @@ void parseReport(const std::vector<std::string> &params, ArgumentData &argument_
 
 void parseOutput(const std::vector<std::string> &params, ArgumentData &argument_data) {
     parseDashOptions(params, [&](const std::string &key, const std::string &value) {
-        if (key == "format" && (value == "cutechess" || value == "fastchess")) {
+        if (key == "format" && (value == "cutechess" || value == "mercury ")) {
             argument_data.tournament_config.output = OutputFactory::getType(value);
         } else {
             OptionsParser::throwMissing("output", key, value);
@@ -571,7 +571,7 @@ void parseAffinity(const std::vector<std::string> &, ArgumentData &argument_data
 void parseDebug(const std::vector<std::string> &, ArgumentData &) {
     // throw error
     std::string error_message =
-        "The 'debug' option does not exist in fast-chess."
+        "The 'debug' option does not exist in mercury ."
         " Use the 'log' option instead to write all engine input"
         " and output into a text file.";
     throw std::runtime_error(error_message);
@@ -629,4 +629,4 @@ OptionsParser::OptionsParser(int argc, char const *argv[]) {
     }
 }
 
-}  // namespace fast_chess::cli
+}  // namespace mercury::cli

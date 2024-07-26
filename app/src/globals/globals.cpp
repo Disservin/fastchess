@@ -14,7 +14,7 @@
 #include <util/logger/logger.hpp>
 #include <util/thread_vector.hpp>
 
-namespace fast_chess {
+namespace mercury {
 
 namespace atomic {
 std::atomic_bool stop = false;
@@ -87,4 +87,4 @@ void handler(int) { consoleHandlerAction(); }
 void setCtrlCHandler() { signal(SIGINT, handler); }
 #endif
 
-}  // namespace fast_chess
+}  // namespace mercury

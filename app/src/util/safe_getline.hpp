@@ -3,7 +3,7 @@
 #include <istream>
 #include <string>
 
-namespace fast_chess::util {
+namespace mercury::util {
 
 // Reading lines from a file with std::getline is a bit weird as the line endings handled
 // differently on different platforms. This function reads a line from a stream and handles all line
@@ -38,4 +38,4 @@ inline std::istream& safeGetline(std::istream& is, std::string& t) {
     }
 }
 
-}  // namespace fast_chess::util
+}  // namespace mercury::util

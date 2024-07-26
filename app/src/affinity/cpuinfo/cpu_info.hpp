@@ -3,7 +3,7 @@
 #include <map>
 #include <vector>
 
-namespace fast_chess::affinity::cpu_info {
+namespace mercury::affinity::cpu_info {
 
 // Contains information about all the cpu's in the system.
 struct CpuInfo {
@@ -32,4 +32,4 @@ struct CpuInfo {
     std::map<int, PhysicalCpu> physical_cpus;
 };
 
-}  // namespace fast_chess::affinity::cpu_info
+}  // namespace mercury::affinity::cpu_info

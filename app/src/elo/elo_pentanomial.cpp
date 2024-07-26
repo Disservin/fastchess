@@ -4,7 +4,7 @@
 #include <iomanip>
 #include <sstream>
 
-namespace fast_chess::elo {
+namespace mercury::elo {
 
 EloPentanomial::EloPentanomial(const Stats& stats) {
     pairs_             = total(stats);
@@ -79,4 +79,4 @@ std::string EloPentanomial::printScore() const noexcept {
 std::size_t EloPentanomial::total(const Stats& stats) noexcept {
     return stats.penta_WW + stats.penta_WD + stats.penta_WL + stats.penta_DD + stats.penta_LD + stats.penta_LL;
 }
-}  // namespace fast_chess::elo
+}  // namespace mercury::elo

@@ -10,7 +10,7 @@
 
 #include <json.hpp>
 
-namespace fast_chess {
+namespace mercury {
 // @todo use std::chrono::milliseconds
 class TimeControl {
    public:
@@ -73,4 +73,4 @@ class TimeControl {
     int moves_left_;
 };
 
-}  // namespace fast_chess
+}  // namespace mercury

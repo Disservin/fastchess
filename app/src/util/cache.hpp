@@ -8,7 +8,7 @@
 
 #include <util/scope_guard.hpp>
 
-namespace fast_chess::util {
+namespace mercury::util {
 
 // An entry for the cache pool, should be guarded by a ScopeGuard to release the entry
 // when it goes out of scope and make it available for other threads to use again.
@@ -55,4 +55,4 @@ class CachePool {
     std::mutex access_mutex_;
 };
 
-}  // namespace fast_chess::util
+}  // namespace mercury::util

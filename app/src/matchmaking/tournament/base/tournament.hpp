@@ -15,7 +15,7 @@
 #include <util/logger/logger.hpp>
 #include <util/threadpool.hpp>
 
-namespace fast_chess {
+namespace mercury {
 
 namespace atomic {
 extern std::atomic_bool stop;
@@ -84,4 +84,4 @@ class BaseTournament {
     int getMaxAffinity(const std::vector<EngineConfiguration> &configs) const noexcept;
 };
 
-}  // namespace fast_chess
+}  // namespace mercury

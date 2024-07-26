@@ -9,7 +9,7 @@
 
 #include <json.hpp>
 
-namespace fast_chess {
+namespace mercury {
 
 #define NLOHMANN_DEFINE_TYPE_INTRUSIVE_ORDERED_JSON(Type, ...)                                    \
     friend void to_json(nlohmann::ordered_json &nlohmann_json_j, const Type &nlohmann_json_t) {   \
@@ -31,9 +31,9 @@ ordered_json type conversion is not yet supported, though we only have to change
         NLOHMANN_JSON_EXPAND(NLOHMANN_JSON_PASTE(NLOHMANN_JSON_FROM, __VA_ARGS__))                \
     }
 
-}  // namespace fast_chess
+}  // namespace mercury
 
-namespace fast_chess::str_utils {
+namespace mercury::str_utils {
 
 // @todo unnecessary with c++20
 [[nodiscard]] inline bool startsWith(std::string_view haystack, std::string_view needle) noexcept {
@@ -94,4 +94,4 @@ template <typename T>
 
     return result;
 }
-}  // namespace fast_chess::str_utils
+}  // namespace mercury::str_utils

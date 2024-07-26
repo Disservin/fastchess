@@ -16,7 +16,7 @@
 #include "spin_option.hpp"
 #include "string_option.hpp"
 
-namespace fast_chess {
+namespace mercury {
 
 class UCIOptionFactory {
    public:
@@ -71,4 +71,4 @@ class UCIOptionFactory {
     }
 };
 
-}  // namespace fast_chess
+}  // namespace mercury

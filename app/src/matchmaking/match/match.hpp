@@ -8,7 +8,7 @@
 #include <pgn/pgn_reader.hpp>
 #include <types/match_data.hpp>
 
-namespace fast_chess {
+namespace mercury {
 
 class DrawTracker {
    public:
@@ -179,4 +179,4 @@ class Match {
     inline static constexpr char TIMEOUT_MSG[]          = /*.. */ " loses on time";
     inline static constexpr char DISCONNECT_MSG[]       = /*.. */ " disconnects";
 };
-}  // namespace fast_chess
+}  // namespace mercury

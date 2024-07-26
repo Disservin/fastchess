@@ -3,7 +3,7 @@
 #include <types/match_data.hpp>
 #include <util/helper.hpp>
 
-namespace fast_chess {
+namespace mercury {
 
 class Stats {
    public:
@@ -80,4 +80,4 @@ class Stats {
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(Stats, wins, losses, draws, penta_WW, penta_WD, penta_WL, penta_DD,
                                                 penta_LD, penta_LL)
 
-}  // namespace fast_chess
+}  // namespace mercury

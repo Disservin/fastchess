@@ -11,7 +11,7 @@
 #include <types/tournament.hpp>
 #include <util/rand.hpp>
 
-namespace fast_chess::book {
+namespace mercury::book {
 
 class OpeningBook {
    public:
@@ -96,4 +96,4 @@ class OpeningBook {
     std::variant<epd_book, pgn_book> book_;
 };
 
-}  // namespace fast_chess::book
+}  // namespace mercury::book

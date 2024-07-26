@@ -8,7 +8,7 @@
 #include <matchmaking/tournament/tournament_manager.hpp>
 #include <util/rand.hpp>
 
-using namespace fast_chess;
+using namespace mercury;
 
 int main(int argc, char const* argv[]) {
     setCtrlCHandler();

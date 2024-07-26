@@ -5,7 +5,7 @@
 
 #include <matchmaking/stats.hpp>
 
-using namespace fast_chess;
+using namespace mercury;
 
 TEST_SUITE("Elo Model") {
     TEST_CASE("EloWDL 1") {

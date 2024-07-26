@@ -9,7 +9,7 @@
 #include <util/helper.hpp>
 #include <util/logger/logger.hpp>
 
-namespace fast_chess::engine {
+namespace mercury::engine {
 
 bool UciEngine::isready(std::chrono::milliseconds threshold) {
     try {
@@ -317,4 +317,4 @@ bool UciEngine::outputIncludesBestmove() const {
     return false;
 }
 
-}  // namespace fast_chess::engine
+}  // namespace mercury::engine

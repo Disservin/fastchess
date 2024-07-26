@@ -4,7 +4,7 @@
 
 #include "ucioption.hpp"
 
-namespace fast_chess {
+namespace mercury {
 
 // idk
 class ButtonOption : public UCIOption {
@@ -28,4 +28,4 @@ class ButtonOption : public UCIOption {
     bool value = false;
 };
 
-}  // namespace fast_chess
+}  // namespace mercury

@@ -1,6 +1,6 @@
 #pragma once
 
-namespace fast_chess {
+namespace mercury {
 
 template <typename T, typename U>
 struct GamePair {
@@ -36,4 +36,4 @@ struct GamePair {
     }
 };
 
-}  // namespace fast_chess
+}  // namespace mercury

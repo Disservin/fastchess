@@ -1,6 +1,6 @@
 #pragma once
 
-namespace fast_chess {
+namespace mercury {
 
 enum class NotationType { SAN, LAN, UCI };
 enum class OrderType { RANDOM, SEQUENTIAL };
@@ -11,4 +11,4 @@ enum class OutputType {
     CUTECHESS,
 };
 
-}  // namespace fast_chess
+}  // namespace mercury

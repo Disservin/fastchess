@@ -14,7 +14,7 @@
 
 #include <matchmaking/tournament/base/tournament.hpp>
 
-namespace fast_chess {
+namespace mercury {
 
 namespace atomic {
 extern std::atomic_bool stop;
@@ -44,4 +44,4 @@ class RoundRobin : public BaseTournament {
     // number of games to be played
     std::atomic<uint64_t> total_ = 0;
 };
-}  // namespace fast_chess
+}  // namespace mercury

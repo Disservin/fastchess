@@ -11,7 +11,7 @@
 #    include "../../../third_party/gzip/gzstream.h"
 #endif
 
-namespace fast_chess {
+namespace mercury {
 
 bool Logger::compress_               = false;
 Logger::Level Logger::level_         = Logger::Level::WARN;
@@ -66,4 +66,4 @@ void Logger::readFromEngine(const std::string &msg, const std::string &time, con
     std::visit([&](auto &&arg) { arg << fmt_message << std::flush; }, log_);
 }
 
-}  // namespace fast_chess
+}  // namespace mercury

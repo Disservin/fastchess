@@ -8,7 +8,7 @@
 
 #include "doctest/doctest.hpp"
 
-using namespace fast_chess;
+using namespace mercury;
 
 namespace {
 

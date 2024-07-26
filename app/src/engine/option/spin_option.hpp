@@ -2,7 +2,7 @@
 
 #include "ucioption.hpp"
 
-namespace fast_chess {
+namespace mercury {
 
 class SpinOption : public UCIOption {
    public:
@@ -38,4 +38,4 @@ class SpinOption : public UCIOption {
     int maxValue;
 };
 
-}  // namespace fast_chess
+}  // namespace mercury

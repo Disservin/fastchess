@@ -11,7 +11,7 @@
 #include <util/date.hpp>
 #include <util/game_pair.hpp>
 
-namespace fast_chess {
+namespace mercury {
 
 struct MoveData {
     MoveData(std::string _move, std::string _score_string, int64_t _elapsed_millis, int _depth, int _seldepth,
@@ -87,4 +87,4 @@ struct MatchData {
     bool needs_restart = false;
 };
 
-}  // namespace fast_chess
+}  // namespace mercury

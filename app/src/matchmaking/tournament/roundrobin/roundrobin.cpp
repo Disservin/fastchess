@@ -8,7 +8,7 @@
 #include <util/rand.hpp>
 #include <util/scope_guard.hpp>
 
-namespace fast_chess {
+namespace mercury {
 
 RoundRobin::RoundRobin(const stats_map& results) : BaseTournament(results) {
     // Initialize the SPRT test
@@ -135,4 +135,4 @@ void RoundRobin::updateSprtStatus(const std::vector<EngineConfiguration>& engine
     }
 }
 
-}  // namespace fast_chess
+}  // namespace mercury

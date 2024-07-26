@@ -6,7 +6,7 @@
 
 #include "ucioption.hpp"
 
-namespace fast_chess {
+namespace mercury {
 
 class ComboOption : public UCIOption {
    public:
@@ -33,4 +33,4 @@ class ComboOption : public UCIOption {
     std::string value;
 };
 
-}  // namespace fast_chess
+}  // namespace mercury

@@ -2,7 +2,7 @@
 
 #include "doctest/doctest.hpp"
 
-namespace fast_chess {
+namespace mercury {
 
 TEST_SUITE("ScoreBoard") {
     TEST_CASE("Update and Get") {
@@ -71,4 +71,4 @@ TEST_SUITE("ScoreBoard") {
     //     CHECK(result.getResults() == results);
     // }
 }
-}  // namespace fast_chess
+}  // namespace mercury

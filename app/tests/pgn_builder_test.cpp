@@ -2,7 +2,7 @@
 
 #include "doctest/doctest.hpp"
 
-namespace fast_chess {
+namespace mercury {
 TEST_SUITE("PGN Builder Tests") {
     TEST_CASE("PGN Creation") {
         MatchData match_data;
@@ -210,4 +210,4 @@ Nf6 {+10.15/18 1.821s engine1 got checkmated} 0-1
         CHECK(pgn_builder.get() == expected);
     }
 }
-}  // namespace fast_chess
+}  // namespace mercury

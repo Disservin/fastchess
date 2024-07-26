@@ -4,7 +4,7 @@
 #include <matchmaking/output/output_fastchess.hpp>
 #include <types/tournament.hpp>
 
-namespace fast_chess {
+namespace mercury {
 
 class OutputFactory {
    public:
@@ -20,7 +20,7 @@ class OutputFactory {
     }
 
     [[nodiscard]] static OutputType getType(const std::string& type) {
-        if (type == "fastchess") {
+        if (type == "mercury ") {
             return OutputType::FASTCHESS;
         }
 
@@ -32,4 +32,4 @@ class OutputFactory {
     }
 };
 
-}  // namespace fast_chess
+}  // namespace mercury

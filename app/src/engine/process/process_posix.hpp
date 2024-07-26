@@ -38,7 +38,7 @@
 
 #    include <argv_split.hpp>
 
-namespace fast_chess {
+namespace mercury {
 extern util::ThreadVector<ProcessInformation> process_list;
 
 namespace atomic {
@@ -321,6 +321,6 @@ class Process : public IProcess {
     Pipe in_pipe_ = {}, out_pipe_ = {}, err_pipe_ = {};
 };
 }  // namespace engine::process
-}  // namespace fast_chess
+}  // namespace mercury
 
 #endif

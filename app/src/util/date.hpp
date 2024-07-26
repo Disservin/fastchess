@@ -6,7 +6,7 @@
 #include <sstream>
 #include <string>
 
-namespace fast_chess::util {
+namespace mercury::util {
 
 namespace sc = std::chrono;
 
@@ -65,4 +65,4 @@ namespace time {
 }
 }  // namespace time
 
-}  // namespace fast_chess::util
+}  // namespace mercury::util

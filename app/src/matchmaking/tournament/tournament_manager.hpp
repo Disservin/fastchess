@@ -3,7 +3,7 @@
 #include <matchmaking/tournament/roundrobin/roundrobin.hpp>
 #include <types/tournament.hpp>
 
-namespace fast_chess {
+namespace mercury {
 
 // Manages the tournament, currently wraps round robin but can be extended to support
 // different tournament types
@@ -24,4 +24,4 @@ class TournamentManager {
     std::unique_ptr<RoundRobin> round_robin_;
 };
 
-}  // namespace fast_chess
+}  // namespace mercury

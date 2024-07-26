@@ -8,7 +8,7 @@
 
 #include <matchmaking/output/output.hpp>
 
-namespace fast_chess::pgn {
+namespace mercury::pgn {
 
 namespace str {
 template <typename T>
@@ -183,4 +183,4 @@ std::string PgnBuilder::convertMatchTermination(const MatchTermination &res) noe
     }
 }
 
-}  // namespace fast_chess::pgn
+}  // namespace mercury::pgn

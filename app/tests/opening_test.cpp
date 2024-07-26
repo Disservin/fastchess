@@ -3,7 +3,7 @@
 
 #include "doctest/doctest.hpp"
 
-using namespace fast_chess;
+using namespace mercury;
 
 TEST_SUITE("Opening Book Test") {
     TEST_CASE("Test fewer openings than rounds") {

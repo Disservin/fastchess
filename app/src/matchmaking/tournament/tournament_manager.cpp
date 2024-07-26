@@ -2,7 +2,7 @@
 
 #include <util/logger/logger.hpp>
 
-namespace fast_chess {
+namespace mercury {
 
 TournamentManager::TournamentManager(const stats_map& results) {
     Logger::trace("Creating tournament...");
@@ -16,4 +16,4 @@ void TournamentManager::start() {
     round_robin_->start();
 }
 
-}  // namespace fast_chess
+}  // namespace mercury

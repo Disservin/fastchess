@@ -8,7 +8,7 @@
 #include <matchmaking/stats.hpp>
 #include <types/engine_config.hpp>
 
-namespace fast_chess {
+namespace mercury {
 
 struct PlayerPairKey {
     std::string first;
@@ -156,4 +156,4 @@ class ScoreBoard {
     std::mutex game_pair_cache_mutex_;
 };
 
-}  // namespace fast_chess
+}  // namespace mercury

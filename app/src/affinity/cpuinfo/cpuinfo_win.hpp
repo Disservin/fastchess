@@ -12,7 +12,7 @@
 #include <affinity/cpuinfo/cpu_info.hpp>
 #include <util/logger/logger.hpp>
 
-namespace fast_chess::affinity::cpu_info {
+namespace mercury::affinity::cpu_info {
 
 inline CpuInfo getCpuInfo() noexcept(false) {
     Logger::trace("Getting CPU info");
@@ -73,4 +73,4 @@ inline CpuInfo getCpuInfo() noexcept(false) {
     return cpu_info;
 }
 
-}  // namespace fast_chess::affinity::cpu_info
+}  // namespace mercury::affinity::cpu_info

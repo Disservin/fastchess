@@ -11,7 +11,7 @@
 
 #include <json.hpp>
 
-namespace fast_chess {
+namespace mercury {
 
 TimeControl::TimeControl(const Limits &limits) : limits_(limits) {
     if (limits_.fixed_time != 0) {
@@ -76,4 +76,4 @@ std::ostream &operator<<(std::ostream &os, const TimeControl &tc) {
     return os;
 }
 
-}  // namespace fast_chess
+}  // namespace mercury

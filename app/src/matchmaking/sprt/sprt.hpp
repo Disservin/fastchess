@@ -2,7 +2,7 @@
 
 #include <string>
 
-namespace fast_chess {
+namespace mercury {
 
 class Stats;
 
@@ -42,4 +42,4 @@ class SPRT {
     std::string model_ = "normalized";
 };
 
-}  // namespace fast_chess
+}  // namespace mercury

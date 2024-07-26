@@ -213,9 +213,7 @@ void UciEngine::sendSetoption(const std::string &name, const std::string &value)
 }
 
 bool UciEngine::start() {
-    if (initialized_) {
-        return true;
-    }
+    if (initialized_) return true;
 
     AcquireSemaphore semaphore_acquire(semaphore);
 

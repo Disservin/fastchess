@@ -35,7 +35,7 @@ class Process : public IProcess {
    public:
     ~Process() override { killProcess(); }
 
-    bool init(const std::string &command, const std::string &args, const std::string &log_name) override {
+    Status init(const std::string &command, const std::string &args, const std::string &log_name) override {
         command_  = command;
         args_     = args;
         log_name_ = log_name;
@@ -78,16 +78,16 @@ class Process : public IProcess {
 
         process_list.push(ProcessInformation{pi_.hProcess, child_std_out_});
 
-        return success;
+        return success ? Status::OK : Status::ERR;
     }
 
-    [[nodiscard]] bool alive() const noexcept override {
+    [[nodiscard]] Status alive() const noexcept override {
         assert(is_initalized_);
 
         DWORD exitCode = 0;
         GetExitCodeProcess(pi_.hProcess, &exitCode);
 
-        return exitCode == STILL_ACTIVE;
+        return exitCode == STILL_ACTIVE ? Status::OK : Status::ERR;
     }
 
     void setAffinity(const std::vector<int> &cpus) noexcept override {
@@ -106,6 +106,8 @@ class Process : public IProcess {
         if (exitCode == STILL_ACTIVE) {
             TerminateProcess(pi_.hProcess, 0);
         }
+
+        closeHandles();
 
         is_initalized_ = false;
     }
@@ -174,32 +176,28 @@ class Process : public IProcess {
         return Status::OK;
     }
 
-    bool writeProcess(const std::string &input) noexcept override {
+    Status writeProcess(const std::string &input) noexcept override {
         assert(is_initalized_);
 
-        if (!alive()) killProcess();
+        if (alive() != Status::OK) killProcess();
 
         DWORD bytesWritten;
         auto res = WriteFile(child_std_in_, input.c_str(), input.length(), &bytesWritten, nullptr);
 
         assert(bytesWritten == input.length());
 
-        return res;
+        return res ? Status::OK : Status::ERR;
     }
 
    private:
     void closeHandles() const {
         assert(is_initalized_);
 
-        try {
-            CloseHandle(pi_.hThread);
-            CloseHandle(pi_.hProcess);
+        CloseHandle(pi_.hThread);
+        CloseHandle(pi_.hProcess);
 
-            CloseHandle(child_std_out_);
-            CloseHandle(child_std_in_);
-        } catch (const std::exception &e) {
-            Logger::fatal("Error closing handles: {}", e.what());
-        }
+        CloseHandle(child_std_out_);
+        CloseHandle(child_std_in_);
     }
 
     // The command to execute

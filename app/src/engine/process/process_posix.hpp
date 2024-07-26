@@ -53,7 +53,7 @@ class Process : public IProcess {
    public:
     virtual ~Process() override { killProcess(); }
 
-    Status init(const std::string &command, const std::string &args, const std::string &log_name) override {
+    bool init(const std::string &command, const std::string &args, const std::string &log_name) override {
         assert(!is_initalized_);
 
         command_       = command;
@@ -86,23 +86,23 @@ class Process : public IProcess {
             startup_error_ = true;
 
             posix_spawn_file_actions_destroy(&file_actions);
-            return Status::ERR;
+            return false;
         }
 
         // Append the process to the list of running processes
         // which are killed when the program exits, as a last resort
         process_list.push(ProcessInformation{process_pid_, in_pipe_.write_end()});
 
-        return Status::OK;
+        return true;
     }
 
-    Status alive() const noexcept override {
+    bool alive() const noexcept override {
         assert(is_initalized_);
 
         int status;
         const pid_t r = waitpid(process_pid_, &status, WNOHANG);
 
-        return r == 0 ? Status::OK : Status::ERR;
+        return r == 0;
     }
 
     std::string signalToString(int status) {
@@ -238,14 +238,14 @@ class Process : public IProcess {
         return Status::OK;
     }
 
-    Status writeProcess(const std::string &input) noexcept override {
+    bool writeProcess(const std::string &input) noexcept override {
         assert(is_initalized_);
 
-        if (alive() != Status::OK) return Status::ERR;
+        if (!alive()) return false;
 
-        if (write(out_pipe_.write_end(), input.c_str(), input.size()) == -1) return Status::ERR;
+        if (write(out_pipe_.write_end(), input.c_str(), input.size()) == -1) return false;
 
-        return Status::OK;
+        return true;
     }
 
    private:

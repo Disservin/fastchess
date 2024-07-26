@@ -19,7 +19,6 @@ TimeControl::TimeControl(const Limits &limits) : limits_(limits) {
     } else {
         time_left_ = limits_.time + limits_.increment;
     }
-
     moves_left_ = limits_.moves;
 }
 

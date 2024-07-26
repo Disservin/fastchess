@@ -14,9 +14,9 @@
 
 namespace mercury {
 
-class Fastchess : public IOutput {
+class Mercury : public IOutput {
    public:
-    Fastchess(bool report_penta = true) : report_penta_(report_penta) {}
+    Mercury(bool report_penta = true) : report_penta_(report_penta) {}
 
     void printInterval(const SPRT& sprt, const Stats& stats, const std::string& first, const std::string& second,
                        const engines& engines, const std::string& book) override {

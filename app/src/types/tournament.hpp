@@ -43,7 +43,7 @@ struct Tournament {
     bool report_penta    = false;
 #else
     // output format, mercury  or cutechess
-    OutputType output    = OutputType::FASTCHESS;
+    OutputType output    = OutputType::MERCURY;
     int autosaveinterval = 20;
     int ratinginterval   = 10;
     int games            = 2;

@@ -14,7 +14,7 @@ update-fmt: ## Fetch subtree fmt
 update-man: man ## Update man like page
 	xxd -i man | sed 's/unsigned char/inline char/g' | sed 's/unsigned int/inline unsigned int/g' > temp.hpp
 	printf '/* Generate with make update-man*/\n#pragma once\n' > ./app/src/cli/man.hpp
-	echo 'namespace fast_chess::man {' >> ./app/src/cli/man.hpp
+	echo 'namespace mercury::man {' >> ./app/src/cli/man.hpp
 	cat temp.hpp >> ./app/src/cli/man.hpp
 	echo '}' >> ./app/src/cli/man.hpp
 	rm temp.hpp

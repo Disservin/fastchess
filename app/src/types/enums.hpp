@@ -7,7 +7,7 @@ enum class OrderType { RANDOM, SEQUENTIAL };
 enum class FormatType { EPD, PGN, NONE };
 enum class VariantType { STANDARD, FRC };
 enum class OutputType {
-    FASTCHESS,
+    MERCURY,
     CUTECHESS,
 };
 

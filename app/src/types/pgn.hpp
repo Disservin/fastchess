@@ -8,7 +8,7 @@
 namespace mercury::config {
 
 struct Pgn {
-    std::string event_name = "Fast-Chess Tournament";
+    std::string event_name = "Mercury Tournament";
     std::string site       = "?";
 
     std::string file;

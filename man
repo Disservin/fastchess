@@ -1,13 +1,13 @@
-FAST-CHESS            General Commands Manual            FAST-CHESS
+Mercury            General Commands Manual            Mercury
 
 NAME
-       fast-chess - a command-line tool for managing chess games with engines
+       mercury - a command-line tool for managing chess games with engines
 
 SYNOPSIS
-       fast-chess [OPTIONS]
+       mercury [OPTIONS]
 
 DESCRIPTION
-        Fast-chess is a command-line tool designed to manage and orchestrate
+        Mercury is a command-line tool designed to manage and orchestrate
         chess games between engines. It provides a range of options to configure
         game settings, engine parameters, concurrency, and output formats.
 
@@ -93,8 +93,8 @@ OPTIONS
                          Default value is 1.
 
         -output format=FORMAT
-            Choose the output format for game results (cutechess or fastchess).
-            Default is fastchess.
+            Choose the output format for game results (cutechess or mercury).
+            Default is mercury.
 
         -pgnout file=NAME notation=(san|lan|uci) [nodes=(true|false)] [seldepth=(true|false)] [nps=(true|false)] [hashfull=(true|false)] [tbhits=(true|false)] [min=(true|false)]
             Export games in PGN format with specified notations and optional tracking of nodes, seldepth, nps, hashfull, and tbhits.
@@ -165,7 +165,7 @@ OPTIONS
             Enable thread affinity for bindings engines to specific CPU cores.
 
         -report penta=(true|false)
-            Reports pentanomial statistics (only for fastchess output). Defaults to true.
+            Reports pentanomial statistics (only for mercury output). Defaults to true.
             For more information see https://www.chessprogramming.org/Match_Statistics
 
         -version
@@ -228,18 +228,18 @@ OPTIONS
 
 EXAMPLES
         To start a match between two engines using a random order of openings from book.epd:
-            $ fast-chess -engine cmd=Engine1.exe name=Engine1 -engine cmd=Engine2.exe \
+            $ mercury -engine cmd=Engine1.exe name=Engine1 -engine cmd=Engine2.exe \
               name=Engine2 -openings file=book.epd format=epd order=random \
               -each tc=10+0.1 -rounds 200 -repeat -concurrency 4
 
         To resume a match from a saved configuration:
-            $ fast-chess -config file=config.json
+            $ mercury -config file=config.json
 
 AUTHORS
-        fast-chess was written by Disservin, Szil, PGG106, and contributors.
+        mercury was written by Disservin, Szil, PGG106, and contributors.
 
 REPORTING BUGS
-        Report any bugs to https://github.com/Disservin/fast-chess/issues.
+        Report any bugs to https://github.com/Disservin/mercury/issues.
 
 COPYRIGHT
         This software is licensed under the MIT license. See the LICENSE file for details.

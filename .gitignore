@@ -46,7 +46,7 @@ Testing
 .cmake
 
 #Executable files
-fast-chess*
+mercury*
 dummy_engine
 random_mover
 
@@ -77,4 +77,7 @@ log
 log*.gz
 
 !app/tests/data/*
+
+# old name
+fast-chess
 

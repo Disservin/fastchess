@@ -1,13 +1,13 @@
-# fastchess
+# Fastchess
 
-[![fastchess](https://github.com/Disservin/fast-chess/actions/workflows/fastchess.yml/badge.svg?branch=master)](https://github.com/Disservin/fast-chess/actions/workflows/fastchess.yml)
+[![Fastchess](https://github.com/Disservin/fast-chess/actions/workflows/fastchess.yml/badge.svg?branch=master)](https://github.com/Disservin/fast-chess/actions/workflows/fastchess.yml)
 
-fastchess is a versatile command-line tool designed for running chess engine
+Fastchess is a versatile command-line tool designed for running chess engine
 tournaments.  
 Written primarily in C++17, it utilizes [doctest](https://github.com/doctest/doctest) as its testing
 framework.
 
-With fastchess, you can effortlessly orchestrate chess tournaments, configure
+With Fastchess, you can effortlessly orchestrate chess tournaments, configure
 time controls, and execute matches concurrently for optimal time efficiency.
 Extensively tested for high concurrency (supporting up to 250 threads) with
 short time controls (0.2+0.002s), it exhibits minimal timeout issues, with only
@@ -35,10 +35,10 @@ short time controls (0.2+0.002s), it exhibits minimal timeout issues, with only
 
 ### Building from source
 
-Building fastchess from source is straightforward. Just follow these steps:
+Building Fastchess from source is straightforward. Just follow these steps:
 
 1. Clone the repository `git clone https://github.com/Disservin/fast-chess.git`
-2. Navigate to the fastchess directory `cd fastchess`
+2. Navigate to the Fastchess directory `cd fastchess`
 3. Build the executable `make -j` for GCC and `make -j CXX=clang++` for Clang (requires GCC >= 7.3.0 or Clang >= 8.0.0).
 
 ### Download the latest release
@@ -51,7 +51,7 @@ Current dev versions are available as artifacts from the [CI](https://github.com
 
 ### Example usage
 
-Here's an example of how to use fastchess:
+Here's an example of how to use Fastchess:
 
 ```bash
 fastchess.exe -engine cmd=Engine1.exe name=Engine1 -engine cmd=Engine2.exe

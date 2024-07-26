@@ -13,30 +13,44 @@
 
 namespace fast_chess::engine {
 
-class ThreadLimiter {
+// A counting semaphore to limit the number of threads
+class CountingSemaphore {
    public:
-    ThreadLimiter(int max_threads) : max_threads_(max_threads), current_threads_(0) {}
+    CountingSemaphore(int max_) : max__(max_), current_(0) {}
 
     void acquire() {
         std::unique_lock<std::mutex> lock(mtx_);
-        cond_.wait(lock, [this] { return current_threads_ < max_threads_; });
-        ++current_threads_;
+        cond_.wait(lock, [this] { return current_ < max__; });
+        ++current_;
     }
 
     void release() {
         std::lock_guard<std::mutex> lock(mtx_);
-        --current_threads_;
+        --current_;
         cond_.notify_one();
     }
 
    private:
     std::mutex mtx_;
     std::condition_variable cond_;
-    int max_threads_;
-    int current_threads_;
+    int max__;
+    int current_;
 };
 
-ThreadLimiter limiter(16);
+// RAII class to acquire and release the semaphore
+class AcquireSemaphore {
+   public:
+    explicit AcquireSemaphore(CountingSemaphore &semaphore) : semaphore_(semaphore) { semaphore_.acquire(); }
+
+    ~AcquireSemaphore() { semaphore_.release(); }
+
+   private:
+    CountingSemaphore &semaphore_;
+};
+
+namespace {
+CountingSemaphore semaphore(16);
+}
 
 bool UciEngine::isready(std::chrono::milliseconds threshold) {
     try {
@@ -203,35 +217,27 @@ bool UciEngine::start() {
         return true;
     }
 
-    limiter.acquire();
+    AcquireSemaphore semaphore_acquire(semaphore);
 
-    std::string path = (config_.dir == "." ? "" : config_.dir) + config_.cmd;
-
-#ifndef NO_STD_FILESYSTEM
-    // convert path to a filesystem path
-    auto p = std::filesystem::path(config_.dir) / std::filesystem::path(config_.cmd);
-    path   = p.string();
-#endif
-
+    const auto path = getPath(config_);
     Logger::trace<true>("Starting engine {} at {}", config_.name, path);
 
+    // Creates the engine process and sets the pipes
     if (!init(path, config_.args, config_.name)) {
         Logger::warn<true>("Warning: Cannot start engine {}:", config_.name);
         Logger::warn<true>("Cannot execute command: {}", path);
-        limiter.release();
 
         return false;
     }
 
+    // Wait for the engine to start
     if (!uci() || !uciok(startup_time_)) {
         Logger::warn<true>("Engine {} didn't respond to uci with uciok after startup.", config_.name);
-        limiter.release();
 
         return false;
     }
 
     initialized_ = true;
-    limiter.release();
 
     return true;
 }
@@ -242,11 +248,9 @@ bool UciEngine::refreshUci() {
     if (!ucinewgame()) {
         // restart the engine
         Logger::trace<true>("Engine {} failed to refresh. Restarting engine.", config_.name);
-
         restart();
-        if (!uci() || !uciok()) {
-            return false;
-        }
+
+        if (!uci() || !uciok()) return false;
 
         if (!ucinewgame()) {
             Logger::trace<true>("Engine {} responded to uci but not to ucinewgame/isready.", config_.name);

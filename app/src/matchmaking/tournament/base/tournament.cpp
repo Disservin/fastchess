@@ -20,7 +20,7 @@ namespace fast_chess {
 BaseTournament::BaseTournament(const stats_map &results) {
     output_ = OutputFactory::create(config::TournamentConfig.get().output, config::TournamentConfig.get().report_penta);
     cores_  = std::make_unique<affinity::AffinityManager>(config::TournamentConfig.get().affinity,
-                                                          getMaxAffinity(config::EngineConfigs.get()));
+                                                         getMaxAffinity(config::EngineConfigs.get()));
 
     if (!config::TournamentConfig.get().pgn.file.empty())
         file_writer_pgn = std::make_unique<util::FileWriter>(config::TournamentConfig.get().pgn.file);

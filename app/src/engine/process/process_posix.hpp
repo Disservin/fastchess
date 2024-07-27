@@ -74,8 +74,13 @@ class Process : public IProcess {
 
         try {
             setup_spawn_file_actions(file_actions, out_pipe_.read_end(), STDIN_FILENO);
+            setup_close_file_actions(file_actions, out_pipe_.read_end());
+
+            // keep open for self to pipe trick
             setup_spawn_file_actions(file_actions, in_pipe_.write_end(), STDOUT_FILENO);
+
             setup_spawn_file_actions(file_actions, err_pipe_.write_end(), STDERR_FILENO);
+            setup_close_file_actions(file_actions, err_pipe_.write_end());
 
             if (posix_spawn(&process_pid_, command.c_str(), &file_actions, nullptr, execv_argv, environ) != 0) {
                 throw std::runtime_error("posix_spawn failed");
@@ -250,9 +255,14 @@ class Process : public IProcess {
 
    private:
     void setup_spawn_file_actions(posix_spawn_file_actions_t &file_actions, int fd, int target_fd) {
-        if (posix_spawn_file_actions_adddup2(&file_actions, fd, target_fd) != 0 ||
-            posix_spawn_file_actions_addclose(&file_actions, fd) != 0) {
+        if (posix_spawn_file_actions_adddup2(&file_actions, fd, target_fd) != 0) {
             throw std::runtime_error("posix_spawn_file_actions_add* failed");
+        }
+    }
+
+    void setup_close_file_actions(posix_spawn_file_actions_t &file_actions, int fd) {
+        if (posix_spawn_file_actions_addclose(&file_actions, fd) != 0) {
+            throw std::runtime_error("posix_spawn_file_actions_addclose failed");
         }
     }
 

@@ -44,39 +44,32 @@ class Process : public IProcess {
 
         pi_ = PROCESS_INFORMATION();
 
-        STARTUPINFOA si = STARTUPINFOA();
+        in_pipe_.create();
+        out_pipe_.create();
+
+        STARTUPINFOA si = STARTUPINFOA{};
         si.dwFlags      = STARTF_USESTDHANDLES;
 
-        SECURITY_ATTRIBUTES sa = SECURITY_ATTRIBUTES();
-        sa.bInheritHandle      = TRUE;
+        SetHandleInformation(in_pipe_.read_end(), HANDLE_FLAG_INHERIT, 0);
+        si.hStdOutput = in_pipe_.write_end();
 
-        HANDLE child_stdout_read, child_stdout_write;
-        CreatePipe(&child_stdout_read, &child_stdout_write, &sa, 0);
-        SetHandleInformation(child_stdout_read, HANDLE_FLAG_INHERIT, 0);
-        si.hStdOutput = child_stdout_write;
-
-        HANDLE child_stdin_read, child_stdin_write;
-        CreatePipe(&child_stdin_read, &child_stdin_write, &sa, 0);
-        SetHandleInformation(child_stdin_write, HANDLE_FLAG_INHERIT, 0);
-        si.hStdInput = child_stdin_read;
+        SetHandleInformation(out_pipe_.write_end(), HANDLE_FLAG_INHERIT, 0);
+        si.hStdInput = out_pipe_.read_end();
 
         /*
-        CREATE_NEW_PROCESS_GROUP flag is important here to disable all CTRL+C signals for the new
-        process
+        CREATE_NEW_PROCESS_GROUP flag is important here
+        to disable all CTRL+C signals for the new process
         */
         const auto success = CreateProcessA(nullptr, const_cast<char *>((command + " " + args).c_str()), nullptr,
                                             nullptr, TRUE, CREATE_NEW_PROCESS_GROUP, nullptr, nullptr, &si, &pi_);
 
         // not needed
-        CloseHandle(child_stdout_write);
-        CloseHandle(child_stdin_read);
+        out_pipe_.close_read();
 
-        child_std_out_ = child_stdout_read;
-        child_std_in_  = child_stdin_write;
         startup_error_ = !success;
         is_initalized_ = true;
 
-        process_list.push(ProcessInformation{pi_.hProcess, child_std_out_});
+        process_list.push(ProcessInformation{pi_.hProcess, in_pipe_.write_end()});
 
         return success ? Status::OK : Status::ERR;
     }
@@ -115,6 +108,10 @@ class Process : public IProcess {
     void restart() override {
         Logger::trace<true>("Restarting {}", log_name_);
         killProcess();
+
+        is_initalized_ = false;
+        startup_error_ = false;
+
         init(command_, args_, log_name_);
     }
 
@@ -136,7 +133,7 @@ class Process : public IProcess {
                 DWORD bytes_read;
 
                 while (true) {
-                    if (!ReadFile(child_std_out_, buffer, sizeof(buffer), &bytes_read, nullptr)) {
+                    if (!ReadFile(in_pipe_.read_end(), buffer, sizeof(buffer), &bytes_read, nullptr)) {
                         return Status::ERR;
                     }
 
@@ -182,22 +179,66 @@ class Process : public IProcess {
         if (alive() != Status::OK) killProcess();
 
         DWORD bytesWritten;
-        auto res = WriteFile(child_std_in_, input.c_str(), input.length(), &bytesWritten, nullptr);
-
-        assert(bytesWritten == input.length());
+        auto res = WriteFile(out_pipe_.write_end(), input.c_str(), input.length(), &bytesWritten, nullptr);
 
         return res ? Status::OK : Status::ERR;
     }
 
    private:
+    struct Pipe {
+        Pipe() : handles_{}, open_{false, false} {}
+
+        ~Pipe() {
+            if (open_[0]) close_read();
+            if (open_[1]) close_write();
+        }
+
+        void create() {
+            if (open_[0]) close_read();
+            if (open_[1]) close_write();
+
+            SECURITY_ATTRIBUTES sa = SECURITY_ATTRIBUTES{};
+            sa.bInheritHandle      = TRUE;
+
+            if (!CreatePipe(&handles_[0], &handles_[1], &sa, 0)) {
+                throw std::runtime_error("CreatePipe() failed");
+            }
+
+            open_[0] = open_[1] = true;
+        }
+
+        void close_read() {
+            assert(open_[0]);
+            open_[0] = false;
+            CloseHandle(handles_[0]);
+        }
+
+        void close_write() {
+            assert(open_[1]);
+            open_[1] = false;
+            CloseHandle(handles_[1]);
+        }
+
+        HANDLE read_end() const {
+            assert(open_[0]);
+            return handles_[0];
+        }
+
+        HANDLE write_end() const {
+            assert(open_[1]);
+            return handles_[1];
+        }
+
+       private:
+        std::array<HANDLE, 2> handles_;
+        std::array<bool, 2> open_;
+    };
+
     void closeHandles() const {
         assert(is_initalized_);
 
         CloseHandle(pi_.hThread);
         CloseHandle(pi_.hProcess);
-
-        CloseHandle(child_std_out_);
-        CloseHandle(child_std_in_);
     }
 
     // The command to execute
@@ -214,8 +255,8 @@ class Process : public IProcess {
     bool startup_error_ = false;
 
     PROCESS_INFORMATION pi_;
-    HANDLE child_std_out_;
-    HANDLE child_std_in_;
+
+    Pipe in_pipe_ = {}, out_pipe_ = {};
 };
 
 }  // namespace engine::process

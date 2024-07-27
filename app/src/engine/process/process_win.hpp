@@ -105,6 +105,10 @@ class Process : public IProcess {
     void restart() override {
         Logger::trace<true>("Restarting {}", log_name_);
         killProcess();
+
+        in_pipe_  = Pipe();
+        out_pipe_ = Pipe();
+
         init(command_, args_, log_name_);
     }
 

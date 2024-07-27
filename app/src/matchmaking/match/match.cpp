@@ -103,7 +103,17 @@ void Match::start(engine::UciEngine& white, engine::UciEngine& black, const std:
     white_player.color = Color::WHITE;
     black_player.color = Color::BLACK;
 
-    if (!white_player.engine.start() || !black_player.engine.start()) {
+    if (!white_player.engine.start()) {
+        Logger::trace<true>("Failed to start engines, stopping tournament.");
+        atomic::stop = true;
+        return;
+    }
+
+    if (atomic::stop.load()) {
+        return;
+    }
+
+    if (!black_player.engine.start()) {
         Logger::trace<true>("Failed to start engines, stopping tournament.");
         atomic::stop = true;
         return;

@@ -44,6 +44,9 @@ class Process : public IProcess {
 
         pi_ = PROCESS_INFORMATION();
 
+        in_pipe_.create();
+        out_pipe_.create();
+
         STARTUPINFOA si = STARTUPINFOA{};
         si.dwFlags      = STARTF_USESTDHANDLES;
 
@@ -106,8 +109,8 @@ class Process : public IProcess {
         Logger::trace<true>("Restarting {}", log_name_);
         killProcess();
 
-        in_pipe_  = Pipe();
-        out_pipe_ = Pipe();
+        is_initalized_ = false;
+        startup_error_ = false;
 
         init(command_, args_, log_name_);
     }
@@ -183,7 +186,17 @@ class Process : public IProcess {
 
    private:
     struct Pipe {
-        Pipe() {
+        Pipe() : handles_{}, open_{false, false} {}
+
+        ~Pipe() {
+            if (open_[0]) close_read();
+            if (open_[1]) close_write();
+        }
+
+        void create() {
+            if (open_[0]) close_read();
+            if (open_[1]) close_write();
+
             SECURITY_ATTRIBUTES sa = SECURITY_ATTRIBUTES{};
             sa.bInheritHandle      = TRUE;
 
@@ -192,11 +205,6 @@ class Process : public IProcess {
             }
 
             open_[0] = open_[1] = true;
-        }
-
-        ~Pipe() {
-            if (open_[0]) close_read();
-            if (open_[1]) close_write();
         }
 
         void close_read() {

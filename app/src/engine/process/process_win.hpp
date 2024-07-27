@@ -91,11 +91,11 @@ class Process : public IProcess {
         STARTUPINFOA si = STARTUPINFOA{};
         si.dwFlags      = STARTF_USESTDHANDLES;
 
-        SetHandleInformation(out_pipe_.read_end(), HANDLE_FLAG_INHERIT, 0);
-        si.hStdOutput = out_pipe_.write_end();
+        SetHandleInformation(in_pipe_.read_end(), HANDLE_FLAG_INHERIT, 0);
+        si.hStdOutput = in_pipe_.write_end();
 
-        SetHandleInformation(in_pipe_.write_end(), HANDLE_FLAG_INHERIT, 0);
-        si.hStdInput = in_pipe_.read_end();
+        SetHandleInformation(out_pipe_.write_end(), HANDLE_FLAG_INHERIT, 0);
+        si.hStdInput = out_pipe_.read_end();
 
         /*
         CREATE_NEW_PROCESS_GROUP flag is important here
@@ -105,13 +105,13 @@ class Process : public IProcess {
                                             nullptr, TRUE, CREATE_NEW_PROCESS_GROUP, nullptr, nullptr, &si, &pi_);
 
         // not needed
-        // out_pipe_.close_write();
-        // in_pipe_.close_read();
+        // in_pipe_.close_write();
+        // out_pipe_.close_read();
 
         startup_error_ = !success;
         is_initalized_ = true;
 
-        process_list.push(ProcessInformation{pi_.hProcess, out_pipe_.write_end()});
+        process_list.push(ProcessInformation{pi_.hProcess, in_pipe_.write_end()});
 
         return success ? Status::OK : Status::ERR;
     }
@@ -171,7 +171,7 @@ class Process : public IProcess {
                 DWORD bytes_read;
 
                 while (true) {
-                    if (!ReadFile(out_pipe_.read_end(), buffer, sizeof(buffer), &bytes_read, nullptr)) {
+                    if (!ReadFile(in_pipe_.read_end(), buffer, sizeof(buffer), &bytes_read, nullptr)) {
                         return Status::ERR;
                     }
 
@@ -217,7 +217,7 @@ class Process : public IProcess {
         if (alive() != Status::OK) killProcess();
 
         DWORD bytesWritten;
-        auto res = WriteFile(in_pipe_.write_end(), input.c_str(), input.length(), &bytesWritten, nullptr);
+        auto res = WriteFile(out_pipe_.write_end(), input.c_str(), input.length(), &bytesWritten, nullptr);
 
         return res ? Status::OK : Status::ERR;
     }

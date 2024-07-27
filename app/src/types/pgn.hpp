@@ -5,10 +5,10 @@
 #include <types/enums.hpp>
 #include <util/helper.hpp>
 
-namespace fast_chess::config {
+namespace fastchess::config {
 
 struct Pgn {
-    std::string event_name = "Fast-Chess Tournament";
+    std::string event_name = "Fastchess Tournament";
     std::string site       = "?";
 
     std::string file;
@@ -23,4 +23,4 @@ struct Pgn {
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(Pgn, event_name, site, file, notation, track_nodes, track_seldepth,
                                                 track_nps, track_hashfull, track_tbhits, min)
 
-}  // namespace fast_chess::config
+}  // namespace fastchess::config

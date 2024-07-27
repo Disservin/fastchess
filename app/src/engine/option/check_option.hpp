@@ -2,7 +2,7 @@
 
 #include "ucioption.hpp"
 
-namespace fast_chess {
+namespace fastchess {
 
 class CheckOption : public UCIOption {
    public:
@@ -25,4 +25,4 @@ class CheckOption : public UCIOption {
     bool value;
 };
 
-}  // namespace fast_chess
+}  // namespace fastchess

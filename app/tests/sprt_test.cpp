@@ -4,7 +4,7 @@
 
 #include <matchmaking/stats.hpp>
 
-using namespace fast_chess;
+using namespace fastchess;
 
 TEST_SUITE("SPRT") {
     TEST_CASE("normalized trinomial 1") {

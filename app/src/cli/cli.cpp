@@ -79,7 +79,7 @@ bool containsEqualSign(const std::vector<std::string> &params) {
 }
 }  // namespace
 
-namespace fast_chess::cli {
+namespace fastchess::cli {
 using json = nlohmann::json;
 
 namespace engine {
@@ -571,7 +571,7 @@ void parseAffinity(const std::vector<std::string> &, ArgumentData &argument_data
 void parseDebug(const std::vector<std::string> &, ArgumentData &) {
     // throw error
     std::string error_message =
-        "The 'debug' option does not exist in fast-chess."
+        "The 'debug' option does not exist in fastchess."
         " Use the 'log' option instead to write all engine input"
         " and output into a text file.";
     throw std::runtime_error(error_message);
@@ -629,4 +629,4 @@ OptionsParser::OptionsParser(int argc, char const *argv[]) {
     }
 }
 
-}  // namespace fast_chess::cli
+}  // namespace fastchess::cli

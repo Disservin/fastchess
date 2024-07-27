@@ -13,7 +13,7 @@
 
 #include <json.hpp>
 
-namespace fast_chess {
+namespace fastchess {
 
 struct Limit {
     TimeControl::Limits tc;
@@ -62,4 +62,4 @@ struct EngineConfiguration {
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(EngineConfiguration, name, dir, cmd, args, options, limit, variant,
                                                 recover)
 
-}  // namespace fast_chess
+}  // namespace fastchess

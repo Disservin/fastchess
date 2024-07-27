@@ -7,7 +7,7 @@
 
 #include "ucioption.hpp"
 
-namespace fast_chess {
+namespace fastchess {
 
 class UCIOptions {
    public:
@@ -37,4 +37,4 @@ class UCIOptions {
     std::vector<std::unique_ptr<UCIOption>> options;
 };
 
-}  // namespace fast_chess
+}  // namespace fastchess

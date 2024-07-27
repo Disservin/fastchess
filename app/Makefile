@@ -1,7 +1,7 @@
 #Compiler
 CXX              := g++
 
-TARGET           := fast-chess
+TARGET           := fastchess
 BINARY_PATH	  	 := .
 
 # Source, Includes

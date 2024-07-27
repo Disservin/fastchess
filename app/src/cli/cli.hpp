@@ -22,7 +22,7 @@
 #define FMT_HEADER_ONLY
 #include "../../third_party/fmt/include/fmt/core.h"
 
-namespace fast_chess::cli {
+namespace fastchess::cli {
 
 constexpr auto version = "alpha 0.9.0 ";
 
@@ -70,7 +70,7 @@ class OptionsParser {
         std::string month, day, year;
         std::stringstream ss, date(__DATE__);  // {month} {date} {year}
 
-        ss << "fast-chess " << version;
+        ss << "fastchess " << version;
 
 #ifndef RELEASE
 #    ifdef GIT_DATE
@@ -145,4 +145,4 @@ class OptionsParser {
     std::map<std::string, parseFunc> options_;
 };
 
-}  // namespace fast_chess::cli
+}  // namespace fastchess::cli

@@ -11,7 +11,7 @@
 #include <util/helper.hpp>
 #include <util/logger/logger.hpp>
 
-namespace fast_chess::engine {
+namespace fastchess::engine {
 
 // A counting semaphore to limit the number of threads
 class CountingSemaphore {
@@ -362,4 +362,4 @@ bool UciEngine::outputIncludesBestmove() const {
     return false;
 }
 
-}  // namespace fast_chess::engine
+}  // namespace fastchess::engine

@@ -1,13 +1,13 @@
-# fast-chess
+# Fastchess
 
-[![FastChess](https://github.com/Disservin/fast-chess/actions/workflows/fastchess.yml/badge.svg?branch=master)](https://github.com/Disservin/fast-chess/actions/workflows/fastchess.yml)
+[![Fastchess](https://github.com/Disservin/fast-chess/actions/workflows/fastchess.yml/badge.svg?branch=master)](https://github.com/Disservin/fast-chess/actions/workflows/fastchess.yml)
 
-fast-chess is a versatile command-line tool designed for running chess engine
+Fastchess is a versatile command-line tool designed for running chess engine
 tournaments.  
 Written primarily in C++17, it utilizes [doctest](https://github.com/doctest/doctest) as its testing
 framework.
 
-With fast-chess, you can effortlessly orchestrate chess tournaments, configure
+With Fastchess, you can effortlessly orchestrate chess tournaments, configure
 time controls, and execute matches concurrently for optimal time efficiency.
 Extensively tested for high concurrency (supporting up to 250 threads) with
 short time controls (0.2+0.002s), it exhibits minimal timeout issues, with only
@@ -35,10 +35,10 @@ short time controls (0.2+0.002s), it exhibits minimal timeout issues, with only
 
 ### Building from source
 
-Building Fast-Chess from source is straightforward. Just follow these steps:
+Building Fastchess from source is straightforward. Just follow these steps:
 
 1. Clone the repository `git clone https://github.com/Disservin/fast-chess.git`
-2. Navigate to the fast-chess directory `cd fast-chess`
+2. Navigate to the Fastchess directory `cd fastchess`
 3. Build the executable `make -j` for GCC and `make -j CXX=clang++` for Clang (requires GCC >= 7.3.0 or Clang >= 8.0.0).
 
 ### Download the latest release
@@ -51,10 +51,10 @@ Current dev versions are available as artifacts from the [CI](https://github.com
 
 ### Example usage
 
-Here's an example of how to use fast-chess:
+Here's an example of how to use Fastchess:
 
 ```bash
-fast-chess.exe -engine cmd=Engine1.exe name=Engine1 -engine cmd=Engine2.exe
+fastchess.exe -engine cmd=Engine1.exe name=Engine1 -engine cmd=Engine2.exe
 name=Engine2 -each tc=10+0.1 -rounds 200 -repeat -concurrency 4
 ```
 
@@ -68,7 +68,7 @@ See [man](man) for a detailed description of all command line options.
 
 ## Contributing
 
-We welcome contributions to fast-chess! Please ensure that any changes you make
+We welcome contributions to fastchess! Please ensure that any changes you make
 are **beneficial** to the development and **pass the CI tests**.
 
 The code follows the Google style and is formatted with clang-format. When
@@ -76,7 +76,7 @@ creating pull requests, please format your code accordingly.
 
 To contribute, you'll need a recent GCC compiler that supports C++17 and the
 ability to run the Makefile. You can locally test your changes by running
-`make -j tests`, followed by executing the `./fast-chess-tests` executable to
+`make -j tests`, followed by executing the `./fastchess-tests` executable to
 verify your changes pass the tests.
 
 You can format the code with clang-format by running `make format`.

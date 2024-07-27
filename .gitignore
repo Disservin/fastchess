@@ -47,6 +47,7 @@ Testing
 
 #Executable files
 fast-chess*
+fastchess*
 dummy_engine
 random_mover
 

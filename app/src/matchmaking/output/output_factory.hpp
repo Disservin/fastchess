@@ -4,7 +4,7 @@
 #include <matchmaking/output/output_fastchess.hpp>
 #include <types/tournament.hpp>
 
-namespace fast_chess {
+namespace fastchess {
 
 class OutputFactory {
    public:
@@ -32,4 +32,4 @@ class OutputFactory {
     }
 };
 
-}  // namespace fast_chess
+}  // namespace fastchess

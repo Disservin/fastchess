@@ -38,6 +38,8 @@
 
 #    include <argv_split.hpp>
 
+extern char **environ;
+
 namespace fastchess {
 extern util::ThreadVector<ProcessInformation> process_list;
 
@@ -46,8 +48,6 @@ extern std::atomic_bool stop;
 }
 
 namespace engine::process {
-
-inline char **environ;
 
 class Process : public IProcess {
    public:

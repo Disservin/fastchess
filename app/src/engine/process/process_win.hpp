@@ -31,50 +31,6 @@ extern std::atomic_bool stop;
 
 namespace engine::process {
 
-struct Pipe {
-    Pipe() {
-        SECURITY_ATTRIBUTES sa = SECURITY_ATTRIBUTES{};
-        sa.bInheritHandle      = TRUE;
-
-        if (!CreatePipe(&handles_[0], &handles_[1], &sa, 0)) {
-            throw std::runtime_error("CreatePipe() failed");
-        }
-
-        open_[0] = open_[1] = true;
-    }
-
-    ~Pipe() {
-        if (open_[0]) close_read();
-        if (open_[1]) close_write();
-    }
-
-    void close_read() {
-        assert(open_[0]);
-        open_[0] = false;
-        CloseHandle(handles_[0]);
-    }
-
-    void close_write() {
-        assert(open_[1]);
-        open_[1] = false;
-        CloseHandle(handles_[1]);
-    }
-
-    HANDLE read_end() const {
-        assert(open_[0]);
-        return handles_[0];
-    }
-
-    HANDLE write_end() const {
-        assert(open_[1]);
-        return handles_[1];
-    }
-
-   private:
-    std::array<HANDLE, 2> handles_;
-    std::array<bool, 2> open_;
-};
-
 class Process : public IProcess {
    public:
     ~Process() override { killProcess(); }
@@ -105,8 +61,7 @@ class Process : public IProcess {
                                             nullptr, TRUE, CREATE_NEW_PROCESS_GROUP, nullptr, nullptr, &si, &pi_);
 
         // not needed
-        // in_pipe_.close_write();
-        // out_pipe_.close_read();
+        out_pipe_.close_read();
 
         startup_error_ = !success;
         is_initalized_ = true;
@@ -223,6 +178,50 @@ class Process : public IProcess {
     }
 
    private:
+    struct Pipe {
+        Pipe() {
+            SECURITY_ATTRIBUTES sa = SECURITY_ATTRIBUTES{};
+            sa.bInheritHandle      = TRUE;
+
+            if (!CreatePipe(&handles_[0], &handles_[1], &sa, 0)) {
+                throw std::runtime_error("CreatePipe() failed");
+            }
+
+            open_[0] = open_[1] = true;
+        }
+
+        ~Pipe() {
+            if (open_[0]) close_read();
+            if (open_[1]) close_write();
+        }
+
+        void close_read() {
+            assert(open_[0]);
+            open_[0] = false;
+            CloseHandle(handles_[0]);
+        }
+
+        void close_write() {
+            assert(open_[1]);
+            open_[1] = false;
+            CloseHandle(handles_[1]);
+        }
+
+        HANDLE read_end() const {
+            assert(open_[0]);
+            return handles_[0];
+        }
+
+        HANDLE write_end() const {
+            assert(open_[1]);
+            return handles_[1];
+        }
+
+       private:
+        std::array<HANDLE, 2> handles_;
+        std::array<bool, 2> open_;
+    };
+
     void closeHandles() const {
         assert(is_initalized_);
 

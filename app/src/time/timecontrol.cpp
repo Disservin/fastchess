@@ -70,7 +70,7 @@ std::ostream &operator<<(std::ostream &os, const TimeControl &tc) {
 
     if (tc.limits_.moves > 0) os << tc.limits_.moves << "/";
 
-    if (tc.limits_.time > 0) os << (tc.limits_.time / 1000.0);
+    if (tc.limits_.time + tc.limits_.increment > 0) os << (tc.limits_.time / 1000.0);
 
     if (tc.limits_.increment > 0) os << "+" << (tc.limits_.increment / 1000.0);
 

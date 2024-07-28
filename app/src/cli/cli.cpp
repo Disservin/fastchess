@@ -84,6 +84,7 @@ using json = nlohmann::json;
 
 namespace engine {
 TimeControl::Limits parseTc(const std::string &tcString) {
+    if (str_utils::contains(tcString, "hg")) throw std::runtime_error("Hourglass time control not supported.");
     if (tcString == "infinite" || tcString == "inf") return {};
 
     TimeControl::Limits tc;

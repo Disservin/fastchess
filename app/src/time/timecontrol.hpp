@@ -28,7 +28,7 @@ class TimeControl {
         uint64_t overhead  = 0;
 
         bool operator==(const Limits &rhs) const {
-            return std::tie(increment, fixed_time, time, moves, timemargin) ==
+            return std::tie(increment, fixed_time, time, moves, timemargin, overhead) ==
                    std::tie(rhs.increment, rhs.fixed_time, rhs.time, rhs.moves, rhs.timemargin, rhs.overhead);
         }
 

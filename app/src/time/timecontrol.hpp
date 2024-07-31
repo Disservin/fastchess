@@ -53,7 +53,7 @@ class TimeControl {
     void setTime(int64_t time) { limits_.time = time; }
     void setFixedTime(int64_t fixed_time) { limits_.fixed_time = fixed_time; }
     void setTimemargin(int64_t timemargin) { limits_.timemargin = timemargin; }
-    void setOverhead(int64_t timemargin) { limits_.overhead = overhead; }
+    void setOverhead(uint64_t overhead) { limits_.overhead = overhead; }
 
     [[nodiscard]] bool isFixedTime() const noexcept { return limits_.fixed_time != 0; }
     [[nodiscard]] bool isTimed() const noexcept { return limits_.time != 0; }

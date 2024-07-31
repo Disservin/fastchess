@@ -59,7 +59,6 @@ class TimeControl {
     [[nodiscard]] bool isTimed() const noexcept { return limits_.time != 0; }
     [[nodiscard]] bool isMoves() const noexcept { return limits_.moves != 0; }
     [[nodiscard]] bool isIncrement() const noexcept { return limits_.increment != 0; }
-    [[nodiscard]] bool isOverhead() const noexcept { return limits_.overhead != 0; }
 
     friend std::ostream &operator<<(std::ostream &os, const TimeControl &tc);
 

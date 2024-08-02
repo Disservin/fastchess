@@ -58,9 +58,7 @@ fastchess.exe -engine cmd=Engine1.exe name=Engine1 -engine cmd=Engine2.exe
 name=Engine2 -each tc=10+0.1 -rounds 200 -repeat -concurrency 4
 ```
 
-_Note that setting concurrency higher than your CPU core/thread
-count may not yield significant performance gains and could potentially have the
-opposite effect. Also it is highly encouraged to use an opening book._
+_Note: It is highly encouraged to use an opening book._
 
 ## Command line options
 

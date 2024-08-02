@@ -33,7 +33,7 @@ OPTIONS
             stats - load the stats from the config file. Defaults to true.
 
         -concurrency N
-            Play N games concurrently. Limited to the number of hardware threads. Default value is 1.
+            Play N games concurrently, limited by the number of hardware threads. Default value is 1.
 
         -rounds N
             Play N rounds of games where each game within the round uses the same opening. Default value is 2.

@@ -473,7 +473,7 @@ void parseRounds(const std::vector<std::string> &params, ArgumentData &argument_
 }
 
 void parseWait(const std::vector<std::string> &, ArgumentData &argument_data) {
-    argument_data.tournament_config.wait = true;
+    parseValue(params, argument_data.tournament_config.wait);
 }
 
 void parseNoswap(const std::vector<std::string> &, ArgumentData &argument_data) {

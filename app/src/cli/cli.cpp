@@ -472,7 +472,7 @@ void parseRounds(const std::vector<std::string> &params, ArgumentData &argument_
     parseValue(params, argument_data.tournament_config.rounds);
 }
 
-void parseWait(const std::vector<std::string> &, ArgumentData &argument_data) {
+void parseWait(const std::vector<std::string> &params, ArgumentData &argument_data) {
     parseValue(params, argument_data.tournament_config.wait);
 }
 

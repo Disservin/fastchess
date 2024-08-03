@@ -424,7 +424,7 @@ void Match::verifyPvLines(const Player& us) {
 }
 
 bool Match::adjudicate(Player& us, Player& them) noexcept {
-    if (us.engine.getConfig().trust && us.engine.lastScoreType == engine::ScoreType::MATE && us.engine.lastScore() > 0) {
+    if (us.engine.getConfig().trust && us.engine.lastScoreType() == engine::ScoreType::MATE && us.engine.lastScore() > 0) {
         us.setWon();
         them.setLost();
 

@@ -222,7 +222,7 @@ OPTIONS
                 Working directory for the engine.
 
             [trust]
-                Trust the engine mate score and instantly adjudicate the game once a mating line is found.
+                Trust the engine mate score and instantly adjudicate the game once a winning mating line is found.
 
             [option.name=VALUE]
                 This can be used to set engine options. Note that the engine must support the option.

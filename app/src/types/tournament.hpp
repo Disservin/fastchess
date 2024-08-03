@@ -57,8 +57,8 @@ struct Tournament {
 
     int concurrency = 1;
     int overhead    = 0;
+    int wait        = 0;
 
-    bool wait     = false;
     bool noswap   = false;
     bool recover  = false;
     bool affinity = false;

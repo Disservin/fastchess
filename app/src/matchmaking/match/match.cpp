@@ -348,7 +348,7 @@ void Match::setEngineStallStatus(Player& loser, Player& winner) {
     data_.termination = MatchTermination::STALL;
     data_.reason      = color + Match::STALL_MSG;
 
-    Logger::warn<true>("Warning; Engine {} connection stalls", name);
+    Logger::warn<true>("Warning; Engine {}'s connection stalls", name);
 }
 
 void Match::setEngineTimeoutStatus(Player& loser, Player& winner) {

@@ -145,6 +145,8 @@ void parseEngineKeyValues(EngineConfiguration &engineConfig, const std::string &
         engineConfig.dir = value;
     else if (key == "args")
         engineConfig.args = value;
+    else if (key == "trust")
+        engineConfig.trust = true;
     else if (isEngineSettableOption(key)) {
         // Strip option.Name of the option. Part
         const std::size_t pos         = key.find('.');

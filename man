@@ -33,10 +33,10 @@ OPTIONS
             stats - load the stats from the config file. Defaults to true.
 
         -concurrency N
-            Play N games concurrently. Default value is 1.
+            Play N games concurrently, limited by the number of hardware threads. Default value is 1.
 
         -rounds N
-            Play N rounds of games. Default value is 2.
+            Play N rounds of games where each game within the round uses the same opening. Default value is 2.
 
         -games N
             Play N games in each round. Default value is 2. 
@@ -214,10 +214,10 @@ OPTIONS
                 Maximum number of nodes to search. If supported.
             
             [plies=PLIES]
-                Plies (depth) to search. If supported.
+                Maximum number of plies (depth) to search. If supported.
             
             [depth=DEPTH]
-                Depth to search. If supported. Does the same as plies.
+                Maximum number of depth to search. If supported. Does the same as plies.
 
             [proto=PROTOCOL]
                 Specify the communication protocol. Only supports uci.
@@ -243,7 +243,7 @@ AUTHORS
         fastchess was written by Disservin, Szil, PGG106, and contributors.
 
 REPORTING BUGS
-        Report any bugs to https://github.com/Disservin/fast-chess/issues.
+        Report any bugs to https://github.com/Disservin/fastchess/issues.
 
 COPYRIGHT
         This software is licensed under the MIT license. See the LICENSE file for details.

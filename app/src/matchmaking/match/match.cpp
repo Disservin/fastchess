@@ -424,17 +424,18 @@ void Match::verifyPvLines(const Player& us) {
 }
 
 bool Match::adjudicate(Player& us, Player& them) noexcept {
-    if (us.engine.getConfig().trust && us.engine.lastScoreType() == engine::ScoreType::MATE && us.engine.lastScore() > 0
-        && data_.moves.size() > 0) {
-        us.setWon();
-        them.setLost();
-
-        const auto color = getColorString(~board_.sideToMove());
-
-        data_.termination = MatchTermination::ADJUDICATION;
-        data_.reason      = color + Match::ADJUDICATION_WIN_MSG;
-
-        return true;
+    if (us.engine.getConfig().trust && data_.moves.size() > 0) {
+        if (us.engine.lastScoreType() == engine::ScoreType::MATE && us.engine.lastScore() > 0) {
+            us.setWon();
+            them.setLost();
+    
+            const auto color = getColorString(~board_.sideToMove());
+    
+            data_.termination = MatchTermination::ADJUDICATION;
+            data_.reason      = color + Match::ADJUDICATION_WIN_MSG;
+    
+            return true;
+        }
     }
     
     if (config::TournamentConfig.get().resign.enabled && resign_tracker_.resignable() && us.engine.lastScore() < 0) {

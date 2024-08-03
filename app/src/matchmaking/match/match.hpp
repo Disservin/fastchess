@@ -179,5 +179,6 @@ class Match {
     inline static constexpr char CHECKMATE_MSG[]        = /*..*/ " mates";
     inline static constexpr char TIMEOUT_MSG[]          = /*.. */ " loses on time";
     inline static constexpr char DISCONNECT_MSG[]       = /*.. */ " disconnects";
+    inline static constexpr char STALL_MSG[]            = /*.. */ "'s connection stalls";
 };
 }  // namespace fastchess

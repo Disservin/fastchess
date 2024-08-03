@@ -188,7 +188,7 @@ bool Match::playMove(Player& us, Player& them) {
 
     // disconnect
     if (!us.engine.isready()) {
-        setEngineCrashStatus(us, them);
+        setEngineStallStatus(us, them);
         return false;
     }
 
@@ -201,7 +201,7 @@ bool Match::playMove(Player& us, Player& them) {
 
     // wait for readyok
     if (!us.engine.isready()) {
-        setEngineCrashStatus(us, them);
+        setEngineStallStatus(us, them);
         return false;
     }
 
@@ -233,8 +233,13 @@ bool Match::playMove(Player& us, Player& them) {
 
     Logger::trace<true>("Check if engine {} is in a ready state", name);
 
-    if (status == engine::process::Status::ERR || !us.engine.isready()) {
+    if (status == engine::process::Status::ERR) {
         setEngineCrashStatus(us, them);
+        return false;
+    }
+
+    if (!us.engine.isready()) {
+        setEngineStallStatus(us, them);
         return false;
     }
 
@@ -320,7 +325,7 @@ void Match::setEngineCrashStatus(Player& loser, Player& winner) {
     loser.setLost();
     winner.setWon();
 
-    crash_or_disconnect_ = true;
+    stall_or_disconnect_ = true;
 
     const auto name  = loser.engine.getConfig().name;
     const auto color = getColorString();
@@ -335,7 +340,7 @@ void Match::setEngineStallStatus(Player& loser, Player& winner) {
     loser.setLost();
     winner.setWon();
 
-    crash_or_disconnect_ = true;
+    stall_or_disconnect_ = true;
 
     const auto name  = loser.engine.getConfig().name;
     const auto color = getColorString();

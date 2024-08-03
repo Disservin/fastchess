@@ -186,7 +186,7 @@ bool Match::playMove(Player& us, Player& them) {
         return false;
     }
 
-    // disconnect
+    // connection stalls
     if (!us.engine.isready()) {
         setEngineStallStatus(us, them);
         return false;

@@ -45,7 +45,11 @@ struct EngineConfiguration {
     // Chess variant
     VariantType variant = VariantType::STANDARD;
 
+    // Recover engine after crash
     bool recover = false;
+
+    // Trust an engine's mate score
+    bool trust = false
 
     template <typename T, typename Predicate>
     std::optional<T> getOption(std::string_view option_name, Predicate transform) const {
@@ -60,6 +64,6 @@ struct EngineConfiguration {
     }
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(EngineConfiguration, name, dir, cmd, args, options, limit, variant,
-                                                recover)
+                                                recover, trust)
 
 }  // namespace fastchess

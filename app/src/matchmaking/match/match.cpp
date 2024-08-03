@@ -331,6 +331,21 @@ void Match::setEngineCrashStatus(Player& loser, Player& winner) {
     Logger::warn<true>("Warning; Engine {} disconnects", name);
 }
 
+void Match::setEngineStallStatus(Player& loser, Player& winner) {
+    loser.setLost();
+    winner.setWon();
+
+    crash_or_disconnect_ = true;
+
+    const auto name  = loser.engine.getConfig().name;
+    const auto color = getColorString();
+
+    data_.termination = MatchTermination::STALL;
+    data_.reason      = color + Match::STALL_MSG;
+
+    Logger::warn<true>("Warning; Engine {} connection stalls", name);
+}
+
 void Match::setEngineTimeoutStatus(Player& loser, Player& winner) {
     loser.setLost();
     winner.setWon();

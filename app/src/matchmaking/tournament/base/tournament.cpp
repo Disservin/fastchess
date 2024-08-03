@@ -82,8 +82,8 @@ void BaseTournament::playGame(const GamePair<EngineConfiguration, EngineConfigur
 
     Logger::trace<true>("Game {} between {} and {} finished", game_id, white_name, black_name);
 
-    if (match.isCrashOrDisconnect()) {
-        Logger::trace<true>("Game {} between {} and {} crashed / disconnected", game_id, white_name, black_name);
+    if (match.isStallOrDisconnect()) {
+        Logger::trace<true>("Game {} between {} and {} stalled / disconnected", game_id, white_name, black_name);
         if (!config.recover) {
             atomic::stop = true;
             return;

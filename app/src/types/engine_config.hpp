@@ -49,7 +49,7 @@ struct EngineConfiguration {
     bool recover = false;
 
     // Trust an engine's mate score
-    bool trust = false
+    bool trust = false;
 
     template <typename T, typename Predicate>
     std::optional<T> getOption(std::string_view option_name, Predicate transform) const {

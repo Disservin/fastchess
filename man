@@ -221,7 +221,7 @@ OPTIONS
             [dir=DIRECTORY]
                 Working directory for the engine.
 
-            [trust]
+            [trust=(true|false)]
                 Trust the engine mate score and instantly adjudicate the game once a winning mating line is found.
 
             [option.name=VALUE]

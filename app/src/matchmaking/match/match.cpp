@@ -284,7 +284,7 @@ bool Match::playMove(Player& us, Player& them) {
     }
 
     // make sure adjudicate is placed after normal termination as it has lower priority
-    return !(adjudicate(us, them);
+    return !adjudicate(us, them);
 }
 
 bool Match::isLegal(Move move) const noexcept {

@@ -272,9 +272,7 @@ bool Match::playMove(Player& us, Player& them) {
     if (gameover.second == GameResult::DRAW) {
         us.setDraw();
         them.setDraw();
-    }
-
-    if (gameover.second == GameResult::LOSE) {
+    } else if (gameover.second == GameResult::LOSE) {
         us.setWon();
         them.setLost();
     }
@@ -286,11 +284,7 @@ bool Match::playMove(Player& us, Player& them) {
     }
 
     // make sure adjudicate is placed after normal termination as it has lower priority
-    if (adjudicate(us, them)) {
-        return false;
-    }
-
-    return true;
+    return !(adjudicate(us, them);
 }
 
 bool Match::isLegal(Move move) const noexcept {

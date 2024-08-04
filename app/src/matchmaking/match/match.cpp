@@ -257,17 +257,6 @@ bool Match::playMove(Player& us, Player& them) {
 
     board_.makeMove(move);
 
-    // CuteChess uses plycount/2 for its movenumber, which is wrong for epd books as it doesnt take
-    // into account the fullmove counter of the starting FEN, leading to different behavior between
-    // pgn and epd adjudication. fastchess fixes this by using the fullmove counter from the board
-    // object directly
-    auto score = us.engine.lastScore();
-    auto type  = us.engine.lastScoreType();
-
-    draw_tracker_.update(score, type, board_.halfMoveClock());
-    resign_tracker_.update(score, type, ~board_.sideToMove());
-    maxmoves_tracker_.update();
-
     const auto gameover = isGameOver();
     if (gameover.second == GameResult::DRAW) {
         us.setDraw();
@@ -283,6 +272,12 @@ bool Match::playMove(Player& us, Player& them) {
         return false;
     }
 
+    auto score = us.engine.lastScore();
+    auto type  = us.engine.lastScoreType();
+
+    draw_tracker_.update(score, type, board_.halfMoveClock());
+    resign_tracker_.update(score, type, ~board_.sideToMove());
+    maxmoves_tracker_.update();
     // make sure adjudicate is placed after normal termination as it has lower priority
     return !adjudicate(us, them);
 }
@@ -442,6 +437,10 @@ bool Match::adjudicate(Player& us, Player& them) noexcept {
         return true;
     }
 
+    // CuteChess uses plycount/2 for its movenumber, which is wrong for epd books as it doesnt take
+    // into account the fullmove counter of the starting FEN, leading to different behavior between
+    // pgn and epd adjudication. fastchess fixes this by using the fullmove counter from the board
+    // object directly
     if (config::TournamentConfig.get().draw.enabled && draw_tracker_.adjudicatable(board_.fullMoveNumber() - 1)) {
         us.setDraw();
         them.setDraw();

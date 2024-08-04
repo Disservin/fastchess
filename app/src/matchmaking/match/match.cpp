@@ -162,29 +162,7 @@ void Match::start(engine::UciEngine& white, engine::UciEngine& black, const std:
 }
 
 bool Match::playMove(Player& us, Player& them) {
-    const auto gameover = isGameOver();
     const auto name     = us.engine.getConfig().name;
-
-    if (gameover.second == GameResult::DRAW) {
-        us.setDraw();
-        them.setDraw();
-    }
-
-    if (gameover.second == GameResult::LOSE) {
-        us.setLost();
-        them.setWon();
-    }
-
-    if (gameover.first != GameResultReason::NONE) {
-        data_.termination = MatchTermination::NORMAL;
-        data_.reason      = convertChessReason(getColorString(), gameover.first);
-        return false;
-    }
-
-    // make sure adjudicate is placed after normal termination as it has lower priority
-    if (adjudicate(them, us)) {
-        return false;
-    }
 
     // disconnect
     if (!us.engine.isready()) {
@@ -289,6 +267,28 @@ bool Match::playMove(Player& us, Player& them) {
     draw_tracker_.update(score, type, board_.halfMoveClock());
     resign_tracker_.update(score, type, ~board_.sideToMove());
     maxmoves_tracker_.update();
+
+    const auto gameover = isGameOver();
+    if (gameover.second == GameResult::DRAW) {
+        us.setDraw();
+        them.setDraw();
+    }
+
+    if (gameover.second == GameResult::LOSE) {
+        us.setWon();
+        them.setLost();
+    }
+
+    if (gameover.first != GameResultReason::NONE) {
+        data_.termination = MatchTermination::NORMAL;
+        data_.reason      = convertChessReason(getColorString(), gameover.first);
+        return false;
+    }
+
+    // make sure adjudicate is placed after normal termination as it has lower priority
+    if (adjudicate(us, them)) {
+        return false;
+    }
 
     return true;
 }
@@ -424,18 +424,16 @@ void Match::verifyPvLines(const Player& us) {
 }
 
 bool Match::adjudicate(Player& us, Player& them) noexcept {
-    if (us.engine.getConfig().trust && data_.moves.size() > 0) {
-        if (us.engine.lastScoreType() == engine::ScoreType::MATE && us.engine.lastScore() > 0) {
-            us.setWon();
-            them.setLost();
-    
-            const auto color = getColorString(~board_.sideToMove());
-    
-            data_.termination = MatchTermination::ADJUDICATION;
-            data_.reason      = color + Match::ADJUDICATION_WIN_MSG;
-    
-            return true;
-        }
+    if (us.engine.getConfig().trust && us.engine.lastScoreType() == engine::ScoreType::MATE && us.engine.lastScore() > 0) {
+        us.setWon();
+        them.setLost();
+
+        const auto color = getColorString(~board_.sideToMove());
+
+        data_.termination = MatchTermination::ADJUDICATION;
+        data_.reason      = color + Match::ADJUDICATION_WIN_MSG;
+
+        return true;
     }
     
     if (config::TournamentConfig.get().resign.enabled && resign_tracker_.resignable() && us.engine.lastScore() < 0) {

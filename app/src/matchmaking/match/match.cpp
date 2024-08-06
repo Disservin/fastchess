@@ -187,11 +187,11 @@ bool Match::playMove(Player& us, Player& them) {
     }
 
     // connection stalls
-    auto isready = us.engine.isready();
-    if (isready == engine::process::Status::TIMEOUT) {
+    auto is_ready = us.engine.isready();
+    if (is_ready == engine::process::Status::TIMEOUT) {
         setEngineStallStatus(us, them);
         return false;
-    } else if (isready != engine::process::Status::OK) {
+    } else if (is_ready != engine::process::Status::OK) {
         setEngineCrashStatus(us, them);
         return false;
     }
@@ -204,11 +204,11 @@ bool Match::playMove(Player& us, Player& them) {
     }
 
     // wait for readyok
-    isready = us.engine.isready();
-    if (isready == engine::process::Status::TIMEOUT) {
+    is_ready = us.engine.isready();
+    if (is_ready == engine::process::Status::TIMEOUT) {
         setEngineStallStatus(us, them);
         return false;
-    } else if (isready != engine::process::Status::OK) {
+    } else if (is_ready != engine::process::Status::OK) {
         setEngineCrashStatus(us, them);
         return false;
     }
@@ -246,11 +246,11 @@ bool Match::playMove(Player& us, Player& them) {
         return false;
     }
 
-    isready = us.engine.isready();
-    if (isready == engine::process::Status::TIMEOUT) {
+    is_ready = us.engine.isready();
+    if (is_ready == engine::process::Status::TIMEOUT) {
         setEngineStallStatus(us, them);
         return false;
-    } else if (isready != engine::process::Status::OK) {
+    } else if (is_ready != engine::process::Status::OK) {
         setEngineCrashStatus(us, them);
         return false;
     }

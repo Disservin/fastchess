@@ -289,6 +289,8 @@ bool Match::playMove(Player& us, Player& them) {
     resign_tracker_.update(score, type, ~board_.sideToMove());
     maxmoves_tracker_.update();
 
+    if (type == engine::ScoreType::MATE && score > 0) trust_adjudicatable_ = true;
+
     return true;
 }
 
@@ -454,6 +456,18 @@ void Match::verifyPvLines(const Player& us) {
 }
 
 bool Match::adjudicate(Player& us, Player& them) noexcept {
+    if (us.engine.getConfig().trust && trust_adjudicatable_) {
+        us.setWon();
+        them.setLost();
+
+        const auto color = getColorString(~board_.sideToMove());
+
+        data_.termination = MatchTermination::ADJUDICATION;
+        data_.reason      = color + Match::ADJUDICATION_WIN_MSG;
+
+        return true;
+    }
+    
     if (config::TournamentConfig.get().resign.enabled && resign_tracker_.resignable() && us.engine.lastScore() < 0) {
         us.setLost();
         them.setWon();

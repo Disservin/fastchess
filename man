@@ -227,6 +227,9 @@ OPTIONS
             [dir=DIRECTORY]
                 Working directory for the engine.
 
+            [trust=(true|false)]
+                Trust the engine mate score and adjudicate the game once a winning mating line is found.
+
             [option.name=VALUE]
                 This can be used to set engine options. Note that the engine must support the option.
                 For example, to set the hash size to 128MB, use option.Hash=128.

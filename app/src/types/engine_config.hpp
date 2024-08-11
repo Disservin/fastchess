@@ -45,6 +45,9 @@ struct EngineConfiguration {
     // Chess variant
     VariantType variant = VariantType::STANDARD;
 
+    // Trust an engine's mate score
+    bool trust   = false;
+
     bool recover = false;
 
     template <typename T, typename Predicate>
@@ -60,6 +63,6 @@ struct EngineConfiguration {
     }
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(EngineConfiguration, name, dir, cmd, args, options, limit, variant,
-                                                recover)
+                                                trust, recover)
 
 }  // namespace fastchess

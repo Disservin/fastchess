@@ -186,15 +186,8 @@ bool Match::playMove(Player& us, Player& them) {
         return false;
     }
 
-    // connection stalls
-    auto is_ready = us.engine.isready();
-    if (is_ready == engine::process::Status::TIMEOUT) {
-        setEngineStallStatus(us, them);
-        return false;
-    } else if (is_ready != engine::process::Status::OK) {
-        setEngineCrashStatus(us, them);
-        return false;
-    }
+    // make sure the engine is not in an invalid state
+    if (!validConnection(us, them)) return false;
 
     // write new uci position
     auto success = us.engine.position(uci_moves_, start_position_);
@@ -203,15 +196,9 @@ bool Match::playMove(Player& us, Player& them) {
         return false;
     }
 
-    // wait for readyok
-    is_ready = us.engine.isready();
-    if (is_ready == engine::process::Status::TIMEOUT) {
-        setEngineStallStatus(us, them);
-        return false;
-    } else if (is_ready != engine::process::Status::OK) {
-        setEngineCrashStatus(us, them);
-        return false;
-    }
+    // make sure the engine is not in an invalid state
+    // after writing the position
+    if (!validConnection(us, them)) return false;
 
     // write go command
     success = us.engine.go(us.getTimeControl(), them.getTimeControl(), board_.sideToMove());
@@ -246,14 +233,9 @@ bool Match::playMove(Player& us, Player& them) {
         return false;
     }
 
-    is_ready = us.engine.isready();
-    if (is_ready == engine::process::Status::TIMEOUT) {
-        setEngineStallStatus(us, them);
-        return false;
-    } else if (is_ready != engine::process::Status::OK) {
-        setEngineCrashStatus(us, them);
-        return false;
-    }
+    // make sure the engine is not in an invalid state after
+    // the search completed
+    if (!validConnection(us, them)) return false;
 
     Logger::trace<true>("Engine {} is in a ready state", name);
 
@@ -306,6 +288,22 @@ bool Match::playMove(Player& us, Player& them) {
     draw_tracker_.update(score, type, board_.halfMoveClock());
     resign_tracker_.update(score, type, ~board_.sideToMove());
     maxmoves_tracker_.update();
+
+    return true;
+}
+
+bool Match::validConnection(Player& us, Player& them) {
+    const auto is_ready = us.engine.isready();
+
+    if (is_ready == engine::process::Status::TIMEOUT) {
+        setEngineStallStatus(us, them);
+        return false;
+    }
+
+    if (is_ready != engine::process::Status::OK) {
+        setEngineCrashStatus(us, them);
+        return false;
+    }
 
     return true;
 }

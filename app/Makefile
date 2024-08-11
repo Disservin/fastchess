@@ -135,6 +135,11 @@ ifneq ($(GIT_DATE), )
 	CXXFLAGS += -DGIT_DATE=\"$(GIT_DATE)\"
 endif
 
+COMPILE_MSG=
+ifneq ($(COMPILE_MSG),)
+	CXXFLAGS += -DCOMPILE_MSG="\"$(COMPILE_MSG)\""
+endif
+
 # Compile with Cutechess output support
 ifeq ($(USE_CUTE), true)
 	CXXFLAGS += -DUSE_CUTE

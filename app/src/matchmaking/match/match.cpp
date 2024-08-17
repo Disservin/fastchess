@@ -207,8 +207,6 @@ bool Match::playMove(Player& us, Player& them) {
         return false;
     }
 
-    Logger::trace<true>("Engine {} is thinking", name);
-
     // wait for bestmove
     auto t0     = clock::now();
     auto status = us.engine.readEngine("bestmove", us.getTimeoutThreshold());

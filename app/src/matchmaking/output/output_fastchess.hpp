@@ -110,7 +110,7 @@ class Fastchess : public IOutput {
         auto fmt = fmt::format("Started game {} of {} ({} vs {})\n", current_game_count, max_game_count,
                                configs.white.name, configs.black.name);
 
-        std::cout << fmt << std::flush;
+        Logger::info(fmt);
     }
 
     void endGame(const GamePair<EngineConfiguration, EngineConfiguration>& configs, const Stats& stats,
@@ -118,7 +118,7 @@ class Fastchess : public IOutput {
         auto fmt = fmt::format("Finished game {} ({} vs {}): {} {{{}}}\n", id, configs.white.name, configs.black.name,
                                formatStats(stats), annotation);
 
-        std::cout << fmt << std::flush;
+        Logger::info(fmt);
     }
 
     void endTournament() override { std::cout << "Tournament finished" << std::endl; }

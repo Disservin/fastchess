@@ -35,6 +35,9 @@ OPTIONS
         -concurrency N
             Play N games concurrently. Default value is 1.
 
+        --force-concurrency
+            Ignore the hardware concurrency limit and force the specified concurrency.
+
         -rounds N
             Play N rounds of games. Default value is 2.
 

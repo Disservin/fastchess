@@ -455,7 +455,7 @@ void parseConcurrency(const std::vector<std::string> &params, ArgumentData &argu
     parseValue(params, argument_data.tournament_config.concurrency);
 }
 
-void parseForce(const std::vector<std::string> &, ArgumentData &argument_data) {
+void parseForceConcurrency(const std::vector<std::string> &, ArgumentData &argument_data) {
     argument_data.tournament_config.force = true;
 }
 
@@ -603,7 +603,7 @@ OptionsParser::OptionsParser(int argc, char const *argv[]) {
     addOption("report", parseReport);
     addOption("output", parseOutput);
     addOption("concurrency", parseConcurrency);
-    addOption("force", parseForce);
+    addOption("-force-concurrency", parseForceConcurrency);
     addOption("event", parseEvent);
     addOption("site", parseSite);
     addOption("games", parseGames);

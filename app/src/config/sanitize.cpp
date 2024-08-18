@@ -50,8 +50,8 @@ void sanitize(config::Tournament& config) {
         }
     }
 
-    if (config.concurrency > static_cast<int>(std::thread::hardware_concurrency()) && !config.force) {
-        throw std::runtime_error("Error: Concurrency exceeds number of CPUs. Use -force to override.");
+    if (config.concurrency > static_cast<int>(std::thread::hardware_concurrency()) && !config.force_concurrency) {
+        throw std::runtime_error("Error: Concurrency exceeds number of CPUs. Use --force-concurrency to override.");
     }
 
     if (config.variant == VariantType::FRC && config.opening.file.empty()) {

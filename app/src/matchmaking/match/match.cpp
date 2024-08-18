@@ -201,13 +201,12 @@ bool Match::playMove(Player& us, Player& them) {
     if (!validConnection(us, them)) return false;
 
     // write go command
+    Logger::trace<true>("Engine {} is thinking", name);
     success = us.engine.go(us.getTimeControl(), them.getTimeControl(), board_.sideToMove());
     if (!success) {
         setEngineCrashStatus(us, them);
         return false;
     }
-
-    Logger::trace<true>("Engine {} is thinking", name);
 
     // wait for bestmove
     auto t0     = clock::now();
@@ -343,7 +342,7 @@ void Match::setEngineCrashStatus(Player& loser, Player& winner) {
     data_.termination = MatchTermination::DISCONNECT;
     data_.reason      = color + Match::DISCONNECT_MSG;
 
-    Logger::warn<true>("Warning; Engine {} disconnects", name);
+    Logger::trace<true>("Engine {} disconnects", name);
 }
 
 void Match::setEngineStallStatus(Player& loser, Player& winner) {
@@ -358,7 +357,7 @@ void Match::setEngineStallStatus(Player& loser, Player& winner) {
     data_.termination = MatchTermination::STALL;
     data_.reason      = color + Match::STALL_MSG;
 
-    Logger::warn<true>("Warning; Engine {}'s connection stalls", name);
+    Logger::trace<true>("Engine {}'s connection stalls", name);
 }
 
 void Match::setEngineTimeoutStatus(Player& loser, Player& winner) {
@@ -371,7 +370,7 @@ void Match::setEngineTimeoutStatus(Player& loser, Player& winner) {
     data_.termination = MatchTermination::TIMEOUT;
     data_.reason      = color + Match::TIMEOUT_MSG;
 
-    Logger::warn<true>("Warning; Engine {} loses on time", name);
+    Logger::trace<true>("Engine {} loses on time", name);
 
     // we send a stop command to the engine to prevent it from thinking
     // and wait for a bestmove to appear

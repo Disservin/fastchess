@@ -11,7 +11,7 @@
 
 #include <json.hpp>
 
-namespace fast_chess {
+namespace fastchess {
 
 TimeControl::TimeControl(const Limits &limits) : limits_(limits) {
     if (limits_.fixed_time != 0) {
@@ -19,6 +19,7 @@ TimeControl::TimeControl(const Limits &limits) : limits_(limits) {
     } else {
         time_left_ = limits_.time + limits_.increment;
     }
+
     moves_left_ = limits_.moves;
 }
 
@@ -69,11 +70,11 @@ std::ostream &operator<<(std::ostream &os, const TimeControl &tc) {
 
     if (tc.limits_.moves > 0) os << tc.limits_.moves << "/";
 
-    if (tc.limits_.time > 0) os << (tc.limits_.time / 1000.0);
+    if (tc.limits_.time + tc.limits_.increment > 0) os << (tc.limits_.time / 1000.0);
 
     if (tc.limits_.increment > 0) os << "+" << (tc.limits_.increment / 1000.0);
 
     return os;
 }
 
-}  // namespace fast_chess
+}  // namespace fastchess

@@ -5,7 +5,7 @@
 #    include <windows.h>
 #endif
 
-namespace fast_chess {
+namespace fastchess {
 
 /**
  * Information about the started processes (engines).
@@ -43,4 +43,4 @@ void stopProcesses();
 
 // Set the signal handler for SIGINT (Ctrl+C) to trigger the stop flag.
 void setCtrlCHandler();
-}  // namespace fast_chess
+}  // namespace fastchess

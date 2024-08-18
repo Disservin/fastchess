@@ -5,7 +5,7 @@
 
 #include <chess.hpp>
 
-namespace fast_chess::pgn {
+namespace fastchess::pgn {
 
 class PGNVisitor : public chess::pgn::Visitor {
    public:
@@ -84,4 +84,4 @@ std::vector<pgn::Opening> PgnReader::analyseFile() {
     return pgns_;
 }
 
-}  // namespace fast_chess::pgn
+}  // namespace fastchess::pgn

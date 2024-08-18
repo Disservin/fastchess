@@ -19,7 +19,7 @@
 #    include "../../../third_party/gzip/gzstream.h"
 #endif
 
-namespace fast_chess {
+namespace fastchess {
 
 // Singleton class for logging messages to the console/file.
 class Logger {
@@ -136,4 +136,4 @@ class Logger {
     static std::mutex log_mutex_;
 };
 
-}  // namespace fast_chess
+}  // namespace fastchess

@@ -38,7 +38,9 @@
 
 #    include <argv_split.hpp>
 
-namespace fast_chess {
+extern char **environ;
+
+namespace fastchess {
 extern util::ThreadVector<ProcessInformation> process_list;
 
 namespace atomic {
@@ -47,13 +49,11 @@ extern std::atomic_bool stop;
 
 namespace engine::process {
 
-inline char **environ;
-
 class Process : public IProcess {
    public:
     virtual ~Process() override { killProcess(); }
 
-    bool init(const std::string &command, const std::string &args, const std::string &log_name) override {
+    Status init(const std::string &command, const std::string &args, const std::string &log_name) override {
         assert(!is_initalized_);
 
         command_       = command;
@@ -74,8 +74,13 @@ class Process : public IProcess {
 
         try {
             setup_spawn_file_actions(file_actions, out_pipe_.read_end(), STDIN_FILENO);
+            setup_close_file_actions(file_actions, out_pipe_.read_end());
+
+            // keep open for self to pipe trick
             setup_spawn_file_actions(file_actions, in_pipe_.write_end(), STDOUT_FILENO);
+
             setup_spawn_file_actions(file_actions, err_pipe_.write_end(), STDERR_FILENO);
+            setup_close_file_actions(file_actions, err_pipe_.write_end());
 
             if (posix_spawn(&process_pid_, command.c_str(), &file_actions, nullptr, execv_argv, environ) != 0) {
                 throw std::runtime_error("posix_spawn failed");
@@ -86,23 +91,23 @@ class Process : public IProcess {
             startup_error_ = true;
 
             posix_spawn_file_actions_destroy(&file_actions);
-            return false;
+            return Status::ERR;
         }
 
         // Append the process to the list of running processes
         // which are killed when the program exits, as a last resort
         process_list.push(ProcessInformation{process_pid_, in_pipe_.write_end()});
 
-        return true;
+        return Status::OK;
     }
 
-    bool alive() const noexcept override {
+    Status alive() const noexcept override {
         assert(is_initalized_);
 
         int status;
         const pid_t r = waitpid(process_pid_, &status, WNOHANG);
 
-        return r == 0;
+        return r == 0 ? Status::OK : Status::ERR;
     }
 
     std::string signalToString(int status) {
@@ -238,21 +243,26 @@ class Process : public IProcess {
         return Status::OK;
     }
 
-    bool writeProcess(const std::string &input) noexcept override {
+    Status writeProcess(const std::string &input) noexcept override {
         assert(is_initalized_);
 
-        if (!alive()) return false;
+        if (alive() != Status::OK) return Status::ERR;
 
-        if (write(out_pipe_.write_end(), input.c_str(), input.size()) == -1) return false;
+        if (write(out_pipe_.write_end(), input.c_str(), input.size()) == -1) return Status::ERR;
 
-        return true;
+        return Status::OK;
     }
 
    private:
     void setup_spawn_file_actions(posix_spawn_file_actions_t &file_actions, int fd, int target_fd) {
-        if (posix_spawn_file_actions_adddup2(&file_actions, fd, target_fd) != 0 ||
-            posix_spawn_file_actions_addclose(&file_actions, fd) != 0) {
+        if (posix_spawn_file_actions_adddup2(&file_actions, fd, target_fd) != 0) {
             throw std::runtime_error("posix_spawn_file_actions_add* failed");
+        }
+    }
+
+    void setup_close_file_actions(posix_spawn_file_actions_t &file_actions, int fd) {
+        if (posix_spawn_file_actions_addclose(&file_actions, fd) != 0) {
+            throw std::runtime_error("posix_spawn_file_actions_addclose failed");
         }
     }
 
@@ -321,6 +331,6 @@ class Process : public IProcess {
     Pipe in_pipe_ = {}, out_pipe_ = {}, err_pipe_ = {};
 };
 }  // namespace engine::process
-}  // namespace fast_chess
+}  // namespace fastchess
 
 #endif

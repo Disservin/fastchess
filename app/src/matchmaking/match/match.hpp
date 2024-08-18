@@ -8,7 +8,7 @@
 #include <pgn/pgn_reader.hpp>
 #include <types/match_data.hpp>
 
-namespace fast_chess {
+namespace fastchess {
 
 class DrawTracker {
    public:
@@ -113,13 +113,14 @@ class Match {
     // returns the match data, only valid after the match has finished
     [[nodiscard]] const MatchData& get() const { return data_; }
 
-    [[nodiscard]] bool isCrashOrDisconnect() const noexcept { return crash_or_disconnect_; }
+    [[nodiscard]] bool isStallOrDisconnect() const noexcept { return stall_or_disconnect_; }
 
    private:
     // returns the reason and the result of the game, different order than chess lib function
     [[nodiscard]] std::pair<chess::GameResultReason, chess::GameResult> isGameOver() const;
 
     void setEngineCrashStatus(Player& loser, Player& winner);
+    void setEngineStallStatus(Player& loser, Player& winner);
     void setEngineTimeoutStatus(Player& loser, Player& winner);
     void setEngineIllegalMoveStatus(Player& loser, Player& winner, const std::optional<std::string>& best_move);
 
@@ -134,6 +135,9 @@ class Match {
 
     // returns false if the next move could not be played
     [[nodiscard]] bool playMove(Player& us, Player& them);
+
+    // returns false if the connection is invalid
+    [[nodiscard]] bool validConnection(Player& us, Player& them);
 
     // returns true if adjudicated
     [[nodiscard]] bool adjudicate(Player& us, Player& them) noexcept;
@@ -166,7 +170,7 @@ class Match {
     // is either startpos or the fen of the opening
     std::string start_position_;
 
-    bool crash_or_disconnect_ = false;
+    bool stall_or_disconnect_ = false;
 
     inline static constexpr char INSUFFICIENT_MSG[]     = "Draw by insufficient mating material";
     inline static constexpr char REPETITION_MSG[]       = "Draw by 3-fold repetition";
@@ -178,5 +182,6 @@ class Match {
     inline static constexpr char CHECKMATE_MSG[]        = /*..*/ " mates";
     inline static constexpr char TIMEOUT_MSG[]          = /*.. */ " loses on time";
     inline static constexpr char DISCONNECT_MSG[]       = /*.. */ " disconnects";
+    inline static constexpr char STALL_MSG[]            = /*.. */ "'s connection stalls";
 };
-}  // namespace fast_chess
+}  // namespace fastchess

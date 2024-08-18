@@ -4,7 +4,7 @@
 
 #include <engine/uci_engine.hpp>
 
-namespace fast_chess {
+namespace fastchess {
 
 class Player {
    public:
@@ -45,4 +45,4 @@ class Player {
     TimeControl time_control_;
 };
 
-}  // namespace fast_chess
+}  // namespace fastchess

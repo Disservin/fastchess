@@ -12,7 +12,7 @@
 #include <matchmaking/output/output.hpp>
 #include <util/logger/logger.hpp>
 
-namespace fast_chess {
+namespace fastchess {
 
 class Fastchess : public IOutput {
    public:
@@ -171,4 +171,4 @@ class Fastchess : public IOutput {
     bool report_penta_;
 };
 
-}  // namespace fast_chess
+}  // namespace fastchess

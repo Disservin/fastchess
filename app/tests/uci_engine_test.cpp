@@ -8,7 +8,7 @@
 
 #include "doctest/doctest.hpp"
 
-using namespace fast_chess;
+using namespace fastchess;
 
 namespace {
 
@@ -108,13 +108,13 @@ TEST_SUITE("Uci Engine Communication Tests") {
         CHECK(uciOutput[0].line == "line0");
         CHECK(uciOutput[1].line == "line1");
         CHECK(uciOutput[2].line == "uciok");
-        CHECK(uci_engine.isready());
+        CHECK(uci_engine.isready() == engine::process::Status::OK);
 
-        uci_engine.writeEngine("sleep");
+        CHECK(uci_engine.writeEngine("sleep"));
         const auto res = uci_engine.readEngine("done", std::chrono::milliseconds(100));
         CHECK(res == engine::process::Status::TIMEOUT);
 
-        uci_engine.writeEngine("sleep");
+        CHECK(uci_engine.writeEngine("sleep"));
         const auto res2 = uci_engine.readEngine("done", std::chrono::milliseconds(5000));
         CHECK(res2 == engine::process::Status::OK);
         CHECK(uci_engine.output().size() == 1);
@@ -132,7 +132,7 @@ TEST_SUITE("Uci Engine Communication Tests") {
 
         CHECK(uci_engine.start());
 
-        uci_engine.writeEngine("uci");
+        CHECK(uci_engine.writeEngine("uci"));
         const auto res = uci_engine.readEngine("uciok");
 
         CHECK(res == engine::process::Status::OK);
@@ -141,19 +141,19 @@ TEST_SUITE("Uci Engine Communication Tests") {
         CHECK(uci_engine.output()[1].line == "line1");
         CHECK(uci_engine.output()[2].line == "uciok");
 
-        uci_engine.writeEngine("isready");
+        CHECK(uci_engine.writeEngine("isready"));
         const auto res2 = uci_engine.readEngine("readyok");
         CHECK(res2 == engine::process::Status::OK);
         CHECK(uci_engine.output().size() == 1);
         CHECK(uci_engine.output()[0].line == "readyok");
 
-        uci_engine.writeEngine("sleep");
+        CHECK(uci_engine.writeEngine("sleep"));
         const auto res3 = uci_engine.readEngine("done", std::chrono::milliseconds(100));
         CHECK(res3 == engine::process::Status::TIMEOUT);
 
         std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
-        uci_engine.writeEngine("sleep");
+        CHECK(uci_engine.writeEngine("sleep"));
         const auto res4 = uci_engine.readEngine("done", std::chrono::milliseconds(5000));
         CHECK(res4 == engine::process::Status::OK);
         CHECK(uci_engine.output().size() == 1);
@@ -171,7 +171,7 @@ TEST_SUITE("Uci Engine Communication Tests") {
 
         CHECK(uci_engine.start());
 
-        uci_engine.writeEngine("uci");
+        CHECK(uci_engine.writeEngine("uci"));
         const auto res = uci_engine.readEngine("uciok");
 
         CHECK(res == engine::process::Status::OK);
@@ -182,7 +182,7 @@ TEST_SUITE("Uci Engine Communication Tests") {
 
         uci_engine.restart();
 
-        uci_engine.writeEngine("uci");
+        CHECK(uci_engine.writeEngine("uci"));
         const auto res2 = uci_engine.readEngine("uciok");
 
         CHECK(res2 == engine::process::Status::OK);

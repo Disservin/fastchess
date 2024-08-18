@@ -10,7 +10,7 @@
 #include <types/enums.hpp>
 #include <types/match_data.hpp>
 
-namespace fast_chess {
+namespace fastchess {
 
 namespace engine {
 class UciEngine;
@@ -65,4 +65,4 @@ class IOutput {
     };
 };
 
-}  // namespace fast_chess
+}  // namespace fastchess

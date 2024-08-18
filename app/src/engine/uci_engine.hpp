@@ -16,7 +16,7 @@
 #include <engine/option/options.hpp>
 #include <types/engine_config.hpp>
 
-namespace fast_chess::engine {
+namespace fastchess::engine {
 
 enum class ScoreType { CP, MATE, ERR };
 
@@ -48,7 +48,7 @@ class UciEngine : protected process::Process {
     [[nodiscard]] bool ucinewgame();
 
     // Sends "isready" to the engine
-    [[nodiscard]] bool isready(std::chrono::milliseconds threshold = ping_time_);
+    [[nodiscard]] process::Status isready(std::chrono::milliseconds threshold = ping_time_);
 
     // Sends "position" to the engine and waits for a response.
     [[nodiscard]] bool position(const std::vector<std::string> &moves, const std::string &fen);
@@ -90,8 +90,20 @@ class UciEngine : protected process::Process {
     [[nodiscard]] const std::vector<process::Line> &output() const noexcept { return output_; }
     [[nodiscard]] const EngineConfiguration &getConfig() const noexcept { return config_; }
 
-    // @TODO: expose this to the user
-    static constexpr std::chrono::milliseconds startup_time_    = std::chrono::seconds(25);
+    [[nodiscard]] static std::string getPath(const EngineConfiguration &config) {
+        std::string path = (config.dir == "." ? "" : config.dir) + config.cmd;
+
+#ifndef NO_STD_FILESYSTEM
+        // convert path to a filesystem path
+        auto p = std::filesystem::path(config.dir) / std::filesystem::path(config.cmd);
+        path   = p.string();
+#endif
+
+        return path;
+    }
+
+    // @TODO: expose this to the user?
+    static constexpr std::chrono::milliseconds startup_time_    = std::chrono::seconds(10);
     static constexpr std::chrono::milliseconds ucinewgame_time_ = std::chrono::seconds(60);
     static constexpr std::chrono::milliseconds ping_time_       = std::chrono::seconds(60);
 
@@ -109,4 +121,4 @@ class UciEngine : protected process::Process {
     // init on first use
     bool initialized_ = false;
 };
-}  // namespace fast_chess::engine
+}  // namespace fastchess::engine

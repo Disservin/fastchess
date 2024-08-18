@@ -8,7 +8,7 @@
 
 #include <matchmaking/output/output.hpp>
 
-namespace fast_chess::pgn {
+namespace fastchess::pgn {
 
 namespace str {
 template <typename T>
@@ -172,6 +172,8 @@ std::string PgnBuilder::convertMatchTermination(const MatchTermination &res) noe
             return "adjudication";
         case MatchTermination::DISCONNECT:
             return "abandoned";
+        case MatchTermination::STALL:
+            return "abandoned";
         case MatchTermination::TIMEOUT:
             return "time forfeit";
         case MatchTermination::ILLEGAL_MOVE:
@@ -183,4 +185,4 @@ std::string PgnBuilder::convertMatchTermination(const MatchTermination &res) noe
     }
 }
 
-}  // namespace fast_chess::pgn
+}  // namespace fastchess::pgn

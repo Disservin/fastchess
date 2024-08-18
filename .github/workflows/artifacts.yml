@@ -65,14 +65,18 @@ jobs:
         run: |
           git rev-parse --short "$GITHUB_SHA" > sha && echo "git_sha=$(cat sha)" >> $GITHUB_ENV && echo "Git sha:" $(cat sha)
 
+      - name: Get commit date
+        id: commit_date
+        run: echo "COMMIT_DATE=$(git show -s --date=format:'%Y%m%d' --format=%cd HEAD)" >> $GITHUB_ENV
+
       # Compiles
 
-      - name: Building Fast-Chess
+      - name: Building fastchess
         run: |
-          make -j2 build=release
-          strip ./fast-chess$EXT
-          mv fast-chess$EXT fast-chess-$OS$EXT
-          ./fast-chess* -version
+          make -j2 build=release COMPILE_MSG="compiled for ${{ matrix.config.os }} ${{ env.COMMIT_DATE }}-${{ env.COMMIT_SHA }} (CI)"
+          strip ./fastchess$EXT
+          mv fastchess$EXT fastchess-$OS$EXT
+          ./fastchess* -version
 
       - name: Find and remove empty files
         run: rm -rf *.o *.d sha
@@ -81,7 +85,7 @@ jobs:
       - name: Archive binaries
         uses: actions/upload-artifact@v3
         with:
-          name: fast-chess-${{ matrix.config.os }}
+          name: fastchess-${{ matrix.config.os }}
           path: |
             app
             .clang-format
@@ -90,4 +94,4 @@ jobs:
             man
             README.md
             LICENSE
-            fast-chess-${{ matrix.config.os }}${{ matrix.config.ext }}
+            fastchess-${{ matrix.config.os }}${{ matrix.config.ext }}

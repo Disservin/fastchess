@@ -7,7 +7,7 @@
 #include <util/helper.hpp>
 #include <util/logger/logger.hpp>
 
-namespace fast_chess {
+namespace fastchess {
 
 namespace atomic {
 extern std::atomic_bool stop;
@@ -103,7 +103,17 @@ void Match::start(engine::UciEngine& white, engine::UciEngine& black, const std:
     white_player.color = Color::WHITE;
     black_player.color = Color::BLACK;
 
-    if (!white_player.engine.start() || !black_player.engine.start()) {
+    if (!white_player.engine.start()) {
+        Logger::trace<true>("Failed to start engines, stopping tournament.");
+        atomic::stop = true;
+        return;
+    }
+
+    if (atomic::stop.load()) {
+        return;
+    }
+
+    if (!black_player.engine.start()) {
         Logger::trace<true>("Failed to start engines, stopping tournament.");
         atomic::stop = true;
         return;
@@ -176,11 +186,8 @@ bool Match::playMove(Player& us, Player& them) {
         return false;
     }
 
-    // disconnect
-    if (!us.engine.isready()) {
-        setEngineCrashStatus(us, them);
-        return false;
-    }
+    // make sure the engine is not in an invalid state
+    if (!validConnection(us, them)) return false;
 
     // write new uci position
     auto success = us.engine.position(uci_moves_, start_position_);
@@ -189,20 +196,17 @@ bool Match::playMove(Player& us, Player& them) {
         return false;
     }
 
-    // wait for readyok
-    if (!us.engine.isready()) {
-        setEngineCrashStatus(us, them);
-        return false;
-    }
+    // make sure the engine is not in an invalid state
+    // after writing the position
+    if (!validConnection(us, them)) return false;
 
     // write go command
+    Logger::trace<true>("Engine {} is thinking", name);
     success = us.engine.go(us.getTimeControl(), them.getTimeControl(), board_.sideToMove());
     if (!success) {
         setEngineCrashStatus(us, them);
         return false;
     }
-
-    Logger::trace<true>("Engine {} is thinking", name);
 
     // wait for bestmove
     auto t0     = clock::now();
@@ -223,10 +227,14 @@ bool Match::playMove(Player& us, Player& them) {
 
     Logger::trace<true>("Check if engine {} is in a ready state", name);
 
-    if (status == engine::process::Status::ERR || !us.engine.isready()) {
+    if (status == engine::process::Status::ERR) {
         setEngineCrashStatus(us, them);
         return false;
     }
+
+    // make sure the engine is not in an invalid state after
+    // the search completed
+    if (!validConnection(us, them)) return false;
 
     Logger::trace<true>("Engine {} is in a ready state", name);
 
@@ -271,7 +279,7 @@ bool Match::playMove(Player& us, Player& them) {
 
     // CuteChess uses plycount/2 for its movenumber, which is wrong for epd books as it doesnt take
     // into account the fullmove counter of the starting FEN, leading to different behavior between
-    // pgn and epd adjudication. fast-chess fixes this by using the fullmove counter from the board
+    // pgn and epd adjudication. fastchess fixes this by using the fullmove counter from the board
     // object directly
     auto score = us.engine.lastScore();
     auto type  = us.engine.lastScoreType();
@@ -279,6 +287,22 @@ bool Match::playMove(Player& us, Player& them) {
     draw_tracker_.update(score, type, board_.halfMoveClock());
     resign_tracker_.update(score, type, ~board_.sideToMove());
     maxmoves_tracker_.update();
+
+    return true;
+}
+
+bool Match::validConnection(Player& us, Player& them) {
+    const auto is_ready = us.engine.isready();
+
+    if (is_ready == engine::process::Status::TIMEOUT) {
+        setEngineStallStatus(us, them);
+        return false;
+    }
+
+    if (is_ready != engine::process::Status::OK) {
+        setEngineCrashStatus(us, them);
+        return false;
+    }
 
     return true;
 }
@@ -310,7 +334,7 @@ void Match::setEngineCrashStatus(Player& loser, Player& winner) {
     loser.setLost();
     winner.setWon();
 
-    crash_or_disconnect_ = true;
+    stall_or_disconnect_ = true;
 
     const auto name  = loser.engine.getConfig().name;
     const auto color = getColorString();
@@ -318,7 +342,22 @@ void Match::setEngineCrashStatus(Player& loser, Player& winner) {
     data_.termination = MatchTermination::DISCONNECT;
     data_.reason      = color + Match::DISCONNECT_MSG;
 
-    Logger::warn<true>("Warning; Engine {} disconnects", name);
+    Logger::trace<true>("Engine {} disconnects", name);
+}
+
+void Match::setEngineStallStatus(Player& loser, Player& winner) {
+    loser.setLost();
+    winner.setWon();
+
+    stall_or_disconnect_ = true;
+
+    const auto name  = loser.engine.getConfig().name;
+    const auto color = getColorString();
+
+    data_.termination = MatchTermination::STALL;
+    data_.reason      = color + Match::STALL_MSG;
+
+    Logger::trace<true>("Engine {}'s connection stalls", name);
 }
 
 void Match::setEngineTimeoutStatus(Player& loser, Player& winner) {
@@ -331,7 +370,7 @@ void Match::setEngineTimeoutStatus(Player& loser, Player& winner) {
     data_.termination = MatchTermination::TIMEOUT;
     data_.reason      = color + Match::TIMEOUT_MSG;
 
-    Logger::warn<true>("Warning; Engine {} loses on time", name);
+    Logger::trace<true>("Engine {} loses on time", name);
 
     // we send a stop command to the engine to prevent it from thinking
     // and wait for a bestmove to appear
@@ -474,4 +513,4 @@ std::string Match::convertChessReason(const std::string& engine_color, GameResul
     return "";
 }
 
-}  // namespace fast_chess
+}  // namespace fastchess

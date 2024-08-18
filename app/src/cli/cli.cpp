@@ -79,11 +79,12 @@ bool containsEqualSign(const std::vector<std::string> &params) {
 }
 }  // namespace
 
-namespace fast_chess::cli {
+namespace fastchess::cli {
 using json = nlohmann::json;
 
 namespace engine {
 TimeControl::Limits parseTc(const std::string &tcString) {
+    if (str_utils::contains(tcString, "hg")) throw std::runtime_error("Hourglass time control not supported.");
     if (tcString == "infinite" || tcString == "inf") return {};
 
     TimeControl::Limits tc;
@@ -475,8 +476,16 @@ void parseRounds(const std::vector<std::string> &params, ArgumentData &argument_
     parseValue(params, argument_data.tournament_config.rounds);
 }
 
+void parseWait(const std::vector<std::string> &params, ArgumentData &argument_data) {
+    parseValue(params, argument_data.tournament_config.wait);
+}
+
 void parseNoswap(const std::vector<std::string> &, ArgumentData &argument_data) {
     argument_data.tournament_config.noswap = true;
+}
+
+void parseReverse(const std::vector<std::string> &, ArgumentData &argument_data) {
+    argument_data.tournament_config.reverse = true;
 }
 
 void parseRatinginterval(const std::vector<std::string> &params, ArgumentData &argument_data) {
@@ -575,7 +584,7 @@ void parseAffinity(const std::vector<std::string> &, ArgumentData &argument_data
 void parseDebug(const std::vector<std::string> &, ArgumentData &) {
     // throw error
     std::string error_message =
-        "The 'debug' option does not exist in fast-chess."
+        "The 'debug' option does not exist in fastchess."
         " Use the 'log' option instead to write all engine input"
         " and output into a text file.";
     throw std::runtime_error(error_message);
@@ -608,7 +617,9 @@ OptionsParser::OptionsParser(int argc, char const *argv[]) {
     addOption("site", parseSite);
     addOption("games", parseGames);
     addOption("rounds", parseRounds);
+    addOption("wait", parseWait);
     addOption("noswap", parseNoswap);
+    addOption("reverse", parseReverse);
     addOption("ratinginterval", parseRatinginterval);
     addOption("scoreinterval", parseScoreinterval);
     addOption("srand", parseSRand);
@@ -634,4 +645,4 @@ OptionsParser::OptionsParser(int argc, char const *argv[]) {
     }
 }
 
-}  // namespace fast_chess::cli
+}  // namespace fastchess::cli

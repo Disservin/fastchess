@@ -1,13 +1,13 @@
-FAST-CHESS            General Commands Manual            FAST-CHESS
+FASTCHESS            General Commands Manual            FASTCHESS
 
 NAME
-       fast-chess - a command-line tool for managing chess games with engines
+       fastchess - a command-line tool for managing chess games with engines
 
 SYNOPSIS
-       fast-chess [OPTIONS]
+       fastchess [OPTIONS]
 
 DESCRIPTION
-        Fast-chess is a command-line tool designed to manage and orchestrate
+        fastchess is a command-line tool designed to manage and orchestrate
         chess games between engines. It provides a range of options to configure
         game settings, engine parameters, concurrency, and output formats.
 
@@ -33,13 +33,13 @@ OPTIONS
             stats - load the stats from the config file. Defaults to true.
 
         -concurrency N
-            Play N games concurrently. Default value is 1.
+            Play N games concurrently, limited by the number of hardware threads. Default value is 1.
 
         --force-concurrency
             Ignore the hardware concurrency limit and force the specified concurrency.
 
         -rounds N
-            Play N rounds of games. Default value is 2.
+            Play N rounds of games where each game within the round uses the same opening. Default value is 2.
 
         -games N
             Play N games in each round. Default value is 2. 
@@ -117,8 +117,14 @@ OPTIONS
         -epdout file=NAME
             Export the final position of each game in EPD format.
 
+        -wait N
+            Wait N milliseconds between games. Default value is 0.
+
         -noswap
-            If specified, prevents swapping of colors. The first engine listed will always play as white.
+            If specified, prevents swapping of colors.
+
+        -reverse
+            If specified, uses tournament schedule with reversed colors.
 
         -ratinginterval N
             Set the rating interval for the rating report. For penta reports,
@@ -213,10 +219,10 @@ OPTIONS
                 Maximum number of nodes to search. If supported.
             
             [plies=PLIES]
-                Plies (depth) to search. If supported.
+                Maximum number of plies (depth) to search. If supported.
             
             [depth=DEPTH]
-                Depth to search. If supported. Does the same as plies.
+                Maximum number of depth to search. If supported. Does the same as plies.
 
             [proto=PROTOCOL]
                 Specify the communication protocol. Only supports uci.
@@ -231,18 +237,18 @@ OPTIONS
 
 EXAMPLES
         To start a match between two engines using a random order of openings from book.epd:
-            $ fast-chess -engine cmd=Engine1.exe name=Engine1 -engine cmd=Engine2.exe \
+            $ fastchess -engine cmd=Engine1.exe name=Engine1 -engine cmd=Engine2.exe \
               name=Engine2 -openings file=book.epd format=epd order=random \
               -each tc=10+0.1 -rounds 200 -repeat -concurrency 4
 
         To resume a match from a saved configuration:
-            $ fast-chess -config file=config.json
+            $ fastchess -config file=config.json
 
 AUTHORS
-        fast-chess was written by Disservin, Szil, PGG106, and contributors.
+        fastchess was written by Disservin, Szil, PGG106, and contributors.
 
 REPORTING BUGS
-        Report any bugs to https://github.com/Disservin/fast-chess/issues.
+        Report any bugs to https://github.com/Disservin/fastchess/issues.
 
 COPYRIGHT
         This software is licensed under the MIT license. See the LICENSE file for details.

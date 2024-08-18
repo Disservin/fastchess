@@ -2,11 +2,11 @@
 
 #include "doctest/doctest.hpp"
 
-using namespace fast_chess;
+using namespace fastchess;
 
 TEST_SUITE("Option Parsing Tests") {
     TEST_CASE("Testing Engine options parsing") {
-        const char *argv[] = {"fast-chess.exe",
+        const char *argv[] = {"fastchess.exe",
                               "-engine",
                               "dir=./",
                               "cmd=app/tests/mock/engine/dummy_engine",
@@ -72,7 +72,7 @@ TEST_SUITE("Option Parsing Tests") {
     }
 
     TEST_CASE("Testing Cli Options Parsing") {
-        const char *argv[]         = {"fast-chess.exe",
+        const char *argv[]         = {"fastchess.exe",
                                       "-recover",
                                       "-concurrency",
                                       "8",

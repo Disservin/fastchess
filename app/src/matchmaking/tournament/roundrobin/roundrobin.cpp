@@ -8,7 +8,7 @@
 #include <util/rand.hpp>
 #include <util/scope_guard.hpp>
 
-namespace fast_chess {
+namespace fastchess {
 
 RoundRobin::RoundRobin(const stats_map& results) : BaseTournament(results) {
     // Initialize the SPRT test
@@ -59,6 +59,10 @@ void RoundRobin::create() {
             std::swap(configs.white, configs.black);
         }
 
+        if (config::TournamentConfig.get().reverse) {
+            std::swap(configs.white, configs.black);
+        }
+
         // callback functions, do not capture by reference
         const auto start = [this, configs, game_id]() { output_->startGame(configs, game_id, total_); };
 
@@ -101,6 +105,8 @@ void RoundRobin::create() {
         };
 
         playGame(configs, start, finish, opening, round_id, game_id);
+        if (config::TournamentConfig.get().wait > 0)
+            std::this_thread::sleep_for(std::chrono::milliseconds(config::TournamentConfig.get().wait));
     };
 
     for (std::size_t i = 0; i < config::EngineConfigs.get().size(); i++) {
@@ -135,4 +141,4 @@ void RoundRobin::updateSprtStatus(const std::vector<EngineConfiguration>& engine
     }
 }
 
-}  // namespace fast_chess
+}  // namespace fastchess

@@ -6,7 +6,7 @@
 #include <string_view>
 #include <vector>
 
-namespace fast_chess::engine::process {
+namespace fastchess::engine::process {
 
 enum class Standard { INPUT, OUTPUT, ERR };
 enum class Status { OK, ERR, TIMEOUT, NONE };
@@ -30,10 +30,10 @@ class IProcess {
     void setRealtimeLogging(bool realtime_logging) noexcept { realtime_logging_ = realtime_logging; }
 
     // Initialize the process
-    virtual bool init(const std::string &command, const std::string &args, const std::string &log_name) = 0;
+    virtual Status init(const std::string &command, const std::string &args, const std::string &log_name) = 0;
 
     // Returns true if the process is alive
-    [[nodiscard]] virtual bool alive() const noexcept = 0;
+    [[nodiscard]] virtual Status alive() const noexcept = 0;
 
     virtual void setAffinity(const std::vector<int> &cpus) noexcept = 0;
 
@@ -46,9 +46,9 @@ class IProcess {
                                std::chrono::milliseconds threshold) = 0;
 
     // Write input to the engine's stdin
-    virtual bool writeProcess(const std::string &input) noexcept = 0;
+    virtual Status writeProcess(const std::string &input) noexcept = 0;
 
     bool realtime_logging_ = true;
 };
 
-}  // namespace fast_chess::engine::process
+}  // namespace fastchess::engine::process

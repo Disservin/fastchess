@@ -1,7 +1,7 @@
 #Compiler
 CXX              := g++
 
-TARGET           := fast-chess
+TARGET           := fastchess
 BINARY_PATH	  	 := .
 
 # Source, Includes
@@ -133,6 +133,11 @@ endif
 GIT_DATE = $(shell git show -s --date=format:'%Y%m%d' --format=%cd HEAD 2>/dev/null)
 ifneq ($(GIT_DATE), )
 	CXXFLAGS += -DGIT_DATE=\"$(GIT_DATE)\"
+endif
+
+COMPILE_MSG=
+ifneq ($(COMPILE_MSG),)
+	CXXFLAGS += -DCOMPILE_MSG="\"$(COMPILE_MSG)\""
 endif
 
 # Compile with Cutechess output support

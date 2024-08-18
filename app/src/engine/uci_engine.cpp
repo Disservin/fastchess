@@ -1,5 +1,7 @@
 #include <engine/uci_engine.hpp>
 
+#include <condition_variable>
+#include <mutex>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -9,41 +11,75 @@
 #include <util/helper.hpp>
 #include <util/logger/logger.hpp>
 
-namespace fast_chess::engine {
+namespace fastchess::engine {
 
-bool UciEngine::isready(std::chrono::milliseconds threshold) {
-    try {
-        if (!alive()) return false;
+// A counting semaphore to limit the number of threads
+class CountingSemaphore {
+   public:
+    CountingSemaphore(int max_) : max__(max_), current_(0) {}
 
-        Logger::trace<true>("Pinging engine {}", config_.name);
-
-        writeEngine("isready");
-
-        std::vector<process::Line> output;
-        const auto res = readProcess(output, "readyok", threshold);
-
-        // print output in case we are using delayed logging
-        if (!realtime_logging_) {
-            for (const auto &line : output) {
-                Logger::readFromEngine(line.line, line.time, config_.name, line.std == process::Standard::ERR);
-            }
-        }
-
-        if (res != process::Status::OK) {
-            Logger::trace<true>("Engine {} didn't respond to isready.", config_.name);
-            Logger::warn<true>("Warning; Engine {} is not responsive.", config_.name);
-        }
-
-        Logger::trace<true>("Engine {} is {}", config_.name,
-                            res == process::Status::OK ? "responsive." : "not responsive.");
-
-        return res == process::Status::OK;
-
-    } catch (const std::exception &e) {
-        Logger::trace<true>("Raised Exception in isready: {}", e.what());
-
-        return false;
+    void acquire() {
+        std::unique_lock<std::mutex> lock(mtx_);
+        cond_.wait(lock, [this] { return current_ < max__; });
+        ++current_;
     }
+
+    void release() {
+        std::lock_guard<std::mutex> lock(mtx_);
+        --current_;
+        cond_.notify_one();
+    }
+
+   private:
+    std::mutex mtx_;
+    std::condition_variable cond_;
+    int max__;
+    int current_;
+};
+
+// RAII class to acquire and release the semaphore
+class AcquireSemaphore {
+   public:
+    explicit AcquireSemaphore(CountingSemaphore &semaphore) : semaphore_(semaphore) { semaphore_.acquire(); }
+
+    ~AcquireSemaphore() { semaphore_.release(); }
+
+   private:
+    CountingSemaphore &semaphore_;
+};
+
+namespace {
+CountingSemaphore semaphore(16);
+}
+
+process::Status UciEngine::isready(std::chrono::milliseconds threshold) {
+    const auto is_alive = alive();
+    if (is_alive != process::Status::OK) return is_alive;
+
+    Logger::trace<true>("Pinging engine {}", config_.name);
+
+    writeEngine("isready");
+
+    std::vector<process::Line> output;
+    const auto res = readProcess(output, "readyok", threshold);
+
+    // print output in case we are using delayed logging
+    if (!realtime_logging_) {
+        for (const auto &line : output) {
+            Logger::readFromEngine(line.line, line.time, config_.name, line.std == process::Standard::ERR);
+        }
+    }
+
+    if (res != process::Status::OK) {
+        Logger::trace<true>("Engine {} didn't respond to isready.", config_.name);
+        Logger::warn<true>("Warning; Engine {} is not responsive.", config_.name);
+
+        return res;
+    }
+
+    Logger::trace<true>("Engine {} is {}", config_.name, "responsive.");
+
+    return res;
 }
 
 bool UciEngine::position(const std::vector<std::string> &moves, const std::string &fen) {
@@ -63,50 +99,60 @@ bool UciEngine::go(const TimeControl &our_tc, const TimeControl &enemy_tc, chess
     std::stringstream input;
     input << "go";
 
-    if (config_.limit.nodes != 0) input << " nodes " << config_.limit.nodes;
+    if (config_.limit.nodes) {
+        input << " nodes " << config_.limit.nodes;
+    }
 
-    if (config_.limit.plies != 0) input << " depth " << config_.limit.plies;
+    if (config_.limit.plies) {
+        input << " depth " << config_.limit.plies;
+    }
 
     // We cannot use st and tc together
     if (our_tc.isFixedTime()) {
         input << " movetime " << our_tc.getFixedTime();
-    } else {
-        auto white = stm == chess::Color::WHITE ? our_tc : enemy_tc;
-        auto black = stm == chess::Color::WHITE ? enemy_tc : our_tc;
+        return writeEngine(input.str());
+    }
 
-        if (our_tc.isTimed() || our_tc.isIncrement()) {
-            if (white.isTimed() || white.isIncrement()) input << " wtime " << white.getTimeLeft();
-            if (black.isTimed() || black.isIncrement()) input << " btime " << black.getTimeLeft();
+    const auto &white = stm == chess::Color::WHITE ? our_tc : enemy_tc;
+    const auto &black = stm == chess::Color::WHITE ? enemy_tc : our_tc;
+
+    if (our_tc.isTimed() || our_tc.isIncrement()) {
+        if (white.isTimed() || white.isIncrement()) {
+            input << " wtime " << white.getTimeLeft();
         }
 
-        if (our_tc.isIncrement()) {
-            if (white.isIncrement()) input << " winc " << white.getIncrement();
-            if (black.isIncrement()) input << " binc " << black.getIncrement();
+        if (black.isTimed() || black.isIncrement()) {
+            input << " btime " << black.getTimeLeft();
+        }
+    }
+
+    if (our_tc.isIncrement()) {
+        if (white.isIncrement()) {
+            input << " winc " << white.getIncrement();
         }
 
-        if (our_tc.isMoves()) {
-            input << " movestogo " << our_tc.getMovesLeft();
+        if (black.isIncrement()) {
+            input << " binc " << black.getIncrement();
         }
+    }
+
+    if (our_tc.isMoves()) {
+        input << " movestogo " << our_tc.getMovesLeft();
     }
 
     return writeEngine(input.str());
 }
 
 bool UciEngine::ucinewgame() {
-    try {
-        Logger::trace<true>("Sending ucinewgame to engine {}", config_.name);
-        auto res = writeEngine("ucinewgame");
+    Logger::trace<true>("Sending ucinewgame to engine {}", config_.name);
+    auto res = writeEngine("ucinewgame");
 
-        if (!res) {
-            Logger::trace<true>("Failed to send ucinewgame to engine {}", config_.name);
-            return false;
-        }
-
-        return isready(ucinewgame_time_);
-    } catch (const std::exception &e) {
-        Logger::trace<true>("Raised Exception in ucinewgame: {}", e.what());
+    if (!res) {
+        Logger::trace<true>("Failed to send ucinewgame to engine {}", config_.name);
         return false;
     }
+
+    return isready(ucinewgame_time_) == process::Status::OK;
 }
 
 bool UciEngine::uci() {
@@ -153,6 +199,7 @@ void UciEngine::quit() {
 
 void UciEngine::sendSetoption(const std::string &name, const std::string &value) {
     auto option = uci_options_.getOption(name);
+
     if (!option.has_value()) {
         Logger::info<true>("Warning: {} doesn't have option {}", config_.name, name);
         return;
@@ -176,28 +223,28 @@ void UciEngine::sendSetoption(const std::string &name, const std::string &value)
 bool UciEngine::start() {
     if (initialized_) return true;
 
-    std::string path = (config_.dir == "." ? "" : config_.dir) + config_.cmd;
+    AcquireSemaphore semaphore_acquire(semaphore);
 
-#ifndef NO_STD_FILESYSTEM
-    // convert path to a filesystem path
-    auto p = std::filesystem::path(config_.dir) / std::filesystem::path(config_.cmd);
-    path   = p.string();
-#endif
-
+    const auto path = getPath(config_);
     Logger::trace<true>("Starting engine {} at {}", config_.name, path);
 
-    if (!init(path, config_.args, config_.name)) {
+    // Creates the engine process and sets the pipes
+    if (init(path, config_.args, config_.name) != process::Status::OK) {
         Logger::warn<true>("Warning: Cannot start engine {}:", config_.name);
         Logger::warn<true>("Cannot execute command: {}", path);
+
         return false;
     }
 
+    // Wait for the engine to start
     if (!uci() || !uciok(startup_time_)) {
         Logger::warn<true>("Engine {} didn't respond to uci with uciok after startup.", config_.name);
+
         return false;
     }
 
     initialized_ = true;
+
     return true;
 }
 
@@ -207,11 +254,9 @@ bool UciEngine::refreshUci() {
     if (!ucinewgame()) {
         // restart the engine
         Logger::trace<true>("Engine {} failed to refresh. Restarting engine.", config_.name);
-
         restart();
-        if (!uci() || !uciok()) {
-            return false;
-        }
+
+        if (!uci() || !uciok()) return false;
 
         if (!ucinewgame()) {
             Logger::trace<true>("Engine {} responded to uci but not to ucinewgame/isready.", config_.name);
@@ -260,7 +305,7 @@ std::string UciEngine::lastInfoLine() const {
 
 bool UciEngine::writeEngine(const std::string &input) {
     Logger::writeToEngine(input, util::time::datetime_precise(), config_.name);
-    return writeProcess(input + "\n");
+    return writeProcess(input + "\n") == process::Status::OK;
 }
 
 std::optional<std::string> UciEngine::bestmove() const {
@@ -282,10 +327,10 @@ std::optional<std::string> UciEngine::bestmove() const {
 
 std::vector<std::string> UciEngine::lastInfo() const {
     const auto last_info = lastInfoLine();
+
     if (last_info.empty()) {
         Logger::warn<true>(
-            "Warning; No info line found in the last line which includes the "
-            "score from {}",
+            "Warning; Last info string with score not found from {}",
             config_.name);
         return {};
     }
@@ -317,4 +362,4 @@ bool UciEngine::outputIncludesBestmove() const {
     return false;
 }
 
-}  // namespace fast_chess::engine
+}  // namespace fastchess::engine

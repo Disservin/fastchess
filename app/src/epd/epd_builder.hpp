@@ -12,7 +12,7 @@
 #include <matchmaking/match/match.hpp>
 #include <types/tournament.hpp>
 
-namespace fast_chess::epd {
+namespace fastchess::epd {
 
 class EpdBuilder {
    public:
@@ -39,4 +39,4 @@ class EpdBuilder {
     std::stringstream epd;
 };
 
-}  // namespace fast_chess::epd
+}  // namespace fastchess::epd

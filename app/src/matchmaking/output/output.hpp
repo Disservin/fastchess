@@ -9,6 +9,7 @@
 #include <types/engine_config.hpp>
 #include <types/enums.hpp>
 #include <types/match_data.hpp>
+#include <util/logger/logger.hpp>
 
 namespace fastchess {
 

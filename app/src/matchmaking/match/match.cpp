@@ -201,13 +201,12 @@ bool Match::playMove(Player& us, Player& them) {
     if (!validConnection(us, them)) return false;
 
     // write go command
+    Logger::trace<true>("Engine {} is thinking", name);
     success = us.engine.go(us.getTimeControl(), them.getTimeControl(), board_.sideToMove());
     if (!success) {
         setEngineCrashStatus(us, them);
         return false;
     }
-
-    Logger::trace<true>("Engine {} is thinking", name);
 
     // wait for bestmove
     auto t0     = clock::now();

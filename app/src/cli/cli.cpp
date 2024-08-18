@@ -457,7 +457,7 @@ void parseConcurrency(const std::vector<std::string> &params, ArgumentData &argu
 }
 
 void parseForceConcurrency(const std::vector<std::string> &, ArgumentData &argument_data) {
-    argument_data.tournament_config.force = true;
+    argument_data.tournament_config.force_concurrency = true;
 }
 
 void parseEvent(const std::vector<std::string> &params, ArgumentData &argument_data) {

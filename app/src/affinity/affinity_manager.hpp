@@ -8,7 +8,7 @@
 
 #include <chess.hpp>
 
-#ifdef _WIN32
+#ifdef _WIN64
 #    include <affinity/cpuinfo/cpuinfo_win.hpp>
 #elif defined(__APPLE__)
 #    include <affinity/cpuinfo/cpuinfo_mac.hpp>

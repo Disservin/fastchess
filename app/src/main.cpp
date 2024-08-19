@@ -10,8 +10,6 @@
 
 using namespace fastchess;
 
-constexpr auto MIN_FD = 65536;
-
 int main(int argc, char const* argv[]) {
     setCtrlCHandler();
 

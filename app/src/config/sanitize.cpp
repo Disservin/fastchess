@@ -55,7 +55,7 @@ void sanitize(config::Tournament& config) {
         throw std::runtime_error("Error: Concurrency exceeds number of CPUs. Use --force-concurrency to override.");
     }
 
-#ifdef _WIN32
+#ifdef _WIN64
     if (config.concurrency > 63) {
         Logger::warn(
             "A concurrency setting of more than 63 is currently not supported on Windows.\nIf this affects "

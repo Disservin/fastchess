@@ -1,6 +1,6 @@
 #pragma once
 
-#ifndef _WIN32
+#ifndef _WIN64
 #    include <stdio.h>
 #    include <sys/resource.h>
 #else
@@ -9,7 +9,7 @@
 
 namespace fastchess::util::fd_limit {
 
-#ifndef _WIN32
+#ifndef _WIN64
 [[nodiscard]] inline int maxSystemFileDescriptorCount() {
     struct rlimit limit;
 
@@ -20,8 +20,6 @@ namespace fastchess::util::fd_limit {
     perror("getrlimit");
     return -1;
 }
-#else
-[[nodiscard]] inline int maxSystemFileDescriptorCount() { return std::numeric_limits<int>::max(); }
 #endif
 
 [[nodiscard]] inline int minFileDescriptorRequired(int concurrency) noexcept { return 26 + (concurrency - 1) * 12; }

@@ -7,6 +7,7 @@
 #include <utility>
 #include <vector>
 
+#include <util/fd_limit.hpp>
 #include <util/file_system.hpp>
 #include <util/logger/logger.hpp>
 
@@ -52,6 +53,25 @@ void sanitize(config::Tournament& config) {
 
     if (config.concurrency > static_cast<int>(std::thread::hardware_concurrency()) && !config.force_concurrency) {
         throw std::runtime_error("Error: Concurrency exceeds number of CPUs. Use --force-concurrency to override.");
+    }
+
+    if (util::maxFDs() < util::minFDRequired(config.concurrency)) {
+        Logger::warn(
+            "There aren't enough file descriptors available for the specified concurrency.\nPlease increase the limit "
+            "using ulimit -n 65536 for each shell manually or \nadjust the defaults (e.g. /etc/security/limits.conf,"
+            "/etc/systemd/system.conf, and/or /etc/systemd/user.conf).\nThe maximum number of file descriptors "
+            "required for this configuration is: {}",
+            util::minFDRequired(config.concurrency));
+
+        const auto max_supported_concurrency = util::maxConcurrency(util::maxFDs());
+
+        Logger::warn("Limiting concurrency to: {}", max_supported_concurrency);
+
+        if (max_supported_concurrency < 1) {
+            throw std::runtime_error("Error: Not enough file descriptors available for the specified concurrency.");
+        }
+
+        config.concurrency = max_supported_concurrency;
     }
 
     if (config.variant == VariantType::FRC && config.opening.file.empty()) {

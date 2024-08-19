@@ -6,7 +6,6 @@
 #include <config/sanitize.hpp>
 #include <globals/globals.hpp>
 #include <matchmaking/tournament/tournament_manager.hpp>
-#include <util/fd_limit.hpp>
 #include <util/rand.hpp>
 
 using namespace fastchess;
@@ -15,16 +14,6 @@ constexpr auto MIN_FD = 65536;
 
 int main(int argc, char const* argv[]) {
     setCtrlCHandler();
-
-    auto max_fd = util::maxFileDescriptors();
-
-    // @TODO: Calculate the minimum file descriptors required and limit the concurrency
-    if (max_fd < MIN_FD) {
-        Logger::fatal(
-            "Not enough file descriptors available, please increase the limit to at least {}.\n\nulimit -n 65536",
-            MIN_FD);
-        return EXIT_FAILURE;
-    }
 
     try {
         auto options = cli::OptionsParser(argc, argv);

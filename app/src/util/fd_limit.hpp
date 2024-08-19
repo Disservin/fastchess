@@ -10,7 +10,7 @@
 namespace fastchess::util {
 
 #ifndef _WIN32
-[[nodiscard]] inline int maxFileDescriptors() {
+[[nodiscard]] inline int maxFDs() {
     struct rlimit limit;
 
     if (getrlimit(RLIMIT_NOFILE, &limit) == 0) {
@@ -21,7 +21,11 @@ namespace fastchess::util {
     }
 }
 #else
-[[nodiscard]] inline int maxFileDescriptors() { return return std::numeric_limits<int>::max(); }
+[[nodiscard]] inline int maxFDs() { return return std::numeric_limits<int>::max(); }
 #endif
+
+inline int minFDRequired(int concurrency) { return 26 + (concurrency - 1) * 12; }
+
+inline int maxConcurrency(int availableFDs) { return (availableFDs - 26) / 12 + 1; }
 
 }  // namespace fastchess::util

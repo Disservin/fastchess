@@ -55,15 +55,17 @@ void sanitize(config::Tournament& config) {
         throw std::runtime_error("Error: Concurrency exceeds number of CPUs. Use --force-concurrency to override.");
     }
 
-    if (util::maxFDs() < util::minFDRequired(config.concurrency)) {
+    if (util::fd_limit::maxSystemFileDescriptorCount() <
+        util::fd_limit::minFileDescriptorRequired(config.concurrency)) {
         Logger::warn(
             "There aren't enough file descriptors available for the specified concurrency.\nPlease increase the limit "
             "using ulimit -n 65536 for each shell manually or \nadjust the defaults (e.g. /etc/security/limits.conf,"
             "/etc/systemd/system.conf, and/or /etc/systemd/user.conf).\nThe maximum number of file descriptors "
             "required for this configuration is: {}",
-            util::minFDRequired(config.concurrency));
+            util::fd_limit::minFileDescriptorRequired(config.concurrency));
 
-        const auto max_supported_concurrency = util::maxConcurrency(util::maxFDs());
+        const auto max_supported_concurrency =
+            util::fd_limit::maxConcurrency(util::fd_limit::maxSystemFileDescriptorCount());
 
         Logger::warn("Limiting concurrency to: {}", max_supported_concurrency);
 

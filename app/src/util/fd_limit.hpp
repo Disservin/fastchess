@@ -15,17 +15,17 @@ namespace fastchess::util::fd_limit {
 
     if (getrlimit(RLIMIT_NOFILE, &limit) == 0) {
         return limit.rlim_cur;
-    } else {
-        perror("getrlimit");
-        return -1;
     }
+
+    perror("getrlimit");
+    return -1;
 }
 #else
 [[nodiscard]] inline int maxSystemFileDescriptorCount() { return std::numeric_limits<int>::max(); }
 #endif
 
-inline int minFileDescriptorRequired(int concurrency) { return 26 + (concurrency - 1) * 12; }
+[[nodiscard]] inline int minFileDescriptorRequired(int concurrency) noexcept { return 26 + (concurrency - 1) * 12; }
 
-inline int maxConcurrency(int availableFDs) { return (availableFDs - 26) / 12 + 1; }
+[[nodiscard]] inline int maxConcurrency(int availableFDs) noexcept { return (availableFDs - 26) / 12 + 1; }
 
 }  // namespace fastchess::util::fd_limit

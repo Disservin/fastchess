@@ -55,6 +55,14 @@ void sanitize(config::Tournament& config) {
         throw std::runtime_error("Error: Concurrency exceeds number of CPUs. Use --force-concurrency to override.");
     }
 
+#ifdef _WIN32
+    if (config.concurrency > 63) {
+        Logger::warn(
+            "A concurrency setting of more than 63 is currently not supported on Windows.\nIf this affects "
+            "your system, please open an issue or get in touch with the maintainers.");
+        config.concurrency = 63;  // not 64 because we need one thread for the main thread
+    }
+#else
     if (util::fd_limit::maxSystemFileDescriptorCount() <
         util::fd_limit::minFileDescriptorRequired(config.concurrency)) {
         Logger::warn(
@@ -75,6 +83,7 @@ void sanitize(config::Tournament& config) {
 
         config.concurrency = max_supported_concurrency;
     }
+#endif
 
     if (config.variant == VariantType::FRC && config.opening.file.empty()) {
         throw std::runtime_error("Error: Please specify a Chess960 opening book");

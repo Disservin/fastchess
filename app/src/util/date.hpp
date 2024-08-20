@@ -19,7 +19,7 @@ namespace time {
     const auto time_t_now = sc::system_clock::to_time_t(now);
     struct tm buf {};
 
-#ifdef _WIN32
+#ifdef _WIN64
     auto res = localtime_s(&buf, &time_t_now);
     if (res != 0) {
         throw std::runtime_error("Warning; localtime_s failed");

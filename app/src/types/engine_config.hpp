@@ -45,8 +45,6 @@ struct EngineConfiguration {
     // Chess variant
     VariantType variant = VariantType::STANDARD;
 
-    bool recover = false;
-
     template <typename T, typename Predicate>
     std::optional<T> getOption(std::string_view option_name, Predicate transform) const {
         const auto it = std::find_if(options.begin(), options.end(),
@@ -59,7 +57,6 @@ struct EngineConfiguration {
         return std::nullopt;
     }
 };
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(EngineConfiguration, name, dir, cmd, args, options, limit, variant,
-                                                recover)
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(EngineConfiguration, name, dir, cmd, args, options, limit, variant)
 
 }  // namespace fastchess

@@ -34,6 +34,8 @@ class RoundRobin : public BaseTournament {
     void create() override;
 
    private:
+    void createMatch(std::size_t i, std::size_t j, std::size_t round_id, int g, std::optional<std::size_t> opening_id);
+
     // update the current running sprt. SPRT Config has to be valid.
     void updateSprtStatus(const std::vector<EngineConfiguration>& engine_configs, const engines& engines);
 

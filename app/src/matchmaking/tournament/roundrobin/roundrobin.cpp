@@ -38,24 +38,26 @@ void RoundRobin::start() {
     }
 }
 
+void RoundRobin::startNext() {
+    auto match = generator_.next();
+
+    if (!match) {
+        Logger::trace("No more matches to generate");
+        return;
+    }
+
+    pool_.enqueue(&RoundRobin::createMatch, this, std::get<0>(match.value()), std::get<1>(match.value()),
+                  std::get<2>(match.value()), std::get<3>(match.value()), std::get<4>(match.value()));
+}
+
 void RoundRobin::create() {
     Logger::trace("Creating matches...");
 
     total_ = (config::EngineConfigs.get().size() * (config::EngineConfigs.get().size() - 1) / 2) *
              config::TournamentConfig.get().rounds * config::TournamentConfig.get().games;
 
-    for (std::size_t i = 0; i < config::EngineConfigs.get().size(); i++) {
-        for (std::size_t j = i + 1; j < config::EngineConfigs.get().size(); j++) {
-            int offset = initial_matchcount_ / config::TournamentConfig.get().games;
-            for (int k = offset; k < config::TournamentConfig.get().rounds; k++) {
-                // both players get the same opening
-                const auto opening = book_->fetchId();
-
-                for (int g = 0; g < config::TournamentConfig.get().games; g++) {
-                    pool_.enqueue(&RoundRobin::createMatch, this, i, j, k, g, opening);
-                }
-            }
-        }
+    for (int i = 0; i < pool_.getNumThreads(); i++) {
+        startNext();
     }
 }
 

@@ -35,8 +35,6 @@ class RoundRobin : public BaseTournament {
     // creates the matches
     void create() override;
 
-    void createMatch(std::size_t i, std::size_t j, std::size_t round_id, int g, std::optional<std::size_t> opening_id);
-
    private:
     void createMatch(std::size_t i, std::size_t j, std::size_t round_id, int g, std::optional<std::size_t> opening_id);
 

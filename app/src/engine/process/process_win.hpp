@@ -127,11 +127,6 @@ class Process : public IProcess {
 
         auto id = std::this_thread::get_id();
 
-        // Because of a slow peekpipe implementation on windows we need to use readfile,
-        // which is blocking, thus we use a future to check if the operation is completed
-        // within the threshold time or has timed out
-        // this works quite well even for very low timeouts in the future
-        // it'd be better if we use our own thread and keep it alive for the duration of the process
         auto read_future =
             std::async(std::launch::async, [this, &last_word, &lines, id, &atomic_stop = atomic::stop]() {
                 char buffer[4096];
@@ -253,7 +248,6 @@ class Process : public IProcess {
     // The name in the log file
     std::string log_name_;
 
-    // Buffer for the current line which is being read
     std::string current_line_;
 
     // True if the process has been initialized

@@ -110,6 +110,27 @@ class Process : public IProcess {
         return r == 0 ? Status::OK : Status::ERR;
     }
 
+    std::string signalToString(int status) {
+        if (WIFEXITED(status)) return std::to_string(WEXITSTATUS(status));
+
+#    if defined(_GNU_SOURCE) && __GLIBC__ >= 2 && __GLIBC_MINOR__ >= 32
+        if (WIFSTOPPED(status)) {
+            auto desc = sigdescr_np(WSTOPSIG(status));
+            return desc ? desc : "Unknown child status";
+        }
+
+        if (WIFSIGNALED(status)) {
+            auto desc = sigdescr_np(WTERMSIG(status));
+            return desc ? desc : "Unknown child status";
+        }
+#    else
+        if (WIFSIGNALED(status)) return "WIFSIGNALED status: " + std::to_string(WTERMSIG(status));
+
+        if (WIFSTOPPED(status)) return "WIFSTOPPED status: " + std::to_string(WSTOPSIG(status));
+#    endif
+        return "Unknown child status";
+    }
+
     void setAffinity(const std::vector<int> &cpus) noexcept override {
         assert(is_initalized_);
 
@@ -275,27 +296,6 @@ class Process : public IProcess {
         return Status::NONE;
     }
 
-    // Convert a status to a string
-    std::string signalToString(int status) {
-        if (WIFEXITED(status)) return std::to_string(WEXITSTATUS(status));
-
-#    if defined(_GNU_SOURCE) && __GLIBC__ >= 2 && __GLIBC_MINOR__ >= 32
-        if (WIFSTOPPED(status)) {
-            auto desc = sigdescr_np(WSTOPSIG(status));
-            return desc ? desc : "Unknown child status";
-        }
-
-        if (WIFSIGNALED(status)) {
-            auto desc = sigdescr_np(WTERMSIG(status));
-            return desc ? desc : "Unknown child status";
-        }
-#    else
-        if (WIFSIGNALED(status)) return "WIFSIGNALED status: " + std::to_string(WTERMSIG(status));
-        if (WIFSTOPPED(status)) return "WIFSTOPPED status: " + std::to_string(WSTOPSIG(status));
-#    endif
-        return "Unknown child status";
-    }
-
     struct Pipe {
         std::array<int, 2> fds_;
 
@@ -319,7 +319,6 @@ class Process : public IProcess {
     // The name in the log file
     std::string log_name_;
 
-    // Buffer for the current line which is being read
     std::string current_line_;
 
     // True if the process has been initialized

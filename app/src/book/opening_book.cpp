@@ -60,8 +60,6 @@ void OpeningBook::setup(const std::string& file, FormatType type) {
 
     truncate(rounds_);
     shrink();
-
-    std::visit([](auto&& arg) { Logger::info("Opening book size: {}", arg.size()); }, book_);
 }
 
 [[nodiscard]] std::optional<std::size_t> OpeningBook::fetchId() noexcept {

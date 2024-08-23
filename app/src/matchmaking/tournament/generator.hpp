@@ -42,8 +42,8 @@ class MatchGenerator {
     std::size_t engine_configs_size;
     int offset_;
 
-    int games  = config::TournamentConfig.get().games;
-    int rounds = config::TournamentConfig.get().rounds;
+    auto games  = config::TournamentConfig.get().games;
+    auto rounds = config::TournamentConfig.get().rounds;
 
     void advance() {
         if (++g >= games) {

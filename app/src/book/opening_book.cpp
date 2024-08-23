@@ -39,7 +39,7 @@ void OpeningBook::setup(const std::string& file, FormatType type) {
 
         std::string line;
         while (util::safeGetline(openingFile, line))
-            if (!line.empty()) std::get<epd_book>(book_).emplace_back(line);
+            if (!line.empty()) std::get<epd_book>(book_).emplace_back(chess::Board::Compact::encode(line));
 
         openingFile.close();
 
@@ -60,6 +60,8 @@ void OpeningBook::setup(const std::string& file, FormatType type) {
 
     truncate(rounds_);
     shrink();
+
+    std::visit([](auto&& arg) { Logger::info("Opening book size: {}", arg.size()); }, book_);
 }
 
 [[nodiscard]] std::optional<std::size_t> OpeningBook::fetchId() noexcept {

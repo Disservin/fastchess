@@ -71,8 +71,9 @@ class OpeningBook {
         if (std::holds_alternative<epd_book>(book_)) {
             assert(idx.value() < std::get<epd_book>(book_).size());
 
-            const auto fen = std::get<epd_book>(book_)[*idx];
-            return {std::string(fen), {}, chess::Board(fen).sideToMove()};
+            const auto compact = std::get<epd_book>(book_)[*idx];
+            const auto board   = chess::Board::Compact::decode(compact);
+            return {board.getFen(), {}, board.sideToMove()};
         }
 
         assert(idx.value() < std::get<pgn_book>(book_).size());
@@ -83,7 +84,7 @@ class OpeningBook {
    private:
     void setup(const std::string& file, FormatType type);
 
-    using epd_book = std::vector<std::string>;
+    using epd_book = std::vector<chess::PackedBoard>;
     using pgn_book = std::vector<pgn::Opening>;
 
     std::size_t start_         = 0;

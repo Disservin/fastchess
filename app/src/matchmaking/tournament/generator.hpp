@@ -11,7 +11,9 @@ namespace fastchess {
 
 class MatchGenerator {
    public:
-    MatchGenerator() : i(0), j(1), k(0), g(0), engine_configs_size(config::EngineConfigs.get().size()) {}
+    MatchGenerator() : i(0), j(1), k(0), g(0), engine_configs_size(config::EngineConfigs.get().size()) {
+        opening_book_ = nullptr;
+    }
 
     void setup(book::OpeningBook* opening_book, int initial_matchcount) {
         opening_book_ = opening_book;
@@ -19,42 +21,40 @@ class MatchGenerator {
     }
 
     std::optional<std::tuple<std::size_t, std::size_t, std::size_t, int, std::optional<std::size_t>>> next() {
-        if (i >= engine_configs_size) {
-            return std::nullopt;  // No more matches to generate
+        if (i >= engine_configs_size || j >= engine_configs_size) return std::nullopt;
+
+        if (g == 0) {
+            // Fetch a new opening only once per round
+            opening = opening_book_->fetchId();
         }
 
-        if (k >= config::TournamentConfig.get().rounds) {
-            advance();
-            return next();  // Skip to the next valid state
-        }
+        auto match = std::make_tuple(i, j, k, g, opening);
 
-        if (g >= config::TournamentConfig.get().games) {
-            k++;
-            g = 0;
-            return next();  // Skip to the next valid state
-        }
-
-        const auto opening = opening_book_->fetchId();
-        auto match         = std::make_tuple(i, j, k, g, opening);
-
-        g++;  // Move to the next game
+        advance();
 
         return match;
     }
 
    private:
+    std::optional<std::size_t> opening;
+    book::OpeningBook* opening_book_;
     std::size_t i, j, k, g;
     std::size_t engine_configs_size;
-    book::OpeningBook* opening_book_ = nullptr;
     int offset_;
 
+    int games  = config::TournamentConfig.get().games;
+    int rounds = config::TournamentConfig.get().rounds;
+
     void advance() {
-        j++;
-        if (j >= engine_configs_size) {
-            i++;
-            j = i + 1;
+        if (++g >= games) {
+            g = 0;
+            if (++k >= rounds) {
+                k = offset_;
+                if (++j >= engine_configs_size) {
+                    j = ++i + 1;
+                }
+            }
         }
-        k = offset_;
     }
 };
 

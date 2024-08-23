@@ -39,6 +39,10 @@ void RoundRobin::start() {
 }
 
 void RoundRobin::startNext() {
+    std::lock_guard<std::mutex> lock(game_gen_mutex_);
+
+    if (atomic::stop) return;
+
     auto match = generator_.next();
 
     if (!match) {

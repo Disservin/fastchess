@@ -76,6 +76,8 @@ class ThreadPool {
 
     [[nodiscard]] bool getStop() { return stop_; }
 
+    [[nodiscard]] int getNumThreads() { return workers_.size(); }
+
    private:
     void work() {
         while (!stop_) {

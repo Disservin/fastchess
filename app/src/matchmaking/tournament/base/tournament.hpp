@@ -8,6 +8,7 @@
 #include <globals/globals.hpp>
 #include <matchmaking/output/output.hpp>
 #include <matchmaking/scoreboard.hpp>
+#include <matchmaking/tournament/generator.hpp>
 #include <types/tournament.hpp>
 #include <util/cache.hpp>
 #include <util/file_writer.hpp>
@@ -33,6 +34,7 @@ class BaseTournament {
     }
 
     virtual void start();
+    virtual void startNext() = 0;
 
     [[nodiscard]] stats_map getResults() noexcept { return scoreboard_.getResults(); }
 
@@ -69,6 +71,8 @@ class BaseTournament {
     // play one game and write it to the pgn file
     void playGame(const GamePair<EngineConfiguration, EngineConfiguration> &configs, start_callback start,
                   finished_callback finish, const pgn::Opening &opening, std::size_t round_id, std::size_t game_id);
+
+    MatchGenerator generator_;
 
     std::unique_ptr<IOutput> output_;
     std::unique_ptr<affinity::AffinityManager> cores_;

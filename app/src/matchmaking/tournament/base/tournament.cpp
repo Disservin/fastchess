@@ -31,6 +31,8 @@ BaseTournament::BaseTournament(const stats_map &results) {
     setResults(results);
 
     book_ = std::make_unique<book::OpeningBook>(config, initial_matchcount_);
+
+    generator_.setup(book_.get(), initial_matchcount_);
 }
 
 void BaseTournament::start() {
@@ -119,6 +121,8 @@ void BaseTournament::playGame(const GamePair<EngineConfiguration, EngineConfigur
         Logger::trace<true>("Game {} finished with result {}", game_id, result);
 
         finish({match_data}, match_data.reason, {white_engine.get(), black_engine.get()});
+
+        startNext();
     }
 }
 

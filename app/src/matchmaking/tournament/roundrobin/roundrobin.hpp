@@ -29,6 +29,8 @@ class RoundRobin : public BaseTournament {
     // starts the round robin
     void start() override;
 
+    void startNext() override;
+
    protected:
     // creates the matches
     void create() override;
@@ -42,6 +44,7 @@ class RoundRobin : public BaseTournament {
     SPRT sprt_ = SPRT();
 
     std::mutex output_mutex_;
+    std::mutex game_gen_mutex_;
 
     // number of games to be played
     std::atomic<uint64_t> total_ = 0;

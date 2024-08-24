@@ -46,8 +46,8 @@ struct Tournament {
     OutputType output    = OutputType::FASTCHESS;
     int autosaveinterval = 20;
     int ratinginterval   = 10;
-    int games            = 2;
-    int rounds           = 2;
+    std::size_t games    = 2;
+    std::size_t rounds   = 2;
     bool report_penta    = true;
 #endif
 

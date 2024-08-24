@@ -17,6 +17,10 @@
 
 namespace fastchess {
 
+namespace atomic {
+extern std::atomic_bool stop;
+}  // namespace atomic
+
 BaseTournament::BaseTournament(const stats_map &results) {
     const auto &config = config::TournamentConfig.get();
 

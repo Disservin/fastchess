@@ -18,10 +18,6 @@
 
 namespace fastchess {
 
-namespace atomic {
-extern std::atomic_bool stop;
-}  // namespace atomic
-
 class BaseTournament {
    public:
     BaseTournament(const stats_map &results);

@@ -2,6 +2,7 @@
 
 #include <chess.hpp>
 
+#include <book/opening_book.hpp>
 #include <cli/cli.hpp>
 #include <config/config.hpp>
 #include <matchmaking/player.hpp>
@@ -105,7 +106,7 @@ class MaxMovesTracker {
 
 class Match {
    public:
-    Match(const pgn::Opening& opening) : opening_(opening) {}
+    Match(const book::Opening& opening) : opening_(opening) {}
 
     // starts the match
     void start(engine::UciEngine& white, engine::UciEngine& black, const std::vector<int>& cpus);
@@ -155,7 +156,7 @@ class Match {
 
     bool isLegal(chess::Move move) const noexcept;
 
-    const pgn::Opening& opening_;
+    const book::Opening& opening_;
 
     MatchData data_     = {};
     chess::Board board_ = chess::Board();

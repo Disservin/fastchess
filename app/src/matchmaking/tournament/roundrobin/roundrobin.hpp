@@ -29,17 +29,22 @@ class RoundRobin : public BaseTournament {
     // starts the round robin
     void start() override;
 
+    void startNext() override;
+
    protected:
     // creates the matches
     void create() override;
 
    private:
+    void createMatch(std::size_t i, std::size_t j, std::size_t round_id, int g, std::optional<std::size_t> opening_id);
+
     // update the current running sprt. SPRT Config has to be valid.
     void updateSprtStatus(const std::vector<EngineConfiguration>& engine_configs, const engines& engines);
 
     SPRT sprt_ = SPRT();
 
     std::mutex output_mutex_;
+    std::mutex game_gen_mutex_;
 
     // number of games to be played
     std::atomic<uint64_t> total_ = 0;

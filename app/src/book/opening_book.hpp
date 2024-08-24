@@ -13,6 +13,13 @@
 
 namespace fastchess::book {
 
+struct Opening {
+    // entire opening line
+    std::string opening;
+    std::vector<chess::Move> moves;
+    chess::Color stm;
+};
+
 class OpeningBook {
    public:
     OpeningBook() = default;
@@ -65,8 +72,8 @@ class OpeningBook {
 
     [[nodiscard]] std::optional<std::size_t> fetchId() noexcept;
 
-    pgn::Opening operator[](std::optional<std::size_t> idx) const noexcept {
-        if (!idx.has_value()) return {chess::constants::STARTPOS, {}};
+    Opening operator[](std::optional<std::size_t> idx) const noexcept {
+        if (!idx.has_value()) return {chess::constants::STARTPOS, {}, chess::Color::WHITE};
 
         if (std::holds_alternative<epd_book>(book_)) {
             assert(idx.value() < std::get<epd_book>(book_).size());
@@ -77,7 +84,9 @@ class OpeningBook {
 
         assert(idx.value() < std::get<pgn_book>(book_).size());
 
-        return std::get<pgn_book>(book_)[*idx];
+        const auto [fen, moves, stm] = std::get<pgn_book>(book_)[*idx];
+
+        return {fen, moves, stm};
     }
 
    private:

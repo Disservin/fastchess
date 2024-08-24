@@ -8,6 +8,7 @@
 #include <globals/globals.hpp>
 #include <matchmaking/output/output.hpp>
 #include <matchmaking/scoreboard.hpp>
+#include <matchmaking/tournament/roundrobin/match_generator.hpp>
 #include <types/tournament.hpp>
 #include <util/cache.hpp>
 #include <util/file_writer.hpp>
@@ -16,10 +17,6 @@
 #include <util/threadpool.hpp>
 
 namespace fastchess {
-
-namespace atomic {
-extern std::atomic_bool stop;
-}  // namespace atomic
 
 class BaseTournament {
    public:
@@ -33,6 +30,7 @@ class BaseTournament {
     }
 
     virtual void start();
+    virtual void startNext() = 0;
 
     [[nodiscard]] stats_map getResults() noexcept { return scoreboard_.getResults(); }
 
@@ -53,22 +51,24 @@ class BaseTournament {
     }
 
    protected:
-    // number of games played
-    std::atomic<std::uint64_t> match_count_;
-    std::uint64_t initial_matchcount_;
+    using start_callback    = std::function<void()>;
+    using finished_callback = std::function<void(const Stats &stats, const std::string &reason, const engines &)>;
 
     // creates the matches
     virtual void create() = 0;
-
-    using start_callback    = std::function<void()>;
-    using finished_callback = std::function<void(const Stats &stats, const std::string &reason, const engines &)>;
 
     // Function to save the config file
     void saveJson();
 
     // play one game and write it to the pgn file
     void playGame(const GamePair<EngineConfiguration, EngineConfiguration> &configs, start_callback start,
-                  finished_callback finish, const pgn::Opening &opening, std::size_t round_id, std::size_t game_id);
+                  finished_callback finish, const book::Opening &opening, std::size_t round_id, std::size_t game_id);
+
+    util::CachePool<engine::UciEngine, std::string> engine_cache_ = util::CachePool<engine::UciEngine, std::string>();
+    util::ThreadPool pool_                                        = util::ThreadPool(1);
+
+    MatchGenerator generator_ = MatchGenerator();
+    ScoreBoard scoreboard_    = ScoreBoard();
 
     std::unique_ptr<IOutput> output_;
     std::unique_ptr<affinity::AffinityManager> cores_;
@@ -76,9 +76,9 @@ class BaseTournament {
     std::unique_ptr<util::FileWriter> file_writer_epd;
     std::unique_ptr<book::OpeningBook> book_;
 
-    util::CachePool<engine::UciEngine, std::string> engine_cache_ = util::CachePool<engine::UciEngine, std::string>();
-    ScoreBoard scoreboard_                                        = ScoreBoard();
-    util::ThreadPool pool_                                        = util::ThreadPool(1);
+    // number of games played
+    std::atomic<std::uint64_t> match_count_;
+    std::uint64_t initial_matchcount_;
 
    private:
     int getMaxAffinity(const std::vector<EngineConfiguration> &configs) const noexcept;

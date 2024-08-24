@@ -17,6 +17,10 @@
 
 namespace fastchess {
 
+namespace atomic {
+extern std::atomic_bool stop;
+}  // namespace atomic
+
 BaseTournament::BaseTournament(const stats_map &results) {
     const auto &config = config::TournamentConfig.get();
 
@@ -31,6 +35,8 @@ BaseTournament::BaseTournament(const stats_map &results) {
     setResults(results);
 
     book_ = std::make_unique<book::OpeningBook>(config, initial_matchcount_);
+
+    generator_.setup(book_.get(), initial_matchcount_);
 }
 
 void BaseTournament::start() {
@@ -57,7 +63,7 @@ void BaseTournament::saveJson() {
 }
 
 void BaseTournament::playGame(const GamePair<EngineConfiguration, EngineConfiguration> &engine_configs,
-                              start_callback start, finished_callback finish, const pgn::Opening &opening,
+                              start_callback start, finished_callback finish, const book::Opening &opening,
                               std::size_t round_id, std::size_t game_id) {
     if (atomic::stop) return;
 
@@ -119,6 +125,8 @@ void BaseTournament::playGame(const GamePair<EngineConfiguration, EngineConfigur
         Logger::trace<true>("Game {} finished with result {}", game_id, result);
 
         finish({match_data}, match_data.reason, {white_engine.get(), black_engine.get()});
+
+        startNext();
     }
 }
 

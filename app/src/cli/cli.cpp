@@ -48,6 +48,8 @@ void parseValue(const std::vector<std::string> &params, T &value) {
         value = std::stod(str);
     else if constexpr (std::is_same_v<T, bool>)
         value = str == "true";
+    else if constexpr (std::is_same_v<T, std::size_t>)
+        sscanf(str.c_str(), "%zu", &value);
     else
         value = str;
 }

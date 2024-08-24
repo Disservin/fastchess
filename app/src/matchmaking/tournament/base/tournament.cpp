@@ -63,7 +63,7 @@ void BaseTournament::saveJson() {
 }
 
 void BaseTournament::playGame(const GamePair<EngineConfiguration, EngineConfiguration> &engine_configs,
-                              start_callback start, finished_callback finish, const pgn::Opening &opening,
+                              start_callback start, finished_callback finish, const book::Opening &opening,
                               std::size_t round_id, std::size_t game_id) {
     if (atomic::stop) return;
 

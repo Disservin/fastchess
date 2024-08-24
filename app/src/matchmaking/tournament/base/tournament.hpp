@@ -8,7 +8,7 @@
 #include <globals/globals.hpp>
 #include <matchmaking/output/output.hpp>
 #include <matchmaking/scoreboard.hpp>
-#include <matchmaking/tournament/generator.hpp>
+#include <matchmaking/tournament/roundrobin/match_generator.hpp>
 #include <types/tournament.hpp>
 #include <util/cache.hpp>
 #include <util/file_writer.hpp>
@@ -72,17 +72,17 @@ class BaseTournament {
     void playGame(const GamePair<EngineConfiguration, EngineConfiguration> &configs, start_callback start,
                   finished_callback finish, const pgn::Opening &opening, std::size_t round_id, std::size_t game_id);
 
-    MatchGenerator generator_;
+    util::CachePool<engine::UciEngine, std::string> engine_cache_ = util::CachePool<engine::UciEngine, std::string>();
+    util::ThreadPool pool_                                        = util::ThreadPool(1);
+
+    MatchGenerator generator_ = MatchGenerator();
+    ScoreBoard scoreboard_    = ScoreBoard();
 
     std::unique_ptr<IOutput> output_;
     std::unique_ptr<affinity::AffinityManager> cores_;
     std::unique_ptr<util::FileWriter> file_writer_pgn;
     std::unique_ptr<util::FileWriter> file_writer_epd;
     std::unique_ptr<book::OpeningBook> book_;
-
-    util::CachePool<engine::UciEngine, std::string> engine_cache_ = util::CachePool<engine::UciEngine, std::string>();
-    ScoreBoard scoreboard_                                        = ScoreBoard();
-    util::ThreadPool pool_                                        = util::ThreadPool(1);
 
    private:
     int getMaxAffinity(const std::vector<EngineConfiguration> &configs) const noexcept;

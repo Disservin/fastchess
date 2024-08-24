@@ -21,6 +21,8 @@ class MatchGenerator {
     }
 
     std::optional<std::tuple<std::size_t, std::size_t, std::size_t, int, std::optional<std::size_t>>> next() {
+        assert(opening_book_ != nullptr);
+
         if (i >= engine_configs_size || j >= engine_configs_size) return std::nullopt;
 
         if (g == 0) {

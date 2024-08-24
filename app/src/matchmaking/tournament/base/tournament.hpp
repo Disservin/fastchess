@@ -55,15 +55,11 @@ class BaseTournament {
     }
 
    protected:
-    // number of games played
-    std::atomic<std::uint64_t> match_count_;
-    std::uint64_t initial_matchcount_;
+    using start_callback    = std::function<void()>;
+    using finished_callback = std::function<void(const Stats &stats, const std::string &reason, const engines &)>;
 
     // creates the matches
     virtual void create() = 0;
-
-    using start_callback    = std::function<void()>;
-    using finished_callback = std::function<void(const Stats &stats, const std::string &reason, const engines &)>;
 
     // Function to save the config file
     void saveJson();
@@ -83,6 +79,10 @@ class BaseTournament {
     std::unique_ptr<util::FileWriter> file_writer_pgn;
     std::unique_ptr<util::FileWriter> file_writer_epd;
     std::unique_ptr<book::OpeningBook> book_;
+
+    // number of games played
+    std::atomic<std::uint64_t> match_count_;
+    std::uint64_t initial_matchcount_;
 
    private:
     int getMaxAffinity(const std::vector<EngineConfiguration> &configs) const noexcept;

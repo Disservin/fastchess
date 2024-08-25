@@ -98,8 +98,8 @@ double SPRT::getLLR(int penta_WW, int penta_WD, int penta_WL, int penta_DD, int 
     if (pairs == 0) return 0.0;
     const double WW = (penta_WW + 0.5 * regularize) / pairs;
     const double WD = (penta_WD + 0.5 * regularize) / pairs;
-    const double WL = (penta_WL + 0.5 * regularize) / pairs;
-    const double DD = (penta_DD + 0.5 * regularize) / pairs;
+    const double WL = (penta_WL + 0.25 * regularize) / pairs;
+    const double DD = (penta_DD + 0.25 * regularize) / pairs;
     const double LD = (penta_LD + 0.5 * regularize) / pairs;
     const double LL = (penta_LL + 0.5 * regularize) / pairs;
     double score0;

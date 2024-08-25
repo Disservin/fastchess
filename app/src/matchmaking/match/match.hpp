@@ -181,8 +181,11 @@ class Match {
     inline static constexpr char FIFTY_MSG[]            = "Draw by fifty moves rule";
     inline static constexpr char STALEMATE_MSG[]        = "Draw by stalemate";
     inline static constexpr char CHECKMATE_MSG[]        = /*..*/ " mates";
-    inline static constexpr char TIMEOUT_MSG[]          = /*.. */ " loses on time";
-    inline static constexpr char DISCONNECT_MSG[]       = /*.. */ " disconnects";
-    inline static constexpr char STALL_MSG[]            = /*.. */ "'s connection stalls";
+    inline static constexpr char TIMEOUT_LOSE_MSG[]     = /*.. */ " loses on time";
+    inline static constexpr char TIMEOUT_DRAW_MSG[]     = "Draw by timeout";
+    inline static constexpr char DISCONNECT_LOSE_MSG[]  = /*.. */ " disconnects";
+    inline static constexpr char DISCONNECT_DRAW_MSG[]  = "Draw by disconnection";
+    inline static constexpr char STALL_LOSE_MSG[]       = /*.. */ "'s connection stalls";
+    inline static constexpr char STALL_DRAW_MSG[]       = "Draw by stalled connection";
 };
 }  // namespace fastchess

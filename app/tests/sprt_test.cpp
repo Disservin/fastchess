@@ -22,7 +22,7 @@ TEST_SUITE("SPRT") {
     }
 
     TEST_CASE("normalized trinomial 3") {
-        Stats stats(0, 0, 4250);
+        Stats stats(4250, 0, 0);
         SPRT sprt(0.05, 0.05, 0, 10, "normalized", true);
 
         CHECK(sprt.getLLR(stats, false) == doctest::Approx(2.97).epsilon(0.01));

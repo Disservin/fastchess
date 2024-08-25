@@ -43,7 +43,7 @@ void RoundRobin::startNext() {
 
     if (atomic::stop) return;
 
-    auto match = generator_.next();
+    auto match = generator_->next();
 
     if (!match) {
         Logger::trace("No more matches to generate");

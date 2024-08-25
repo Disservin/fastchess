@@ -11,18 +11,13 @@ namespace fastchess {
 
 class MatchGenerator {
    public:
-    MatchGenerator() : i(0), j(1), k(0), g(0), engine_configs_size(config::EngineConfigs.get().size()) {
-        opening_book_ = nullptr;
-    }
-
-    void setup(book::OpeningBook* opening_book, int initial_matchcount) {
+    MatchGenerator(book::OpeningBook* opening_book, int initial_matchcount)
+        : i(0), j(1), k(0), g(0), engine_configs_size(config::EngineConfigs.get().size()) {
         opening_book_ = opening_book;
         offset_       = initial_matchcount / config::TournamentConfig.get().games;
     }
 
     std::optional<std::tuple<std::size_t, std::size_t, std::size_t, int, std::optional<std::size_t>>> next() {
-        assert(opening_book_ != nullptr);
-
         if (i >= engine_configs_size || j >= engine_configs_size) return std::nullopt;
 
         if (g == 0) {

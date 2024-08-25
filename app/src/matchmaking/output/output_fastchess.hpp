@@ -87,8 +87,8 @@ class Fastchess : public IOutput {
     void endTournament() override { std::cout << "Tournament finished" << std::endl; }
 
    private:
-    std::string getTime(const EngineConfiguration& copnfig) const {
-        const auto& limit = copnfig.limit;
+    std::string getTime(const EngineConfiguration& config) const {
+        const auto& limit = config.limit;
 
         if (limit.tc.time + limit.tc.increment > 0) {
             auto moves     = limit.tc.moves > 0 ? fmt::format("{}/", limit.tc.moves) : "";
@@ -187,7 +187,7 @@ class Fastchess : public IOutput {
     }
 
     std::unique_ptr<elo::EloBase> createElo(const Stats& stats, bool report_penta) const {
-        if (report_penta_) {
+        if (report_penta) {
             return std::make_unique<elo::EloPentanomial>(stats);
         }
 

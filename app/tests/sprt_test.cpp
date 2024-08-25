@@ -71,7 +71,7 @@ TEST_SUITE("SPRT") {
     }
 
     TEST_CASE("normalized pentanomial 3") {
-        Stats stats(0, 0, 0, 0, 0, 104);
+        Stats stats(0, 0, 0, 0, 0, 5550);
         SPRT sprt(0.05, 0.05, 0, 5, "normalized", true);
 
         CHECK(sprt.getLLR(stats, true) == doctest::Approx(2.94).epsilon(0.01));

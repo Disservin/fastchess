@@ -25,6 +25,26 @@ class OpeningBook {
     OpeningBook() = default;
     explicit OpeningBook(const config::Tournament& config, std::size_t initial_matchcount = 0);
 
+    [[nodiscard]] std::optional<std::size_t> fetchId() noexcept;
+
+    Opening operator[](std::optional<std::size_t> idx) const noexcept {
+        if (!idx.has_value()) return {chess::constants::STARTPOS, {}, chess::Color::WHITE};
+
+        if (std::holds_alternative<epd_book>(book_)) {
+            assert(idx.value() < std::get<epd_book>(book_).size());
+
+            const auto fen = std::get<epd_book>(book_)[*idx];
+            return {std::string(fen), {}, chess::Board(fen).sideToMove()};
+        }
+
+        assert(idx.value() < std::get<pgn_book>(book_).size());
+
+        const auto [fen, moves, stm] = std::get<pgn_book>(book_)[*idx];
+
+        return {fen, moves, stm};
+    }
+
+   private:
     // Fisher-Yates / Knuth shuffle
     void shuffle() {
         const auto shuffle = [](auto& vec) {
@@ -70,26 +90,6 @@ class OpeningBook {
         std::visit(shrink, book_);
     }
 
-    [[nodiscard]] std::optional<std::size_t> fetchId() noexcept;
-
-    Opening operator[](std::optional<std::size_t> idx) const noexcept {
-        if (!idx.has_value()) return {chess::constants::STARTPOS, {}, chess::Color::WHITE};
-
-        if (std::holds_alternative<epd_book>(book_)) {
-            assert(idx.value() < std::get<epd_book>(book_).size());
-
-            const auto fen = std::get<epd_book>(book_)[*idx];
-            return {std::string(fen), {}, chess::Board(fen).sideToMove()};
-        }
-
-        assert(idx.value() < std::get<pgn_book>(book_).size());
-
-        const auto [fen, moves, stm] = std::get<pgn_book>(book_)[*idx];
-
-        return {fen, moves, stm};
-    }
-
-   private:
     void setup(const std::string& file, FormatType type);
 
     using epd_book = std::vector<std::string>;
@@ -98,8 +98,8 @@ class OpeningBook {
     std::size_t start_         = 0;
     std::size_t opening_index_ = 0;
     std::size_t offset_        = 0;
-    int rounds_;
-    int games_;
+    std::size_t rounds_;
+    std::size_t games_;
     int plies_;
     OrderType order_;
     std::variant<epd_book, pgn_book> book_;

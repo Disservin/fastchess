@@ -330,65 +330,88 @@ std::pair<chess::GameResultReason, chess::GameResult> Match::isGameOver() const 
     return {GameResultReason::NONE, GameResult::NONE};
 }
 
-void Match::setEngineCrashStatus(Player& loser, Player& winner) {
-    loser.setLost();
-    winner.setWon();
-
+void Match::setEngineCrashStatus(Player& us, Player& them) {
     stall_or_disconnect_ = true;
 
-    const auto name  = loser.engine.getConfig().name;
+    const auto name  = us.engine.getConfig().name;
     const auto color = getColorString();
 
     data_.termination = MatchTermination::DISCONNECT;
-    data_.reason      = color + Match::DISCONNECT_MSG;
+    
+    if (board_.hasSufficientMatingMaterial(color)) {
+        us.setLost();
+        them.setWon();
+        data_.reason      = color + Match::DISCONNECT_LOSE_MSG;
+    } else {
+        us.setDraw();
+        them.setDraw();
+        data_.reason      = Match::DISCONNECT_DRAW_MSG;
+    }
 
     Logger::trace<true>("Engine {} disconnects", name);
 }
 
-void Match::setEngineStallStatus(Player& loser, Player& winner) {
-    loser.setLost();
-    winner.setWon();
-
+void Match::setEngineStallStatus(Player& us, Player& them) {
     stall_or_disconnect_ = true;
 
-    const auto name  = loser.engine.getConfig().name;
+    const auto name  = us.engine.getConfig().name;
     const auto color = getColorString();
 
     data_.termination = MatchTermination::STALL;
-    data_.reason      = color + Match::STALL_MSG;
+    
+    if (board_.hasSufficientMatingMaterial(color)) {
+        us.setLost();
+        them.setWon();
+        data_.reason      = color + Match::STALL_LOSE_MSG;
+    } else {
+        us.setDraw();
+        them.setDraw();
+        data_.reason      = Match::STALL_DRAW_MSG;
+    }
 
     Logger::trace<true>("Engine {}'s connection stalls", name);
 }
 
-void Match::setEngineTimeoutStatus(Player& loser, Player& winner) {
-    loser.setLost();
-    winner.setWon();
-
-    const auto name  = loser.engine.getConfig().name;
+void Match::setEngineTimeoutStatus(Player& us, Player& them) {
+    const auto name  = us.engine.getConfig().name;
     const auto color = getColorString();
 
     data_.termination = MatchTermination::TIMEOUT;
-    data_.reason      = color + Match::TIMEOUT_MSG;
 
-    Logger::trace<true>("Engine {} loses on time", name);
+    if (board_.hasSufficientMatingMaterial(color)) {
+        us.setLost();
+        them.setWon();
+        data_.reason      = color + Match::TIMEOUT_LOSE_MSG;
+        Logger::trace<true>("Engine {} loses on time", name);
+    } else {
+        us.setDraw();
+        them.setDraw();
+        data_.reason      = Match::TIMEOUT_DRAW_MSG;
+        Logger::trace<true>("Engine {} draws by timeout", name);
+    }
 
     // we send a stop command to the engine to prevent it from thinking
     // and wait for a bestmove to appear
 
-    loser.engine.writeEngine("stop");
+    us.engine.writeEngine("stop");
 
-    if (!loser.engine.outputIncludesBestmove()) {
+    if (!us.engine.outputIncludesBestmove()) {
         // wait 10 seconds for the bestmove to appear
-        loser.engine.readEngine("bestmove", 1000ms * 10);
+        us.engine.readEngine("bestmove", 1000ms * 10);
     }
 }
 
-void Match::setEngineIllegalMoveStatus(Player& loser, Player& winner, const std::optional<std::string>& best_move) {
-    loser.setLost();
-    winner.setWon();
-
-    const auto name  = loser.engine.getConfig().name;
+void Match::setEngineIllegalMoveStatus(Player& us, Player& them, const std::optional<std::string>& best_move) {
+    const auto name  = us.engine.getConfig().name;
     const auto color = getColorString();
+
+    if (board_.hasSufficientMatingMaterial(color)) {
+        us.setLost();
+        them.setWon();
+    } else {
+        us.setDraw();
+        them.setDraw();
+    }
 
     data_.termination = MatchTermination::ILLEGAL_MOVE;
     data_.reason      = color + Match::ILLEGAL_MSG;

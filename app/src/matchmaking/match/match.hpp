@@ -120,10 +120,10 @@ class Match {
     // returns the reason and the result of the game, different order than chess lib function
     [[nodiscard]] std::pair<chess::GameResultReason, chess::GameResult> isGameOver() const;
 
-    void setEngineCrashStatus(Player& loser, Player& winner);
-    void setEngineStallStatus(Player& loser, Player& winner);
-    void setEngineTimeoutStatus(Player& loser, Player& winner);
-    void setEngineIllegalMoveStatus(Player& loser, Player& winner, const std::optional<std::string>& best_move);
+    void setEngineCrashStatus(Player& us, Player& them);
+    void setEngineStallStatus(Player& us, Player& them);
+    void setEngineTimeoutStatus(Player& us, Player& them);
+    void setEngineIllegalMoveStatus(Player& us, Player& them, const std::optional<std::string>& best_move);
 
     static bool isUciMove(const std::string& move) noexcept;
     void verifyPvLines(const Player& us);

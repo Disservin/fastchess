@@ -29,26 +29,13 @@ class BaseTournament {
         writeToOpenPipes();
     }
 
+    /// @brief Starts the tournament
     virtual void start();
+
+    /// @brief Gets called after a game has finished
     virtual void startNext() = 0;
 
     [[nodiscard]] stats_map getResults() noexcept { return scoreboard_.getResults(); }
-
-    void setResults(const stats_map &results) noexcept {
-        Logger::trace("Setting results...");
-
-        scoreboard_.setResults(results);
-
-        match_count_ = 0;
-
-        for (const auto &pair1 : scoreboard_.getResults()) {
-            const auto &stats = pair1.second;
-
-            match_count_ += stats.wins + stats.losses + stats.draws;
-        }
-
-        initial_matchcount_ = match_count_;
-    }
 
    protected:
     using start_callback    = std::function<void()>;
@@ -64,12 +51,13 @@ class BaseTournament {
     void playGame(const GamePair<EngineConfiguration, EngineConfiguration> &configs, start_callback start,
                   finished_callback finish, const book::Opening &opening, std::size_t round_id, std::size_t game_id);
 
+    // We keep engines alive after they were used to avoid the overhead of starting them again.
     util::CachePool<engine::UciEngine, std::string> engine_cache_ = util::CachePool<engine::UciEngine, std::string>();
     util::ThreadPool pool_                                        = util::ThreadPool(1);
 
-    MatchGenerator generator_ = MatchGenerator();
-    ScoreBoard scoreboard_    = ScoreBoard();
+    ScoreBoard scoreboard_ = ScoreBoard();
 
+    std::unique_ptr<MatchGenerator> generator_;
     std::unique_ptr<IOutput> output_;
     std::unique_ptr<affinity::AffinityManager> cores_;
     std::unique_ptr<util::FileWriter> file_writer_pgn;
@@ -77,10 +65,26 @@ class BaseTournament {
     std::unique_ptr<book::OpeningBook> book_;
 
     // number of games played
-    std::atomic<std::uint64_t> match_count_;
+    std::atomic<std::uint64_t> match_count_ = 0;
     std::uint64_t initial_matchcount_;
 
    private:
+    std::uint64_t setResults(const stats_map &results) noexcept {
+        Logger::trace("Setting results...");
+
+        scoreboard_.setResults(results);
+
+        std::uint64_t total = 0;
+
+        for (const auto &pair1 : scoreboard_.getResults()) {
+            const auto &stats = pair1.second;
+
+            total += stats.wins + stats.losses + stats.draws;
+        }
+
+        return total;
+    }
+
     int getMaxAffinity(const std::vector<EngineConfiguration> &configs) const noexcept;
 };
 

@@ -51,11 +51,12 @@ double SPRT::getLLR(const Stats& stats, bool penta) const noexcept {
 double SPRT::getLLR(int win, int draw, int loss) const noexcept {
     if (!enabled_) return 0.0;
 
-    const double games = win + draw + loss;
+    const bool regularize = ((win == 0) + (draw == 0) + (loss == 0)) >= 2;
+    const double games = win + draw + loss + 1.5 * regularize;
     if (games == 0) return 0.0;
-    const double W = double(win) / games;
-    const double D = double(draw) / games;
-    const double L = double(loss) / games;
+    const double W = (win + 0.5 * regularize) / games;
+    const double D = (draw + 0.5 * regularize) / games;
+    const double L = (loss + 0.5 * regularize) / games;
     double score0;
     double score1;
     if (model_ == "normalized") {
@@ -92,14 +93,15 @@ double SPRT::getLLR(int win, int draw, int loss) const noexcept {
 double SPRT::getLLR(int penta_WW, int penta_WD, int penta_WL, int penta_DD, int penta_LD, int penta_LL) const noexcept {
     if (!enabled_) return 0.0;
 
-    const double pairs = penta_WW + penta_WD + penta_WL + penta_DD + penta_LD + penta_LL;
+    const bool regularize = ((penta_WW == 0) + (penta_WD == 0) + ((penta_WL + penta_DD) == 0) + (penta_LD == 0) + (penta_LL == 0)) >= 4;
+    const double pairs = penta_WW + penta_WD + penta_WL + penta_DD + penta_LD + penta_LL + 2.5 * regularize;
     if (pairs == 0) return 0.0;
-    const double WW = double(penta_WW) / pairs;
-    const double WD = double(penta_WD) / pairs;
-    const double WL = double(penta_WL) / pairs;
-    const double DD = double(penta_DD) / pairs;
-    const double LD = double(penta_LD) / pairs;
-    const double LL = double(penta_LL) / pairs;
+    const double WW = (penta_WW + 0.5 * regularize) / pairs;
+    const double WD = (penta_WD + 0.5 * regularize) / pairs;
+    const double WL = (penta_WL + 0.5 * regularize) / pairs;
+    const double DD = (penta_DD + 0.5 * regularize) / pairs;
+    const double LD = (penta_LD + 0.5 * regularize) / pairs;
+    const double LL = (penta_LL + 0.5 * regularize) / pairs;
     double score0;
     double score1;
     if (model_ == "normalized") {

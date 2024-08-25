@@ -29,9 +29,9 @@ class RoundRobin : public BaseTournament {
     // starts the round robin
     void start() override;
 
+   protected:
     void startNext() override;
 
-   protected:
     // creates the matches
     void create() override;
 

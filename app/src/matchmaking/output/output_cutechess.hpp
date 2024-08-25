@@ -16,20 +16,17 @@ class Cutechess : public IOutput {
     void printResult(const Stats& stats, const std::string& first, const std::string& second) override {
         const elo::EloWDL elo(stats);
 
-        auto fmt = fmt::format("Score of {} vs {}: {} - {} - {}  [{}] {}\n", first, second, stats.wins, stats.losses,
-                               stats.draws, elo.printScore(), stats.wins + stats.losses + stats.draws);
-
-        std::cout << fmt << std::flush;
+        std::cout << fmt::format("Score of {} vs {}: {} - {} - {}  [{}] {}\n", first, second, stats.wins, stats.losses,
+                                 stats.draws, elo.printScore(), stats.wins + stats.losses + stats.draws)
+                  << std::flush;
     }
 
     std::string printElo(const Stats& stats, const std::string&, const std::string&, const engines&,
                          const std::string&) override {
         const elo::EloWDL elo(stats);
 
-        auto fmt =
-            fmt::format("Elo difference: {}, LOS: {}, DrawRatio: {}\n", elo.getElo(), elo.los(), elo.drawRatio(stats));
-
-        return fmt;
+        return fmt::format("Elo difference: {}, LOS: {}, DrawRatio: {}\n", elo.getElo(), elo.los(),
+                           elo.drawRatio(stats));
     }
 
     std::string printSprt(const SPRT& sprt, const Stats& stats) override {
@@ -49,23 +46,22 @@ class Cutechess : public IOutput {
             return fmt::format("SPRT: llr {:.2f} ({:.1f}%), lbound {:.2f}, ubound {:.2f}{}\n", llr, percentage,
                                lowerBound, upperBound, result);
         }
+
         return "";
     };
 
     void startGame(const GamePair<EngineConfiguration, EngineConfiguration>& configs, std::size_t current_game_count,
                    std::size_t max_game_count) override {
-        auto fmt = fmt::format("Started game {} of {} ({} vs {})\n", current_game_count, max_game_count,
-                               configs.white.name, configs.black.name);
-
-        std::cout << fmt << std::flush;
+        std::cout << fmt::format("Started game {} of {} ({} vs {})\n", current_game_count, max_game_count,
+                                 configs.white.name, configs.black.name)
+                  << std::flush;
     }
 
     void endGame(const GamePair<EngineConfiguration, EngineConfiguration>& configs, const Stats& stats,
                  const std::string& annotation, std::size_t id) override {
-        auto fmt = fmt::format("Finished game {} ({} vs {}): {} {{{}}}\n", id, configs.white.name, configs.black.name,
-                               formatStats(stats), annotation);
-
-        std::cout << fmt << std::flush;
+        std::cout << fmt::format("Finished game {} ({} vs {}): {} {{{}}}\n", id, configs.white.name, configs.black.name,
+                                 formatStats(stats), annotation)
+                  << std::flush;
     }
 
     void endTournament() override { std::cout << "Tournament finished" << std::endl; }

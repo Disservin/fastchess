@@ -14,7 +14,7 @@ int main(int argc, char const* argv[]) {
     setCtrlCHandler();
 
     try {
-        auto options = cli::OptionsParser(argc, argv);
+        const auto options = cli::OptionsParser(argc, argv);
 
         config::TournamentConfig.setup([&options]() -> std::unique_ptr<config::Tournament> {
             auto cnf = options.getTournamentConfig();

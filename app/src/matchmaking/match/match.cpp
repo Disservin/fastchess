@@ -338,7 +338,7 @@ void Match::setEngineCrashStatus(Player& us, Player& them) {
 
     data_.termination = MatchTermination::DISCONNECT;
     
-    if (board_.hasSufficientMatingMaterial(~board_.sideToMove())) {
+    if (board_.them(board_.sideToMove()).count() > 1) {
         us.setLost();
         them.setWon();
         data_.reason      = color + Match::DISCONNECT_LOSE_MSG;
@@ -359,7 +359,7 @@ void Match::setEngineStallStatus(Player& us, Player& them) {
 
     data_.termination = MatchTermination::STALL;
     
-    if (board_.hasSufficientMatingMaterial(~board_.sideToMove())) {
+    if (board_.them(board_.sideToMove()).count() > 1) {
         us.setLost();
         them.setWon();
         data_.reason      = color + Match::STALL_LOSE_MSG;
@@ -378,7 +378,7 @@ void Match::setEngineTimeoutStatus(Player& us, Player& them) {
 
     data_.termination = MatchTermination::TIMEOUT;
 
-    if (board_.hasSufficientMatingMaterial(~board_.sideToMove())) {
+    if (board_.them(board_.sideToMove()).count() > 1) {
         us.setLost();
         them.setWon();
         data_.reason      = color + Match::TIMEOUT_LOSE_MSG;
@@ -405,7 +405,7 @@ void Match::setEngineIllegalMoveStatus(Player& us, Player& them, const std::opti
     const auto name  = us.engine.getConfig().name;
     const auto color = getColorString();
 
-    if (board_.hasSufficientMatingMaterial(~board_.sideToMove())) {
+    if (board_.them(board_.sideToMove()).count() > 1) {
         us.setLost();
         them.setWon();
     } else {

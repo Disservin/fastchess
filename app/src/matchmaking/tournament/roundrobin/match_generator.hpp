@@ -35,10 +35,10 @@ class MatchGenerator {
    private:
     std::optional<std::size_t> opening;
     book::OpeningBook* opening_book_;
-    std::size_t i, j, k, g;
+    std::size_t i, j, g;
     std::size_t engine_configs_size;
     int offset_ = initial_matchcount_ / config::TournamentConfig.get().games;
-    k = offset_;
+    std::size_t k = offset_;
 
     std::size_t games  = config::TournamentConfig.get().games;
     std::size_t rounds = config::TournamentConfig.get().rounds;

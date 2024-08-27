@@ -77,7 +77,7 @@ void Match::prepare() {
 
     const auto insert_move = [&](const auto& opening_move) {
         const auto move = uci::moveToUci(opening_move, board_.chess960());
-        board_.makeMove(opening_move);
+        board_.makeMove<true>(opening_move);
 
         return MoveData(move, "0.00", 0, 0, 0, 0, 0, true, true);
     };
@@ -275,7 +275,7 @@ bool Match::playMove(Player& us, Player& them) {
         return false;
     }
 
-    board_.makeMove(move);
+    board_.makeMove<true>(move);
 
     // CuteChess uses plycount/2 for its movenumber, which is wrong for epd books as it doesnt take
     // into account the fullmove counter of the starting FEN, leading to different behavior between
@@ -441,7 +441,7 @@ void Match::verifyPvLines(const Player& us) {
                 break;
             }
 
-            board.makeMove(uci::uciToMove(board, *it_start));
+            board.makeMove<true>(uci::uciToMove(board, *it_start));
 
             it_start++;
         }

@@ -25,7 +25,7 @@ THIS FILE IS AUTO GENERATED DO NOT CHANGE MANUALLY.
 
 Source: https://github.com/Disservin/chess-library
 
-VERSION: 0.6.55
+VERSION: 0.6.61
 */
 
 #ifndef CHESS_HPP
@@ -33,6 +33,7 @@ VERSION: 0.6.55
 
 
 #include <functional>
+#include <utility>
 
 
 #include <cstdint>
@@ -1366,6 +1367,9 @@ class movegen {
     static void generatePawnMoves(const Board &board, Movelist &moves, Bitboard pin_d, Bitboard pin_hv,
                                   Bitboard checkmask, Bitboard occ_enemy);
 
+    [[nodiscard]] static std::array<Move, 2> generateEPMove(const Board &board, Bitboard checkmask, Bitboard pin_d,
+                                                            Bitboard pawns_lr, Square ep, Color c);
+
     /// @brief Generate knight moves.
     /// @param sq
     /// @param movable
@@ -1424,6 +1428,8 @@ class movegen {
     /// @param board
     template <Color::underlying c, MoveGenType mt>
     static void legalmoves(Movelist &movelist, const Board &board, int pieces);
+
+    friend class Board;
 };
 
 }  // namespace chess
@@ -1656,6 +1662,10 @@ enum class GameResultReason {
     NONE
 };
 
+// A compact representation of the board in 24 bytes,
+// does not include the half-move clock or full move number.
+using PackedBoard = std::array<std::uint8_t, 24>;
+
 class Board {
     using U64 = std::uint64_t;
 
@@ -1733,10 +1743,12 @@ class Board {
     };
 
    public:
-    explicit Board(std::string_view fen = constants::STARTPOS) {
+    explicit Board(std::string_view fen = constants::STARTPOS, bool chess960 = false) {
         prev_states_.reserve(256);
+        chess960_ = chess960;
         setFenInternal(fen);
     }
+
     virtual void setFen(std::string_view fen) { setFenInternal(fen); }
 
     static Board fromFen(std::string_view fen) { return Board(fen); }
@@ -1924,26 +1936,60 @@ class Board {
 
             // double push
             if (Square::value_distance(move.to(), move.from()) == 16) {
+                // imaginary attacks from the ep square from the pawn which moved
                 Bitboard ep_mask = attacks::pawn(stm_, move.to().ep_square());
 
                 // add enpassant hash if enemy pawns are attacking the square
                 if (static_cast<bool>(ep_mask & pieces(PieceType::PAWN, ~stm_))) {
                     if constexpr (EXACT) {
-                        static constexpr auto is_legal = [](const Board &board, Move move) {
-                            static Movelist moves;
-                            movegen::legalmoves(moves, board);
+                        const auto piece = at(move.from());
+                        removePiece(piece, move.from());
+                        placePiece(piece, move.to());
+                        stm_ = ~stm_;
 
-                            return std::find(moves.begin(), moves.end(), move) != moves.end();
-                        };
+                        int double_check = 0;
 
-                        while (ep_mask) {
-                            const auto possible_move = Move::make(ep_mask.pop(), move.to().ep_square());
-                            if (is_legal(*this, possible_move)) {
-                                assert(at(move.to().ep_square()) == Piece::NONE);
-                                ep_sq_ = move.to().ep_square();
-                                key_ ^= Zobrist::enpassant(move.to().ep_square().file());
+                        Bitboard occ_us  = us(stm_);
+                        Bitboard occ_opp = us(~stm_);
+                        auto king_sq     = kingSq(stm_);
+
+                        Bitboard checkmask;
+                        Bitboard pin_hv;
+                        Bitboard pin_d;
+
+                        if (stm_ == Color::WHITE) {
+                            checkmask = movegen::checkMask<Color::WHITE>(*this, king_sq, double_check);
+                            pin_hv    = movegen::pinMaskRooks<Color::WHITE>(*this, king_sq, occ_opp, occ_us);
+                            pin_d     = movegen::pinMaskBishops<Color::WHITE>(*this, king_sq, occ_opp, occ_us);
+                        } else {
+                            checkmask = movegen::checkMask<Color::BLACK>(*this, king_sq, double_check);
+                            pin_hv    = movegen::pinMaskRooks<Color::BLACK>(*this, king_sq, occ_opp, occ_us);
+                            pin_d     = movegen::pinMaskBishops<Color::BLACK>(*this, king_sq, occ_opp, occ_us);
+                        }
+
+                        const auto pawns    = pieces(PieceType::PAWN, stm_);
+                        const auto pawns_lr = pawns & ~pin_hv;
+                        const auto ep       = move.to().ep_square();
+                        const auto m        = movegen::generateEPMove(*this, checkmask, pin_d, pawns_lr, ep, stm_);
+                        bool found          = false;
+
+                        for (const auto &move : m) {
+                            if (move != Move::NO_MOVE) {
+                                found = true;
                                 break;
                             }
+                        }
+
+                        // undo
+                        stm_ = ~stm_;
+
+                        removePiece(piece, move.to());
+                        placePiece(piece, move.from());
+
+                        if (found) {
+                            assert(at(move.to().ep_square()) == Piece::NONE);
+                            ep_sq_ = move.to().ep_square();
+                            key_ ^= Zobrist::enpassant(move.to().ep_square().file());
                         }
                     } else {
                         assert(at(move.to().ep_square()) == Piece::NONE);
@@ -2187,7 +2233,7 @@ class Board {
 
     void set960(bool is960) {
         chess960_ = is960;
-        setFen(original_fen_);
+        if (!original_fen_.empty()) setFen(original_fen_);
     }
 
     /// @brief Checks if the current position is a chess960, aka. FRC/DFRC position.
@@ -2386,6 +2432,202 @@ class Board {
     }
 
     friend std::ostream &operator<<(std::ostream &os, const Board &board);
+
+    /// @brief Compresses the board into a PackedBoard
+    class Compact {
+        friend class Board;
+        Compact() = default;
+
+       public:
+        /// @brief Compresses the board into a PackedBoard
+        static PackedBoard encode(const Board &board) { return encodeState(board); }
+
+        /// @brief Creates a Board object from a PackedBoard
+        /// @param compressed
+        /// @param chess960 If the board is a chess960 position, set this to true
+        static Board decode(const PackedBoard &compressed, bool chess960 = false) {
+            Board board{};
+            board.chess960_ = chess960;
+            decode(board, compressed);
+            return board;
+        }
+
+       private:
+        /**
+         * A compact board representation can be achieved in 24 bytes,
+         * we use 8 bytes (64bit) to store the occupancy bitboard,
+         * and 16 bytes (128bit) to store the pieces (plus some special information).
+         *
+         * Each of the 16 bytes can store 2 pieces, since chess only has 12 different pieces,
+         * we can represent the pieces from 0 to 11 in 4 bits (a nibble) and use the other 4 bit for
+         * the next piece.
+         * Since we need to store information about enpassant, castling rights and the side to move,
+         * we can use the remaining 4 bits to store this information.
+         *
+         * However we need to store the information and the piece information together.
+         * This means in our case that
+         * 12 -> enpassant + a pawn, we can deduce the color of the pawn from the rank of the square
+         * 13 -> white rook with castling rights, we later use the file to deduce if it's a short or long castle
+         * 14 -> black rook with castling rights, we later use the file to deduce if it's a short or long castle
+         * 15 -> black king and black is side to move
+         *
+         * We will later deduce the square of the pieces from the occupancy bitboard.
+         */
+        static PackedBoard encodeState(const Board &board) {
+            PackedBoard packed{};
+
+            packed[0] = board.occ().getBits() >> 56;
+            packed[1] = (board.occ().getBits() >> 48) & 0xFF;
+            packed[2] = (board.occ().getBits() >> 40) & 0xFF;
+            packed[3] = (board.occ().getBits() >> 32) & 0xFF;
+            packed[4] = (board.occ().getBits() >> 24) & 0xFF;
+            packed[5] = (board.occ().getBits() >> 16) & 0xFF;
+            packed[6] = (board.occ().getBits() >> 8) & 0xFF;
+            packed[7] = board.occ().getBits() & 0xFF;
+
+            auto offset = 8 * 2;
+            auto occ    = board.occ();
+
+            while (occ) {
+                // we now fill the packed array, since our convertedpiece only actually needs 4 bits,
+                // we can store 2 pieces in one byte.
+                const auto sq    = Square(occ.pop());
+                const auto shift = (offset % 2 == 0 ? 4 : 0);
+                packed[offset / 2] |= convertMeaning(board, sq, board.at(sq)) << shift;
+                offset++;
+            }
+
+            return packed;
+        }
+
+        static void decode(Board &board, const PackedBoard &compressed) {
+            Bitboard occupied = 0ull;
+
+            for (int i = 0; i < 8; i++) {
+                occupied |= Bitboard(compressed[i]) << (56 - i * 8);
+            }
+
+            int offset           = 16;
+            int white_castle_idx = 0, black_castle_idx = 0;
+            File white_castle[2] = {File::NO_FILE, File::NO_FILE};
+            File black_castle[2] = {File::NO_FILE, File::NO_FILE};
+
+            // clear board state
+
+            board.stm_ = Color::WHITE;
+            board.occ_bb_.fill(0ULL);
+            board.pieces_bb_.fill(0ULL);
+            board.board_.fill(Piece::NONE);
+            board.cr_.clear();
+            board.original_fen_.clear();
+            board.prev_states_.clear();
+            board.hfm_   = 0;
+            board.plies_ = 0;
+
+            // place pieces back on the board
+            while (occupied) {
+                const auto sq     = Square(occupied.pop());
+                const auto nibble = compressed[offset / 2] >> (offset % 2 == 0 ? 4 : 0) & 0b1111;
+                const auto piece  = convertPiece(nibble);
+
+                if (piece != Piece::NONE) {
+                    board.placePiece(piece, sq);
+
+                    offset++;
+                    continue;
+                }
+
+                // Piece has a special meaning, interpret it from the raw integer
+                // pawn with ep square behind it
+                if (nibble == 12) {
+                    board.ep_sq_ = sq.ep_square();
+                    // depending on the rank this is a white or black pawn
+                    auto color = sq.rank() == Rank::RANK_4 ? Color::WHITE : Color::BLACK;
+                    board.placePiece(Piece(PieceType::PAWN, color), sq);
+                }
+                // castling rights for white
+                else if (nibble == 13) {
+                    assert(white_castle_idx < 2);
+                    white_castle[white_castle_idx++] = sq.file();
+                    board.placePiece(Piece(PieceType::ROOK, Color::WHITE), sq);
+                }
+                // castling rights for black
+                else if (nibble == 14) {
+                    assert(black_castle_idx < 2);
+                    black_castle[black_castle_idx++] = sq.file();
+                    board.placePiece(Piece(PieceType::ROOK, Color::BLACK), sq);
+                }
+                // black to move
+                else if (nibble == 15) {
+                    board.stm_ = Color::BLACK;
+                    board.placePiece(Piece(PieceType::KING, Color::BLACK), sq);
+                }
+
+                offset++;
+            }
+
+            // reapply castling
+            for (int i = 0; i < 2; i++) {
+                if (white_castle[i] != File::NO_FILE) {
+                    const auto king_sq = board.kingSq(Color::WHITE);
+                    const auto file    = white_castle[i];
+                    const auto side    = CastlingRights::closestSide(file, king_sq.file());
+
+                    board.cr_.setCastlingRight(Color::WHITE, side, file);
+                }
+
+                if (black_castle[i] != File::NO_FILE) {
+                    const auto king_sq = board.kingSq(Color::BLACK);
+                    const auto file    = black_castle[i];
+                    const auto side    = CastlingRights::closestSide(file, king_sq.file());
+
+                    board.cr_.setCastlingRight(Color::BLACK, side, file);
+                }
+            }
+
+            if (board.stm_ == Color::BLACK) {
+                board.plies_++;
+            }
+
+            board.key_ = board.zobrist();
+        }
+
+        // 1:1 mapping of Piece::internal() to the compressed piece
+        static std::uint8_t convertPiece(Piece piece) { return int(piece.internal()); }
+
+        // for pieces with a special meaning return Piece::NONE since this is otherwise not used
+        static Piece convertPiece(std::uint8_t piece) {
+            if (piece >= 12) return Piece::NONE;
+            return Piece(Piece::underlying(piece));
+        }
+
+        // 12 => theres an ep square behind the pawn, rank will be deduced from the rank
+        // 13 => any white rook with castling rights, side will be deduced from the file
+        // 14 => any black rook with castling rights, side will be deduced from the file
+        // 15 => black king and black is side to move
+        static std::uint8_t convertMeaning(const Board &board, Square sq, Piece piece) {
+            if (piece.type() == PieceType::PAWN && board.ep_sq_ != Square::underlying::NO_SQ) {
+                if (Square(static_cast<int>(sq.index()) ^ 8) == board.ep_sq_) return 12;
+            }
+
+            if (piece.type() == PieceType::ROOK) {
+                if (piece.color() == Color::WHITE && Square::back_rank(sq, Color::WHITE) &&
+                    (board.cr_.getRookFile(Color::WHITE, CastlingRights::Side::KING_SIDE) == sq.file() ||
+                     board.cr_.getRookFile(Color::WHITE, CastlingRights::Side::QUEEN_SIDE) == sq.file()))
+                    return 13;
+                if (piece.color() == Color::BLACK && Square::back_rank(sq, Color::BLACK) &&
+                    (board.cr_.getRookFile(Color::BLACK, CastlingRights::Side::KING_SIDE) == sq.file() ||
+                     board.cr_.getRookFile(Color::BLACK, CastlingRights::Side::QUEEN_SIDE) == sq.file()))
+                    return 14;
+            }
+
+            if (piece.type() == PieceType::KING && piece.color() == Color::BLACK && board.stm_ == Color::BLACK) {
+                return 15;
+            }
+
+            return convertPiece(piece);
+        }
+    };
 
    protected:
     virtual void placePiece(Piece piece, Square sq) {
@@ -2634,6 +2876,15 @@ template <Direction direction>
         case Direction::SOUTH_EAST:
             return (b & ~MASK_FILE[7]) >> 7;
     }
+
+        // c++23
+#if defined(__cpp_lib_unreachable) && __cpp_lib_unreachable >= 202202L
+    std::unreachable();
+#endif
+
+    assert(false);
+
+    return {};
 }
 
 /// @brief [Internal Usage] Generate the left side pawn attacks.
@@ -3134,52 +3385,67 @@ inline void movegen::generatePawnMoves(const Board &board, Movelist &moves, Bitb
 
     const Square ep = board.enpassantSq();
     if (mt != MoveGenType::QUIET && ep != Square::underlying::NO_SQ) {
-        assert((ep.rank() == Rank::RANK_3 && board.sideToMove() == Color::BLACK) ||
-               (ep.rank() == Rank::RANK_6 && board.sideToMove() == Color::WHITE));
+        auto m = generateEPMove(board, checkmask, pin_d, pawns_lr, ep, c);
 
-        const Square epPawn = ep + DOWN;
-
-        /*
-         In case the en passant square and the enemy pawn
-         that just moved are not on the checkmask
-         en passant is not available.
-        */
-        if ((checkmask & (Bitboard::fromSquare(epPawn) | Bitboard::fromSquare(ep))) == Bitboard(0)) return;
-
-        const Square kSQ              = board.kingSq(c);
-        const Bitboard kingMask       = Bitboard::fromSquare(kSQ) & attacks::MASK_RANK[epPawn.rank()].getBits();
-        const Bitboard enemyQueenRook = board.pieces(PieceType::ROOK, ~c) | board.pieces(PieceType::QUEEN, ~c);
-
-        Bitboard epBB = attacks::pawn(~c, ep) & pawns_lr;
-
-        // For one en passant square two pawns could potentially take there.
-        while (epBB) {
-            const Square from = epBB.pop();
-            const Square to   = ep;
-
-            /*
-             If the pawn is pinned but the en passant square is not on the
-             pin mask then the move is illegal.
-            */
-            if ((Bitboard::fromSquare(from) & pin_d) && !(pin_d & Bitboard::fromSquare(ep))) continue;
-
-            const Bitboard connectingPawns = Bitboard::fromSquare(epPawn) | Bitboard::fromSquare(from);
-
-            /*
-             7k/4p3/8/2KP3r/8/8/8/8 b - - 0 1
-             If e7e5 there will be a potential ep square for us on e6.
-             However, we cannot take en passant because that would put our king
-             in check. For this scenario we check if there's an enemy rook/queen
-             that would give check if the two pawns were removed.
-             If that's the case then the move is illegal and we can break immediately.
-            */
-            const bool isPossiblePin = kingMask && enemyQueenRook;
-            if (isPossiblePin && (attacks::rook(kSQ, board.occ() & ~connectingPawns) & enemyQueenRook) != Bitboard(0))
-                break;
-
-            moves.add(Move::make<Move::ENPASSANT>(from, to));
+        for (const auto &move : m) {
+            if (move != Move::NO_MOVE) moves.add(move);
         }
     }
+}
+
+[[nodiscard]] inline std::array<Move, 2> movegen::generateEPMove(const Board &board, Bitboard checkmask, Bitboard pin_d,
+                                                                 Bitboard pawns_lr, Square ep, Color c) {
+    assert((ep.rank() == Rank::RANK_3 && board.sideToMove() == Color::BLACK) ||
+           (ep.rank() == Rank::RANK_6 && board.sideToMove() == Color::WHITE));
+
+    std::array<Move, 2> moves = {Move::NO_MOVE, Move::NO_MOVE};
+    auto i                    = 0;
+
+    const Direction DOWN = c == Color::WHITE ? Direction::SOUTH : Direction::NORTH;
+    const Square epPawn  = ep + DOWN;
+
+    /*
+     In case the en passant square and the enemy pawn
+     that just moved are not on the checkmask
+     en passant is not available.
+    */
+    if ((checkmask & (Bitboard::fromSquare(epPawn) | Bitboard::fromSquare(ep))) == Bitboard(0)) return moves;
+
+    const Square kSQ              = board.kingSq(c);
+    const Bitboard kingMask       = Bitboard::fromSquare(kSQ) & attacks::MASK_RANK[epPawn.rank()].getBits();
+    const Bitboard enemyQueenRook = board.pieces(PieceType::ROOK, ~c) | board.pieces(PieceType::QUEEN, ~c);
+
+    Bitboard epBB = attacks::pawn(~c, ep) & pawns_lr;
+
+    // For one en passant square two pawns could potentially take there.
+    while (epBB) {
+        const Square from = epBB.pop();
+        const Square to   = ep;
+
+        /*
+         If the pawn is pinned but the en passant square is not on the
+         pin mask then the move is illegal.
+        */
+        if ((Bitboard::fromSquare(from) & pin_d) && !(pin_d & Bitboard::fromSquare(ep))) continue;
+
+        const Bitboard connectingPawns = Bitboard::fromSquare(epPawn) | Bitboard::fromSquare(from);
+
+        /*
+         7k/4p3/8/2KP3r/8/8/8/8 b - - 0 1
+         If e7e5 there will be a potential ep square for us on e6.
+         However, we cannot take en passant because that would put our king
+         in check. For this scenario we check if there's an enemy rook/queen
+         that would give check if the two pawns were removed.
+         If that's the case then the move is illegal and we can break immediately.
+        */
+        const bool isPossiblePin = kingMask && enemyQueenRook;
+        if (isPossiblePin && (attacks::rook(kSQ, board.occ() & ~connectingPawns) & enemyQueenRook) != Bitboard(0))
+            break;
+
+        moves[i++] = Move::make<Move::ENPASSANT>(from, to);
+    }
+
+    return moves;
 }
 
 /// @brief Generate knight moves.
@@ -4034,7 +4300,6 @@ class StreamParser {
 }  // namespace chess::pgn
 
 #include <sstream>
-#include <utility>
 
 
 namespace chess {

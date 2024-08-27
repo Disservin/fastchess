@@ -79,7 +79,7 @@ PgnBuilder::PgnBuilder(const config::Pgn &pgn_config, const MatchData &match, st
         const auto last     = std::next(it) == match_.moves.end();
         const auto move_str = addMove(board, *it, move_number, n_dots, illegal, last);
 
-        board.makeMove(chess::uci::uciToMove(board, it->move));
+        board.makeMove<true>(chess::uci::uciToMove(board, it->move));
 
         move_number++;
 

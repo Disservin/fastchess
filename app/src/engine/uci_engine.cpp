@@ -292,9 +292,10 @@ void UciEngine::writeLog() const {
 
 std::string UciEngine::lastInfoLine() const {
     // iterate backwards over the output and save the first line
-    // that contains "info", "score" and "multipv 1" if it contains multipv
+    // that contains "info", "score", "cp" | "mate" and "multipv 1" if it contains multipv
     for (auto it = output_.rbegin(); it != output_.rend(); ++it) {
         if (it->line.find("info") != std::string::npos && it->line.find(" score ") != std::string::npos &&
+            (it->line.find(" mate ") != std::string::npos || it->line.find(" cp ") != std::string::npos) &&
             (it->line.find(" multipv ") == std::string::npos || it->line.find(" multipv 1") != std::string::npos)) {
             return it->line;
         }
@@ -329,9 +330,7 @@ std::vector<std::string> UciEngine::lastInfo() const {
     const auto last_info = lastInfoLine();
 
     if (last_info.empty()) {
-        Logger::warn<true>(
-            "Warning; Last info string with score not found from {}",
-            config_.name);
+        Logger::warn<true>("Warning; Last info string with score not found from {}", config_.name);
         return {};
     }
 

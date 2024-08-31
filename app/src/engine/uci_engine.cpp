@@ -291,11 +291,15 @@ void UciEngine::writeLog() const {
 }
 
 std::string UciEngine::lastInfoLine() const {
-    // iterate backwards over the output and save the first line
-    // that contains "info", "score", "cp" | "mate" and "multipv 1" if it contains multipv
+    // iterate backwards over the output and save the info line
     for (auto it = output_.rbegin(); it != output_.rend(); ++it) {
+        // skip lowerbound and upperbound
+        if (it->line.find("lowerbound") != std::string::npos || it->line.find("upperbound") != std::string::npos) {
+            continue;
+        }
+
+        // check that the line contains "info", "score", "cp" | "mate" and "multipv 1" if it contains multipv
         if (it->line.find("info") != std::string::npos && it->line.find(" score ") != std::string::npos &&
-            !(it->line.find("lowerbound") != std::string::npos || it->line.find("upperbound") != std::string::npos) &&
             (it->line.find(" multipv ") == std::string::npos || it->line.find(" multipv 1") != std::string::npos)) {
             return it->line;
         }

@@ -543,7 +543,7 @@ void parseQuick(const std::vector<std::string> &params, ArgumentData &argument_d
             argument_data.configs.back().limit.tc.time      = 10 * 1000;
             argument_data.configs.back().limit.tc.increment = 100;
 
-            argument_data.configs.back().recover = true;
+            argument_data.tournament_config.recover = true;
         } else if (key == "book") {
             argument_data.tournament_config.opening.file  = value;
             argument_data.tournament_config.opening.order = OrderType::RANDOM;

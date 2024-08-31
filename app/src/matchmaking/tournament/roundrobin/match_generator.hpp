@@ -15,6 +15,7 @@ class MatchGenerator {
         : i(0), j(1), k(0), g(0), engine_configs_size(config::EngineConfigs.get().size()) {
         opening_book_ = opening_book;
         offset_       = initial_matchcount / config::TournamentConfig.get().games;
+        k             = offset_;
     }
 
     std::optional<std::tuple<std::size_t, std::size_t, std::size_t, int, std::optional<std::size_t>>> next() {

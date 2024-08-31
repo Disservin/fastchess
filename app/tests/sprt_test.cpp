@@ -21,6 +21,13 @@ TEST_SUITE("SPRT") {
         CHECK(sprt.getLLR(stats, false) == doctest::Approx(2.30).epsilon(0.01));
     }
 
+    TEST_CASE("normalized trinomial 3") {
+        Stats stats(4250, 0, 0);
+        SPRT sprt(0.05, 0.05, 0, 10, "normalized", true);
+
+        CHECK(sprt.getLLR(stats, false) == doctest::Approx(2.97).epsilon(0.01));
+    }
+
     TEST_CASE("logistic trinomial 1") {
         Stats stats(21404, 21184, 40708);
         SPRT sprt(0.05, 0.05, 0.5, 2.5, "logistic", true);
@@ -61,6 +68,13 @@ TEST_SUITE("SPRT") {
         SPRT sprt(0.05, 0.05, -1.75, 0.25, "normalized", true);
 
         CHECK(sprt.getLLR(stats, true) == doctest::Approx(3.01).epsilon(0.01));
+    }
+
+    TEST_CASE("normalized pentanomial 3") {
+        Stats stats(0, 0, 0, 0, 0, 5550);
+        SPRT sprt(0.05, 0.05, 0, 5, "normalized", true);
+
+        CHECK(sprt.getLLR(stats, true) == doctest::Approx(2.94).epsilon(0.01));
     }
 
     TEST_CASE("logistic pentanomial 1") {

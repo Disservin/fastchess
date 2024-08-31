@@ -32,14 +32,14 @@ class BaseTournament {
     /// @brief Starts the tournament
     virtual void start();
 
-    /// @brief Gets called after a game has finished
-    virtual void startNext() = 0;
-
     [[nodiscard]] stats_map getResults() noexcept { return scoreboard_.getResults(); }
 
    protected:
     using start_callback    = std::function<void()>;
     using finished_callback = std::function<void(const Stats &stats, const std::string &reason, const engines &)>;
+
+    /// @brief Gets called after a game has finished
+    virtual void startNext() = 0;
 
     // creates the matches
     virtual void create() = 0;

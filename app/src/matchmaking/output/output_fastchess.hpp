@@ -32,100 +32,63 @@ class Fastchess : public IOutput {
 
     std::string printElo(const Stats& stats, const std::string& first, const std::string& second,
                          const engines& engines, const std::string& book) override {
-        std::unique_ptr<elo::EloBase> elo;
-
-        if (report_penta_) {
-            elo = std::make_unique<elo::EloPentanomial>(stats);
-        } else {
-            elo = std::make_unique<elo::EloWDL>(stats);
-        }
+        auto elo = createElo(stats, report_penta_);
 
         const auto& first_engine  = engines.first.getConfig().name == first ? engines.first : engines.second;
         const auto& second_engine = engines.first.getConfig().name == second ? engines.first : engines.second;
 
-        auto timeFirst  = getTime(first_engine);
-        auto timeSecond = getTime(second_engine);
-        auto tc =
-            timeFirst == timeSecond ? fmt::format("{}", timeFirst) : fmt::format("{} - {}", timeFirst, timeSecond);
-
-        auto threadsFirst  = getThreads(first_engine);
-        auto threadsSecond = getThreads(second_engine);
-        auto threads       = threadsFirst == threadsSecond ? fmt::format("{}", threadsFirst)
-                                                           : fmt::format("{} - {}", threadsFirst, threadsSecond);
-
-        auto hashFirst  = getHash(first_engine);
-        auto hashSecond = getHash(second_engine);
-
-        auto hash =
-            hashFirst == hashSecond ? fmt::format("{}", hashFirst) : fmt::format("{} - {}", hashFirst, hashSecond);
+        const auto tc       = formatTimeControl(first_engine.getConfig(), second_engine.getConfig());
+        const auto threads  = formatThreads(first_engine.uciOptions(), second_engine.uciOptions());
+        const auto hash     = formatHash(first_engine.uciOptions(), second_engine.uciOptions());
+        const auto bookname = getShortName(book);
 
         const auto games       = stats.wins + stats.losses + stats.draws;
         const auto points      = stats.wins + 0.5 * stats.draws;
         const auto pointsRatio = points / games * 100;
         const auto WLDDRatio   = static_cast<double>(stats.penta_WL) / stats.penta_DD;
-
         const auto pairsRatio =
             static_cast<double>(stats.penta_WW + stats.penta_WD) / (stats.penta_LD + stats.penta_LL);
 
-        auto bookname   = book;
-        std::size_t pos = bookname.find_last_of("/\\");
-
-        if (pos != std::string::npos) {
-            bookname = bookname.substr(pos + 1);
-        }
-
-        // engine, engine2, tc, threads, hash, book
-        auto line1 = fmt::format("Results of {} vs {} ({}, {}, {}{}):", first, second, tc, threads, hash,
-                                 book.empty() ? "" : fmt::format(", {}", bookname));
-        auto line2 = fmt::format("Elo: {}, nElo: {}", elo->getElo(), elo->nElo());
-        auto line3 =
-            fmt::format("LOS: {}, DrawRatio: {}, PairsRatio: {:.2f}", elo->los(), elo->drawRatio(stats), pairsRatio);
-        auto line4 = fmt::format("Games: {}, Wins: {}, Losses: {}, Draws: {}, Points: {:.1f} ({:.2f} %)", games,
-                                 stats.wins, stats.losses, stats.draws, points, pointsRatio);
+        auto result =
+            fmt::format("{}\n{}\n{}\n{}", formatMatchup(first, second, tc, threads, hash, bookname), formatElo(elo),
+                        formatGameStats(*elo, stats, pairsRatio), formatGameResults(stats, points, pointsRatio));
 
         if (report_penta_) {
-            auto line5 =
-                fmt::format("Ptnml(0-2): [{}, {}, {}, {}, {}], WL/DD Ratio: {:.2f}", stats.penta_LL, stats.penta_LD,
-                            stats.penta_WL + stats.penta_DD, stats.penta_WD, stats.penta_WW, WLDDRatio);
-
-            return fmt::format("{}\n{}\n{}\n{}\n{}\n", line1, line2, line3, line4, line5);
+            result += fmt::format("\n{}", formatPentaStats(stats, WLDDRatio));
         }
 
-        return fmt::format("{}\n{}\n{}\n{}\n", line1, line2, line3, line4);
+        return result;
     }
 
     std::string printSprt(const SPRT& sprt, const Stats& stats) override {
         if (sprt.isEnabled()) {
             double llr = sprt.getLLR(stats, report_penta_);
 
-            auto fmt = fmt::format("LLR: {:.2f} {} {}\n", llr, sprt.getBounds(), sprt.getElo());
-
-            return fmt;
+            return fmt::format("LLR: {:.2f} {} {}\n", llr, sprt.getBounds(), sprt.getElo());
         }
+
         return "";
     }
 
     void startGame(const GamePair<EngineConfiguration, EngineConfiguration>& configs, std::size_t current_game_count,
                    std::size_t max_game_count) override {
-        auto fmt = fmt::format("Started game {} of {} ({} vs {})\n", current_game_count, max_game_count,
-                               configs.white.name, configs.black.name);
-
-        std::cout << fmt << std::flush;
+        std::cout << fmt::format("Started game {} of {} ({} vs {})\n", current_game_count, max_game_count,
+                                 configs.white.name, configs.black.name)
+                  << std::flush;
     }
 
     void endGame(const GamePair<EngineConfiguration, EngineConfiguration>& configs, const Stats& stats,
                  const std::string& annotation, std::size_t id) override {
-        auto fmt = fmt::format("Finished game {} ({} vs {}): {} {{{}}}\n", id, configs.white.name, configs.black.name,
-                               formatStats(stats), annotation);
-
-        std::cout << fmt << std::flush;
+        std::cout << fmt::format("Finished game {} ({} vs {}): {} {{{}}}\n", id, configs.white.name, configs.black.name,
+                                 formatStats(stats), annotation)
+                  << std::flush;
     }
 
     void endTournament() override { std::cout << "Tournament finished" << std::endl; }
 
    private:
-    std::string getTime(const engine::UciEngine& engine) {
-        const auto& limit = engine.getConfig().limit;
+    std::string getTime(const EngineConfiguration& config) const {
+        const auto& limit = config.limit;
 
         if (limit.tc.time + limit.tc.increment > 0) {
             auto moves     = limit.tc.moves > 0 ? fmt::format("{}/", limit.tc.moves) : "";
@@ -146,8 +109,8 @@ class Fastchess : public IOutput {
         return "";
     }
 
-    std::string getThreads(const engine::UciEngine& engine) {
-        const auto option = engine.uciOptions().getOption("Threads");
+    std::string getThreads(const UCIOptions& uci_options) const {
+        const auto option = uci_options.getOption("Threads");
 
         if (option.has_value()) {
             auto value = option.value()->getValue();
@@ -157,8 +120,8 @@ class Fastchess : public IOutput {
         return fmt::format("NULL");
     }
 
-    std::string getHash(const engine::UciEngine& engine) {
-        const auto option = engine.uciOptions().getOption("Hash");
+    std::string getHash(const UCIOptions& uci_options) const {
+        const auto option = uci_options.getOption("Hash");
 
         if (option.has_value()) {
             auto value = option.value()->getValue();
@@ -166,6 +129,69 @@ class Fastchess : public IOutput {
         }
 
         return fmt::format("NULL");
+    }
+
+    static std::string getShortName(const std::string& name) {
+        std::size_t pos = name.find_last_of("/\\");
+
+        if (pos != std::string::npos) {
+            return name.substr(pos + 1);
+        }
+
+        return name;
+    }
+
+    std::string formatMatchup(const std::string& first, const std::string& second, const std::string& tc,
+                              const std::string& threads, const std::string& hash, const std::string& bookname) const {
+        return fmt::format("Results of {} vs {} ({}, {}, {}{}):", first, second, tc, threads, hash,
+                           bookname.empty() ? "" : fmt::format(", {}", bookname));
+    }
+
+    std::string formatElo(const std::unique_ptr<elo::EloBase>& elo) const {
+        return fmt::format("Elo: {}, nElo: {}", elo->getElo(), elo->nElo());
+    }
+
+    std::string formatGameStats(const elo::EloBase& elo, const Stats& stats, double pairsRatio) const {
+        return fmt::format("LOS: {}, DrawRatio: {}, PairsRatio: {:.2f}", elo.los(), elo.drawRatio(stats), pairsRatio);
+    }
+
+    std::string formatGameResults(const Stats& stats, double points, double pointsRatio) const {
+        return fmt::format("Games: {}, Wins: {}, Losses: {}, Draws: {}, Points: {:.1f} ({:.2f} %)",
+                           stats.wins + stats.losses + stats.draws, stats.wins, stats.losses, stats.draws, points,
+                           pointsRatio);
+    }
+
+    std::string formatPentaStats(const Stats& stats, double WLDDRatio) const {
+        return fmt::format("Ptnml(0-2): [{}, {}, {}, {}, {}], WL/DD Ratio: {:.2f}", stats.penta_LL, stats.penta_LD,
+                           stats.penta_WL + stats.penta_DD, stats.penta_WD, stats.penta_WW, WLDDRatio);
+    }
+
+    std::string formatTimeControl(const EngineConfiguration first_config,
+                                  const EngineConfiguration seocnd_config) const {
+        const auto timeFirst  = getTime(first_config);
+        const auto timeSecond = getTime(seocnd_config);
+        return timeFirst == timeSecond ? fmt::format("{}", timeFirst) : fmt::format("{} - {}", timeFirst, timeSecond);
+    }
+
+    std::string formatThreads(const UCIOptions& first_uci_options, const UCIOptions& second_uci_options) const {
+        const auto threadsFirst  = getThreads(first_uci_options);
+        const auto threadsSecond = getThreads(second_uci_options);
+        return threadsFirst == threadsSecond ? fmt::format("{}", threadsFirst)
+                                             : fmt::format("{} - {}", threadsFirst, threadsSecond);
+    }
+
+    std::string formatHash(const UCIOptions& first_uci_options, const UCIOptions& second_uci_options) const {
+        const auto hashFirst  = getHash(first_uci_options);
+        const auto hashSecond = getHash(second_uci_options);
+        return hashFirst == hashSecond ? fmt::format("{}", hashFirst) : fmt::format("{} - {}", hashFirst, hashSecond);
+    }
+
+    std::unique_ptr<elo::EloBase> createElo(const Stats& stats, bool report_penta) const {
+        if (report_penta) {
+            return std::make_unique<elo::EloPentanomial>(stats);
+        }
+
+        return std::make_unique<elo::EloWDL>(stats);
     }
 
     bool report_penta_;

@@ -21,7 +21,7 @@ class Fastchess : public IOutput {
     void printInterval(const SPRT& sprt, const Stats& stats, const std::string& first, const std::string& second,
                        const engines& engines, const std::string& book) override {
         std::cout << "--------------------------------------------------\n"
-                  << printElo(stats, first, second, engines, book) << printSprt(sprt, stats)
+                  << printElo(stats, first, second, engines, book) << printSprt(sprt, stats) << "\n"
                   << "--------------------------------------------------\n"
                   << std::flush;
     };

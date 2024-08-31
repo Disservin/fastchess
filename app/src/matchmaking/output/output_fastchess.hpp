@@ -57,7 +57,7 @@ class Fastchess : public IOutput {
             result += fmt::format("\n{}", formatPentaStats(stats, WLDDRatio));
         }
 
-        return result;
+        return result + "\n";
     }
 
     std::string printSprt(const SPRT& sprt, const Stats& stats) override {
@@ -67,7 +67,7 @@ class Fastchess : public IOutput {
             return fmt::format("LLR: {:.2f} {} {}\n", llr, sprt.getBounds(), sprt.getElo());
         }
 
-        return "\n";
+        return "";
     }
 
     void startGame(const GamePair<EngineConfiguration, EngineConfiguration>& configs, std::size_t current_game_count,

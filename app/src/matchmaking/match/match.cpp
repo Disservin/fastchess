@@ -53,8 +53,8 @@ void Match::addMoveData(const Player& player, int64_t measured_time_ms, int64_t 
         ss << (move_data.score >= 0 ? '+' : '-');
         ss << std::fixed << std::setprecision(2) << (float(std::abs(move_data.score)) / 100);
     } else if (score_type == engine::ScoreType::MATE) {
-        uint64_t plies = board_.sideToMove() == chess::Color::WHITE ? std::abs(move_data.score) * 2 
-                                                                    : std::abs(move_data.score) * 2 - 1;
+        uint64_t plies = board_.sideToMove() == move_data.score > 0 ? std::abs(move_data.score) * 2 - 1
+                                                                    : std::abs(move_data.score) * 2;
         ss << (move_data.score > 0 ? "+M" : "-M") << std::to_string(plies);
     } else {
         ss << "ERR";

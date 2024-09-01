@@ -138,7 +138,7 @@ std::string PgnBuilder::addMove(chess::Board &board, const MoveData &move, std::
         } else {
             ss << addComment((move.score_string + "/" + std::to_string(move.depth)),                         //
                              formatTime(move.elapsed_millis),                                                //
-                             pgn_config_.track_timeleft ? "tl=" + std::to_string(move.timeleft) : "",        //
+                             pgn_config_.track_timeleft ? "tl=" + formatTime(move.timeleft) : "",        //
                              pgn_config_.track_nodes ? "n=" + std::to_string(move.nodes) : "",               //
                              pgn_config_.track_seldepth ? "sd=" + std::to_string(move.seldepth) : "",        //
                              pgn_config_.track_nps ? "nps=" + std::to_string(move.nps) : "",                 //

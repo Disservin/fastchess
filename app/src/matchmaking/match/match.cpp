@@ -44,7 +44,7 @@ void Match::addMoveData(const Player& player, int64_t measured_time_ms, int64_t 
     move_data.seldepth = str_utils::findElement<int>(info, "seldepth").value_or(0);
     move_data.nodes    = str_utils::findElement<uint64_t>(info, "nodes").value_or(0);
     move_data.score    = player.engine.lastScore();
-    move_data.timeleft = timeleft / 100.0;
+    move_data.timeleft = timeleft;
 
     // Missing elements default to 0
     std::stringstream ss;

@@ -229,7 +229,7 @@ bool UciEngine::start() {
     Logger::trace<true>("Starting engine {} at {}", config_.name, path);
 
     // Creates the engine process and sets the pipes
-    if (init(path, config_.args, config_.name) != process::Status::OK) {
+    if (init(config_.dir, path, config_.args, config_.name) != process::Status::OK) {
         Logger::warn<true>("Warning: Cannot start engine {}:", config_.name);
         Logger::warn<true>("Cannot execute command: {}", path);
 

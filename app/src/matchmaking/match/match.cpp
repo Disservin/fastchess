@@ -246,7 +246,7 @@ bool Match::playMove(Player& us, Player& them) {
     const auto legal     = isLegal(move);
 
     const auto timeout   = !us.updateTime(elapsed_millis);
-    const auto timeleft  = us.getTimeLeft();
+    const auto timeleft  = us.getTimeControl().getTimeLeft();
 
     addMoveData(us, elapsed_millis, timeleft, legal);
 

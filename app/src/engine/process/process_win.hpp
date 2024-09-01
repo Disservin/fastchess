@@ -62,8 +62,9 @@ class Process : public IProcess {
         CREATE_NEW_PROCESS_GROUP flag is important here
         to disable all CTRL+C signals for the new process
         */
-        const auto success = CreateProcessA(nullptr, const_cast<char *>((command + " " + args).c_str()), nullptr,
-                                            nullptr, TRUE, CREATE_NEW_PROCESS_GROUP, nullptr, wd.c_str(), &si, &pi_);
+        const auto success =
+            CreateProcessA(nullptr, const_cast<char *>((command + " " + args).c_str()), nullptr, nullptr, TRUE,
+                           CREATE_NEW_PROCESS_GROUP, nullptr, w.empty() ? nullptr : wd.c_str(), &si, &pi_);
 
         // not needed
         out_pipe_.close_read();

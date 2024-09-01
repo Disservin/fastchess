@@ -18,6 +18,7 @@ struct Pgn {
     bool track_nps        = false;
     bool track_hashfull   = false;
     bool track_tbhits     = false;
+    bool track_timeleft   = false;
     bool min              = false;
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(Pgn, event_name, site, file, notation, track_nodes, track_seldepth,

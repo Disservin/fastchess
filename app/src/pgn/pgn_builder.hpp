@@ -52,7 +52,7 @@ class PgnBuilder {
     }
 
     // Formats a time in milliseconds to seconds with 3 decimals
-    [[nodiscard]] static std::string formatTime(uint64_t millis) {
+    [[nodiscard]] static std::string formatTime(int64_t millis) {
         std::stringstream ss;
         ss << std::setprecision(3) << std::fixed << millis / 1000.0 << "s";
         return ss.str();

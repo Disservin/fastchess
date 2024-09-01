@@ -23,7 +23,7 @@ using clock = chrono::high_resolution_clock;
 using namespace std::literals;
 using namespace chess;
 
-void Match::addMoveData(const Player& player, int64_t measured_time_ms, bool legal) {
+void Match::addMoveData(const Player& player, int64_t measured_time_ms, int64_t timeleft, bool legal) {
     const auto move    = player.engine.bestmove() ? *player.engine.bestmove() : "<none>";
     MoveData move_data = MoveData(move, "0.00", measured_time_ms, 0, 0, 0, 0, legal);
 
@@ -44,6 +44,7 @@ void Match::addMoveData(const Player& player, int64_t measured_time_ms, bool leg
     move_data.seldepth = str_utils::findElement<int>(info, "seldepth").value_or(0);
     move_data.nodes    = str_utils::findElement<uint64_t>(info, "nodes").value_or(0);
     move_data.score    = player.engine.lastScore();
+    move_data.timeleft = timeleft / 100.0;
 
     // Missing elements default to 0
     std::stringstream ss;
@@ -244,9 +245,10 @@ bool Match::playMove(Player& us, Player& them) {
     const auto move      = best_move ? uci::uciToMove(board_, *best_move) : Move::NO_MOVE;
     const auto legal     = isLegal(move);
 
-    const auto timeout = !us.updateTime(elapsed_millis);
+    const auto timeout   = !us.updateTime(elapsed_millis);
+    const auto timeleft  = us.getTimeLeft();
 
-    addMoveData(us, elapsed_millis, legal);
+    addMoveData(us, elapsed_millis, timeleft, legal);
 
     // there are two reasons why best_move could be empty
     // 1. the engine crashed

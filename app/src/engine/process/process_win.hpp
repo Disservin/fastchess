@@ -64,7 +64,7 @@ class Process : public IProcess {
         */
         const auto success =
             CreateProcessA(nullptr, const_cast<char *>((command + " " + args).c_str()), nullptr, nullptr, TRUE,
-                           CREATE_NEW_PROCESS_GROUP, nullptr, w.empty() ? nullptr : wd.c_str(), &si, &pi_);
+                           CREATE_NEW_PROCESS_GROUP, nullptr, wd.empty() ? nullptr : wd.c_str(), &si, &pi_);
 
         // not needed
         out_pipe_.close_read();

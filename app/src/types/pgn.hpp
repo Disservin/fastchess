@@ -22,6 +22,6 @@ struct Pgn {
     bool min              = false;
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(Pgn, event_name, site, file, notation, track_nodes, track_seldepth,
-                                                track_nps, track_hashfull, track_tbhits, min)
+                                                track_nps, track_hashfull, track_tbhits, track_timeleft, min)
 
 }  // namespace fastchess::config

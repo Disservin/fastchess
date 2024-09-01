@@ -53,9 +53,11 @@ class Process : public IProcess {
    public:
     virtual ~Process() override { killProcess(); }
 
-    Status init(const std::string &command, const std::string &args, const std::string &log_name) override {
+    Status init(const std::string &wd, const std::string &command, const std::string &args,
+                const std::string &log_name) override {
         assert(!is_initalized_);
 
+        wd_            = wd;
         command_       = command;
         args_          = args;
         log_name_      = log_name;
@@ -170,7 +172,7 @@ class Process : public IProcess {
     void restart() override {
         Logger::trace<true>("Restarting {}", log_name_);
         killProcess();
-        init(command_, args_, log_name_);
+        init(wd_, command_, args_, log_name_);
     }
 
    protected:
@@ -311,6 +313,8 @@ class Process : public IProcess {
         int read_end() const { return fds_[0]; }
         int write_end() const { return fds_[1]; }
     };
+
+    std::string wd_;
 
     // The command to execute
     std::string command_;

@@ -381,6 +381,8 @@ void parseLog(const std::vector<std::string> &params, ArgumentData &argument_dat
             argument_data.tournament_config.log.compress = value == "true";
         } else if (key == "realtime" && is_bool(value)) {
             argument_data.tournament_config.log.realtime = value == "true";
+        } else if (key == "onlyerrors" && is_bool(value)) {
+            argument_data.tournament_config.log.onlyerrors = value == "true";
         } else {
             OptionsParser::throwMissing("log", key, value);
         }

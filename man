@@ -155,9 +155,10 @@ OPTIONS
             Specify the seed for opening book randomization. Otherwise, the chosen seed will be 
             a random integer value between 0 and (2^64 - 1).
 
-        -log file=NAME level=LEVEL compress=(true|false) realtime=(true|false)
+        -log file=NAME level=LEVEL compress=(true|false) realtime=(true|false) onlyerrors=(true|false)
             Specify a log file with a specific log level. 
             Set compress to true if you want the log file to be gzipped. Default is false.
+            Set onlyerrors to true if you want to only log engine stderr output. Default is false.
             Specifying a level will only print/save the specified level and the levels above that.
             Level "trace" is only ever saved to a file and never printed to the console.
             By default engine logs will be written in realtime this adds a small overhead which

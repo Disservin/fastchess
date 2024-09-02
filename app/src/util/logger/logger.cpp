@@ -42,7 +42,7 @@ void Logger::openFile(const std::string &file) {
 }
 
 void Logger::writeToEngine(const std::string &msg, const std::string &time, const std::string &name) {
-    if (!should_log_) {
+    if (!should_log_ || onlyerrors_) {
         return;
     }
 
@@ -56,7 +56,7 @@ void Logger::writeToEngine(const std::string &msg, const std::string &time, cons
 
 void Logger::readFromEngine(const std::string &msg, const std::string &time, const std::string &name, bool err,
                             std::thread::id id) {
-    if (!should_log_) {
+    if (!should_log_ || (onlyerrors_ && !err)) {
         return;
     }
 

@@ -30,7 +30,7 @@ class Logger {
     using log_file_type = std::variant<std::ofstream>;
 #endif
 
-    enum class Level { ALL, TRACE, WARN, INFO, ERR, FATAL };
+    enum class Level { ALL, TRACE, WARN, INFO, ERR, FATAL, NONE };
 
     Logger(Logger const &) = delete;
 
@@ -39,6 +39,11 @@ class Logger {
     static void setLevel(Level level) { Logger::level_ = level; }
 
     static void setCompress(bool compress) { compress_ = compress; }
+
+    static void setOnlyErrors(bool onlyerrors) {
+        Logger::onlyerrors_ = onlyerrors;
+        Logger::level_      = Logger::Level::NONE;
+    }
 
     static void openFile(const std::string &file);
 

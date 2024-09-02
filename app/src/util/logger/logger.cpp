@@ -14,6 +14,7 @@
 namespace fastchess {
 
 bool Logger::compress_               = false;
+bool Logger::onlyerrors_             = false;
 Logger::Level Logger::level_         = Logger::Level::WARN;
 std::atomic_bool Logger::should_log_ = false;
 

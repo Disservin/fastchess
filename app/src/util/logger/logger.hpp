@@ -137,6 +137,7 @@ class Logger {
 
     static Level level_;
     static bool compress_;
+    static bool onlyerrors_;
 
     static log_file_type log_;
     static std::mutex log_mutex_;

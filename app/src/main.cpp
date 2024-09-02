@@ -34,6 +34,7 @@ int main(int argc, char const* argv[]) {
 
         Logger::setLevel(config::TournamentConfig.get().log.level);
         Logger::setCompress(config::TournamentConfig.get().log.compress);
+        Logger::setOnlyErrors(config::TournamentConfig.get().log.onlyerrors);
         Logger::openFile(config::TournamentConfig.get().log.file);
 
         util::random::seed(config::TournamentConfig.get().seed);

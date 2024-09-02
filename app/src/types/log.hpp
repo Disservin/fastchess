@@ -11,7 +11,8 @@ struct Log {
     Logger::Level level = Logger::Level::WARN;
     bool compress       = false;
     bool realtime       = true;
+    bool onlyerrors     = false;
 };
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(Log, file, level, compress, realtime)
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(Log, file, level, compress, realtime, onlyerrors)
 
 }  // namespace fastchess::config

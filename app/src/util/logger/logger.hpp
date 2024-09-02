@@ -42,7 +42,8 @@ class Logger {
 
     static void setOnlyErrors(bool onlyerrors) {
         Logger::onlyerrors_ = onlyerrors;
-        Logger::level_      = Logger::Level::NONE;
+        if (onlyerrors)
+           Logger::level_   = Logger::Level::NONE;
     }
 
     static void openFile(const std::string &file);

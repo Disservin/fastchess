@@ -30,7 +30,7 @@ class Logger {
     using log_file_type = std::variant<std::ofstream>;
 #endif
 
-    enum class Level { ALL, TRACE, WARN, INFO, ERR, FATAL};
+    enum class Level { ALL, TRACE, WARN, INFO, ERR, FATAL };
 
     Logger(Logger const &) = delete;
 

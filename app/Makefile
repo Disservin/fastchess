@@ -47,7 +47,8 @@ SRC_FILES_TEST   := \
 	$(TESTDIR)/player.cpp \
 	$(TESTDIR)/scoreboard_test.cpp \
 	$(TESTDIR)/sprt_test.cpp \
-	$(TESTDIR)/uci_engine_test.cpp
+	$(TESTDIR)/uci_engine_test.cpp \
+	$(TESTDIR)/match_test.cpp
 
 # Only used for formatting
 HEADERS := $(shell find $(SRCDIR) -name "*.hpp") $(shell find $(TESTDIR) -maxdepth 1 -name "*.hpp")

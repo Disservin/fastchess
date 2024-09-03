@@ -99,7 +99,7 @@ OPTIONS
             Choose the output format for game results (cutechess or fastchess).
             Default is fastchess.
 
-        -pgnout file=NAME notation=(san|lan|uci) [nodes=(true|false)] [seldepth=(true|false)] [nps=(true|false)] [hashfull=(true|false)] [tbhits=(true|false)] [min=(true|false)]
+        -pgnout file=NAME notation=(san|lan|uci) [nodes=(true|false)] [seldepth=(true|false)] [nps=(true|false)] [hashfull=(true|false)] [tbhits=(true|false)] [timeleft=(true|false)] [min=(true|false)]
             Export games in PGN format with specified notations and optional tracking of nodes, seldepth, nps, hashfull, and tbhits.
 
                 notation
@@ -112,6 +112,7 @@ OPTIONS
                 nps      - defaults to false, track nps.
                 hashfull - defaults to false, track hashfull.
                 tbhits   - defaults to false, track tbhits.
+                timeleft - defaults to false, track time left at the end of move.
                 min      - defaults to false, minimal PGN format.
 
         -epdout file=NAME

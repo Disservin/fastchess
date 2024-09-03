@@ -23,7 +23,23 @@ using clock = chrono::high_resolution_clock;
 using namespace std::literals;
 using namespace chess;
 
-void Match::addMoveData(const Player& player, int64_t measured_time_ms, bool legal) {
+std::string Match::convertScoreToString(int score, engine::ScoreType score_type) {
+    std::stringstream ss;
+
+    if (score_type == engine::ScoreType::CP) {
+        ss << (score >= 0 ? '+' : '-');
+        ss << std::fixed << std::setprecision(2) << (float(std::abs(score)) / 100);
+    } else if (score_type == engine::ScoreType::MATE) {
+        uint64_t plies = score > 0 ? score * 2 - 1 : score * -2;
+        ss << (score > 0 ? "+M" : "-M") << std::to_string(plies);
+    } else {
+        ss << "ERR";
+    }
+
+    return ss.str();
+}
+
+void Match::addMoveData(const Player& player, int64_t measured_time_ms, int64_t timeleft, bool legal) {
     const auto move    = player.engine.bestmove() ? *player.engine.bestmove() : "<none>";
     MoveData move_data = MoveData(move, "0.00", measured_time_ms, 0, 0, 0, 0, legal);
 
@@ -44,20 +60,9 @@ void Match::addMoveData(const Player& player, int64_t measured_time_ms, bool leg
     move_data.seldepth = str_utils::findElement<int>(info, "seldepth").value_or(0);
     move_data.nodes    = str_utils::findElement<uint64_t>(info, "nodes").value_or(0);
     move_data.score    = player.engine.lastScore();
+    move_data.timeleft = timeleft;
 
-    // Missing elements default to 0
-    std::stringstream ss;
-
-    if (score_type == engine::ScoreType::CP) {
-        ss << (move_data.score >= 0 ? '+' : '-');
-        ss << std::fixed << std::setprecision(2) << (float(std::abs(move_data.score)) / 100);
-    } else if (score_type == engine::ScoreType::MATE) {
-        ss << (move_data.score > 0 ? "+M" : "-M") << std::to_string(std::abs(move_data.score));
-    } else {
-        ss << "ERR";
-    }
-
-    move_data.score_string = ss.str();
+    move_data.score_string = Match::convertScoreToString(move_data.score, score_type);
 
     verifyPvLines(player);
 
@@ -244,9 +249,10 @@ bool Match::playMove(Player& us, Player& them) {
     const auto move      = best_move ? uci::uciToMove(board_, *best_move) : Move::NO_MOVE;
     const auto legal     = isLegal(move);
 
-    const auto timeout = !us.updateTime(elapsed_millis);
+    const auto timeout   = !us.updateTime(elapsed_millis);
+    const auto timeleft  = us.getTimeControl().getTimeLeft();
 
-    addMoveData(us, elapsed_millis, legal);
+    addMoveData(us, elapsed_millis, timeleft, legal);
 
     // there are two reasons why best_move could be empty
     // 1. the engine crashed

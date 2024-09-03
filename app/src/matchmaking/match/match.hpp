@@ -116,6 +116,8 @@ class Match {
 
     [[nodiscard]] bool isStallOrDisconnect() const noexcept { return stall_or_disconnect_; }
 
+    static std::string convertScoreToString(int score, engine::ScoreType score_type);
+
    private:
     // returns the reason and the result of the game, different order than chess lib function
     [[nodiscard]] std::pair<chess::GameResultReason, chess::GameResult> isGameOver() const;
@@ -132,7 +134,7 @@ class Match {
     void prepare();
 
     // append the move data to the match data
-    void addMoveData(const Player& player, int64_t measured_time_ms, bool legal);
+    void addMoveData(const Player& player, int64_t measured_time_ms, int64_t timeleft, bool legal);
 
     // returns false if the next move could not be played
     [[nodiscard]] bool playMove(Player& us, Player& them);

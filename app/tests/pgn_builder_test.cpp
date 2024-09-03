@@ -191,6 +191,8 @@ Nf6 {+10.15/18 1.821s, engine1 got checkmated} 0-1
 
         config::Pgn pgn_config;
         pgn_config.site = "localhost";
+        pgn_config.track_nodes = true;
+        pgn_config.track_seldepth = true;
 
         std::string expected = R"([Event "Fastchess Tournament"]
 [Site "localhost"]
@@ -204,7 +206,7 @@ Nf6 {+10.15/18 1.821s, engine1 got checkmated} 0-1
 [WhiteTimeControl "0.001+0.005"]
 [BlackTimeControl "0+0.005"]
 
-1... O-O {+1.00/15 1.321s} 2. O-O {+1.23/15 0.430s} Nc5 {+1.45/16 0.310s, aborted} *
+1... O-O {+1.00/15 1.321s, n=15, sd=4} 2. O-O {+1.23/15 0.430s, n=15, sd=3} Nc5 {+1.45/16 0.310s, n=16, sd=24, aborted} *
 
 )";
 

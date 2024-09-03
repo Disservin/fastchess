@@ -38,7 +38,7 @@ TEST_SUITE("PGN Builder Tests") {
 [TimeControl "-"]
 
 1. e4 {+1.00/15 1.321s} e5 {+1.23/15 0.430s} 2. Nf3 {+1.45/16 0.310s}
-Nf6 {+10.15/18 1.821s engine2 got checkmated} 1-0
+Nf6 {+10.15/18 1.821s, engine2 got checkmated} 1-0
 
 )";
 
@@ -80,7 +80,7 @@ Nf6 {+10.15/18 1.821s engine2 got checkmated} 1-0
 [TimeControl "-"]
 
 1. e4 {+1.00/15 1.321s} e5 {+1.23/15 0.430s} 2. Nf3 {+1.45/16 0.310s}
-Nf6 {+10.15/18 1.821s engine1 got checkmated} 0-1
+Nf6 {+10.15/18 1.821s, engine1 got checkmated} 0-1
 
 )";
 
@@ -119,7 +119,7 @@ Nf6 {+10.15/18 1.821s engine1 got checkmated} 0-1
 [PlyCount "3"]
 [TimeControl "-"]
 
-1... O-O {+1.00/15 1.321s} 2. O-O {+1.23/15 0.430s} Nc5 {+1.45/16 0.310s aborted} *
+1... O-O {+1.00/15 1.321s} 2. O-O {+1.23/15 0.430s} Nc5 {+1.45/16 0.310s, aborted} *
 
 )";
 
@@ -160,7 +160,7 @@ Nf6 {+10.15/18 1.821s engine1 got checkmated} 0-1
 [PlyCount "3"]
 [TimeControl "1/move"]
 
-1... O-O {+1.00/15 1.321s} 2. O-O {+1.23/15 0.430s} Nc5 {+1.45/16 0.310s aborted} *
+1... O-O {+1.00/15 1.321s} 2. O-O {+1.23/15 0.430s} Nc5 {+1.45/16 0.310s, aborted} *
 
 )";
 
@@ -182,7 +182,7 @@ Nf6 {+10.15/18 1.821s engine1 got checkmated} 0-1
         match_data.players.white.config.limit.tc.time       = 1;
         match_data.players.white.config.limit.tc.increment  = 5;
 
-        match_data.moves = {MoveData("e8g8", "+1.00", 1321, 15, 4, 0, 0), MoveData("e1g1", "+1.23", 430, 15, 3, 0, 0),
+        match_data.moves = {MoveData("e8g8", "+1.00", 1321, 15, 4, 0, 1250), MoveData("e1g1", "+1.23", 430, 15, 3, 0, 4363),
                             MoveData("a6c5", "+1.45", 310, 16, 24, 0, 0)};
 
         match_data.fen = "r2qk2r/1bpp2pp/n3pn2/p2P1p2/1bP5/2N1BNP1/1PQ1PPBP/R3K2R b KQkq - 0 1";
@@ -191,6 +191,8 @@ Nf6 {+10.15/18 1.821s engine1 got checkmated} 0-1
 
         config::Pgn pgn_config;
         pgn_config.site = "localhost";
+        pgn_config.track_nodes = true;
+        pgn_config.track_seldepth = true;
 
         std::string expected = R"([Event "Fastchess Tournament"]
 [Site "localhost"]
@@ -204,7 +206,8 @@ Nf6 {+10.15/18 1.821s engine1 got checkmated} 0-1
 [WhiteTimeControl "0.001+0.005"]
 [BlackTimeControl "0+0.005"]
 
-1... O-O {+1.00/15 1.321s} 2. O-O {+1.23/15 0.430s} Nc5 {+1.45/16 0.310s aborted} *
+1... O-O {+1.00/15 1.321s, n=1250, sd=4} 2. O-O {+1.23/15 0.430s, n=4363, sd=3}
+Nc5 {+1.45/16 0.310s, n=0, sd=24, aborted} *
 
 )";
 
@@ -246,7 +249,7 @@ Nf6 {+10.15/18 1.821s engine1 got checkmated} 0-1
 [WhiteTimeControl "1/move"]
 [BlackTimeControl "0.2/move"]
 
-1... O-O {+1.00/15 1.321s} 2. O-O {+1.23/15 0.430s} Nc5 {+1.45/16 0.310s aborted} *
+1... O-O {+1.00/15 1.321s} 2. O-O {+1.23/15 0.430s} Nc5 {+1.45/16 0.310s, aborted} *
 
 )";
 

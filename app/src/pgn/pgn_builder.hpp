@@ -45,7 +45,7 @@ class PgnBuilder {
         std::stringstream ss;
 
         ss << " {" << std::forward<First>(first);
-        ((ss << (std::string(args).empty() ? "" : " ") << std::forward<Args>(args)), ...);
+        ((ss << (std::string(args).empty() ? "" : ", ") << std::forward<Args>(args)), ...);
         ss << "}";
 
         return ss.str();

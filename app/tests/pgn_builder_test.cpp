@@ -206,7 +206,8 @@ Nf6 {+10.15/18 1.821s, engine1 got checkmated} 0-1
 [WhiteTimeControl "0.001+0.005"]
 [BlackTimeControl "0+0.005"]
 
-1... O-O {+1.00/15 1.321s, n=1250, sd=4} 2. O-O {+1.23/15 0.430s, n=4363, sd=3} Nc5 {+1.45/16 0.310s, n=0, sd=24, aborted} *
+1... O-O {+1.00/15 1.321s, n=1250, sd=4} 2. O-O {+1.23/15 0.430s, n=4363, sd=3}
+Nc5 {+1.45/16 0.310s, n=0, sd=24, aborted} *
 
 )";
 

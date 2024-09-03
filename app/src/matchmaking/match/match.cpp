@@ -27,7 +27,7 @@ std::string Match::convertScoreToString(int score, engine::ScoreType score_type)
     std::stringstream ss;
 
     if (score_type == engine::ScoreType::CP) {
-        ss << (score >= 0 ? '+' : '-');
+        ss << (score > 0 ? "+" : score < 0 ? "-" : "");
         ss << std::fixed << std::setprecision(2) << (float(std::abs(score)) / 100);
     } else if (score_type == engine::ScoreType::MATE) {
         uint64_t plies = score > 0 ? score * 2 - 1 : score * -2;

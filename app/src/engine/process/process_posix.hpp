@@ -25,7 +25,6 @@
 #    include <sys/wait.h>
 #    include <unistd.h>  // _exit, fork
 #    include <unistd.h>
-#    include <wordexp.h>
 #    include <csignal>
 #    include <stdexcept>
 #    include <string>

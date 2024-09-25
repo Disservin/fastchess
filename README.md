@@ -41,6 +41,17 @@ Building Fastchess from source is straightforward. Just follow these steps:
 2. Navigate to the Fastchess directory `cd fastchess`
 3. Build the executable `make -j` for GCC and `make -j CXX=clang++` for Clang (requires GCC >= 7.3.0 or Clang >= 8.0.0).
 
+The executable will be located in the root directory.
+
+If you are on Linux, you can run `make install` to install the binary on your system.  
+By default, the installation prefix is set to `/usr/local`. You can change this location by specifying the PREFIX during installation. The binary will be installed in `$(PREFIX)/bin`, and the man page will be installed in `$(PREFIX)/share/man/man1`.
+
+```bash
+make install PREFIX=/custom/path
+```
+
+This will install the binary in /custom/path/bin and the man page in /custom/path/share/man/man1. If PREFIX is not specified, it defaults to /usr/local.
+
 ### Download the latest release
 
 Prefer a pre-compiled version?

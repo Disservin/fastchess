@@ -40,7 +40,8 @@ std::string Match::convertScoreToString(int score, engine::ScoreType score_type)
 }
 
 void Match::addMoveData(const Player& player, int64_t measured_time_ms, int64_t timeleft, bool legal) {
-    const auto move    = player.engine.bestmove() ? *player.engine.bestmove() : "<none>";
+    const auto move = player.engine.bestmove().value_or("<none>");
+
     MoveData move_data = MoveData(move, "0.00", measured_time_ms, 0, 0, 0, 0, legal);
 
     if (player.engine.output().size() <= 1) {
@@ -245,12 +246,18 @@ bool Match::playMove(Player& us, Player& them) {
 
     const auto elapsed_millis = chrono::duration_cast<chrono::milliseconds>(t1 - t0).count();
 
-    const auto best_move = us.engine.bestmove();
-    const auto move      = best_move ? uci::uciToMove(board_, *best_move) : Move::NO_MOVE;
-    const auto legal     = isLegal(move);
+    auto best_move = us.engine.bestmove();
 
-    const auto timeout   = !us.updateTime(elapsed_millis);
-    const auto timeleft  = us.getTimeControl().getTimeLeft();
+    if (best_move && !isUciMove(best_move.value())) {
+        setEngineIllegalMoveStatus(us, them, best_move, true);
+        return false;
+    }
+
+    const auto move  = best_move ? uci::uciToMove(board_, *best_move) : Move::NO_MOVE;
+    const auto legal = isLegal(move);
+
+    const auto timeout  = !us.updateTime(elapsed_millis);
+    const auto timeleft = us.getTimeControl().getTimeLeft();
 
     addMoveData(us, elapsed_millis, timeleft, legal);
 
@@ -389,7 +396,8 @@ void Match::setEngineTimeoutStatus(Player& loser, Player& winner) {
     }
 }
 
-void Match::setEngineIllegalMoveStatus(Player& loser, Player& winner, const std::optional<std::string>& best_move) {
+void Match::setEngineIllegalMoveStatus(Player& loser, Player& winner, const std::optional<std::string>& best_move,
+                                       bool invalid_format) {
     loser.setLost();
     winner.setWon();
 
@@ -399,7 +407,14 @@ void Match::setEngineIllegalMoveStatus(Player& loser, Player& winner, const std:
     data_.termination = MatchTermination::ILLEGAL_MOVE;
     data_.reason      = color + Match::ILLEGAL_MSG;
 
-    Logger::warn<true>("Warning; Illegal move {} played by {}", best_move ? *best_move : "<none>", name);
+    auto mv = best_move.value_or("<none>");
+
+    if (invalid_format) {
+        Logger::warn<true>(
+            "Warning; Move does not match uci move format, lowercase and 4/5 chars. Move {} played by {}", mv, name);
+    }
+
+    Logger::warn<true>("Warning; Illegal move {} played by {}", mv, name);
 }
 
 bool Match::isUciMove(const std::string& move) noexcept {
@@ -416,6 +431,10 @@ bool Match::isUciMove(const std::string& move) noexcept {
 
     if (move.size() == 5) {
         is_uci = is_uci && is_promotion(move[4]);
+    }
+
+    if (move.size() > 5) {
+        return false;
     }
 
     return is_uci;

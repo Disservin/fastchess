@@ -248,13 +248,9 @@ bool Match::playMove(Player& us, Player& them) {
 
     auto best_move = us.engine.bestmove();
 
-    if (best_move && !isUciMove(best_move.value())) {
-        setEngineIllegalMoveStatus(us, them, best_move, true);
-        return false;
-    }
-
-    const auto move  = best_move ? uci::uciToMove(board_, *best_move) : Move::NO_MOVE;
-    const auto legal = isLegal(move);
+    const auto move   = best_move ? uci::uciToMove(board_, *best_move) : Move::NO_MOVE;
+    const auto is_uci = isUciMove(move);
+    const auto legal  = isLegal(move) && is_uci;
 
     const auto timeout  = !us.updateTime(elapsed_millis);
     const auto timeleft = us.getTimeControl().getTimeLeft();
@@ -279,7 +275,7 @@ bool Match::playMove(Player& us, Player& them) {
 
     // illegal move
     if (!legal) {
-        setEngineIllegalMoveStatus(us, them, best_move);
+        setEngineIllegalMoveStatus(us, them, best_move, !is_uci);
         return false;
     }
 

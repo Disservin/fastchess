@@ -99,7 +99,11 @@ class OptionsParser {
     }
 
     static void printHelp() {
-        std::cout << std::string(man::man, man::man_len) << std::flush;
+        for (const auto c : man::man) {
+            std::cout << c;
+        }
+
+        std::flush(std::cout);
 
         std::exit(0);
     }

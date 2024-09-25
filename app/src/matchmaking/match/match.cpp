@@ -249,7 +249,7 @@ bool Match::playMove(Player& us, Player& them) {
     auto best_move = us.engine.bestmove();
 
     const auto move   = best_move ? uci::uciToMove(board_, *best_move) : Move::NO_MOVE;
-    const auto is_uci = isUciMove(move);
+    const auto is_uci = isUciMove(best_move.value());
     const auto legal  = isLegal(move) && is_uci;
 
     const auto timeout  = !us.updateTime(elapsed_millis);

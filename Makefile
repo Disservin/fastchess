@@ -22,7 +22,7 @@ tests: ## Run tests
 
 
 install: ## Install the binary and man page
-	@echo "Installing fastchess binary to $(BINDIR)"
+	@echo "Installing fastchess binary to: $(BINDIR)"
 	@install -d $(BINDIR)
 	@install fastchess $(BINDIR)
 	@if [ "$(shell uname)" = "Linux" ] && [ "$(LOWDOWN_INSTALLED)" = "no" ]; then \

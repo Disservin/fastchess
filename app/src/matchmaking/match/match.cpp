@@ -246,20 +246,14 @@ bool Match::playMove(Player& us, Player& them) {
 
     const auto elapsed_millis = chrono::duration_cast<chrono::milliseconds>(t1 - t0).count();
 
-    auto best_move = us.engine.bestmove();
-
-    if (best_move && !isUciMove(best_move.value())) {
-        setEngineIllegalMoveStatus(us, them, best_move, true);
-        return false;
-    }
-
-    const auto move  = best_move ? uci::uciToMove(board_, *best_move) : Move::NO_MOVE;
-    const auto legal = isLegal(move);
+    const auto best_move = us.engine.bestmove();
+    const auto move      = best_move ? uci::uciToMove(board_, *best_move) : Move::NO_MOVE;
+    const auto legal     = isLegal(move);
 
     const auto timeout  = !us.updateTime(elapsed_millis);
     const auto timeleft = us.getTimeControl().getTimeLeft();
 
-    addMoveData(us, elapsed_millis, timeleft, legal);
+    addMoveData(us, elapsed_millis, timeleft, legal && isUciMove(best_move.value()));
 
     // there are two reasons why best_move could be empty
     // 1. the engine crashed
@@ -274,6 +268,11 @@ bool Match::playMove(Player& us, Player& them) {
             setEngineIllegalMoveStatus(us, them, best_move);
         }
 
+        return false;
+    }
+
+    if (best_move && !isUciMove(best_move.value())) {
+        setEngineIllegalMoveStatus(us, them, best_move, true);
         return false;
     }
 

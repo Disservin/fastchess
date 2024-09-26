@@ -32,6 +32,7 @@ SRC_FILES        := \
 	$(SRCDIR)/pgn/pgn_reader.cpp \
 	$(SRCDIR)/time/timecontrol.cpp \
 	$(SRCDIR)/util/logger/logger.cpp \
+	$(SRCDIR)/printing/printing.cpp \
 	$(SRCDIR)/main.cpp
 
 SRC_FILES_TEST   := \

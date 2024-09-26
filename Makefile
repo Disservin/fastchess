@@ -64,7 +64,7 @@ format: ## Format code
 
 tidy: ## Check clang-tidy
 	@echo "Checking includes.."
-	$(MAKE) -C app includecheck
+	$(MAKE) -C app tidy
 	@echo "Done."
 
 clean: ## Clean up

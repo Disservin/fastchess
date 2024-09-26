@@ -62,6 +62,11 @@ format: ## Format code
 	$(MAKE) -C app format
 	@echo "Done."
 
+tidy: ## Check clang-tidy
+	@echo "Checking includes.."
+	$(MAKE) -C app includecheck
+	@echo "Done."
+
 clean: ## Clean up
 	@echo "Cleaning up.."
 	$(MAKE) -C app clean BINARY_PATH=../

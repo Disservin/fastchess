@@ -165,6 +165,9 @@ tests: $(TARGET)
 format: $(SRC_FILES) $(HEADERS)
 	clang-format -i $^
 
+tidy: $(SRC_FILES) $(HEADERS)
+	clang-tidy $^
+
 $(TARGET): $(OBJECTS)
 	$(CXX) $(CXXFLAGS) $(NATIVE) $(INC) $(DEPFLAGS) -o $@ $^ $(LDFLAGS)
 

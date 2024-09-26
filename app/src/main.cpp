@@ -1,6 +1,7 @@
 #include <cstdlib>
 #include <thread>
 
+#include <printing/printing.h>
 #include <cli/cli.hpp>
 #include <config/config.hpp>
 #include <config/sanitize.hpp>
@@ -12,6 +13,7 @@ using namespace fastchess;
 
 int main(int argc, char const* argv[]) {
     setCtrlCHandler();
+    setTerminalOutput();
 
     try {
         const auto options = cli::OptionsParser(argc, argv);

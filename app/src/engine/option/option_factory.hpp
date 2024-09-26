@@ -50,9 +50,13 @@ class UCIOptionFactory {
         }
 
         if (type == "check") {
-            return std::make_unique<CheckOption>(name, params["default"]);
+            auto option = std::make_unique<CheckOption>(name);
+            option->setValue(params["default"]);
+            return option;
         } else if (type == "spin") {
-            return std::make_unique<SpinOption>(name, params["default"], params["min"], params["max"]);
+            auto option = std::make_unique<SpinOption>(name, params["min"], params["max"]);
+            option->setValue(params["default"]);
+            return option;
         } else if (type == "combo") {
             std::istringstream varStream(params["var"]);
             std::vector<std::string> options;

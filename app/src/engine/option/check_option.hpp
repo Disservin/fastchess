@@ -6,7 +6,7 @@ namespace fastchess {
 
 class CheckOption : public UCIOption {
    public:
-    CheckOption(const std::string& name, const std::string& defaultValue) : name(name) { setValue(defaultValue); }
+    CheckOption(const std::string& name) : name(name) {}
 
     std::string getName() const override { return name; }
 

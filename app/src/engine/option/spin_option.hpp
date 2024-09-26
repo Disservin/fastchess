@@ -6,13 +6,9 @@ namespace fastchess {
 
 class SpinOption : public UCIOption {
    public:
-    SpinOption(const std::string& name, const std::string& defaultValue, const std::string& minValue,
-               const std::string& maxValue)
-        : name(name) {
+    SpinOption(const std::string& name, const std::string& minValue, const std::string& maxValue) : name(name) {
         this->minValue = std::stoi(minValue);
         this->maxValue = std::stoi(maxValue);
-
-        setValue(defaultValue);
     }
 
     std::string getName() const override { return name; }

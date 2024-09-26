@@ -20,6 +20,10 @@ tests: ## Run tests
 	$(MAKE) -C app tests BINARY_PATH=../
 	@echo "Done."
 
+scan:
+	@echo "Running scan-build.."
+	$(MAKE) -C app scan=yes BINARY_PATH=../
+	@echo "Done."
 
 install: ## Install the binary and man page
 	@echo "Installing fastchess binary to: $(BINDIR)"

@@ -65,6 +65,10 @@ ifeq ($(MAKECMDGOALS),$(TESTDIR))
 	NATIVE    := 
 endif
 
+ifeq ($(scan), yes)
+	CXX := scan-build-19 clang++-19
+endif
+
 TARGET   := $(BINARY_PATH)/$(TARGET)
 
 DEPFLAGS  := -MMD -MP

@@ -44,7 +44,7 @@ install-manpage: manpage ## Install the man page to $(MANDIR)
 	@install -m 644 $(MANPAGE_OUTPUT) $(MANDIR)
 	@echo "Installed man page."
 
-update-man: man ## Update man like page
+update-man: ## Update man like page
 	lowdown -Tterm man.md > fastchess-tmp-man-page
 	xxd -i fastchess-tmp-man-page | sed 's/fastchess_tmp_man_page/man/g' | sed 's/fastchess_tmp_man_page_len/man_len/g' | sed 's/unsigned char/inline unsigned char/g' | sed 's/unsigned int/inline unsigned int/g' > temp.hpp
 	printf '/* Generate with make update-man*/\n#pragma once\n' > ./app/src/cli/man.hpp

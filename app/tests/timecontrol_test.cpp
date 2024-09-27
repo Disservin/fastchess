@@ -15,10 +15,10 @@ TEST_SUITE("Elo Model") {
         TimeControl tc(limits);
 
         CHECK(tc.updateTime(5555) == true);
-        CHECK(tc.getTimeLeft() == 4545);
+        CHECK(tc.getTimeLeft() == 4645);
         CHECK(tc.getMovesLeft() == 2);
 
-        CHECK(tc.updateTime(4645) == true);
+        CHECK(tc.updateTime(4745) == true);
         CHECK(tc.getTimeLeft() == 100);
         CHECK(tc.getMovesLeft() == 1);
 

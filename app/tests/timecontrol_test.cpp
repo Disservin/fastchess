@@ -34,7 +34,7 @@ TEST_SUITE("Elo Model") {
     TEST_CASE("Fixed time") {
         TimeControl::Limits limits;
         limits.fixed_time = 5000;
-        limits.timemargin = 200
+        limits.timemargin = 200;
 
         TimeControl tc(limits);
 

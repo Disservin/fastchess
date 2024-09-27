@@ -29,7 +29,7 @@ class BaseTournament {
         writeToOpenPipes();
     }
 
-    /// @brief Starts the tournament
+    // Starts the tournament
     virtual void start();
 
     [[nodiscard]] stats_map getResults() noexcept { return scoreboard_.getResults(); }
@@ -38,7 +38,7 @@ class BaseTournament {
     using start_callback    = std::function<void()>;
     using finished_callback = std::function<void(const Stats &stats, const std::string &reason, const engines &)>;
 
-    /// @brief Gets called after a game has finished
+    // Gets called after a game has finished
     virtual void startNext() = 0;
 
     // creates the matches

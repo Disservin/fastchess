@@ -6,7 +6,6 @@
 #include <cli/cli.hpp>
 #include <config/config.hpp>
 #include <matchmaking/player.hpp>
-#include <pgn/pgn_reader.hpp>
 #include <types/match_data.hpp>
 
 namespace fastchess {

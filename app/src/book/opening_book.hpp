@@ -6,94 +6,66 @@
 #include <vector>
 
 #include <config/config.hpp>
-#include <pgn/pgn_reader.hpp>
 #include <types/enums.hpp>
 #include <types/tournament.hpp>
 #include <util/rand.hpp>
 
+#include <chess.hpp>
+
 namespace fastchess::book {
 
 struct Opening {
-    // entire opening line
-    std::string opening;
-    std::vector<chess::Move> moves;
-    chess::Color stm;
+    Opening() = default;
+    Opening(const std::string& fen_epd, const std::vector<chess::Move>& moves, chess::Color stm = chess::Color::WHITE)
+        : fen_epd(fen_epd), moves(moves), stm(stm) {}
+
+    std::string fen_epd            = chess::constants::STARTPOS;
+    std::vector<chess::Move> moves = {};
+    chess::Color stm               = chess::Color::WHITE;
+};
+
+struct Openings {
+    using EPD = std::vector<std::string>;
+    using PGN = std::vector<Opening>;
+
+    Openings() = default;
+    explicit Openings(EPD epd) : openings(std::move(epd)) {}
+    explicit Openings(PGN pgn) : openings(std::move(pgn)) {}
+
+    [[nodiscard]] bool isEpd() const noexcept { return std::holds_alternative<EPD>(openings); }
+    [[nodiscard]] bool isPgn() const noexcept { return std::holds_alternative<PGN>(openings); }
+
+    [[nodiscard]] const auto& epd() const noexcept { return std::get<EPD>(openings); }
+    [[nodiscard]] const auto& pgn() const noexcept { return std::get<PGN>(openings); }
+
+    // Fisher-Yates / Knuth shuffle
+    void shuffle();
+    // Rotates the book vector based on the starting offset
+    void rotate(std::size_t offset);
+
+    // Gets rid of unused openings within the book vector to reduce memory usage
+    void truncate(std::size_t rounds);
+
+    // Shrink book vector
+    void shrink();
+
+    std::variant<EPD, PGN> openings;
 };
 
 class OpeningBook {
+    using EPD = std::vector<std::string>;
+    using PGN = std::vector<Opening>;
+
    public:
     OpeningBook() = default;
     explicit OpeningBook(const config::Tournament& config, std::size_t initial_matchcount = 0);
 
     [[nodiscard]] std::optional<std::size_t> fetchId() noexcept;
 
-    Opening operator[](std::optional<std::size_t> idx) const noexcept {
-        if (!idx.has_value()) return {chess::constants::STARTPOS, {}, chess::Color::WHITE};
-
-        if (std::holds_alternative<epd_book>(book_)) {
-            assert(idx.value() < std::get<epd_book>(book_).size());
-
-            const auto fen = std::get<epd_book>(book_)[*idx];
-            return {std::string(fen), {}, chess::Board(fen).sideToMove()};
-        }
-
-        assert(idx.value() < std::get<pgn_book>(book_).size());
-
-        const auto [fen, moves, stm] = std::get<pgn_book>(book_)[*idx];
-
-        return {fen, moves, stm};
-    }
+    [[nodiscard]] Opening operator[](std::optional<std::size_t> idx) const noexcept;
 
    private:
-    // Fisher-Yates / Knuth shuffle
-    void shuffle() {
-        const auto shuffle = [](auto& vec) {
-            for (std::size_t i = 0; i + 2 <= vec.size(); i++) {
-                auto rand     = util::random::mersenne_rand();
-                std::size_t j = i + (rand % (vec.size() - i));
-                std::swap(vec[i], vec[j]);
-            }
-        };
-
-        std::visit(shuffle, book_);
-    }
-
-    // Rotates the book vector based on the starting offset
-    void rotate(std::size_t offset) {
-        const auto rotate = [offset](auto& vec) {
-            std::rotate(vec.begin(), vec.begin() + (offset % vec.size()), vec.end());
-        };
-
-        std::visit(rotate, book_);
-    }
-
-    // Gets rid of unused openings within the book vector to reduce memory usage
-    void truncate(std::size_t rounds) {
-        const auto truncate = [rounds](auto& vec) {
-            if (vec.size() > rounds) {
-                vec.resize(rounds);
-            }
-        };
-
-        std::visit(truncate, book_);
-    }
-
-    // Shrink book vector
-    void shrink() {
-        const auto shrink = [](auto& vec) {
-            using BookType = std::decay_t<decltype(vec)>;
-            std::vector<typename BookType::value_type> tmp(vec.begin(), vec.end());
-            vec.swap(tmp);
-            vec.shrink_to_fit();
-        };
-
-        std::visit(shrink, book_);
-    }
-
     void setup(const std::string& file, FormatType type);
-
-    using epd_book = std::vector<std::string>;
-    using pgn_book = std::vector<pgn::Opening>;
 
     std::size_t start_         = 0;
     std::size_t opening_index_ = 0;
@@ -102,7 +74,8 @@ class OpeningBook {
     std::size_t games_;
     int plies_;
     OrderType order_;
-    std::variant<epd_book, pgn_book> book_;
+
+    Openings openings_;
 };
 
 }  // namespace fastchess::book

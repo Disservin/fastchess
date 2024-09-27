@@ -17,6 +17,8 @@ INC              := -I$(INCDIR) -Ithird_party
 
 SRC_FILES        := \
 	$(SRCDIR)/book/opening_book.cpp \
+	$(SRCDIR)/book/epd_reader.cpp \
+	$(SRCDIR)/book/pgn_reader.cpp \
 	$(SRCDIR)/cli/cli.cpp \
 	$(SRCDIR)/config/sanitize.cpp \
 	$(SRCDIR)/elo/elo_wdl.cpp \
@@ -29,7 +31,6 @@ SRC_FILES        := \
 	$(SRCDIR)/matchmaking/tournament/roundrobin/roundrobin.cpp \
 	$(SRCDIR)/matchmaking/tournament/tournament_manager.cpp \
 	$(SRCDIR)/pgn/pgn_builder.cpp \
-	$(SRCDIR)/pgn/pgn_reader.cpp \
 	$(SRCDIR)/time/timecontrol.cpp \
 	$(SRCDIR)/util/logger/logger.cpp \
 	$(SRCDIR)/printing/printing.cpp \

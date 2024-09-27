@@ -15,19 +15,19 @@ TEST_SUITE("TimeControl") {
         TimeControl tc(limits);
 
         CHECK(tc.updateTime(5555) == true);
-        CHECK(tc.getTimeLeft() == tc.time + tc.increment - 5555 + tc.increment);
+        CHECK(tc.getTimeLeft() == limits.time + limits.increment - 5555 + limits.increment);
         CHECK(tc.getMovesLeft() == 2);
 
         CHECK(tc.updateTime(4745) == true);
-        CHECK(tc.getTimeLeft() == tc.increment);
+        CHECK(tc.getTimeLeft() == limits.increment);
         CHECK(tc.getMovesLeft() == 1);
 
         CHECK(tc.updateTime(50) == true);
-        CHECK(tc.getTimeLeft() == tc.time + tc.increment - 50 + tc.increment);
+        CHECK(tc.getTimeLeft() == limits.time + limits.increment - 50 + limits.increment);
         CHECK(tc.getMovesLeft() == 3);
 
         CHECK(tc.updateTime(10251) == false);
-        CHECK(tc.getTimeLeft() == tc.time + tc.increment - 10251);
+        CHECK(tc.getTimeLeft() == limits.time + limits.increment - 10251);
         CHECK(tc.getMovesLeft() == 2);
     }
 
@@ -39,14 +39,14 @@ TEST_SUITE("TimeControl") {
         TimeControl tc(limits);
 
 
-        CHECK(tc.updateTime(tc.fixed_time + tc.timemargin - 1) == true);
-        CHECK(tc.getTimeLeft() == tc.fixed_time);
+        CHECK(tc.updateTime(limits.fixed_time + limits.timemargin - 1) == true);
+        CHECK(tc.getTimeLeft() == limits.fixed_time);
         
-        CHECK(tc.updateTime(tc.fixed_time + tc.timemargin) == true);
-        CHECK(tc.getTimeLeft() == tc.fixed_time);
+        CHECK(tc.updateTime(limits.fixed_time + limits.timemargin) == true);
+        CHECK(tc.getTimeLeft() == limits.fixed_time);
 
-        CHECK(tc.updateTime(tc.fixed_time + tc.timemargin + 1) == false);
-        CHECK(tc.getTimeLeft() == tc.fixed_time - (tc.fixed_time + tc.timemargin + 1));
+        CHECK(tc.updateTime(limits.fixed_time + limits.timemargin + 1) == false);
+        CHECK(tc.getTimeLeft() == limits.fixed_time - (limits.fixed_time + limits.timemargin + 1));
     }
 
     TEST_CASE("Fixed depth/nodes") {

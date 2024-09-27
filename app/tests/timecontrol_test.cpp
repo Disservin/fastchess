@@ -23,11 +23,11 @@ TEST_SUITE("TimeControl") {
         CHECK(tc.getMovesLeft() == 1);
 
         CHECK(tc.updateTime(50) == true);
-        CHECK(tc.getTimeLeft() == limits.time + limits.increment - 50 + limits.increment);
+        CHECK(tc.getTimeLeft() == 100 + limits.increment - 50 + limits.increment);
         CHECK(tc.getMovesLeft() == 3);
 
         CHECK(tc.updateTime(10251) == false);
-        CHECK(tc.getTimeLeft() == limits.time + limits.increment - 10251);
+        CHECK(tc.getTimeLeft() == 150 + limits.increment - 10251);
         CHECK(tc.getMovesLeft() == 2);
     }
 

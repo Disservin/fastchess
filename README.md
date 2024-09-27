@@ -91,10 +91,13 @@ verify your changes pass the tests.
 You can format the code with clang-format by running `make format`.
 After making changes to the man file, you need to run `make update-man`.
 
-## Maintainers
+## Maintainers & contributors
 
 The following people have push access to the repository:
 
 - [Disservin](https://github.com/Disservin)
 - [Szil](https://github.com/SzilBalazs)
 - [PGG106](https://github.com/PGG106)
+
+Special thanks to [gahtan-syarif](https://github.com/gahtan-syarif) for his many contributions and
+thorough testing.

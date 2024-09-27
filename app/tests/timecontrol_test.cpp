@@ -27,7 +27,30 @@ TEST_SUITE("Elo Model") {
         CHECK(tc.getMovesLeft() == 3);
 
         CHECK(tc.updateTime(10251) == false);
-        CHECK(tc.getTimeLeft() == -1);
+        CHECK(tc.getTimeLeft() == -101);
         CHECK(tc.getMovesLeft() == 2);
+    }
+
+    TEST_CASE("Fixed time") {
+        TimeControl::Limits limits;
+        limits.fixed_time = 5000;
+        limits.timemargin = 200
+
+        TimeControl tc(limits);
+
+        CHECK(tc.updateTime(5199) == true);
+        CHECK(tc.getTimeLeft() == 5000);
+
+        CHECK(tc.updateTime(5201) == false);
+        CHECK(tc.getTimeLeft() == -201);
+    }
+
+    TEST_CASE("Fixed depth/nodes") {
+        TimeControl::Limits limits;
+
+        TimeControl tc(limits);
+
+        CHECK(tc.updateTime(523199) == true);
+        CHECK(tc.getTimeLeft() == 0);
     }
 }

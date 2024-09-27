@@ -23,7 +23,7 @@ TEST_SUITE("TimeControl") {
         CHECK(tc.getMovesLeft() == 1);
 
         CHECK(tc.updateTime(50) == true);
-        CHECK(tc.getTimeLeft() == 100 + limits.increment - 50 + limits.increment);
+        CHECK(tc.getTimeLeft() == 100 - 50 + limits.increment);
         CHECK(tc.getMovesLeft() == 3);
 
         CHECK(tc.updateTime(10251) == false);

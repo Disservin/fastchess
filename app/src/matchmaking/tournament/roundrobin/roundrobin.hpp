@@ -1,11 +1,11 @@
 #pragma once
 
 #include <affinity/affinity_manager.hpp>
+#include <book/opening_book.hpp>
 #include <matchmaking/match/match.hpp>
 #include <matchmaking/scoreboard.hpp>
 #include <matchmaking/sprt/sprt.hpp>
 #include <matchmaking/stats.hpp>
-#include <pgn/pgn_reader.hpp>
 #include <types/tournament.hpp>
 #include <util/cache.hpp>
 #include <util/file_writer.hpp>

@@ -74,10 +74,10 @@ void Match::addMoveData(const Player& player, int64_t measured_time_ms, int64_t 
 void Match::prepare() {
     board_.set960(config::TournamentConfig.get().variant == VariantType::FRC);
 
-    if (isFen(opening_.opening))
-        board_.setFen(opening_.opening);
+    if (isFen(opening_.fen_epd))
+        board_.setFen(opening_.fen_epd);
     else
-        board_.setEpd(opening_.opening);
+        board_.setEpd(opening_.fen_epd);
 
     start_position_ = board_.getFen() == chess::constants::STARTPOS ? "startpos" : board_.getFen();
 

@@ -1,14 +1,12 @@
-#pragma once
+#include <book/epd_reader.hpp>
 
-#include <istream>
+#include <fstream>
+#include <iostream>
 #include <string>
+#include <vector>
 
-namespace fastchess::util {
-
-// Reading lines from a file with std::getline is a bit weird as the line endings handled
-// differently on different platforms. This function reads a line from a stream and handles all line
-// endings os agnostic.
-inline std::istream& safeGetline(std::istream& is, std::string& t) {
+namespace {
+std::istream& safeGetline(std::istream& is, std::string& t) {
     t.clear();
 
     // The characters in the stream are read one-by-one using a std::streambuf.
@@ -37,5 +35,27 @@ inline std::istream& safeGetline(std::istream& is, std::string& t) {
         }
     }
 }
+}  // namespace
 
-}  // namespace fastchess::util
+namespace fastchess::book {
+
+EpdReader::EpdReader(const std::string& epd_file_path) : epd_file_(epd_file_path) {}
+
+Openings EpdReader::getOpenings() {
+    std::vector<std::string> openings;
+
+    std::ifstream openingFile;
+    openingFile.open(epd_file_);
+
+    std::string line;
+    while (safeGetline(openingFile, line))
+        if (!line.empty()) openings.emplace_back(line);
+
+    if (openings.empty()) {
+        throw std::runtime_error("No openings found in file: " + epd_file_);
+    }
+
+    return Openings{openings};
+}
+
+}  // namespace fastchess::book

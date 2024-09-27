@@ -27,7 +27,8 @@ The following options are available:
     Load engine configurations to resume games from previous sessions.
 
     - file - the file name to load the configuration from.
-    - discard - discard the saved game results. Defaults to false.
+    - discard - discard the loaded configuration after loading. Defaults to false. This lets you specify a filename to save the
+      configuration to, while ignoring it for the current session.
     - outname - the auto-generated file name of the config. Default is "config.json".
     - stats - load the stats from the config file. Defaults to true.
 

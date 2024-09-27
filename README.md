@@ -19,7 +19,7 @@ short time controls (0.2+0.002s), it exhibits minimal timeout issues, with only
   enhance compatibility with other tools. Simply switch the `-output` option to
   cutechess to enable it.
 - **Extended PGN Data**: You can now track nodes, seldepth, nps (nodes per
-  second), hashfull, and tbhits in the PGN output. Refer to the `-pgnout`
+  second), hashfull, tbhits, and time left in the PGN output. Refer to the `-pgnout`
   option for detailed information.
 - **Quick Match Option**: We've introduced a `-quick` option for running quick
   matches between two engines with a specified book. Specify

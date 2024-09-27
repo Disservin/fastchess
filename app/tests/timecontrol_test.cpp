@@ -4,7 +4,7 @@
 
 using namespace fastchess;
 
-TEST_SUITE("Elo Model") {
+TEST_SUITE("TimeControl") {
     TEST_CASE("moves/time+increment") {
         TimeControl::Limits limits;
         limits.moves = 3;

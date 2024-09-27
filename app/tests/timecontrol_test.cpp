@@ -6,11 +6,13 @@ using namespace fastchess;
 
 TEST_SUITE("Elo Model") {
     TEST_CASE("moves/time+increment") {
-        TimeControl tc;
-        tc.setMoves(3);
-        tc.setTime(10000);
-        tc.setIncrement(100);
-        tc.setTimemargin(100);
+        TimeControl::Limits limits;
+        limits.moves = 3;
+        limits.time = 10000;
+        limits.increment = 100;
+        limits.timemargin = 100;
+
+        TimeControl tc(limits);
 
         CHECK(tc.updateTime(5555) == true);
         CHECK(tc.getTimeLeft() == 4545);

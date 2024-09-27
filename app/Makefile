@@ -50,6 +50,7 @@ SRC_FILES_TEST   := \
 	$(TESTDIR)/scoreboard_test.cpp \
 	$(TESTDIR)/sprt_test.cpp \
 	$(TESTDIR)/uci_engine_test.cpp \
+	$(TESTDIR)/epd_reader_test.cpp \
 	$(TESTDIR)/match_test.cpp
 
 # Only used for formatting

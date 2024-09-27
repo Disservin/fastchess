@@ -12,7 +12,7 @@ class PGNVisitor : public chess::pgn::Visitor {
     PGNVisitor(std::vector<Opening>& pgns, int plies_limit) : pgns_(pgns), plies_limit_(plies_limit) {}
     virtual ~PGNVisitor() {}
 
-    void startPgn() {
+    void startPgn() override {
         board_.setFen(chess::constants::STARTPOS);
 
         pgn_.fen = chess::constants::STARTPOS;
@@ -21,16 +21,16 @@ class PGNVisitor : public chess::pgn::Visitor {
         early_stop_ = false;
     }
 
-    void header(std::string_view key, std::string_view value) {
+    void header(std::string_view key, std::string_view value) override {
         if (key == "FEN") {
             board_.setFen(value);
             pgn_.fen = value;
         }
     }
 
-    void startMoves() {}
+    void startMoves() override {}
 
-    void move(std::string_view move, std::string_view) {
+    void move(std::string_view move, std::string_view) override {
         if (early_stop_) return;
         if (plie_count_++ >= plies_limit_ && plies_limit_ != -1) return;
 
@@ -54,7 +54,7 @@ class PGNVisitor : public chess::pgn::Visitor {
         pgn_.moves.push_back(move_i);
     }
 
-    void endPgn() {
+    void endPgn() override {
         pgn_.stm = board_.sideToMove();
         pgns_.push_back(pgn_);
     }

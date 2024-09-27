@@ -41,6 +41,9 @@ TEST_SUITE("Elo Model") {
         CHECK(tc.updateTime(5199) == true);
         CHECK(tc.getTimeLeft() == 5000);
 
+        CHECK(tc.updateTime(5200) == true);
+        CHECK(tc.getTimeLeft() == 5000);
+
         CHECK(tc.updateTime(5201) == false);
         CHECK(tc.getTimeLeft() == -201);
     }

@@ -36,6 +36,8 @@ TEST_SUITE("Uci Engine Communication Tests") {
 
         engine::UciEngine uci_engine = engine::UciEngine(config, false);
 
+        std::cout << atomic::stop << std::endl;
+
         CHECK(uci_engine.start());
 
         for (const auto& line : uci_engine.output()) {

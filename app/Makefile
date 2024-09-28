@@ -51,6 +51,7 @@ SRC_FILES_TEST   := \
 	$(TESTDIR)/sprt_test.cpp \
 	$(TESTDIR)/timecontrol_test.cpp \
 	$(TESTDIR)/uci_engine_test.cpp \
+	$(TESTDIR)/config_test.cpp \
 	$(TESTDIR)/epd_reader_test.cpp \
 	$(TESTDIR)/match_test.cpp
 
@@ -167,7 +168,7 @@ DEPENDS   := $(patsubst %.cpp,$(BUILDDIR)/%.d,$(SRC_FILES))
 
 all: $(TARGET)
 
-tests: $(TARGET)
+tests: $(TARGET) compile-random-mover
 	$(CXX) $(CXXFLAGS) ./tests/mock/engine/dummy_engine.cpp -o ./tests/mock/engine/dummy_engine$(SUFFIX) $(LDFLAGS)
 
 format: $(SRC_FILES) $(HEADERS)
@@ -175,6 +176,9 @@ format: $(SRC_FILES) $(HEADERS)
 
 tidy: $(SRC_FILES) $(HEADERS)
 	clang-tidy $^
+
+compile-random-mover: $(TARGET)
+	$(CXX) -O3 -std=c++17 ./tests/mock/engine/random_mover.cpp -o ./tests/mock/engine/random_mover
 
 $(TARGET): $(OBJECTS)
 	$(CXX) $(CXXFLAGS) $(NATIVE) $(INC) $(DEPFLAGS) -o $@ $^ $(LDFLAGS)
@@ -186,6 +190,6 @@ build_directories:
 	@$(shell mkdir -p $(sort $(dir $(OBJECTS))))
 
 clean:
-	rm -rf $(BUILDDIR) $(TARGET) $(TARGET)-tests $(TARGET)-tests.exe $(TARGET).exe
+	rm -rf $(BUILDDIR) $(TARGET) $(TARGET)-tests $(TARGET)-tests.exe $(TARGET).exe ../random_mover ./tests/mock/engine/random_mover
 
 -include $(DEPENDS)

@@ -78,4 +78,4 @@ log
 log*.gz
 
 !app/tests/data/*
-
+!app/tests/configs

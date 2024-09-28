@@ -20,12 +20,13 @@ RoundRobin::RoundRobin(const stats_map& results) : BaseTournament(results) {
 void RoundRobin::start() {
     Logger::trace("Starting round robin tournament...");
 
-    BaseTournament::start();
-
     // If autosave is enabled, save the results every save_interval games
     const auto save_interval = config::TournamentConfig.get().autosaveinterval;
+
     // Account for the initial matchcount
     auto save_iter = initial_matchcount_ + save_interval;
+
+    BaseTournament::start();
 
     // Wait for games to finish
     while (match_count_ < total_ && !atomic::stop) {
@@ -36,6 +37,8 @@ void RoundRobin::start() {
 
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }
+
+    pool_.kill();
 }
 
 void RoundRobin::startNext() {

@@ -123,11 +123,19 @@ void sanitize(std::vector<EngineConfiguration>& configs) {
 #endif
 
 #ifndef NO_STD_FILESYSTEM
+
         // convert path to a filesystem path
-        auto p    = std::filesystem::path(configs[i].dir) / std::filesystem::path(configs[i].cmd);
-        auto path = p.string();
-        if (!std::filesystem::exists(path)) {
-            throw std::runtime_error("Engine not found at: " + path);
+        auto p = std::filesystem::path(configs[i].dir) / std::filesystem::path(configs[i].cmd);
+
+#    ifdef _WIN64
+        // add .exe if . is not present
+        if (p.extension().empty()) {
+            p = std::filesystem::path(configs[i].dir) / std::filesystem::path(configs[i].cmd + ".exe");
+        }
+#    endif
+
+        if (!std::filesystem::exists(p)) {
+            throw std::runtime_error("Engine not found at: " + p.string());
         }
 #endif
 

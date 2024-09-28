@@ -4,8 +4,20 @@
 
 using namespace chess;
 
-std::random_device rd;
-std::mt19937 gen(rd());
+std::mt19937 gen;
+
+void initialize_rng(int argc, char *argv[]) {
+    if (argc > 1) {
+        unsigned int seed = std::stoi(argv[1]);
+        gen.seed(seed);
+        std::cout << "Using provided seed: " << seed << std::endl;
+    } else {
+        std::random_device rd;
+        auto seed = rd();
+        gen.seed(seed);
+        std::cout << "Using random seed: " << seed << std::endl;
+    }
+}
 
 int random_number(int min, int max) {
     std::uniform_int_distribution<> dis(min, max);
@@ -85,4 +97,7 @@ void uci_loop() {
     }
 }
 
-int main() { uci_loop(); }
+int main(int argc, char *argv[]) {
+    initialize_rng(argc, argv);
+    uci_loop();
+}

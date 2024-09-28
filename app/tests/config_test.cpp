@@ -52,8 +52,6 @@ TEST_SUITE("Start from config") {
             atomic::stop = false;
         });
 
-        std::cout << oss << std::endl;
-
         CHECK(str_utils::contains(oss, "Loading config file: ./app/tests/configs/config.json"));
         CHECK(str_utils::contains(oss,
                                   "Warning: No opening book specified! Consider using one, otherwise all games will be "

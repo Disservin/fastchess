@@ -52,6 +52,8 @@ TEST_SUITE("Start from config") {
             atomic::stop = false;
         });
 
+        std::cout << oss << std::endl;
+
         CHECK(str_utils::contains(oss, "Loading config file: ./app/tests/configs/config.json"));
         CHECK(str_utils::contains(oss,
                                   "Warning: No opening book specified! Consider using one, otherwise all games will be "
@@ -59,29 +61,29 @@ TEST_SUITE("Start from config") {
         CHECK(str_utils::contains(
             oss, "Warning: Unknown opening format, 2. All games will be played from the starting position."));
 
-        CHECK(str_utils::contains(oss, "Started game 1 of 10 (cdb1 vs cdb2)"));
-        CHECK(str_utils::contains(oss, "Started game 2 of 10 (cdb2 vs cdb1)"));
-        CHECK(str_utils::contains(oss, "Started game 3 of 10 (cdb1 vs cdb2)"));
-        CHECK(str_utils::contains(oss, "Started game 4 of 10 (cdb2 vs cdb1)"));
-        CHECK(str_utils::contains(oss, "Started game 5 of 10 (cdb1 vs cdb2)"));
-        CHECK(str_utils::contains(oss, "Started game 6 of 10 (cdb2 vs cdb1)"));
-        CHECK(str_utils::contains(oss, "Started game 7 of 10 (cdb1 vs cdb2)"));
-        CHECK(str_utils::contains(oss, "Started game 8 of 10 (cdb2 vs cdb1)"));
-        CHECK(str_utils::contains(oss, "Started game 9 of 10 (cdb1 vs cdb2)"));
-        CHECK(str_utils::contains(oss, "Started game 10 of 10 (cdb2 vs cdb1)"));
+        CHECK(str_utils::contains(oss, "Started game 1 of 10 (engine1 vs engine2)"));
+        CHECK(str_utils::contains(oss, "Started game 2 of 10 (engine2 vs engine1)"));
+        CHECK(str_utils::contains(oss, "Started game 3 of 10 (engine1 vs engine2)"));
+        CHECK(str_utils::contains(oss, "Started game 4 of 10 (engine2 vs engine1)"));
+        CHECK(str_utils::contains(oss, "Started game 5 of 10 (engine1 vs engine2)"));
+        CHECK(str_utils::contains(oss, "Started game 6 of 10 (engine2 vs engine1)"));
+        CHECK(str_utils::contains(oss, "Started game 7 of 10 (engine1 vs engine2)"));
+        CHECK(str_utils::contains(oss, "Started game 8 of 10 (engine2 vs engine1)"));
+        CHECK(str_utils::contains(oss, "Started game 9 of 10 (engine1 vs engine2)"));
+        CHECK(str_utils::contains(oss, "Started game 10 of 10 (engine2 vs engine1)"));
 
-        CHECK(str_utils::contains(oss, "Finished game 1 (cdb1 vs cdb2):"));
-        CHECK(str_utils::contains(oss, "Finished game 2 (cdb2 vs cdb1):"));
-        CHECK(str_utils::contains(oss, "Finished game 3 (cdb1 vs cdb2):"));
-        CHECK(str_utils::contains(oss, "Finished game 4 (cdb2 vs cdb1):"));
-        CHECK(str_utils::contains(oss, "Finished game 5 (cdb1 vs cdb2):"));
-        CHECK(str_utils::contains(oss, "Finished game 6 (cdb2 vs cdb1):"));
-        CHECK(str_utils::contains(oss, "Finished game 7 (cdb1 vs cdb2):"));
-        CHECK(str_utils::contains(oss, "Finished game 8 (cdb2 vs cdb1):"));
-        CHECK(str_utils::contains(oss, "Finished game 9 (cdb1 vs cdb2):"));
-        CHECK(str_utils::contains(oss, "Finished game 10 (cdb2 vs cdb1):"));
+        CHECK(str_utils::contains(oss, "Finished game 1 (engine1 vs engine2):"));
+        CHECK(str_utils::contains(oss, "Finished game 2 (engine2 vs engine1):"));
+        CHECK(str_utils::contains(oss, "Finished game 3 (engine1 vs engine2):"));
+        CHECK(str_utils::contains(oss, "Finished game 4 (engine2 vs engine1):"));
+        CHECK(str_utils::contains(oss, "Finished game 5 (engine1 vs engine2):"));
+        CHECK(str_utils::contains(oss, "Finished game 6 (engine2 vs engine1):"));
+        CHECK(str_utils::contains(oss, "Finished game 7 (engine1 vs engine2):"));
+        CHECK(str_utils::contains(oss, "Finished game 8 (engine2 vs engine1):"));
+        CHECK(str_utils::contains(oss, "Finished game 9 (engine1 vs engine2):"));
+        CHECK(str_utils::contains(oss, "Finished game 10 (engine2 vs engine1):"));
 
-        CHECK(str_utils::contains(oss, "Results of cdb1 vs cdb2 (5+0.01, NULL, 16MB):"));
+        CHECK(str_utils::contains(oss, "Results of engine1 vs engine2 (5+0.01, NULL, 16MB):"));
         CHECK(str_utils::contains(oss, "Elo:"));
         CHECK(str_utils::contains(oss, "LOS:"));
         CHECK(str_utils::contains(oss, "Games: 10,"));

@@ -11,17 +11,15 @@
 using namespace fastchess;
 
 static std::string catch_output(std::function<void()> func) {
-    // std::ostringstream oss;
-    // std::streambuf* p_cout_streambuf = std::cout.rdbuf();
-    // std::cout.rdbuf(oss.rdbuf());
+    std::ostringstream oss;
+    std::streambuf* p_cout_streambuf = std::cout.rdbuf();
+    std::cout.rdbuf(oss.rdbuf());
 
-    // CHECK_NOTHROW(func());
-    func();
+    CHECK_NOTHROW(func());
 
-    // std::cout.rdbuf(p_cout_streambuf);  // restore
+    std::cout.rdbuf(p_cout_streambuf);  // restore
 
-    // return oss.str();
-    return "";
+    return oss.str();
 }
 
 TEST_SUITE("Start from config") {
@@ -45,7 +43,7 @@ TEST_SUITE("Start from config") {
                 stopProcesses();
                 atomic::stop = false;
 
-                std::cerr << e.what() << std::endl;
+                std::cout << e.what() << std::endl;
 
                 throw e;
             }

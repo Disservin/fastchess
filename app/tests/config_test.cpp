@@ -45,6 +45,8 @@ TEST_SUITE("Start from config") {
                 stopProcesses();
                 atomic::stop = false;
 
+                std::cerr << e.what() << std::endl;
+
                 throw e;
             }
 

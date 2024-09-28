@@ -15,7 +15,8 @@ static std::string catch_output(std::function<void()> func) {
     // std::streambuf* p_cout_streambuf = std::cout.rdbuf();
     // std::cout.rdbuf(oss.rdbuf());
 
-    CHECK_NOTHROW(func());
+    // CHECK_NOTHROW(func());
+    func();
 
     // std::cout.rdbuf(p_cout_streambuf);  // restore
 

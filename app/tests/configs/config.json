@@ -71,7 +71,7 @@
     },
     "engines": [
         {
-            "name": "cdb1",
+            "name": "engine1",
             "dir": "",
             "cmd": "./app/tests/mock/engine/random_mover",
             "args": "",
@@ -90,7 +90,7 @@
             "variant": 0
         },
         {
-            "name": "cdb2",
+            "name": "engine2",
             "dir": "",
             "cmd": "./app/tests/mock/engine/random_mover",
             "args": "",
@@ -111,24 +111,24 @@
     ],
     "stats": {
         "cdb2 vs cdb1": {
-            "wins": 1,
+            "wins": 0,
             "losses": 0,
-            "draws": 5,
+            "draws": 0,
             "penta_WW": 0,
-            "penta_WD": 1,
+            "penta_WD": 0,
             "penta_WL": 0,
-            "penta_DD": 2,
+            "penta_DD": 0,
             "penta_LD": 0,
             "penta_LL": 0
         },
         "cdb1 vs cdb2": {
             "wins": 0,
             "losses": 0,
-            "draws": 4,
+            "draws": 0,
             "penta_WW": 0,
             "penta_WD": 0,
             "penta_WL": 0,
-            "penta_DD": 2,
+            "penta_DD": 0,
             "penta_LD": 0,
             "penta_LL": 0
         }

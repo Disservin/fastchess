@@ -1,0 +1,136 @@
+{
+    "resign": {
+        "move_count": 6,
+        "score": 500,
+        "twosided": false,
+        "enabled": true
+    },
+    "draw": {
+        "move_number": 0,
+        "move_count": 6,
+        "score": 25,
+        "enabled": true
+    },
+    "maxmoves": {
+        "move_count": 1,
+        "enabled": false
+    },
+    "opening": {
+        "file": "",
+        "format": 2,
+        "order": 1,
+        "plies": -1,
+        "start": 1
+    },
+    "pgn": {
+        "event_name": "Fastchess Tournament",
+        "site": "?",
+        "file": "",
+        "notation": 0,
+        "track_nodes": false,
+        "track_seldepth": false,
+        "track_nps": false,
+        "track_hashfull": false,
+        "track_tbhits": false,
+        "track_timeleft": false,
+        "min": false
+    },
+    "epd": {
+        "file": ""
+    },
+    "sprt": {
+        "alpha": 0.0,
+        "beta": 0.0,
+        "elo0": 0.0,
+        "elo1": 0.0,
+        "model": "normalized",
+        "enabled": false
+    },
+    "config_name": "",
+    "output": 0,
+    "seed": 11640166910256665083,
+    "variant": 0,
+    "ratinginterval": 10,
+    "scoreinterval": 1,
+    "wait": 0,
+    "autosaveinterval": 20,
+    "games": 2,
+    "rounds": 5,
+    "concurrency": 5,
+    "force_concurrency": false,
+    "recover": false,
+    "noswap": false,
+    "reverse": false,
+    "report_penta": true,
+    "affinity": false,
+    "log": {
+        "file": "",
+        "level": 2,
+        "compress": false,
+        "realtime": true
+    },
+    "engines": [
+        {
+            "name": "cdb1",
+            "dir": "",
+            "cmd": "./app/tests/mock/engine/random_mover",
+            "args": "",
+            "options": [],
+            "limit": {
+                "tc": {
+                    "increment": 10,
+                    "fixed_time": 0,
+                    "time": 5000,
+                    "moves": 0,
+                    "timemargin": 0
+                },
+                "nodes": 0,
+                "plies": 0
+            },
+            "variant": 0
+        },
+        {
+            "name": "cdb2",
+            "dir": "",
+            "cmd": "./app/tests/mock/engine/random_mover",
+            "args": "",
+            "options": [],
+            "limit": {
+                "tc": {
+                    "increment": 10,
+                    "fixed_time": 0,
+                    "time": 5000,
+                    "moves": 0,
+                    "timemargin": 0
+                },
+                "nodes": 0,
+                "plies": 0
+            },
+            "variant": 0
+        }
+    ],
+    "stats": {
+        "cdb2 vs cdb1": {
+            "wins": 1,
+            "losses": 0,
+            "draws": 5,
+            "penta_WW": 0,
+            "penta_WD": 1,
+            "penta_WL": 0,
+            "penta_DD": 2,
+            "penta_LD": 0,
+            "penta_LL": 0
+        },
+        "cdb1 vs cdb2": {
+            "wins": 0,
+            "losses": 0,
+            "draws": 4,
+            "penta_WW": 0,
+            "penta_WD": 0,
+            "penta_WL": 0,
+            "penta_DD": 2,
+            "penta_LD": 0,
+            "penta_LL": 0
+        }
+    }
+}

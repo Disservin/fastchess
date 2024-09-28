@@ -24,12 +24,21 @@ static std::string catch_output(std::function<void()> func) {
 
 TEST_SUITE("Start from config") {
     TEST_CASE("Config 1") {
+#ifdef _WIN64
+        const char* argv[] = {
+            "fastchess",
+            "-config",
+            "stats=false",
+            "file=./app/tests/configs/config_win.json",
+        };
+#else
         const char* argv[] = {
             "fastchess",
             "-config",
             "stats=false",
             "file=./app/tests/configs/config.json",
         };
+#endif
 
         const auto argc = sizeof(argv) / sizeof(argv[0]);
 

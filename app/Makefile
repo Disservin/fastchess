@@ -49,6 +49,7 @@ SRC_FILES_TEST   := \
 	$(TESTDIR)/player.cpp \
 	$(TESTDIR)/scoreboard_test.cpp \
 	$(TESTDIR)/sprt_test.cpp \
+	$(TESTDIR)/timecontrol_test.cpp \
 	$(TESTDIR)/uci_engine_test.cpp \
 	$(TESTDIR)/epd_reader_test.cpp \
 	$(TESTDIR)/match_test.cpp

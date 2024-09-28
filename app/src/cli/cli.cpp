@@ -394,7 +394,13 @@ void parseLog(const std::vector<std::string> &params, ArgumentData &argument_dat
 namespace json_config {
 void loadJson(ArgumentData &argument_data, const std::string &filename) {
     Logger::info("Loading config file: {}", filename);
+
     std::ifstream f(filename);
+
+    if (!f.is_open()) {
+        throw std::runtime_error("File not found: " + filename);
+    }
+
     json jsonfile = json::parse(f);
 
     argument_data.old_configs           = argument_data.configs;

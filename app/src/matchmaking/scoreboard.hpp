@@ -87,6 +87,13 @@ class StatsMap {
 
 class ScoreBoard {
    public:
+    // Returns true if the pair was completed, false otherwise.
+    // Call after updating the pair
+    [[nodiscard]] bool isPairCompleted(std::uint64_t round_id) {
+        std::lock_guard<std::mutex> lock(game_pair_cache_mutex_);
+        return game_pair_cache_.find(round_id) == game_pair_cache_.end();
+    }
+
     // Updates the stats of engine1 vs engine2
     // Always returns true because it was immediately updated
     bool updateNonPair(const GamePair<EngineConfiguration, EngineConfiguration>& configs, const Stats& stats) {

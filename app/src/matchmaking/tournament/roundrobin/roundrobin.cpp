@@ -107,22 +107,19 @@ void RoundRobin::createMatch(std::size_t i, std::size_t j, std::size_t round_id,
 
         output_->endGame(configs, stats, reason, game_id);
 
-        bool report = cfg.report_penta ? scoreboard_.updatePair(configs, stats, round_id)
-                                       : scoreboard_.updateNonPair(configs, stats);
+        if (cfg.report_penta) {
+            scoreboard_.updatePair(configs, stats, round_id);
+        } else {
+            scoreboard_.updateNonPair(configs, stats);
+        }
 
-        // round_id and match_count_ starts 0 so we add 1
-        const auto ratinginterval_index = cfg.report_penta ? round_id + 1 : match_count_ + 1;
-        const auto scoreinterval_index  = match_count_ + 1;
-        const auto updated_stats        = scoreboard_.getStats(first.name, second.name);
+        const auto updated_stats = scoreboard_.getStats(first.name, second.name);
 
-        // print score result based on scoreinterval if output format is cutechess
-        if ((scoreinterval_index % cfg.scoreinterval == 0) || match_count_ + 1 == total_) {
+        if (shouldPrintScoreInterval() || allMatchesPlayed()) {
             output_->printResult(updated_stats, first.name, second.name);
         }
 
-        // Only print the interval if the pair is complete or we are not tracking
-        // penta stats.
-        if ((report && ratinginterval_index % cfg.ratinginterval == 0) || match_count_ + 1 == total_) {
+        if ((shouldPrintRatingInterval(round_id) && scoreboard_.isPairCompleted(round_id)) || allMatchesPlayed()) {
             output_->printInterval(sprt_, updated_stats, first.name, second.name, engines, cfg.opening.file);
         }
 
@@ -132,6 +129,7 @@ void RoundRobin::createMatch(std::size_t i, std::size_t j, std::size_t round_id,
     };
 
     playGame(configs, start, finish, opening, round_id, game_id);
+
     if (config::TournamentConfig.get().wait > 0)
         std::this_thread::sleep_for(std::chrono::milliseconds(config::TournamentConfig.get().wait));
 }
@@ -146,6 +144,7 @@ void RoundRobin::updateSprtStatus(const std::vector<EngineConfiguration>& engine
         atomic::stop = true;
 
         Logger::info("SPRT test finished: {} {}", sprt_.getBounds(), sprt_.getElo());
+
         output_->printResult(stats, engine_configs[0].name, engine_configs[1].name);
         output_->printInterval(sprt_, stats, engine_configs[0].name, engine_configs[1].name, engines,
                                config::TournamentConfig.get().opening.file);

@@ -53,8 +53,11 @@ void RoundRobin::startNext() {
         return;
     }
 
-    pool_.enqueue(&RoundRobin::createMatch, this, std::get<0>(match.value()), std::get<1>(match.value()),
-                  std::get<2>(match.value()), std::get<3>(match.value()), std::get<4>(match.value()));
+    std::apply(
+        [this](auto&&... args) {
+            pool_.enqueue(&RoundRobin::createMatch, this, std::forward<decltype(args)>(args)...);
+        },
+        match.value());
 }
 
 void RoundRobin::create() {

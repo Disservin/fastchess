@@ -73,7 +73,7 @@ _Note: It is highly encouraged to use an opening book._
 
 ## Command line options
 
-See [man](man) for a detailed description of all command line options.
+See [man.md](man.md) for a detailed description of all command line options.
 
 ## Contributing
 

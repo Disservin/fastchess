@@ -25,7 +25,8 @@ class Cutechess : public IOutput {
                          const std::string&) override {
         const elo::EloWDL elo(stats);
 
-        return fmt::format("Elo difference: {}, LOS: {}, DrawRatio: {}\n", elo.getElo(), elo.los(), stats.drawRatio());
+        return fmt::format("Elo difference: {}, LOS: {}, DrawRatio: {:.2f}%\n", elo.getElo(), elo.los(),
+                           stats.drawRatio());
     }
 
     std::string printSprt(const SPRT& sprt, const Stats& stats) override {

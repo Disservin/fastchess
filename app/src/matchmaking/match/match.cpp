@@ -253,8 +253,7 @@ bool Match::playMove(Player& us, Player& them) {
     const auto timeout  = !us.updateTime(elapsed_millis);
     const auto timeleft = us.getTimeControl().getTimeLeft();
 
-    // don't add move data if it is a timeout, because we probably not have a move
-    if (!timeout) {
+    if (best_move) {
         addMoveData(us, elapsed_millis, timeleft, legal && isUciMove(best_move.value()));
     }
 

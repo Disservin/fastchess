@@ -56,7 +56,7 @@ class RoundRobin : public BaseTournament {
 
     bool allMatchesPlayed() const noexcept { return match_count_ + 1 == total_; }
 
-    void createMatch(MatchGenerator::Pairing pairing);
+    void createMatch(const MatchGenerator::Pairing& pairing);
 
     // update the current running sprt. SPRT Config has to be valid.
     void updateSprtStatus(const std::vector<EngineConfiguration>& engine_configs, const engines& engines);

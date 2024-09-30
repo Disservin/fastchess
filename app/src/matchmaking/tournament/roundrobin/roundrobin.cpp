@@ -67,7 +67,7 @@ void RoundRobin::create() {
     }
 }
 
-void RoundRobin::createMatch(MatchGenerator::Pairing pairing) {
+void RoundRobin::createMatch(const MatchGenerator::Pairing& pairing) {
     const auto opening = (*book_)[pairing.opening_id];
     const auto first   = config::EngineConfigs.get()[pairing.player1];
     const auto second  = config::EngineConfigs.get()[pairing.player2];

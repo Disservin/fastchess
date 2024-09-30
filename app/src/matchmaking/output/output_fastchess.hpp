@@ -34,34 +34,34 @@ class Fastchess : public IOutput {
 
     std::string printElo(const Stats& stats, const std::string& first, const std::string& second,
                          const engines& engines, const std::string& book, ScoreBoard& scoreboard) override {
-        auto& ecs = config::EngineConfigs.get();
+        const auto& ecs = config::EngineConfigs.get();
 
-        std::vector<std::pair<EngineConfiguration, elo::EloWDL>> elos;
-
-        if (ecs.size() > 2) {
-            for (auto& e : ecs) {
-                elos.emplace_back(e, elo::EloWDL(scoreboard.getAllStats(e.name)));
-            }
-
-            // sort
-
-            std::sort(elos.begin(), elos.end(),
-                      [](const auto& a, const auto& b) { return a.second.diff() > b.second.diff(); });
-
-            std::string out = "Elo ratings:\n";
-
-            int rank = 1;
-
-            for (const auto& [ec, elo] : elos) {
-                out += fmt::format("{:<2} {:<20} {:>6} ({:>6})\n", rank, ec.name, elo.getElo(), elo.nElo());
-
-                rank++;
-            }
-
-            return out;
+        if (ecs.size() == 2) {
+            return printEloH2h(stats, first, second, engines, book);
         }
 
-        return printEloH2h(stats, first, second, engines, book);
+        std::vector<std::tuple<const EngineConfiguration*, std::unique_ptr<elo::EloBase>, std::size_t>> elos;
+
+        for (auto& e : ecs) {
+            const auto stats = scoreboard.getAllStats(e.name);
+            elos.emplace_back(&e, createElo(stats, report_penta_), stats.sum());
+        }
+
+        // sort by elo diff
+
+        std::sort(elos.begin(), elos.end(),
+                  [](const auto& a, const auto& b) { return std::get<1>(a)->diff() > std::get<1>(b)->diff(); });
+
+        int rank        = 0;
+        std::string out = fmt::format("{:<4} {:<25} {:>10} {:>10} {:>10} {:>10} {:>10}\n", "Rank", "Name", "Elo", "+/-",
+                                      "nElo", "+/-", "Games");
+
+        for (const auto& [ec, elo, games] : elos) {
+            out += fmt::format("{:>4} {:<25} {:>10.2f} {:>10.2f} {:>10.2f} {:>10.2f} {:>10}\n", ++rank, ec->name,
+                               elo->diff(), elo->error(), elo->nEloDiff(), elo->nEloError(), games);
+        }
+
+        return out;
     }
 
     std::string printSprt(const SPRT& sprt, const Stats& stats) override {

@@ -53,12 +53,6 @@ void RoundRobin::startNext() {
         return;
     }
 
-    // std::apply(
-    //     [this](auto&&... args) {
-    //         pool_.enqueue(&RoundRobin::createMatch, this, std::forward<decltype(args)>(args)...);
-    //     },
-    //     match.value());
-
     pool_.enqueue(&RoundRobin::createMatch, this, match.value());
 }
 
@@ -74,12 +68,9 @@ void RoundRobin::create() {
 }
 
 void RoundRobin::createMatch(MatchGenerator::Pairing pairing) {
-    // assert(g < 2);
-
     const auto opening = (*book_)[pairing.opening_id];
     const auto first   = config::EngineConfigs.get()[pairing.player1];
     const auto second  = config::EngineConfigs.get()[pairing.player2];
-    // const std::size_t game_id = round_id * config::TournamentConfig.get().games + (g + 1);
 
     GamePair<EngineConfiguration, EngineConfiguration> configs = {first, second};
 
@@ -109,7 +100,7 @@ void RoundRobin::createMatch(MatchGenerator::Pairing pairing) {
         output_->endGame(configs, stats, reason, pairing.game_id);
 
         if (cfg.report_penta) {
-            scoreboard_.updatePair(configs, stats, pairing.round_id);
+            scoreboard_.updatePair(configs, stats, pairing.pairing_id);
         } else {
             scoreboard_.updateNonPair(configs, stats);
         }
@@ -120,7 +111,7 @@ void RoundRobin::createMatch(MatchGenerator::Pairing pairing) {
             output_->printResult(updated_stats, first.name, second.name);
         }
 
-        if ((shouldPrintRatingInterval(pairing.round_id) && scoreboard_.isPairCompleted(pairing.round_id)) ||
+        if ((shouldPrintRatingInterval(pairing.pairing_id) && scoreboard_.isPairCompleted(pairing.pairing_id)) ||
             allMatchesPlayed()) {
             output_->printInterval(sprt_, updated_stats, first.name, second.name, engines, cfg.opening.file,
                                    scoreboard_);
@@ -131,7 +122,7 @@ void RoundRobin::createMatch(MatchGenerator::Pairing pairing) {
         match_count_++;
     };
 
-    playGame(configs, start, finish, opening, pairing.round_id, pairing.game_id);
+    playGame(configs, start, finish, opening, pairing.pairing_id, pairing.game_id);
 
     if (config::TournamentConfig.get().wait > 0)
         std::this_thread::sleep_for(std::chrono::milliseconds(config::TournamentConfig.get().wait));

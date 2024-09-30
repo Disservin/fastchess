@@ -9,10 +9,10 @@ namespace fastchess {
 class Cutechess : public IOutput {
    public:
     void printInterval(const SPRT& sprt, const Stats& stats, const std::string& first, const std::string& second,
-                       const engines& engines, const std::string& book) override {
-        std::cout                                             //
-            << printElo(stats, first, second, engines, book)  //
-            << printSprt(sprt, stats)                         //
+                       const engines& engines, const std::string& book, ScoreBoard& scoreboard) override {
+        std::cout                                                         //
+            << printElo(stats, first, second, engines, book, scoreboard)  //
+            << printSprt(sprt, stats)                                     //
             << std::flush;
     };
 
@@ -24,8 +24,8 @@ class Cutechess : public IOutput {
                   << std::flush;
     }
 
-    std::string printElo(const Stats& stats, const std::string&, const std::string&, const engines&,
-                         const std::string&) override {
+    std::string printElo(const Stats& stats, const std::string&, const std::string&, const engines&, const std::string&,
+                         ScoreBoard&) override {
         const elo::EloWDL elo(stats);
 
         return fmt::format("Elo difference: {}, LOS: {}, DrawRatio: {:.2f}%\n", elo.getElo(), elo.los(),

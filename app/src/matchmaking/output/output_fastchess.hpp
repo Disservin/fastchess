@@ -19,12 +19,12 @@ class Fastchess : public IOutput {
     Fastchess(bool report_penta = true) : report_penta_(report_penta) {}
 
     void printInterval(const SPRT& sprt, const Stats& stats, const std::string& first, const std::string& second,
-                       const engines& engines, const std::string& book) override {
-        std::cout                                                      //
-            << "--------------------------------------------------\n"  //
-            << printElo(stats, first, second, engines, book)           //
-            << printSprt(sprt, stats)                                  //
-            << "--------------------------------------------------\n"  //
+                       const engines& engines, const std::string& book, ScoreBoard& scoreboard) override {
+        std::cout                                                         //
+            << "--------------------------------------------------\n"     //
+            << printElo(stats, first, second, engines, book, scoreboard)  //
+            << printSprt(sprt, stats)                                     //
+            << "--------------------------------------------------\n"     //
             << std::flush;
     };
 
@@ -33,26 +33,35 @@ class Fastchess : public IOutput {
     }
 
     std::string printElo(const Stats& stats, const std::string& first, const std::string& second,
-                         const engines& engines, const std::string& book) override {
-        auto elo = createElo(stats, report_penta_);
+                         const engines& engines, const std::string& book, ScoreBoard& scoreboard) override {
+        auto& ecs = config::EngineConfigs.get();
 
-        const auto& first_engine  = engines.first.getConfig().name == first ? engines.first : engines.second;
-        const auto& second_engine = engines.first.getConfig().name == second ? engines.first : engines.second;
+        std::vector<std::pair<EngineConfiguration, elo::EloWDL>> elos;
 
-        const auto tc       = formatTimeControl(first_engine.getConfig(), second_engine.getConfig());
-        const auto threads  = formatThreads(first_engine.uciOptions(), second_engine.uciOptions());
-        const auto hash     = formatHash(first_engine.uciOptions(), second_engine.uciOptions());
-        const auto bookname = getShortName(book);
+        if (ecs.size() > 2) {
+            for (auto& e : ecs) {
+                elos.emplace_back(e, elo::EloWDL(scoreboard.getAllStats(e.name)));
+            }
 
-        auto result = fmt::format("{}\n{}\n{}\n{}", formatMatchup(first, second, tc, threads, hash, bookname),
-                                  formatElo(elo), formatGameStats(*elo, stats, stats.pairsRatio()),
-                                  formatGameResults(stats, stats.points(), stats.pointsRatio()));
+            // sort
 
-        if (report_penta_) {
-            result += fmt::format("\nPtnml(0-2): {}, {}", formatPentaStats(stats), formatwl_dd_Ratio(stats));
+            std::sort(elos.begin(), elos.end(),
+                      [](const auto& a, const auto& b) { return a.second.diff() > b.second.diff(); });
+
+            std::string out = "Elo ratings:\n";
+
+            int rank = 1;
+
+            for (const auto& [ec, elo] : elos) {
+                out += fmt::format("{:<2} {:<20} {:>6} ({:>6})\n", rank, ec.name, elo.getElo(), elo.nElo());
+
+                rank++;
+            }
+
+            return out;
         }
 
-        return result + "\n";
+        return printEloH2h(stats, first, second, engines, book);
     }
 
     std::string printSprt(const SPRT& sprt, const Stats& stats) override {
@@ -82,6 +91,36 @@ class Fastchess : public IOutput {
     void endTournament() override { std::cout << "Tournament finished" << std::endl; }
 
    private:
+    std::string printEloH2h(const Stats& stats, const std::string& first, const std::string& second,
+                            const engines& engines, const std::string& book) {
+        auto elo = createElo(stats, report_penta_);
+
+        const auto& first_engine  = engines.first.getConfig().name == first ? engines.first : engines.second;
+        const auto& second_engine = engines.first.getConfig().name == second ? engines.first : engines.second;
+
+        const auto tc       = formatTimeControl(first_engine.getConfig(), second_engine.getConfig());
+        const auto threads  = formatThreads(first_engine.uciOptions(), second_engine.uciOptions());
+        const auto hash     = formatHash(first_engine.uciOptions(), second_engine.uciOptions());
+        const auto bookname = getShortName(book);
+
+        const auto games       = stats.wins + stats.losses + stats.draws;
+        const auto points      = stats.wins + 0.5 * stats.draws;
+        const auto pointsRatio = points / games * 100;
+        const auto WLDDRatio   = static_cast<double>(stats.penta_WL) / stats.penta_DD;
+        const auto pairsRatio =
+            static_cast<double>(stats.penta_WW + stats.penta_WD) / (stats.penta_LD + stats.penta_LL);
+
+        auto result =
+            fmt::format("{}\n{}\n{}\n{}", formatMatchup(first, second, tc, threads, hash, bookname), formatElo(elo),
+                        formatGameStats(*elo, stats, pairsRatio), formatGameResults(stats, points, pointsRatio));
+
+        if (report_penta_) {
+            result += fmt::format("\nPtnml(0-2): {}, {}", formatPentaStats(stats), formatwl_dd_Ratio(stats));
+        }
+
+        return result + "\n";
+    }
+
     std::string getTime(const EngineConfiguration& config) const {
         const auto& limit = config.limit;
 

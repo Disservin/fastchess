@@ -122,7 +122,8 @@ void RoundRobin::createMatch(MatchGenerator::Pairing pairing) {
 
         if ((shouldPrintRatingInterval(pairing.round_id) && scoreboard_.isPairCompleted(pairing.round_id)) ||
             allMatchesPlayed()) {
-            output_->printInterval(sprt_, updated_stats, first.name, second.name, engines, cfg.opening.file);
+            output_->printInterval(sprt_, updated_stats, first.name, second.name, engines, cfg.opening.file,
+                                   scoreboard_);
         }
 
         updateSprtStatus({first, second}, engines);
@@ -149,7 +150,7 @@ void RoundRobin::updateSprtStatus(const std::vector<EngineConfiguration>& engine
 
         output_->printResult(stats, engine_configs[0].name, engine_configs[1].name);
         output_->printInterval(sprt_, stats, engine_configs[0].name, engine_configs[1].name, engines,
-                               config::TournamentConfig.get().opening.file);
+                               config::TournamentConfig.get().opening.file, scoreboard_);
         output_->endTournament();
     }
 }

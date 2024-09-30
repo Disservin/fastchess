@@ -64,12 +64,6 @@ std::string EloPentanomial::los() const noexcept {
     return ss.str();
 }
 
-std::string EloPentanomial::drawRatio(const Stats& stats) const noexcept {
-    std::stringstream ss;
-    ss << std::fixed << std::setprecision(2) << ((stats.penta_WL + stats.penta_DD) / pairs_) * 100.0 << " %";
-    return ss.str();
-}
-
 std::string EloPentanomial::printScore() const noexcept {
     std::stringstream ss;
     ss << std::fixed << std::setprecision(3) << score_;

@@ -66,6 +66,22 @@ class Stats {
 
     [[nodiscard]] int sum() const { return wins + losses + draws; }
 
+    [[nodiscard]] double points() const { return wins + 0.5 * draws; }
+
+    [[nodiscard]] double wldDRatio() const { return static_cast<double>(penta_WL) / static_cast<double>(penta_DD); }
+
+    [[nodiscard]] double drawRatio() const { return 100.0 * draws / static_cast<double>(sum()); }
+
+    [[nodiscard]] double drawRatioPenta() const {
+        return ((penta_WL + penta_DD) / static_cast<double>(totalPairs())) * 100.0;
+    }
+
+    [[nodiscard]] double pairsRatio() const { return static_cast<double>(penta_WW + penta_WD) / (penta_LD + penta_LL); }
+
+    [[nodiscard]] double pointsRatio() const { return points() / sum() * 100; }
+
+    [[nodiscard]] int totalPairs() const { return penta_WW + penta_WD + penta_WL + penta_DD + penta_LD + penta_LL; }
+
     int wins   = 0;
     int losses = 0;
     int draws  = 0;

@@ -42,19 +42,12 @@ class Fastchess : public IOutput {
         const auto hash     = formatHash(first_engine.uciOptions(), second_engine.uciOptions());
         const auto bookname = getShortName(book);
 
-        const auto games       = stats.wins + stats.losses + stats.draws;
-        const auto points      = stats.wins + 0.5 * stats.draws;
-        const auto pointsRatio = points / games * 100;
-        const auto WLDDRatio   = static_cast<double>(stats.penta_WL) / stats.penta_DD;
-        const auto pairsRatio =
-            static_cast<double>(stats.penta_WW + stats.penta_WD) / (stats.penta_LD + stats.penta_LL);
-
-        auto result =
-            fmt::format("{}\n{}\n{}\n{}", formatMatchup(first, second, tc, threads, hash, bookname), formatElo(elo),
-                        formatGameStats(*elo, stats, pairsRatio), formatGameResults(stats, points, pointsRatio));
+        auto result = fmt::format("{}\n{}\n{}\n{}", formatMatchup(first, second, tc, threads, hash, bookname),
+                                  formatElo(elo), formatGameStats(*elo, stats, stats.pairsRatio()),
+                                  formatGameResults(stats, stats.points(), stats.pointsRatio()));
 
         if (report_penta_) {
-            result += fmt::format("\n{}", formatPentaStats(stats, WLDDRatio));
+            result += fmt::format("\n{}", formatPentaStats(stats, stats.wldDRatio()));
         }
 
         return result + "\n";
@@ -152,7 +145,8 @@ class Fastchess : public IOutput {
     }
 
     std::string formatGameStats(const elo::EloBase& elo, const Stats& stats, double pairsRatio) const {
-        return fmt::format("LOS: {}, DrawRatio: {}{}", elo.los(), elo.drawRatio(stats),
+        return fmt::format("LOS: {}, DrawRatio: {}{}", elo.los(),
+                           report_penta_ ? stats.drawRatioPenta() : stats.drawRatio(),
                            report_penta_ ? fmt::format(", PairsRatio: {:.2f}", pairsRatio) : "");
     }
 

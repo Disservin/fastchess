@@ -15,59 +15,95 @@ namespace fastchess {
  */
 class MatchGenerator {
    public:
-    MatchGenerator(book::OpeningBook* opening_book, int initial_matchcount)
-        : ecidx_one(0), ecidx_two(1), round_id(0), pair_id(0), engine_configs_size(config::EngineConfigs.get().size()) {
-        opening_book_ = opening_book;
-        offset_       = initial_matchcount / games;
-        round_id      = offset_;
+    struct Pairing {
+        int round_id;
+        int pairing_id;
+        int game_id;
+        std::optional<std::size_t> opening_id;
+        int player1;
+        int player2;
+
+        Pairing(int roundId, int gameId, int p1, int p2)
+            : round_id(roundId), game_id(gameId), player1(p1), player2(p2) {}
+    };
+
+    MatchGenerator(book::OpeningBook* opening_book, int players, int rounds, int games, int played_games)
+        : opening_book_(opening_book),
+          n_players(players),
+          n_rounds(rounds),
+          n_games_per_round(games),
+          current_round(1),
+          game_counter(0),
+          player1(0),
+          player2(1),
+          games_per_pair(0) {
+        current_round = (played_games / games) + 1;
+
+        if (n_players < 2 || n_rounds < 1 || n_games_per_round < 1) {
+            throw std::invalid_argument("Invalid number of players, rounds, or games per round");
+        }
     }
 
-    std::optional<std::tuple<std::size_t, std::size_t, std::size_t, int, std::optional<std::size_t>>> next() {
-        if (ecidx_one >= engine_configs_size || ecidx_two >= engine_configs_size) return std::nullopt;
+    // Function to generate the next game pairing
+    std::optional<Pairing> next() {
+        Pairing nextGame = Pairing(0, 0, 0, 0);
 
-        if (pair_id == 0) {
-            // Fetch a new opening only once per round
+        // Check if the current round is beyond the number of rounds
+        if (current_round > n_rounds) {
+            // No more rounds left
+            return std::nullopt;
+        }
+
+        if (games_per_pair == 0) {
             opening = opening_book_->fetchId();
         }
 
-        auto match = std::make_tuple(ecidx_one, ecidx_two, round_id, pair_id, opening);
+        nextGame.round_id   = current_round;
+        nextGame.game_id    = ++game_counter;
+        nextGame.player1    = player1;
+        nextGame.player2    = player2;
+        nextGame.pairing_id = pairCounter;
+        nextGame.opening_id = opening;
 
-        advance();
+        // Increment the games between the current player1 and player2
+        games_per_pair++;
 
-        return match;
+        // If we've exhausted the games between the current player pair, move to the next pair
+        if (games_per_pair >= n_games_per_round) {
+            games_per_pair = 0;
+
+            player2++;
+            pairCounter++;
+
+            if (player2 >= n_players) {
+                player1++;
+                player2 = player1 + 1;
+            }
+
+            // If we've exhausted all pairs for this round, move to the next round
+            if (player1 >= n_players - 1) {
+                current_round++;
+
+                player1 = 0;
+                player2 = 1;
+            }
+        }
+
+        return nextGame;
     }
 
    private:
-    std::optional<std::size_t> opening;
     book::OpeningBook* opening_book_;
-
-    // 1 - 2
-    const std::size_t games  = config::TournamentConfig.get().games;
-    const std::size_t rounds = config::TournamentConfig.get().rounds;
-
-    // Engine configuration indices
-    std::size_t ecidx_one, ecidx_two;
-    std::size_t round_id;
-
-    // 0 - 1
-    std::size_t pair_id;
-    std::size_t engine_configs_size;
-
-    int offset_;
-
-    void advance() {
-        if (++pair_id >= games) {
-            pair_id = 0;
-
-            if (++round_id >= rounds) {
-                round_id = offset_;
-
-                if (++ecidx_two >= engine_configs_size) {
-                    ecidx_two = ++ecidx_one + 1;
-                }
-            }
-        }
-    }
+    std::optional<std::size_t> opening;
+    int n_players;
+    int n_rounds;
+    int n_games_per_round;
+    int current_round;
+    int game_counter;
+    int player1;
+    int player2;
+    int games_per_pair;
+    int pairCounter;
 };
 
 }  // namespace fastchess

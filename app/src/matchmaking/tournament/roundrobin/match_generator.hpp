@@ -22,9 +22,6 @@ class MatchGenerator {
         std::optional<std::size_t> opening_id;
         int player1;
         int player2;
-
-        Pairing(int roundId, int gameId, int p1, int p2)
-            : round_id(roundId), game_id(gameId), player1(p1), player2(p2) {}
     };
 
     MatchGenerator(book::OpeningBook* opening_book, int players, int rounds, int games, int played_games)
@@ -36,7 +33,8 @@ class MatchGenerator {
           game_counter(0),
           player1(0),
           player2(1),
-          games_per_pair(0) {
+          games_per_pair(0),
+          pair_counter(0) {
         current_round = (played_games / games) + 1;
 
         if (n_players < 2 || n_rounds < 1 || n_games_per_round < 1) {
@@ -46,7 +44,7 @@ class MatchGenerator {
 
     // Function to generate the next game pairing
     std::optional<Pairing> next() {
-        Pairing nextGame = Pairing(0, 0, 0, 0);
+        Pairing next_game;
 
         // Check if the current round is beyond the number of rounds
         if (current_round > n_rounds) {
@@ -58,12 +56,12 @@ class MatchGenerator {
             opening = opening_book_->fetchId();
         }
 
-        nextGame.round_id   = current_round;
-        nextGame.game_id    = ++game_counter;
-        nextGame.player1    = player1;
-        nextGame.player2    = player2;
-        nextGame.pairing_id = pairCounter;
-        nextGame.opening_id = opening;
+        next_game.round_id   = current_round;
+        next_game.game_id    = ++game_counter;
+        next_game.player1    = player1;
+        next_game.player2    = player2;
+        next_game.pairing_id = pair_counter;
+        next_game.opening_id = opening;
 
         // Increment the games between the current player1 and player2
         games_per_pair++;
@@ -73,7 +71,7 @@ class MatchGenerator {
             games_per_pair = 0;
 
             player2++;
-            pairCounter++;
+            pair_counter++;
 
             if (player2 >= n_players) {
                 player1++;
@@ -89,7 +87,7 @@ class MatchGenerator {
             }
         }
 
-        return nextGame;
+        return next_game;
     }
 
    private:
@@ -103,7 +101,7 @@ class MatchGenerator {
     int player1;
     int player2;
     int games_per_pair;
-    int pairCounter;
+    int pair_counter;
 };
 
 }  // namespace fastchess

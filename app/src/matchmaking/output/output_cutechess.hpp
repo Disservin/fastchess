@@ -28,7 +28,7 @@ class Cutechess : public IOutput {
                          ScoreBoard&) override {
         const elo::EloWDL elo(stats);
 
-        return fmt::format("Elo difference: {}, LOS: {}, DrawRatio: {.2f}%\n", elo.getElo(), elo.los(),
+        return fmt::format("Elo difference: {}, LOS: {}, DrawRatio: {:.2f}%\n", elo.getElo(), elo.los(),
                            stats.drawRatio());
     }
 

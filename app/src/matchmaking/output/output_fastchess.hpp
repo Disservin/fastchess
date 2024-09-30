@@ -145,7 +145,7 @@ class Fastchess : public IOutput {
     }
 
     std::string formatGameStats(const elo::EloBase& elo, const Stats& stats, double pairsRatio) const {
-        return fmt::format("LOS: {}, DrawRatio: {}{}", elo.los(),
+        return fmt::format("LOS: {}, DrawRatio: {:.2f} %{}", elo.los(),
                            report_penta_ ? stats.drawRatioPenta() : stats.drawRatio(),
                            report_penta_ ? fmt::format(", PairsRatio: {:.2f}", pairsRatio) : "");
     }

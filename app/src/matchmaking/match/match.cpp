@@ -253,7 +253,9 @@ bool Match::playMove(Player& us, Player& them) {
     const auto timeout  = !us.updateTime(elapsed_millis);
     const auto timeleft = us.getTimeControl().getTimeLeft();
 
-    addMoveData(us, elapsed_millis, timeleft, legal && isUciMove(best_move.value()));
+    if (best_move) {
+        addMoveData(us, elapsed_millis, timeleft, legal && isUciMove(best_move.value()));
+    }
 
     // there are two reasons why best_move could be empty
     // 1. the engine crashed

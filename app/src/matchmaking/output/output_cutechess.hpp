@@ -1,5 +1,12 @@
 #pragma once
 
+#include <algorithm>
+#include <cstdint>
+#include <iostream>
+#include <string>
+#include <tuple>
+#include <vector>
+
 #include <elo/elo_wdl.hpp>
 #include <matchmaking/output/output.hpp>
 #include <util/logger/logger.hpp>
@@ -35,7 +42,7 @@ class Cutechess : public IOutput {
                                stats.drawRatio());
         }
 
-        std::vector<std::tuple<const EngineConfiguration*, std::unique_ptr<elo::EloBase>, Stats>> elos;
+        std::vector<std::tuple<const EngineConfiguration*, elo::EloWDL, Stats>> elos;
 
         for (auto& e : ecs) {
             const auto stats = scoreboard.getAllStats(e.name);
@@ -45,7 +52,7 @@ class Cutechess : public IOutput {
         // sort by elo diff
 
         std::sort(elos.begin(), elos.end(),
-                  [](const auto& a, const auto& b) { return std::get<1>(a)->diff() > std::get<1>(b)->diff(); });
+                  [](const auto& a, const auto& b) { return std::get<1>(a).diff() > std::get<1>(b).diff(); });
 
         int rank        = 0;
         std::string out = fmt::format("{:<4} {:<25} {:>10} {:>10} {:>10} {:>10} {:>10} {:>10} {:>10}\n", "Rank", "Name",
@@ -53,8 +60,8 @@ class Cutechess : public IOutput {
 
         for (const auto& [ec, elo, stats] : elos) {
             out += fmt::format("{:>4} {:<25} {:>10.2f} {:>10.2f} {:>10.2f} {:>10.2f} {:>10} {:>9.1f}% {:>9.1f}%\n",
-                               ++rank, ec->name, elo->diff(), elo->error(), elo->nEloDiff(), elo->nEloError(),
-                               stats.sum(), stats.pointsRatio(), stats.drawRatio());
+                               ++rank, ec->name, elo.diff(), elo.error(), elo.nEloDiff(), elo.nEloError(), stats.sum(),
+                               stats.pointsRatio(), stats.drawRatio());
         }
 
         return out;

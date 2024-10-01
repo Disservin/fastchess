@@ -37,7 +37,7 @@ class Fastchess : public IOutput {
         const auto& ecs = config::EngineConfigs.get();
 
         if (ecs.size() == 2) {
-            return printEloH2h(stats, first, second, engines, book);
+            return printEloH2H(stats, first, second, engines, book);
         }
 
         std::vector<std::tuple<const EngineConfiguration*, std::unique_ptr<elo::EloBase>, Stats>> elos;
@@ -94,7 +94,7 @@ class Fastchess : public IOutput {
     void endTournament() override { std::cout << "Tournament finished" << std::endl; }
 
    private:
-    std::string printEloH2h(const Stats& stats, const std::string& first, const std::string& second,
+    std::string printEloH2H(const Stats& stats, const std::string& first, const std::string& second,
                             const engines& engines, const std::string& book) {
         auto elo = createElo(stats, report_penta_);
 
@@ -111,7 +111,7 @@ class Fastchess : public IOutput {
                                   formatGameResults(stats, stats.points(), stats.pointsRatio()));
 
         if (report_penta_) {
-            result += fmt::format("\nPtnml(0-2): {}, {}", formatPentaStats(stats), formatwl_dd_Ratio(stats));
+            result += fmt::format("\nPtnml(0-2): {}, {}", formatPentaStats(stats), formatWLDDRatio(stats));
         }
 
         return result + "\n";
@@ -198,11 +198,7 @@ class Fastchess : public IOutput {
                            stats.penta_WD, stats.penta_WW);
     }
 
-<<<<<<< HEAD
-    std::string formatwl_dd_Ratio(const Stats& stats) const {
-=======
     std::string formatWLDDRatio(const Stats& stats) const {
->>>>>>> fad582c (add penta stats)
         return fmt::format("WL/DD Ratio: {:.2f}", stats.wl_dd_Ratio());
     }
 

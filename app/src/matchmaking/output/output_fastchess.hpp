@@ -40,11 +40,11 @@ class Fastchess : public IOutput {
             return printEloH2h(stats, first, second, engines, book);
         }
 
-        std::vector<std::tuple<const EngineConfiguration*, std::unique_ptr<elo::EloBase>, std::size_t>> elos;
+        std::vector<std::tuple<const EngineConfiguration*, std::unique_ptr<elo::EloBase>, Stats>> elos;
 
         for (auto& e : ecs) {
             const auto stats = scoreboard.getAllStats(e.name);
-            elos.emplace_back(&e, createElo(stats, report_penta_), stats.sum());
+            elos.emplace_back(&e, createElo(stats, report_penta_), stats);
         }
 
         // sort by elo diff
@@ -53,12 +53,14 @@ class Fastchess : public IOutput {
                   [](const auto& a, const auto& b) { return std::get<1>(a)->diff() > std::get<1>(b)->diff(); });
 
         int rank        = 0;
-        std::string out = fmt::format("{:<4} {:<25} {:>10} {:>10} {:>10} {:>10} {:>10}\n", "Rank", "Name", "Elo", "+/-",
-                                      "nElo", "+/-", "Games");
+        std::string out = fmt::format("{:<4} {:<25} {:>10} {:>10} {:>10} {:>10} {:>10} {:>10} {:>10}\n", "Rank", "Name",
+                                      "Elo", "+/-", "nElo", "+/-", "Games", "Score", "Draw");
 
-        for (const auto& [ec, elo, games] : elos) {
-            out += fmt::format("{:>4} {:<25} {:>10.2f} {:>10.2f} {:>10.2f} {:>10.2f} {:>10}\n", ++rank, ec->name,
-                               elo->diff(), elo->error(), elo->nEloDiff(), elo->nEloError(), games);
+        for (const auto& [ec, elo, stats] : elos) {
+            out +=
+                fmt::format("{:>4} {:<25} {:>10.2f} {:>10.2f} {:>10.2f} {:>10.2f} {:>10} {:>9.1f}% {:>9.1f}%\n", ++rank,
+                            ec->name, elo->diff(), elo->error(), elo->nEloDiff(), elo->nEloError(), stats.sum(),
+                            stats.pointsRatio(), report_penta_ ? stats.drawRatioPenta() : stats.drawRatio());
         }
 
         return out;
@@ -103,16 +105,9 @@ class Fastchess : public IOutput {
         const auto hash     = formatHash(first_engine.uciOptions(), second_engine.uciOptions());
         const auto bookname = getShortName(book);
 
-        const auto games       = stats.wins + stats.losses + stats.draws;
-        const auto points      = stats.wins + 0.5 * stats.draws;
-        const auto pointsRatio = points / games * 100;
-        const auto WLDDRatio   = static_cast<double>(stats.penta_WL) / stats.penta_DD;
-        const auto pairsRatio =
-            static_cast<double>(stats.penta_WW + stats.penta_WD) / (stats.penta_LD + stats.penta_LL);
-
-        auto result =
-            fmt::format("{}\n{}\n{}\n{}", formatMatchup(first, second, tc, threads, hash, bookname), formatElo(elo),
-                        formatGameStats(*elo, stats, pairsRatio), formatGameResults(stats, points, pointsRatio));
+        auto result = fmt::format("{}\n{}\n{}\n{}", formatMatchup(first, second, tc, threads, hash, bookname),
+                                  formatElo(elo), formatGameStats(*elo, stats, stats.pairsRatio()),
+                                  formatGameResults(stats, stats.points(), stats.pointsRatio()));
 
         if (report_penta_) {
             result += fmt::format("\nPtnml(0-2): {}, {}", formatPentaStats(stats), formatwl_dd_Ratio(stats));

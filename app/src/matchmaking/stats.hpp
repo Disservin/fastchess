@@ -68,7 +68,7 @@ class Stats {
 
     [[nodiscard]] double points() const { return wins + 0.5 * draws; }
 
-    [[nodiscard]] double wldDRatio() const { return static_cast<double>(penta_WL) / static_cast<double>(penta_DD); }
+    [[nodiscard]] double wl_dd_Ratio() const { return static_cast<double>(penta_WL) / penta_DD; }
 
     [[nodiscard]] double drawRatio() const { return 100.0 * draws / static_cast<double>(sum()); }
 

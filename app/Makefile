@@ -187,7 +187,7 @@ $(BUILDDIR)/%.o: %.cpp | build_directories
 	$(CXX) $(CXXFLAGS) $(NATIVE) $(INC) $(DEPFLAGS) -c $< -o $@
 
 build_directories:
-	@$(shell mkdir -p $(sort $(dir $(OBJECTS))))
+	@$(shell mkdir -p $(dir $(OBJECTS)))
 
 clean:
 	rm -rf $(BUILDDIR) $(TARGET) $(TARGET)-tests $(TARGET)-tests.exe $(TARGET).exe ../random_mover ./tests/mock/engine/random_mover

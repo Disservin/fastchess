@@ -39,11 +39,9 @@ void TournamentManager::start(int argc, char const* argv[]) {
     util::random::seed(config::TournamentConfig.get().seed);
 
     Logger::trace("Creating tournament...");
-
-    round_robin_ = std::make_unique<RoundRobin>(options.getResults());
+    auto round_robin = RoundRobin(options.getResults());
 
     Logger::trace("Starting tournament...");
-
-    round_robin_->start();
+    round_robin.start();
 }
 }  // namespace fastchess

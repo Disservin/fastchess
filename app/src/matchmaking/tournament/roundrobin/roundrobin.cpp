@@ -53,11 +53,7 @@ void RoundRobin::startNext() {
         return;
     }
 
-    std::apply(
-        [this](auto&&... args) {
-            pool_.enqueue(&RoundRobin::createMatch, this, std::forward<decltype(args)>(args)...);
-        },
-        match.value());
+    pool_.enqueue(&RoundRobin::createMatch, this, match.value());
 }
 
 void RoundRobin::create() {
@@ -71,18 +67,14 @@ void RoundRobin::create() {
     }
 }
 
-void RoundRobin::createMatch(std::size_t i, std::size_t j, std::size_t round_id, int g,
-                             std::optional<std::size_t> opening_id) {
-    assert(g < 2);
-
-    const auto opening        = (*book_)[opening_id];
-    const auto first          = config::EngineConfigs.get()[i];
-    const auto second         = config::EngineConfigs.get()[j];
-    const std::size_t game_id = round_id * config::TournamentConfig.get().games + (g + 1);
+void RoundRobin::createMatch(const MatchGenerator::Pairing& pairing) {
+    const auto opening = (*book_)[pairing.opening_id];
+    const auto first   = config::EngineConfigs.get()[pairing.player1];
+    const auto second  = config::EngineConfigs.get()[pairing.player2];
 
     GamePair<EngineConfiguration, EngineConfiguration> configs = {first, second};
 
-    if (game_id % 2 == 0 && !config::TournamentConfig.get().noswap) {
+    if (pairing.game_id % 2 == 0 && !config::TournamentConfig.get().noswap) {
         std::swap(configs.white, configs.black);
     }
 
@@ -91,11 +83,11 @@ void RoundRobin::createMatch(std::size_t i, std::size_t j, std::size_t round_id,
     }
 
     // callback functions, do not capture by reference
-    const auto start = [this, configs, game_id]() { output_->startGame(configs, game_id, total_); };
+    const auto start = [this, configs, pairing]() { output_->startGame(configs, pairing.game_id, total_); };
 
     // callback functions, do not capture by reference
-    const auto finish = [this, configs, first, second, game_id, round_id](const Stats& stats, const std::string& reason,
-                                                                          const engines& engines) {
+    const auto finish = [this, configs, first, second, pairing](const Stats& stats, const std::string& reason,
+                                                                const engines& engines) {
         const auto& cfg = config::TournamentConfig.get();
 
         // lock to avoid chaotic output, i.e.
@@ -105,10 +97,10 @@ void RoundRobin::createMatch(std::size_t i, std::size_t j, std::size_t round_id,
         // Score of Engine1 vs Engine2: 94 - 92 - 0  [0.505] 186
         std::lock_guard<std::mutex> lock(output_mutex_);
 
-        output_->endGame(configs, stats, reason, game_id);
+        output_->endGame(configs, stats, reason, pairing.game_id);
 
         if (cfg.report_penta) {
-            scoreboard_.updatePair(configs, stats, round_id);
+            scoreboard_.updatePair(configs, stats, pairing.pairing_id);
         } else {
             scoreboard_.updateNonPair(configs, stats);
         }
@@ -119,8 +111,10 @@ void RoundRobin::createMatch(std::size_t i, std::size_t j, std::size_t round_id,
             output_->printResult(updated_stats, first.name, second.name);
         }
 
-        if ((shouldPrintRatingInterval(round_id) && scoreboard_.isPairCompleted(round_id)) || allMatchesPlayed()) {
-            output_->printInterval(sprt_, updated_stats, first.name, second.name, engines, cfg.opening.file);
+        if ((shouldPrintRatingInterval(pairing.pairing_id) && scoreboard_.isPairCompleted(pairing.pairing_id)) ||
+            allMatchesPlayed()) {
+            output_->printInterval(sprt_, updated_stats, first.name, second.name, engines, cfg.opening.file,
+                                   scoreboard_);
         }
 
         updateSprtStatus({first, second}, engines);
@@ -128,7 +122,7 @@ void RoundRobin::createMatch(std::size_t i, std::size_t j, std::size_t round_id,
         match_count_++;
     };
 
-    playGame(configs, start, finish, opening, round_id, game_id);
+    playGame(configs, start, finish, opening, pairing.pairing_id, pairing.game_id);
 
     if (config::TournamentConfig.get().wait > 0)
         std::this_thread::sleep_for(std::chrono::milliseconds(config::TournamentConfig.get().wait));
@@ -147,7 +141,7 @@ void RoundRobin::updateSprtStatus(const std::vector<EngineConfiguration>& engine
 
         output_->printResult(stats, engine_configs[0].name, engine_configs[1].name);
         output_->printInterval(sprt_, stats, engine_configs[0].name, engine_configs[1].name, engines,
-                               config::TournamentConfig.get().opening.file);
+                               config::TournamentConfig.get().opening.file, scoreboard_);
         output_->endTournament();
     }
 }

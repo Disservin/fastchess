@@ -69,12 +69,12 @@ class BaseTournament {
     std::uint64_t initial_matchcount_;
 
    private:
-    std::uint64_t setResults(const stats_map &results) noexcept {
+    std::size_t setResults(const stats_map &results) noexcept {
         Logger::trace("Setting results...");
 
         scoreboard_.setResults(results);
 
-        std::uint64_t total = 0;
+        std::size_t total = 0;
 
         for (const auto &pair1 : scoreboard_.getResults()) {
             const auto &stats = pair1.second;

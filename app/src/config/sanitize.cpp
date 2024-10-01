@@ -110,10 +110,6 @@ void sanitize(std::vector<EngineConfiguration>& configs) {
         throw std::runtime_error("Error: Need at least two engines to start!");
     }
 
-    if (configs.size() > 2) {
-        throw std::runtime_error("Error: Exceeded -engine limit! Must be 2!");
-    }
-
     for (std::size_t i = 0; i < configs.size(); i++) {
 #ifdef _WIN64
         // add .exe if . is not present

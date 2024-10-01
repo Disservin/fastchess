@@ -22,8 +22,9 @@ extern std::atomic_bool stop;
 }  // namespace atomic
 
 BaseTournament::BaseTournament(const stats_map &results) {
-    const auto &config = config::TournamentConfig.get();
-    const auto total   = setResults(results);
+    const auto &config     = config::TournamentConfig.get();
+    const auto total       = setResults(results);
+    const auto num_players = config::EngineConfigs.get().size();
 
     initial_matchcount_ = total;
     match_count_        = total;
@@ -31,7 +32,7 @@ BaseTournament::BaseTournament(const stats_map &results) {
     output_ = OutputFactory::create(config.output, config.report_penta);
     cores_  = std::make_unique<affinity::AffinityManager>(config.affinity, getMaxAffinity(config::EngineConfigs.get()));
     book_   = std::make_unique<book::OpeningBook>(config, initial_matchcount_);
-    generator_ = std::make_unique<MatchGenerator>(book_.get(), initial_matchcount_);
+    generator_ = std::make_unique<MatchGenerator>(book_.get(), num_players, config.rounds, config.games, total);
 
     if (!config.pgn.file.empty()) file_writer_pgn = std::make_unique<util::FileWriter>(config.pgn.file);
     if (!config.epd.file.empty()) file_writer_epd = std::make_unique<util::FileWriter>(config.epd.file);

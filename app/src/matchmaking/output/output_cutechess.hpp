@@ -1,5 +1,12 @@
 #pragma once
 
+#include <algorithm>
+#include <cstdint>
+#include <iostream>
+#include <string>
+#include <tuple>
+#include <vector>
+
 #include <elo/elo_wdl.hpp>
 #include <matchmaking/output/output.hpp>
 #include <util/logger/logger.hpp>
@@ -9,10 +16,10 @@ namespace fastchess {
 class Cutechess : public IOutput {
    public:
     void printInterval(const SPRT& sprt, const Stats& stats, const std::string& first, const std::string& second,
-                       const engines& engines, const std::string& book) override {
-        std::cout                                             //
-            << printElo(stats, first, second, engines, book)  //
-            << printSprt(sprt, stats)                         //
+                       const engines& engines, const std::string& book, ScoreBoard& scoreboard) override {
+        std::cout                                                         //
+            << printElo(stats, first, second, engines, book, scoreboard)  //
+            << printSprt(sprt, stats)                                     //
             << std::flush;
     };
 
@@ -24,12 +31,40 @@ class Cutechess : public IOutput {
                   << std::flush;
     }
 
-    std::string printElo(const Stats& stats, const std::string&, const std::string&, const engines&,
-                         const std::string&) override {
-        const elo::EloWDL elo(stats);
+    std::string printElo(const Stats& stats, const std::string&, const std::string&, const engines&, const std::string&,
+                         ScoreBoard& scoreboard) override {
+        const auto& ecs = config::EngineConfigs.get();
 
-        return fmt::format("Elo difference: {}, LOS: {}, DrawRatio: {:.2f}%\n", elo.getElo(), elo.los(),
-                           stats.drawRatio());
+        if (ecs.size() == 2) {
+            const elo::EloWDL elo(stats);
+
+            return fmt::format("Elo difference: {}, LOS: {}, DrawRatio: {:.2f}%\n", elo.getElo(), elo.los(),
+                               stats.drawRatio());
+        }
+
+        std::vector<std::tuple<const EngineConfiguration*, elo::EloWDL, Stats>> elos;
+
+        for (auto& e : ecs) {
+            const auto stats = scoreboard.getAllStats(e.name);
+            elos.emplace_back(&e, elo::EloWDL(stats), stats);
+        }
+
+        // sort by elo diff
+
+        std::sort(elos.begin(), elos.end(),
+                  [](const auto& a, const auto& b) { return std::get<1>(a).diff() > std::get<1>(b).diff(); });
+
+        int rank        = 0;
+        std::string out = fmt::format("{:<4} {:<25} {:>10} {:>10} {:>10} {:>10} {:>10} {:>10} {:>10}\n", "Rank", "Name",
+                                      "Elo", "+/-", "nElo", "+/-", "Games", "Score", "Draw");
+
+        for (const auto& [ec, elo, stats] : elos) {
+            out += fmt::format("{:>4} {:<25} {:>10.2f} {:>10.2f} {:>10.2f} {:>10.2f} {:>10} {:>9.1f}% {:>9.1f}%\n",
+                               ++rank, ec->name, elo.diff(), elo.error(), elo.nEloDiff(), elo.nEloError(), stats.sum(),
+                               stats.pointsRatio(), stats.drawRatio());
+        }
+
+        return out;
     }
 
     std::string printSprt(const SPRT& sprt, const Stats& stats) override {

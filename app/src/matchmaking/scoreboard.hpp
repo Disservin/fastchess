@@ -79,6 +79,14 @@ class StatsMap {
         return results_.at(PlayerPairKey(players.first, players.second));
     }
 
+    [[nodiscard]] stats_map::iterator begin() { return results_.begin(); }
+    [[nodiscard]] stats_map::iterator end() { return results_.end(); }
+    [[nodiscard]] stats_map::const_iterator begin() const { return results_.begin(); }
+
+    [[nodiscard]] stats_map::const_iterator end() const { return results_.end(); }
+    [[nodiscard]] stats_map::const_iterator cbegin() const { return results_.cbegin(); }
+    [[nodiscard]] stats_map::const_iterator cend() const { return results_.cend(); }
+
     friend class ScoreBoard;
 
    private:
@@ -142,6 +150,22 @@ class ScoreBoard {
         const auto stats2 = results_[{engine2, engine1}];
 
         return stats1 + ~stats2;
+    }
+
+    [[nodiscard]] Stats getAllStats(const std::string& engine) {
+        std::lock_guard<std::mutex> lock(results_mutex_);
+
+        Stats stats;
+
+        for (const auto& [key, value] : results_) {
+            if (key.first == engine) {
+                stats += value;
+            } else if (key.second == engine) {
+                stats += ~value;
+            }
+        }
+
+        return stats;
     }
 
     [[nodiscard]] stats_map getResults() {

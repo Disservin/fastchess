@@ -20,10 +20,12 @@ class Fastchess : public IOutput {
 
     void printInterval(const SPRT& sprt, const Stats& stats, const std::string& first, const std::string& second,
                        const engines& engines, const std::string& book) override {
-        std::cout << "--------------------------------------------------\n"
-                  << printElo(stats, first, second, engines, book) << printSprt(sprt, stats)
-                  << "--------------------------------------------------\n"
-                  << std::flush;
+        std::cout                                                      //
+            << "--------------------------------------------------\n"  //
+            << printElo(stats, first, second, engines, book)           //
+            << printSprt(sprt, stats)                                  //
+            << "--------------------------------------------------\n"  //
+            << std::flush;
     };
 
     void printResult(const Stats&, const std::string&, const std::string&) override {
@@ -47,7 +49,7 @@ class Fastchess : public IOutput {
                                   formatGameResults(stats, stats.points(), stats.pointsRatio()));
 
         if (report_penta_) {
-            result += fmt::format("\n{}", formatPentaStats(stats, stats.wldDRatio()));
+            result += fmt::format("\nPtnml(0-2): {}, {}", formatPentaStats(stats), formatwl_dd_Ratio(stats));
         }
 
         return result + "\n";
@@ -156,9 +158,13 @@ class Fastchess : public IOutput {
                            pointsRatio);
     }
 
-    std::string formatPentaStats(const Stats& stats, double WLDDRatio) const {
-        return fmt::format("Ptnml(0-2): [{}, {}, {}, {}, {}], WL/DD Ratio: {:.2f}", stats.penta_LL, stats.penta_LD,
-                           stats.penta_WL + stats.penta_DD, stats.penta_WD, stats.penta_WW, WLDDRatio);
+    std::string formatPentaStats(const Stats& stats) const {
+        return fmt::format("[{}, {}, {}, {}, {}]", stats.penta_LL, stats.penta_LD, stats.penta_WL + stats.penta_DD,
+                           stats.penta_WD, stats.penta_WW);
+    }
+
+    std::string formatwl_dd_Ratio(const Stats& stats) const {
+        return fmt::format("WL/DD Ratio: {:.2f}", stats.wl_dd_Ratio());
     }
 
     std::string formatTimeControl(const EngineConfiguration first_config,

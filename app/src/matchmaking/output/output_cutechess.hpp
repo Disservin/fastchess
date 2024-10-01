@@ -10,7 +10,10 @@ class Cutechess : public IOutput {
    public:
     void printInterval(const SPRT& sprt, const Stats& stats, const std::string& first, const std::string& second,
                        const engines& engines, const std::string& book) override {
-        std::cout << printElo(stats, first, second, engines, book) << printSprt(sprt, stats) << std::flush;
+        std::cout                                             //
+            << printElo(stats, first, second, engines, book)  //
+            << printSprt(sprt, stats)                         //
+            << std::flush;
     };
 
     void printResult(const Stats& stats, const std::string& first, const std::string& second) override {

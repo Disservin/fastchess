@@ -16,15 +16,16 @@ namespace fastchess {
 class MatchGenerator {
    public:
     struct Pairing {
-        int round_id;
-        int pairing_id;
-        int game_id;
+        std::size_t round_id;
+        std::size_t pairing_id;
+        std::size_t game_id;
         std::optional<std::size_t> opening_id;
-        int player1;
-        int player2;
+        std::size_t player1;
+        std::size_t player2;
     };
 
-    MatchGenerator(book::OpeningBook* opening_book, int players, int rounds, int games, int played_games)
+    MatchGenerator(book::OpeningBook* opening_book, std::size_t players, std::size_t rounds, std::size_t games,
+                   std::size_t played_games)
         : opening_book_(opening_book),
           n_players(players),
           n_rounds(rounds),
@@ -93,15 +94,15 @@ class MatchGenerator {
    private:
     book::OpeningBook* opening_book_;
     std::optional<std::size_t> opening;
-    int n_players;
-    int n_rounds;
-    int n_games_per_round;
-    int current_round;
-    int game_counter;
-    int player1;
-    int player2;
-    int games_per_pair;
-    int pair_counter;
+    std::size_t n_players;
+    std::size_t n_rounds;
+    std::size_t n_games_per_round;
+    std::size_t current_round;
+    std::size_t game_counter;
+    std::size_t player1;
+    std::size_t player2;
+    std::size_t games_per_pair;
+    std::size_t pair_counter;
 };
 
 }  // namespace fastchess

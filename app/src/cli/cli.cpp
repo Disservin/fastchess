@@ -435,6 +435,11 @@ void parseConfig(const std::vector<std::string> &params, ArgumentData &argument_
         }
     });
 
+    if (argument_data.configs.size() > 2) {
+        std::cerr << "Warning: Stats will be dropped for more than 2 engines." << std::endl;
+        argument_data.stats.clear();
+    }
+
     if (drop_stats) {
         argument_data.stats.clear();
     }

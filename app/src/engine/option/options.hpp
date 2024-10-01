@@ -33,6 +33,8 @@ class UCIOptions {
         return std::nullopt;
     }
 
+    const std::vector<std::unique_ptr<UCIOption>>& getOptions() { return options; }
+
    private:
     std::vector<std::unique_ptr<UCIOption>> options;
 };

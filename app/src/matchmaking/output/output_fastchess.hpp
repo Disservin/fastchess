@@ -53,14 +53,15 @@ class Fastchess : public IOutput {
                   [](const auto& a, const auto& b) { return std::get<1>(a)->diff() > std::get<1>(b)->diff(); });
 
         int rank        = 0;
-        std::string out = fmt::format("{:<4} {:<25} {:>10} {:>10} {:>10} {:>10} {:>10} {:>10} {:>10}\n", "Rank", "Name",
-                                      "Elo", "+/-", "nElo", "+/-", "Games", "Score", "Draw");
+        std::string out = fmt::format("{:<4} {:<25} {:>10} {:>10} {:>10} {:>10} {:>10} {:>10} {:>10} {:>20}\n", "Rank",
+                                      "Name", "Elo", "+/-", "nElo", "+/-", "Games", "Score", "Draw", "Ptnml(0-2)");
 
         for (const auto& [ec, elo, stats] : elos) {
             out +=
-                fmt::format("{:>4} {:<25} {:>10.2f} {:>10.2f} {:>10.2f} {:>10.2f} {:>10} {:>9.1f}% {:>9.1f}%\n", ++rank,
-                            ec->name, elo->diff(), elo->error(), elo->nEloDiff(), elo->nEloError(), stats.sum(),
-                            stats.pointsRatio(), report_penta_ ? stats.drawRatioPenta() : stats.drawRatio());
+                fmt::format("{:>4} {:<25} {:>10.2f} {:>10.2f} {:>10.2f} {:>10.2f} {:>10} {:>9.1f}% {:>9.1f}% {:>20}\n",
+                            ++rank, ec->name, elo->diff(), elo->error(), elo->nEloDiff(), elo->nEloError(), stats.sum(),
+                            stats.pointsRatio(), report_penta_ ? stats.drawRatioPenta() : stats.drawRatio(),
+                            report_penta_ ? formatPentaStats(stats) : "");
         }
 
         return out;
@@ -197,7 +198,11 @@ class Fastchess : public IOutput {
                            stats.penta_WD, stats.penta_WW);
     }
 
+<<<<<<< HEAD
     std::string formatwl_dd_Ratio(const Stats& stats) const {
+=======
+    std::string formatWLDDRatio(const Stats& stats) const {
+>>>>>>> fad582c (add penta stats)
         return fmt::format("WL/DD Ratio: {:.2f}", stats.wl_dd_Ratio());
     }
 

@@ -25,11 +25,39 @@ class Cutechess : public IOutput {
     }
 
     std::string printElo(const Stats& stats, const std::string&, const std::string&, const engines&, const std::string&,
-                         ScoreBoard&) override {
-        const elo::EloWDL elo(stats);
+                         ScoreBoard& scoreboard) override {
+        const auto& ecs = config::EngineConfigs.get();
 
-        return fmt::format("Elo difference: {}, LOS: {}, DrawRatio: {:.2f}%\n", elo.getElo(), elo.los(),
-                           stats.drawRatio());
+        if (ecs.size() == 2) {
+            const elo::EloWDL elo(stats);
+
+            return fmt::format("Elo difference: {}, LOS: {}, DrawRatio: {:.2f}%\n", elo.getElo(), elo.los(),
+                               stats.drawRatio());
+        }
+
+        std::vector<std::tuple<const EngineConfiguration*, std::unique_ptr<elo::EloBase>, Stats>> elos;
+
+        for (auto& e : ecs) {
+            const auto stats = scoreboard.getAllStats(e.name);
+            elos.emplace_back(&e, elo::EloWDL(stats), stats);
+        }
+
+        // sort by elo diff
+
+        std::sort(elos.begin(), elos.end(),
+                  [](const auto& a, const auto& b) { return std::get<1>(a)->diff() > std::get<1>(b)->diff(); });
+
+        int rank        = 0;
+        std::string out = fmt::format("{:<4} {:<25} {:>10} {:>10} {:>10} {:>10} {:>10} {:>10} {:>10}\n", "Rank", "Name",
+                                      "Elo", "+/-", "nElo", "+/-", "Games", "Score", "Draw");
+
+        for (const auto& [ec, elo, stats] : elos) {
+            out += fmt::format("{:>4} {:<25} {:>10.2f} {:>10.2f} {:>10.2f} {:>10.2f} {:>10} {:>9.1f}% {:>9.1f}%\n",
+                               ++rank, ec->name, elo->diff(), elo->error(), elo->nEloDiff(), elo->nEloError(),
+                               stats.sum(), stats.pointsRatio(), stats.drawRatio());
+        }
+
+        return out;
     }
 
     std::string printSprt(const SPRT& sprt, const Stats& stats) override {

@@ -42,7 +42,7 @@ do
 
 (
 
-$binary         -recover -repeat -games 2 -rounds 100 -tournament gauntlet\
+$binary         -recover -repeat -games 2 -rounds 100 -tournament roundrobin\
                 -pgnout $binary-out.pgn\
                 -srand $RANDOM  -resign movecount=3 score=600 -draw movenumber=34 movecount=8 score=20\
                 -variant standard -concurrency 4 -openings file=UHO_4060_v2.epd format=epd order=sequential \

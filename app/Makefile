@@ -164,11 +164,6 @@ endif
 OBJECTS   := $(patsubst %.cpp,$(BUILDDIR)/%.o,$(SRC_FILES))
 DEPENDS   := $(patsubst %.cpp,$(BUILDDIR)/%.d,$(SRC_FILES))
 
-OBJ_PATHS := $(dir $(OBJECTS))
-ifeq ($(OS), Windows_NT)
-    OBJ_PATHS := $(subst /,\,$(dir $(OBJECTS)))
-endif
-
 .PHONY: clean all tests FORCE
 
 all: $(TARGET)
@@ -192,7 +187,7 @@ $(BUILDDIR)/%.o: %.cpp | build_directories
 	$(CXX) $(CXXFLAGS) $(NATIVE) $(INC) $(DEPFLAGS) -c $< -o $@
 
 build_directories:
-	@$(shell mkdir -p $(sort $(OBJ_PATHS)))
+	@$(shell mkdir -p $(sort $(dir $(OBJECTS))))
 
 clean:
 	rm -rf $(BUILDDIR) $(TARGET) $(TARGET)-tests $(TARGET)-tests.exe $(TARGET).exe ../random_mover ./tests/mock/engine/random_mover

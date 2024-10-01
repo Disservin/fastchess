@@ -4,8 +4,6 @@
 
 #include <engine/uci_engine.hpp>
 
-void print(const std::string &msg) { std::cout << msg << std::endl; }
-
 namespace fastchess::engine {
 
 /**
@@ -25,6 +23,12 @@ namespace fastchess::engine {
  *
  */
 bool compliant(const std::string &path) {
+    int step         = 0;
+    const auto print = [&step](const std::string &msg) {
+        step++;
+        std::cout << "Step " << step << ": " << msg << std::endl;
+    };
+
     EngineConfiguration config;
 
     config.cmd = path;
@@ -38,91 +42,77 @@ bool compliant(const std::string &path) {
 
     UciEngine uci_engine = UciEngine(config, false);
 
-    print("Step 1: uci");
+    print("Engine responds to initial uci with uciok");
 
     if (!uci_engine.start()) {
         std::cerr << "Engine did not start." << std::endl;
         return false;
     }
 
-    print("Step 2: uciok");
-
-    if (!uci_engine.uci()) {
-        std::cerr << "Writing uci command failed." << std::endl;
-        return false;
-    }
-
-    print("Step 3: isready");
-
-    if (!uci_engine.uciok()) {
-        std::cerr << "Engine did not respond with uciok." << std::endl;
-        return false;
-    }
-
-    print("Step 4: isready");
+    print("isready");
 
     if (uci_engine.isready() != process::Status::OK) {
         std::cerr << "Engine did not respond with readyok." << std::endl;
         return false;
     }
 
-    print("Step 5: ucinewgame");
+    print("ucinewgame");
 
     if (!uci_engine.ucinewgame()) {
         std::cerr << "isready after ucinewgame failed." << std::endl;
         return false;
     }
 
-    print("Step 6: position startpos");
+    print("position startpos");
 
     if (!uci_engine.writeEngine("position startpos")) {
         std::cerr << "Writing position startpos failed." << std::endl;
         return false;
     }
 
-    print("Step 7: isready");
+    print("isready");
 
     if (uci_engine.isready() != process::Status::OK) {
         std::cerr << "Engine did not respond with readyok after position startpos." << std::endl;
         return false;
     }
 
-    print("Step 8: position fen");
+    print("position fen");
 
     if (!uci_engine.writeEngine("position fen 3r2k1/p5n1/1pq1p2p/2p3p1/2P1P1n1/1P1P2pP/PN1Q2K1/5R2 w - - 0 27")) {
         std::cerr << "Writing position fen failed." << std::endl;
         return false;
     }
 
-    print("Step 9: isready");
+    print("isready");
 
     if (uci_engine.isready() != process::Status::OK) {
         std::cerr << "Engine did not respond with readyok after position fen." << std::endl;
         return false;
     }
 
-    print("Step 10: go wtime 100");
+    print("go wtime 100");
 
     if (!uci_engine.writeEngine("go wtime 100")) {
         std::cerr << "Writing go wtime 100 failed." << std::endl;
         return false;
     }
 
-    print("Step 11: bestmove");
+    print("bestmove");
 
     if (uci_engine.readEngine("bestmove") != process::Status::OK) {
         std::cerr << "Engine did not respond with bestmove after go wtime 100." << std::endl;
         return false;
     }
 
-    print("Step 12: info");
+    print("info");
 
     if (uci_engine.lastInfoLine().empty()) {
         std::cerr << "Engine did not print an info line before bestmove." << std::endl;
         return false;
     }
 
-    print("Step 13: go btime 100");
+    print("go btime 100");
 
     if (!str_utils::contains(uci_engine.lastInfoLine(), "score")) {
         std::cout << uci_engine.lastInfoLine() << std::endl;
@@ -130,28 +120,28 @@ bool compliant(const std::string &path) {
         return false;
     }
 
-    print("Step 14: bestmove");
+    print("bestmove");
 
     if (!uci_engine.writeEngine("go btime 100")) {
         std::cerr << "Writing go btime 100 failed." << std::endl;
         return false;
     }
 
-    print("Step 15: bestmove");
+    print("bestmove");
 
     if (uci_engine.readEngine("bestmove") != process::Status::OK) {
         std::cerr << "Engine did not respond with bestmove after go btime 100." << std::endl;
         return false;
     }
 
-    print("Step 16: info");
+    print("info");
 
     if (uci_engine.lastInfoLine().empty()) {
         std::cerr << "Engine did not print an info line before bestmove." << std::endl;
         return false;
     }
 
-    print("Step 17: go wtime 100 winc 100 btime 100 binc 100");
+    print("go wtime 100 winc 100 btime 100 binc 100");
 
     if (!str_utils::contains(uci_engine.lastInfoLine(), "score")) {
         std::cout << uci_engine.lastInfoLine() << std::endl;
@@ -159,14 +149,14 @@ bool compliant(const std::string &path) {
         return false;
     }
 
-    print("Step 18: bestmove");
+    print("bestmove");
 
     if (!uci_engine.writeEngine("go wtime 100 winc 100 btime 100 binc 100")) {
         std::cerr << "Writing go wtime 100 winc 100 btime 100 binc 100 failed." << std::endl;
         return false;
     }
 
-    print("Step 19: bestmove");
+    print("bestmove");
 
     if (uci_engine.readEngine("bestmove") != process::Status::OK) {
         std::cerr << "Engine did not respond with bestmove after go wtime 100 winc 100 btime 100 binc 100."
@@ -174,14 +164,14 @@ bool compliant(const std::string &path) {
         return false;
     }
 
-    print("Step 20: info");
+    print("info");
 
     if (uci_engine.lastInfoLine().empty()) {
         std::cerr << "Engine did not print an info line before bestmove." << std::endl;
         return false;
     }
 
-    print("Step 21: go btime 100 binc 100 wtime 100 winc 100");
+    print("go btime 100 binc 100 wtime 100 winc 100");
 
     if (!str_utils::contains(uci_engine.lastInfoLine(), "score")) {
         std::cout << uci_engine.lastInfoLine() << std::endl;
@@ -189,14 +179,14 @@ bool compliant(const std::string &path) {
         return false;
     }
 
-    print("Step 22: bestmove");
+    print("bestmove");
 
     if (!uci_engine.writeEngine("go btime 100 binc 100 wtime 100 winc 100")) {
         std::cerr << "Writing go btime 100 binc 100 wtime 100 winc 100 failed." << std::endl;
         return false;
     }
 
-    print("Step 23: bestmove");
+    print("bestmove");
 
     if (uci_engine.readEngine("bestmove") != process::Status::OK) {
         std::cerr << "Engine did not respond with bestmove after go btime 100 binc 100 wtime 100 winc 100."
@@ -204,14 +194,14 @@ bool compliant(const std::string &path) {
         return false;
     }
 
-    print("Step 24: info");
+    print("info");
 
     if (uci_engine.lastInfoLine().empty()) {
         std::cerr << "Engine did not print an info line before bestmove." << std::endl;
         return false;
     }
 
-    print("Step 25: go infinite");
+    print("go infinite");
 
     if (!str_utils::contains(uci_engine.lastInfoLine(), "score")) {
         std::cout << uci_engine.lastInfoLine() << std::endl;

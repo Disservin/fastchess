@@ -38,6 +38,9 @@ void RoundRobin::start() {
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }
 
+    Logger::trace("Instructing engines to stop...");
+    writeToOpenPipes();
+
     pool_.kill();
 }
 

@@ -31,11 +31,11 @@ class MatchGenerator {
           n_rounds(rounds),
           n_games_per_round(games),
           current_round(1),
-          game_counter(0),
+          game_counter(played_games),
           player1(0),
           player2(1),
           games_per_pair(0),
-          pair_counter(0) {
+          pair_counter(played_games / games) {
         current_round = (played_games / games) + 1;
 
         if (n_players < 2 || n_rounds < 1 || n_games_per_round < 1) {

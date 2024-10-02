@@ -34,10 +34,17 @@ BaseTournament::BaseTournament(const stats_map &results) {
     book_   = std::make_unique<book::OpeningBook>(config, initial_matchcount_);
     generator_ = std::make_unique<MatchGenerator>(book_.get(), num_players, config.rounds, config.games, total);
 
-    if (!config.pgn.file.empty()) file_writer_pgn = std::make_unique<util::FileWriter>(config.pgn.file);
-    if (!config.epd.file.empty()) file_writer_epd = std::make_unique<util::FileWriter>(config.epd.file);
+    if (!config.pgn.file.empty()) file_writer_pgn_ = std::make_unique<util::FileWriter>(config.pgn.file);
+    if (!config.epd.file.empty()) file_writer_epd_ = std::make_unique<util::FileWriter>(config.epd.file);
 
     pool_.resize(config.concurrency);
+}
+
+BaseTournament::~BaseTournament() {
+    Logger::trace("~BaseTournament()");
+    saveJson();
+    Logger::trace("Instructing engines to stop...");
+    writeToOpenPipes();
 }
 
 void BaseTournament::start() {
@@ -115,11 +122,11 @@ void BaseTournament::playGame(const GamePair<EngineConfiguration, EngineConfigur
     // If the game was interrupted(didn't completely finish)
     if (match_data.termination != MatchTermination::INTERRUPT && !atomic::stop) {
         if (!config.pgn.file.empty()) {
-            file_writer_pgn->write(pgn::PgnBuilder(config.pgn, match_data, round_id + 1).get());
+            file_writer_pgn_->write(pgn::PgnBuilder(config.pgn, match_data, round_id + 1).get());
         }
 
         if (!config.epd.file.empty()) {
-            file_writer_epd->write(epd::EpdBuilder(config.variant, match_data).get());
+            file_writer_epd_->write(epd::EpdBuilder(config.variant, match_data).get());
         }
 
         const auto result = pgn::PgnBuilder::getResultFromMatch(match_data.players.white, match_data.players.black);
@@ -151,6 +158,22 @@ int BaseTournament::getMaxAffinity(const std::vector<EngineConfiguration> &confi
     }
 
     return first_threads;
+}
+
+std::size_t BaseTournament::setResults(const stats_map &results) {
+    Logger::trace("Setting results...");
+
+    scoreboard_.setResults(results);
+
+    std::size_t total = 0;
+
+    for (const auto &pair1 : scoreboard_.getResults()) {
+        const auto &stats = pair1.second;
+
+        total += stats.wins + stats.losses + stats.draws;
+    }
+
+    return total;
 }
 
 }  // namespace fastchess

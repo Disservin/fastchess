@@ -10,11 +10,7 @@ namespace fastchess {
 class TournamentManager {
    public:
     TournamentManager();
-
-    ~TournamentManager() {
-        atomic::stop = true;
-        Logger::trace("~TournamentManager()");
-    }
+    ~TournamentManager();
 
     void start(int argc, char const* argv[]);
 };

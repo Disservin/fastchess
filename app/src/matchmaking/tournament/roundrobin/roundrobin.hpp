@@ -24,7 +24,7 @@ class RoundRobin : public BaseTournament {
    public:
     explicit RoundRobin(const stats_map& results);
 
-    ~RoundRobin() { Logger::trace("~RoundRobin()"); }
+    ~RoundRobin();
 
     // starts the round robin
     void start() override;
@@ -36,23 +36,10 @@ class RoundRobin : public BaseTournament {
     void create() override;
 
    private:
-    bool shouldPrintRatingInterval(std::size_t round_id) const noexcept {
-        const auto& cfg = config::TournamentConfig.get();
-
-        // round_id and match_count_ starts 0 so we add 1
-        const auto ratinginterval_index = cfg.report_penta ? round_id + 1 : match_count_ + 1;
-
-        return ratinginterval_index % cfg.ratinginterval == 0;
-    }
+    bool shouldPrintRatingInterval(std::size_t round_id) const noexcept;
 
     // print score result based on scoreinterval if output format is cutechess
-    bool shouldPrintScoreInterval() const noexcept {
-        const auto& cfg = config::TournamentConfig.get();
-
-        const auto scoreinterval_index = match_count_ + 1;
-
-        return scoreinterval_index % cfg.scoreinterval == 0;
-    }
+    bool shouldPrintScoreInterval() const noexcept;
 
     bool allMatchesPlayed() const noexcept { return match_count_ + 1 == total_; }
 

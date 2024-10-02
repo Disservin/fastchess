@@ -11,6 +11,7 @@ namespace fastchess {
 
 SPRT::SPRT(double alpha, double beta, double elo0, double elo1, std::string model, bool enabled) {
     enabled_ = enabled;
+
     if (enabled_) {
         lower_ = std::log(beta / (1 - alpha));
         upper_ = std::log((1 - beta) / alpha);
@@ -161,14 +162,15 @@ SPRTResult SPRT::getResult(double llr) const noexcept {
         return SPRT_H0;
     else if (llr <= lower_)
         return SPRT_H1;
-    else
-        return SPRT_CONTINUE;
+    return SPRT_CONTINUE;
 }
 
 std::string SPRT::getBounds() const noexcept {
     std::stringstream ss;
+
     ss << "(" << std::fixed << std::setprecision(2) << lower_ << ", " << std::fixed << std::setprecision(2) << upper_
        << ")";
+
     return ss.str();
 }
 

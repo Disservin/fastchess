@@ -18,11 +18,9 @@ class EloWDL : public EloBase {
    private:
     [[nodiscard]] static double scoreToNeloDiff(double score, double variance) noexcept;
 
-    [[nodiscard]] double calcScore(const Stats& stats) noexcept;
+    [[nodiscard]] double calcScore(const Stats& stats) const noexcept;
 
-    [[nodiscard]] double calcVariance(const Stats& stats) noexcept;
-
-    [[nodiscard]] static std::size_t total(const Stats& stats) noexcept;
+    [[nodiscard]] double calcVariance(const Stats& stats) const noexcept;
 };
 
 }  // namespace fastchess::elo

@@ -103,10 +103,10 @@ void RoundRobin::createMatch(const MatchGenerator::Pairing& pairing) {
         // Score of Engine1 vs Engine2: 94 - 92 - 0  [0.505] 186
         std::lock_guard<std::mutex> lock(output_mutex_);
 
-        output_->endGame(configs, stats, reason, current_game_id);
+        output_->endGame(configs, stats, reason, pairing.game_id + initial_matchcount_);
 
         if (cfg.report_penta) {
-            scoreboard_.updatePair(configs, stats, current_pairing_id);
+            scoreboard_.updatePair(configs, stats, pairing.game_id + initial_matchcount_);
         } else {
             scoreboard_.updateNonPair(configs, stats);
         }
@@ -117,7 +117,7 @@ void RoundRobin::createMatch(const MatchGenerator::Pairing& pairing) {
             output_->printResult(updated_stats, first.name, second.name);
         }
 
-        if ((shouldPrintRatingInterval(pairing.pairing_id) && scoreboard_.isPairCompleted(current_pairing_id)) ||
+        if ((shouldPrintRatingInterval(pairing.pairing_id + initial_matchcount_ / config::TournamentConfig.get().games) && scoreboard_.isPairCompleted(pairing.pairing_id + initial_matchcount_ / config::TournamentConfig.get().games)) ||
             allMatchesPlayed()) {
             output_->printInterval(sprt_, updated_stats, first.name, second.name, engines, cfg.opening.file,
                                    scoreboard_);
@@ -128,7 +128,7 @@ void RoundRobin::createMatch(const MatchGenerator::Pairing& pairing) {
         match_count_++;
     };
 
-    playGame(configs, start, finish, opening, current_pairing_id, current_game_id);
+    playGame(configs, start, finish, opening, pairing.pairing_id + initial_matchcount_ / config::TournamentConfig.get().games, pairing.game_id + initial_matchcount_);
 
     if (config::TournamentConfig.get().wait > 0)
         std::this_thread::sleep_for(std::chrono::milliseconds(config::TournamentConfig.get().wait));

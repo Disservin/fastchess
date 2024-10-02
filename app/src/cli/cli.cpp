@@ -542,8 +542,9 @@ void parseVariant(const std::vector<std::string> &params, ArgumentData &argument
 
 void parseTournament(const std::vector<std::string> &params, ArgumentData &) {
     std::string val;
-    // Do nothing
+  
     parseValue(params, val);
+    if (val != "roundrobin") throw std::runtime_error("Unsupported tournament format. Only supports roundrobin.");
 }
 
 void parseQuick(const std::vector<std::string> &params, ArgumentData &argument_data) {

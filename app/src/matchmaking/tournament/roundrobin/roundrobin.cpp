@@ -106,7 +106,7 @@ void RoundRobin::createMatch(const MatchGenerator::Pairing& pairing) {
         output_->endGame(configs, stats, reason, pairing.game_id + initial_matchcount_);
 
         if (cfg.report_penta) {
-            scoreboard_.updatePair(configs, stats, pairing.game_id + initial_matchcount_);
+            scoreboard_.updatePair(configs, stats, pairing.pairing_id + initial_matchcount_ / config::TournamentConfig.get().games);
         } else {
             scoreboard_.updateNonPair(configs, stats);
         }

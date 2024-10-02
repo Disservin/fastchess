@@ -89,7 +89,7 @@ void RoundRobin::createMatch(const MatchGenerator::Pairing& pairing) {
     }
 
     // callback functions, do not capture by reference
-    const auto start = [this, configs, pairing]() { output_->startGame(configs, current_game_id, total_); };
+    const auto start = [this, configs, pairing]() { output_->startGame(configs, pairing.game_id + initial_matchcount_, total_); };
 
     // callback functions, do not capture by reference
     const auto finish = [this, configs, first, second, pairing](const Stats& stats, const std::string& reason,

@@ -77,7 +77,7 @@ void RoundRobin::createMatch(const MatchGenerator::Pairing& pairing) {
 
     GamePair<EngineConfiguration, EngineConfiguration> configs = {first, second};
 
-    uint64_t current_pair_id = pairing.pair_id + initial_matchount_ / config::TournamentConfig.get().games;
+    uint64_t current_pairing_id = pairing.pairing_id + initial_matchcount_ / config::TournamentConfig.get().games;
     uint64_t current_game_id = pairing.game_id + initial_matchcount_;
 
     if (current_game_id % 2 == 0 && !config::TournamentConfig.get().noswap) {

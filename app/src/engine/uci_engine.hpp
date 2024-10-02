@@ -22,12 +22,7 @@ enum class ScoreType { CP, MATE, ERR };
 
 class UciEngine : protected process::Process {
    public:
-    explicit UciEngine(const EngineConfiguration &config, bool realtime_logging) {
-        loadConfig(config);
-        output_.reserve(100);
-
-        setRealtimeLogging(realtime_logging);
-    }
+    explicit UciEngine(const EngineConfiguration &config, bool realtime_logging);
 
     UciEngine(const UciEngine &)            = delete;
     UciEngine(UciEngine &&)                 = delete;
@@ -94,18 +89,6 @@ class UciEngine : protected process::Process {
 
     [[nodiscard]] const std::vector<process::Line> &output() const noexcept { return output_; }
     [[nodiscard]] const EngineConfiguration &getConfig() const noexcept { return config_; }
-
-    [[nodiscard]] static std::string getPath(const EngineConfiguration &config) {
-        std::string path = (config.dir == "." ? "" : config.dir) + config.cmd;
-
-#ifndef NO_STD_FILESYSTEM
-        // convert path to a filesystem path
-        auto p = std::filesystem::path(config.dir) / std::filesystem::path(config.cmd);
-        path   = p.string();
-#endif
-
-        return path;
-    }
 
     // @TODO: expose this to the user?
     static constexpr std::chrono::milliseconds startup_time_    = std::chrono::seconds(10);

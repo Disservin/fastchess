@@ -71,7 +71,7 @@ class Cutechess : public IOutput {
         if (sprt.isEnabled()) {
             double lowerBound = sprt.getLowerBound();
             double upperBound = sprt.getUpperBound();
-            double llr        = sprt.getLLR(stats.wins, stats.draws, stats.losses);
+            double llr        = sprt.getLLR(stats, false);
             double percentage = llr < 0 ? llr / lowerBound * 100 : llr / upperBound * 100;
 
             std::string result;

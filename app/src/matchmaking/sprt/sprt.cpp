@@ -30,6 +30,7 @@ double SPRT::bayeseloToScore(double bayeselo, double drawelo) noexcept {
     double pwin  = 1.0 / (1.0 + std::pow(10.0, (-bayeselo + drawelo) / 400.0));
     double ploss = 1.0 / (1.0 + std::pow(10.0, (bayeselo + drawelo) / 400.0));
     double pdraw = 1.0 - pwin - ploss;
+
     return pwin + 0.5 * pdraw;
 }
 
@@ -53,12 +54,16 @@ double SPRT::getLLR(int win, int draw, int loss) const noexcept {
 
     const bool regularize = ((win == 0) + (draw == 0) + (loss == 0)) >= 2;
     const double games    = win + draw + loss + 1.5 * regularize;
+
     if (games == 0) return 0.0;
+
     const double W = (win + 0.5 * regularize) / games;
     const double D = (draw + 0.5 * regularize) / games;
     const double L = (loss + 0.5 * regularize) / games;
+
     double score0;
     double score1;
+
     if (model_ == "normalized") {
         const double score    = W + 0.5 * D;
         const double W_dev    = W * std::pow((1 - score), 2);
@@ -77,6 +82,7 @@ double SPRT::getLLR(int win, int draw, int loss) const noexcept {
         score0 = leloToScore(elo0_);
         score1 = leloToScore(elo1_);
     }
+
     const double W_dev0    = W * std::pow((1 - score0), 2);
     const double D_dev0    = D * std::pow((0.5 - score0), 2);
     const double L_dev0    = L * std::pow((0 - score0), 2);
@@ -85,7 +91,9 @@ double SPRT::getLLR(int win, int draw, int loss) const noexcept {
     const double D_dev1    = D * std::pow((0.5 - score1), 2);
     const double L_dev1    = L * std::pow((0 - score1), 2);
     const double variance1 = W_dev1 + D_dev1 + L_dev1;
+
     if (variance0 == 0 || variance1 == 0) return 0.0;
+
     // For more information: http://hardy.uhasselt.be/Fishtest/support_MLE_multinomial.pdf
     return 0.5 * games * std::log(variance0 / variance1);
 }
@@ -96,15 +104,19 @@ double SPRT::getLLR(int penta_WW, int penta_WD, int penta_WL, int penta_DD, int 
     const bool regularize =
         ((penta_WW == 0) + (penta_WD == 0) + ((penta_WL + penta_DD) == 0) + (penta_LD == 0) + (penta_LL == 0)) >= 4;
     const double pairs = penta_WW + penta_WD + penta_WL + penta_DD + penta_LD + penta_LL + 2.5 * regularize;
+
     if (pairs == 0) return 0.0;
+
     const double WW = (penta_WW + 0.5 * regularize) / pairs;
     const double WD = (penta_WD + 0.5 * regularize) / pairs;
     const double WL = (penta_WL + 0.25 * regularize) / pairs;
     const double DD = (penta_DD + 0.25 * regularize) / pairs;
     const double LD = (penta_LD + 0.5 * regularize) / pairs;
     const double LL = (penta_LL + 0.5 * regularize) / pairs;
+
     double score0;
     double score1;
+
     if (model_ == "normalized") {
         const double score    = WW + 0.75 * WD + 0.5 * (WL + DD) + 0.25 * LD;
         const double WW_dev   = WW * std::pow((1 - score), 2);
@@ -113,13 +125,16 @@ double SPRT::getLLR(int penta_WW, int penta_WD, int penta_WL, int penta_DD, int 
         const double LD_dev   = LD * std::pow((0.25 - score), 2);
         const double LL_dev   = LL * std::pow((0 - score), 2);
         const double variance = WW_dev + WD_dev + WLDD_dev + LD_dev + LL_dev;
+
         if (variance == 0) return 0.0;
+
         score0 = neloToScorePenta(elo0_, variance);
         score1 = neloToScorePenta(elo1_, variance);
     } else {
         score0 = leloToScore(elo0_);
         score1 = leloToScore(elo1_);
     }
+
     const double WW_dev0   = WW * std::pow((1 - score0), 2);
     const double WD_dev0   = WD * std::pow((0.75 - score0), 2);
     const double WLDD_dev0 = (WL + DD) * std::pow((0.5 - score0), 2);
@@ -132,7 +147,9 @@ double SPRT::getLLR(int penta_WW, int penta_WD, int penta_WL, int penta_DD, int 
     const double LD_dev1   = LD * std::pow((0.25 - score1), 2);
     const double LL_dev1   = LL * std::pow((0 - score1), 2);
     const double variance1 = WW_dev1 + WD_dev1 + WLDD_dev1 + LD_dev1 + LL_dev1;
+
     if (variance0 == 0 || variance1 == 0) return 0.0;
+
     // For more information: http://hardy.uhasselt.be/Fishtest/support_MLE_multinomial.pdf
     return 0.5 * pairs * std::log(variance0 / variance1);
 }
@@ -157,6 +174,7 @@ std::string SPRT::getBounds() const noexcept {
 
 std::string SPRT::getElo() const noexcept {
     std::stringstream ss;
+
     ss << "[" << std::fixed << std::setprecision(2) << elo0_ << ", " << std::fixed << std::setprecision(2) << elo1_
        << "]";
 

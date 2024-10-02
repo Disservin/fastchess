@@ -16,22 +16,26 @@ class SPRT {
 
     [[nodiscard]] bool isEnabled() const noexcept;
 
+    [[nodiscard]] double getLLR(const Stats& stats, bool penta) const noexcept;
+
+    [[nodiscard]] SPRTResult getResult(double llr) const noexcept;
+
+    [[nodiscard]] std::string getBounds() const noexcept;
+    [[nodiscard]] std::string getElo() const noexcept;
+
+    [[nodiscard]] double getLowerBound() const noexcept;
+    [[nodiscard]] double getUpperBound() const noexcept;
+
     [[nodiscard]] static double leloToScore(double lelo) noexcept;
     [[nodiscard]] static double bayeseloToScore(double bayeselo, double drawelo) noexcept;
     [[nodiscard]] static double neloToScoreWDL(double nelo, double stdDeviation) noexcept;
     [[nodiscard]] static double neloToScorePenta(double nelo, double stdDeviation) noexcept;
-    [[nodiscard]] double getLLR(const Stats& stats, bool penta) const noexcept;
+
+   private:
     [[nodiscard]] double getLLR(int win, int draw, int loss) const noexcept;
     [[nodiscard]] double getLLR(int penta_WW, int penta_WD, int penta_WL, int penta_DD, int penta_LD,
                                 int penta_LL) const noexcept;
 
-    [[nodiscard]] SPRTResult getResult(double llr) const noexcept;
-    [[nodiscard]] std::string getBounds() const noexcept;
-    [[nodiscard]] std::string getElo() const noexcept;
-    [[nodiscard]] double getLowerBound() const noexcept;
-    [[nodiscard]] double getUpperBound() const noexcept;
-
-   private:
     double lower_ = 0.0;
     double upper_ = 0.0;
 

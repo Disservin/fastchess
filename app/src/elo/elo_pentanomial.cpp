@@ -7,7 +7,7 @@
 namespace fastchess::elo {
 
 EloPentanomial::EloPentanomial(const Stats& stats) {
-    pairs_             = stats.pairsRatio();
+    pairs_             = stats.totalPairs();
     score_             = calcScore(stats);
     variance_          = calcVariance(stats);
     variance_per_pair_ = variance_ / pairs_;

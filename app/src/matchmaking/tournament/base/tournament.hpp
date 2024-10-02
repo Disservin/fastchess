@@ -19,15 +19,11 @@
 namespace fastchess {
 
 class BaseTournament {
+    using EngineCache = util::CachePool<engine::UciEngine, std::string>;
+
    public:
     BaseTournament(const stats_map &results);
-
-    virtual ~BaseTournament() {
-        Logger::trace("~BaseTournament()");
-        saveJson();
-        Logger::trace("Instructing engines to stop...");
-        writeToOpenPipes();
-    }
+    virtual ~BaseTournament();
 
     // Starts the tournament
     virtual void start();
@@ -52,16 +48,16 @@ class BaseTournament {
                   finished_callback finish, const book::Opening &opening, std::size_t round_id, std::size_t game_id);
 
     // We keep engines alive after they were used to avoid the overhead of starting them again.
-    util::CachePool<engine::UciEngine, std::string> engine_cache_ = util::CachePool<engine::UciEngine, std::string>();
-    util::ThreadPool pool_                                        = util::ThreadPool(1);
+    EngineCache engine_cache_ = {};
+    util::ThreadPool pool_    = util::ThreadPool(1);
 
     ScoreBoard scoreboard_ = ScoreBoard();
 
     std::unique_ptr<MatchGenerator> generator_;
     std::unique_ptr<IOutput> output_;
     std::unique_ptr<affinity::AffinityManager> cores_;
-    std::unique_ptr<util::FileWriter> file_writer_pgn;
-    std::unique_ptr<util::FileWriter> file_writer_epd;
+    std::unique_ptr<util::FileWriter> file_writer_pgn_;
+    std::unique_ptr<util::FileWriter> file_writer_epd_;
     std::unique_ptr<book::OpeningBook> book_;
 
     // number of games played
@@ -69,23 +65,9 @@ class BaseTournament {
     std::uint64_t initial_matchcount_;
 
    private:
-    std::size_t setResults(const stats_map &results) noexcept {
-        Logger::trace("Setting results...");
+    [[nodiscard]] std::size_t setResults(const stats_map &results);
 
-        scoreboard_.setResults(results);
-
-        std::size_t total = 0;
-
-        for (const auto &pair1 : scoreboard_.getResults()) {
-            const auto &stats = pair1.second;
-
-            total += stats.wins + stats.losses + stats.draws;
-        }
-
-        return total;
-    }
-
-    int getMaxAffinity(const std::vector<EngineConfiguration> &configs) const noexcept;
+    [[nodiscard]] int getMaxAffinity(const std::vector<EngineConfiguration> &configs) const noexcept;
 };
 
 }  // namespace fastchess

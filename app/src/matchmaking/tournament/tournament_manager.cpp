@@ -13,6 +13,11 @@ namespace fastchess {
 
 TournamentManager::TournamentManager() {}
 
+TournamentManager::~TournamentManager() {
+    atomic::stop = true;
+    Logger::trace("~TournamentManager()");
+}
+
 void TournamentManager::start(int argc, char const* argv[]) {
     const auto options = cli::OptionsParser(argc, argv);
 

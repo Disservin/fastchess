@@ -17,6 +17,8 @@ RoundRobin::RoundRobin(const stats_map& results) : BaseTournament(results) {
                  config::TournamentConfig.get().sprt.model, config::TournamentConfig.get().sprt.enabled);
 }
 
+RoundRobin::~RoundRobin() { Logger::trace("~RoundRobin()"); }
+
 void RoundRobin::start() {
     Logger::trace("Starting round robin tournament...");
 
@@ -147,6 +149,23 @@ void RoundRobin::updateSprtStatus(const std::vector<EngineConfiguration>& engine
                                config::TournamentConfig.get().opening.file, scoreboard_);
         output_->endTournament();
     }
+}
+
+bool RoundRobin::shouldPrintRatingInterval(std::size_t round_id) const noexcept {
+    const auto& cfg = config::TournamentConfig.get();
+
+    // round_id and match_count_ starts 0 so we add 1
+    const auto ratinginterval_index = cfg.report_penta ? round_id + 1 : match_count_ + 1;
+
+    return ratinginterval_index % cfg.ratinginterval == 0;
+}
+
+bool RoundRobin::shouldPrintScoreInterval() const noexcept {
+    const auto& cfg = config::TournamentConfig.get();
+
+    const auto scoreinterval_index = match_count_ + 1;
+
+    return scoreinterval_index % cfg.scoreinterval == 0;
 }
 
 }  // namespace fastchess

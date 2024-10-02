@@ -153,6 +153,7 @@ void Match::start(engine::UciEngine& white, engine::UciEngine& black, const std:
             if (!playMove(second, first)) break;
         }
     } catch (const std::exception& e) {
+        Logger::fatal<true>("Match failed with exception: {}", e.what());
     }
 
     const auto end = clock::now();
@@ -196,8 +197,7 @@ bool Match::playMove(Player& us, Player& them) {
     if (!validConnection(us, them)) return false;
 
     // write new uci position
-    auto success = us.engine.position(uci_moves_, start_position_);
-    if (!success) {
+    if (!us.engine.position(uci_moves_, start_position_)) {
         setEngineCrashStatus(us, them);
         return false;
     }
@@ -208,8 +208,7 @@ bool Match::playMove(Player& us, Player& them) {
 
     // write go command
     Logger::trace<true>("Engine {} is thinking", name);
-    success = us.engine.go(us.getTimeControl(), them.getTimeControl(), board_.sideToMove());
-    if (!success) {
+    if (!us.engine.go(us.getTimeControl(), them.getTimeControl(), board_.sideToMove())) {
         setEngineCrashStatus(us, them);
         return false;
     }

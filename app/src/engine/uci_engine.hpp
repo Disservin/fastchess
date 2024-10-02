@@ -43,8 +43,11 @@ class UciEngine : protected process::Process {
     // Restarts the engine, if necessary and reapplies the options.
     bool refreshUci();
 
+    // Returns false in case of failure.
     [[nodiscard]] bool uci();
+    // Returns false in case of failure.
     [[nodiscard]] bool uciok(std::chrono::milliseconds threshold = ping_time_);
+    // Returns false in case of failure.
     [[nodiscard]] bool ucinewgame();
 
     // Sends "isready" to the engine
@@ -58,6 +61,7 @@ class UciEngine : protected process::Process {
     void quit();
 
     // Writes the input to the engine. Appends a newline to the input.
+    // Returns false in case of failure.
     bool writeEngine(const std::string &input);
 
     // Waits for the engine to output the last_word or until the threshold_ms is reached.
@@ -85,6 +89,7 @@ class UciEngine : protected process::Process {
     // the score might 1, while it's actually mate 1. Always check lastScoreType() first.
     [[nodiscard]] int lastScore() const;
 
+    // returns false if the output doesnt include a bestmove
     [[nodiscard]] bool outputIncludesBestmove() const;
 
     [[nodiscard]] const std::vector<process::Line> &output() const noexcept { return output_; }

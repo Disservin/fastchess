@@ -7,7 +7,7 @@
 #include <tuple>
 #include <vector>
 
-#include <time/timecontrol.hpp>
+#include <timecontrol/timecontrol.hpp>
 #include <types/enums.hpp>
 #include <util/helper.hpp>
 

@@ -1,4 +1,4 @@
-#include <time/timecontrol.hpp>
+#include <timecontrol/timecontrol.hpp>
 
 #include "doctest/doctest.hpp"
 
@@ -7,9 +7,9 @@ using namespace fastchess;
 TEST_SUITE("TimeControl") {
     TEST_CASE("moves/time+increment") {
         TimeControl::Limits limits;
-        limits.moves = 3;
-        limits.time = 10000;
-        limits.increment = 100;
+        limits.moves      = 3;
+        limits.time       = 10000;
+        limits.increment  = 100;
         limits.timemargin = 100;
 
         TimeControl tc(limits);
@@ -38,10 +38,9 @@ TEST_SUITE("TimeControl") {
 
         TimeControl tc(limits);
 
-
         CHECK(tc.updateTime(limits.fixed_time + limits.timemargin - 1) == true);
         CHECK(tc.getTimeLeft() == limits.fixed_time);
-        
+
         CHECK(tc.updateTime(limits.fixed_time + limits.timemargin) == true);
         CHECK(tc.getTimeLeft() == limits.fixed_time);
 

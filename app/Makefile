@@ -31,7 +31,7 @@ SRC_FILES        := \
 	$(SRCDIR)/matchmaking/tournament/roundrobin/roundrobin.cpp \
 	$(SRCDIR)/matchmaking/tournament/tournament_manager.cpp \
 	$(SRCDIR)/pgn/pgn_builder.cpp \
-	$(SRCDIR)/time/timecontrol.cpp \
+	$(SRCDIR)/timecontrol/timecontrol.cpp \
 	$(SRCDIR)/util/logger/logger.cpp \
 	$(SRCDIR)/printing/printing.cpp \
 	$(SRCDIR)/main.cpp

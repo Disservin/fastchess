@@ -44,7 +44,7 @@ SRC_FILES_TEST   := \
 	$(TESTDIR)/hash_test.cpp \
 	$(TESTDIR)/main.cpp \
 	$(TESTDIR)/opening_test.cpp \
-	$(TESTDIR)/options_test.cpp \
+	$(TESTDIR)/cli_test.cpp \
 	$(TESTDIR)/pgn_builder_test.cpp \
 	$(TESTDIR)/pgn_reader_test.cpp \
 	$(TESTDIR)/player.cpp \

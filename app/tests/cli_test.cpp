@@ -5,7 +5,7 @@
 using namespace fastchess;
 
 TEST_SUITE("Option Parsing Tests") {
-    TEST_CASE("Testing Engine options parsing expect throw") {
+    TEST_CASE("Should throw tc and st not usable together") {
         const char *argv[] = {"fastchess.exe",
                               "-engine",
                               "dir=./",
@@ -42,7 +42,7 @@ TEST_SUITE("Option Parsing Tests") {
                              "Error; cannot use tc and st together!", std::runtime_error);
     }
 
-    TEST_CASE("Testing Engine options parsing") {
+    TEST_CASE("General Config Parsing") {
         const char *argv[] = {"fastchess.exe",
                               "-engine",
                               "dir=./",
@@ -107,7 +107,7 @@ TEST_SUITE("Option Parsing Tests") {
         CHECK(config1.options.at(1).second == "32");
     }
 
-    TEST_CASE("Testing Cli Options Parsing") {
+    TEST_CASE("Should throw no timecontrol specified") {
         const char *argv[] = {"fastchess.exe",
                               "-engine",
                               "dir=./",
@@ -178,7 +178,7 @@ TEST_SUITE("Option Parsing Tests") {
                              "Error; no TimeControl specified!", std::runtime_error);
     }
 
-    TEST_CASE("Testing Cli Options Parsing") {
+    TEST_CASE("General Config Parsing 2") {
         const char *argv[]         = {"fastchess.exe",
                                       "-engine",
                                       "dir=./",

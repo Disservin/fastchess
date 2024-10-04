@@ -27,6 +27,8 @@ class SpinOption : public UCIOption {
         return intValue >= minValue && intValue <= maxValue;
     }
 
+    Type getType() const override { return Type::Spin; }
+
    private:
     std::string name;
     int value;

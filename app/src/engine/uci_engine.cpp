@@ -231,6 +231,19 @@ void UciEngine::sendSetoption(const std::string &name, const std::string &value)
 
     Logger::trace<true>("Sending setoption to engine {} {} {}", config_.name, name, value);
 
+    if (option.value()->getType() == UCIOption::Type::Button) {
+        if (value != "true") {
+            return;
+        }
+
+        if (!writeEngine(fmt::format("setoption name {}", name))) {
+            Logger::trace<true>("Failed to send setoption to engine {} {}", config_.name, name);
+            return;
+        }
+
+        option.value()->setValue(value);
+    }
+
     if (!writeEngine(fmt::format("setoption name {} value {}", name, value))) {
         Logger::trace<true>("Failed to send setoption to engine {} {} {}", config_.name, name, value);
         return;

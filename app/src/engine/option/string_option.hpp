@@ -25,6 +25,8 @@ class StringOption : public UCIOption {
         return true;  // All string values are valid
     }
 
+    Type getType() const override { return Type::String; }
+
    private:
     std::string name;
     std::string value;

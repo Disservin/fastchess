@@ -54,6 +54,7 @@ SRC_FILES_TEST   := \
 	$(TESTDIR)/uci_engine_test.cpp \
 	$(TESTDIR)/config_test.cpp \
 	$(TESTDIR)/epd_reader_test.cpp \
+	$(TESTDIR)/fd_limit_test.cpp \
 	$(TESTDIR)/match_test.cpp
 
 # Only used for formatting

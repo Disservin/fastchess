@@ -145,5 +145,12 @@ TEST_SUITE("PGN Reader") {
                                                             chess::Square::underlying::SQ_F3,
                                                             chess::PieceType::KNIGHT));
     }
+
+    TEST_CASE("Read PGN file with invalid file") {
+        book::PgnReader reader("app/tests/data/das.pgn");
+
+        CHECK_THROWS_WITH_AS(static_cast<void>(reader.getOpenings()),
+                             "No openings found in file: app/tests/data/das.pgn", std::runtime_error);
+    }
 }
 }  // namespace fastchess

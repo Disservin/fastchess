@@ -4,7 +4,6 @@
 #include <printing/printing.h>
 #include <cli/cli.hpp>
 #include <config/config.hpp>
-#include <config/sanitize.hpp>
 #include <engine/compliance.hpp>
 #include <globals/globals.hpp>
 #include <matchmaking/tournament/tournament_manager.hpp>

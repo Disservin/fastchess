@@ -21,7 +21,7 @@ SRC_FILES        := \
 	$(SRCDIR)/book/epd_reader.cpp \
 	$(SRCDIR)/book/pgn_reader.cpp \
 	$(SRCDIR)/cli/cli.cpp \
-	$(SRCDIR)/config/sanitize.cpp \
+	$(SRCDIR)/cli/sanitize.cpp \
 	$(SRCDIR)/elo/elo_wdl.cpp \
 	$(SRCDIR)/elo/elo_pentanomial.cpp \
 	$(SRCDIR)/engine/uci_engine.cpp \

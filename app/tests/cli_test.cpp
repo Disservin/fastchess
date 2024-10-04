@@ -5,12 +5,48 @@
 using namespace fastchess;
 
 TEST_SUITE("Option Parsing Tests") {
-    TEST_CASE("Testing Engine options parsing") {
+    TEST_CASE("Should throw tc and st not usable together") {
         const char *argv[] = {"fastchess.exe",
                               "-engine",
                               "dir=./",
                               "cmd=app/tests/mock/engine/dummy_engine",
                               "tc=10/9.64",
+                              "depth=5",
+                              "st=5",
+                              "nodes=5000",
+                              "option.Threads=1",
+                              "option.Hash=16",
+                              "name=Alexandria-EA649FED",
+                              "-engine",
+                              "dir=./",
+                              "cmd=app/tests/mock/engine/dummy_engine",
+                              "tc=40/1:9.65+0.1",
+                              "timemargin=243",
+                              "plies=7",
+                              "option.Threads=1",
+                              "option.Hash=32",
+                              "name=Alexandria-27E42728",
+                              "-openings",
+                              "file=./app/tests/data/test.epd",
+                              "format=epd",
+                              "order=random",
+                              "plies=16",
+                              "-rounds",
+                              "50",
+                              "-games",
+                              "2",
+                              "-pgnout",
+                              "file=PGNs/Alexandria-EA649FED_vs_Alexandria-27E42728"};
+
+        CHECK_THROWS_WITH_AS(cli::OptionsParser(sizeof(argv) / sizeof(argv[0]), argv),
+                             "Error; cannot use tc and st together!", std::runtime_error);
+    }
+
+    TEST_CASE("General Config Parsing") {
+        const char *argv[] = {"fastchess.exe",
+                              "-engine",
+                              "dir=./",
+                              "cmd=app/tests/mock/engine/dummy_engine",
                               "depth=5",
                               "st=5",
                               "nodes=5000",
@@ -46,8 +82,8 @@ TEST_SUITE("Option Parsing Tests") {
         EngineConfiguration config0 = configs[0];
         EngineConfiguration config1 = configs[1];
         CHECK(config0.name == "Alexandria-EA649FED");
-        CHECK(config0.limit.tc.moves == 10);
-        CHECK(config0.limit.tc.time == 9640);
+        CHECK(config0.limit.tc.moves == 0);
+        CHECK(config0.limit.tc.time == 0);
         CHECK(config0.limit.tc.increment == 0);
         CHECK(config0.limit.tc.timemargin == 0);
         CHECK(config0.limit.tc.fixed_time == 5000);
@@ -71,11 +107,92 @@ TEST_SUITE("Option Parsing Tests") {
         CHECK(config1.options.at(1).second == "32");
     }
 
-    TEST_CASE("Testing Cli Options Parsing") {
+    TEST_CASE("Should throw no timecontrol specified") {
+        const char *argv[] = {"fastchess.exe",
+                              "-engine",
+                              "dir=./",
+                              "cmd=app/tests/mock/engine/dummy_engine",
+                              "name=Alexandria-EA649FED",
+                              "-engine",
+                              "dir=./",
+                              "cmd=app/tests/mock/engine/dummy_engine",
+                              "name=Alexandria-27E42728",
+                              "-recover",
+                              "-concurrency",
+                              "2",
+                              "-ratinginterval",
+                              "2",
+                              "-scoreinterval",
+                              "3",
+                              "-autosaveinterval",
+                              "4",
+                              "-rounds",
+                              "256",
+                              "-draw",
+                              "movenumber=40",
+                              "movecount=3",
+                              "score=15",
+                              "-resign",
+                              "movecount=5",
+                              "score=600",
+                              "twosided=true",
+                              "-maxmoves",
+                              "150",
+                              "-games",
+                              "1",
+                              "-sprt",
+                              "alpha=0.05",
+                              "beta=0.05",
+                              "elo0=-1.5",
+                              "elo1=5",
+                              "model=bayesian",
+                              "-openings",
+                              "file=./app/tests/data/test.epd",
+                              "format=epd",
+                              "order=sequential",
+                              "plies=16",
+                              "start=4",
+                              "-variant",
+                              "fischerandom",
+                              "-output",
+                              "format=cutechess",
+                              "-srand",
+                              "1234",
+                              "-report",
+                              "penta=false",
+                              "-use-affinity",
+                              "-srand",
+                              "1234",
+                              "-epdout",
+                              "file=EPDs/Alexandria-EA649FED_vs_Alexandria-27E42728",
+                              "-pgnout",
+                              "file=PGNs/Alexandria-EA649FED_vs_Alexandria-27E42728",
+                              "nodes=true",
+                              "nps=true",
+                              "seldepth=true",
+                              "hashfull=true",
+                              "tbhits=true",
+                              "min=true"};
+
+        CHECK_THROWS_WITH_AS(cli::OptionsParser(sizeof(argv) / sizeof(argv[0]), argv),
+                             "Error; no TimeControl specified!", std::runtime_error);
+    }
+
+    TEST_CASE("General Config Parsing 2") {
         const char *argv[]         = {"fastchess.exe",
+                                      "-engine",
+                                      "dir=./",
+                                      "cmd=app/tests/mock/engine/dummy_engine",
+                                      "name=Alexandria-EA649FED",
+                                      "tc=10/9.64",
+                                      "-engine",
+                                      "dir=./",
+                                      "cmd=app/tests/mock/engine/dummy_engine",
+                                      "name=Alexandria-27E42728",
+                                      "tc=10/9.64",
                                       "-recover",
                                       "-concurrency",
-                                      "8",
+                                      "2",
                                       "-ratinginterval",
                                       "2",
                                       "-scoreinterval",
@@ -134,7 +251,7 @@ TEST_SUITE("Option Parsing Tests") {
 
         // Test proper cli settings
         CHECK(gameOptions.recover);
-        CHECK(gameOptions.concurrency == 8);
+        CHECK(gameOptions.concurrency == 2);
         CHECK(gameOptions.ratinginterval == 2);
         CHECK(gameOptions.scoreinterval == 3);
         CHECK(gameOptions.autosaveinterval == 4);
@@ -176,5 +293,17 @@ TEST_SUITE("Option Parsing Tests") {
         CHECK(gameOptions.opening.order == OrderType::SEQUENTIAL);
         CHECK(gameOptions.opening.plies == 16);
         CHECK(gameOptions.opening.start == 4);
+    }
+
+    TEST_CASE("Should throw error too much concurrency") {
+        const char *argv[] = {
+            "fastchess.exe",
+            "-concurrency",
+            "200",
+        };
+
+        CHECK_THROWS_WITH_AS(cli::OptionsParser(sizeof(argv) / sizeof(argv[0]), argv),
+                             "Error: Concurrency exceeds number of CPUs. Use --force-concurrency to override.",
+                             std::runtime_error);
     }
 }

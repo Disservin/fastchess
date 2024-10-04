@@ -11,7 +11,7 @@
 #include <util/file_system.hpp>
 #include <util/logger/logger.hpp>
 
-namespace fastchess::config {
+namespace fastchess::cli {
 
 void sanitize(config::Tournament& config) {
     if (config.games > 2) {
@@ -161,4 +161,4 @@ void sanitize(std::vector<EngineConfiguration>& configs) {
     }
 }
 
-}  // namespace fastchess::config
+}  // namespace fastchess::cli

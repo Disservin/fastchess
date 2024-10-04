@@ -3,7 +3,6 @@
 #include <printing/printing.h>
 #include <cli/cli.hpp>
 #include <config/config.hpp>
-#include <config/sanitize.hpp>
 #include <globals/globals.hpp>
 #include <matchmaking/tournament/tournament_manager.hpp>
 #include <util/logger/logger.hpp>
@@ -22,19 +21,11 @@ void TournamentManager::start(int argc, char const* argv[]) {
     const auto options = cli::OptionsParser(argc, argv);
 
     config::TournamentConfig.setup([&options]() -> std::unique_ptr<config::Tournament> {
-        auto cnf = options.getTournamentConfig();
-
-        config::sanitize(cnf);
-
-        return std::make_unique<config::Tournament>(cnf);
+        return std::make_unique<config::Tournament>(options.getTournamentConfig());
     });
 
     config::EngineConfigs.setup([&options]() -> std::unique_ptr<std::vector<EngineConfiguration>> {
-        auto cnf = options.getEngineConfigs();
-
-        config::sanitize(cnf);
-
-        return std::make_unique<std::vector<EngineConfiguration>>(cnf);
+        return std::make_unique<std::vector<EngineConfiguration>>(options.getEngineConfigs());
     });
 
     Logger::setLevel(config::TournamentConfig.get().log.level);

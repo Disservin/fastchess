@@ -2,6 +2,7 @@
 
 #include <random>
 
+#include <cli/sanitize.hpp>
 #include <matchmaking/output/output_factory.hpp>
 #include <matchmaking/scoreboard.hpp>
 #include <types/engine_config.hpp>
@@ -659,6 +660,10 @@ OptionsParser::OptionsParser(int argc, char const *argv[]) {
     for (auto &config : argument_data_.configs) {
         config.variant = argument_data_.tournament_config.variant;
     }
+
+    cli::sanitize(argument_data_.tournament_config);
+
+    cli::sanitize(argument_data_.configs);
 }
 
 }  // namespace fastchess::cli

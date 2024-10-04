@@ -171,7 +171,7 @@ The following options are available:
     - plies=PLIES - Max number of plies (depth) to search.
     - proto=PROTOCOL - Specify the protocol (only supports uci).
     - dir=DIRECTORY - Working directory for the engine.
-    - option.name=VALUE - Set engine-specific options.
+    - option.name=VALUE - Set engine-specific options. The value for a button option should be "true" or "false".
 
 # EXAMPLES
 

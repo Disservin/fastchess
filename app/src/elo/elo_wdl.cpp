@@ -4,6 +4,10 @@
 #include <iomanip>
 #include <sstream>
 
+#define FMT_HEADER_ONLY
+#include "../../third_party/fmt/include/fmt/core.h"
+#include "../../third_party/fmt/include/fmt/std.h"
+
 namespace fastchess::elo {
 
 std::string EloBase::getElo() const noexcept {
@@ -70,11 +74,5 @@ std::string EloWDL::los() const noexcept {
     return ss.str();
 }
 
-std::string EloWDL::printScore() const noexcept {
-    std::stringstream ss;
-
-    ss << std::fixed << std::setprecision(3) << score_;
-
-    return ss.str();
-}
+double EloWDL::getScore() const noexcept { return score_; }
 }  // namespace fastchess::elo

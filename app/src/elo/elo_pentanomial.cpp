@@ -69,12 +69,6 @@ std::string EloPentanomial::los() const noexcept {
     return ss.str();
 }
 
-std::string EloPentanomial::printScore() const noexcept {
-    std::stringstream ss;
-
-    ss << std::fixed << std::setprecision(3) << score_;
-
-    return ss.str();
-}
+double EloPentanomial::getScore() const noexcept { return score_; }
 
 }  // namespace fastchess::elo

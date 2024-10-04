@@ -12,8 +12,9 @@ class EloWDL : public EloBase {
     EloWDL(const Stats& stats);
 
     [[nodiscard]] std::string los() const noexcept override;
-    [[nodiscard]] std::string printScore() const noexcept override;
     [[nodiscard]] std::string nElo() const noexcept override;
+
+    [[nodiscard]] double getScore() const noexcept override;
 
    private:
     [[nodiscard]] static double scoreToNeloDiff(double score, double variance) noexcept;

@@ -55,6 +55,7 @@ SRC_FILES_TEST   := \
 	$(TESTDIR)/config_test.cpp \
 	$(TESTDIR)/epd_reader_test.cpp \
 	$(TESTDIR)/fd_limit_test.cpp \
+	$(TESTDIR)/option_test.cpp \
 	$(TESTDIR)/match_test.cpp
 
 # Only used for formatting

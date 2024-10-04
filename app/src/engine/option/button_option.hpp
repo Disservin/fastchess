@@ -19,9 +19,11 @@ class ButtonOption : public UCIOption {
         }
     }
 
-    std::string getValue() const override { return value ? "pressed" : "not pressed"; }
+    std::string getValue() const override { return value ? "true" : "false"; }
 
-    bool isValid(const std::string& value) const override { return value == "press"; }
+    bool isValid(const std::string& value) const override { return value == "true"; }
+
+    Type getType() const override { return Type::Button; }
 
    private:
     std::string name;

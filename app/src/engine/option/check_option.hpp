@@ -20,6 +20,8 @@ class CheckOption : public UCIOption {
 
     bool isValid(const std::string& value) const override { return value == "true" || value == "false"; }
 
+    Type getType() const override { return Type::Check; }
+
    private:
     std::string name;
     bool value;

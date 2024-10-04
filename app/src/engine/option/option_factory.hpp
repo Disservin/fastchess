@@ -41,10 +41,14 @@ class UCIOptionFactory {
             } else if (token == "max") {
                 ss >> params["max"];
             } else if (token == "var") {
-                if (params.find("var") == params.end()) {
-                    params["var"] = token;
-                } else {
-                    params["var"] += " " + token;
+                std::string var;
+
+                while (ss >> var) {
+                    if (var == "var") {
+                        continue;
+                    }
+
+                    params["var"] += var + " ";
                 }
             }
         }

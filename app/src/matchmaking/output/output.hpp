@@ -55,6 +55,8 @@ class IOutput {
     // Print tournament end.
     virtual void endTournament() = 0;
 
+    virtual OutputType getType() const = 0;
+
     [[nodiscard]] static std::string formatStats(const Stats& stats) {
         if (stats.wins) {
             return "1-0";

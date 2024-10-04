@@ -79,3 +79,8 @@ log*.gz
 
 !app/tests/data/*
 !app/tests/configs
+
+app/coverage
+
+**/*.gcda
+**/*.gcno

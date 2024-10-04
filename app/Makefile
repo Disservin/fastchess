@@ -13,6 +13,7 @@ INCDIR           := src
 #Flags, Libraries and Includes
 CXXFLAGS         := -O3 -std=c++17 -Wall -Wextra -DNDEBUG
 CXXFLAGS_TEST	 := -O2 -std=c++17 -Wall -Wextra -pedantic -Wuninitialized -g3 -fno-omit-frame-pointer
+CXXFLAGS_COV	 := -O0 --coverage -g -std=c++17 -Wall -Wextra -pedantic -Wuninitialized -g3 -fno-omit-frame-pointer
 INC              := -I$(INCDIR) -Ithird_party
 
 SRC_FILES        := \
@@ -65,6 +66,13 @@ NATIVE 	         := -march=native
 
 ifeq ($(MAKECMDGOALS),$(TESTDIR))
 	CXXFLAGS  := $(CXXFLAGS_TEST)
+	SRC_FILES := $(filter-out src/main.cpp, $(SRC_FILES)) $(SRC_FILES_TEST)
+	TARGET    := $(TARGET)-tests
+	NATIVE    := 
+endif
+
+ifeq ($(MAKECMDGOALS), coverage)
+	CXXFLAGS  := $(CXXFLAGS_COV)
 	SRC_FILES := $(filter-out src/main.cpp, $(SRC_FILES)) $(SRC_FILES_TEST)
 	TARGET    := $(TARGET)-tests
 	NATIVE    := 
@@ -164,9 +172,13 @@ endif
 OBJECTS   := $(patsubst %.cpp,$(BUILDDIR)/%.o,$(SRC_FILES))
 DEPENDS   := $(patsubst %.cpp,$(BUILDDIR)/%.d,$(SRC_FILES))
 
-.PHONY: clean all tests FORCE
+.PHONY: clean all tests FORCE coverage
 
 all: $(TARGET)
+
+coverage: tests
+	cd .. && ./fastchess-tests
+	mkdir -p coverage && cd coverage &&  gcovr --html-details coverage.html --gcov-ignore-errors=no_working_dir_found --gcov-ignore-parse-errors -f "../src" -r ../. ..
 
 tests: $(TARGET) compile-random-mover
 	$(CXX) $(CXXFLAGS) ./tests/mock/engine/dummy_engine.cpp -o ./tests/mock/engine/dummy_engine$(SUFFIX) $(LDFLAGS)

@@ -4,10 +4,10 @@ MANDIR = $(PREFIX)/share/man/man1
 MANPAGE_SOURCE = man.md  # Path to the markdown file for the man page
 MANPAGE_OUTPUT = fastchess.1
 
-.PHONY: all tests install manpage install-manpage update-man clean format update-fmt help
+.PHONY: all tests install manpage install-manpage update-man clean format update-fmt help coverage
 
 ifeq ($(shell uname), Linux)
-    LOWDOWN_INSTALLED := $(shell command -v lowdown >/dev/null 2>&1 && echo yes || echo no)
+	LOWDOWN_INSTALLED := $(shell command -v lowdown >/dev/null 2>&1 && echo yes || echo no)
 endif
 
 all: ## Build the project
@@ -18,6 +18,11 @@ all: ## Build the project
 tests: ## Run tests
 	@echo "Running tests.."
 	$(MAKE) -C app tests BINARY_PATH=../
+	@echo "Done."
+
+coverage: ## Run tests with coverage
+	@echo "Running tests with coverage.."
+	$(MAKE) -C app coverage BINARY_PATH=../
 	@echo "Done."
 
 scan:

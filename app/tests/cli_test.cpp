@@ -119,7 +119,7 @@ TEST_SUITE("Option Parsing Tests") {
                               "name=Alexandria-27E42728",
                               "-recover",
                               "-concurrency",
-                              "8",
+                              "2",
                               "-ratinginterval",
                               "2",
                               "-scoreinterval",
@@ -192,7 +192,7 @@ TEST_SUITE("Option Parsing Tests") {
                                       "tc=10/9.64",
                                       "-recover",
                                       "-concurrency",
-                                      "8",
+                                      "2",
                                       "-ratinginterval",
                                       "2",
                                       "-scoreinterval",
@@ -251,7 +251,7 @@ TEST_SUITE("Option Parsing Tests") {
 
         // Test proper cli settings
         CHECK(gameOptions.recover);
-        CHECK(gameOptions.concurrency == 8);
+        CHECK(gameOptions.concurrency == 2);
         CHECK(gameOptions.ratinginterval == 2);
         CHECK(gameOptions.scoreinterval == 3);
         CHECK(gameOptions.autosaveinterval == 4);
@@ -293,5 +293,17 @@ TEST_SUITE("Option Parsing Tests") {
         CHECK(gameOptions.opening.order == OrderType::SEQUENTIAL);
         CHECK(gameOptions.opening.plies == 16);
         CHECK(gameOptions.opening.start == 4);
+    }
+
+    TEST_CASE("Should throw error too much concurrency") {
+        const char *argv[] = {
+            "fastchess.exe",
+            "-concurrency",
+            "200",
+        };
+
+        CHECK_THROWS_WITH_AS(cli::OptionsParser(sizeof(argv) / sizeof(argv[0]), argv),
+                             "Error: Concurrency exceeds number of CPUs. Use --force-concurrency to override.",
+                             std::runtime_error);
     }
 }

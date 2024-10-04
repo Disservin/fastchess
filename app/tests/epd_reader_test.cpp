@@ -17,6 +17,13 @@ TEST_SUITE("EPD Reader") {
         CHECK(games.epd()[1] == "5k2/5p2/4B2p/r5pn/4P3/5PPP/2NR2K1/8 b - - 0 59");
         CHECK(games.epd()[2] == "8/p3kp1p/1p4p1/2r2b2/2BR3P/1P3P2/P4PK1/8 b - - 0 28");
     }
+
+    TEST_CASE("Read EPD file with invalid file") {
+        book::EpdReader reader("app/tests/data/das.epd");
+
+        CHECK_THROWS_WITH_AS(static_cast<void>(reader.getOpenings()),
+                             "No openings found in file: app/tests/data/das.epd", std::runtime_error);
+    }
 }
 
 }  // namespace fastchess

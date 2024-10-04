@@ -238,4 +238,32 @@ TEST_SUITE("Opening Book Test") {
         CHECK(id.value() == 1);
         CHECK(book[id].fen_epd == "rnbqkb1r/5ppp/p2p1n2/2pP4/Pp2P3/5NP1/1P3P1P/RNBQKB1R w KQkq - 0 9");
     }
+
+    TEST_CASE("Test with PGN opening book") {
+        config::Tournament tournament;
+        tournament.rounds         = 2;
+        tournament.opening.file   = "app/tests/data/test.pgn";
+        tournament.opening.format = FormatType::PGN;
+        tournament.opening.order  = OrderType::SEQUENTIAL;
+        tournament.opening.start  = 1;
+
+        auto book = book::OpeningBook(tournament);
+        auto id   = book.fetchId();
+
+        REQUIRE(id.has_value());
+        CHECK(id.value() == 0);
+        CHECK(book[id].fen_epd == chess::constants::STARTPOS);
+        CHECK(book[id].moves.size() == 16);
+        CHECK(book[id].stm == chess::Color::WHITE);
+        CHECK(book[id].moves[0] ==
+              chess::Move::make(chess::Square::underlying::SQ_E2, chess::Square::underlying::SQ_E4));
+
+        id = book.fetchId();
+
+        REQUIRE(id.has_value());
+        CHECK(id.value() == 1);
+        CHECK(book[id].fen_epd == chess::constants::STARTPOS);
+        CHECK(book[id].moves.size() == 16);
+        CHECK(book[id].stm == chess::Color::WHITE);
+    }
 }

@@ -93,6 +93,8 @@ class Fastchess : public IOutput {
 
     void endTournament() override { std::cout << "Tournament finished" << std::endl; }
 
+    OutputType getType() const override { return OutputType::FASTCHESS; }
+
    private:
     std::string printEloH2H(const Stats& stats, const std::string& first, const std::string& second,
                             const engines& engines, const std::string& book) {

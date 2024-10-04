@@ -103,6 +103,8 @@ class Cutechess : public IOutput {
     }
 
     void endTournament() override { std::cout << "Tournament finished" << std::endl; }
+
+    OutputType getType() const override { return OutputType::CUTECHESS; }
 };
 
 }  // namespace fastchess

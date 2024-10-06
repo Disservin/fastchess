@@ -38,7 +38,7 @@ class Cutechess : public IOutput {
         if (ecs.size() == 2) {
             const elo::EloWDL elo(stats);
 
-            return fmt::format("Elo difference: {}, LOS: {}, DrawRatio: {:.2f}%\n", elo.getElo(), elo.los(),
+            return fmt::format("Elo difference: {}, LOS: {}, DrawRatio: {:.2f} %\n", elo.getElo(), elo.los(),
                                stats.drawRatio());
         }
 

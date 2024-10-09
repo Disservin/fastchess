@@ -14,6 +14,10 @@ class SpinOption : public UCIOption {
     SpinOption(const std::string& name, const std::string& minValue, const std::string& maxValue) : name(name) {
         this->minValue = parseValue(minValue);
         this->maxValue = parseValue(maxValue);
+
+        if (this->minValue > this->maxValue) {
+            throw std::invalid_argument("Min value cannot be greater than max value.");
+        }
     }
 
     std::string getName() const override { return name; }

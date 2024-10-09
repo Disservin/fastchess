@@ -58,14 +58,13 @@ class UCIOptionFactory {
             option->setValue(params["default"]);
             return option;
         } else if (type == "spin") {
-            if (isInteger(params["default"])) {
+            if (isInteger(params["default"]) && isInteger(params["min"]) && isInteger(params["max"])) {
                 return createSpinOption<int>(name, params["min"], params["max"], params["default"]);
-            } else if (isFloat(params["default"])) {
+            } else if (isFloat(params["default"]) && isFloat(params["min"]) && isFloat(params["max"])) {
                 return createSpinOption<double>(name, params["min"], params["max"], params["default"]);
-            } else {
-                throw std::runtime_error(
-                    "The default value for the option with type spin is not an integer or a floating point number.");
             }
+
+            throw std::invalid_argument("The spin values are not numeric.");
         } else if (type == "combo") {
             std::istringstream varStream(params["var"]);
             std::vector<std::string> options;

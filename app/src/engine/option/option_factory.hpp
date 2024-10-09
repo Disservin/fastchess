@@ -63,7 +63,8 @@ class UCIOptionFactory {
             } else if (isFloat(params["default"])) {
                 return createSpinOption<double>(name, params["min"], params["max"], params["default"]);
             } else {
-                throw std::runtime_error("Invalid default value for spin option.");
+                throw std::runtime_error(
+                    "The default value for the option with type spin is not an integer or a floating point number.");
             }
         } else if (type == "combo") {
             std::istringstream varStream(params["var"]);

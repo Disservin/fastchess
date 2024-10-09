@@ -58,9 +58,13 @@ class UCIOptionFactory {
             option->setValue(params["default"]);
             return option;
         } else if (type == "spin") {
-            auto option = std::make_unique<SpinOption>(name, params["min"], params["max"]);
-            option->setValue(params["default"]);
-            return option;
+            if (isInteger(params["default"])) {
+                return createSpinOption<int>(name, params["min"], params["max"], params["default"]);
+            } else if (isFloat(params["default"])) {
+                return createSpinOption<double>(name, params["min"], params["max"], params["default"]);
+            } else {
+                throw std::runtime_error("Invalid default value for spin option.");
+            }
         } else if (type == "combo") {
             std::istringstream varStream(params["var"]);
             std::vector<std::string> options;
@@ -76,6 +80,29 @@ class UCIOptionFactory {
         }
 
         return nullptr;
+    }
+
+   private:
+    template <typename T>
+    static std::unique_ptr<SpinOption<T>> createSpinOption(const std::string& name, const std::string& min,
+                                                           const std::string& max, const std::string& defaultValue) {
+        auto option = std::make_unique<SpinOption<T>>(name, min, max);
+        option->setValue(defaultValue);
+        return option;
+    }
+
+    static bool isInteger(const std::string& s) {
+        std::stringstream ss(s);
+        int num;
+        ss >> num;
+        return ss.eof() && !ss.fail();
+    }
+
+    static bool isFloat(const std::string& s) {
+        std::stringstream ss(s);
+        double num;
+        ss >> num;
+        return ss.eof() && !ss.fail();
     }
 };
 

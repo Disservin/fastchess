@@ -83,7 +83,7 @@ jobs:
         shell: bash
 
       - name: Archive binaries
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: fastchess-${{ matrix.config.os }}
           path: |

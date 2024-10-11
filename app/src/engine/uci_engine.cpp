@@ -174,6 +174,50 @@ bool UciEngine::ucinewgame() {
     return isready(ucinewgame_time_) == process::Status::OK;
 }
 
+std::optional<std::string> UciEngine::idName() {
+    if (!uci()) {
+        Logger::warn<true>("Warning; Engine {} didn't respond to uci.", config_.name);
+        return std::nullopt;
+    }
+
+    if (!uciok()) {
+        Logger::warn<true>("Warning; Engine {} didn't respond to uci.", config_.name);
+        return std::nullopt;
+    }
+
+    // get id name
+    for (const auto &line : output_) {
+        if (line.line.find("id name") != std::string::npos) {
+            // everything after id name
+            return line.line.substr(line.line.find("id name") + 8);
+        }
+    }
+
+    return std::nullopt;
+}
+
+std::optional<std::string> UciEngine::idAuthor() {
+    if (!uci()) {
+        Logger::warn<true>("Warning; Engine {} didn't respond to uci.", config_.name);
+        return std::nullopt;
+    }
+
+    if (!uciok()) {
+        Logger::warn<true>("Warning; Engine {} didn't respond to uci.", config_.name);
+        return std::nullopt;
+    }
+
+    // get id author
+    for (const auto &line : output_) {
+        if (line.line.find("id author") != std::string::npos) {
+            // everything after id author
+            return line.line.substr(line.line.find("id author") + 10);
+        }
+    }
+
+    return std::nullopt;
+}
+
 bool UciEngine::uci() {
     Logger::trace<true>("Sending uci to engine {}", config_.name);
     const auto res = writeEngine("uci");

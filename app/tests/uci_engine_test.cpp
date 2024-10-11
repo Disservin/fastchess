@@ -42,10 +42,16 @@ TEST_SUITE("Uci Engine Communication Tests") {
             std::cout << line.line << std::endl;
         }
 
-        CHECK(uci_engine.output().size() == 6);
+        CHECK(uci_engine.output().size() == 8);
         CHECK(uci_engine.output()[0].line == "argv[1]: arg1");
         CHECK(uci_engine.output()[1].line == "argv[2]: arg2");
         CHECK(uci_engine.output()[2].line == "argv[3]: arg3");
+
+        CHECK(uci_engine.idName().has_value());
+        CHECK(uci_engine.idName().value() == "Dummy Engine");
+
+        CHECK(uci_engine.idAuthor().has_value());
+        CHECK(uci_engine.idAuthor().value() == "FastChess");
     }
 
     TEST_CASE("Test engine::UciEngine Args Complex") {
@@ -69,7 +75,7 @@ TEST_SUITE("Uci Engine Communication Tests") {
             std::cout << line.line << std::endl;
         }
 
-        CHECK(uci_engine.output().size() == 9);
+        CHECK(uci_engine.output().size() == 11);
         CHECK(uci_engine.output()[0].line == "argv[1]: --backend=multiplexing");
         CHECK(uci_engine.output()[1].line ==
               "argv[2]: --backend-opts=backend=cuda-fp16,(gpu=0),(gpu=1),(gpu=2),(gpu=3)");
@@ -92,7 +98,7 @@ TEST_SUITE("Uci Engine Communication Tests") {
 
         CHECK(uci_engine.start());
 
-        CHECK(uci_engine.output().size() == 6);
+        CHECK(uci_engine.output().size() == 8);
         CHECK(uci_engine.output()[0].line == "argv[1]: arg1");
         CHECK(uci_engine.output()[1].line == "argv[2]: arg2");
         CHECK(uci_engine.output()[2].line == "argv[3]: arg3");
@@ -104,10 +110,12 @@ TEST_SUITE("Uci Engine Communication Tests") {
         auto uciOutput = uci_engine.output();
 
         CHECK(uci);
-        CHECK(uciOutput.size() == 3);
-        CHECK(uciOutput[0].line == "line0");
-        CHECK(uciOutput[1].line == "line1");
-        CHECK(uciOutput[2].line == "uciok");
+        CHECK(uciOutput.size() == 5);
+        CHECK(uciOutput[0].line == "id name Dummy Engine");
+        CHECK(uciOutput[1].line == "id author FastChess");
+        CHECK(uciOutput[2].line == "line0");
+        CHECK(uciOutput[3].line == "line1");
+        CHECK(uciOutput[4].line == "uciok");
         CHECK(uci_engine.isready() == engine::process::Status::OK);
 
         CHECK(uci_engine.writeEngine("sleep"));
@@ -136,10 +144,12 @@ TEST_SUITE("Uci Engine Communication Tests") {
         const auto res = uci_engine.readEngine("uciok");
 
         CHECK(res == engine::process::Status::OK);
-        CHECK(uci_engine.output().size() == 3);
-        CHECK(uci_engine.output()[0].line == "line0");
-        CHECK(uci_engine.output()[1].line == "line1");
-        CHECK(uci_engine.output()[2].line == "uciok");
+        CHECK(uci_engine.output().size() == 5);
+        CHECK(uci_engine.output()[0].line == "id name Dummy Engine");
+        CHECK(uci_engine.output()[1].line == "id author FastChess");
+        CHECK(uci_engine.output()[2].line == "line0");
+        CHECK(uci_engine.output()[3].line == "line1");
+        CHECK(uci_engine.output()[4].line == "uciok");
 
         CHECK(uci_engine.writeEngine("isready"));
         const auto res2 = uci_engine.readEngine("readyok");
@@ -175,10 +185,12 @@ TEST_SUITE("Uci Engine Communication Tests") {
         const auto res = uci_engine.readEngine("uciok");
 
         CHECK(res == engine::process::Status::OK);
-        CHECK(uci_engine.output().size() == 3);
-        CHECK(uci_engine.output()[0].line == "line0");
-        CHECK(uci_engine.output()[1].line == "line1");
-        CHECK(uci_engine.output()[2].line == "uciok");
+        CHECK(uci_engine.output().size() == 5);
+        CHECK(uci_engine.output()[0].line == "id name Dummy Engine");
+        CHECK(uci_engine.output()[1].line == "id author FastChess");
+        CHECK(uci_engine.output()[2].line == "line0");
+        CHECK(uci_engine.output()[3].line == "line1");
+        CHECK(uci_engine.output()[4].line == "uciok");
 
         uci_engine.restart();
 
@@ -186,9 +198,11 @@ TEST_SUITE("Uci Engine Communication Tests") {
         const auto res2 = uci_engine.readEngine("uciok");
 
         CHECK(res2 == engine::process::Status::OK);
-        CHECK(uci_engine.output().size() == 3);
-        CHECK(uci_engine.output()[0].line == "line0");
-        CHECK(uci_engine.output()[1].line == "line1");
-        CHECK(uci_engine.output()[2].line == "uciok");
+        CHECK(uci_engine.output().size() == 5);
+        CHECK(uci_engine.output()[0].line == "id name Dummy Engine");
+        CHECK(uci_engine.output()[1].line == "id author FastChess");
+        CHECK(uci_engine.output()[2].line == "line0");
+        CHECK(uci_engine.output()[3].line == "line1");
+        CHECK(uci_engine.output()[4].line == "uciok");
     }
 }

@@ -35,6 +35,8 @@ bool compliant(const std::string &path) {
     std::vector<std::pair<std::string, std::function<bool()>>> steps = {
         {"Start the engine", [&uci_engine] { return uci_engine.start(); }},
         {"Check if engine is ready", [&uci_engine] { return uci_engine.isready() == process::Status::OK; }},
+        {"Check id name", [&uci_engine] { return uci_engine.idName().has_value(); }},
+        {"Check id author", [&uci_engine] { return uci_engine.idAuthor().has_value(); }},
         {"Send ucinewgame", [&uci_engine] { return uci_engine.ucinewgame(); }},
         {"Set position to startpos", [&uci_engine] { return uci_engine.writeEngine("position startpos"); }},
         {"Check if engine is ready after startpos",

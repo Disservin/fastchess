@@ -38,6 +38,9 @@ class UciEngine : protected process::Process {
     // Restarts the engine, if necessary and reapplies the options.
     bool refreshUci();
 
+    [[nodiscard]] std::optional<std::string> idName();
+    [[nodiscard]] std::optional<std::string> idAuthor();
+
     // Returns false in case of failure.
     [[nodiscard]] bool uci();
     // Returns false in case of failure.

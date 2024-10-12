@@ -53,6 +53,11 @@ bool compliant(const std::string &path) {
         {"Check if engine prints an info line", [&uci_engine] { return !uci_engine.lastInfoLine().empty(); }},
         {"Verify info line contains score",
          [&uci_engine] { return str_utils::contains(uci_engine.lastInfoLine(), "score"); }},
+        {"Set position to black to move",
+         [&uci_engine] {
+             return uci_engine.writeEngine(
+                 "position fen rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1");
+         }},
         {"Send go btime 100", [&uci_engine] { return uci_engine.writeEngine("go btime 100"); }},
         {"Read bestmove after go btime 100",
          [&uci_engine] { return uci_engine.readEngine("bestmove") == process::Status::OK; }},

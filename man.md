@@ -35,6 +35,9 @@ The following options are available:
 - -concurrency N  
     Play N games concurrently, limited by the number of hardware threads. Default value is 1.
 
+- --compliance ENGINE [ARGS]  
+    Check the UCI compliance of an engine by running it with the specified arguments.
+
 - --force-concurrency  
     Ignore the hardware concurrency limit and force the specified concurrency.
 

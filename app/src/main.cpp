@@ -15,8 +15,9 @@ int main(int argc, char const* argv[]) {
     setCtrlCHandler();
     setTerminalOutput();
 
-    if (argc == 3 && std::string(argv[1]) == "--compliance") {
-        return !engine::compliant(argv[2]);
+    if (argc >= 3 && std::string(argv[1]) == "--compliance") {
+
+        return !engine::compliant(argc, argv);
     }
 
     try {

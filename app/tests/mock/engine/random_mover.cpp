@@ -8,9 +8,9 @@ std::mt19937 gen;
 
 void initialize_rng(int argc, char *argv[]) {
     if (argc > 1) {
+        std::cout << "Using provided seed: " << argv[1] << std::endl;
         unsigned int seed = std::stoi(argv[1]);
         gen.seed(seed);
-        std::cout << "Using provided seed: " << seed << std::endl;
     } else {
         std::random_device rd;
         auto seed = rd();

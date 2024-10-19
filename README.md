@@ -15,6 +15,10 @@ short time controls (0.2+0.002s), it exhibits minimal timeout issues, with only
 
 ## What's New
 
+- **UCI Compliance Checker**: Fastchess now offers a built-in UCI compliance checker,  
+  allowing you to verify that engines adhere to the UCI protocol.  
+  To use this feature, simply run the following command:
+  `./fastchess --compliance ENGINE_PATH [ENGINE_ARGS]`
 - **Enhanced Cutechess Output**: The Cutechess output support has been refined to
   enhance compatibility with other tools. Simply switch the `-output` option to
   cutechess to enable it.

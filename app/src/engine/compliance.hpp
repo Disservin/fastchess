@@ -9,11 +9,12 @@
 
 namespace fastchess::engine {
 
-bool compliant(const std::string &path) {
+bool compliant(int argc, char const *argv[]) {
     int step = 0;
 
     EngineConfiguration config;
-    config.cmd = path;
+    config.cmd  = argv[2];
+    config.args = argc > 3 ? std::string(argv[3]) : "";
 
     auto executeStep = [&step](const std::string &description, const std::function<bool()> &action) {
         step++;
@@ -55,8 +56,7 @@ bool compliant(const std::string &path) {
          [&uci_engine] { return str_utils::contains(uci_engine.lastInfoLine(), "score"); }},
         {"Set position to black to move",
          [&uci_engine] {
-             return uci_engine.writeEngine(
-                 "position fen rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1");
+             return uci_engine.writeEngine("position fen rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1");
          }},
         {"Send go btime 100", [&uci_engine] { return uci_engine.writeEngine("go btime 100"); }},
         {"Read bestmove after go btime 100",

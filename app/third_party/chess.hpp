@@ -25,7 +25,7 @@ THIS FILE IS AUTO GENERATED DO NOT CHANGE MANUALLY.
 
 Source: https://github.com/Disservin/chess-library
 
-VERSION: 0.6.70
+VERSION: 0.6.75
 */
 
 #ifndef CHESS_HPP
@@ -184,6 +184,7 @@ class File {
     constexpr bool operator>(const File& rhs) const noexcept {
         return static_cast<int>(file) > static_cast<int>(rhs.file);
     }
+
     constexpr bool operator<(const File& rhs) const noexcept {
         return static_cast<int>(file) < static_cast<int>(rhs.file);
     }
@@ -210,36 +211,41 @@ class Rank {
    public:
     enum class underlying { RANK_1, RANK_2, RANK_3, RANK_4, RANK_5, RANK_6, RANK_7, RANK_8, NO_RANK };
 
-    constexpr Rank() : rank(underlying::NO_RANK) {}
-    constexpr Rank(underlying rank) : rank(rank) {}
-    constexpr Rank(int rank) : rank(static_cast<underlying>(rank)) {}
+    constexpr Rank() : rank_(underlying::NO_RANK) {}
+    constexpr Rank(underlying rank) : rank_(rank) {}
+    constexpr Rank(int rank) : rank_(static_cast<underlying>(rank)) {}
     constexpr Rank(std::string_view sw)
-        : rank(static_cast<underlying>(static_cast<char>(utils::tolower(static_cast<unsigned char>(sw[0]))) - '1')) {}
+        : rank_(static_cast<underlying>(static_cast<char>(utils::tolower(static_cast<unsigned char>(sw[0]))) - '1')) {}
 
-    [[nodiscard]] constexpr underlying internal() const noexcept { return rank; }
+    [[nodiscard]] constexpr underlying internal() const noexcept { return rank_; }
 
-    constexpr bool operator==(const Rank& rhs) const noexcept { return rank == rhs.rank; }
-    constexpr bool operator!=(const Rank& rhs) const noexcept { return rank != rhs.rank; }
+    constexpr bool operator==(const Rank& rhs) const noexcept { return rank_ == rhs.rank_; }
+    constexpr bool operator!=(const Rank& rhs) const noexcept { return rank_ != rhs.rank_; }
 
-    constexpr bool operator==(const underlying& rhs) const noexcept { return rank == rhs; }
-    constexpr bool operator!=(const underlying& rhs) const noexcept { return rank != rhs; }
+    constexpr bool operator==(const underlying& rhs) const noexcept { return rank_ == rhs; }
+    constexpr bool operator!=(const underlying& rhs) const noexcept { return rank_ != rhs; }
 
     constexpr bool operator>=(const Rank& rhs) const noexcept {
-        return static_cast<int>(rank) >= static_cast<int>(rhs.rank);
+        return static_cast<int>(rank_) >= static_cast<int>(rhs.rank_);
     }
     constexpr bool operator<=(const Rank& rhs) const noexcept {
-        return static_cast<int>(rank) <= static_cast<int>(rhs.rank);
+        return static_cast<int>(rank_) <= static_cast<int>(rhs.rank_);
     }
 
-    operator std::string() const { return std::string(1, static_cast<char>(static_cast<int>(rank) + '1')); }
+    operator std::string() const { return std::string(1, static_cast<char>(static_cast<int>(rank_) + '1')); }
 
-    constexpr operator int() const noexcept { return static_cast<int>(rank); }
+    constexpr operator int() const noexcept { return static_cast<int>(rank_); }
+
+    constexpr std::uint64_t bb() const noexcept { return 0xffULL << (8 * static_cast<int>(rank_)); }
 
     [[nodiscard]] static constexpr bool back_rank(Rank r, Color color) noexcept {
-        if (color == Color::WHITE)
-            return r == Rank::RANK_1;
-        else
-            return r == Rank::RANK_8;
+        if (color == Color::WHITE) return r == Rank::RANK_1;
+        return r == Rank::RANK_8;
+    }
+
+    [[nodiscard]] static constexpr Rank rank(Rank r, Color color) noexcept {
+        if (color == Color::WHITE) return r;
+        return Rank(static_cast<underlying>(static_cast<int>(RANK_8) - static_cast<int>(r)));
     }
 
     static constexpr underlying RANK_1  = underlying::RANK_1;
@@ -253,7 +259,7 @@ class Rank {
     static constexpr underlying NO_RANK = underlying::NO_RANK;
 
    private:
-    underlying rank;
+    underlying rank_;
 };
 
 class Square {
@@ -433,6 +439,11 @@ enum class Direction : int8_t {
     SOUTH_WEST = -9,
     SOUTH_EAST = -7
 };
+
+[[nodiscard]] constexpr Direction make_direction(Direction dir, Color c) noexcept {
+    if (c == Color::BLACK) return static_cast<Direction>(-static_cast<int8_t>(dir));
+    return dir;
+}
 
 constexpr Square operator+(Square sq, Direction dir) {
     return static_cast<Square>(sq.index() + static_cast<int8_t>(dir));
@@ -1458,6 +1469,9 @@ class movegen {
     template <Color::underlying c, MoveGenType mt>
     static void legalmoves(Movelist &movelist, const Board &board, int pieces);
 
+    template <Color::underlying c>
+    static bool isEpSquareValid(const Board &board, Square ep);
+
     friend class Board;
 };
 
@@ -1627,23 +1641,28 @@ class Zobrist {
         0x1C99DED33CB890A1, 0xCF3145DE0ADD4289, 0xD0E4427A5514FB72, 0x77C621CC9FB3A483, 0x67A34DAC4356550B,
         0xF8D626AAAF278509};
 
-    static constexpr U64 castlingKey[16] = {
-        0,
-        RANDOM_ARRAY[768],
-        RANDOM_ARRAY[768 + 1],
-        RANDOM_ARRAY[768] ^ RANDOM_ARRAY[768 + 1],
-        RANDOM_ARRAY[768 + 2],
-        RANDOM_ARRAY[768] ^ RANDOM_ARRAY[768 + 2],
-        RANDOM_ARRAY[768 + 1] ^ RANDOM_ARRAY[768 + 2],
-        RANDOM_ARRAY[768] ^ RANDOM_ARRAY[768 + 1] ^ RANDOM_ARRAY[768 + 2],
-        RANDOM_ARRAY[768 + 3],
-        RANDOM_ARRAY[768] ^ RANDOM_ARRAY[768 + 3],
-        RANDOM_ARRAY[768 + 1] ^ RANDOM_ARRAY[768 + 3],
-        RANDOM_ARRAY[768] ^ RANDOM_ARRAY[768 + 1] ^ RANDOM_ARRAY[768 + 3],
-        RANDOM_ARRAY[768 + 3] ^ RANDOM_ARRAY[768 + 2],
-        RANDOM_ARRAY[768 + 3] ^ RANDOM_ARRAY[768 + 2] ^ RANDOM_ARRAY[768],
-        RANDOM_ARRAY[768 + 1] ^ RANDOM_ARRAY[768 + 2] ^ RANDOM_ARRAY[768 + 3],
-        RANDOM_ARRAY[768 + 1] ^ RANDOM_ARRAY[768 + 2] ^ RANDOM_ARRAY[768 + 3] ^ RANDOM_ARRAY[768]};
+    static constexpr std::array<U64, 16> castlingKey = []() constexpr {
+        auto generateCastlingKey = [](int index) constexpr -> U64 {
+            constexpr int RANDOM_OFFSET = 768;
+            constexpr int RANDOM_COUNT  = 4;
+
+            U64 key = 0;
+
+            for (int i = 0; i < RANDOM_COUNT; ++i) {
+                if (index & (1 << i)) {
+                    key ^= RANDOM_ARRAY[RANDOM_OFFSET + i];
+                }
+            }
+
+            return key;
+        };
+
+        std::array<U64, 16> arr{};
+
+        for (int i = 0; i < 16; ++i) arr[i] = generateCastlingKey(i);
+
+        return arr;
+    }();
 
     static constexpr int MAP_HASH_PIECE[12] = {1, 3, 5, 7, 9, 11, 0, 2, 4, 6, 8, 10};
 
@@ -1652,7 +1671,10 @@ class Zobrist {
     /// @param square
     /// @return
     [[nodiscard]] static U64 piece(Piece piece, Square square) noexcept {
-        assert(int(piece) >= 0 && int(piece) < 12);
+        assert(piece < 12);
+#if __cplusplus >= 202207L
+        [[assume(x < 12)]];
+#endif
         return RANDOM_ARRAY[64 * MAP_HASH_PIECE[piece] + square.index()];
     }
 
@@ -1660,7 +1682,10 @@ class Zobrist {
     /// @param file
     /// @return
     [[nodiscard]] static U64 enpassant(File file) noexcept {
-        assert(int(file) >= 0 && int(file) < 8);
+        assert(int(file) < 8);
+#if __cplusplus >= 202207L
+        [[assume(x < 8)]];
+#endif
         return RANDOM_ARRAY[772 + file];
     }
 
@@ -1669,6 +1694,9 @@ class Zobrist {
     /// @return
     [[nodiscard]] static U64 castling(int castling) noexcept {
         assert(castling >= 0 && castling < 16);
+#if __cplusplus >= 202207L
+        [[assume(x < 16)]];
+#endif
         return castlingKey[castling];
     }
 
@@ -1677,6 +1705,9 @@ class Zobrist {
     /// @return
     [[nodiscard]] static U64 castlingIndex(int idx) noexcept {
         assert(idx >= 0 && idx < 4);
+#if __cplusplus >= 202207L
+        [[assume(x < 4)]];
+#endif
         return RANDOM_ARRAY[768 + idx];
     }
 
@@ -1816,12 +1847,18 @@ class Board {
 
         static auto parseStringViewToInt = [](std::string_view sv) -> std::optional<int> {
             if (!sv.empty() && sv.back() == ';') sv.remove_suffix(1);
+#ifndef CHESS_NO_EXCEPTIONS
             try {
                 size_t pos;
                 int value = std::stoi(std::string(sv), &pos);
                 if (pos == sv.size()) return value;
             } catch (...) {
             }
+#else
+            size_t pos;
+            int value = std::stoi(std::string(sv), &pos);
+            if (pos == sv.size()) return value;
+#endif
             return std::nullopt;
         };
 
@@ -1932,6 +1969,13 @@ class Board {
         return ss;
     }
 
+    /// @brief Make a move on the board. The move must be legal otherwise the
+    /// behavior is undefined. EXACT can be set to true to only record
+    /// the enpassant square if the enemy can legally capture the pawn on their
+    /// next move.
+    /// @param move
+    /// @tparam EXACT
+    /// @return
     template <bool EXACT = false>
     void makeMove(const Move move) {
         const auto capture  = at(move.to()) != Piece::NONE && move.typeOf() != Move::CASTLING;
@@ -1989,57 +2033,37 @@ class Board {
 
                 // add enpassant hash if enemy pawns are attacking the square
                 if (static_cast<bool>(ep_mask & pieces(PieceType::PAWN, ~stm_))) {
+                    int found = -1;
+
+                    // check if the enemy can legally capture the pawn on the next move
                     if constexpr (EXACT) {
                         const auto piece = at(move.from());
-                        removePiece(piece, move.from());
-                        placePiece(piece, move.to());
+
+                        found = 0;
+
+                        removePieceInternal(piece, move.from());
+                        placePieceInternal(piece, move.to());
+
                         stm_ = ~stm_;
 
-                        int double_check = 0;
-
-                        Bitboard occ_us  = us(stm_);
-                        Bitboard occ_opp = us(~stm_);
-                        auto king_sq     = kingSq(stm_);
-
-                        Bitboard checkmask;
-                        Bitboard pin_hv;
-                        Bitboard pin_d;
+                        bool valid;
 
                         if (stm_ == Color::WHITE) {
-                            checkmask = movegen::checkMask<Color::WHITE>(*this, king_sq, double_check);
-                            pin_hv    = movegen::pinMaskRooks<Color::WHITE>(*this, king_sq, occ_opp, occ_us);
-                            pin_d     = movegen::pinMaskBishops<Color::WHITE>(*this, king_sq, occ_opp, occ_us);
+                            valid = movegen::isEpSquareValid<Color::WHITE>(*this, move.to().ep_square());
                         } else {
-                            checkmask = movegen::checkMask<Color::BLACK>(*this, king_sq, double_check);
-                            pin_hv    = movegen::pinMaskRooks<Color::BLACK>(*this, king_sq, occ_opp, occ_us);
-                            pin_d     = movegen::pinMaskBishops<Color::BLACK>(*this, king_sq, occ_opp, occ_us);
+                            valid = movegen::isEpSquareValid<Color::BLACK>(*this, move.to().ep_square());
                         }
 
-                        const auto pawns    = pieces(PieceType::PAWN, stm_);
-                        const auto pawns_lr = pawns & ~pin_hv;
-                        const auto ep       = move.to().ep_square();
-                        const auto m        = movegen::generateEPMove(*this, checkmask, pin_d, pawns_lr, ep, stm_);
-                        bool found          = false;
-
-                        for (const auto &move : m) {
-                            if (move != Move::NO_MOVE) {
-                                found = true;
-                                break;
-                            }
-                        }
+                        if (valid) found = 1;
 
                         // undo
                         stm_ = ~stm_;
 
-                        removePiece(piece, move.to());
-                        placePiece(piece, move.from());
+                        removePieceInternal(piece, move.to());
+                        placePieceInternal(piece, move.from());
+                    }
 
-                        if (found) {
-                            assert(at(move.to().ep_square()) == Piece::NONE);
-                            ep_sq_ = move.to().ep_square();
-                            key_ ^= Zobrist::enpassant(move.to().ep_square().file());
-                        }
-                    } else {
+                    if (found != 0) {
                         assert(at(move.to().ep_square()) == Piece::NONE);
                         ep_sq_ = move.to().ep_square();
                         key_ ^= Zobrist::enpassant(move.to().ep_square().file());
@@ -2115,11 +2139,9 @@ class Board {
         plies_--;
 
         if (move.typeOf() == Move::CASTLING) {
-            const bool king_side = move.to() > move.from();
-
+            const bool king_side    = move.to() > move.from();
             const auto rook_from_sq = Square(king_side ? File::FILE_F : File::FILE_D, move.from().rank());
-
-            const auto king_to_sq = Square(king_side ? File::FILE_G : File::FILE_C, move.from().rank());
+            const auto king_to_sq   = Square(king_side ? File::FILE_G : File::FILE_C, move.from().rank());
 
             assert(at<PieceType>(rook_from_sq) == PieceType::ROOK);
             assert(at<PieceType>(king_to_sq) == PieceType::KING);
@@ -2129,6 +2151,7 @@ class Board {
 
             removePiece(rook, rook_from_sq);
             removePiece(king, king_to_sq);
+
             assert(king == Piece(PieceType::KING, stm_));
             assert(rook == Piece(PieceType::ROOK, stm_));
 
@@ -2141,6 +2164,7 @@ class Board {
         } else if (move.typeOf() == Move::PROMOTION) {
             const auto pawn  = Piece(PieceType::PAWN, stm_);
             const auto piece = at(move.to());
+
             assert(piece.type() == move.promotionType());
             assert(piece.type() != PieceType::PAWN);
             assert(piece.type() != PieceType::KING);
@@ -2158,9 +2182,9 @@ class Board {
             return;
         } else {
             assert(at(move.to()) != Piece::NONE);
+            assert(at(move.from()) == Piece::NONE);
 
             const auto piece = at(move.to());
-            assert(at(move.from()) == Piece::NONE);
 
             removePiece(piece, move.to());
             placePiece(piece, move.from());
@@ -2171,9 +2195,11 @@ class Board {
             const auto pawnTo = static_cast<Square>(ep_sq_ ^ 8);
 
             assert(at(pawnTo) == Piece::NONE);
+
             placePiece(pawn, pawnTo);
         } else if (prev.captured_piece != Piece::NONE) {
             assert(at(move.to()) == Piece::NONE);
+
             placePiece(prev.captured_piece, move.to());
         }
 
@@ -2270,7 +2296,7 @@ class Board {
         return (at(move.to()) != Piece::NONE && move.typeOf() != Move::CASTLING) || move.typeOf() == Move::ENPASSANT;
     }
 
-    /// @brief Get the current hash key of the board
+    /// @brief Get the current zobrist hash key of the board
     /// @return
     [[nodiscard]] U64 hash() const { return key_; }
     [[nodiscard]] Color sideToMove() const { return stm_; }
@@ -2326,11 +2352,10 @@ class Board {
         // We start the loop from the back and go forward in moves, at most to the
         // last move which reset the half-move counter because repetitions cant
         // be across half-moves.
+        const auto size = static_cast<int>(prev_states_.size());
 
-        for (int i = static_cast<int>(prev_states_.size()) - 2;
-             i >= 0 && i >= static_cast<int>(prev_states_.size()) - hfm_ - 1; i -= 2) {
+        for (int i = size - 2; i >= 0 && i >= size - hfm_ - 1; i -= 2) {
             if (prev_states_[i].hash == key_) c++;
-
             if (c == count) return true;
         }
 
@@ -2400,12 +2425,8 @@ class Board {
     /// function.
     /// @return
     [[nodiscard]] std::pair<GameResultReason, GameResult> isGameOver() const {
-        if (isHalfMoveDraw()) {
-            return getHalfMoveDrawType();
-        }
-
+        if (isHalfMoveDraw()) return getHalfMoveDrawType();
         if (isInsufficientMaterial()) return {GameResultReason::INSUFFICIENT_MATERIAL, GameResult::DRAW};
-
         if (isRepetition()) return {GameResultReason::THREEFOLD_REPETITION, GameResult::DRAW};
 
         Movelist movelist;
@@ -2449,7 +2470,7 @@ class Board {
                     pieces(PieceType::ROOK, color) | pieces(PieceType::QUEEN, color));
     }
 
-    /// @brief Regenerates the zobrist hash key
+    /// @brief Recalculates the zobrist hash key, expensive! Prefer using hash().
     /// @return
     [[nodiscard]] U64 zobrist() const {
         U64 hash_key = 0ULL;
@@ -2644,15 +2665,18 @@ class Board {
 
             // clear board state
 
+            board.hfm_   = 0;
+            board.plies_ = 0;
+
             board.stm_ = Color::WHITE;
+
+            board.cr_.clear();
+            board.prev_states_.clear();
+            board.original_fen_.clear();
+
             board.occ_bb_.fill(0ULL);
             board.pieces_bb_.fill(0ULL);
             board.board_.fill(Piece::NONE);
-            board.cr_.clear();
-            board.original_fen_.clear();
-            board.prev_states_.clear();
-            board.hfm_   = 0;
-            board.plies_ = 0;
 
             // place pieces back on the board
             while (occupied) {
@@ -2760,37 +2784,9 @@ class Board {
     };
 
    protected:
-    virtual void placePiece(Piece piece, Square sq) {
-        assert(board_[sq.index()] == Piece::NONE);
+    virtual void placePiece(Piece piece, Square sq) { placePieceInternal(piece, sq); }
 
-        auto type  = piece.type();
-        auto color = piece.color();
-        auto index = sq.index();
-
-        assert(type != PieceType::NONE);
-        assert(color != Color::NONE);
-        assert(index >= 0 && index < 64);
-
-        pieces_bb_[type].set(index);
-        occ_bb_[color].set(index);
-        board_[index] = piece;
-    }
-
-    virtual void removePiece(Piece piece, Square sq) {
-        assert(board_[sq.index()] == piece && piece != Piece::NONE);
-
-        auto type  = piece.type();
-        auto color = piece.color();
-        auto index = sq.index();
-
-        assert(type != PieceType::NONE);
-        assert(color != Color::NONE);
-        assert(index >= 0 && index < 64);
-
-        pieces_bb_[type].clear(index);
-        occ_bb_[color].clear(index);
-        board_[index] = Piece::NONE;
-    }
+    virtual void removePiece(Piece piece, Square sq) { removePieceInternal(piece, sq); }
 
     std::vector<State> prev_states_;
 
@@ -2808,6 +2804,22 @@ class Board {
     bool chess960_ = false;
 
    private:
+    void removePieceInternal(Piece piece, Square sq) {
+        assert(board_[sq.index()] == piece && piece != Piece::NONE);
+
+        auto type  = piece.type();
+        auto color = piece.color();
+        auto index = sq.index();
+
+        assert(type != PieceType::NONE);
+        assert(color != Color::NONE);
+        assert(index >= 0 && index < 64);
+
+        pieces_bb_[type].clear(index);
+        occ_bb_[color].clear(index);
+        board_[index] = Piece::NONE;
+    }
+
     void placePieceInternal(Piece piece, Square sq) {
         assert(board_[sq.index()] == Piece::NONE);
 
@@ -2824,8 +2836,6 @@ class Board {
         board_[index] = piece;
     }
 
-    /// @brief [Internal Usage]
-    /// @param fen
     template <bool ctor = false>
     void setFenInternal(std::string_view fen) {
         original_fen_ = fen;
@@ -2847,12 +2857,18 @@ class Board {
 
         static auto parseStringViewToInt = [](std::string_view sv) -> std::optional<int> {
             if (!sv.empty() && sv.back() == ';') sv.remove_suffix(1);
+#ifndef CHESS_NO_EXCEPTIONS
             try {
                 size_t pos;
                 int value = std::stoi(std::string(sv), &pos);
                 if (pos == sv.size()) return value;
             } catch (...) {
             }
+#else
+            size_t pos;
+            int value = std::stoi(std::string(sv), &pos);
+            if (pos == sv.size()) return value;
+#endif
             return std::nullopt;
         };
 
@@ -2874,8 +2890,6 @@ class Board {
         } else {
             key_ ^= Zobrist::sideToMove();
         }
-
-        if (ep_sq_ != Square::underlying::NO_SQ) key_ ^= Zobrist::enpassant(ep_sq_.file());
 
         auto square = 56;
         for (char curr : position) {
@@ -2916,6 +2930,8 @@ class Board {
 #ifndef CHESS_NO_EXCEPTIONS
             throw std::runtime_error("Invalid position");
 #endif
+
+            return File(File::NO_FILE);
         };
 
         for (char i : castling) {
@@ -2952,6 +2968,28 @@ class Board {
                 const auto side = CastlingRights::closestSide(file, king_sq.file());
                 cr_.setCastlingRight(color, side, file);
             }
+        }
+
+        // check if ep square itself is valid
+        if (ep_sq_ != Square::underlying::NO_SQ && !((ep_sq_.rank() == Rank::RANK_3 && stm_ == Color::BLACK) ||
+                                                     (ep_sq_.rank() == Rank::RANK_6 && stm_ == Color::WHITE))) {
+            ep_sq_ = Square::underlying::NO_SQ;
+        }
+
+        // check if ep square is valid, i.e. if there is a pawn that can capture it
+        if (ep_sq_ != Square::underlying::NO_SQ) {
+            bool valid;
+
+            if (stm_ == Color::WHITE) {
+                valid = movegen::isEpSquareValid<Color::WHITE>(*this, ep_sq_);
+            } else {
+                valid = movegen::isEpSquareValid<Color::BLACK>(*this, ep_sq_);
+            }
+
+            if (!valid)
+                ep_sq_ = Square::underlying::NO_SQ;
+            else
+                key_ ^= Zobrist::enpassant(ep_sq_.file());
         }
 
         key_ ^= Zobrist::castling(cr_.hashIndex());
@@ -3436,43 +3474,42 @@ template <Color::underlying c>
 template <Color::underlying c, movegen::MoveGenType mt>
 inline void movegen::generatePawnMoves(const Board &board, Movelist &moves, Bitboard pin_d, Bitboard pin_hv,
                                        Bitboard checkmask, Bitboard occ_opp) {
-    constexpr Direction UP              = c == Color::WHITE ? Direction::NORTH : Direction::SOUTH;
-    constexpr Direction DOWN            = c == Color::WHITE ? Direction::SOUTH : Direction::NORTH;
-    constexpr Direction DOWN_LEFT       = c == Color::WHITE ? Direction::SOUTH_WEST : Direction::NORTH_EAST;
-    constexpr Direction DOWN_RIGHT      = c == Color::WHITE ? Direction::SOUTH_EAST : Direction::NORTH_WEST;
-    constexpr Bitboard RANK_B_PROMO     = c == Color::WHITE ? attacks::MASK_RANK[static_cast<int>(Rank::RANK_7)]
-                                                            : attacks::MASK_RANK[static_cast<int>(Rank::RANK_2)];
-    constexpr Bitboard RANK_PROMO       = c == Color::WHITE ? attacks::MASK_RANK[static_cast<int>(Rank::RANK_8)]
-                                                            : attacks::MASK_RANK[static_cast<int>(Rank::RANK_1)];
-    constexpr Bitboard DOUBLE_PUSH_RANK = c == Color::WHITE ? attacks::MASK_RANK[static_cast<int>(Rank::RANK_3)]
-                                                            : attacks::MASK_RANK[static_cast<int>(Rank::RANK_6)];
+    // flipped for black
+
+    constexpr auto UP         = make_direction(Direction::NORTH, c);
+    constexpr auto DOWN       = make_direction(Direction::SOUTH, c);
+    constexpr auto DOWN_LEFT  = make_direction(Direction::SOUTH_WEST, c);
+    constexpr auto DOWN_RIGHT = make_direction(Direction::SOUTH_EAST, c);
+    constexpr auto UP_LEFT    = make_direction(Direction::NORTH_WEST, c);
+    constexpr auto UP_RIGHT   = make_direction(Direction::NORTH_EAST, c);
+
+    constexpr auto RANK_B_PROMO     = Rank::rank(Rank::RANK_7, c).bb();
+    constexpr auto RANK_PROMO       = Rank::rank(Rank::RANK_8, c).bb();
+    constexpr auto DOUBLE_PUSH_RANK = Rank::rank(Rank::RANK_3, c).bb();
 
     const auto pawns = board.pieces(PieceType::PAWN, c);
 
     // These pawns can maybe take Left or Right
-    const Bitboard pawns_lr         = pawns & ~pin_hv;
-    const Bitboard unpinnedpawns_lr = pawns_lr & ~pin_d;
-    const Bitboard pinnedpawns_lr   = pawns_lr & pin_d;
+    const Bitboard pawns_lr          = pawns & ~pin_hv;
+    const Bitboard unpinned_pawns_lr = pawns_lr & ~pin_d;
+    const Bitboard pinned_pawns_lr   = pawns_lr & pin_d;
 
-    Bitboard l_pawns =
-        attacks::pawnLeftAttacks<c>(unpinnedpawns_lr) | (attacks::pawnLeftAttacks<c>(pinnedpawns_lr) & pin_d);
-
-    Bitboard r_pawns =
-        attacks::pawnRightAttacks<c>(unpinnedpawns_lr) | (attacks::pawnRightAttacks<c>(pinnedpawns_lr) & pin_d);
+    auto l_pawns = attacks::shift<UP_LEFT>(unpinned_pawns_lr) | (attacks::shift<UP_LEFT>(pinned_pawns_lr) & pin_d);
+    auto r_pawns = attacks::shift<UP_RIGHT>(unpinned_pawns_lr) | (attacks::shift<UP_RIGHT>(pinned_pawns_lr) & pin_d);
 
     // Prune moves that don't capture a piece and are not on the checkmask.
     l_pawns &= occ_opp & checkmask;
     r_pawns &= occ_opp & checkmask;
 
     // These pawns can walk Forward
-    const Bitboard pawns_hv = pawns & ~pin_d;
+    const auto pawns_hv = pawns & ~pin_d;
 
-    const Bitboard pawns_pinned_hv   = pawns_hv & pin_hv;
-    const Bitboard pawns_unpinned_hv = pawns_hv & ~pin_hv;
+    const auto pawns_pinned_hv   = pawns_hv & pin_hv;
+    const auto pawns_unpinned_hv = pawns_hv & ~pin_hv;
 
     // Prune moves that are blocked by a piece
-    const Bitboard single_push_unpinned = attacks::shift<UP>(pawns_unpinned_hv) & ~board.occ();
-    const Bitboard single_push_pinned   = attacks::shift<UP>(pawns_pinned_hv) & pin_hv & ~board.occ();
+    const auto single_push_unpinned = attacks::shift<UP>(pawns_unpinned_hv) & ~board.occ();
+    const auto single_push_pinned   = attacks::shift<UP>(pawns_pinned_hv) & pin_hv & ~board.occ();
 
     // Prune moves that are not on the checkmask.
     Bitboard single_push = (single_push_unpinned | single_push_pinned) & checkmask;
@@ -3559,26 +3596,26 @@ inline void movegen::generatePawnMoves(const Board &board, Movelist &moves, Bitb
     std::array<Move, 2> moves = {Move::NO_MOVE, Move::NO_MOVE};
     auto i                    = 0;
 
-    const Direction DOWN = c == Color::WHITE ? Direction::SOUTH : Direction::NORTH;
-    const Square epPawn  = ep + DOWN;
+    const auto DOWN     = make_direction(Direction::SOUTH, c);
+    const auto epPawnSq = ep + DOWN;
 
     /*
      In case the en passant square and the enemy pawn
      that just moved are not on the checkmask
      en passant is not available.
     */
-    if ((checkmask & (Bitboard::fromSquare(epPawn) | Bitboard::fromSquare(ep))) == Bitboard(0)) return moves;
+    if ((checkmask & (Bitboard::fromSquare(epPawnSq) | Bitboard::fromSquare(ep))) == Bitboard(0)) return moves;
 
     const Square kSQ              = board.kingSq(c);
-    const Bitboard kingMask       = Bitboard::fromSquare(kSQ) & attacks::MASK_RANK[epPawn.rank()].getBits();
+    const Bitboard kingMask       = Bitboard::fromSquare(kSQ) & epPawnSq.rank().bb();
     const Bitboard enemyQueenRook = board.pieces(PieceType::ROOK, ~c) | board.pieces(PieceType::QUEEN, ~c);
 
-    Bitboard epBB = attacks::pawn(~c, ep) & pawns_lr;
+    auto epBB = attacks::pawn(~c, ep) & pawns_lr;
 
     // For one en passant square two pawns could potentially take there.
     while (epBB) {
-        const Square from = epBB.pop();
-        const Square to   = ep;
+        const auto from = epBB.pop();
+        const auto to   = ep;
 
         /*
          If the pawn is pinned but the en passant square is not on the
@@ -3586,7 +3623,7 @@ inline void movegen::generatePawnMoves(const Board &board, Movelist &moves, Bitb
         */
         if ((Bitboard::fromSquare(from) & pin_d) && !(pin_d & Bitboard::fromSquare(ep))) continue;
 
-        const Bitboard connectingPawns = Bitboard::fromSquare(epPawn) | Bitboard::fromSquare(from);
+        const auto connectingPawns = Bitboard::fromSquare(epPawnSq) | Bitboard::fromSquare(from);
 
         /*
          7k/4p3/8/2KP3r/8/8/8/8 b - - 0 1
@@ -3596,7 +3633,8 @@ inline void movegen::generatePawnMoves(const Board &board, Movelist &moves, Bitb
          that would give check if the two pawns were removed.
          If that's the case then the move is illegal and we can break immediately.
         */
-        const bool isPossiblePin = kingMask && enemyQueenRook;
+        const auto isPossiblePin = kingMask && enemyQueenRook;
+
         if (isPossiblePin && (attacks::rook(kSQ, board.occ() & ~connectingPawns) & enemyQueenRook) != Bitboard(0))
             break;
 
@@ -3700,7 +3738,7 @@ template <Color::underlying c, movegen::MoveGenType mt>
 
         if ((not_attacked_path & empty_not_attacked) == not_attacked_path &&
             ((not_occ_path & ~board.occ()) == not_occ_path) &&
-            !(Bitboard::fromSquare(from_rook_sq) & pin_hv.getBits() & attacks::MASK_RANK[sq.rank()].getBits()) &&
+            !(Bitboard::fromSquare(from_rook_sq) & pin_hv.getBits() & sq.rank().bb()) &&
             !(Bitboard::fromSquare(end_rook_sq) & (withoutRook & withoutKing).getBits()) &&
             !(Bitboard::fromSquare(end_king_sq) &
               (seen | (withoutRook & Bitboard(~Bitboard::fromSquare(sq)))).getBits())) {
@@ -3830,6 +3868,34 @@ inline void movegen::legalmoves(Movelist &movelist, const Board &board, int piec
         legalmoves<Color::BLACK, mt>(movelist, board, pieces);
 }
 
+template <Color::underlying c>
+inline bool movegen::isEpSquareValid(const Board &board, Square ep) {
+    const auto stm   = board.sideToMove();
+    int double_check = 0;
+
+    Bitboard occ_us  = board.us(stm);
+    Bitboard occ_opp = board.us(~stm);
+    auto king_sq     = board.kingSq(stm);
+
+    Bitboard checkmask = movegen::checkMask<c>(board, king_sq, double_check);
+    Bitboard pin_hv    = movegen::pinMaskRooks<c>(board, king_sq, occ_opp, occ_us);
+    Bitboard pin_d     = movegen::pinMaskBishops<c>(board, king_sq, occ_opp, occ_us);
+
+    const auto pawns    = board.pieces(PieceType::PAWN, stm);
+    const auto pawns_lr = pawns & ~pin_hv;
+    const auto m        = movegen::generateEPMove(board, checkmask, pin_d, pawns_lr, ep, stm);
+    bool found          = false;
+
+    for (const auto &move : m) {
+        if (move != Move::NO_MOVE) {
+            found = true;
+            break;
+        }
+    }
+
+    return found;
+}
+
 inline const std::array<std::array<Bitboard, 64>, 64> movegen::SQUARES_BETWEEN_BB = [] {
     attacks::initAttacks();
     return movegen::init_squares_between();
@@ -3877,6 +3943,20 @@ class Visitor {
     bool skip_ = false;
 };
 
+class StreamParserException : public std::exception {
+   public:
+    explicit StreamParserException(const char *message) : msg_(message) {}
+
+    explicit StreamParserException(const std::string &message) : msg_(message) {}
+
+    virtual ~StreamParserException() noexcept {}
+
+    virtual const char *what() const noexcept { return msg_.c_str(); }
+
+   protected:
+    std::string msg_;
+};
+
 template <std::size_t BUFFER_SIZE =
 #if defined(__unix__) || defined(__unix) || defined(unix) || defined(__APPLE__) || defined(__MACH__)
 #    if defined(__APPLE__) || defined(__MACH__)
@@ -3890,6 +3970,8 @@ template <std::size_t BUFFER_SIZE =
           >
 class StreamParser {
    public:
+    // Exception Class
+
     StreamParser(std::istream &stream) : stream_buffer(stream) {}
 
     void readGames(Visitor &vis) {
@@ -3899,11 +3981,11 @@ class StreamParser {
             return;
         }
 
-        stream_buffer.loop([this](char c) {
+        while (auto c = stream_buffer.some()) {
             if (in_header) {
                 visitor->skipPgn(false);
 
-                if (c == '[') {
+                if (*c == '[') {
                     visitor->startPgn();
                     pgn_end = false;
 
@@ -3916,7 +3998,7 @@ class StreamParser {
 
             if (!dont_advance_after_body) stream_buffer.advance();
             dont_advance_after_body = false;
-        });
+        }
 
         if (!pgn_end) {
             onEnd();
@@ -3934,13 +4016,14 @@ class StreamParser {
 
         void operator+=(char c) {
             assert(index_ < N);
-            buffer_[index_++] = c;
+            buffer_[index_] = c;
+            ++index_;
         }
 
         void remove_suffix(std::size_t n) {
 #ifndef CHESS_NO_EXCEPTIONS
             if (n > index_) {
-                throw std::runtime_error("LineBuffer underflow");
+                throw StreamParserException("LineBuffer underflow");
             }
 #endif
 
@@ -3962,33 +4045,23 @@ class StreamParser {
        public:
         StreamBuffer(std::istream &stream) : stream_(stream) {}
 
-        template <typename FUNC>
-        void loop(FUNC f) {
-            while (bytes_read_) {
-                if (buffer_index_ >= bytes_read_) {
-                    if (!fill()) {
-                        return;
-                    }
+        /// @brief get the current char, skip carriage returns
+        std::optional<char> some() {
+            if (buffer_index_ < bytes_read_) {
+                const auto c = buffer_[buffer_index_];
+
+                if (c == '\r') {
+                    ++buffer_index_;
+                    return some();
                 }
 
-                while (buffer_index_ < bytes_read_) {
-                    const auto c = buffer_[buffer_index_];
-
-                    if (c == '\r') {
-                        buffer_index_++;
-                        continue;
-                    }
-
-                    if constexpr (std::is_same_v<decltype(f(c)), bool>) {
-                        const auto res = f(c);
-
-                        if (res) {
-                            return;
-                        }
-                    } else {
-                        f(c);
-                    }
+                return c;
+            } else {
+                if (!fill()) {
+                    return std::nullopt;
                 }
+
+                return some();
             }
         }
 
@@ -3996,24 +4069,25 @@ class StreamParser {
         /// @param open_delim
         /// @param close_delim
         /// @return
-        bool readUntilMatchingDelimiter(char open_delim, char close_delim) {
+        bool skipUntil(char open_delim, char close_delim) {
             int stack = 0;
 
             while (true) {
-                const auto ret = getNextByte();
+                const auto ret = some();
+                advance();
 
                 if (!ret.has_value()) {
                     return false;
                 }
 
                 if (*ret == open_delim) {
-                    stack++;
+                    ++stack;
                 } else if (*ret == close_delim) {
                     if (stack == 0) {
                         // Mismatched closing delimiter
                         return false;
                     } else {
-                        stack--;
+                        --stack;
                         if (stack == 0) {
                             // Matching closing delimiter found
                             return true;
@@ -4042,7 +4116,7 @@ class StreamParser {
                 fill();
             }
 
-            buffer_index_++;
+            ++buffer_index_;
         }
 
         char peek() {
@@ -4059,14 +4133,6 @@ class StreamParser {
             }
 
             return buffer_[buffer_index_];
-        }
-
-        std::optional<char> getNextByte() {
-            if (buffer_index_ == bytes_read_) {
-                return fill() ? std::optional<char>(buffer_[buffer_index_++]) : std::nullopt;
-            }
-
-            return buffer_[buffer_index_++];
         }
 
        private:
@@ -4098,48 +4164,54 @@ class StreamParser {
 
     void processHeader() {
         bool backslash = false;
-        stream_buffer.loop([this, &backslash](char c) {
-            switch (c) {
+
+        while (auto c = stream_buffer.some()) {
+            switch (*c) {
                 // tag start
                 case '[':
                     stream_buffer.advance();
 
-                    stream_buffer.loop([this](char c) {
-                        if (is_space(c)) {
-                            return true;
+                    while (auto k = stream_buffer.some()) {
+                        if (is_space(*k)) {
+                            break;
                         } else {
-                            header.first += c;
+                            header.first += *k;
                             stream_buffer.advance();
-                            return false;
                         }
-                    });
+                    }
 
                     stream_buffer.advance();
-                    return false;
+                    break;
                 case '"':
                     stream_buffer.advance();
-                    stream_buffer.loop([this, &backslash](char c) {
-                        if (c == '\\') {
+
+                    while (auto k = stream_buffer.some()) {
+                        if (*k == '\\') {
                             backslash = true;
                             // don't add backslash to header, is this really correct?
                             stream_buffer.advance();
-                            return false;
-                        } else if (c == '"' && !backslash) {
+                        } else if (*k == '"' && !backslash) {
                             stream_buffer.advance();
 
                             // we should be now at ]
                             assert(stream_buffer.current().value() == ']');
                             stream_buffer.advance();
 
-                            return true;
-                        } else {
-                            backslash = false;
+                            break;
                         }
-
-                        header.second += c;
-                        stream_buffer.advance();
-                        return false;
-                    });
+#ifndef CHESS_NO_EXCEPTIONS
+                        else if (*k == '\n') {
+                            // we missed the closing quote and read until the newline character
+                            // this is an invalid pgn, let's throw an error
+                            throw StreamParserException("Invalid PGN, missing closing quote in header");
+                        }
+#endif
+                        else {
+                            backslash = false;
+                            header.second += *k;
+                            stream_buffer.advance();
+                        }
+                    }
 
                     // manually skip carriage return, otherwise we would be in the body
                     // ideally we should completely skip all carriage returns and newlines to avoid this
@@ -4153,14 +4225,14 @@ class StreamParser {
                     header.second.clear();
 
                     stream_buffer.advance();
-                    return false;
+                    break;
                 case '\n':
                     in_header = false;
                     in_body   = true;
 
                     if (!visitor->skip()) visitor->startMoves();
 
-                    return true;
+                    goto exit_loop;
                 default:
                     // this should normally not happen
                     // lets just go into the body, will this always be save?
@@ -4169,12 +4241,11 @@ class StreamParser {
 
                     if (!visitor->skip()) visitor->startMoves();
 
-                    return true;
+                    goto exit_loop;
             }
+        }
 
-            stream_buffer.advance();
-            return false;
-        });
+    exit_loop:;
     }
 
     void processBody() {
@@ -4188,28 +4259,28 @@ class StreamParser {
         which directly start with a game termination
         this https://github.com/Disservin/chess-library/issues/68
         */
-        stream_buffer.loop([this, &is_termination_symbol, &has_comment](char c) {
-            if (c == ' ' || is_digit(c)) {
+
+        while (auto c = stream_buffer.some()) {
+            if (*c == ' ' || is_digit(*c)) {
                 stream_buffer.advance();
-                return false;
-            } else if (c == '-' || c == '*' || c == '/') {
+            } else if (*c == '-' || *c == '*' || c == '/') {
                 is_termination_symbol = true;
                 stream_buffer.advance();
-                return false;
-            } else if (c == '{') {
+            } else if (*c == '{') {
                 has_comment = true;
 
                 // reading comment
                 stream_buffer.advance();
-                stream_buffer.loop([this](char c) {
+
+                while (auto k = stream_buffer.some()) {
                     stream_buffer.advance();
 
-                    if (c == '}') return true;
+                    if (*k == '}') {
+                        break;
+                    }
 
-                    comment += c;
-
-                    return false;
-                });
+                    comment += *k;
+                }
 
                 // the game has no moves, but a comment followed by a game termination
                 if (!visitor->skip()) {
@@ -4217,10 +4288,10 @@ class StreamParser {
 
                     comment.clear();
                 }
+            } else {
+                break;
             }
-
-            return true;
-        });
+        }
 
         // we need to reparse the termination symbol
         if (has_comment && !is_termination_symbol) {
@@ -4233,79 +4304,76 @@ class StreamParser {
             return;
         }
 
-        stream_buffer.loop([this](char cd) {
-            if (isspace(cd)) {
+        while (auto c = stream_buffer.some()) {
+            if (is_space(*c)) {
                 stream_buffer.advance();
-                return false;
+                continue;
             }
 
-            return true;
-        });
+            break;
+        }
 
-        stream_buffer.loop([this](char cd) {
+        while (auto cd = stream_buffer.some()) {
             // Pgn are build up in the following way.
             // {move_number} {move} {comment} {move} {comment} {move_number} ...
             // So we need to skip the move_number then start reading the move, then save the comment
             // then read the second move in the group. After that a move_number will follow again.
 
             // [ is unexpected here, it probably is a new pgn and the current one is finished
-            if (cd == '[') {
+            if (*cd == '[') {
                 onEnd();
                 dont_advance_after_body = true;
-                return true;
+                // break;
+                break;
             }
 
             // skip move number digits
-            stream_buffer.loop([this](char c) {
-                if (is_space(c) || is_digit(c)) {
+            while (auto c = stream_buffer.some()) {
+                if (is_space(*c) || is_digit(*c)) {
                     stream_buffer.advance();
-                    return false;
+                } else {
+                    break;
                 }
-
-                return true;
-            });
+            }
 
             // skip dots
-            stream_buffer.loop([this](char c) {
-                if (c == '.') {
+            while (auto c = stream_buffer.some()) {
+                if (*c == '.') {
                     stream_buffer.advance();
-                    return false;
+                } else {
+                    break;
                 }
-
-                return true;
-            });
-
-            // skip spaces
-            stream_buffer.loop([this](char c) {
-                if (is_space(c)) {
-                    stream_buffer.advance();
-                    return false;
-                }
-
-                return true;
-            });
-
-            // parse move
-            if (parseMove()) {
-                return true;
             }
 
             // skip spaces
-            stream_buffer.loop([this](char c) {
-                if (is_space(c)) {
+            while (auto c = stream_buffer.some()) {
+                if (is_space(*c)) {
                     stream_buffer.advance();
-                    return false;
+                } else {
+                    break;
                 }
+            }
 
-                return true;
-            });
+            // parse move
+            if (parseMove()) {
+                break;
+            }
+
+            // skip spaces
+            while (auto c = stream_buffer.some()) {
+                if (is_space(*c)) {
+                    stream_buffer.advance();
+                } else {
+                    break;
+                }
+            }
 
             // game termination
             auto curr = stream_buffer.current();
 
             if (!curr.has_value()) {
                 onEnd();
-                return true;
+                break;
             }
 
             // game termination
@@ -4313,7 +4381,7 @@ class StreamParser {
                 onEnd();
                 stream_buffer.advance();
 
-                return true;
+                break;
             }
 
             const auto peek = stream_buffer.peek();
@@ -4324,14 +4392,14 @@ class StreamParser {
                     stream_buffer.advance();
 
                     onEnd();
-                    return true;
+                    break;
                 } else if (peek == '/') {
-                    for (size_t i = 0; i <= 6; i++) {
+                    for (size_t i = 0; i <= 6; ++i) {
                         stream_buffer.advance();
                     }
 
                     onEnd();
-                    return true;
+                    break;
                 }
             }
 
@@ -4344,7 +4412,7 @@ class StreamParser {
                 if (!c.has_value()) {
                     onEnd();
 
-                    return true;
+                    break;
                 }
 
                 // game termination
@@ -4352,7 +4420,7 @@ class StreamParser {
                     onEnd();
                     stream_buffer.advance();
 
-                    return true;
+                    break;
                 }
                 // castling
                 else {
@@ -4361,77 +4429,85 @@ class StreamParser {
 
                     if (parseMove()) {
                         stream_buffer.advance();
-                        return true;
+                        break;
                     }
                 }
             }
-
-            return false;
-        });
+        }
     }
 
     bool parseMove() {
         // reading move
-        stream_buffer.loop([this](char c) {
-            if (is_space(c)) {
+        while (auto c = stream_buffer.some()) {
+            if (is_space(*c)) {
+                break;
+            }
+
+            move += *c;
+
+            stream_buffer.advance();
+        }
+
+        return parseMoveAppendix();
+    }
+
+    bool parseMoveAppendix() {
+        while (true) {
+            auto curr = stream_buffer.current();
+
+            if (!curr.has_value()) {
+                onEnd();
                 return true;
             }
 
-            move += c;
-
-            stream_buffer.advance();
-            return false;
-        });
-
-    start:
-        auto curr = stream_buffer.current();
-        if (!curr.has_value()) {
-            onEnd();
-            return true;
-        }
-
-        switch (*curr) {
-            case '{':
-                // reading comment
-                stream_buffer.advance();
-                stream_buffer.loop([this](char c) {
+            switch (*curr) {
+                case '{': {
+                    // reading comment
                     stream_buffer.advance();
 
-                    if (c == '}') return true;
-
-                    comment += c;
-
-                    return false;
-                });
-                goto start;
-            case '(':
-                stream_buffer.readUntilMatchingDelimiter('(', ')');
-                goto start;
-            case '$':
-                stream_buffer.loop([this](char c) {
-                    if (is_space(c)) return true;
-
-                    stream_buffer.advance();
-                    return false;
-                });
-                goto start;
-            case ' ':
-                stream_buffer.loop([this](char c) {
-                    if (is_space(c)) {
+                    while (auto c = stream_buffer.some()) {
                         stream_buffer.advance();
-                        return false;
+
+                        if (*c == '}') {
+                            break;
+                        }
+
+                        comment += *c;
                     }
 
-                    return true;
-                });
-                goto start;
-            default:
-                break;
+                    break;
+                }
+                case '(': {
+                    stream_buffer.skipUntil('(', ')');
+                    break;
+                }
+                case '$': {
+                    while (auto c = stream_buffer.some()) {
+                        if (is_space(*c)) {
+                            break;
+                        }
+
+                        stream_buffer.advance();
+                    }
+
+                    break;
+                }
+                case ' ': {
+                    while (auto c = stream_buffer.some()) {
+                        if (!is_space(*c)) {
+                            break;
+                        }
+
+                        stream_buffer.advance();
+                    }
+
+                    break;
+                }
+                default:
+                    callVisitorMoveFunction();
+                    return false;
+            }
         }
-
-        callVisitorMoveFunction();
-
-        return false;
     }
 
     void onEnd() {
@@ -4638,8 +4714,8 @@ class uci {
             return Move::NO_MOVE;
         }
 
-        constexpr auto pt_to_pgt      = [](PieceType pt) { return 1 << (pt); };
-        const SanMoveInformation info = parseSanInfo<PEDANTIC>(san);
+        static constexpr auto pt_to_pgt = [](PieceType pt) { return 1 << (pt); };
+        const SanMoveInformation info   = parseSanInfo<PEDANTIC>(san);
 
         if (info.capture) {
             movegen::legalmoves<movegen::MoveGenType::CAPTURE>(moves, board, pt_to_pgt(info.piece));
@@ -4703,18 +4779,6 @@ class uci {
             }
         }
 
-#ifdef DEBUG
-        std::stringstream ss;
-
-        ss << "pt " << int(info.piece) << "\n";
-        ss << "info.from_file " << int(info.from_file) << "\n";
-        ss << "info.from_rank " << int(info.from_rank) << "\n";
-        ss << "promotion " << int(info.promotion) << "\n";
-        ss << "to_sq " << squareToString[info.to] << "\n";
-
-        std::cerr << ss.str();
-#endif
-
 #ifndef CHESS_NO_EXCEPTIONS
         throw SanParseError("Failed to parse san. At step 3: " + std::string(san) + " " + board.getFen());
 #endif
@@ -4759,9 +4823,10 @@ class uci {
                    (!info.castling_short && !info.castling_long));
         };
 
-        constexpr auto isRank = [](char c) { return c >= '1' && c <= '8'; };
-        constexpr auto isFile = [](char c) { return c >= 'a' && c <= 'h'; };
-        constexpr auto sw     = [](const char &c) { return std::string_view(&c, 1); };
+        static constexpr auto isRank = [](char c) { return c >= '1' && c <= '8'; };
+        static constexpr auto isFile = [](char c) { return c >= 'a' && c <= 'h'; };
+        static constexpr auto sw     = [](const char &c) { return std::string_view(&c, 1); };
+
         SanMoveInformation info;
 
         // set to 1 to skip piece type offset

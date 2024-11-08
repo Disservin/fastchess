@@ -37,6 +37,16 @@ void Logger::openFile(const std::string &file) {
     }
 #endif
 
+    // verify that the file was opened
+
+    std::visit(
+        [&](auto &&arg) {
+            if (!arg.is_open()) {
+                throw std::runtime_error("Failed to open log file.");
+            }
+        },
+        log_);
+
     Logger::should_log_ = true;
 }
 

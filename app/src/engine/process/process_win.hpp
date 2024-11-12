@@ -130,50 +130,137 @@ class Process : public IProcess {
 
         auto id = std::this_thread::get_id();
 
-        auto read_future =
-            std::async(std::launch::async, [this, &last_word, &lines, id, &atomic_stop = atomic::stop]() {
-                char buffer[4096];
-                DWORD bytes_read;
+        // auto read_future =
+        //     std::async(std::launch::async, [this, &last_word, &lines, id, &atomic_stop = atomic::stop]() {
+        //         char buffer[4096];
+        //         DWORD bytes_read;
 
-                while (true) {
-                    if (!ReadFile(in_pipe_.read_end(), buffer, sizeof(buffer), &bytes_read, nullptr)) {
-                        return Status::ERR;
-                    }
+        //         while (true) {
+        //             if (!ReadFile(in_pipe_.read_end(), buffer, sizeof(buffer), &bytes_read, nullptr)) {
+        //                 return Status::ERR;
+        //             }
 
-                    if (atomic_stop) return Status::ERR;
-                    if (bytes_read <= 0) continue;
+        //             if (atomic_stop) return Status::ERR;
+        //             if (bytes_read <= 0) continue;
 
-                    // Iterate over each character in the buffer
-                    for (DWORD i = 0; i < bytes_read; i++) {
-                        // If we encounter a newline, add the current line to the vector and reset
-                        // the current_line_ on Windows newlines are \r\n. Otherwise, append the
-                        // character to the current line
-                        if (buffer[i] != '\n' && buffer[i] != '\r') {
-                            current_line_ += buffer[i];
-                            continue;
-                        }
+        //             // Iterate over each character in the buffer
+        //             for (DWORD i = 0; i < bytes_read; i++) {
+        //                 // If we encounter a newline, add the current line to the vector and reset
+        //                 // the current_line_ on Windows newlines are \r\n. Otherwise, append the
+        //                 // character to the current line
+        //                 if (buffer[i] != '\n' && buffer[i] != '\r') {
+        //                     current_line_ += buffer[i];
+        //                     continue;
+        //                 }
 
-                        // don't add empty lines
-                        if (current_line_.empty()) continue;
+        //                 // don't add empty lines
+        //                 if (current_line_.empty()) continue;
 
-                        const auto time = Logger::should_log_ ? util::time::datetime_precise() : "";
+        //                 const auto time = Logger::should_log_ ? util::time::datetime_precise() : "";
 
-                        lines.emplace_back(Line{current_line_, time});
+        //                 lines.emplace_back(Line{current_line_, time});
 
-                        if (realtime_logging_) Logger::readFromEngine(current_line_, time, log_name_, false, id);
+        //                 if (realtime_logging_) Logger::readFromEngine(current_line_, time, log_name_, false, id);
 
-                        if (current_line_.rfind(last_word, 0) == 0) return Status::OK;
+        //                 if (current_line_.rfind(last_word, 0) == 0) return Status::OK;
 
-                        current_line_.clear();
-                    }
+        //                 current_line_.clear();
+        //             }
+        //         }
+        //     });
+
+        // // Check if the asynchronous operation is completed
+        // const auto fut = read_future.wait_for(threshold);
+
+        // if (fut == std::future_status::timeout) return Status::TIMEOUT;
+        // return Status::OK;
+
+        char buffer[4096];
+
+        // Set up the overlapped structure
+        overlapped_        = {};
+        overlapped_.hEvent = CreateEvent(nullptr, TRUE, FALSE, nullptr);
+
+        if (!overlapped_.hEvent) {
+            return Status::ERR;
+        }
+
+        HANDLE handles[2]   = {overlapped_.hEvent};
+        size_t handle_count = 1;
+
+        while (true) {
+            DWORD bytes_read = 0;
+            BOOL read_result = ReadFile(in_pipe_.read_end(), buffer, sizeof(buffer), &bytes_read, &overlapped_);
+
+            if (!read_result) {
+                if (GetLastError() != ERROR_IO_PENDING) {
+                    CloseHandle(overlapped_.hEvent);
+                    return Status::ERR;
                 }
-            });
+            }
 
-        // Check if the asynchronous operation is completed
-        const auto fut = read_future.wait_for(threshold);
+            // Wait for either the read to complete or the timeout to expire
+            DWORD wait_result =
+                WaitForMultipleObjects(handle_count, handles, FALSE, static_cast<DWORD>(threshold.count()));
 
-        if (fut == std::future_status::timeout) return Status::TIMEOUT;
-        return Status::OK;
+            if (wait_result == WAIT_TIMEOUT) {
+                CancelIo(in_pipe_.read_end());
+                CloseHandle(overlapped_.hEvent);
+                return Status::TIMEOUT;
+            }
+
+            if (wait_result == WAIT_FAILED) {
+                CloseHandle(overlapped_.hEvent);
+                return Status::ERR;
+            }
+
+            // Get the results of the overlapped operation
+            if (!GetOverlappedResult(in_pipe_.read_end(), &overlapped_, &bytes_read, FALSE)) {
+                DWORD error = GetLastError();
+                if (error == ERROR_BROKEN_PIPE) {
+                    CloseHandle(overlapped_.hEvent);
+                    return Status::OK;  // Process has terminated
+                }
+                CloseHandle(overlapped_.hEvent);
+                return Status::ERR;
+            }
+
+            if (bytes_read == 0) continue;
+
+            const auto processBuffer = [this, &buffer, &lines, &last_word, id](DWORD bytes_read) {
+                for (DWORD i = 0; i < bytes_read; i++) {
+                    if (buffer[i] != '\n' && buffer[i] != '\r') {
+                        current_line_ += buffer[i];
+                        continue;
+                    }
+
+                    if (current_line_.empty()) continue;
+
+                    const auto time = Logger::should_log_ ? util::time::datetime_precise() : "";
+
+                    lines.emplace_back(Line{current_line_, time});
+
+                    if (realtime_logging_) Logger::readFromEngine(current_line_, time, log_name_, false, id);
+
+                    if (current_line_.rfind(last_word, 0) == 0) return Status::OK;
+
+                    current_line_.clear();
+                }
+
+                return Status::NONE;
+            };
+
+            // Process the buffer
+            Status result = processBuffer(bytes_read);
+
+            if (result != Status::NONE) {
+                CloseHandle(overlapped_.hEvent);
+                return result;
+            }
+
+            // Reset event for next iteration
+            ResetEvent(overlapped_.hEvent);
+        }
     }
 
     Status writeProcess(const std::string &input) noexcept override {
@@ -262,6 +349,8 @@ class Process : public IProcess {
     PROCESS_INFORMATION pi_;
 
     Pipe in_pipe_ = {}, out_pipe_ = {};
+
+    OVERLAPPED overlapped_{};
 };
 
 }  // namespace engine::process

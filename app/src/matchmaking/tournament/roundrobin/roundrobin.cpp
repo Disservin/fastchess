@@ -44,6 +44,12 @@ void RoundRobin::start() {
     writeToOpenPipes();
 
     pool_.kill();
+
+    if (config::TournamentConfig.get().output == OutputType::FASTCHESS) {
+        for (const auto& [name, timeout] : timeout_tracker_) {
+            Logger::info("Timeouts for {}: {}", name, timeout);
+        }
+    }
 }
 
 void RoundRobin::startNext() {

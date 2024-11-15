@@ -136,6 +136,11 @@ void BaseTournament::playGame(const GamePair<EngineConfiguration, EngineConfigur
 
         startNext();
     }
+
+    if (match_data.termination == MatchTermination::TIMEOUT) {
+        const auto &loser = match_data.players.white.result == chess::GameResult::LOSE ? white_name : black_name;
+        timeout_tracker_.timeout(loser);
+    }
 }
 
 int BaseTournament::getMaxAffinity(const std::vector<EngineConfiguration> &configs) const noexcept {

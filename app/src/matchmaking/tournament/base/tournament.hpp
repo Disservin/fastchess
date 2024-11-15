@@ -8,6 +8,7 @@
 #include <globals/globals.hpp>
 #include <matchmaking/output/output.hpp>
 #include <matchmaking/scoreboard.hpp>
+#include <matchmaking/timeout_tracker.hpp>
 #include <matchmaking/tournament/roundrobin/match_generator.hpp>
 #include <types/tournament.hpp>
 #include <util/cache.hpp>
@@ -51,7 +52,8 @@ class BaseTournament {
     EngineCache engine_cache_ = {};
     util::ThreadPool pool_    = util::ThreadPool(1);
 
-    ScoreBoard scoreboard_ = ScoreBoard();
+    ScoreBoard scoreboard_          = ScoreBoard();
+    TimeoutTracker timeout_tracker_ = TimeoutTracker();
 
     std::unique_ptr<MatchGenerator> generator_;
     std::unique_ptr<IOutput> output_;

@@ -235,7 +235,6 @@ bool UciEngine::uci() {
 bool UciEngine::uciok(std::chrono::milliseconds threshold) {
     Logger::trace<true>("Waiting for uciok from engine {}", config_.name);
 
-    setupReadEngine();
     const auto res = readEngine("uciok", threshold) == process::Status::OK;
 
     for (const auto &line : output_) {
@@ -360,6 +359,7 @@ bool UciEngine::refreshUci() {
 }
 
 process::Status UciEngine::readEngine(std::string_view last_word, std::chrono::milliseconds threshold) {
+    setupReadEngine();
     return readProcess(output_, last_word, threshold);
 }
 

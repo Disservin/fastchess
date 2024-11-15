@@ -119,6 +119,8 @@ class Process : public IProcess {
     }
 
     void setupRead() override {
+        current_line_.clear();
+
         overlapped_        = {};
         overlapped_.hEvent = CreateEvent(nullptr, TRUE, FALSE, nullptr);
     }
@@ -131,7 +133,6 @@ class Process : public IProcess {
         assert(is_initalized_);
 
         lines.clear();
-        current_line_.clear();
 
         if (!overlapped_.hEvent) {
             return Status::ERR;
@@ -139,13 +140,12 @@ class Process : public IProcess {
 
         HANDLE handles[2]         = {overlapped_.hEvent};
         const size_t handle_count = 1;
-        const auto id             = std::this_thread::get_id();
 
-        char buffer[4096];
+        std::array<char, 4096> buffer;
 
         while (true) {
             DWORD bytes_read = 0;
-            BOOL read_result = ReadFile(in_pipe_.read_end(), buffer, sizeof(buffer), &bytes_read, &overlapped_);
+            BOOL read_result = ReadFile(in_pipe_.read_end(), buffer.data(), sizeof(buffer), &bytes_read, &overlapped_);
 
             if (!read_result) {
                 if (GetLastError() != ERROR_IO_PENDING) {
@@ -181,33 +181,7 @@ class Process : public IProcess {
 
             // Process the buffer
 
-            Status result = Status::NONE;
-
-            for (DWORD i = 0; i < bytes_read; i++) {
-                // If we encounter a newline, add the current line to the vector and reset
-                // the current_line_ on Windows newlines are \r\n. Otherwise, append the
-                // character to the current line
-                if (buffer[i] != '\n' && buffer[i] != '\r') {
-                    current_line_ += buffer[i];
-                    continue;
-                }
-
-                // don't add empty lines
-                if (current_line_.empty()) continue;
-
-                const auto time = Logger::should_log_ ? util::time::datetime_precise() : "";
-
-                lines.emplace_back(Line{current_line_, time});
-
-                if (realtime_logging_) Logger::readFromEngine(current_line_, time, log_name_, false, id);
-
-                if (current_line_.rfind(last_word, 0) == 0) {
-                    result = Status::OK;
-                    break;
-                }
-
-                current_line_.clear();
-            }
+            const auto result = processBuffer(buffer, bytes_read, lines, last_word);
 
             if (result == Status::OK) {
                 CloseHandle(overlapped_.hEvent);
@@ -232,6 +206,38 @@ class Process : public IProcess {
     }
 
    private:
+    [[nodiscard]] Status processBuffer(const std::array<char, 4096> &buffer, DWORD bytes_read, std::vector<Line> &lines,
+                                       std::string_view searchword) {
+        const auto id = std::this_thread::get_id();
+
+        for (DWORD i = 0; i < bytes_read; i++) {
+            // If we encounter a newline, add the current line to the vector and reset
+            // the current_line_ on Windows newlines are \r\n. Otherwise, append the
+            // character to the current line
+            if (buffer[i] != '\n' && buffer[i] != '\r') {
+                current_line_ += buffer[i];
+                continue;
+            }
+
+            // don't add empty lines
+            if (current_line_.empty()) continue;
+
+            const auto time = Logger::should_log_ ? util::time::datetime_precise() : "";
+
+            lines.emplace_back(Line{current_line_, time});
+
+            if (realtime_logging_) Logger::readFromEngine(current_line_, time, log_name_, false, id);
+
+            if (current_line_.rfind(searchword, 0) == 0) {
+                return Status::OK;
+            }
+
+            current_line_.clear();
+        }
+
+        return Status::NONE;
+    }
+
     struct Pipe {
         Pipe() : handles_{}, open_{false, false} {}
 

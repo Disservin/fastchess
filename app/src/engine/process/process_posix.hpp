@@ -174,6 +174,8 @@ class Process : public IProcess {
         init(wd_, command_, args_, log_name_);
     }
 
+    void setupRead() override { current_line_.clear(); }
+
    protected:
     // Read stdout until the line matches searchword or timeout is reached
     // 0 means no timeout clears the lines vector
@@ -181,7 +183,6 @@ class Process : public IProcess {
                        std::chrono::milliseconds threshold) override {
         assert(is_initalized_);
 
-        current_line_.clear();
         lines.clear();
 
         // Set up the timeout for poll

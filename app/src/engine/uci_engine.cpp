@@ -79,6 +79,8 @@ process::Status UciEngine::isready(std::chrono::milliseconds threshold) {
 
     writeEngine("isready");
 
+    setupReadEngine();
+
     std::vector<process::Line> output;
     const auto res = readProcess(output, "readyok", threshold);
 
@@ -233,6 +235,7 @@ bool UciEngine::uci() {
 bool UciEngine::uciok(std::chrono::milliseconds threshold) {
     Logger::trace<true>("Waiting for uciok from engine {}", config_.name);
 
+    setupReadEngine();
     const auto res = readEngine("uciok", threshold) == process::Status::OK;
 
     for (const auto &line : output_) {

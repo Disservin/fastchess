@@ -118,6 +118,11 @@ class Process : public IProcess {
         init(wd_, command_, args_, log_name_);
     }
 
+    void setupRead() override {
+        overlapped_        = {};
+        overlapped_.hEvent = CreateEvent(nullptr, TRUE, FALSE, nullptr);
+    }
+
    protected:
     // Read stdout until the line matches last_word or timeout is reached
     // 0 means no timeout
@@ -128,16 +133,11 @@ class Process : public IProcess {
         lines.clear();
         current_line_.clear();
 
-        OVERLAPPED overlapped{};
-
-        overlapped        = {};
-        overlapped.hEvent = CreateEvent(nullptr, TRUE, FALSE, nullptr);
-
-        if (!overlapped.hEvent) {
+        if (!overlapped_.hEvent) {
             return Status::ERR;
         }
 
-        HANDLE handles[2]         = {overlapped.hEvent};
+        HANDLE handles[2]         = {overlapped_.hEvent};
         const size_t handle_count = 1;
         const auto id             = std::this_thread::get_id();
 
@@ -145,11 +145,11 @@ class Process : public IProcess {
 
         while (true) {
             DWORD bytes_read = 0;
-            BOOL read_result = ReadFile(in_pipe_.read_end(), buffer, sizeof(buffer), &bytes_read, &overlapped);
+            BOOL read_result = ReadFile(in_pipe_.read_end(), buffer, sizeof(buffer), &bytes_read, &overlapped_);
 
             if (!read_result) {
                 if (GetLastError() != ERROR_IO_PENDING) {
-                    CloseHandle(overlapped.hEvent);
+                    CloseHandle(overlapped_.hEvent);
                     return Status::ERR;
                 }
             }
@@ -161,18 +161,18 @@ class Process : public IProcess {
 
             if (wait_result == WAIT_TIMEOUT) {
                 CancelIo(in_pipe_.read_end());
-                CloseHandle(overlapped.hEvent);
+                CloseHandle(overlapped_.hEvent);
                 return Status::TIMEOUT;
             }
 
             if (wait_result == WAIT_FAILED) {
-                CloseHandle(overlapped.hEvent);
+                CloseHandle(overlapped_.hEvent);
                 return Status::ERR;
             }
 
             // Get the results of the overlapped operation
-            if (!GetOverlappedResult(in_pipe_.read_end(), &overlapped, &bytes_read, FALSE)) {
-                CloseHandle(overlapped.hEvent);
+            if (!GetOverlappedResult(in_pipe_.read_end(), &overlapped_, &bytes_read, FALSE)) {
+                CloseHandle(overlapped_.hEvent);
 
                 return Status::ERR;
             }
@@ -210,13 +210,13 @@ class Process : public IProcess {
             }
 
             if (result == Status::OK) {
-                CloseHandle(overlapped.hEvent);
+                CloseHandle(overlapped_.hEvent);
 
                 return result;
             }
 
             // Reset event for next iteration
-            ResetEvent(overlapped.hEvent);
+            ResetEvent(overlapped_.hEvent);
         }
     }
 
@@ -306,6 +306,8 @@ class Process : public IProcess {
     PROCESS_INFORMATION pi_;
 
     Pipe in_pipe_ = {}, out_pipe_ = {};
+
+    OVERLAPPED overlapped_ = {};
 };
 
 }  // namespace engine::process

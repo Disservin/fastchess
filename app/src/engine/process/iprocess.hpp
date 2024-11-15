@@ -29,6 +29,8 @@ class IProcess {
 
     void setRealtimeLogging(bool realtime_logging) noexcept { realtime_logging_ = realtime_logging; }
 
+    virtual void setupRead() = 0;
+
     // Initialize the process
     virtual Status init(const std::string &wd, const std::string &command, const std::string &args,
                         const std::string &log_name) = 0;

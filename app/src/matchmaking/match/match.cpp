@@ -213,6 +213,8 @@ bool Match::playMove(Player& us, Player& them) {
         return false;
     }
 
+    us.engine.setupReadEngine();
+
     // wait for bestmove
     auto t0     = clock::now();
     auto status = us.engine.readEngine("bestmove", us.getTimeoutThreshold());
@@ -392,6 +394,7 @@ void Match::setEngineTimeoutStatus(Player& loser, Player& winner) {
 
     if (!loser.engine.outputIncludesBestmove()) {
         // wait 10 seconds for the bestmove to appear
+        loser.engine.setupReadEngine();
         loser.engine.readEngine("bestmove", 1000ms * 10);
     }
 }

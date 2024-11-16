@@ -516,7 +516,10 @@ void parseSRand(const std::vector<std::string> &params, ArgumentData &argument_d
     parseValue(params, argument_data.tournament_config.seed);
 }
 
-void parseVersion(const std::vector<std::string> &, ArgumentData &) { OptionsParser::printVersion(); }
+void parseVersion(const std::vector<std::string> &, ArgumentData &) {
+    std::cout << OptionsParser::version << std::endl;
+    std::exit(0);
+}
 
 void parseHelp(const std::vector<std::string> &, ArgumentData &) { OptionsParser::printHelp(); }
 

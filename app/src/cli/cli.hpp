@@ -44,15 +44,7 @@ struct ArgumentData {
 class OptionsParser {
     using parseFunc = std::function<void((const std::vector<std::string> &, ArgumentData &))>;
 
-   public:
-    OptionsParser(int argc, char const *argv[]);
-
-    static void throwMissing(std::string_view name, std::string_view key, std::string_view value) {
-        throw std::runtime_error("Unrecognized " + std::string(name) + " option \"" + std::string(key) +
-                                 "\" with value \"" + std::string(value) + "\".");
-    }
-
-    static void printVersion() {
+    static std::string getVersion() {
         const static std::unordered_map<std::string, std::string> months(  //
             {{"Jan", "01"},
              {"Feb", "02"},
@@ -70,7 +62,7 @@ class OptionsParser {
         std::string month, day, year;
         std::stringstream ss, date(__DATE__);  // {month} {date} {year}
 
-        ss << "fastchess " << version;
+        ss << "fastchess " << cli::version;
 
 #ifdef COMPILE_MSG
         ss << COMPILE_MSG << " ";
@@ -94,8 +86,15 @@ class OptionsParser {
         ss << " (compiled with cutechess output)";
 #endif
 
-        std::cout << ss.str() << std::endl;
-        std::exit(0);
+        return ss.str();
+    }
+
+   public:
+    OptionsParser(int argc, char const *argv[]);
+
+    static void throwMissing(std::string_view name, std::string_view key, std::string_view value) {
+        throw std::runtime_error("Unrecognized " + std::string(name) + " option \"" + std::string(key) +
+                                 "\" with value \"" + std::string(value) + "\".");
     }
 
     static void printHelp() {
@@ -113,6 +112,8 @@ class OptionsParser {
     [[nodiscard]] config::Tournament getTournamentConfig() const { return argument_data_.tournament_config; }
 
     [[nodiscard]] stats_map getResults() const { return argument_data_.stats; }
+
+    const inline static auto version = getVersion();
 
    private:
     // Adds an option to the parser

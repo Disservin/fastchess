@@ -16,7 +16,6 @@ int main(int argc, char const* argv[]) {
     setTerminalOutput();
 
     if (argc >= 3 && std::string(argv[1]) == "--compliance") {
-
         return !engine::compliant(argc, argv);
     }
 

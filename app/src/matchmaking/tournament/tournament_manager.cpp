@@ -32,6 +32,8 @@ void TournamentManager::start(int argc, char const* argv[]) {
     Logger::setCompress(config::TournamentConfig.get().log.compress);
     Logger::openFile(config::TournamentConfig.get().log.file);
 
+    Logger::trace("{}", cli::OptionsParser::version);
+
     util::random::seed(config::TournamentConfig.get().seed);
 
     Logger::trace("Creating tournament...");

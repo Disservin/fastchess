@@ -266,12 +266,12 @@ void UciEngine::sendSetoption(const std::string &name, const std::string &value)
     auto option = uci_options_.getOption(name);
 
     if (!option.has_value()) {
-        Logger::info<true>("Warning: {} doesn't have option {}", config_.name, name);
+        Logger::info<true>("Warning; {} doesn't have option {}", config_.name, name);
         return;
     }
 
     if (!option.value()->isValid(value)) {
-        Logger::info<true>("Warning: Invalid value for option {}: {}", name, value);
+        Logger::info<true>("Warning; Invalid value for option {}; {}", name, value);
         return;
     }
 
@@ -308,7 +308,7 @@ bool UciEngine::start() {
 
     // Creates the engine process and sets the pipes
     if (init(config_.dir, path, config_.args, config_.name) != process::Status::OK) {
-        Logger::warn<true>("Warning: Cannot start engine {}:", config_.name);
+        Logger::warn<true>("Warning; Cannot start engine {};", config_.name);
         Logger::warn<true>("Cannot execute command: {}", path);
 
         return false;

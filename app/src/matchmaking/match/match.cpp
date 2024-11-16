@@ -153,7 +153,7 @@ void Match::start(engine::UciEngine& white, engine::UciEngine& black, const std:
             if (!playMove(second, first)) break;
         }
     } catch (const std::exception& e) {
-        Logger::fatal<true>("Match failed with exception: {}", e.what());
+        Logger::fatal<true>("Match failed with exception; {}", e.what());
     }
 
     const auto end = clock::now();
@@ -460,7 +460,7 @@ void Match::verifyPvLines(const Player& us) {
             movegen::legalmoves(moves, board);
 
             if (std::find(moves.begin(), moves.end(), uci::uciToMove(board, *it_start)) == moves.end()) {
-                auto fmt      = fmt::format("Warning; Illegal pv move {} pv: {}", *it_start, info);
+                auto fmt      = fmt::format("Warning; Illegal pv move {} pv; {}", *it_start, info);
                 auto position = fmt::format("position {}", startpos == "startpos" ? "startpos" : ("fen " + startpos));
                 auto fmt2     = fmt::format("From; {} moves {}", position, str_utils::join(uci_moves, " "));
 

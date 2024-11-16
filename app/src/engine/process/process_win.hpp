@@ -17,6 +17,7 @@
 #    include <windows.h>
 
 #    include <affinity/affinity.hpp>
+#    include <engine/process/anon_pipe.hpp>
 #    include <globals/globals.hpp>
 #    include <util/logger/logger.hpp>
 #    include <util/thread_vector.hpp>
@@ -31,7 +32,27 @@ extern std::atomic_bool stop;
 
 namespace engine::process {
 
+struct AsyncReadContext {
+    OVERLAPPED overlapped;
+    DWORD bytes_read{0};
+    DWORD error_code{0};
+    HANDLE completion_event{nullptr};
+
+    AsyncReadContext() {
+        ZeroMemory(&overlapped, sizeof(OVERLAPPED));
+        completion_event = CreateEvent(nullptr, TRUE, FALSE, nullptr);
+    }
+
+    ~AsyncReadContext() {
+        if (completion_event) {
+            CloseHandle(completion_event);
+        }
+    }
+};
+
 class Process : public IProcess {
+    constexpr static int buffer_size = 4096;
+
    public:
     ~Process() override { killProcess(); }
 
@@ -43,58 +64,43 @@ class Process : public IProcess {
         log_name_ = log_name;
 
         current_line_.reserve(300);
+        pi_ = PROCESS_INFORMATION{};
 
-        pi_ = PROCESS_INFORMATION();
+        try {
+            in_pipe_.create();
+            out_pipe_.create();
 
-        in_pipe_.create();
-        out_pipe_.create();
+            auto si = createStartupInfo();
 
-        STARTUPINFOA si = STARTUPINFOA{};
-        si.dwFlags      = STARTF_USESTDHANDLES;
+            if (createProcess(si)) {
+                process_list.push(ProcessInformation{pi_.hProcess, in_pipe_.write_end()});
+                return Status::OK;
+            }
 
-        SetHandleInformation(in_pipe_.read_end(), HANDLE_FLAG_INHERIT, 0);
-        si.hStdOutput = in_pipe_.write_end();
+        } catch (const std::exception &e) {
+            Logger::trace<true>("Process creation failed: {}", e.what());
+        }
 
-        SetHandleInformation(out_pipe_.write_end(), HANDLE_FLAG_INHERIT, 0);
-        si.hStdInput = out_pipe_.read_end();
-
-        /*
-        CREATE_NEW_PROCESS_GROUP flag is important here
-        to disable all CTRL+C signals for the new process
-        */
-        const auto success =
-            CreateProcessA(nullptr, const_cast<char *>((command + " " + args).c_str()), nullptr, nullptr, TRUE,
-                           CREATE_NEW_PROCESS_GROUP, nullptr, wd.empty() ? nullptr : wd.c_str(), &si, &pi_);
-
-        // not needed
-        out_pipe_.close_read();
-
-        startup_error_ = !success;
-        is_initalized_ = true;
-
-        process_list.push(ProcessInformation{pi_.hProcess, in_pipe_.write_end()});
-
-        return success ? Status::OK : Status::ERR;
+        return Status::ERR;
     }
 
     [[nodiscard]] Status alive() const noexcept override {
-        assert(is_initalized_);
+        assert(is_initialized_);
 
         DWORD exitCode = 0;
-        GetExitCodeProcess(pi_.hProcess, &exitCode);
 
-        return exitCode == STILL_ACTIVE ? Status::OK : Status::ERR;
+        return GetExitCodeProcess(pi_.hProcess, &exitCode) && exitCode == STILL_ACTIVE ? Status::OK : Status::ERR;
     }
 
     void setAffinity(const std::vector<int> &cpus) noexcept override {
-        assert(is_initalized_);
+        assert(is_initialized_);
         if (!cpus.empty()) affinity::setAffinity(cpus, pi_.hProcess);
     }
 
     void killProcess() {
-        if (!is_initalized_) return;
+        if (!is_initialized_) return;
 
-        process_list.remove_if([this](const ProcessInformation &pi) { return pi.identifier == pi_.hProcess; });
+        process_list.remove_if([this](const auto &pi) { return pi.identifier == pi_.hProcess; });
 
         DWORD exitCode = 0;
         GetExitCodeProcess(pi_.hProcess, &exitCode);
@@ -105,17 +111,22 @@ class Process : public IProcess {
 
         closeHandles();
 
-        is_initalized_ = false;
+        is_initialized_ = false;
     }
 
     void restart() override {
         Logger::trace<true>("Restarting {}", log_name_);
         killProcess();
 
-        is_initalized_ = false;
-        startup_error_ = false;
+        is_initialized_ = false;
 
         init(wd_, command_, args_, log_name_);
+    }
+
+    void setupRead() override {
+        current_line_.clear();
+
+        async_read_context_ = AsyncReadContext();
     }
 
    protected:
@@ -123,145 +134,172 @@ class Process : public IProcess {
     // 0 means no timeout
     Status readProcess(std::vector<Line> &lines, std::string_view last_word,
                        std::chrono::milliseconds threshold) override {
-        assert(is_initalized_);
+        assert(is_initialized_);
 
         lines.clear();
-        current_line_.clear();
 
-        auto id = std::this_thread::get_id();
+        if (!async_read_context_.completion_event) {
+            return Status::ERR;
+        }
 
-        auto read_future =
-            std::async(std::launch::async, [this, &last_word, &lines, id, &atomic_stop = atomic::stop]() {
-                char buffer[4096];
-                DWORD bytes_read;
+        std::array<char, buffer_size> buffer;
 
-                while (true) {
-                    if (!ReadFile(in_pipe_.read_end(), buffer, sizeof(buffer), &bytes_read, nullptr)) {
-                        return Status::ERR;
-                    }
+        const auto timeout = threshold.count() == 0 ? INFINITE : static_cast<DWORD>(threshold.count());
 
-                    if (atomic_stop) return Status::ERR;
-                    if (bytes_read <= 0) continue;
+        while (true) {
+            // Start asynchronous read
+            BOOL read_result = ReadFileEx(in_pipe_.read_end(), buffer.data(), static_cast<DWORD>(buffer_size),
+                                          &async_read_context_.overlapped, nullptr);
 
-                    // Iterate over each character in the buffer
-                    for (DWORD i = 0; i < bytes_read; i++) {
-                        // If we encounter a newline, add the current line to the vector and reset
-                        // the current_line_ on Windows newlines are \r\n. Otherwise, append the
-                        // character to the current line
-                        if (buffer[i] != '\n' && buffer[i] != '\r') {
-                            current_line_ += buffer[i];
-                            continue;
-                        }
+            if (!read_result) {
+                return Status::ERR;
+            }
 
-                        // don't add empty lines
-                        if (current_line_.empty()) continue;
+            DWORD bytes_transferred = 0;
 
-                        const auto time = Logger::should_log_ ? util::time::datetime_precise() : "";
+            // Wait for completion or timeout
+            BOOL completion_result = GetOverlappedResultEx(in_pipe_.read_end(), &async_read_context_.overlapped,
+                                                           &bytes_transferred, timeout, FALSE);
 
-                        lines.emplace_back(Line{current_line_, time});
+            if (!completion_result) {
+                DWORD error = GetLastError();
 
-                        if (realtime_logging_) Logger::readFromEngine(current_line_, time, log_name_, false, id);
-
-                        if (current_line_.rfind(last_word, 0) == 0) return Status::OK;
-
-                        current_line_.clear();
-                    }
+                if (error == WAIT_TIMEOUT) {
+                    CancelIo(in_pipe_.read_end());
+                    return Status::TIMEOUT;
                 }
-            });
 
-        // Check if the asynchronous operation is completed
-        const auto fut = read_future.wait_for(threshold);
+                return Status::ERR;
+            }
 
-        if (fut == std::future_status::timeout) return Status::TIMEOUT;
-        return Status::OK;
+            if (atomic::stop) {
+                return Status::ERR;
+            }
+
+            if (bytes_transferred == 0) {
+                continue;
+            }
+
+            if (readBytes(buffer, bytes_transferred, lines, last_word)) {
+                return Status::OK;
+            }
+
+            // Reset for next iteration
+            ResetEvent(async_read_context_.completion_event);
+        }
     }
 
     Status writeProcess(const std::string &input) noexcept override {
-        assert(is_initalized_);
+        assert(is_initialized_);
 
         if (alive() != Status::OK) killProcess();
 
-        DWORD bytesWritten;
-        auto res = WriteFile(out_pipe_.write_end(), input.c_str(), input.length(), &bytesWritten, nullptr);
+        DWORD bytes_written;
+        auto res = WriteFile(out_pipe_.write_end(), input.c_str(), input.length(), &bytes_written, nullptr);
 
         return res ? Status::OK : Status::ERR;
     }
 
    private:
-    struct Pipe {
-        Pipe() : handles_{}, open_{false, false} {}
-
-        ~Pipe() {
-            if (open_[0]) close_read();
-            if (open_[1]) close_write();
-        }
-
-        void create() {
-            if (open_[0]) close_read();
-            if (open_[1]) close_write();
-
-            SECURITY_ATTRIBUTES sa = SECURITY_ATTRIBUTES{};
-            sa.bInheritHandle      = TRUE;
-
-            if (!CreatePipe(&handles_[0], &handles_[1], &sa, 0)) {
-                throw std::runtime_error("CreatePipe() failed");
+    [[nodiscard]] bool readBytes(const std::array<char, buffer_size> &buffer, DWORD bytes_read,
+                                 std::vector<Line> &lines, std::string_view searchword) {
+        for (DWORD i = 0; i < bytes_read; ++i) {
+            // Check for newline characters; Windows uses \r\n as a line delimiter
+            if (buffer[i] != '\n' && buffer[i] != '\r') {
+                current_line_ += buffer[i];
+                continue;
             }
 
-            open_[0] = open_[1] = true;
+            if (current_line_.empty()) {
+                continue;
+            }
+
+            addLine(lines);
+
+            // Check if the current line starts with the search word
+            if (current_line_.rfind(searchword, 0) == 0) {
+                return true;
+            }
+
+            current_line_.clear();
         }
 
-        void close_read() {
-            assert(open_[0]);
-            open_[0] = false;
-            CloseHandle(handles_[0]);
-        }
+        return false;
+    }
 
-        void close_write() {
-            assert(open_[1]);
-            open_[1] = false;
-            CloseHandle(handles_[1]);
-        }
+    [[nodiscard]] STARTUPINFOA createStartupInfo() const {
+        STARTUPINFOA si = STARTUPINFOA{};
+        si.dwFlags      = STARTF_USESTDHANDLES;
 
-        HANDLE read_end() const {
-            assert(open_[0]);
-            return handles_[0];
-        }
+        SetHandleInformation(in_pipe_.read_end(), HANDLE_FLAG_INHERIT, 0);
+        si.hStdOutput = in_pipe_.write_end();
 
-        HANDLE write_end() const {
-            assert(open_[1]);
-            return handles_[1];
-        }
+        SetHandleInformation(out_pipe_.write_end(), HANDLE_FLAG_INHERIT, 0);
+        si.hStdInput = out_pipe_.read_end();
 
-       private:
-        std::array<HANDLE, 2> handles_;
-        std::array<bool, 2> open_;
-    };
+        return si;
+    }
+
+    [[nodiscard]] bool createProcess(STARTUPINFOA &si) {
+        const auto cmd = command_ + " " + args_;
+
+        const auto success = CreateProcessA(      //
+            nullptr,                              //
+            const_cast<char *>(cmd.c_str()),      //
+            nullptr,                              //
+            nullptr,                              //
+            TRUE,                                 //
+            CREATE_NEW_PROCESS_GROUP,             //
+            nullptr,                              //
+            wd_.empty() ? nullptr : wd_.c_str(),  //
+            &si,                                  //
+            &pi_                                  //
+        );
+
+        out_pipe_.close_read();
+        is_initialized_ = true;
+
+        return success;
+    }
 
     void closeHandles() const {
-        assert(is_initalized_);
+        assert(is_initialized_);
 
         CloseHandle(pi_.hThread);
         CloseHandle(pi_.hProcess);
     }
 
-    std::string wd_;
+    void addLine(std::vector<Line> &lines) const {
+        const auto timestamp = Logger::should_log_ ? util::time::datetime_precise() : "";
 
+        lines.emplace_back(Line{current_line_, timestamp});
+
+        if (realtime_logging_) {
+            Logger::readFromEngine(current_line_, timestamp, log_name_, false, thread_id);
+        }
+    }
+
+    // The working directory
+    std::string wd_;
     // The command to execute
     std::string command_;
     // The arguments for the engine
     std::string args_;
     // The name in the log file
     std::string log_name_;
-
+    // The current line read from the engine, avoids reallocations
     std::string current_line_;
 
     // True if the process has been initialized
-    bool is_initalized_ = false;
-    bool startup_error_ = false;
+    bool is_initialized_ = false;
 
     PROCESS_INFORMATION pi_;
 
+    AsyncReadContext async_read_context_;
+
     Pipe in_pipe_ = {}, out_pipe_ = {};
+
+    const std::thread::id thread_id = std::this_thread::get_id();
 };
 
 }  // namespace engine::process

@@ -66,6 +66,12 @@ class UciEngine : protected process::Process {
     // May throw if the read fails.
     process::Status readEngine(std::string_view last_word, std::chrono::milliseconds threshold = ping_time_);
 
+    process::Status readEngineLowLat(std::string_view last_word, std::chrono::milliseconds threshold = ping_time_) {
+        return readEngine(last_word, threshold);
+    }
+
+    void setupReadEngine() { setupRead(); }
+
     // Logs are not written in realtime to avoid slowing down the engine.
     // This function writes the logs to the logger.
     void writeLog() const;

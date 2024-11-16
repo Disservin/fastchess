@@ -79,6 +79,8 @@ process::Status UciEngine::isready(std::chrono::milliseconds threshold) {
 
     writeEngine("isready");
 
+    setupReadEngine();
+
     std::vector<process::Line> output;
     const auto res = readProcess(output, "readyok", threshold);
 
@@ -313,7 +315,13 @@ bool UciEngine::start() {
     }
 
     // Wait for the engine to start
-    if (!uci() || !uciok(startup_time_)) {
+    if (!uci()) {
+        Logger::warn<true>("Couldnt write uci to engine.", config_.name);
+
+        return false;
+    }
+
+    if (!uciok(startup_time_)) {
         Logger::warn<true>("Engine {} didn't respond to uci with uciok after startup.", config_.name);
 
         return false;
@@ -357,6 +365,7 @@ bool UciEngine::refreshUci() {
 }
 
 process::Status UciEngine::readEngine(std::string_view last_word, std::chrono::milliseconds threshold) {
+    setupReadEngine();
     return readProcess(output_, last_word, threshold);
 }
 

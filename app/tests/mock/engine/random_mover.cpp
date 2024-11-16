@@ -74,7 +74,7 @@ void uci_line(Board &board, const std::string &line) {
         board = Board();
     } else if (tokens[0] == "go") {
         const auto move = random_move(board);
-        std::cout << "info depth 1 pv " << uci::moveToUci(move) << " score 0 " << std::endl;
+        std::cout << "info depth 1 pv " << uci::moveToUci(move) << " score cp 0 " << std::endl;
         std::cout << "bestmove " << uci::moveToUci(move) << std::endl;
     }
 }

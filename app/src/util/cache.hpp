@@ -4,6 +4,7 @@
 #include <deque>
 #include <functional>
 #include <iostream>
+#include <memory>
 #include <mutex>
 
 #include <util/scope_guard.hpp>

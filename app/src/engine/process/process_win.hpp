@@ -17,6 +17,7 @@
 #    include <windows.h>
 
 #    include <affinity/affinity.hpp>
+#    include <engine/process/anon_pipe.hpp>
 #    include <globals/globals.hpp>
 #    include <util/logger/logger.hpp>
 #    include <util/thread_vector.hpp>
@@ -31,7 +32,27 @@ extern std::atomic_bool stop;
 
 namespace engine::process {
 
+struct AsyncReadContext {
+    OVERLAPPED overlapped;
+    DWORD bytes_read{0};
+    DWORD error_code{0};
+    HANDLE completion_event{nullptr};
+
+    AsyncReadContext() {
+        ZeroMemory(&overlapped, sizeof(OVERLAPPED));
+        completion_event = CreateEvent(nullptr, TRUE, FALSE, nullptr);
+    }
+
+    ~AsyncReadContext() {
+        if (completion_event) {
+            CloseHandle(completion_event);
+        }
+    }
+};
+
 class Process : public IProcess {
+    constexpr static int buffer_size = 4096;
+
    public:
     ~Process() override { killProcess(); }
 
@@ -43,58 +64,43 @@ class Process : public IProcess {
         log_name_ = log_name;
 
         current_line_.reserve(300);
+        pi_ = PROCESS_INFORMATION{};
 
-        pi_ = PROCESS_INFORMATION();
+        try {
+            in_pipe_.create();
+            out_pipe_.create();
 
-        in_pipe_.create();
-        out_pipe_.create();
+            auto si = createStartupInfo();
 
-        STARTUPINFOA si = STARTUPINFOA{};
-        si.dwFlags      = STARTF_USESTDHANDLES;
+            if (createProcess(si)) {
+                process_list.push(ProcessInformation{pi_.hProcess, in_pipe_.write_end()});
+                return Status::OK;
+            }
 
-        SetHandleInformation(in_pipe_.read_end(), HANDLE_FLAG_INHERIT, 0);
-        si.hStdOutput = in_pipe_.write_end();
+        } catch (const std::exception &e) {
+            Logger::trace<true>("Process creation failed: {}", e.what());
+        }
 
-        SetHandleInformation(out_pipe_.write_end(), HANDLE_FLAG_INHERIT, 0);
-        si.hStdInput = out_pipe_.read_end();
-
-        /*
-        CREATE_NEW_PROCESS_GROUP flag is important here
-        to disable all CTRL+C signals for the new process
-        */
-        const auto success =
-            CreateProcessA(nullptr, const_cast<char *>((command + " " + args).c_str()), nullptr, nullptr, TRUE,
-                           CREATE_NEW_PROCESS_GROUP, nullptr, wd.empty() ? nullptr : wd.c_str(), &si, &pi_);
-
-        // not needed
-        out_pipe_.close_read();
-
-        startup_error_ = !success;
-        is_initalized_ = true;
-
-        process_list.push(ProcessInformation{pi_.hProcess, in_pipe_.write_end()});
-
-        return success ? Status::OK : Status::ERR;
+        return Status::ERR;
     }
 
     [[nodiscard]] Status alive() const noexcept override {
-        assert(is_initalized_);
+        assert(is_initialized_);
 
         DWORD exitCode = 0;
-        GetExitCodeProcess(pi_.hProcess, &exitCode);
 
-        return exitCode == STILL_ACTIVE ? Status::OK : Status::ERR;
+        return GetExitCodeProcess(pi_.hProcess, &exitCode) && exitCode == STILL_ACTIVE ? Status::OK : Status::ERR;
     }
 
     void setAffinity(const std::vector<int> &cpus) noexcept override {
-        assert(is_initalized_);
+        assert(is_initialized_);
         if (!cpus.empty()) affinity::setAffinity(cpus, pi_.hProcess);
     }
 
     void killProcess() {
-        if (!is_initalized_) return;
+        if (!is_initialized_) return;
 
-        process_list.remove_if([this](const ProcessInformation &pi) { return pi.identifier == pi_.hProcess; });
+        process_list.remove_if([this](const auto &pi) { return pi.identifier == pi_.hProcess; });
 
         DWORD exitCode = 0;
         GetExitCodeProcess(pi_.hProcess, &exitCode);
@@ -105,15 +111,14 @@ class Process : public IProcess {
 
         closeHandles();
 
-        is_initalized_ = false;
+        is_initialized_ = false;
     }
 
     void restart() override {
         Logger::trace<true>("Restarting {}", log_name_);
         killProcess();
 
-        is_initalized_ = false;
-        startup_error_ = false;
+        is_initialized_ = false;
 
         init(wd_, command_, args_, log_name_);
     }
@@ -121,8 +126,7 @@ class Process : public IProcess {
     void setupRead() override {
         current_line_.clear();
 
-        overlapped_        = {};
-        overlapped_.hEvent = CreateEvent(nullptr, TRUE, FALSE, nullptr);
+        async_read_context_ = AsyncReadContext();
     }
 
    protected:
@@ -130,195 +134,172 @@ class Process : public IProcess {
     // 0 means no timeout
     Status readProcess(std::vector<Line> &lines, std::string_view last_word,
                        std::chrono::milliseconds threshold) override {
-        assert(is_initalized_);
+        assert(is_initialized_);
 
         lines.clear();
 
-        if (!overlapped_.hEvent) {
+        if (!async_read_context_.completion_event) {
             return Status::ERR;
         }
 
-        HANDLE handles[2]         = {overlapped_.hEvent};
-        const size_t handle_count = 1;
+        std::array<char, buffer_size> buffer;
 
-        std::array<char, 4096> buffer;
+        const auto timeout = threshold.count() == 0 ? INFINITE : static_cast<DWORD>(threshold.count());
 
         while (true) {
-            DWORD bytes_read = 0;
-            BOOL read_result = ReadFile(in_pipe_.read_end(), buffer.data(), sizeof(buffer), &bytes_read, &overlapped_);
+            // Start asynchronous read
+            BOOL read_result = ReadFileEx(in_pipe_.read_end(), buffer.data(), static_cast<DWORD>(buffer_size),
+                                          &async_read_context_.overlapped, nullptr);
 
             if (!read_result) {
-                if (GetLastError() != ERROR_IO_PENDING) {
-                    CloseHandle(overlapped_.hEvent);
-                    return Status::ERR;
-                }
-            }
-
-            const auto timeout = threshold.count() == 0 ? INFINITE : static_cast<DWORD>(threshold.count());
-
-            // Wait for either the read to complete or the timeout to expire
-            DWORD wait_result = WaitForMultipleObjects(handle_count, handles, FALSE, timeout);
-
-            if (wait_result == WAIT_TIMEOUT) {
-                CancelIo(in_pipe_.read_end());
-                CloseHandle(overlapped_.hEvent);
-                return Status::TIMEOUT;
-            }
-
-            if (wait_result == WAIT_FAILED) {
-                CloseHandle(overlapped_.hEvent);
                 return Status::ERR;
             }
 
-            // Get the results of the overlapped operation
-            if (!GetOverlappedResult(in_pipe_.read_end(), &overlapped_, &bytes_read, FALSE)) {
-                CloseHandle(overlapped_.hEvent);
+            DWORD bytes_transferred = 0;
+
+            // Wait for completion or timeout
+            BOOL completion_result = GetOverlappedResultEx(in_pipe_.read_end(), &async_read_context_.overlapped,
+                                                           &bytes_transferred, timeout, FALSE);
+
+            if (!completion_result) {
+                DWORD error = GetLastError();
+
+                if (error == WAIT_TIMEOUT) {
+                    CancelIo(in_pipe_.read_end());
+                    return Status::TIMEOUT;
+                }
 
                 return Status::ERR;
             }
 
             if (atomic::stop) {
-                CloseHandle(overlapped_.hEvent);
                 return Status::ERR;
             }
 
-            if (bytes_read == 0) continue;
-
-            // Process the buffer
-
-            const auto result = processBuffer(buffer, bytes_read, lines, last_word);
-
-            if (result == Status::OK) {
-                CloseHandle(overlapped_.hEvent);
-
-                return result;
+            if (bytes_transferred == 0) {
+                continue;
             }
 
-            // Reset event for next iteration
-            ResetEvent(overlapped_.hEvent);
+            if (readBytes(buffer, bytes_transferred, lines, last_word)) {
+                return Status::OK;
+            }
+
+            // Reset for next iteration
+            ResetEvent(async_read_context_.completion_event);
         }
     }
 
     Status writeProcess(const std::string &input) noexcept override {
-        assert(is_initalized_);
+        assert(is_initialized_);
 
         if (alive() != Status::OK) killProcess();
 
-        DWORD bytesWritten;
-        auto res = WriteFile(out_pipe_.write_end(), input.c_str(), input.length(), &bytesWritten, nullptr);
+        DWORD bytes_written;
+        auto res = WriteFile(out_pipe_.write_end(), input.c_str(), input.length(), &bytes_written, nullptr);
 
         return res ? Status::OK : Status::ERR;
     }
 
    private:
-    [[nodiscard]] Status processBuffer(const std::array<char, 4096> &buffer, DWORD bytes_read, std::vector<Line> &lines,
-                                       std::string_view searchword) {
-        const auto id = std::this_thread::get_id();
-
-        for (DWORD i = 0; i < bytes_read; i++) {
-            // If we encounter a newline, add the current line to the vector and reset
-            // the current_line_ on Windows newlines are \r\n. Otherwise, append the
-            // character to the current line
+    [[nodiscard]] bool readBytes(const std::array<char, buffer_size> &buffer, DWORD bytes_read,
+                                 std::vector<Line> &lines, std::string_view searchword) {
+        for (DWORD i = 0; i < bytes_read; ++i) {
+            // Check for newline characters; Windows uses \r\n as a line delimiter
             if (buffer[i] != '\n' && buffer[i] != '\r') {
                 current_line_ += buffer[i];
                 continue;
             }
 
-            // don't add empty lines
-            if (current_line_.empty()) continue;
+            if (current_line_.empty()) {
+                continue;
+            }
 
-            const auto time = Logger::should_log_ ? util::time::datetime_precise() : "";
+            addLine(lines);
 
-            lines.emplace_back(Line{current_line_, time});
-
-            if (realtime_logging_) Logger::readFromEngine(current_line_, time, log_name_, false, id);
-
+            // Check if the current line starts with the search word
             if (current_line_.rfind(searchword, 0) == 0) {
-                return Status::OK;
+                return true;
             }
 
             current_line_.clear();
         }
 
-        return Status::NONE;
+        return false;
     }
 
-    struct Pipe {
-        Pipe() : handles_{}, open_{false, false} {}
+    [[nodiscard]] STARTUPINFOA createStartupInfo() const {
+        STARTUPINFOA si = STARTUPINFOA{};
+        si.dwFlags      = STARTF_USESTDHANDLES;
 
-        ~Pipe() {
-            if (open_[0]) close_read();
-            if (open_[1]) close_write();
-        }
+        SetHandleInformation(in_pipe_.read_end(), HANDLE_FLAG_INHERIT, 0);
+        si.hStdOutput = in_pipe_.write_end();
 
-        void create() {
-            if (open_[0]) close_read();
-            if (open_[1]) close_write();
+        SetHandleInformation(out_pipe_.write_end(), HANDLE_FLAG_INHERIT, 0);
+        si.hStdInput = out_pipe_.read_end();
 
-            SECURITY_ATTRIBUTES sa = SECURITY_ATTRIBUTES{};
-            sa.bInheritHandle      = TRUE;
+        return si;
+    }
 
-            if (!CreatePipe(&handles_[0], &handles_[1], &sa, 0)) {
-                throw std::runtime_error("CreatePipe() failed");
-            }
+    [[nodiscard]] bool createProcess(STARTUPINFOA &si) {
+        const auto cmd = command_ + " " + args_;
 
-            open_[0] = open_[1] = true;
-        }
+        const auto success = CreateProcessA(      //
+            nullptr,                              //
+            const_cast<char *>(cmd.c_str()),      //
+            nullptr,                              //
+            nullptr,                              //
+            TRUE,                                 //
+            CREATE_NEW_PROCESS_GROUP,             //
+            nullptr,                              //
+            wd_.empty() ? nullptr : wd_.c_str(),  //
+            &si,                                  //
+            &pi_                                  //
+        );
 
-        void close_read() {
-            assert(open_[0]);
-            open_[0] = false;
-            CloseHandle(handles_[0]);
-        }
+        out_pipe_.close_read();
+        is_initialized_ = true;
 
-        void close_write() {
-            assert(open_[1]);
-            open_[1] = false;
-            CloseHandle(handles_[1]);
-        }
-
-        HANDLE read_end() const {
-            assert(open_[0]);
-            return handles_[0];
-        }
-
-        HANDLE write_end() const {
-            assert(open_[1]);
-            return handles_[1];
-        }
-
-       private:
-        std::array<HANDLE, 2> handles_;
-        std::array<bool, 2> open_;
-    };
+        return success;
+    }
 
     void closeHandles() const {
-        assert(is_initalized_);
+        assert(is_initialized_);
 
         CloseHandle(pi_.hThread);
         CloseHandle(pi_.hProcess);
     }
 
-    std::string wd_;
+    void addLine(std::vector<Line> &lines) const {
+        const auto timestamp = Logger::should_log_ ? util::time::datetime_precise() : "";
 
+        lines.emplace_back(Line{current_line_, timestamp});
+
+        if (realtime_logging_) {
+            Logger::readFromEngine(current_line_, timestamp, log_name_, false, thread_id);
+        }
+    }
+
+    // The working directory
+    std::string wd_;
     // The command to execute
     std::string command_;
     // The arguments for the engine
     std::string args_;
     // The name in the log file
     std::string log_name_;
-
+    // The current line read from the engine, avoids reallocations
     std::string current_line_;
 
     // True if the process has been initialized
-    bool is_initalized_ = false;
-    bool startup_error_ = false;
+    bool is_initialized_ = false;
 
     PROCESS_INFORMATION pi_;
 
+    AsyncReadContext async_read_context_;
+
     Pipe in_pipe_ = {}, out_pipe_ = {};
 
-    OVERLAPPED overlapped_ = {};
+    const std::thread::id thread_id = std::this_thread::get_id();
 };
 
 }  // namespace engine::process

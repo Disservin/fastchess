@@ -315,7 +315,13 @@ bool UciEngine::start() {
     }
 
     // Wait for the engine to start
-    if (!uci() || !uciok(startup_time_)) {
+    if (!uci()) {
+        Logger::warn<true>("Couldnt write uci to engine.", config_.name);
+
+        return false;
+    }
+
+    if (!uciok(startup_time_)) {
         Logger::warn<true>("Engine {} didn't respond to uci with uciok after startup.", config_.name);
 
         return false;

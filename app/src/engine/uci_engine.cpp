@@ -420,7 +420,11 @@ std::vector<std::string> UciEngine::lastInfo() const {
 ScoreType UciEngine::lastScoreType() const {
     auto score = str_utils::findElement<std::string>(lastInfo(), "score").value_or("ERR");
 
-    return score == "ERR" ? ScoreType::ERR : score == "cp" ? ScoreType::CP : ScoreType::MATE;
+    if (score == "ERR") return ScoreType::ERR;
+    if (score == "cp") return ScoreType::CP;
+    if (score == "mate") return ScoreType::MATE;
+
+    return ScoreType::ERR;
 }
 
 int UciEngine::lastScore() const {

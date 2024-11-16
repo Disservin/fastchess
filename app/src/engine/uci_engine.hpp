@@ -70,13 +70,13 @@ class UciEngine {
         return readEngine(last_word, threshold);
     }
 
-    void setupReadEngine() { process_->setupRead(); }
+    void setupReadEngine() { process_.setupRead(); }
 
     // Logs are not written in realtime to avoid slowing down the engine.
     // This function writes the logs to the logger.
     void writeLog() const;
 
-    void setCpus(const std::vector<int> &cpus) { process_->setAffinity(cpus); }
+    void setCpus(const std::vector<int> &cpus) { process_.setAffinity(cpus); }
 
     // Get the bestmove from the last output.
     [[nodiscard]] std::optional<std::string> bestmove() const;
@@ -111,11 +111,11 @@ class UciEngine {
     void loadConfig(const EngineConfiguration &config);
     void sendSetoption(const std::string &name, const std::string &value);
 
-    std::unique_ptr<process::IProcess> process_ = std::make_unique<process::Process>();
-
-    UCIOptions uci_options_;
-    std::vector<process::Line> output_;
+    process::Process process_ = {};
+    UCIOptions uci_options_   = {};
     EngineConfiguration config_;
+
+    std::vector<process::Line> output_;
 
     // init on first use
     bool initialized_ = false;

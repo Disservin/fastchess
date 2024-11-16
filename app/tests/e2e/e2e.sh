@@ -94,12 +94,12 @@ OUTPUT_FILE_3=$(mktemp)
     -each tc=2+0.02s option.Hash=-16 option.Threads=2 -rounds 5 -repeat -concurrency 2 \
     -openings file=app/tests/data/openings.pgn format=pgn order=random -log file=log.txt level=info  2>&1 | tee $OUTPUT_FILE_3
 
-if ! grep -q "Warning: random_move_1 doesn't have option Threads" $OUTPUT_FILE_3; then
+if ! grep -q "Warning; random_move_1 doesn't have option Threads" $OUTPUT_FILE_3; then
     echo "Failed to save results."
     exit 1
 fi
 
-if ! grep -q "Warning: Invalid value for option Hash: -16" $OUTPUT_FILE_3; then
+if ! grep -q "Warning; Invalid value for option Hash: -16" $OUTPUT_FILE_3; then
     echo "Failed to save results."
     exit 1
 fi
@@ -142,7 +142,7 @@ OUTPUT_FILE_4=$(mktemp)
     -each tc=2+0.02s option.Hash=-16 option.Threads=2 -rounds 5 -repeat -concurrency 2 \
     -openings file=app/tests/data/openings.pgn format=pgn order=random -log file=log.txt level=warn  2>&1 | tee $OUTPUT_FILE_4
 
-# Warning: Cannot start engine sf2:
+# Warning; Cannot start engine sf2:
 # Cannot execute command: ../python-chess-engine/pythonchess.sh
 
 # check if the output contains the expected error message
@@ -152,7 +152,7 @@ if ! grep -q "Cannot execute command: app/tests/mock/engine/missing_shebang.sh" 
 fi
 
 # check if the output contains the expected error message
-if ! grep -q "Warning: Cannot start engine random_move_1:" $OUTPUT_FILE_4; then
+if ! grep -q "Warning; Cannot start engine random_move_1:" $OUTPUT_FILE_4; then
     echo "Failed to report warning about invalid command."
     exit 1
 fi

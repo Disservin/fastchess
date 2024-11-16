@@ -18,8 +18,6 @@ class MockUciEngine : public engine::UciEngine {
    public:
     explicit MockUciEngine(const EngineConfiguration& config, bool realtime_logging)
         : engine::UciEngine(config, realtime_logging) {}
-
-    void restart() { engine::UciEngine::restart(); }
 };
 
 }  // namespace
@@ -172,37 +170,41 @@ TEST_SUITE("Uci Engine Communication Tests") {
 
     TEST_CASE("Restarting the engine") {
         EngineConfiguration config;
+
 #ifdef _WIN64
         config.cmd = path + "dummy_engine.exe";
 #else
         config.cmd = path + "dummy_engine";
 #endif
-        MockUciEngine uci_engine = MockUciEngine(config, false);
 
-        CHECK(uci_engine.start());
+        std::unique_ptr<engine::UciEngine> uci_engine = std::make_unique<MockUciEngine>(config, false);
 
-        CHECK(uci_engine.writeEngine("uci"));
-        const auto res = uci_engine.readEngine("uciok");
+        CHECK(uci_engine->start());
+
+        CHECK(uci_engine->writeEngine("uci"));
+        const auto res = uci_engine->readEngine("uciok");
 
         CHECK(res == engine::process::Status::OK);
-        CHECK(uci_engine.output().size() == 5);
-        CHECK(uci_engine.output()[0].line == "id name Dummy Engine");
-        CHECK(uci_engine.output()[1].line == "id author FastChess");
-        CHECK(uci_engine.output()[2].line == "line0");
-        CHECK(uci_engine.output()[3].line == "line1");
-        CHECK(uci_engine.output()[4].line == "uciok");
+        CHECK(uci_engine->output().size() == 5);
+        CHECK(uci_engine->output()[0].line == "id name Dummy Engine");
+        CHECK(uci_engine->output()[1].line == "id author FastChess");
+        CHECK(uci_engine->output()[2].line == "line0");
+        CHECK(uci_engine->output()[3].line == "line1");
+        CHECK(uci_engine->output()[4].line == "uciok");
 
-        uci_engine.restart();
+        uci_engine = std::make_unique<MockUciEngine>(config, false);
 
-        CHECK(uci_engine.writeEngine("uci"));
-        const auto res2 = uci_engine.readEngine("uciok");
+        CHECK(uci_engine->start());
+
+        CHECK(uci_engine->writeEngine("uci"));
+        const auto res2 = uci_engine->readEngine("uciok");
 
         CHECK(res2 == engine::process::Status::OK);
-        CHECK(uci_engine.output().size() == 5);
-        CHECK(uci_engine.output()[0].line == "id name Dummy Engine");
-        CHECK(uci_engine.output()[1].line == "id author FastChess");
-        CHECK(uci_engine.output()[2].line == "line0");
-        CHECK(uci_engine.output()[3].line == "line1");
-        CHECK(uci_engine.output()[4].line == "uciok");
+        CHECK(uci_engine->output().size() == 5);
+        CHECK(uci_engine->output()[0].line == "id name Dummy Engine");
+        CHECK(uci_engine->output()[1].line == "id author FastChess");
+        CHECK(uci_engine->output()[2].line == "line0");
+        CHECK(uci_engine->output()[3].line == "line1");
+        CHECK(uci_engine->output()[4].line == "uciok");
     }
 }

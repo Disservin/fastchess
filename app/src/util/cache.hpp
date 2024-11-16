@@ -17,12 +17,12 @@ class CachedEntry : public ScopeEntry {
    public:
     template <typename... ARGS>
     CachedEntry(const ID &identifier, ARGS &&...arg)
-        : ScopeEntry(false), entry_(std::forward<ARGS>(arg)...), id(identifier) {}
+        : ScopeEntry(false), entry_(std::make_unique<T>(std::forward<ARGS>(arg)...)), id(identifier) {}
 
-    [[nodiscard]] T &get() noexcept { return entry_; }
+    [[nodiscard]] auto &get() noexcept { return entry_; }
 
    private:
-    T entry_;
+    std::unique_ptr<T> entry_;
     ID id;
 
     template <typename TT, typename II>

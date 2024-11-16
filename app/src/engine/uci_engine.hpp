@@ -20,7 +20,7 @@ namespace fastchess::engine {
 
 enum class ScoreType { CP, MATE, ERR };
 
-class UciEngine : protected process::Process {
+class UciEngine {
    public:
     explicit UciEngine(const EngineConfiguration &config, bool realtime_logging);
 
@@ -29,7 +29,7 @@ class UciEngine : protected process::Process {
     UciEngine &operator=(const UciEngine &) = delete;
     UciEngine &operator=(UciEngine &&)      = delete;
 
-    ~UciEngine() override { quit(); }
+    ~UciEngine() { quit(); }
 
     // Starts the engine, does nothing after the first call.
     // Returns false if the engine is not alive.
@@ -70,13 +70,13 @@ class UciEngine : protected process::Process {
         return readEngine(last_word, threshold);
     }
 
-    void setupReadEngine() { setupRead(); }
+    void setupReadEngine() { process_->setupRead(); }
 
     // Logs are not written in realtime to avoid slowing down the engine.
     // This function writes the logs to the logger.
     void writeLog() const;
 
-    void setCpus(const std::vector<int> &cpus) { setAffinity(cpus); }
+    void setCpus(const std::vector<int> &cpus) { process_->setAffinity(cpus); }
 
     // Get the bestmove from the last output.
     [[nodiscard]] std::optional<std::string> bestmove() const;
@@ -111,11 +111,15 @@ class UciEngine : protected process::Process {
     void loadConfig(const EngineConfiguration &config);
     void sendSetoption(const std::string &name, const std::string &value);
 
+    std::unique_ptr<process::IProcess> process_ = std::make_unique<process::Process>();
+
     UCIOptions uci_options_;
     std::vector<process::Line> output_;
     EngineConfiguration config_;
 
     // init on first use
     bool initialized_ = false;
+
+    const bool realtime_logging_;
 };
 }  // namespace fastchess::engine

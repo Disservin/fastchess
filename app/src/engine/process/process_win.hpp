@@ -114,22 +114,12 @@ class Process : public IProcess {
         is_initialized_ = false;
     }
 
-    void restart() override {
-        Logger::trace<true>("Restarting {}", log_name_);
-        killProcess();
-
-        is_initialized_ = false;
-
-        init(wd_, command_, args_, log_name_);
-    }
-
     void setupRead() override {
         current_line_.clear();
 
         async_read_context_ = AsyncReadContext();
     }
 
-   protected:
     // Read stdout until the line matches last_word or timeout is reached
     // 0 means no timeout
     Status readProcess(std::vector<Line> &lines, std::string_view last_word,

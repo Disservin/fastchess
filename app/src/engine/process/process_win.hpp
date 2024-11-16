@@ -177,6 +177,11 @@ class Process : public IProcess {
                 return Status::ERR;
             }
 
+            if (atomic::stop) {
+                CloseHandle(overlapped_.hEvent);
+                return Status::ERR;
+            }
+
             if (bytes_read == 0) continue;
 
             // Process the buffer

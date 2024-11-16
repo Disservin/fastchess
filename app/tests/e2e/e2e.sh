@@ -99,7 +99,7 @@ if ! grep -q "Warning; random_move_1 doesn't have option Threads" $OUTPUT_FILE_3
     exit 1
 fi
 
-if ! grep -q "Warning; Invalid value for option Hash: -16" $OUTPUT_FILE_3; then
+if ! grep -q "Warning; Invalid value for option Hash; -16" $OUTPUT_FILE_3; then
     echo "Failed to save results."
     exit 1
 fi

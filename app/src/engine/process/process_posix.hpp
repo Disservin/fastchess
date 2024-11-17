@@ -172,7 +172,8 @@ class Process : public IProcess {
 
     // Read stdout until the line matches searchword or timeout is reached
     // 0 means no timeout clears the lines vector
-    Status read(std::vector<Line> &lines, std::string_view searchword, std::chrono::milliseconds threshold) override {
+    Status readOutput(std::vector<Line> &lines, std::string_view searchword,
+                      std::chrono::milliseconds threshold) override {
         assert(is_initalized_);
 
         lines.clear();
@@ -237,7 +238,7 @@ class Process : public IProcess {
         return Status::OK;
     }
 
-    Status write(const std::string &input) noexcept override {
+    Status writeInput(const std::string &input) noexcept override {
         assert(is_initalized_);
 
         if (alive() != Status::OK) return Status::ERR;

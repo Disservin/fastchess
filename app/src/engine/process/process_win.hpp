@@ -122,7 +122,8 @@ class Process : public IProcess {
 
     // Read stdout until the line matches last_word or timeout is reached
     // 0 means no timeout
-    Status read(std::vector<Line> &lines, std::string_view last_word, std::chrono::milliseconds threshold) override {
+    Status readOutput(std::vector<Line> &lines, std::string_view last_word,
+                      std::chrono::milliseconds threshold) override {
         assert(is_initialized_);
 
         lines.clear();
@@ -178,7 +179,7 @@ class Process : public IProcess {
         }
     }
 
-    Status write(const std::string &input) noexcept override {
+    Status writeInput(const std::string &input) noexcept override {
         assert(is_initialized_);
 
         if (alive() != Status::OK) terminate();

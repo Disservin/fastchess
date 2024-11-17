@@ -5,6 +5,7 @@
 #    include <engine/process/iprocess.hpp>
 
 #    include <array>
+#    include <cassert>
 #    include <chrono>
 #    include <string>
 #    include <string_view>
@@ -99,6 +100,8 @@ class Process : public IProcess {
     }
 
     [[nodiscard]] Status alive() const noexcept override {
+        assert(is_initialized_);
+
         if (!process_guard_.valid()) return Status::ERR;
 
         DWORD exit_code = 0;
@@ -108,17 +111,23 @@ class Process : public IProcess {
     }
 
     void setAffinity(const std::vector<int>& cpus) noexcept override {
+        assert(is_initialized_);
+
         if (!process_guard_.valid() || cpus.empty()) return;
         affinity::setAffinity(cpus, process_guard_.handle());
     }
 
     void setupRead() override {
+        assert(is_initialized_);
+
         current_line_.clear();
         async_context_ = detail::AsyncReadContext{};
     }
 
     Status readOutput(std::vector<Line>& lines, std::string_view last_word,
                       std::chrono::milliseconds threshold) override {
+        assert(is_initialized_);
+
         if (!process_guard_.valid()) return Status::ERR;
 
         lines.clear();
@@ -137,6 +146,8 @@ class Process : public IProcess {
     }
 
     Status writeInput(const std::string& input) noexcept override {
+        assert(is_initialized_);
+
         if (alive() != Status::OK) {
             terminate();
             return Status::ERR;
@@ -207,7 +218,8 @@ class Process : public IProcess {
         );
 
         if (success) {
-            process_guard_ = detail::ProcessGuard{pi};
+            is_initialized_ = true;
+            process_guard_  = detail::ProcessGuard{pi};
             out_pipe_.close_read();
         }
 
@@ -292,6 +304,8 @@ class Process : public IProcess {
     Pipe in_pipe_, out_pipe_;
 
     std::string current_line_;
+
+    bool is_initialized_ = false;
 
     const std::thread::id thread_id_ = std::this_thread::get_id();
 };

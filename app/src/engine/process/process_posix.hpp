@@ -54,56 +54,36 @@ class Process : public IProcess {
 
     Status init(const std::string &wd, const std::string &command, const std::string &args,
                 const std::string &log_name) override {
-        assert(!is_initalized_);
+        assert(!is_initialized_);
 
-        wd_            = wd;
-        command_       = command;
-        args_          = args;
-        log_name_      = log_name;
-        is_initalized_ = true;
-        startup_error_ = false;
+        wd_             = wd;
+        command_        = command;
+        args_           = args;
+        log_name_       = log_name;
+        is_initialized_ = true;
+        startup_error_  = false;
 
         current_line_.reserve(300);
 
-        argv_split parser(command);
-        parser.parse(args);
-
-        char *const *execv_argv = (char *const *)parser.argv();
-
-        posix_spawn_file_actions_t file_actions;
-        posix_spawn_file_actions_init(&file_actions);
-
         try {
-            setup_spawn_file_actions(file_actions, out_pipe_.read_end(), STDIN_FILENO);
-            setup_close_file_actions(file_actions, out_pipe_.read_end());
-
-            // keep open for self to pipe trick
-            setup_spawn_file_actions(file_actions, in_pipe_.write_end(), STDOUT_FILENO);
-
-            setup_spawn_file_actions(file_actions, err_pipe_.write_end(), STDERR_FILENO);
-            setup_close_file_actions(file_actions, err_pipe_.write_end());
-
-            if (posix_spawn(&process_pid_, command.c_str(), &file_actions, nullptr, execv_argv, environ) != 0) {
-                throw std::runtime_error("posix_spawn failed");
+            if (!spawn_process(command, args)) {
+                return Status::ERR;
             }
 
-            posix_spawn_file_actions_destroy(&file_actions);
-        } catch (const std::exception &e) {
-            startup_error_ = true;
+            is_initialized_ = true;
 
-            posix_spawn_file_actions_destroy(&file_actions);
+            // Append the process to the list of running processes
+            // which are killed when the program exits, as a last resort
+            process_list.push(ProcessInformation{process_pid_, in_pipe_.write_end()});
+        } catch (const std::exception &) {
             return Status::ERR;
         }
-
-        // Append the process to the list of running processes
-        // which are killed when the program exits, as a last resort
-        process_list.push(ProcessInformation{process_pid_, in_pipe_.write_end()});
 
         return Status::OK;
     }
 
     Status alive() const noexcept override {
-        assert(is_initalized_);
+        assert(is_initialized_);
 
         int status;
         const pid_t r = waitpid(process_pid_, &status, WNOHANG);
@@ -133,7 +113,7 @@ class Process : public IProcess {
     }
 
     void setAffinity(const std::vector<int> &cpus) noexcept override {
-        assert(is_initalized_);
+        assert(is_initialized_);
 
         if (!cpus.empty()) {
             // Apple does not support setting the affinity of a pid
@@ -145,11 +125,11 @@ class Process : public IProcess {
 
     void terminate() {
         if (startup_error_) {
-            is_initalized_ = false;
+            is_initialized_ = false;
             return;
         }
 
-        if (!is_initalized_) return;
+        if (!is_initialized_) return;
 
         process_list.remove_if([this](const ProcessInformation &pi) { return pi.identifier == process_pid_; });
 
@@ -165,7 +145,7 @@ class Process : public IProcess {
             wait(nullptr);
         }
 
-        is_initalized_ = false;
+        is_initialized_ = false;
     }
 
     void setupRead() override { current_line_.clear(); }
@@ -174,7 +154,7 @@ class Process : public IProcess {
     // 0 means no timeout clears the lines vector
     Status readOutput(std::vector<Line> &lines, std::string_view searchword,
                       std::chrono::milliseconds threshold) override {
-        assert(is_initalized_);
+        assert(is_initialized_);
 
         lines.clear();
 
@@ -190,26 +170,19 @@ class Process : public IProcess {
         // We prefer to use poll instead of select because
         // poll is more efficient and select has a filedescriptor limit of 1024
         // which can be a problem when running with a high concurrency
-        std::array<pollfd, 2> pollfds;
-        pollfds[0].fd     = in_pipe_.read_end();
-        pollfds[0].events = POLLIN;
 
-        pollfds[1].fd     = err_pipe_.read_end();
-        pollfds[1].events = POLLIN;
+        std::array<pollfd, 2> pollfds{{
+            {in_pipe_.read_end(), POLLIN, 0},  //
+            {err_pipe_.read_end(), POLLIN, 0}  //
+        }};
 
         // Continue reading output lines until the line
         // matches the specified searchword or a timeout occurs
         while (true) {
             const int ready = poll(pollfds.data(), pollfds.size(), threshold.count());
 
-            if (atomic::stop) {
-                return Status::ERR;
-            }
-
-            // error
-            if (ready == -1) {
-                return Status::ERR;
-            }
+            if (atomic::stop) return Status::ERR;
+            if (ready == -1) return Status::ERR;
 
             // timeout
             if (ready == 0) {
@@ -223,7 +196,7 @@ class Process : public IProcess {
             if (pollfds[0].revents & POLLIN) {
                 const auto bytes_read = read(in_pipe_.read_end(), buffer.data(), sizeof(buffer));
 
-                if (auto status = processBuffer(buffer, bytes_read, lines, searchword); status != Status::NONE)
+                if (auto status = readBytes(buffer.data(), bytes_read, lines, searchword); status != Status::NONE)
                     return status;
             }
 
@@ -231,7 +204,8 @@ class Process : public IProcess {
             if (pollfds[1].revents & POLLIN) {
                 const auto bytes_read = read(err_pipe_.read_end(), buffer.data(), sizeof(buffer));
 
-                if (auto status = processBuffer(buffer, bytes_read, lines, ""); status != Status::NONE) return status;
+                if (auto status = readBytes(buffer.data(), bytes_read, lines, ""); status != Status::NONE)
+                    return status;
             }
         }
 
@@ -239,7 +213,7 @@ class Process : public IProcess {
     }
 
     Status writeInput(const std::string &input) noexcept override {
-        assert(is_initalized_);
+        assert(is_initialized_);
 
         if (alive() != Status::OK) return Status::ERR;
 
@@ -249,6 +223,36 @@ class Process : public IProcess {
     }
 
    private:
+    bool spawn_process(const std::string &command, const std::string &args) {
+        argv_split parser(command);
+        parser.parse(args);
+
+        posix_spawn_file_actions_t file_actions;
+        posix_spawn_file_actions_init(&file_actions);
+
+        auto cleanup = [&] { posix_spawn_file_actions_destroy(&file_actions); };
+
+        try {
+            setup_spawn_file_actions(file_actions, out_pipe_.read_end(), STDIN_FILENO);
+            setup_close_file_actions(file_actions, out_pipe_.read_end());
+            setup_spawn_file_actions(file_actions, in_pipe_.write_end(), STDOUT_FILENO);
+            setup_spawn_file_actions(file_actions, err_pipe_.write_end(), STDERR_FILENO);
+            setup_close_file_actions(file_actions, err_pipe_.write_end());
+
+            if (posix_spawn(&process_pid_, command.c_str(), &file_actions, nullptr, (char *const *)parser.argv(),
+                            environ) != 0) {
+                cleanup();
+                return false;
+            }
+
+            cleanup();
+            return true;
+        } catch (...) {
+            cleanup();
+            throw;
+        }
+    }
+
     void setup_spawn_file_actions(posix_spawn_file_actions_t &file_actions, int fd, int target_fd) {
         if (posix_spawn_file_actions_adddup2(&file_actions, fd, target_fd) != 0) {
             throw std::runtime_error("posix_spawn_file_actions_add* failed");
@@ -261,8 +265,8 @@ class Process : public IProcess {
         }
     }
 
-    [[nodiscard]] Status processBuffer(const std::array<char, 4096> &buffer, ssize_t bytes_read,
-                                       std::vector<Line> &lines, std::string_view searchword) {
+    [[nodiscard]] Status readBytes(char *buffer, ssize_t bytes_read, std::vector<Line> &lines,
+                                   std::string_view searchword) {
         if (bytes_read == -1) return Status::ERR;
 
         // Iterate over each character in the buffer
@@ -281,7 +285,10 @@ class Process : public IProcess {
 
                 lines.emplace_back(Line{current_line_, time});
 
-                if (realtime_logging_) Logger::readFromEngine(current_line_, time, log_name_, searchword.empty());
+                if (realtime_logging_) {
+                    Logger::readFromEngine(current_line_, time, log_name_, searchword.empty(), thread_id);
+                }
+
                 if (!searchword.empty() && current_line_.rfind(searchword, 0) == 0) return Status::OK;
 
                 current_line_.clear();
@@ -319,13 +326,15 @@ class Process : public IProcess {
     std::string current_line_;
 
     // True if the process has been initialized
-    bool is_initalized_ = false;
-    bool startup_error_ = false;
+    bool is_initialized_ = false;
+    bool startup_error_  = false;
 
     // The process id of the engine
     pid_t process_pid_;
 
     Pipe in_pipe_ = {}, out_pipe_ = {}, err_pipe_ = {};
+
+    const std::thread::id thread_id = std::this_thread::get_id();
 };
 }  // namespace engine::process
 }  // namespace fastchess

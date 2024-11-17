@@ -170,7 +170,7 @@ class Process : public IProcess {
                 continue;
             }
 
-            if (readBytes(buffer, bytes_transferred, lines, last_word)) {
+            if (readBytes(buffer.data(), bytes_transferred, lines, last_word)) {
                 return Status::OK;
             }
 
@@ -191,8 +191,8 @@ class Process : public IProcess {
     }
 
    private:
-    [[nodiscard]] bool readBytes(const std::array<char, buffer_size> &buffer, DWORD bytes_read,
-                                 std::vector<Line> &lines, std::string_view searchword) {
+    [[nodiscard]] bool readBytes(char *buffer, DWORD bytes_read, std::vector<Line> &lines,
+                                 std::string_view searchword) {
         for (DWORD i = 0; i < bytes_read; ++i) {
             // Check for newline characters; Windows uses \r\n as a line delimiter
             if (buffer[i] != '\n' && buffer[i] != '\r') {

@@ -54,7 +54,7 @@ class Process : public IProcess {
     constexpr static int buffer_size = 4096;
 
    public:
-    ~Process() override { kill(); }
+    ~Process() override { terminate(); }
 
     Status init(const std::string &wd, const std::string &command, const std::string &args,
                 const std::string &log_name) override {
@@ -97,7 +97,7 @@ class Process : public IProcess {
         if (!cpus.empty()) affinity::setAffinity(cpus, pi_.hProcess);
     }
 
-    void kill() {
+    void terminate() {
         if (!is_initialized_) return;
 
         process_list.remove_if([this](const auto &pi) { return pi.identifier == pi_.hProcess; });
@@ -181,7 +181,7 @@ class Process : public IProcess {
     Status write(const std::string &input) noexcept override {
         assert(is_initialized_);
 
-        if (alive() != Status::OK) kill();
+        if (alive() != Status::OK) terminate();
 
         DWORD bytes_written;
         auto res = WriteFile(out_pipe_.write_end(), input.c_str(), input.length(), &bytes_written, nullptr);

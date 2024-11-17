@@ -50,7 +50,7 @@ namespace engine::process {
 
 class Process : public IProcess {
    public:
-    virtual ~Process() override { kill(); }
+    virtual ~Process() override { terminate(); }
 
     Status init(const std::string &wd, const std::string &command, const std::string &args,
                 const std::string &log_name) override {
@@ -143,7 +143,7 @@ class Process : public IProcess {
         }
     }
 
-    void kill() {
+    void terminate() {
         if (startup_error_) {
             is_initalized_ = false;
             return;

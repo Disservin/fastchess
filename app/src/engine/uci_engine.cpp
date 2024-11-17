@@ -82,7 +82,7 @@ process::Status UciEngine::isready(std::chrono::milliseconds threshold) {
     setupReadEngine();
 
     std::vector<process::Line> output;
-    const auto res = process_.readProcess(output, "readyok", threshold);
+    const auto res = process_.readOutput(output, "readyok", threshold);
 
     // print output in case we are using delayed logging
     if (!realtime_logging_) {
@@ -358,7 +358,7 @@ bool UciEngine::refreshUci() {
 
 process::Status UciEngine::readEngine(std::string_view last_word, std::chrono::milliseconds threshold) {
     setupReadEngine();
-    return process_.readProcess(output_, last_word, threshold);
+    return process_.readOutput(output_, last_word, threshold);
 }
 
 void UciEngine::writeLog() const {
@@ -387,7 +387,7 @@ std::string UciEngine::lastInfoLine() const {
 
 bool UciEngine::writeEngine(const std::string &input) {
     Logger::writeToEngine(input, util::time::datetime_precise(), config_.name);
-    return process_.writeProcess(input + "\n") == process::Status::OK;
+    return process_.writeInput(input + "\n") == process::Status::OK;
 }
 
 std::optional<std::string> UciEngine::bestmove() const {

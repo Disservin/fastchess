@@ -54,7 +54,7 @@ class Process : public IProcess {
     constexpr static int buffer_size = 4096;
 
    public:
-    ~Process() override { killProcess(); }
+    ~Process() override { terminate(); }
 
     Status init(const std::string &wd, const std::string &command, const std::string &args,
                 const std::string &log_name) override {
@@ -97,7 +97,7 @@ class Process : public IProcess {
         if (!cpus.empty()) affinity::setAffinity(cpus, pi_.hProcess);
     }
 
-    void killProcess() {
+    void terminate() {
         if (!is_initialized_) return;
 
         process_list.remove_if([this](const auto &pi) { return pi.identifier == pi_.hProcess; });
@@ -122,8 +122,8 @@ class Process : public IProcess {
 
     // Read stdout until the line matches last_word or timeout is reached
     // 0 means no timeout
-    Status readProcess(std::vector<Line> &lines, std::string_view last_word,
-                       std::chrono::milliseconds threshold) override {
+    Status readOutput(std::vector<Line> &lines, std::string_view last_word,
+                      std::chrono::milliseconds threshold) override {
         assert(is_initialized_);
 
         lines.clear();
@@ -179,10 +179,10 @@ class Process : public IProcess {
         }
     }
 
-    Status writeProcess(const std::string &input) noexcept override {
+    Status writeInput(const std::string &input) noexcept override {
         assert(is_initialized_);
 
-        if (alive() != Status::OK) killProcess();
+        if (alive() != Status::OK) terminate();
 
         DWORD bytes_written;
         auto res = WriteFile(out_pipe_.write_end(), input.c_str(), input.length(), &bytes_written, nullptr);

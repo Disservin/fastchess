@@ -40,9 +40,6 @@ class IProcess {
 
     virtual void setAffinity(const std::vector<int> &cpus) noexcept = 0;
 
-    virtual void restart() = 0;
-
-   protected:
     // Read stdout until the line matches last_word or timeout is reached
     // 0 threshold means no timeout
     virtual Status readProcess(std::vector<Line> &lines, std::string_view last_word,
@@ -51,6 +48,7 @@ class IProcess {
     // Write input to the engine's stdin
     virtual Status writeProcess(const std::string &input) noexcept = 0;
 
+   protected:
     bool realtime_logging_ = true;
 };
 

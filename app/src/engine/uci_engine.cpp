@@ -64,15 +64,15 @@ std::string getPath(const EngineConfiguration &config) {
 }
 }  // namespace
 
-UciEngine::UciEngine(const EngineConfiguration &config, bool realtime_logging) {
+UciEngine::UciEngine(const EngineConfiguration &config, bool realtime_logging) : realtime_logging_(realtime_logging) {
     loadConfig(config);
     output_.reserve(100);
 
-    setRealtimeLogging(realtime_logging);
+    process_.setRealtimeLogging(realtime_logging_);
 }
 
 process::Status UciEngine::isready(std::chrono::milliseconds threshold) {
-    const auto is_alive = alive();
+    const auto is_alive = process_.alive();
     if (is_alive != process::Status::OK) return is_alive;
 
     Logger::trace<true>("Pinging engine {}", config_.name);
@@ -82,7 +82,7 @@ process::Status UciEngine::isready(std::chrono::milliseconds threshold) {
     setupReadEngine();
 
     std::vector<process::Line> output;
-    const auto res = readProcess(output, "readyok", threshold);
+    const auto res = process_.readProcess(output, "readyok", threshold);
 
     // print output in case we are using delayed logging
     if (!realtime_logging_) {
@@ -307,7 +307,7 @@ bool UciEngine::start() {
     Logger::trace<true>("Starting engine {} at {}", config_.name, path);
 
     // Creates the engine process and sets the pipes
-    if (init(config_.dir, path, config_.args, config_.name) != process::Status::OK) {
+    if (process_.init(config_.dir, path, config_.args, config_.name) != process::Status::OK) {
         Logger::warn<true>("Warning; Cannot start engine {};", config_.name);
         Logger::warn<true>("Cannot execute command: {}", path);
 
@@ -336,16 +336,8 @@ bool UciEngine::refreshUci() {
     Logger::trace<true>("Refreshing engine {}", config_.name);
 
     if (!ucinewgame()) {
-        // restart the engine
-        Logger::trace<true>("Engine {} failed to refresh. Restarting engine.", config_.name);
-        restart();
-
-        if (!uci() || !uciok()) return false;
-
-        if (!ucinewgame()) {
-            Logger::trace<true>("Engine {} responded to uci but not to ucinewgame/isready.", config_.name);
-            return false;
-        }
+        Logger::trace<true>("Engine {} failed to refresh.", config_.name);
+        return false;
     }
 
     for (const auto &option : config_.options) {
@@ -366,7 +358,7 @@ bool UciEngine::refreshUci() {
 
 process::Status UciEngine::readEngine(std::string_view last_word, std::chrono::milliseconds threshold) {
     setupReadEngine();
-    return readProcess(output_, last_word, threshold);
+    return process_.readProcess(output_, last_word, threshold);
 }
 
 void UciEngine::writeLog() const {
@@ -395,7 +387,7 @@ std::string UciEngine::lastInfoLine() const {
 
 bool UciEngine::writeEngine(const std::string &input) {
     Logger::writeToEngine(input, util::time::datetime_precise(), config_.name);
-    return writeProcess(input + "\n") == process::Status::OK;
+    return process_.writeProcess(input + "\n") == process::Status::OK;
 }
 
 std::optional<std::string> UciEngine::bestmove() const {

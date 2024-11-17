@@ -76,13 +76,14 @@ void BaseTournament::playGame(const GamePair<EngineConfiguration, EngineConfigur
     if (atomic::stop) return;
 
     const auto &config = config::TournamentConfig.get();
+    const auto rl      = config.log.realtime;
     const auto core    = util::ScopeGuard(cores_->consume());
 
     const auto white_name = engine_configs.white.name;
     const auto black_name = engine_configs.black.name;
 
-    auto &white_engine = engine_cache_.getEntry(white_name, engine_configs.white, config.log.realtime);
-    auto &black_engine = engine_cache_.getEntry(black_name, engine_configs.black, config.log.realtime);
+    auto &white_engine = engine_cache_.getEntry(white_name, engine_configs.white, rl);
+    auto &black_engine = engine_cache_.getEntry(black_name, engine_configs.black, rl);
 
     util::ScopeGuard lock1(white_engine);
     util::ScopeGuard lock2(black_engine);
@@ -92,12 +93,13 @@ void BaseTournament::playGame(const GamePair<EngineConfiguration, EngineConfigur
     start();
 
     auto match = Match(opening);
-    match.start(white_engine.get(), black_engine.get(), core.get().cpus);
+    match.start(*white_engine.get(), *black_engine.get(), core.get().cpus);
 
     Logger::trace<true>("Game {} between {} and {} finished", game_id, white_name, black_name);
 
     if (match.isStallOrDisconnect()) {
         Logger::trace<true>("Game {} between {} and {} stalled / disconnected", game_id, white_name, black_name);
+
         if (!config.recover) {
             atomic::stop = true;
             return;
@@ -106,14 +108,15 @@ void BaseTournament::playGame(const GamePair<EngineConfiguration, EngineConfigur
         // restart the engine when recover is enabled
 
         Logger::trace<true>("Restarting engine...");
-        if (white_engine.get().isready() != engine::process::Status::OK) {
+
+        if (white_engine.get()->isready() != engine::process::Status::OK) {
             Logger::trace<true>("Restarting engine {}", white_name);
-            white_engine.get().refreshUci();
+            white_engine.get() = std::make_unique<engine::UciEngine>(engine_configs.white, rl);
         }
 
-        if (black_engine.get().isready() != engine::process::Status::OK) {
+        if (black_engine.get()->isready() != engine::process::Status::OK) {
             Logger::trace<true>("Restarting engine {}", black_name);
-            black_engine.get().refreshUci();
+            black_engine.get() = std::make_unique<engine::UciEngine>(engine_configs.black, rl);
         }
     }
 
@@ -132,7 +135,7 @@ void BaseTournament::playGame(const GamePair<EngineConfiguration, EngineConfigur
         const auto result = pgn::PgnBuilder::getResultFromMatch(match_data.players.white, match_data.players.black);
         Logger::trace<true>("Game {} finished with result {}", game_id, result);
 
-        finish({match_data}, match_data.reason, {white_engine.get(), black_engine.get()});
+        finish({match_data}, match_data.reason, {*white_engine.get(), *black_engine.get()});
 
         startNext();
     }

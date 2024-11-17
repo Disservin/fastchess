@@ -168,15 +168,8 @@ class Process : public IProcess {
         is_initalized_ = false;
     }
 
-    void restart() override {
-        Logger::trace<true>("Restarting {}", log_name_);
-        killProcess();
-        init(wd_, command_, args_, log_name_);
-    }
-
     void setupRead() override { current_line_.clear(); }
 
-   protected:
     // Read stdout until the line matches searchword or timeout is reached
     // 0 means no timeout clears the lines vector
     Status readProcess(std::vector<Line> &lines, std::string_view searchword,

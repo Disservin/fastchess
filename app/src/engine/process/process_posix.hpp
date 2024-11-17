@@ -50,7 +50,7 @@ namespace engine::process {
 
 class Process : public IProcess {
    public:
-    virtual ~Process() override { killProcess(); }
+    virtual ~Process() override { kill(); }
 
     Status init(const std::string &wd, const std::string &command, const std::string &args,
                 const std::string &log_name) override {
@@ -143,7 +143,7 @@ class Process : public IProcess {
         }
     }
 
-    void killProcess() {
+    void kill() {
         if (startup_error_) {
             is_initalized_ = false;
             return;
@@ -172,8 +172,7 @@ class Process : public IProcess {
 
     // Read stdout until the line matches searchword or timeout is reached
     // 0 means no timeout clears the lines vector
-    Status readProcess(std::vector<Line> &lines, std::string_view searchword,
-                       std::chrono::milliseconds threshold) override {
+    Status read(std::vector<Line> &lines, std::string_view searchword, std::chrono::milliseconds threshold) override {
         assert(is_initalized_);
 
         lines.clear();
@@ -238,7 +237,7 @@ class Process : public IProcess {
         return Status::OK;
     }
 
-    Status writeProcess(const std::string &input) noexcept override {
+    Status write(const std::string &input) noexcept override {
         assert(is_initalized_);
 
         if (alive() != Status::OK) return Status::ERR;

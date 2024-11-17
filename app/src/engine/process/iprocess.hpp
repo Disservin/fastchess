@@ -42,11 +42,10 @@ class IProcess {
 
     // Read stdout until the line matches last_word or timeout is reached
     // 0 threshold means no timeout
-    virtual Status readProcess(std::vector<Line> &lines, std::string_view last_word,
-                               std::chrono::milliseconds threshold) = 0;
+    virtual Status read(std::vector<Line> &lines, std::string_view last_word, std::chrono::milliseconds threshold) = 0;
 
     // Write input to the engine's stdin
-    virtual Status writeProcess(const std::string &input) noexcept = 0;
+    virtual Status write(const std::string &input) noexcept = 0;
 
    protected:
     bool realtime_logging_ = true;

@@ -457,7 +457,11 @@ void Match::verifyPvLines(const Player& us) {
         Movelist moves;
 
         while (it_start != it_end) {
-            movegen::legalmoves(moves, board);
+            moves.clear();
+
+            if (board.isGameOver().second == GameResult::NONE) {
+                movegen::legalmoves(moves, board);
+            }
 
             if (std::find(moves.begin(), moves.end(), uci::uciToMove(board, *it_start)) == moves.end()) {
                 auto fmt      = fmt::format("Warning; Illegal pv move {} pv; {}", *it_start, info);

@@ -4,6 +4,7 @@
 #    include <stdio.h>
 #    include <sys/resource.h>
 #else
+#    include <windows.h>
 #    include <limits>
 #endif
 
@@ -19,6 +20,24 @@ namespace fastchess::util::fd_limit {
 
     perror("getrlimit");
     return -1;
+}
+
+#else
+bool isWindows11OrNewer() {
+    OSVERSIONINFOEX osvi;
+    ZeroMemory(&osvi, sizeof(OSVERSIONINFOEX));
+    osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFOEX);
+
+    DWORDLONG conditionMask = 0;
+    VER_SET_CONDITION(conditionMask, VER_MAJORVERSION, VER_GREATER_EQUAL);
+    VER_SET_CONDITION(conditionMask, VER_MINORVERSION, VER_GREATER_EQUAL);
+    VER_SET_CONDITION(conditionMask, VER_BUILDNUMBER, VER_GREATER_EQUAL);
+
+    osvi.dwMajorVersion = 10;
+    osvi.dwMinorVersion = 0;
+    osvi.dwBuildNumber  = 22000;  // Windows 11 starts from build 22000
+
+    return VerifyVersionInfo(&osvi, VER_MAJORVERSION | VER_MINORVERSION | VER_BUILDNUMBER, conditionMask);
 }
 #endif
 

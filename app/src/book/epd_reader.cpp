@@ -5,6 +5,8 @@
 #include <string>
 #include <vector>
 
+#include <util/heap_str.hpp>
+
 namespace {
 std::istream& safeGetline(std::istream& is, std::string& t) {
     t.clear();
@@ -39,23 +41,20 @@ std::istream& safeGetline(std::istream& is, std::string& t) {
 
 namespace fastchess::book {
 
-EpdReader::EpdReader(const std::string& epd_file_path) : epd_file_(epd_file_path) {}
+EpdReader::EpdReader(const std::string& epd_file_path) : epd_file_(epd_file_path) {
+    std::ifstream openingFile(epd_file_);
 
-Openings EpdReader::getOpenings() {
-    std::vector<std::string> openings;
-
-    std::ifstream openingFile;
-    openingFile.open(epd_file_);
+    if (!openingFile.is_open()) {
+        throw std::runtime_error("Failed to open file: " + epd_file_);
+    }
 
     std::string line;
     while (safeGetline(openingFile, line))
-        if (!line.empty()) openings.emplace_back(line);
+        if (!line.empty()) openings_.emplace_back(util::heap_string(line.c_str()));
 
-    if (openings.empty()) {
+    if (openings_.empty()) {
         throw std::runtime_error("No openings found in file: " + epd_file_);
     }
-
-    return Openings{openings};
 }
 
 }  // namespace fastchess::book

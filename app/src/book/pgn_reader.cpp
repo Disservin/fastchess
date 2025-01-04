@@ -72,6 +72,10 @@ PgnReader::PgnReader(const std::string& pgn_file_path, int plies_limit)
     : file_name_(pgn_file_path), plies_limit_(plies_limit) {
     std::ifstream file(file_name_);
 
+    if (!file.is_open()) {
+        throw std::runtime_error("Failed to open file: " + file_name_);
+    }
+
     auto vis = std::make_unique<PGNVisitor>(pgns_, plies_limit_);
     chess::pgn::StreamParser parser(file);
     parser.readGames(*vis);

@@ -1,5 +1,7 @@
 #include <book/pgn_reader.hpp>
 
+#include <memory>
+
 #include <chess.hpp>
 #include "doctest/doctest.hpp"
 
@@ -146,10 +148,10 @@ TEST_SUITE("PGN Reader") {
     }
 
     TEST_CASE("Read PGN file with invalid file") {
-        book::PgnReader reader("app/tests/data/das.pgn");
+        std::unique_ptr<book::PgnReader> reader;
 
-        CHECK_THROWS_WITH_AS(static_cast<void>(reader.get()), "No openings found in file: app/tests/data/das.pgn",
-                             std::runtime_error);
+        CHECK_THROWS_WITH_AS(reader = std::make_unique<book::PgnReader>("app/tests/data/das.pgn"),
+                             "Failed to open file: app/tests/data/das.pgn", std::runtime_error);
     }
 }
 }  // namespace fastchess

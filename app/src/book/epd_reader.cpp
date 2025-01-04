@@ -42,8 +42,7 @@ std::istream& safeGetline(std::istream& is, std::string& t) {
 namespace fastchess::book {
 
 EpdReader::EpdReader(const std::string& epd_file_path) : epd_file_(epd_file_path) {
-    std::ifstream openingFile;
-    openingFile.open(epd_file_);
+    std::ifstream openingFile(epd_file_);
 
     if (!openingFile.is_open()) {
         throw std::runtime_error("Failed to open file: " + epd_file_);

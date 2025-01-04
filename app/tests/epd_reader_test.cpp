@@ -1,5 +1,7 @@
 #include <book/epd_reader.hpp>
 
+#include <memory>
+
 #include <chess.hpp>
 #include "doctest/doctest.hpp"
 
@@ -19,10 +21,10 @@ TEST_SUITE("EPD Reader") {
     }
 
     TEST_CASE("Read EPD file with invalid file") {
-        book::EpdReader reader("app/tests/data/das.epd");
+        std::unique_ptr<book::EpdReader> reader;
 
-        CHECK_THROWS_WITH_AS(static_cast<void>(reader.get()), "No openings found in file: app/tests/data/das.epd",
-                             std::runtime_error);
+        CHECK_THROWS_WITH_AS(reader = std::make_unique<book::EpdReader>("app/tests/data/das.epd"),
+                             "Failed to open file: app/tests/data/das.epd", std::runtime_error);
     }
 }
 

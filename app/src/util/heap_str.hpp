@@ -184,5 +184,10 @@ heap_str<CharT, Traits> operator+(const heap_str<CharT, Traits>& lhs, const heap
     return result;
 }
 
+template <typename CharT, typename Traits>
+bool operator==(const heap_str<CharT, Traits>& lhs, const CharT* rhs) {
+    return Traits::compare(lhs.c_str(), rhs, lhs.size()) == 0;
+}
+
 using heap_string = heap_str<char>;
 }  // namespace fastchess::util

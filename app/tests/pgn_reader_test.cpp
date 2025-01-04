@@ -7,23 +7,23 @@ namespace fastchess {
 TEST_SUITE("PGN Reader") {
     TEST_CASE("Read PGN file") {
         book::PgnReader reader("app/tests/data/test.pgn");
-        const auto games = reader.getOpenings();
+        const auto games = reader.get();
 
-        CHECK(games.pgn().size() == 6);
+        CHECK(games.size() == 6);
 
-        CHECK(games.pgn()[0].fen_epd == chess::constants::STARTPOS);
-        CHECK(games.pgn()[1].fen_epd == chess::constants::STARTPOS);
-        CHECK(games.pgn()[2].fen_epd == chess::constants::STARTPOS);
-        CHECK(games.pgn()[3].fen_epd == "5k2/3r1p2/1p3pp1/p2n3p/P6P/1PPR1PP1/3KN3/6b1 w - - 0 34");
-        CHECK(games.pgn()[4].fen_epd == "5k2/5p2/4B2p/r5pn/4P3/5PPP/2NR2K1/8 b - - 0 59");
-        CHECK(games.pgn()[5].fen_epd == "8/p3kp1p/1p4p1/2r2b2/2BR3P/1P3P2/P4PK1/8 b - - 0 28");
+        CHECK(games[0].fen_epd == chess::constants::STARTPOS);
+        CHECK(games[1].fen_epd == chess::constants::STARTPOS);
+        CHECK(games[2].fen_epd == chess::constants::STARTPOS);
+        CHECK(games[3].fen_epd == "5k2/3r1p2/1p3pp1/p2n3p/P6P/1PPR1PP1/3KN3/6b1 w - - 0 34");
+        CHECK(games[4].fen_epd == "5k2/5p2/4B2p/r5pn/4P3/5PPP/2NR2K1/8 b - - 0 59");
+        CHECK(games[5].fen_epd == "8/p3kp1p/1p4p1/2r2b2/2BR3P/1P3P2/P4PK1/8 b - - 0 28");
 
-        CHECK(games.pgn()[0].moves.size() == 16);
-        CHECK(games.pgn()[1].moves.size() == 16);
-        CHECK(games.pgn()[2].moves.size() == 16);
-        CHECK(games.pgn()[3].moves.size() == 0);
-        CHECK(games.pgn()[4].moves.size() == 0);
-        CHECK(games.pgn()[5].moves.size() == 0);
+        CHECK(games[0].moves.size() == 16);
+        CHECK(games[1].moves.size() == 16);
+        CHECK(games[2].moves.size() == 16);
+        CHECK(games[3].moves.size() == 0);
+        CHECK(games[4].moves.size() == 0);
+        CHECK(games[5].moves.size() == 0);
 
         auto convert = [](const std::vector<std::string>& moves) {
             chess::Board board;
@@ -51,12 +51,12 @@ TEST_SUITE("PGN Reader") {
 
             for (size_t i = 0; i < moves.size(); i++) {
                 const auto move = chess::uci::parseSan(board, moves[i]);
-                CHECK(games.pgn()[0].moves[i] == move);
+                CHECK(games[0].moves[i] == move);
                 board.makeMove(move);
             }
 
             for (size_t i = 0; i < correct.size(); i++) {
-                CHECK(chess::uci::moveToUci(games.pgn()[0].moves[i], false) == correct[i]);
+                CHECK(chess::uci::moveToUci(games[0].moves[i], false) == correct[i]);
             }
         }
 
@@ -76,12 +76,12 @@ TEST_SUITE("PGN Reader") {
 
             for (size_t i = 0; i < moves.size(); i++) {
                 const auto move = chess::uci::parseSan(board, moves[i]);
-                CHECK(games.pgn()[1].moves[i] == move);
+                CHECK(games[1].moves[i] == move);
                 board.makeMove(move);
             }
 
             for (size_t i = 0; i < correct.size(); i++) {
-                CHECK(chess::uci::moveToUci(games.pgn()[1].moves[i], false) == correct[i]);
+                CHECK(chess::uci::moveToUci(games[1].moves[i], false) == correct[i]);
             }
         }
 
@@ -99,58 +99,57 @@ TEST_SUITE("PGN Reader") {
 
             for (size_t i = 0; i < moves.size(); i++) {
                 const auto move = chess::uci::parseSan(board, moves[i]);
-                CHECK(games.pgn()[2].moves[i] == move);
+                CHECK(games[2].moves[i] == move);
                 board.makeMove(move);
             }
 
             for (size_t i = 0; i < correct.size(); i++) {
-                CHECK(chess::uci::moveToUci(games.pgn()[2].moves[i], false) == correct[i]);
+                CHECK(chess::uci::moveToUci(games[2].moves[i], false) == correct[i]);
             }
         }
     }
 
     TEST_CASE("Read PGN file with plies limit") {
         book::PgnReader reader("app/tests/data/test.pgn", 5);
-        const auto games = reader.getOpenings();
+        const auto games = reader.get();
 
-        CHECK(games.pgn().size() == 6);
+        CHECK(games.size() == 6);
 
-        CHECK(games.pgn()[0].fen_epd == chess::constants::STARTPOS);
-        CHECK(games.pgn()[1].fen_epd == chess::constants::STARTPOS);
-        CHECK(games.pgn()[2].fen_epd == chess::constants::STARTPOS);
-        CHECK(games.pgn()[3].fen_epd == "5k2/3r1p2/1p3pp1/p2n3p/P6P/1PPR1PP1/3KN3/6b1 w - - 0 34");
-        CHECK(games.pgn()[4].fen_epd == "5k2/5p2/4B2p/r5pn/4P3/5PPP/2NR2K1/8 b - - 0 59");
-        CHECK(games.pgn()[5].fen_epd == "8/p3kp1p/1p4p1/2r2b2/2BR3P/1P3P2/P4PK1/8 b - - 0 28");
+        CHECK(games[0].fen_epd == chess::constants::STARTPOS);
+        CHECK(games[1].fen_epd == chess::constants::STARTPOS);
+        CHECK(games[2].fen_epd == chess::constants::STARTPOS);
+        CHECK(games[3].fen_epd == "5k2/3r1p2/1p3pp1/p2n3p/P6P/1PPR1PP1/3KN3/6b1 w - - 0 34");
+        CHECK(games[4].fen_epd == "5k2/5p2/4B2p/r5pn/4P3/5PPP/2NR2K1/8 b - - 0 59");
+        CHECK(games[5].fen_epd == "8/p3kp1p/1p4p1/2r2b2/2BR3P/1P3P2/P4PK1/8 b - - 0 28");
 
-        CHECK(games.pgn()[0].moves.size() == 5);
-        CHECK(games.pgn()[1].moves.size() == 5);
-        CHECK(games.pgn()[2].moves.size() == 5);
-        CHECK(games.pgn()[3].moves.size() == 0);
-        CHECK(games.pgn()[4].moves.size() == 0);
-        CHECK(games.pgn()[5].moves.size() == 0);
+        CHECK(games[0].moves.size() == 5);
+        CHECK(games[1].moves.size() == 5);
+        CHECK(games[2].moves.size() == 5);
+        CHECK(games[3].moves.size() == 0);
+        CHECK(games[4].moves.size() == 0);
+        CHECK(games[5].moves.size() == 0);
     }
 
     TEST_CASE("Read PGN file with invalid moves") {
         book::PgnReader reader("app/tests/data/test_invalid.pgn");
-        const auto games = reader.getOpenings();
+        const auto games = reader.get();
 
-        CHECK(games.pgn().size() == 2);
+        CHECK(games.size() == 2);
 
-        CHECK(games.pgn()[0].fen_epd == chess::constants::STARTPOS);
-        CHECK(games.pgn()[0].moves.size() == 6);
+        CHECK(games[0].fen_epd == chess::constants::STARTPOS);
+        CHECK(games[0].moves.size() == 6);
 
-        CHECK(games.pgn()[1].fen_epd == chess::constants::STARTPOS);
-        CHECK(games.pgn()[1].moves.size() == 13);
-        CHECK(games.pgn()[1].moves[12] == chess::Move::make(chess::Square::underlying::SQ_G1,
-                                                            chess::Square::underlying::SQ_F3,
-                                                            chess::PieceType::KNIGHT));
+        CHECK(games[1].fen_epd == chess::constants::STARTPOS);
+        CHECK(games[1].moves.size() == 13);
+        CHECK(games[1].moves[12] == chess::Move::make(chess::Square::underlying::SQ_G1,
+                                                      chess::Square::underlying::SQ_F3, chess::PieceType::KNIGHT));
     }
 
     TEST_CASE("Read PGN file with invalid file") {
         book::PgnReader reader("app/tests/data/das.pgn");
 
-        CHECK_THROWS_WITH_AS(static_cast<void>(reader.getOpenings()),
-                             "No openings found in file: app/tests/data/das.pgn", std::runtime_error);
+        CHECK_THROWS_WITH_AS(static_cast<void>(reader.get()), "No openings found in file: app/tests/data/das.pgn",
+                             std::runtime_error);
     }
 }
 }  // namespace fastchess

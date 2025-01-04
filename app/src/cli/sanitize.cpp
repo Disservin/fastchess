@@ -56,7 +56,7 @@ void sanitize(config::Tournament& config) {
     }
 
 #ifdef _WIN64
-    if (config.concurrency > 63) {
+    if (config.concurrency > 63 && !util::fd_limit::isWindows11OrNewer()) {
         Logger::warn(
             "A concurrency setting of more than 63 is currently not supported on Windows.\nIf this affects "
             "your system, please open an issue or get in touch with the maintainers.");

@@ -84,3 +84,6 @@ app/coverage
 
 **/*.gcda
 **/*.gcno
+
+test
+test.c

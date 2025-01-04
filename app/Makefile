@@ -172,6 +172,15 @@ ifeq ($(ZLIB), true)
 	LDFLAGS += -lz
 endif
 
+include ./compatability/spawn-check.mk
+
+ifeq ($(HAVE_POSIX_SPAWN_FILE_ACTIONS_ADDCHDIR),1)
+    CXXFLAGS += -DHAVE_POSIX_SPAWN_FILE_ACTIONS_ADDCHDIR
+endif
+ifeq ($(HAVE_POSIX_SPAWN_FILE_ACTIONS_ADDCHDIR_NP),1)
+    CXXFLAGS += -DHAVE_POSIX_SPAWN_FILE_ACTIONS_ADDCHDIR_NP
+endif
+
 OBJECTS   := $(patsubst %.cpp,$(BUILDDIR)/%.o,$(SRC_FILES))
 DEPENDS   := $(patsubst %.cpp,$(BUILDDIR)/%.d,$(SRC_FILES))
 

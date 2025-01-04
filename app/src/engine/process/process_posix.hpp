@@ -39,25 +39,24 @@
 
 extern char **environ;
 
-/* Check for POSIX_SPAWN_CHDIR support across different platforms:
+/* Available on:
  * - Solaris/illumos
  * - macOS 10.15 (Catalina) and newer
  * - glibc 2.29 and newer
  * - FreeBSD 13.1 and newer
  */
-// clang-format off
-#if defined(__sun) || \
-   (defined(__MAC_OS_X_VERSION_MIN_REQUIRED) && __MAC_OS_X_VERSION_MIN_REQUIRED >= 101500) || \
-   (__GLIBC__ >= 2 && __GLIBC_MINOR__ >= 29) || \
-   (defined(__FreeBSD__) && __FreeBSD_version >= 1301000)
-#    define HAVE_POSIX_SPAWN_CHDIR 1    /* System supports POSIX_SPAWN_CHDIR flag */
-#endif
-// clang-format on
-
-// Register an alias
-#    ifdef HAVE_POSIX_SPAWN_CHDIR
-#        define posix_spawn_file_actions_addchdir(f, d) posix_spawn_file_actions_addchdir_np(f, d)
+static inline int portable_spawn_file_actions_addchdir(posix_spawn_file_actions_t *file_actions, const char *path) {
+#    ifdef HAVE_POSIX_SPAWN_FILE_ACTIONS_ADDCHDIR
+    return posix_spawn_file_actions_addchdir(file_actions, path);
+#    elif HAVE_POSIX_SPAWN_FILE_ACTIONS_ADDCHDIR_NP
+    return posix_spawn_file_actions_addchdir_np(file_actions, path);
+#    else
+    // Fall back to no-op or error if neither variant is available
+    (void)file_actions;
+    (void)path;
+    return ENOSYS;
 #    endif
+}
 
 namespace fastchess {
 extern util::ThreadVector<ProcessInformation> process_list;
@@ -112,6 +111,8 @@ class Process : public IProcess {
             posix_spawn_file_actions_destroy(&file_actions);
         } catch (const std::exception &e) {
             startup_error_ = true;
+
+            Logger::err("Failed to start process: {}", e.what());
 
             posix_spawn_file_actions_destroy(&file_actions);
             return Status::ERR;
@@ -285,13 +286,13 @@ class Process : public IProcess {
 
     void setup_wd_file_actions(posix_spawn_file_actions_t &file_actions, const std::string &wd) {
         if (wd.empty()) return;
-#    ifdef HAVE_POSIX_SPAWN_CHDIR
-        if (posix_spawn_file_actions_addchdir(&file_actions, wd.c_str()) != 0) {
+        if (portable_spawn_file_actions_addchdir(&file_actions, wd.c_str()) != 0) {
+            // chdir is broken on macos so lets just ignore the return code,
+            // https://github.com/rust-lang/rust/pull/80537
+#    if !(defined(__MAC_OS_X_VERSION_MIN_REQUIRED) && __MAC_OS_X_VERSION_MIN_REQUIRED >= 101500)
             throw std::runtime_error("posix_spawn_file_actions_addchdir failed");
-        }
-#    else
-        throw std::runtime_error("posix_spawn chdir not supported");
 #    endif
+        }
     }
 
     [[nodiscard]] Status processBuffer(const std::array<char, 4096> &buffer, ssize_t bytes_read,

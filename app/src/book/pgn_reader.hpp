@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 
-#include <book/opening_book.hpp>
+#include <book/opening.hpp>
 
 #include <chess.hpp>
 
@@ -12,12 +12,15 @@ namespace fastchess::book {
 
 class PgnReader {
    public:
+    PgnReader() = default;
     explicit PgnReader(const std::string& pgn_file_path, int plies_limit = -1);
 
     // Extracts all pgns from the file
-    [[nodiscard]] Openings getOpenings();
+    [[nodiscard]] std::vector<Opening>& get() noexcept { return pgns_; }
+    [[nodiscard]] const std::vector<Opening>& get() const noexcept { return pgns_; }
 
    private:
+    std::vector<Opening> pgns_;
     std::string file_name_;
     int plies_limit_;
 };

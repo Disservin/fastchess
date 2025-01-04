@@ -69,12 +69,8 @@ class PGNVisitor : public chess::pgn::Visitor {
 };
 
 PgnReader::PgnReader(const std::string& pgn_file_path, int plies_limit)
-    : file_name_(pgn_file_path), plies_limit_(plies_limit) {}
-
-Openings PgnReader::getOpenings() {
+    : file_name_(pgn_file_path), plies_limit_(plies_limit) {
     std::ifstream file(file_name_);
-
-    std::vector<Opening> pgns_;
 
     auto vis = std::make_unique<PGNVisitor>(pgns_, plies_limit_);
     chess::pgn::StreamParser parser(file);
@@ -83,8 +79,6 @@ Openings PgnReader::getOpenings() {
     if (pgns_.empty()) {
         throw std::runtime_error("No openings found in file: " + file_name_);
     }
-
-    return Openings{pgns_};
 }
 
 }  // namespace fastchess::book

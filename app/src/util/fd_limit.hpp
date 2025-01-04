@@ -23,7 +23,7 @@ namespace fastchess::util::fd_limit {
 }
 
 #else
-bool isWindows11OrNewer() {
+[[nodiscard]] inline bool isWindows11OrNewer() {
     OSVERSIONINFOEX osvi;
     ZeroMemory(&osvi, sizeof(OSVERSIONINFOEX));
     osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFOEX);

@@ -459,11 +459,13 @@ void Match::verifyPvLines(const Player& us) {
         while (it_start != it_end) {
             moves.clear();
 
-            if (board.isGameOver().second == GameResult::NONE) {
+            const auto gameover = board.isGameOver().second == GameResult::NONE;
+
+            if (!gameover) {
                 movegen::legalmoves(moves, board);
             }
 
-            if (std::find(moves.begin(), moves.end(), uci::uciToMove(board, *it_start)) == moves.end()) {
+            if (gameover || std::find(moves.begin(), moves.end(), uci::uciToMove(board, *it_start)) == moves.end()) {
                 auto fmt      = fmt::format("Warning; Illegal pv move {} pv; {}", *it_start, info);
                 auto position = fmt::format("position {}", startpos == "startpos" ? "startpos" : ("fen " + startpos));
                 auto fmt2     = fmt::format("From; {} moves {}", position, str_utils::join(uci_moves, " "));

@@ -43,6 +43,27 @@ double SPRT::neloToScorePenta(double nelo, double variance) noexcept {
     return nelo * std::sqrt(2.0 * variance) / (800.0 / std::log(10)) + 0.5;
 }
 
+void SPRT::isValid(double alpha, double beta, double elo0, double elo1, std::string model, bool report_penta) {
+    if (elo0 >= elo1) {
+        throw std::runtime_error("Error; SPRT: elo0 must be less than elo1!");
+    } else if (alpha <= 0 || alpha >= 1) {
+        throw std::runtime_error("Error; SPRT: alpha must be a decimal number between 0 and 1!");
+    } else if (beta <= 0 || beta >= 1) {
+        throw std::runtime_error("Error; SPRT: beta must be a decimal number between 0 and 1!");
+    } else if (alpha + beta >= 1) {
+        throw std::runtime_error("Error; SPRT: sum of alpha and beta must be less than 1!");
+    } else if (model != "normalized" && model != "bayesian" && model != "logistic") {
+        throw std::runtime_error("Error; SPRT: invalid SPRT model!");
+    }
+
+    if (model == "bayesian" && report_penta) {
+        Logger::warn(
+            "Warning: Bayesian SPRT model not available with pentanomial statistics. Disabling "
+            "pentanomial reports...");
+        report_penta = false;
+    }
+}
+
 double SPRT::getLLR(const Stats& stats, bool penta) const noexcept {
     if (penta)
         return getLLR(stats.penta_WW, stats.penta_WD, stats.penta_WL, stats.penta_DD, stats.penta_LD, stats.penta_LL);

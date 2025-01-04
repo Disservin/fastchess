@@ -7,6 +7,7 @@
 #include <utility>
 #include <vector>
 
+#include <matchmaking/sprt/sprt.hpp>
 #include <util/fd_limit.hpp>
 #include <util/file_system.hpp>
 #include <util/logger/logger.hpp>
@@ -30,25 +31,8 @@ void sanitize(config::Tournament& config) {
 
     // throw error for invalid sprt config
     if (config.sprt.enabled) {
-        if (config.sprt.elo0 >= config.sprt.elo1) {
-            throw std::runtime_error("Error; SPRT: elo0 must be less than elo1!");
-        } else if (config.sprt.alpha <= 0 || config.sprt.alpha >= 1) {
-            throw std::runtime_error("Error; SPRT: alpha must be a decimal number between 0 and 1!");
-        } else if (config.sprt.beta <= 0 || config.sprt.beta >= 1) {
-            throw std::runtime_error("Error; SPRT: beta must be a decimal number between 0 and 1!");
-        } else if (config.sprt.alpha + config.sprt.beta >= 1) {
-            throw std::runtime_error("Error; SPRT: sum of alpha and beta must be less than 1!");
-        } else if (config.sprt.model != "normalized" && config.sprt.model != "bayesian" &&
-                   config.sprt.model != "logistic") {
-            throw std::runtime_error("Error; SPRT: invalid SPRT model!");
-        }
-
-        if (config.sprt.model == "bayesian" && config.report_penta) {
-            Logger::warn(
-                "Warning: Bayesian SPRT model not available with pentanomial statistics. Disabling "
-                "pentanomial reports...");
-            config.report_penta = false;
-        }
+        SPRT::isValid(config.sprt.alpha, config.sprt.beta, config.sprt.elo0, config.sprt.elo1, config.sprt.model,
+                      config.report_penta);
     }
 
     if (config.concurrency > static_cast<int>(std::thread::hardware_concurrency()) && !config.force_concurrency) {

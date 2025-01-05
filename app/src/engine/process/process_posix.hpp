@@ -176,7 +176,7 @@ class Process : public IProcess {
 
         process_list.remove_if([this](const ProcessInformation &pi) { return pi.identifier == process_pid_; });
 
-        int status;
+        int status      = 0;
         const pid_t pid = waitpid(process_pid_, &status, WNOHANG);
 
         // log the status of the process

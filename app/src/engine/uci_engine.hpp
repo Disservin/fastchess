@@ -107,6 +107,8 @@ class UciEngine {
     [[nodiscard]] const UCIOptions &uciOptions() const noexcept { return uci_options_; }
     UCIOptions &uciOptions() noexcept { return uci_options_; }
 
+    [[nodiscard]] bool isRealtimeLogging() const noexcept { return realtime_logging_; }
+
    private:
     void loadConfig(const EngineConfiguration &config);
     void sendSetoption(const std::string &name, const std::string &value);

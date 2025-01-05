@@ -88,6 +88,9 @@ void BaseTournament::playGame(const GamePair<EngineConfiguration, EngineConfigur
     util::ScopeGuard lock1(white_engine);
     util::ScopeGuard lock2(black_engine);
 
+    if (white_engine.get()->getConfig().restart) restartEngine(white_engine.get());
+    if (black_engine.get()->getConfig().restart) restartEngine(black_engine.get());
+
     Logger::trace<true>("Game {} between {} and {} starting", game_id, white_name, black_name);
 
     start();
@@ -109,15 +112,8 @@ void BaseTournament::playGame(const GamePair<EngineConfiguration, EngineConfigur
 
         Logger::trace<true>("Restarting engine...");
 
-        if (white_engine.get()->isready() != engine::process::Status::OK) {
-            Logger::trace<true>("Restarting engine {}", white_name);
-            white_engine.get() = std::make_unique<engine::UciEngine>(engine_configs.white, rl);
-        }
-
-        if (black_engine.get()->isready() != engine::process::Status::OK) {
-            Logger::trace<true>("Restarting engine {}", black_name);
-            black_engine.get() = std::make_unique<engine::UciEngine>(engine_configs.black, rl);
-        }
+        if (white_engine.get()->isready() != engine::process::Status::OK) restartEngine(white_engine.get());
+        if (black_engine.get()->isready() != engine::process::Status::OK) restartEngine(black_engine.get());
     }
 
     const auto match_data = match.get();
@@ -166,6 +162,11 @@ int BaseTournament::getMaxAffinity(const std::vector<EngineConfiguration> &confi
     }
 
     return first_threads;
+}
+
+void BaseTournament::restartEngine(std::unique_ptr<engine::UciEngine> &engine) {
+    Logger::trace<true>("Restarting engine {}", engine->getConfig().name);
+    engine = std::make_unique<engine::UciEngine>(engine->getConfig(), engine->isRealtimeLogging());
 }
 
 std::size_t BaseTournament::setResults(const stats_map &results) {

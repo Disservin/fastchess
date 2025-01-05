@@ -171,6 +171,7 @@ The following options are available:
     - timemargin=N - Time margin for exceeding time limit.
     - st=ST - Movetime in seconds.
     - nodes=NODES - Max number of nodes to search.
+    - restart=(on|off) - Enable or disable engine restarts between games, default is off.
     - plies=PLIES - Max number of plies (depth) to search.
     - proto=PROTOCOL - Specify the protocol (only supports uci).
     - dir=DIRECTORY - Working directory for the engine.

@@ -176,6 +176,27 @@ TEST_SUITE("Option Parsing Tests") {
                              std::runtime_error);
     }
 
+    TEST_CASE("Should throw engine with invalid restart") {
+        const char *argv[] = {
+            "fastchess.exe",
+            "-engine",
+            "dir=./",
+            "cmd=app/tests/mock/engine/dummy_engine",
+            "tc=10/1+0",
+            "restart=true",
+            "name=Alexandria-EA649FED",
+            "-engine",
+            "dir=./",
+            "cmd=app/tests/mock/engine/dummy_engine",
+            "name=Alexandria-27E42728",
+            "tc=10/1+0",
+        };
+        CHECK_THROWS_WITH_AS(cli::OptionsParser(sizeof(argv) / sizeof(argv[0]), argv),
+                             "Error while reading option \"-engine\" with value \"name=Alexandria-EA649FED\"\nReason: "
+                             "Invalid parameter (must be either \"on\" or \"off\"): true",
+                             std::runtime_error);
+    }
+
     TEST_CASE("Should throw engine not found") {
         const char *argv[] = {
             "fastchess.exe", "-engine",

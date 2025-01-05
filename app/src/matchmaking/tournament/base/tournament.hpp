@@ -70,6 +70,8 @@ class BaseTournament {
     [[nodiscard]] std::size_t setResults(const stats_map &results);
 
     [[nodiscard]] int getMaxAffinity(const std::vector<EngineConfiguration> &configs) const noexcept;
+
+    void restartEngine(std::unique_ptr<engine::UciEngine> &engine);
 };
 
 }  // namespace fastchess

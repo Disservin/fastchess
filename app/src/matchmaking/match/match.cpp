@@ -9,19 +9,38 @@
 
 namespace fastchess {
 
+namespace chrono = std::chrono;
+
+using namespace std::literals;
+using namespace chess;
+using clock = chrono::high_resolution_clock;
+
 namespace atomic {
+
 extern std::atomic_bool stop;
+
 }  // namespace atomic
 
 namespace {
+
 bool isFen(const std::string& line) { return line.find(';') == std::string::npos; }
+
+[[nodiscard]] std::pair<GameResultReason, GameResult> isGameOverSimple(const Board& board) {
+    if (board.isHalfMoveDraw()) return board.getHalfMoveDrawType();
+    if (board.isRepetition()) return {GameResultReason::THREEFOLD_REPETITION, GameResult::DRAW};
+
+    Movelist movelist;
+    movegen::legalmoves(movelist, board);
+
+    if (movelist.empty()) {
+        if (board.inCheck()) return {GameResultReason::CHECKMATE, GameResult::LOSE};
+        return {GameResultReason::STALEMATE, GameResult::DRAW};
+    }
+
+    return {GameResultReason::NONE, GameResult::NONE};
+}
+
 }  // namespace
-
-namespace chrono = std::chrono;
-
-using clock = chrono::high_resolution_clock;
-using namespace std::literals;
-using namespace chess;
 
 std::string Match::convertScoreToString(int score, engine::ScoreType score_type) {
     std::stringstream ss;
@@ -459,7 +478,7 @@ void Match::verifyPvLines(const Player& us) {
         while (it_start != it_end) {
             moves.clear();
 
-            const auto gameover = board.isGameOver().second != GameResult::NONE;
+            const auto gameover = isGameOverSimple(board).second != GameResult::NONE;
 
             if (!gameover) {
                 movegen::legalmoves(moves, board);
@@ -470,7 +489,7 @@ void Match::verifyPvLines(const Player& us) {
                 auto position = fmt::format("position {}", startpos == "startpos" ? "startpos" : ("fen " + startpos));
                 auto fmt2     = fmt::format("From; {} moves {}", position, str_utils::join(uci_moves, " "));
 
-                Logger::warn<true>("{} \n {}", fmt, "\n", fmt2);
+                Logger::warn<true>("{}\n{}", fmt, fmt2);
 
                 break;
             }

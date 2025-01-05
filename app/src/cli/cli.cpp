@@ -148,7 +148,12 @@ void parseEngineKeyValues(EngineConfiguration &engineConfig, const std::string &
         engineConfig.dir = value;
     else if (key == "args")
         engineConfig.args = value;
-    else if (isEngineSettableOption(key)) {
+    else if (key == "restart") {
+        if (value != "on" && value != "off") {
+            throw std::runtime_error("Invalid parameter (must be either \"on\" or \"off\"): " + value);
+        }
+        engineConfig.restart = value == "on";
+    } else if (isEngineSettableOption(key)) {
         // Strip option.Name of the option. Part
         const std::size_t pos         = key.find('.');
         const std::string strippedKey = key.substr(pos + 1);

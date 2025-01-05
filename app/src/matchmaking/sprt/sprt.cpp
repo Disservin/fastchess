@@ -43,7 +43,7 @@ double SPRT::neloToScorePenta(double nelo, double variance) noexcept {
     return nelo * std::sqrt(2.0 * variance) / (800.0 / std::log(10)) + 0.5;
 }
 
-void SPRT::isValid(double alpha, double beta, double elo0, double elo1, std::string model, bool report_penta) {
+void SPRT::isValid(double alpha, double beta, double elo0, double elo1, std::string model, bool& report_penta) {
     if (elo0 >= elo1) {
         throw std::runtime_error("Error; SPRT: elo0 must be less than elo1!");
     } else if (alpha <= 0 || alpha >= 1) {

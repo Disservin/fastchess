@@ -31,7 +31,7 @@ class SPRT {
     [[nodiscard]] static double neloToScoreWDL(double nelo, double stdDeviation) noexcept;
     [[nodiscard]] static double neloToScorePenta(double nelo, double stdDeviation) noexcept;
 
-    static void isValid(double alpha, double beta, double elo0, double elo1, std::string model, bool report_penta);
+    static void isValid(double alpha, double beta, double elo0, double elo1, std::string model, bool& report_penta);
 
    private:
     [[nodiscard]] double getLLR(int win, int draw, int loss) const noexcept;

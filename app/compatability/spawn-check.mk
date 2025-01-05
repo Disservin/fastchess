@@ -1,5 +1,3 @@
-CXX := g++
-
 HAVE_POSIX_SPAWN_FILE_ACTIONS_ADDCHDIR := $(shell \
     echo \#include \<spawn.h\> > test.c && \
     echo 'int main(){return posix_spawn_file_actions_addchdir(0,0);}' >> test.c && \

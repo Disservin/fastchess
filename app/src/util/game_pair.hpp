@@ -1,5 +1,7 @@
 #pragma once
 
+#include <utility>
+
 namespace fastchess {
 
 template <typename T, typename U>

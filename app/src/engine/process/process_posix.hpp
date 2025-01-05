@@ -31,9 +31,9 @@
 #    include <vector>
 
 #    include <affinity/affinity.hpp>
-#    include <globals/globals.hpp>
-#    include <util/logger/logger.hpp>
-#    include <util/thread_vector.hpp>
+#    include <core/globals/globals.hpp>
+#    include <core/logger/logger.hpp>
+#    include <core/threading/thread_vector.hpp>
 
 #    include <argv_split.hpp>
 

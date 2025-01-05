@@ -1,4 +1,4 @@
-#include <config/config.hpp>
+#include <core/config/config.hpp>
 #include <engine/uci_engine.hpp>
 #include <types/engine_config.hpp>
 

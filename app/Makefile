@@ -17,25 +17,25 @@ CXXFLAGS_COV	 := -O0 --coverage -g -std=c++17 -Wall -Wextra -pedantic -Wuninitia
 INC              := -I$(INCDIR) -Ithird_party
 
 SRC_FILES        := \
-	$(SRCDIR)/book/opening_book.cpp \
-	$(SRCDIR)/book/epd_reader.cpp \
-	$(SRCDIR)/book/pgn_reader.cpp \
 	$(SRCDIR)/cli/cli.cpp \
 	$(SRCDIR)/cli/sanitize.cpp \
-	$(SRCDIR)/elo/elo_wdl.cpp \
-	$(SRCDIR)/elo/elo_pentanomial.cpp \
+	$(SRCDIR)/core/globals/globals.cpp \
+	$(SRCDIR)/core/logger/logger.cpp \
+	$(SRCDIR)/core/printing/printing.cpp \
 	$(SRCDIR)/engine/uci_engine.cpp \
-	$(SRCDIR)/globals/globals.cpp \
+	$(SRCDIR)/game/book/epd_reader.cpp \
+	$(SRCDIR)/game/book/opening_book.cpp \
+	$(SRCDIR)/game/book/pgn_reader.cpp \
+	$(SRCDIR)/game/pgn/pgn_builder.cpp \
+	$(SRCDIR)/game/timecontrol/timecontrol.cpp \
+	$(SRCDIR)/main.cpp \
+	$(SRCDIR)/matchmaking/elo/elo_pentanomial.cpp \
+	$(SRCDIR)/matchmaking/elo/elo_wdl.cpp \
 	$(SRCDIR)/matchmaking/match/match.cpp \
 	$(SRCDIR)/matchmaking/sprt/sprt.cpp \
 	$(SRCDIR)/matchmaking/tournament/base/tournament.cpp \
 	$(SRCDIR)/matchmaking/tournament/roundrobin/roundrobin.cpp \
-	$(SRCDIR)/matchmaking/tournament/tournament_manager.cpp \
-	$(SRCDIR)/pgn/pgn_builder.cpp \
-	$(SRCDIR)/timecontrol/timecontrol.cpp \
-	$(SRCDIR)/util/logger/logger.cpp \
-	$(SRCDIR)/printing/printing.cpp \
-	$(SRCDIR)/main.cpp
+	$(SRCDIR)/matchmaking/tournament/tournament_manager.cpp
 
 SRC_FILES_TEST   := \
 	$(TESTDIR)/elo_test.cpp \

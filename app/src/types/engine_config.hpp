@@ -7,9 +7,9 @@
 #include <tuple>
 #include <vector>
 
-#include <timecontrol/timecontrol.hpp>
+#include <core/helper.hpp>
+#include <game/timecontrol/timecontrol.hpp>
 #include <types/enums.hpp>
-#include <util/helper.hpp>
 
 #include <json.hpp>
 

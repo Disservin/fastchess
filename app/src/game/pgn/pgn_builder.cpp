@@ -1,4 +1,4 @@
-#include <pgn/pgn_builder.hpp>
+#include <game/pgn/pgn_builder.hpp>
 
 #include <iomanip>
 #include <sstream>

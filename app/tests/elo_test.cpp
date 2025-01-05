@@ -1,5 +1,5 @@
-#include <elo/elo_pentanomial.hpp>
-#include <elo/elo_wdl.hpp>
+#include <matchmaking/elo/elo_pentanomial.hpp>
+#include <matchmaking/elo/elo_wdl.hpp>
 
 #include "doctest/doctest.hpp"
 

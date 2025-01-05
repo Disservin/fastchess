@@ -1,12 +1,12 @@
-#include <elo/elo_wdl.hpp>
+#include <matchmaking/elo/elo_wdl.hpp>
 
 #include <cmath>
 #include <iomanip>
 #include <sstream>
 
 #define FMT_HEADER_ONLY
-#include "../../third_party/fmt/include/fmt/core.h"
-#include "../../third_party/fmt/include/fmt/std.h"
+#include "../../../third_party/fmt/include/fmt/core.h"
+#include "../../../third_party/fmt/include/fmt/std.h"
 
 namespace fastchess::elo {
 

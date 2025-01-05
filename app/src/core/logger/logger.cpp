@@ -1,11 +1,11 @@
-#include <util/logger/logger.hpp>
+#include <core/logger/logger.hpp>
 
 #include <chrono>
 #include <iomanip>
 #include <thread>
 #include <variant>
 
-#include <time/time.hpp>
+#include <core/time/time.hpp>
 
 #ifdef USE_ZLIB
 #    include "../../../third_party/gzip/gzstream.h"

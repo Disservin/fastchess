@@ -1,11 +1,11 @@
-#include <book/epd_reader.hpp>
+#include <game/book/epd_reader.hpp>
 
 #include <fstream>
 #include <iostream>
 #include <string>
 #include <vector>
 
-#include <util/heap_str.hpp>
+#include <core/memory/heap_str.hpp>
 
 namespace {
 std::istream& safeGetline(std::istream& is, std::string& t) {

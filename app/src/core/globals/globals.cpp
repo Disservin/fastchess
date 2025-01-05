@@ -1,4 +1,4 @@
-#include <globals/globals.hpp>
+#include <core/globals/globals.hpp>
 
 #include <atomic>
 #include <cassert>
@@ -11,8 +11,8 @@
 #    include <cstdlib>
 #endif
 
-#include <util/logger/logger.hpp>
-#include <util/thread_vector.hpp>
+#include <core/logger/logger.hpp>
+#include <core/threading/thread_vector.hpp>
 
 namespace fastchess {
 

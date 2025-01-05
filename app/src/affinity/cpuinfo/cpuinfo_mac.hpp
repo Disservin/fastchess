@@ -7,7 +7,7 @@
 #include <vector>
 
 #include <affinity/cpuinfo/cpu_info.hpp>
-#include <util/logger/logger.hpp>
+#include <core/logger/logger.hpp>
 
 namespace fastchess::affinity::cpu_info {
 

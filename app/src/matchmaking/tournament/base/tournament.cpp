@@ -1,19 +1,19 @@
 #include <matchmaking/tournament/base/tournament.hpp>
 
 #include <affinity/affinity_manager.hpp>
-#include <book/opening_book.hpp>
+#include <core/filesystem/file_writer.hpp>
+#include <core/logger/logger.hpp>
+#include <core/memory/cache.hpp>
+#include <core/threading/threadpool.hpp>
 #include <engine/uci_engine.hpp>
-#include <epd/epd_builder.hpp>
+#include <game/book/opening_book.hpp>
+#include <game/epd/epd_builder.hpp>
+#include <game/pgn/pgn_builder.hpp>
 #include <matchmaking/match/match.hpp>
 #include <matchmaking/output/output.hpp>
 #include <matchmaking/output/output_factory.hpp>
 #include <matchmaking/scoreboard.hpp>
-#include <pgn/pgn_builder.hpp>
 #include <types/tournament.hpp>
-#include <util/cache.hpp>
-#include <util/file_writer.hpp>
-#include <util/logger/logger.hpp>
-#include <util/threadpool.hpp>
 
 namespace fastchess {
 

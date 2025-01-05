@@ -1,4 +1,4 @@
-#include <pgn/pgn_builder.hpp>
+#include <game/pgn/pgn_builder.hpp>
 
 #include "doctest/doctest.hpp"
 
@@ -170,19 +170,20 @@ Nf6 {+10.15/18 1.821s, engine1 got checkmated} 0-1
 
     TEST_CASE("PGN Creation TC") {
         MatchData match_data;
-        match_data.players.black.config.name                = "engine1";
-        match_data.players.black.color                      = chess::Color::BLACK;
-        match_data.players.black.result                     = chess::GameResult::NONE;
-        match_data.players.black.config.limit.tc.time       = 0;
-        match_data.players.black.config.limit.tc.increment  = 5;
+        match_data.players.black.config.name               = "engine1";
+        match_data.players.black.color                     = chess::Color::BLACK;
+        match_data.players.black.result                    = chess::GameResult::NONE;
+        match_data.players.black.config.limit.tc.time      = 0;
+        match_data.players.black.config.limit.tc.increment = 5;
 
-        match_data.players.white.config.name                = "engine2";
-        match_data.players.white.color                      = chess::Color::WHITE;
-        match_data.players.white.result                     = chess::GameResult::NONE;
-        match_data.players.white.config.limit.tc.time       = 1;
-        match_data.players.white.config.limit.tc.increment  = 5;
+        match_data.players.white.config.name               = "engine2";
+        match_data.players.white.color                     = chess::Color::WHITE;
+        match_data.players.white.result                    = chess::GameResult::NONE;
+        match_data.players.white.config.limit.tc.time      = 1;
+        match_data.players.white.config.limit.tc.increment = 5;
 
-        match_data.moves = {MoveData("e8g8", "+1.00", 1321, 15, 4, 0, 1250), MoveData("e1g1", "+1.23", 430, 15, 3, 0, 4363),
+        match_data.moves = {MoveData("e8g8", "+1.00", 1321, 15, 4, 0, 1250),
+                            MoveData("e1g1", "+1.23", 430, 15, 3, 0, 4363),
                             MoveData("a6c5", "+1.45", 310, 16, 24, 0, 0)};
 
         match_data.fen = "r2qk2r/1bpp2pp/n3pn2/p2P1p2/1bP5/2N1BNP1/1PQ1PPBP/R3K2R b KQkq - 0 1";
@@ -190,8 +191,8 @@ Nf6 {+10.15/18 1.821s, engine1 got checkmated} 0-1
         match_data.reason = "aborted";
 
         config::Pgn pgn_config;
-        pgn_config.site = "localhost";
-        pgn_config.track_nodes = true;
+        pgn_config.site           = "localhost";
+        pgn_config.track_nodes    = true;
         pgn_config.track_seldepth = true;
 
         std::string expected = R"([Event "Fastchess Tournament"]

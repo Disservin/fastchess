@@ -1,6 +1,6 @@
 #pragma once
 
-#include <util/logger/logger.hpp>
+#include <core/logger/logger.hpp>
 
 #ifdef _WIN64
 #    include <windows.h>

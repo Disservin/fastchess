@@ -6,10 +6,10 @@
 #include <string>
 #include <vector>
 
-#include <config/config.hpp>
-#include <util/file_system.hpp>
-#include <util/helper.hpp>
-#include <util/logger/logger.hpp>
+#include <core/config/config.hpp>
+#include <core/filesystem/file_system.hpp>
+#include <core/helper.hpp>
+#include <core/logger/logger.hpp>
 
 namespace fastchess::engine {
 

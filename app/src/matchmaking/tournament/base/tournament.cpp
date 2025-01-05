@@ -112,7 +112,7 @@ void BaseTournament::playGame(const GamePair<EngineConfiguration, EngineConfigur
 
         Logger::trace<true>("Restarting engine...");
 
-        if (black_engine.get()->isready() != engine::process::Status::OK) restartEngine(white_engine.get());
+        if (white_engine.get()->isready() != engine::process::Status::OK) restartEngine(white_engine.get());
         if (black_engine.get()->isready() != engine::process::Status::OK) restartEngine(black_engine.get());
     }
 

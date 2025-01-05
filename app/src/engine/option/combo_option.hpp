@@ -24,9 +24,6 @@ class ComboOption : public UCIOption {
     std::string getValue() const override { return value; }
 
     bool isValid(const std::string& value) const override {
-        for (const auto& option : options) {
-            std::cout << ":" << option << ":" << std::endl;
-        }
         return std::find(options.begin(), options.end(), value) != options.end();
     }
 

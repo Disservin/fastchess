@@ -1,13 +1,13 @@
 #include <cstdlib>
 #include <thread>
 
-#include <printing/printing.h>
+#include <core/printing/printing.h>
 #include <cli/cli.hpp>
-#include <config/config.hpp>
+#include <core/config/config.hpp>
+#include <core/globals/globals.hpp>
+#include <core/rand.hpp>
 #include <engine/compliance.hpp>
-#include <globals/globals.hpp>
 #include <matchmaking/tournament/tournament_manager.hpp>
-#include <util/rand.hpp>
 
 using namespace fastchess;
 

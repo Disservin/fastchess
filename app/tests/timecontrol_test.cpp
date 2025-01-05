@@ -1,4 +1,4 @@
-#include <timecontrol/timecontrol.hpp>
+#include <game/timecontrol/timecontrol.hpp>
 
 #include "doctest/doctest.hpp"
 

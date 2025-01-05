@@ -4,7 +4,7 @@
 #include <limits>
 #include <random>
 
-#include <util/logger/logger.hpp>
+#include <core/logger/logger.hpp>
 
 namespace fastchess::util::random {
 inline std::mt19937_64 mersenne_rand;

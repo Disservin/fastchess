@@ -6,11 +6,11 @@
 #include <string>
 #include <utility>
 
-#include <elo/elo_pentanomial.hpp>
-#include <elo/elo_wdl.hpp>
+#include <core/logger/logger.hpp>
 #include <engine/uci_engine.hpp>
+#include <matchmaking/elo/elo_pentanomial.hpp>
+#include <matchmaking/elo/elo_wdl.hpp>
 #include <matchmaking/output/output.hpp>
-#include <util/logger/logger.hpp>
 
 namespace fastchess {
 

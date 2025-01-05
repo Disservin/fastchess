@@ -7,7 +7,7 @@
 #include <memory>
 #include <mutex>
 
-#include <util/scope_guard.hpp>
+#include <core/memory/scope_guard.hpp>
 
 namespace fastchess::util {
 

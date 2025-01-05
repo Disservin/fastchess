@@ -2,10 +2,10 @@
 
 #include <algorithm>
 
-#include <time/time.hpp>
+#include <core/helper.hpp>
+#include <core/logger/logger.hpp>
+#include <core/time/time.hpp>
 #include <types/tournament.hpp>
-#include <util/helper.hpp>
-#include <util/logger/logger.hpp>
 
 namespace fastchess {
 

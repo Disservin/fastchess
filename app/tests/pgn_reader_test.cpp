@@ -1,4 +1,4 @@
-#include <book/pgn_reader.hpp>
+#include <game/book/pgn_reader.hpp>
 
 #include <memory>
 

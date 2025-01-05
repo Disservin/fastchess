@@ -2,8 +2,8 @@
 
 #include <string>
 
+#include <core/helper.hpp>
 #include <types/enums.hpp>
-#include <util/helper.hpp>
 
 namespace fastchess::config {
 

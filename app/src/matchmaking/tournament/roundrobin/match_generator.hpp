@@ -1,11 +1,11 @@
 #pragma once
 
-#include <config/config.hpp>
+#include <core/config/config.hpp>
 #include <optional>
 #include <tuple>
 #include <vector>
 
-#include <book/opening_book.hpp>
+#include <game/book/opening_book.hpp>
 
 namespace fastchess {
 

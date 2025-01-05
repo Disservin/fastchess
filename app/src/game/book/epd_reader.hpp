@@ -3,8 +3,8 @@
 #include <string>
 #include <vector>
 
-#include <book/opening.hpp>
-#include <util/heap_str.hpp>
+#include <core/helper.hpp>
+#include <core/memory/heap_str.hpp>
 
 namespace fastchess::book {
 class EpdReader {

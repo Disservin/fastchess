@@ -1,8 +1,8 @@
 #pragma once
 
+#include <core/lazy.hpp>
 #include <types/engine_config.hpp>
 #include <types/tournament.hpp>
-#include <util/lazy.hpp>
 
 namespace fastchess::config {
 

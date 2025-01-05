@@ -8,7 +8,7 @@
 
 #include <chess.hpp>
 
-#include <config/config.hpp>
+#include <core/config/config.hpp>
 #include <matchmaking/match/match.hpp>
 #include <types/tournament.hpp>
 

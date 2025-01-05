@@ -5,13 +5,13 @@
 #include <variant>
 #include <vector>
 
-#include <book/epd_reader.hpp>
-#include <book/opening.hpp>
-#include <book/pgn_reader.hpp>
-#include <config/config.hpp>
+#include <core/config/config.hpp>
+#include <core/helper.hpp>
+#include <core/rand.hpp>
+#include <game/book/epd_reader.hpp>
+#include <game/book/pgn_reader.hpp>
 #include <types/enums.hpp>
 #include <types/tournament.hpp>
-#include <util/rand.hpp>
 
 #include <chess.hpp>
 

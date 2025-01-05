@@ -2,7 +2,7 @@
 
 #include <string>
 
-#include <util/logger/logger.hpp>
+#include <core/logger/logger.hpp>
 
 namespace fastchess::config {
 

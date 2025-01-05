@@ -7,9 +7,9 @@
 #include <tuple>
 #include <vector>
 
-#include <elo/elo_wdl.hpp>
+#include <core/logger/logger.hpp>
+#include <matchmaking/elo/elo_wdl.hpp>
 #include <matchmaking/output/output.hpp>
-#include <util/logger/logger.hpp>
 
 namespace fastchess {
 

@@ -1,9 +1,11 @@
-#include <book/pgn_reader.hpp>
+#include <game/book/pgn_reader.hpp>
 
 #include <iostream>
 #include <memory>
 
 #include <chess.hpp>
+
+#include <game/book/opening.hpp>
 
 namespace fastchess::book {
 

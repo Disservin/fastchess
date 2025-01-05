@@ -7,9 +7,9 @@
 
 #include <chess.hpp>
 
-#include <time/time.hpp>
+#include <core/time/time.hpp>
+#include <matchmaking/game_pair.hpp>
 #include <types/engine_config.hpp>
-#include <util/game_pair.hpp>
 
 namespace fastchess {
 

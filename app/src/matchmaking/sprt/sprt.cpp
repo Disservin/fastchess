@@ -4,8 +4,8 @@
 #include <iomanip>
 #include <sstream>
 
+#include <core/logger/logger.hpp>
 #include <matchmaking/stats.hpp>
-#include <util/logger/logger.hpp>
 
 namespace fastchess {
 

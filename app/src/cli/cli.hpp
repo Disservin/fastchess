@@ -14,7 +14,7 @@
 #include <vector>
 
 #include <cli/man.hpp>
-#include <config/config.hpp>
+#include <core/config/config.hpp>
 #include <matchmaking/scoreboard.hpp>
 #include <types/engine_config.hpp>
 #include <types/tournament.hpp>

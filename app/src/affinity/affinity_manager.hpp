@@ -17,8 +17,8 @@
 #endif
 
 #include <affinity/cpuinfo/cpu_info.hpp>
-#include <util/logger/logger.hpp>
-#include <util/scope_guard.hpp>
+#include <core/logger/logger.hpp>
+#include <core/memory/scope_guard.hpp>
 
 namespace fastchess {
 

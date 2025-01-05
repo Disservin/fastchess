@@ -4,7 +4,8 @@
 #include <string>
 #include <vector>
 
-#include <book/opening.hpp>
+#include <core/helper.hpp>
+#include <game/book/opening.hpp>
 
 #include <chess.hpp>
 

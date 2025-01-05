@@ -1,13 +1,13 @@
-#include <book/opening_book.hpp>
+#include <game/book/opening_book.hpp>
 
 #include <fstream>
 #include <optional>
 #include <string>
 
-#include <book/epd_reader.hpp>
-#include <book/pgn_reader.hpp>
-#include <config/config.hpp>
-#include <util/logger/logger.hpp>
+#include <core/config/config.hpp>
+#include <core/logger/logger.hpp>
+#include <game/book/epd_reader.hpp>
+#include <game/book/pgn_reader.hpp>
 
 namespace fastchess::book {
 

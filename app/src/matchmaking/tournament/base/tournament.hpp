@@ -3,19 +3,19 @@
 #include <vector>
 
 #include <affinity/affinity_manager.hpp>
-#include <book/opening_book.hpp>
+#include <core/filesystem/file_writer.hpp>
+#include <core/globals/globals.hpp>
+#include <core/logger/logger.hpp>
+#include <core/memory/cache.hpp>
+#include <core/threading/threadpool.hpp>
 #include <engine/uci_engine.hpp>
-#include <globals/globals.hpp>
+#include <game/book/opening_book.hpp>
+#include <matchmaking/game_pair.hpp>
 #include <matchmaking/output/output.hpp>
 #include <matchmaking/scoreboard.hpp>
 #include <matchmaking/timeout_tracker.hpp>
 #include <matchmaking/tournament/roundrobin/match_generator.hpp>
 #include <types/tournament.hpp>
-#include <util/cache.hpp>
-#include <util/file_writer.hpp>
-#include <util/game_pair.hpp>
-#include <util/logger/logger.hpp>
-#include <util/threadpool.hpp>
 
 namespace fastchess {
 

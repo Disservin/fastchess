@@ -51,17 +51,6 @@ class AcquireSemaphore {
 namespace {
 CountingSemaphore semaphore(16);
 
-std::string getPath(const EngineConfiguration &config) {
-    std::string path = (config.dir == "." ? "" : config.dir) + config.cmd;
-
-#ifndef NO_STD_FILESYSTEM
-    // convert path to a filesystem path
-    auto p = std::filesystem::path(config.dir) / std::filesystem::path(config.cmd);
-    path   = p.string();
-#endif
-
-    return path;
-}
 }  // namespace
 
 UciEngine::UciEngine(const EngineConfiguration &config, bool realtime_logging) : realtime_logging_(realtime_logging) {
@@ -303,7 +292,7 @@ bool UciEngine::start() {
 
     AcquireSemaphore semaphore_acquire(semaphore);
 
-    const auto path = getPath(config_);
+    const auto path = config_.cmd;
     Logger::trace<true>("Starting engine {} at {}", config_.name, path);
 
     // Creates the engine process and sets the pipes

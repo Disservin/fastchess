@@ -38,25 +38,25 @@ SRC_FILES        := \
 	$(SRCDIR)/matchmaking/tournament/tournament_manager.cpp
 
 SRC_FILES_TEST   := \
+	$(TESTDIR)/cli_test.cpp \
+	$(TESTDIR)/config_test.cpp \
 	$(TESTDIR)/elo_test.cpp \
 	$(TESTDIR)/epd_builder_test.cpp \
+	$(TESTDIR)/epd_reader_test.cpp \
+	$(TESTDIR)/fd_limit_test.cpp \
 	$(TESTDIR)/functions_test.cpp \
 	$(TESTDIR)/main.cpp \
+	$(TESTDIR)/match_test.cpp \
 	$(TESTDIR)/opening_test.cpp \
-	$(TESTDIR)/cli_test.cpp \
+	$(TESTDIR)/option_test.cpp \
+	$(TESTDIR)/output_factory_test.cpp \
 	$(TESTDIR)/pgn_builder_test.cpp \
 	$(TESTDIR)/pgn_reader_test.cpp \
 	$(TESTDIR)/player.cpp \
 	$(TESTDIR)/scoreboard_test.cpp \
 	$(TESTDIR)/sprt_test.cpp \
 	$(TESTDIR)/timecontrol_test.cpp \
-	$(TESTDIR)/uci_engine_test.cpp \
-	$(TESTDIR)/config_test.cpp \
-	$(TESTDIR)/epd_reader_test.cpp \
-	$(TESTDIR)/fd_limit_test.cpp \
-	$(TESTDIR)/option_test.cpp \
-	$(TESTDIR)/output_factory_test.cpp \
-	$(TESTDIR)/match_test.cpp
+	$(TESTDIR)/uci_engine_test.cpp
 
 # Only used for formatting
 HEADERS := $(shell find $(SRCDIR) -name "*.hpp") $(shell find $(TESTDIR) -maxdepth 1 -name "*.hpp")

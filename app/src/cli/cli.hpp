@@ -13,6 +13,7 @@
 #include <unordered_map>
 #include <vector>
 
+#include <cli/cli_args.hpp>
 #include <cli/man.hpp>
 #include <core/config/config.hpp>
 #include <matchmaking/scoreboard.hpp>
@@ -90,7 +91,7 @@ class OptionsParser {
     }
 
    public:
-    OptionsParser(int argc, char const *argv[]);
+    OptionsParser(const cli::Args &args);
 
     static void throwMissing(std::string_view name, std::string_view key, std::string_view value) {
         throw std::runtime_error("Unrecognized " + std::string(name) + " option \"" + std::string(key) +
@@ -123,9 +124,9 @@ class OptionsParser {
 
     // Parses the command line arguments and calls the corresponding option. Parse will
     // increment i if need be.
-    void parse(int argc, char const *argv[]) {
-        for (int i = 1; i < argc; i++) {
-            const std::string arg = argv[i];
+    void parse(const cli::Args &args) {
+        for (int i = 1; i < args.argc(); i++) {
+            const std::string arg = args[i];
             if (options_.count(arg) == 0) {
                 throw std::runtime_error("Unrecognized option: " + arg + " parsing failed.");
             }
@@ -133,15 +134,15 @@ class OptionsParser {
             try {
                 std::vector<std::string> params;
 
-                while (i + 1 < argc && argv[i + 1][0] != '-') {
-                    params.push_back(argv[++i]);
+                while (i + 1 < args.argc() && args[i + 1][0] != '-') {
+                    params.push_back(args[++i]);
                 }
 
                 options_.at(arg)(params, argument_data_);
 
             } catch (const std::exception &e) {
                 auto err =
-                    fmt::format("Error while reading option \"{}\" with value \"{}\"", arg, std::string(argv[i]));
+                    fmt::format("Error while reading option \"{}\" with value \"{}\"", arg, std::string(args[i]));
                 auto msg = fmt::format("Reason: {}", e.what());
 
                 throw std::runtime_error(err + "\n" + msg);

@@ -2,6 +2,7 @@
 
 #include <core/printing/printing.h>
 #include <cli/cli.hpp>
+#include <cli/cli_args.hpp>
 #include <core/config/config.hpp>
 #include <core/globals/globals.hpp>
 #include <core/rand.hpp>
@@ -23,19 +24,17 @@ static std::string catch_output(std::function<void()> func) {
 
 TEST_SUITE("Start from config") {
     TEST_CASE("Config 1") {
-        const char* argv[] = {
+        const auto args = cli::Args{
             "fastchess",
             "-config",
             "stats=false",
             "file=./app/tests/configs/config.json",
         };
 
-        const auto argc = sizeof(argv) / sizeof(argv[0]);
-
         const auto oss = catch_output([&]() {
             try {
                 TournamentManager tournament = TournamentManager();
-                tournament.start(argc, argv);
+                tournament.start(args);
 
                 Logger::info("Finished match");
             } catch (const std::exception& e) {

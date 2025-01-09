@@ -2,6 +2,7 @@
 
 #include <core/printing/printing.h>
 #include <cli/cli.hpp>
+#include <cli/cli_args.hpp>
 #include <core/config/config.hpp>
 #include <core/globals/globals.hpp>
 #include <core/logger/logger.hpp>
@@ -17,8 +18,8 @@ TournamentManager::~TournamentManager() {
     Logger::trace("~TournamentManager()");
 }
 
-void TournamentManager::start(int argc, char const* argv[]) {
-    const auto options = cli::OptionsParser(argc, argv);
+void TournamentManager::start(const cli::Args& args) {
+    const auto options = cli::OptionsParser(args);
 
     config::TournamentConfig.setup([&options]() -> std::unique_ptr<config::Tournament> {
         return std::make_unique<config::Tournament>(options.getTournamentConfig());

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cli/cli_args.hpp>
 #include <matchmaking/tournament/roundrobin/roundrobin.hpp>
 #include <types/tournament.hpp>
 
@@ -12,7 +13,7 @@ class TournamentManager {
     TournamentManager();
     ~TournamentManager();
 
-    void start(int argc, char const* argv[]);
+    void start(const cli::Args& args);
 };
 
 }  // namespace fastchess

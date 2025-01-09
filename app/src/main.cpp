@@ -3,6 +3,7 @@
 
 #include <core/printing/printing.h>
 #include <cli/cli.hpp>
+#include <cli/cli_args.hpp>
 #include <core/config/config.hpp>
 #include <core/globals/globals.hpp>
 #include <core/rand.hpp>
@@ -21,7 +22,7 @@ int main(int argc, char const* argv[]) {
 
     try {
         auto tournament = TournamentManager();
-        tournament.start(argc, argv);
+        tournament.start(cli::Args(argc, argv));
     } catch (const std::exception& e) {
         stopProcesses();
 

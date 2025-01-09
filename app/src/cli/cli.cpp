@@ -2,6 +2,7 @@
 
 #include <random>
 
+#include <cli/cli_args.hpp>
 #include <cli/sanitize.hpp>
 #include <core/filesystem/file_system.hpp>
 #include <core/logger/logger.hpp>
@@ -615,10 +616,10 @@ void parseDebug(const std::vector<std::string> &, ArgumentData &) {
     throw std::runtime_error(error_message);
 }
 
-OptionsParser::OptionsParser(int argc, char const *argv[]) {
+OptionsParser::OptionsParser(const cli::Args &args) {
     Logger::trace("Reading options...");
 
-    if (argc == 1) {
+    if (args.argc() == 1) {
         printHelp();
     }
 
@@ -662,7 +663,7 @@ OptionsParser::OptionsParser(int argc, char const *argv[]) {
     addOption("use-affinity", parseAffinity);
     addOption("debug", parseDebug);
 
-    parse(argc, argv);
+    parse(args);
 
     // apply the variant type to all configs
     for (auto &config : argument_data_.configs) {

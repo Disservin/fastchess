@@ -10,6 +10,8 @@
 #include <engine/compliance.hpp>
 #include <matchmaking/tournament/tournament_manager.hpp>
 
+constexpr auto version = "alpha 1.1.0 ";
+
 using namespace fastchess;
 
 int main(int argc, char const* argv[]) {

@@ -23,9 +23,11 @@
 #define FMT_HEADER_ONLY
 #include "../../third_party/fmt/include/fmt/core.h"
 
-namespace fastchess::cli {
+namespace fastchess {
+extern const char *version;
+}
 
-constexpr auto version = "alpha 1.1.0 ";
+namespace fastchess::cli {
 
 // Holds the data of the OptionParser
 struct ArgumentData {
@@ -63,7 +65,7 @@ class OptionsParser {
         std::string month, day, year;
         std::stringstream ss, date(__DATE__);  // {month} {date} {year}
 
-        ss << "fastchess " << cli::version;
+        ss << "fastchess " << version;
 
 #ifdef COMPILE_MSG
         ss << COMPILE_MSG << " ";

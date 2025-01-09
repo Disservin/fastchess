@@ -41,7 +41,6 @@ SRC_FILES_TEST   := \
 	$(TESTDIR)/elo_test.cpp \
 	$(TESTDIR)/epd_builder_test.cpp \
 	$(TESTDIR)/functions_test.cpp \
-	$(TESTDIR)/hash_test.cpp \
 	$(TESTDIR)/main.cpp \
 	$(TESTDIR)/opening_test.cpp \
 	$(TESTDIR)/cli_test.cpp \

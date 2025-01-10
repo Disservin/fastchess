@@ -56,10 +56,10 @@ class Process : public IProcess {
    public:
     ~Process() override { terminate(); }
 
-    Status init(const std::string &wd, const std::string &command, const std::string &args,
+    Status init(const std::string &dir, const std::string &path, const std::string &args,
                 const std::string &log_name) override {
-        wd_       = wd;
-        command_  = command;
+        wd_       = dir;
+        command_  = getPath(dir, path);
         args_     = args;
         log_name_ = log_name;
 
@@ -267,6 +267,16 @@ class Process : public IProcess {
         if (realtime_logging_) {
             Logger::readFromEngine(current_line_, timestamp, log_name_, false, thread_id);
         }
+    }
+
+    [[nodiscard]] std::string getPath(std::string_view dir, std::string_view cmd) const {
+        std::string path = (dir == "." ? "" : dir) + cmd;
+#    ifndef NO_STD_FILESYSTEM
+        // convert path to a filesystem path
+        auto p = std::filesystem::path(dir) / std::filesystem::path(cmd);
+        path   = p.string();
+#    endif
+        return path;
     }
 
     // The working directory

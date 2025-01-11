@@ -31,6 +31,7 @@
 #    include <vector>
 
 #    include <affinity/affinity.hpp>
+#    include <core/filesystem/file_system.hpp>
 #    include <core/globals/globals.hpp>
 #    include <core/logger/logger.hpp>
 #    include <core/threading/thread_vector.hpp>
@@ -38,6 +39,10 @@
 #    include <argv_split.hpp>
 
 extern char **environ;
+
+#    if !defined(HAVE_POSIX_SPAWN_FILE_ACTIONS_ADDCHDIR) && !defined(HAVE_POSIX_SPAWN_FILE_ACTIONS_ADDCHDIR_NP)
+#        define NO_POSIX_SPAWN_FILE_ACTIONS_ADDCHDIR 1
+#    endif
 
 /* Available on:
  * - Solaris/illumos
@@ -81,6 +86,10 @@ class Process : public IProcess {
         log_name_      = log_name;
         is_initalized_ = true;
         startup_error_ = false;
+
+#    ifdef NO_POSIX_SPAWN_FILE_ACTIONS_ADDCHDIR
+        command_ = getPath(wd_, command_);
+#    endif
 
         current_line_.reserve(300);
 
@@ -286,6 +295,12 @@ class Process : public IProcess {
 
     void setup_wd_file_actions(posix_spawn_file_actions_t &file_actions, const std::string &wd) {
         if (wd.empty()) return;
+
+#    ifdef NO_POSIX_SPAWN_FILE_ACTIONS_ADDCHDIR
+        // dir added to the command directly
+        return;
+#    endif
+
         if (portable_spawn_file_actions_addchdir(&file_actions, wd.c_str()) != 0) {
             // chdir is broken on macos so lets just ignore the return code,
             // https://github.com/rust-lang/rust/pull/80537
@@ -323,6 +338,16 @@ class Process : public IProcess {
         }
 
         return Status::NONE;
+    }
+
+    [[nodiscard]] std::string getPath(const std::string &dir, const std::string &cmd) const {
+        std::string path = (dir == "." ? "" : dir) + cmd;
+#    ifndef NO_STD_FILESYSTEM
+        // convert path to a filesystem path
+        auto p = std::filesystem::path(dir) / std::filesystem::path(cmd);
+        path   = p.string();
+#    endif
+        return path;
     }
 
     struct Pipe {

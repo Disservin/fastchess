@@ -93,7 +93,7 @@ class Process : public IProcess {
 
         current_line_.reserve(300);
 
-        argv_split parser(command);
+        argv_split parser(command_);
         parser.parse(args);
 
         char *const *execv_argv = (char *const *)parser.argv();
@@ -113,7 +113,7 @@ class Process : public IProcess {
 
             setup_wd_file_actions(file_actions, wd_);
 
-            if (posix_spawn(&process_pid_, command.c_str(), &file_actions, nullptr, execv_argv, environ) != 0) {
+            if (posix_spawn(&process_pid_, command_.c_str(), &file_actions, nullptr, execv_argv, environ) != 0) {
                 throw std::runtime_error("posix_spawn failed");
             }
 

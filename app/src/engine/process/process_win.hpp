@@ -269,16 +269,6 @@ class Process : public IProcess {
         }
     }
 
-    [[nodiscard]] std::string getPath(const std::string &dir, const std::string &cmd) const {
-        std::string path = (dir == "." ? "" : dir) + cmd;
-#    ifndef NO_STD_FILESYSTEM
-        // convert path to a filesystem path
-        auto p = std::filesystem::path(dir) / std::filesystem::path(cmd);
-        path   = p.string();
-#    endif
-        return path;
-    }
-
     // The working directory
     std::string wd_;
     // The command to execute

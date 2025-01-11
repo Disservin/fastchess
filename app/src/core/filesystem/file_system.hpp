@@ -1,7 +1,5 @@
 #pragma once
 
-namespace fastchess::util {
-
 #if defined(__MINGW32__) && defined(__GNUC__) && __GNUC__ == 8
 #    define NO_STD_FILESYSTEM
 #endif
@@ -43,5 +41,3 @@ namespace fastchess::util {
 #        endif
 #    endif
 #endif
-
-}  // namespace fastchess::util

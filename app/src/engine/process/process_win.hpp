@@ -269,7 +269,7 @@ class Process : public IProcess {
         }
     }
 
-    [[nodiscard]] std::string getPath(std::string_view dir, std::string_view cmd) const {
+    [[nodiscard]] std::string getPath(const std::string &dir, const std::string &cmd) const {
         std::string path = (dir == "." ? "" : dir) + cmd;
 #    ifndef NO_STD_FILESYSTEM
         // convert path to a filesystem path

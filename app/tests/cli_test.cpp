@@ -44,7 +44,7 @@ TEST_SUITE("Option Parsing Tests") {
         const auto args = cli::Args{
             "fastchess.exe",
             "-concurrency",
-            "200",
+            "20000",
         };
 
         CHECK_THROWS_WITH_AS(cli::OptionsParser{args},

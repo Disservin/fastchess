@@ -1,7 +1,11 @@
 #define DOCTEST_CONFIG_IMPLEMENT
 #include "doctest/doctest.hpp"
 
-int main(int argc, char **argv) {
+namespace fastchess {
+const char* version = "tests ";
+}
+
+int main(int argc, char** argv) {
     doctest::Context ctx;
 
     ctx.setOption("abort-after", 1);  // default - stop after 5 failed asserts

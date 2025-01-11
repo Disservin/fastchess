@@ -116,7 +116,7 @@ class OptionsParser {
 
     [[nodiscard]] stats_map getResults() const { return argument_data_.stats; }
 
-    const inline static auto version = getVersion();
+    const inline static auto Version = getVersion();
 
    private:
     // Adds an option to the parser

@@ -10,7 +10,9 @@
 #include <engine/compliance.hpp>
 #include <matchmaking/tournament/tournament_manager.hpp>
 
-constexpr auto version = "alpha 1.1.0 ";
+namespace fastchess {
+const char* version = "alpha 1.1.0 ";
+}
 
 using namespace fastchess;
 

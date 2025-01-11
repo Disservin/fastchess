@@ -523,7 +523,7 @@ void parseSRand(const std::vector<std::string> &params, ArgumentData &argument_d
 }
 
 void parseVersion(const std::vector<std::string> &, ArgumentData &) {
-    std::cout << OptionsParser::version << std::endl;
+    std::cout << OptionsParser::Version << std::endl;
     std::exit(0);
 }
 

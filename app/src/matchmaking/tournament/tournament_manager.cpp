@@ -33,7 +33,7 @@ void TournamentManager::start(const cli::Args& args) {
     Logger::setCompress(config::TournamentConfig.get().log.compress);
     Logger::openFile(config::TournamentConfig.get().log.file);
 
-    Logger::trace("{}", cli::OptionsParser::version);
+    Logger::trace("{}", cli::OptionsParser::Version);
 
     util::random::seed(config::TournamentConfig.get().seed);
 

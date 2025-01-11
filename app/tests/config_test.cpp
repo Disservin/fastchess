@@ -88,5 +88,7 @@ TEST_SUITE("Start from config") {
         CHECK(str_utils::contains(oss, "Finished match"));
     }
 
-    TEST_CASE("Check version is included") { CHECK(cli::OptionsParser::Version == "fastchess tests 20250111-f6f5e3f"); }
+    TEST_CASE("Check version is included") {
+        CHECK(str_utils::startsWith(cli::OptionsParser::Version, "fastchess tests "));
+    }
 }

@@ -6,6 +6,8 @@
 #include <string_view>
 #include <vector>
 
+#include <core/filesystem/file_system.hpp>
+
 namespace fastchess::engine::process {
 
 enum class Standard { INPUT, OUTPUT, ERR };
@@ -49,6 +51,16 @@ class IProcess {
     virtual Status writeInput(const std::string &input) noexcept = 0;
 
    protected:
+    [[nodiscard]] std::string getPath(const std::string &dir, const std::string &cmd) const {
+        std::string path = (dir == "." ? "" : dir) + cmd;
+#ifndef NO_STD_FILESYSTEM
+        // convert path to a filesystem path
+        auto p = std::filesystem::path(dir) / std::filesystem::path(cmd);
+        path   = p.string();
+#endif
+        return path;
+    }
+
     bool realtime_logging_ = true;
 };
 

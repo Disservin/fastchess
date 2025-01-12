@@ -63,7 +63,7 @@ jobs:
 
       - name: Extract the commit sha
         run: |
-          git rev-parse --short "$GITHUB_SHA" > sha && echo "git_sha=$(cat sha)" >> $GITHUB_ENV && echo "Git sha:" $(cat sha)
+          git rev-parse --short "$GITHUB_SHA" > sha && echo "COMMIT_SHA=$(cat sha)" >> $GITHUB_ENV && echo "Git sha:" $(cat sha)
 
       - name: Get commit date
         id: commit_date

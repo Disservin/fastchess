@@ -75,6 +75,7 @@
             "dir": "",
             "cmd": "./app/tests/mock/engine/random_mover",
             "args": "",
+            "restart": false,
             "options": [],
             "limit": {
                 "tc": {
@@ -94,6 +95,7 @@
             "dir": "",
             "cmd": "./app/tests/mock/engine/random_mover",
             "args": "",
+            "restart": false,
             "options": [],
             "limit": {
                 "tc": {

@@ -60,6 +60,6 @@ struct EngineConfiguration {
         return std::nullopt;
     }
 };
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(EngineConfiguration, name, dir, cmd, args, options, limit, variant)
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(EngineConfiguration, name, dir, cmd, args, restart, options, limit, variant)
 
 }  // namespace fastchess

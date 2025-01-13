@@ -18,9 +18,9 @@ using namespace fastchess;
 
 int main(int argc, char const* argv[]) {
     setCtrlCHandler();
-    setTerminalOutput();
 
     if (argc >= 3 && std::string(argv[1]) == "--compliance") {
+        setTerminalOutput();
         return !engine::compliant(argc, argv);
     }
 

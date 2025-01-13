@@ -21,6 +21,10 @@ std::mutex Logger::log_mutex_;
 Logger::log_file_type Logger::log_;
 
 void Logger::openFile(const std::string &file) {
+    if (file.empty()) {
+        return;
+    }
+
 #ifdef USE_ZLIB
     if (compress_) {
         auto t   = std::chrono::system_clock::now();

@@ -13,7 +13,7 @@ namespace chrono = std::chrono;
 
 using namespace std::literals;
 using namespace chess;
-using clock = chrono::high_resolution_clock;
+using clock = chrono::steady_clock;
 
 namespace atomic {
 
@@ -236,15 +236,9 @@ bool Match::playMove(Player& us, Player& them) {
     us.engine.setupReadEngine();
 
     // wait for bestmove
-    auto t0     = clock::now();
-    auto status = us.engine.readEngineLowLat("bestmove", us.getTimeoutThreshold());
-    auto t1     = clock::now();
-
-    // calculate latency
-    const auto ns = chrono::duration_cast<chrono::nanoseconds>(t1 - t0);
-    std::cout << "latency: " << ns.count() - chrono::duration_cast<chrono::nanoseconds>(us.engine.lastTime()).count()
-              << " " << chrono::duration_cast<chrono::milliseconds>(ns).count() - us.engine.lastTime().count()
-              << std::endl;
+    const auto t0     = clock::now();
+    const auto status = us.engine.readEngineLowLat("bestmove", us.getTimeoutThreshold());
+    const auto t1     = clock::now();
 
     Logger::trace<true>("Engine {} is done thinking", name);
 
@@ -271,17 +265,24 @@ bool Match::playMove(Player& us, Player& them) {
 
     Logger::trace<true>("Engine {} is in a ready state", name);
 
-    const auto elapsed_millis = chrono::duration_cast<chrono::milliseconds>(t1 - t0).count();
+    const auto elapsed_ms = chrono::duration_cast<chrono::milliseconds>(t1 - t0).count();
+
+    // calculate latency
+    if (config::TournamentConfig.get().latency) {
+        const auto last_time = us.engine.lastTime().count();
+        const auto latency   = elapsed_ms - last_time;
+        Logger::info<true>("Engine {} latency: {}ms (elapsed: {}, reported: {})", name, latency, elapsed_ms, last_time);
+    }
 
     const auto best_move = us.engine.bestmove();
     const auto move      = best_move ? uci::uciToMove(board_, *best_move) : Move::NO_MOVE;
     const auto legal     = isLegal(move);
 
-    const auto timeout  = !us.updateTime(elapsed_millis);
+    const auto timeout  = !us.updateTime(elapsed_ms);
     const auto timeleft = us.getTimeControl().getTimeLeft();
 
     if (best_move) {
-        addMoveData(us, elapsed_millis, timeleft, legal && isUciMove(best_move.value()));
+        addMoveData(us, elapsed_ms, timeleft, legal && isUciMove(best_move.value()));
     }
 
     // there are two reasons why best_move could be empty

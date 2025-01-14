@@ -59,6 +59,12 @@ The following options are available:
 - -recover  
     Enables crash recovery to attempt to recover the engine after a crash and continue the tournament.
 
+- -show-latency
+    Show the "think" latency (difference between measured and reported time) for each engine.
+    Note that a lot of engines add 1ms to the time they report, so the latency will be 1ms higher than the actual latency.
+    It is also possible that the latency is negative, due to different measurement methods or missing synchronization of the clocks
+    between different threads.
+
 - -draw movenumber=NUMBER movecount=COUNT score=SCORE  
     Enables draw adjudication based on number of moves, move count, and score threshold.
 

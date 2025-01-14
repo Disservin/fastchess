@@ -364,10 +364,8 @@ void parseAutoSaveInterval(const std::vector<std::string> &params, ArgumentData 
 }
 
 void parseLog(const std::vector<std::string> &params, ArgumentData &argument_data) {
-    std::string filename;
     parseDashOptions(params, [&](const std::string &key, const std::string &value) {
         if (key == "file") {
-            filename                                 = value;
             argument_data.tournament_config.log.file = value;
         } else if (key == "level") {
             Logger::Level level = Logger::Level::WARN;
@@ -395,8 +393,6 @@ void parseLog(const std::vector<std::string> &params, ArgumentData &argument_dat
             OptionsParser::throwMissing("log", key, value);
         }
     });
-
-    if (filename.empty()) throw std::runtime_error("Please specify filename for log output.");
 }
 
 namespace json_config {

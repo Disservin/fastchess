@@ -22,16 +22,16 @@ extern std::atomic_bool stop;
 }  // namespace atomic
 
 BaseTournament::BaseTournament(const stats_map &results) {
-    const auto &config     = config::TournamentConfig.get();
+    const auto &config     = *config::TournamentConfig;
     const auto total       = setResults(results);
-    const auto num_players = config::EngineConfigs.get().size();
+    const auto num_players = config::EngineConfigs->size();
 
     initial_matchcount_ = total;
     match_count_        = total;
 
-    output_ = OutputFactory::create(config.output, config.report_penta);
-    cores_  = std::make_unique<affinity::AffinityManager>(config.affinity, getMaxAffinity(config::EngineConfigs.get()));
-    book_   = std::make_unique<book::OpeningBook>(config, initial_matchcount_);
+    output_    = OutputFactory::create(config.output, config.report_penta);
+    cores_     = std::make_unique<affinity::AffinityManager>(config.affinity, getMaxAffinity(*config::EngineConfigs));
+    book_      = std::make_unique<book::OpeningBook>(config, initial_matchcount_);
     generator_ = std::make_unique<MatchGenerator>(book_.get(), num_players, config.rounds, config.games, total);
 
     if (!config.pgn.file.empty()) file_writer_pgn_ = std::make_unique<util::FileWriter>(config.pgn.file);
@@ -56,10 +56,10 @@ void BaseTournament::start() {
 void BaseTournament::saveJson() {
     Logger::trace("Saving results...");
 
-    const auto &config = config::TournamentConfig.get();
+    const auto &config = *config::TournamentConfig;
 
     nlohmann::ordered_json jsonfile = config;
-    jsonfile["engines"]             = config::EngineConfigs.get();
+    jsonfile["engines"]             = *config::EngineConfigs;
     jsonfile["stats"]               = getResults();
 
     auto filename = config.config_name.empty() ? "config.json" : config.config_name;
@@ -75,7 +75,7 @@ void BaseTournament::playGame(const GamePair<EngineConfiguration, EngineConfigur
                               std::size_t round_id, std::size_t game_id) {
     if (atomic::stop) return;
 
-    const auto &config = config::TournamentConfig.get();
+    const auto &config = *config::TournamentConfig;
     const auto rl      = config.log.realtime;
     const auto core    = util::ScopeGuard(cores_->consume());
 

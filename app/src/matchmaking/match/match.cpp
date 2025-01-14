@@ -91,7 +91,7 @@ void Match::addMoveData(const Player& player, int64_t measured_time_ms, int64_t 
 }
 
 void Match::prepare() {
-    board_.set960(config::TournamentConfig.get().variant == VariantType::FRC);
+    board_.set960(config::TournamentConfig->variant == VariantType::FRC);
 
     if (isFen(opening_.fen_epd))
         board_.setFen(opening_.fen_epd);
@@ -177,7 +177,7 @@ void Match::start(engine::UciEngine& white, engine::UciEngine& black, const std:
 
     const auto end = clock::now();
 
-    data_.variant = config::TournamentConfig.get().variant;
+    data_.variant = config::TournamentConfig->variant;
 
     data_.end_time = util::time::datetime("%Y-%m-%dT%H:%M:%S %z");
     data_.duration = util::time::duration(chrono::duration_cast<chrono::seconds>(end - start));
@@ -242,7 +242,7 @@ bool Match::playMove(Player& us, Player& them) {
 
     Logger::trace<true>("Engine {} is done thinking", name);
 
-    if (!config::TournamentConfig.get().log.realtime) {
+    if (!config::TournamentConfig->log.realtime) {
         us.engine.writeLog();
     }
 
@@ -506,7 +506,7 @@ void Match::verifyPvLines(const Player& us) {
 }
 
 bool Match::adjudicate(Player& us, Player& them) noexcept {
-    if (config::TournamentConfig.get().resign.enabled && resign_tracker_.resignable() && us.engine.lastScore() < 0) {
+    if (config::TournamentConfig->resign.enabled && resign_tracker_.resignable() && us.engine.lastScore() < 0) {
         us.setLost();
         them.setWon();
 
@@ -518,7 +518,7 @@ bool Match::adjudicate(Player& us, Player& them) noexcept {
         return true;
     }
 
-    if (config::TournamentConfig.get().draw.enabled && draw_tracker_.adjudicatable(board_.fullMoveNumber() - 1)) {
+    if (config::TournamentConfig->draw.enabled && draw_tracker_.adjudicatable(board_.fullMoveNumber() - 1)) {
         us.setDraw();
         them.setDraw();
 
@@ -528,7 +528,7 @@ bool Match::adjudicate(Player& us, Player& them) noexcept {
         return true;
     }
 
-    if (config::TournamentConfig.get().maxmoves.enabled && maxmoves_tracker_.maxmovesreached()) {
+    if (config::TournamentConfig->maxmoves.enabled && maxmoves_tracker_.maxmovesreached()) {
         us.setDraw();
         them.setDraw();
 

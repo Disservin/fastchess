@@ -613,7 +613,7 @@ void parseAffinity(const std::vector<std::string> &, ArgumentData &argument_data
 }
 
 void parseLatency(const std::vector<std::string> &, ArgumentData &argument_data) {
-    argument_data.tournament_config.latency = true;
+    argument_data.tournament_config.show_latency = true;
 }
 
 void parseDebug(const std::vector<std::string> &, ArgumentData &) {

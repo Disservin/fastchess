@@ -33,7 +33,7 @@ class Cutechess : public IOutput {
 
     std::string printElo(const Stats& stats, const std::string&, const std::string&, const engines&, const std::string&,
                          ScoreBoard& scoreboard) override {
-        const auto& ecs = config::EngineConfigs.get();
+        const auto& ecs = *config::EngineConfigs;
 
         if (ecs.size() == 2) {
             const elo::EloWDL elo(stats);

@@ -21,21 +21,17 @@ TournamentManager::~TournamentManager() {
 void TournamentManager::start(const cli::Args& args) {
     const auto options = cli::OptionsParser(args);
 
-    config::TournamentConfig.setup([&options]() -> std::unique_ptr<config::Tournament> {
-        return std::make_unique<config::Tournament>(options.getTournamentConfig());
-    });
+    config::TournamentConfig = std::make_unique<config::Tournament>(options.getTournamentConfig());
 
-    config::EngineConfigs.setup([&options]() -> std::unique_ptr<std::vector<EngineConfiguration>> {
-        return std::make_unique<std::vector<EngineConfiguration>>(options.getEngineConfigs());
-    });
+    config::EngineConfigs = std::make_unique<std::vector<EngineConfiguration>>(options.getEngineConfigs());
 
-    Logger::setLevel(config::TournamentConfig.get().log.level);
-    Logger::setCompress(config::TournamentConfig.get().log.compress);
-    Logger::openFile(config::TournamentConfig.get().log.file);
+    Logger::setLevel(config::TournamentConfig->log.level);
+    Logger::setCompress(config::TournamentConfig->log.compress);
+    Logger::openFile(config::TournamentConfig->log.file);
 
     Logger::trace("{}", cli::OptionsParser::Version);
 
-    util::random::seed(config::TournamentConfig.get().seed);
+    util::random::seed(config::TournamentConfig->seed);
 
     Logger::trace("Creating tournament...");
     auto round_robin = RoundRobin(options.getResults());

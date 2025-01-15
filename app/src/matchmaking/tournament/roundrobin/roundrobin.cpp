@@ -12,9 +12,9 @@ namespace fastchess {
 
 RoundRobin::RoundRobin(const stats_map& results) : BaseTournament(results) {
     // Initialize the SPRT test
-    sprt_ = SPRT(config::TournamentConfig.get().sprt.alpha, config::TournamentConfig.get().sprt.beta,
-                 config::TournamentConfig.get().sprt.elo0, config::TournamentConfig.get().sprt.elo1,
-                 config::TournamentConfig.get().sprt.model, config::TournamentConfig.get().sprt.enabled);
+    sprt_ = SPRT(config::TournamentConfig->sprt.alpha, config::TournamentConfig->sprt.beta,
+                 config::TournamentConfig->sprt.elo0, config::TournamentConfig->sprt.elo1,
+                 config::TournamentConfig->sprt.model, config::TournamentConfig->sprt.enabled);
 }
 
 RoundRobin::~RoundRobin() { Logger::trace("~RoundRobin()"); }
@@ -23,7 +23,7 @@ void RoundRobin::start() {
     Logger::trace("Starting round robin tournament...");
 
     // If autosave is enabled, save the results every save_interval games
-    const auto save_interval = config::TournamentConfig.get().autosaveinterval;
+    const auto save_interval = config::TournamentConfig->autosaveinterval;
 
     // Account for the initial matchcount
     auto save_iter = initial_matchcount_ + save_interval;
@@ -45,7 +45,7 @@ void RoundRobin::start() {
 
     pool_.kill();
 
-    if (config::TournamentConfig.get().output == OutputType::FASTCHESS) {
+    if (config::TournamentConfig->output == OutputType::FASTCHESS) {
         if (timeout_tracker_.begin() != timeout_tracker_.end()) {
             Logger::info("");
         }
@@ -79,8 +79,8 @@ void RoundRobin::startNext() {
 void RoundRobin::create() {
     Logger::trace("Creating matches...");
 
-    total_ = (config::EngineConfigs.get().size() * (config::EngineConfigs.get().size() - 1) / 2) *
-             config::TournamentConfig.get().rounds * config::TournamentConfig.get().games;
+    total_ = (config::EngineConfigs->size() * (config::EngineConfigs->size() - 1) / 2) *
+             config::TournamentConfig->rounds * config::TournamentConfig->games;
 
     for (int i = 0; i < pool_.getNumThreads(); i++) {
         startNext();
@@ -89,16 +89,16 @@ void RoundRobin::create() {
 
 void RoundRobin::createMatch(const MatchGenerator::Pairing& pairing) {
     const auto opening = (*book_)[pairing.opening_id];
-    const auto first   = config::EngineConfigs.get()[pairing.player1];
-    const auto second  = config::EngineConfigs.get()[pairing.player2];
+    const auto first   = (*config::EngineConfigs)[pairing.player1];
+    const auto second  = (*config::EngineConfigs)[pairing.player2];
 
     GamePair<EngineConfiguration, EngineConfiguration> configs = {first, second};
 
-    if (pairing.game_id % 2 == 0 && !config::TournamentConfig.get().noswap) {
+    if (pairing.game_id % 2 == 0 && !config::TournamentConfig->noswap) {
         std::swap(configs.white, configs.black);
     }
 
-    if (config::TournamentConfig.get().reverse) {
+    if (config::TournamentConfig->reverse) {
         std::swap(configs.white, configs.black);
     }
 
@@ -108,7 +108,7 @@ void RoundRobin::createMatch(const MatchGenerator::Pairing& pairing) {
     // callback functions, do not capture by reference
     const auto finish = [this, configs, first, second, pairing](const Stats& stats, const std::string& reason,
                                                                 const engines& engines) {
-        const auto& cfg = config::TournamentConfig.get();
+        const auto& cfg = *config::TournamentConfig;
 
         // lock to avoid chaotic output, i.e.
         // Finished game 187 (Engine1 vs Engine2): 0-1 {White loses on time}
@@ -144,15 +144,15 @@ void RoundRobin::createMatch(const MatchGenerator::Pairing& pairing) {
 
     playGame(configs, start, finish, opening, pairing.pairing_id, pairing.game_id);
 
-    if (config::TournamentConfig.get().wait > 0)
-        std::this_thread::sleep_for(std::chrono::milliseconds(config::TournamentConfig.get().wait));
+    if (config::TournamentConfig->wait > 0)
+        std::this_thread::sleep_for(std::chrono::milliseconds(config::TournamentConfig->wait));
 }
 
 void RoundRobin::updateSprtStatus(const std::vector<EngineConfiguration>& engine_configs, const engines& engines) {
     if (!sprt_.isEnabled()) return;
 
     const auto stats = scoreboard_.getStats(engine_configs[0].name, engine_configs[1].name);
-    const auto llr   = sprt_.getLLR(stats, config::TournamentConfig.get().report_penta);
+    const auto llr   = sprt_.getLLR(stats, config::TournamentConfig->report_penta);
 
     if (sprt_.getResult(llr) != SPRT_CONTINUE || match_count_ == total_) {
         atomic::stop = true;
@@ -161,13 +161,13 @@ void RoundRobin::updateSprtStatus(const std::vector<EngineConfiguration>& engine
 
         output_->printResult(stats, engine_configs[0].name, engine_configs[1].name);
         output_->printInterval(sprt_, stats, engine_configs[0].name, engine_configs[1].name, engines,
-                               config::TournamentConfig.get().opening.file, scoreboard_);
+                               config::TournamentConfig->opening.file, scoreboard_);
         output_->endTournament();
     }
 }
 
 bool RoundRobin::shouldPrintRatingInterval(std::size_t round_id) const noexcept {
-    const auto& cfg = config::TournamentConfig.get();
+    const auto& cfg = *config::TournamentConfig;
 
     // round_id and match_count_ starts 0 so we add 1
     const auto ratinginterval_index = cfg.report_penta ? round_id + 1 : match_count_ + 1;
@@ -176,7 +176,7 @@ bool RoundRobin::shouldPrintRatingInterval(std::size_t round_id) const noexcept 
 }
 
 bool RoundRobin::shouldPrintScoreInterval() const noexcept {
-    const auto& cfg = config::TournamentConfig.get();
+    const auto& cfg = *config::TournamentConfig;
 
     const auto scoreinterval_index = match_count_ + 1;
 

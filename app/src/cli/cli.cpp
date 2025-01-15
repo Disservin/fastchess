@@ -608,6 +608,10 @@ void parseAffinity(const std::vector<std::string> &, ArgumentData &argument_data
     argument_data.tournament_config.affinity = true;
 }
 
+void parseLatency(const std::vector<std::string> &, ArgumentData &argument_data) {
+    argument_data.tournament_config.show_latency = true;
+}
+
 void parseDebug(const std::vector<std::string> &, ArgumentData &) {
     // throw error
     std::string error_message =
@@ -662,6 +666,7 @@ OptionsParser::OptionsParser(const cli::Args &args) {
     addOption("tournament", parseTournament);
     addOption("quick", parseQuick);
     addOption("use-affinity", parseAffinity);
+    addOption("show-latency", parseLatency);
     addOption("debug", parseDebug);
 
     parse(args);

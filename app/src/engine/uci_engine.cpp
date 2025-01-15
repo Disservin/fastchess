@@ -355,11 +355,12 @@ void UciEngine::writeLog() const {
     }
 }
 
-std::string UciEngine::lastInfoLine() const {
+std::string UciEngine::lastInfoLine(bool exact) const {
     // iterate backwards over the output and save the info line
     for (auto it = output_.rbegin(); it != output_.rend(); ++it) {
         // skip lowerbound and upperbound
-        if (it->line.find("lowerbound") != std::string::npos || it->line.find("upperbound") != std::string::npos) {
+        if (exact &&
+            (it->line.find("lowerbound") != std::string::npos || it->line.find("upperbound") != std::string::npos)) {
             continue;
         }
 
@@ -395,8 +396,8 @@ std::optional<std::string> UciEngine::bestmove() const {
     return bm.value();
 }
 
-std::vector<std::string> UciEngine::lastInfo() const {
-    const auto last_info = lastInfoLine();
+std::vector<std::string> UciEngine::lastInfo(bool exact) const {
+    const auto last_info = lastInfoLine(exact);
 
     if (last_info.empty()) {
         Logger::warn<true>("Warning; Last info string with score not found from {}", config_.name);
@@ -414,6 +415,12 @@ ScoreType UciEngine::lastScoreType() const {
     if (score == "mate") return ScoreType::MATE;
 
     return ScoreType::ERR;
+}
+
+std::chrono::milliseconds UciEngine::lastTime() const {
+    const auto time = str_utils::findElement<int>(lastInfo(false), "time").value_or(0);
+
+    return std::chrono::milliseconds(time);
 }
 
 int UciEngine::lastScore() const {

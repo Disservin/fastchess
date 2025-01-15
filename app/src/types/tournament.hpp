@@ -63,12 +63,13 @@ struct Tournament {
     bool reverse  = false;
     bool recover  = false;
     bool affinity = false;
+    bool show_latency  = false;
 
     Log log = {};
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(Tournament, resign, draw, maxmoves, opening, pgn, epd, sprt,
                                                 config_name, output, seed, variant, ratinginterval, scoreinterval, wait,
                                                 autosaveinterval, games, rounds, concurrency, force_concurrency,
-                                                recover, noswap, reverse, report_penta, affinity, log)
+                                                recover, noswap, reverse, report_penta, affinity, show_latency, log)
 
 }  // namespace fastchess::config

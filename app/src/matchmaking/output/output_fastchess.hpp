@@ -34,7 +34,7 @@ class Fastchess : public IOutput {
 
     std::string printElo(const Stats& stats, const std::string& first, const std::string& second,
                          const engines& engines, const std::string& book, ScoreBoard& scoreboard) override {
-        const auto& ecs = config::EngineConfigs.get();
+        const auto& ecs = *config::EngineConfigs;
 
         if (ecs.size() == 2) {
             return printEloH2H(stats, first, second, engines, book);

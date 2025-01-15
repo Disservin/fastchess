@@ -2,7 +2,6 @@
 
 #include <memory>
 
-#include <core/lazy.hpp>
 #include <types/engine_config.hpp>
 #include <types/tournament.hpp>
 

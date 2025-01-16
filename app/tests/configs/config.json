@@ -33,6 +33,7 @@
         "track_hashfull": false,
         "track_tbhits": false,
         "track_timeleft": false,
+        "track_latency": false,
         "min": false
     },
     "epd": {

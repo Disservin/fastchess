@@ -30,6 +30,7 @@ struct MoveData {
     std::string score_string;
     int64_t elapsed_millis = 0;
     int64_t timeleft       = 0;
+    int64_t latency        = 0;
     uint64_t nodes         = 0;
     int seldepth           = 0;
     int depth              = 0;

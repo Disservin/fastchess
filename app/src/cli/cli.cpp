@@ -203,6 +203,8 @@ void parsePgnOut(const std::vector<std::string> &params, ArgumentData &argument_
                 argument_data.tournament_config.pgn.track_tbhits = value == "true";
             } else if (key == "timeleft" && is_bool(value)) {
                 argument_data.tournament_config.pgn.track_timeleft = value == "true";
+            } else if (key == "latency" && is_bool(value)) {
+                argument_data.tournament_config.pgn.track_latency = value == "true";
             } else if (key == "min" && is_bool(value)) {
                 argument_data.tournament_config.pgn.min = value == "true";
             } else if (key == "notation") {

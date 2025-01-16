@@ -269,9 +269,9 @@ bool Match::playMove(Player& us, Player& them) {
     const auto elapsed_ms = chrono::duration_cast<chrono::milliseconds>(t1 - t0).count();
 
     // calculate latency
+    const auto last_time = us.engine.lastTime().count();
+    const auto latency   = elapsed_ms - last_time;
     if (config::TournamentConfig->show_latency) {
-        const auto last_time = us.engine.lastTime().count();
-        const auto latency   = elapsed_ms - last_time;
         Logger::info<true>("Engine {} latency: {}ms (elapsed: {}, reported: {})", name, latency, elapsed_ms, last_time);
     }
 

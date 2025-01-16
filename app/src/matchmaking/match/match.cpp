@@ -58,7 +58,7 @@ std::string Match::convertScoreToString(int score, engine::ScoreType score_type)
     return ss.str();
 }
 
-void Match::addMoveData(const Player& player, int64_t measured_time_ms, int64_t timeleft, bool legal) {
+void Match::addMoveData(const Player& player, int64_t measured_time_ms, int64_t latency, int64_t timeleft, bool legal) {
     const auto move = player.engine.bestmove().value_or("<none>");
 
     MoveData move_data = MoveData(move, "0.00", measured_time_ms, 0, 0, 0, 0, legal);
@@ -81,6 +81,7 @@ void Match::addMoveData(const Player& player, int64_t measured_time_ms, int64_t 
     move_data.nodes    = str_utils::findElement<uint64_t>(info, "nodes").value_or(0);
     move_data.score    = player.engine.lastScore();
     move_data.timeleft = timeleft;
+    move_data.latency  = latency;
 
     move_data.score_string = Match::convertScoreToString(move_data.score, score_type);
 
@@ -282,7 +283,7 @@ bool Match::playMove(Player& us, Player& them) {
     const auto timeleft = us.getTimeControl().getTimeLeft();
 
     if (best_move) {
-        addMoveData(us, elapsed_ms, timeleft, legal && isUciMove(best_move.value()));
+        addMoveData(us, elapsed_ms, latency, timeleft, legal && isUciMove(best_move.value()));
     }
 
     // there are two reasons why best_move could be empty

@@ -16,6 +16,8 @@ class Scheduler {
         std::size_t player2;
     };
 
+    virtual ~Scheduler() = default;
+
     virtual std::optional<Pairing> next() = 0;
 
     virtual std::size_t total() const = 0;

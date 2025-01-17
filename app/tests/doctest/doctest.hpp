@@ -5689,7 +5689,7 @@ namespace {
                                 "did NOT throw at all!")
                 << Color::Cyan << rb.m_exception << "\n";
         } else if(rb.m_at & assertType::is_nothrow) { //!OCLINT bitwise operator in conditional
-            s << (rb.m_threw ? "THREW exception: " : "didn't throw!") << Color::Cyan
+            s << (rb.m_threw ? "THREW exception: " : "did not throw!") << Color::Cyan
                 << rb.m_exception << "\n";
         } else {
             s << (rb.m_threw ? "THREW exception: " :
@@ -6176,7 +6176,7 @@ namespace {
             s << " -" DOCTEST_OPTIONS_PREFIX_DISPLAY "nb,  --" DOCTEST_OPTIONS_PREFIX_DISPLAY "no-breaks=<bool>              "
               << Whitespace(sizePrefixDisplay*1) << "disables breakpoints in debuggers\n";
             s << " -" DOCTEST_OPTIONS_PREFIX_DISPLAY "ns,  --" DOCTEST_OPTIONS_PREFIX_DISPLAY "no-skip=<bool>                "
-              << Whitespace(sizePrefixDisplay*1) << "don't skip test cases marked as skip\n";
+              << Whitespace(sizePrefixDisplay*1) << "do not skip test cases marked as skip\n";
             s << " -" DOCTEST_OPTIONS_PREFIX_DISPLAY "gfl, --" DOCTEST_OPTIONS_PREFIX_DISPLAY "gnu-file-line=<bool>          "
               << Whitespace(sizePrefixDisplay*1) << ":n: vs (n): for line numbers in output\n";
             s << " -" DOCTEST_OPTIONS_PREFIX_DISPLAY "npf, --" DOCTEST_OPTIONS_PREFIX_DISPLAY "no-path-filenames=<bool>      "
@@ -6319,13 +6319,13 @@ namespace {
                   << std::fixed << tc->m_timeout << "!\n";
 
             if(st.failure_flags & TestCaseFailureReason::ShouldHaveFailedButDidnt) {
-                s << Color::Red << "Should have failed but didn't! Marking it as failed!\n";
+                s << Color::Red << "Should have failed but did not! Marking it as failed!\n";
             } else if(st.failure_flags & TestCaseFailureReason::ShouldHaveFailedAndDid) {
                 s << Color::Yellow << "Failed as expected so marking it as not failed\n";
             } else if(st.failure_flags & TestCaseFailureReason::CouldHaveFailedAndDid) {
                 s << Color::Yellow << "Allowed to fail so marking it as not failed\n";
             } else if(st.failure_flags & TestCaseFailureReason::DidntFailExactlyNumTimes) {
-                s << Color::Red << "Didn't fail exactly " << tc->m_expected_failures
+                s << Color::Red << "Did not fail exactly " << tc->m_expected_failures
                   << " times so marking it as failed!\n";
             } else if(st.failure_flags & TestCaseFailureReason::FailedExactlyNumTimes) {
                 s << Color::Yellow << "Failed exactly " << tc->m_expected_failures

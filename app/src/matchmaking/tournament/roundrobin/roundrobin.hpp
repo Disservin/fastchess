@@ -32,9 +32,6 @@ class RoundRobin : public BaseTournament {
    protected:
     void startNext() override;
 
-    // creates the matches
-    void create() override;
-
    private:
     bool shouldPrintRatingInterval(std::size_t round_id) const noexcept;
 
@@ -43,7 +40,7 @@ class RoundRobin : public BaseTournament {
 
     bool allMatchesPlayed() const noexcept { return match_count_ + 1 == total_; }
 
-    void createMatch(const MatchGenerator::Pairing& pairing);
+    void createMatch(const Scheduler::Pairing& pairing);
 
     // update the current running sprt. SPRT Config has to be valid.
     void updateSprtStatus(const std::vector<EngineConfiguration>& engine_configs, const engines& engines);
@@ -52,8 +49,5 @@ class RoundRobin : public BaseTournament {
 
     std::mutex output_mutex_;
     std::mutex game_gen_mutex_;
-
-    // number of games to be played
-    std::atomic<uint64_t> total_ = 0;
 };
 }  // namespace fastchess

@@ -13,6 +13,7 @@
 #include <matchmaking/output/output.hpp>
 #include <matchmaking/output/output_factory.hpp>
 #include <matchmaking/scoreboard.hpp>
+#include <matchmaking/tournament/schedule/scheduler.hpp>
 #include <types/tournament.hpp>
 
 namespace fastchess {
@@ -22,17 +23,15 @@ extern std::atomic_bool stop;
 }  // namespace atomic
 
 BaseTournament::BaseTournament(const stats_map &results) {
-    const auto &config     = *config::TournamentConfig;
-    const auto total       = setResults(results);
-    const auto num_players = config::EngineConfigs->size();
+    const auto &config = *config::TournamentConfig;
+    const auto total   = setResults(results);
 
     initial_matchcount_ = total;
     match_count_        = total;
 
-    output_    = OutputFactory::create(config.output, config.report_penta);
-    cores_     = std::make_unique<affinity::AffinityManager>(config.affinity, getMaxAffinity(*config::EngineConfigs));
-    book_      = std::make_unique<book::OpeningBook>(config, initial_matchcount_);
-    generator_ = std::make_unique<MatchGenerator>(book_.get(), num_players, config.rounds, config.games, total);
+    output_ = OutputFactory::create(config.output, config.report_penta);
+    cores_  = std::make_unique<affinity::AffinityManager>(config.affinity, getMaxAffinity(*config::EngineConfigs));
+    book_   = std::make_unique<book::OpeningBook>(config, initial_matchcount_);
 
     if (!config.pgn.file.empty()) file_writer_pgn_ = std::make_unique<util::FileWriter>(config.pgn.file);
     if (!config.epd.file.empty()) file_writer_epd_ = std::make_unique<util::FileWriter>(config.epd.file);
@@ -42,15 +41,45 @@ BaseTournament::BaseTournament(const stats_map &results) {
 
 BaseTournament::~BaseTournament() {
     Logger::trace("~BaseTournament()");
+
     saveJson();
+
     Logger::trace("Instructing engines to stop...");
     writeToOpenPipes();
+
+    pool_.kill();
+
+    if (config::TournamentConfig->output == OutputType::FASTCHESS) {
+        if (tracker_.begin() != tracker_.end()) {
+            Logger::info("");
+        }
+
+        for (const auto &[name, tracked] : tracker_) {
+            Logger::info("Player: {}", name);
+            Logger::info("  Timeouts: {}", tracked.timeouts);
+            Logger::info("  Crashed: {}", tracked.disconnects);
+        }
+
+        if (tracker_.begin() != tracker_.end()) {
+            Logger::info("");
+        }
+    }
 }
 
 void BaseTournament::start() {
     Logger::trace("Starting tournament...");
 
     create();
+}
+
+void BaseTournament::create() {
+    Logger::trace("Creating matches...");
+
+    total_ = generator_->total();
+
+    for (int i = 0; i < pool_.getNumThreads(); i++) {
+        startNext();
+    }
 }
 
 void BaseTournament::saveJson() {

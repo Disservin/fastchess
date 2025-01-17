@@ -6,6 +6,7 @@
 #include <vector>
 
 #include <game/book/opening_book.hpp>
+#include <matchmaking/tournament/schedule/scheduler.hpp>
 
 namespace fastchess {
 
@@ -13,19 +14,10 @@ namespace fastchess {
  * Generate matches for a round-robin tournament.
  * Everytime a new match is required the next() function is called.
  */
-class MatchGenerator {
+class RoundRobinScheduler : public Scheduler {
    public:
-    struct Pairing {
-        std::size_t round_id;
-        std::size_t pairing_id;
-        std::size_t game_id;
-        std::optional<std::size_t> opening_id;
-        std::size_t player1;
-        std::size_t player2;
-    };
-
-    MatchGenerator(book::OpeningBook* opening_book, std::size_t players, std::size_t rounds, std::size_t games,
-                   std::size_t played_games)
+    RoundRobinScheduler(book::OpeningBook* opening_book, std::size_t players, std::size_t rounds, std::size_t games,
+                        std::size_t played_games)
         : opening_book_(opening_book),
           n_players(players),
           n_rounds(rounds),
@@ -44,7 +36,7 @@ class MatchGenerator {
     }
 
     // Function to generate the next game pairing
-    std::optional<Pairing> next() {
+    std::optional<Pairing> next() override {
         Pairing next_game;
 
         // Check if the current round is beyond the number of rounds
@@ -90,6 +82,8 @@ class MatchGenerator {
 
         return next_game;
     }
+
+    std::size_t total() const override { return (n_players * (n_players - 1) / 2) * n_rounds * n_games_per_round; }
 
    private:
     book::OpeningBook* opening_book_;

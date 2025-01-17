@@ -1,7 +1,7 @@
 #include <cli/cli.hpp>
 #include <cli/cli_args.hpp>
 
-#include "doctest/doctest.hpp"
+#include <doctest/doctest.hpp>
 
 using namespace fastchess;
 

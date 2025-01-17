@@ -1,5 +1,5 @@
 #define DOCTEST_CONFIG_IMPLEMENT
-#include "doctest/doctest.hpp"
+#include <doctest/doctest.hpp>
 
 namespace fastchess {
 const char* version = "tests ";

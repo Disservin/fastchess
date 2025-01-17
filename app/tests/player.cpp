@@ -1,6 +1,6 @@
 #include <matchmaking/player.hpp>
 
-#include "doctest/doctest.hpp"
+#include <doctest/doctest.hpp>
 
 const std::string path = "./app/tests/mock/engine/";
 

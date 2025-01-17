@@ -1,6 +1,6 @@
 #include <matchmaking/output/output_factory.hpp>
 
-#include "doctest/doctest.hpp"
+#include <doctest/doctest.hpp>
 
 namespace fastchess {
 

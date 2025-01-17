@@ -84,7 +84,7 @@ class Process : public IProcess {
         return Status::ERR;
     }
 
-    [[nodiscard]] Status alive() const noexcept override {
+    [[nodiscard]] Status alive() noexcept override {
         assert(is_initialized_);
 
         DWORD exitCode = 0;
@@ -179,7 +179,7 @@ class Process : public IProcess {
         }
     }
 
-    Status writeInput(const std::string &input) noexcept override {
+     Status writeInput(const std::string &input) noexcept override {
         assert(is_initialized_);
 
         if (alive() != Status::OK) terminate();

@@ -38,7 +38,7 @@ class IProcess {
                         const std::string &log_name) = 0;
 
     // Returns true if the process is alive
-    [[nodiscard]] virtual Status alive() const noexcept = 0;
+    [[nodiscard]] virtual Status alive() noexcept = 0;
 
     virtual void setAffinity(const std::vector<int> &cpus) noexcept = 0;
 

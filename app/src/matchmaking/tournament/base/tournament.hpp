@@ -52,8 +52,8 @@ class BaseTournament {
     EngineCache engine_cache_ = {};
     util::ThreadPool pool_    = util::ThreadPool(1);
 
-    ScoreBoard scoreboard_          = ScoreBoard();
-    TimeoutTracker timeout_tracker_ = TimeoutTracker();
+    ScoreBoard scoreboard_ = ScoreBoard();
+    PlayerTracker tracker_ = PlayerTracker();
 
     std::unique_ptr<MatchGenerator> generator_;
     std::unique_ptr<IOutput> output_;

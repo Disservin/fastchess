@@ -12,7 +12,7 @@
 
 namespace fastchess::affinity::cpu_info {
 
-[[nodiscard]] int lsb(uint64_t bits) noexcept {
+[[nodiscard]] inline int lsb(uint64_t bits) noexcept {
     assert(bits != 0);
 #if defined(__GNUC__)
     return __builtin_ctzll(bits);
@@ -25,7 +25,7 @@ namespace fastchess::affinity::cpu_info {
 #endif
 }
 
-[[nodiscard]] int pop(uint64_t& bits) noexcept {
+[[nodiscard]] inline int pop(uint64_t& bits) noexcept {
     assert(bits != 0);
     int index = lsb(bits);
     bits &= bits - 1;

@@ -140,11 +140,11 @@ void BaseTournament::playGame(const GamePair<EngineConfiguration, EngineConfigur
 
     switch (match_data.termination) {
         case MatchTermination::TIMEOUT:
-            tracker_.get(loser).timeouts++;
+            tracker_.report_timeout(loser);
             break;
         case MatchTermination::DISCONNECT:
         case MatchTermination::STALL:
-            tracker_.get(loser).disconnects++;
+            tracker_.report_disconnect(loser);
             break;
         default:
             break;

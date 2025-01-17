@@ -1,20 +1,28 @@
 #pragma once
 
 #include <chrono>
+#include <mutex>
 #include <string>
 #include <unordered_map>
 
 namespace fastchess {
 
 struct Tracker {
-    std::size_t timeouts    = 0;
-    std::size_t disconnects = 0;
+    std::atomic<std::size_t> timeouts    = 0;
+    std::atomic<std::size_t> disconnects = 0;
 };
 
 class PlayerTracker {
    public:
-    [[nodiscard]] auto get(const std::string &player) const { return count_.at(player); }
-    [[nodiscard]] auto &get(const std::string &player) { return count_.at(player); }
+    void report_timeout(const std::string &player) {
+        std::lock_guard<std::mutex> lock(mutex_);
+        count_[player].timeouts++;
+    }
+
+    void report_disconnect(const std::string &player) {
+        std::lock_guard<std::mutex> lock(mutex_);
+        count_[player].disconnects++;
+    }
 
     [[nodiscard]] auto begin() const { return count_.begin(); }
     [[nodiscard]] auto end() const { return count_.end(); }
@@ -24,6 +32,7 @@ class PlayerTracker {
 
    private:
     std::unordered_map<std::string, Tracker> count_;
+    std::mutex mutex_;
 };
 
 }  // namespace fastchess

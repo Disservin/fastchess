@@ -218,9 +218,11 @@ class Process : public IProcess {
                 case SIGUSR2:
                     result << "SIGUSR2 - User-defined signal 2";
                     break;
+#    ifdef SIGPOLL
                 case SIGPOLL:
                     result << "SIGPOLL - Pollable event";
                     break;
+#    endif
                 case SIGPROF:
                     result << "SIGPROF - Profiling timer expired";
                     break;

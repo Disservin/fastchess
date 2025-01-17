@@ -136,9 +136,18 @@ void BaseTournament::playGame(const GamePair<EngineConfiguration, EngineConfigur
         startNext();
     }
 
-    if (match_data.termination == MatchTermination::TIMEOUT) {
-        const auto &loser = match_data.players.white.result == chess::GameResult::LOSE ? white_name : black_name;
-        timeout_tracker_.timeout(loser);
+    const auto &loser = match_data.players.white.result == chess::GameResult::LOSE ? white_name : black_name;
+
+    switch (match_data.termination) {
+        case MatchTermination::TIMEOUT:
+            tracker_.get(loser).timeouts++;
+            break;
+        case MatchTermination::DISCONNECT:
+        case MatchTermination::STALL:
+            tracker_.get(loser).disconnects++;
+            break;
+        default:
+            break;
     }
 }
 

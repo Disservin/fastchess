@@ -6,26 +6,24 @@
 
 namespace fastchess {
 
-class TimeoutTracker {
+struct Tracker {
+    std::size_t timeouts    = 0;
+    std::size_t disconnects = 0;
+};
+
+class PlayerTracker {
    public:
-    // Increments the timeout counter for the player
-    void timeout(const std::string &player) { timeouts_[player]++; }
+    [[nodiscard]] auto get(const std::string &player) const { return count_.at(player); }
+    [[nodiscard]] auto &get(const std::string &player) { return count_.at(player); }
 
-    // Resets the timeout counter for the player
-    void reset(const std::string &player) { timeouts_[player] = 0; }
+    [[nodiscard]] auto begin() const { return count_.begin(); }
+    [[nodiscard]] auto end() const { return count_.end(); }
 
-    // Returns the number of timeouts for the player
-    [[nodiscard]] size_t get(const std::string &player) const { return timeouts_.at(player); }
-
-    [[nodiscard]] auto begin() const { return timeouts_.begin(); }
-    [[nodiscard]] auto end() const { return timeouts_.end(); }
-
-    // Resets the timeout counter for all players
-    void resetAll() { timeouts_.clear(); }
+    // Resets the counter for all players
+    void resetAll() { count_.clear(); }
 
    private:
-    // string, how often the player has timed out
-    std::unordered_map<std::string, size_t> timeouts_;
+    std::unordered_map<std::string, Tracker> count_;
 };
 
 }  // namespace fastchess

@@ -46,16 +46,17 @@ void RoundRobin::start() {
     pool_.kill();
 
     if (config::TournamentConfig->output == OutputType::FASTCHESS) {
-        if (timeout_tracker_.begin() != timeout_tracker_.end()) {
+        if (tracker_.begin() != tracker_.end()) {
             Logger::info("");
         }
 
-        for (const auto& [name, timeout] : timeout_tracker_) {
+        for (const auto& [name, tracked] : tracker_) {
             Logger::info("Player: {}", name);
-            Logger::info("  Timeouts: {}", timeout);
+            Logger::info("  Timeouts: {}", tracked.timeouts);
+            Logger::info("  Crashed: {}", tracked.disconnects);
         }
 
-        if (timeout_tracker_.begin() != timeout_tracker_.end()) {
+        if (tracker_.begin() != tracker_.end()) {
             Logger::info("");
         }
     }

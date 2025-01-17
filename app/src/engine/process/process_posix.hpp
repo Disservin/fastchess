@@ -10,6 +10,7 @@
 #    include <cstdint>
 #    include <iostream>
 #    include <memory>
+#    include <optional>
 #    include <stdexcept>
 #    include <string>
 #    include <thread>
@@ -133,34 +134,152 @@ class Process : public IProcess {
         return Status::OK;
     }
 
-    Status alive() const noexcept override {
+    Status alive() noexcept override {
         assert(is_initalized_);
 
         int status;
         const pid_t r = waitpid(process_pid_, &status, WNOHANG);
 
+        if (r != 0) {
+            exit_code_ = status;
+        }
+
         return r == 0 ? Status::OK : Status::ERR;
     }
-
     std::string signalToString(int status) {
-        if (WIFEXITED(status)) return std::to_string(WEXITSTATUS(status));
+        std::stringstream result;
 
-#    if defined(_GNU_SOURCE) && __GLIBC__ >= 2 && __GLIBC_MINOR__ >= 32
-        if (WIFSTOPPED(status)) {
-            auto desc = sigdescr_np(WSTOPSIG(status));
-            return desc ? desc : "Unknown child status";
-        }
+        if (WIFEXITED(status)) {
+            result << "Process exited normally with status " << WEXITSTATUS(status);
+        } else if (WIFSIGNALED(status)) {
+            result << "Process terminated by signal " << WTERMSIG(status) << " (";
 
-        if (WIFSIGNALED(status)) {
-            auto desc = sigdescr_np(WTERMSIG(status));
-            return desc ? desc : "Unknown child status";
-        }
-#    else
-        if (WIFSIGNALED(status)) return "WIFSIGNALED status: " + std::to_string(WTERMSIG(status));
+            switch (WTERMSIG(status)) {
+                case SIGABRT:
+                    result << "SIGABRT - Abort";
+                    break;
+                case SIGALRM:
+                    result << "SIGALRM - Alarm clock";
+                    break;
+                case SIGBUS:
+                    result << "SIGBUS - Bus error";
+                    break;
+                case SIGCHLD:
+                    result << "SIGCHLD - Child stopped or terminated";
+                    break;
+                case SIGCONT:
+                    result << "SIGCONT - Continue executing";
+                    break;
+                case SIGFPE:
+                    result << "SIGFPE - Floating point exception";
+                    break;
+                case SIGHUP:
+                    result << "SIGHUP - Hangup";
+                    break;
+                case SIGILL:
+                    result << "SIGILL - Illegal instruction";
+                    break;
+                case SIGINT:
+                    result << "SIGINT - Interrupt";
+                    break;
+                case SIGKILL:
+                    result << "SIGKILL - Kill";
+                    break;
+                case SIGPIPE:
+                    result << "SIGPIPE - Broken pipe";
+                    break;
+                case SIGQUIT:
+                    result << "SIGQUIT - Quit program";
+                    break;
+                case SIGSEGV:
+                    result << "SIGSEGV - Segmentation fault";
+                    break;
+                case SIGSTOP:
+                    result << "SIGSTOP - Stop executing";
+                    break;
+                case SIGTERM:
+                    result << "SIGTERM - Termination";
+                    break;
+                case SIGTRAP:
+                    result << "SIGTRAP - Trace/breakpoint trap";
+                    break;
+                case SIGTSTP:
+                    result << "SIGTSTP - Terminal stop signal";
+                    break;
+                case SIGTTIN:
+                    result << "SIGTTIN - Background process attempting read";
+                    break;
+                case SIGTTOU:
+                    result << "SIGTTOU - Background process attempting write";
+                    break;
+                case SIGUSR1:
+                    result << "SIGUSR1 - User-defined signal 1";
+                    break;
+                case SIGUSR2:
+                    result << "SIGUSR2 - User-defined signal 2";
+                    break;
+                case SIGPOLL:
+                    result << "SIGPOLL - Pollable event";
+                    break;
+                case SIGPROF:
+                    result << "SIGPROF - Profiling timer expired";
+                    break;
+                case SIGSYS:
+                    result << "SIGSYS - Bad system call";
+                    break;
+                case SIGURG:
+                    result << "SIGURG - Urgent condition on socket";
+                    break;
+                case SIGVTALRM:
+                    result << "SIGVTALRM - Virtual timer expired";
+                    break;
+                case SIGXCPU:
+                    result << "SIGXCPU - CPU time limit exceeded";
+                    break;
+                case SIGXFSZ:
+                    result << "SIGXFSZ - File size limit exceeded";
+                    break;
+                default:
+                    result << "Unknown signal";
+            }
+            result << ")";
 
-        if (WIFSTOPPED(status)) return "WIFSTOPPED status: " + std::to_string(WSTOPSIG(status));
+#    ifdef WCOREDUMP
+            if (WCOREDUMP(status)) {
+                result << " - Core dumped";
+            }
 #    endif
-        return "Unknown child status";
+        } else if (WIFSTOPPED(status)) {
+            result << "Process stopped by signal " << WSTOPSIG(status);
+
+            switch (WSTOPSIG(status)) {
+                case SIGSTOP:
+                    result << " (SIGSTOP - Stop executing)";
+                    break;
+                case SIGTSTP:
+                    result << " (SIGTSTP - Terminal stop signal)";
+                    break;
+                case SIGTTIN:
+                    result << " (SIGTTIN - Background process attempting read)";
+                    break;
+                case SIGTTOU:
+                    result << " (SIGTTOU - Background process attempting write)";
+                    break;
+                default:
+                    result << " (Unknown stop signal)";
+            }
+        }
+        // Not all systems define this
+#    ifdef WIFCONTINUED
+        else if (WIFCONTINUED(status)) {
+            result << "Process continued";
+        }
+#    endif
+        else {
+            result << "Unknown status " << status;
+        }
+
+        return result.str();
     }
 
     void setAffinity(const std::vector<int> &cpus) noexcept override {
@@ -184,17 +303,24 @@ class Process : public IProcess {
 
         process_list.remove_if([this](const ProcessInformation &pi) { return pi.identifier == process_pid_; });
 
-        int status      = 0;
-        const pid_t pid = waitpid(process_pid_, &status, WNOHANG);
+        int status = 0;
+
+        if (!exit_code_.has_value()) {
+            const pid_t pid = waitpid(process_pid_, &status, WNOHANG);
+
+            // If the process is still running, kill it
+            if (pid == 0) {
+                kill(process_pid_, SIGKILL);
+                wait(nullptr);
+            }
+        } else {
+            status = exit_code_.value();
+        }
+
+        Logger::trace("Terminating process with pid: {} {}", process_pid_, status);
 
         // log the status of the process
         Logger::readFromEngine(signalToString(status), util::time::datetime_precise(), log_name_, true);
-
-        // If the process is still running, kill it
-        if (pid == 0) {
-            kill(process_pid_, SIGKILL);
-            wait(nullptr);
-        }
 
         is_initalized_ = false;
     }
@@ -374,6 +500,8 @@ class Process : public IProcess {
     pid_t process_pid_;
 
     Pipe in_pipe_ = {}, out_pipe_ = {}, err_pipe_ = {};
+
+    std::optional<int> exit_code_;
 };
 }  // namespace engine::process
 }  // namespace fastchess

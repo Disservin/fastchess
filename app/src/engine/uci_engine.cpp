@@ -80,7 +80,7 @@ process::Status UciEngine::isready(std::chrono::milliseconds threshold) {
     }
 
     if (res != process::Status::OK) {
-        Logger::trace<true>("Engine {} didn't respond to isready.", config_.name);
+        Logger::trace<true>("Engine {} did not respond to isready.", config_.name);
         Logger::warn<true>("Warning; Engine {} is not responsive.", config_.name);
 
         return res;
@@ -166,12 +166,12 @@ bool UciEngine::ucinewgame() {
 
 std::optional<std::string> UciEngine::idName() {
     if (!uci()) {
-        Logger::warn<true>("Warning; Engine {} didn't respond to uci.", config_.name);
+        Logger::warn<true>("Warning; Engine {} did not respond to uci.", config_.name);
         return std::nullopt;
     }
 
     if (!uciok()) {
-        Logger::warn<true>("Warning; Engine {} didn't respond to uci.", config_.name);
+        Logger::warn<true>("Warning; Engine {} did not respond to uci.", config_.name);
         return std::nullopt;
     }
 
@@ -188,12 +188,12 @@ std::optional<std::string> UciEngine::idName() {
 
 std::optional<std::string> UciEngine::idAuthor() {
     if (!uci()) {
-        Logger::warn<true>("Warning; Engine {} didn't respond to uci.", config_.name);
+        Logger::warn<true>("Warning; Engine {} did not respond to uci.", config_.name);
         return std::nullopt;
     }
 
     if (!uciok()) {
-        Logger::warn<true>("Warning; Engine {} didn't respond to uci.", config_.name);
+        Logger::warn<true>("Warning; Engine {} did not respond to uci.", config_.name);
         return std::nullopt;
     }
 
@@ -254,7 +254,7 @@ void UciEngine::sendSetoption(const std::string &name, const std::string &value)
     auto option = uci_options_.getOption(name);
 
     if (!option.has_value()) {
-        Logger::info<true>("Warning; {} doesn't have option {}", config_.name, name);
+        Logger::info<true>("Warning; {} does not have option {}", config_.name, name);
         return;
     }
 
@@ -310,7 +310,7 @@ bool UciEngine::start() {
     }
 
     if (!uciok(startup_time_)) {
-        Logger::warn<true>("Engine {} didn't respond to uci with uciok after startup.", config_.name);
+        Logger::warn<true>("Engine {} did not respond to uci with uciok after startup.", config_.name);
 
         return false;
     }
@@ -337,7 +337,7 @@ bool UciEngine::refreshUci() {
     }
 
     if (!ucinewgame()) {
-        Logger::trace<true>("Engine {} didn't respond to ucinewgame.", config_.name);
+        Logger::trace<true>("Engine {} did not respond to ucinewgame.", config_.name);
         return false;
     }
 

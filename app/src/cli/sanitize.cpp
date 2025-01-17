@@ -50,7 +50,7 @@ void sanitize(config::Tournament& config) {
     if (util::fd_limit::maxSystemFileDescriptorCount() <
         util::fd_limit::minFileDescriptorRequired(config.concurrency)) {
         Logger::warn(
-            "There are not enough file descriptors available for the specified concurrency.\nPlease increase the limit "
+            "There aren't enough file descriptors available for the specified concurrency.\nPlease increase the limit "
             "using ulimit -n 65536 for each shell manually or \nadjust the defaults (e.g. /etc/security/limits.conf,"
             "/etc/systemd/system.conf, and/or /etc/systemd/user.conf).\nThe maximum number of file descriptors "
             "required for this configuration is: {}",

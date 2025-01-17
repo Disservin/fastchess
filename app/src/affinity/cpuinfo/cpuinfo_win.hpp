@@ -27,7 +27,7 @@ namespace fastchess::affinity::cpu_info {
 
 [[nodiscard]] int pop(uint64_t& bits) noexcept {
     assert(bits != 0);
-    int index = lsb();
+    int index = lsb(bits);
     bits &= bits - 1;
     return index;
 }

@@ -14,7 +14,7 @@
 #include <matchmaking/output/output.hpp>
 #include <matchmaking/scoreboard.hpp>
 #include <matchmaking/timeout_tracker.hpp>
-#include <matchmaking/tournament/roundrobin/match_generator.hpp>
+#include <matchmaking/tournament/schedule/scheduler.hpp>
 #include <types/tournament.hpp>
 
 namespace fastchess {
@@ -39,7 +39,7 @@ class BaseTournament {
     virtual void startNext() = 0;
 
     // creates the matches
-    virtual void create() = 0;
+    void create();
 
     // Function to save the config file
     void saveJson();
@@ -55,7 +55,7 @@ class BaseTournament {
     ScoreBoard scoreboard_ = ScoreBoard();
     PlayerTracker tracker_ = PlayerTracker();
 
-    std::unique_ptr<MatchGenerator> generator_;
+    std::unique_ptr<Scheduler> generator_;
     std::unique_ptr<IOutput> output_;
     std::unique_ptr<affinity::AffinityManager> cores_;
     std::unique_ptr<util::FileWriter> file_writer_pgn_;
@@ -65,6 +65,9 @@ class BaseTournament {
     // number of games played
     std::atomic<std::uint64_t> match_count_ = 0;
     std::uint64_t initial_matchcount_;
+
+    // number of games to be played
+    std::atomic<uint64_t> total_ = 0;
 
    private:
     [[nodiscard]] std::size_t setResults(const stats_map &results);

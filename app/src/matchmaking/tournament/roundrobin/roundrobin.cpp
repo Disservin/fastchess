@@ -7,14 +7,20 @@
 #include <core/rand.hpp>
 #include <game/pgn/pgn_builder.hpp>
 #include <matchmaking/output/output_factory.hpp>
+#include <matchmaking/tournament/roundrobin/scheduler.hpp>
 
 namespace fastchess {
 
 RoundRobin::RoundRobin(const stats_map& results) : BaseTournament(results) {
-    // Initialize the SPRT test
     sprt_ = SPRT(config::TournamentConfig->sprt.alpha, config::TournamentConfig->sprt.beta,
                  config::TournamentConfig->sprt.elo0, config::TournamentConfig->sprt.elo1,
                  config::TournamentConfig->sprt.model, config::TournamentConfig->sprt.enabled);
+
+    const auto& config     = *config::TournamentConfig;
+    const auto num_players = config::EngineConfigs->size();
+
+    generator_ =
+        std::make_unique<RoundRobinScheduler>(book_.get(), num_players, config.rounds, config.games, match_count_);
 }
 
 RoundRobin::~RoundRobin() { Logger::trace("~RoundRobin()"); }
@@ -22,13 +28,13 @@ RoundRobin::~RoundRobin() { Logger::trace("~RoundRobin()"); }
 void RoundRobin::start() {
     Logger::trace("Starting round robin tournament...");
 
+    BaseTournament::start();
+
     // If autosave is enabled, save the results every save_interval games
     const auto save_interval = config::TournamentConfig->autosaveinterval;
 
     // Account for the initial matchcount
     auto save_iter = initial_matchcount_ + save_interval;
-
-    BaseTournament::start();
 
     // Wait for games to finish
     while (match_count_ < total_ && !atomic::stop) {
@@ -38,27 +44,6 @@ void RoundRobin::start() {
         }
 
         std::this_thread::sleep_for(std::chrono::seconds(1));
-    }
-
-    Logger::trace("Instructing engines to stop...");
-    writeToOpenPipes();
-
-    pool_.kill();
-
-    if (config::TournamentConfig->output == OutputType::FASTCHESS) {
-        if (tracker_.begin() != tracker_.end()) {
-            Logger::info("");
-        }
-
-        for (const auto& [name, tracked] : tracker_) {
-            Logger::info("Player: {}", name);
-            Logger::info("  Timeouts: {}", tracked.timeouts);
-            Logger::info("  Crashed: {}", tracked.disconnects);
-        }
-
-        if (tracker_.begin() != tracker_.end()) {
-            Logger::info("");
-        }
     }
 }
 
@@ -77,18 +62,7 @@ void RoundRobin::startNext() {
     pool_.enqueue(&RoundRobin::createMatch, this, match.value());
 }
 
-void RoundRobin::create() {
-    Logger::trace("Creating matches...");
-
-    total_ = (config::EngineConfigs->size() * (config::EngineConfigs->size() - 1) / 2) *
-             config::TournamentConfig->rounds * config::TournamentConfig->games;
-
-    for (int i = 0; i < pool_.getNumThreads(); i++) {
-        startNext();
-    }
-}
-
-void RoundRobin::createMatch(const MatchGenerator::Pairing& pairing) {
+void RoundRobin::createMatch(const Scheduler::Pairing& pairing) {
     const auto opening = (*book_)[pairing.opening_id];
     const auto first   = (*config::EngineConfigs)[pairing.player1];
     const auto second  = (*config::EngineConfigs)[pairing.player2];

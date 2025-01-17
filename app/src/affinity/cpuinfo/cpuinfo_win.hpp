@@ -7,12 +7,30 @@
 #include <thread>
 #include <vector>
 
-#include <chess.hpp>  // poplsb
-
 #include <affinity/cpuinfo/cpu_info.hpp>
 #include <core/logger/logger.hpp>
 
 namespace fastchess::affinity::cpu_info {
+
+[[nodiscard]] int lsb(uint64_t bits) noexcept {
+    assert(bits != 0);
+#if defined(__GNUC__)
+    return __builtin_ctzll(bits);
+#elif defined(_MSC_VER)
+    unsigned long idx;
+    _BitScanForward64(&idx, bits);
+    return static_cast<int>(idx);
+#else
+#    error "Compiler not supported."
+#endif
+}
+
+[[nodiscard]] int pop(uint64_t& bits) noexcept {
+    assert(bits != 0);
+    int index = lsb();
+    bits &= bits - 1;
+    return index;
+}
 
 inline CpuInfo getCpuInfo() noexcept(false) {
     Logger::trace("Getting CPU info");
@@ -54,10 +72,10 @@ inline CpuInfo getCpuInfo() noexcept(false) {
         if (ptr->Relationship == RelationProcessorCore) {
             // If the PROCESSOR_RELATIONSHIP structure represents a processor core, the GroupCount
             // member is always 1.
-            chess::Bitboard mask = chess::Bitboard(ptr->Processor.GroupMask[0].Mask);
+            auto mask = ptr->Processor.GroupMask[0].Mask;
 
             while (mask) {
-                const int processor = mask.pop();
+                const int processor = pop(mask);
                 // proper way to get this idx?
                 cpu_info.physical_cpus[physical_id].cores[idx].processors.emplace_back(processor);
             }

@@ -6,7 +6,7 @@
 #include <string_view>
 #include <thread>
 
-#include <doctest/doctest.hpp>
+#include "doctest/doctest.hpp"
 
 using namespace fastchess;
 

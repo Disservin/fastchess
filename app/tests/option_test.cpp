@@ -1,6 +1,6 @@
 #include <engine/option/option_factory.hpp>
 
-#include <doctest/doctest.hpp>
+#include "doctest/doctest.hpp"
 
 namespace fastchess {
 

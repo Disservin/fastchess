@@ -1,6 +1,6 @@
 #include <matchmaking/scoreboard.hpp>
 
-#include <doctest/doctest.hpp>
+#include "doctest/doctest.hpp"
 
 namespace fastchess {
 

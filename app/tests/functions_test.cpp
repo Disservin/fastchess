@@ -1,6 +1,6 @@
 #include <core/helper.hpp>
 
-#include <doctest/doctest.hpp>
+#include "doctest/doctest.hpp"
 
 using namespace fastchess;
 

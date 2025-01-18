@@ -21,7 +21,7 @@ struct Limit {
     uint64_t nodes = 0;
     uint64_t plies = 0;
 };
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(Limit, tc, nodes, plies)
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Limit, tc, nodes, plies)
 
 struct EngineConfiguration {
     // the limit for the engines "go" command
@@ -60,6 +60,6 @@ struct EngineConfiguration {
         return std::nullopt;
     }
 };
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(EngineConfiguration, name, dir, cmd, args, restart, options, limit, variant)
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(EngineConfiguration, name, dir, cmd, args, restart, options, limit, variant)
 
 }  // namespace fastchess

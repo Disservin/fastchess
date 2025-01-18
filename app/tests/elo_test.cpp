@@ -1,7 +1,7 @@
 #include <matchmaking/elo/elo_pentanomial.hpp>
 #include <matchmaking/elo/elo_wdl.hpp>
 
-#include <doctest/doctest.hpp>
+#include "doctest/doctest.hpp"
 
 #include <matchmaking/stats.hpp>
 

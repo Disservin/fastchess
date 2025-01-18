@@ -1,6 +1,6 @@
 #include <game/timecontrol/timecontrol.hpp>
 
-#include <doctest/doctest.hpp>
+#include "doctest/doctest.hpp"
 
 using namespace fastchess;
 

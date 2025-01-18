@@ -1,7 +1,7 @@
 #include <core/filesystem/fd_limit.hpp>
 
 #include <chess.hpp>
-#include <doctest/doctest.hpp>
+#include "doctest/doctest.hpp"
 
 namespace fastchess {
 

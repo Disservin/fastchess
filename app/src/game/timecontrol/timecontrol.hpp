@@ -31,7 +31,7 @@ class TimeControl {
                    std::tie(rhs.increment, rhs.fixed_time, rhs.time, rhs.moves, rhs.timemargin);
         }
 
-        NLOHMANN_DEFINE_TYPE_INTRUSIVE_ORDERED_JSON(Limits, increment, fixed_time, time, moves, timemargin)
+        NLOHMANN_DEFINE_TYPE_INTRUSIVE(Limits, increment, fixed_time, time, moves, timemargin)
     };
 
     TimeControl() = default;
@@ -65,7 +65,7 @@ class TimeControl {
 
     static constexpr int64_t MARGIN = 100;
 
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE_ORDERED_JSON(TimeControl, limits_, time_left_, moves_left_)
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE(TimeControl, limits_, time_left_, moves_left_)
    private:
     Limits limits_;
 

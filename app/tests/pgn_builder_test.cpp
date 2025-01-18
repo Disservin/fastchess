@@ -1,6 +1,6 @@
 #include <game/pgn/pgn_builder.hpp>
 
-#include "doctest/doctest.hpp"
+#include <doctest/doctest.hpp>
 
 namespace fastchess {
 TEST_SUITE("PGN Builder Tests") {

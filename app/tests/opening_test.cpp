@@ -1,7 +1,7 @@
 #include <game/book/opening_book.hpp>
 #include <types/tournament.hpp>
 
-#include "doctest/doctest.hpp"
+#include <doctest/doctest.hpp>
 
 using namespace fastchess;
 

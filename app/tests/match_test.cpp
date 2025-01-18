@@ -1,6 +1,6 @@
 #include <matchmaking/match/match.hpp>
 
-#include "doctest/doctest.hpp"
+#include <doctest/doctest.hpp>
 
 namespace fastchess {
 TEST_SUITE("Match Test") {

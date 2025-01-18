@@ -1,6 +1,6 @@
 #include <game/epd/epd_builder.hpp>
 
-#include "doctest/doctest.hpp"
+#include <doctest/doctest.hpp>
 
 namespace fastchess {
 TEST_SUITE("EPD Builder Tests") {

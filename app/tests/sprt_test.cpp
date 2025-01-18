@@ -1,6 +1,6 @@
 #include <matchmaking/sprt/sprt.hpp>
 
-#include "doctest/doctest.hpp"
+#include <doctest/doctest.hpp>
 
 #include <matchmaking/stats.hpp>
 

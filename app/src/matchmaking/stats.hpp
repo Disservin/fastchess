@@ -93,7 +93,7 @@ class Stats {
     int penta_LD = 0;
     int penta_LL = 0;
 };
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(Stats, wins, losses, draws, penta_WW, penta_WD, penta_WL, penta_DD,
-                                                penta_LD, penta_LL)
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Stats, wins, losses, draws, penta_WW, penta_WD, penta_WL, penta_DD, penta_LD,
+                                   penta_LL)
 
 }  // namespace fastchess

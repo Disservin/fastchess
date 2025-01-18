@@ -14,6 +14,7 @@ struct DrawAdjudication {
 
     bool enabled = false;
 };
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(DrawAdjudication, move_number, move_count, score, enabled)
+
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(DrawAdjudication, move_number, move_count, score, enabled)
 
 }  // namespace fastchess::config

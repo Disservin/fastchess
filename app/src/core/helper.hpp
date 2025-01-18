@@ -9,30 +9,6 @@
 
 #include <json.hpp>
 
-namespace fastchess {
-
-#define NLOHMANN_DEFINE_TYPE_INTRUSIVE_ORDERED_JSON(Type, ...)                                    \
-    friend void to_json(nlohmann::ordered_json &nlohmann_json_j, const Type &nlohmann_json_t) {   \
-        NLOHMANN_JSON_EXPAND(NLOHMANN_JSON_PASTE(NLOHMANN_JSON_TO, __VA_ARGS__))                  \
-    }                                                                                             \
-    friend void from_json(const nlohmann::ordered_json &nlohmann_json_j, Type &nlohmann_json_t) { \
-        NLOHMANN_JSON_EXPAND(NLOHMANN_JSON_PASTE(NLOHMANN_JSON_FROM, __VA_ARGS__))                \
-    }
-
-/*
-Modified version of the NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE macro in nlohmann's json lib.
-ordered_json type conversion is not yet supported, though we only have to change the type.
-*/
-#define NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(Type, ...)                                \
-    inline void to_json(nlohmann::ordered_json &nlohmann_json_j, const Type &nlohmann_json_t) {   \
-        NLOHMANN_JSON_EXPAND(NLOHMANN_JSON_PASTE(NLOHMANN_JSON_TO, __VA_ARGS__))                  \
-    }                                                                                             \
-    inline void from_json(const nlohmann::ordered_json &nlohmann_json_j, Type &nlohmann_json_t) { \
-        NLOHMANN_JSON_EXPAND(NLOHMANN_JSON_PASTE(NLOHMANN_JSON_FROM, __VA_ARGS__))                \
-    }
-
-}  // namespace fastchess
-
 namespace fastchess::str_utils {
 
 // @todo unnecessary with c++20

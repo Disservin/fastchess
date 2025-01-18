@@ -179,7 +179,7 @@ class Process : public IProcess {
         }
     }
 
-     Status writeInput(const std::string &input) noexcept override {
+    Status writeInput(const std::string &input) noexcept override {
         assert(is_initialized_);
 
         if (alive() != Status::OK) terminate();

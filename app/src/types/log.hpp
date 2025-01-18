@@ -12,6 +12,6 @@ struct Log {
     bool compress       = false;
     bool realtime       = true;
 };
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(Log, file, level, compress, realtime)
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Log, file, level, compress, realtime)
 
 }  // namespace fastchess::config

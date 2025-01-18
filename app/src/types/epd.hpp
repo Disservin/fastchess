@@ -10,6 +10,6 @@ namespace fastchess::config {
 struct Epd {
     std::string file;
 };
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ORDERED_JSON(Epd, file)
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Epd, file)
 
 }  // namespace fastchess::config

@@ -57,7 +57,6 @@ struct MatchData {
     struct PlayerInfo {
         EngineConfiguration config;
         chess::GameResult result = chess::GameResult::NONE;
-        chess::Color color       = chess::Color::NONE;
     };
 
     MatchData() {}

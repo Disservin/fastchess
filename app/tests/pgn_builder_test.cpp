@@ -7,11 +7,9 @@ TEST_SUITE("PGN Builder Tests") {
     TEST_CASE("PGN Creation") {
         MatchData match_data;
         match_data.players.white.config.name = "engine1";
-        match_data.players.white.color       = chess::Color::WHITE;
         match_data.players.white.result      = chess::GameResult::WIN;
 
         match_data.players.black.config.name = "engine2";
-        match_data.players.black.color       = chess::Color::BLACK;
         match_data.players.black.result      = chess::GameResult::LOSE;
 
         match_data.moves = {MoveData("e2e4", "+1.00", 1321, 15, 4, 0, 0), MoveData("e7e5", "+1.23", 430, 15, 3, 0, 0),
@@ -49,11 +47,9 @@ Nf6 {+10.15/18 1.821s, engine2 got checkmated} 1-0
     TEST_CASE("PGN Creation Black Win") {
         MatchData match_data;
         match_data.players.white.config.name = "engine1";
-        match_data.players.white.color       = chess::Color::WHITE;
         match_data.players.white.result      = chess::GameResult::LOSE;
 
         match_data.players.black.config.name = "engine2";
-        match_data.players.black.color       = chess::Color::BLACK;
         match_data.players.black.result      = chess::GameResult::WIN;
 
         match_data.moves = {MoveData("e2e4", "+1.00", 1321, 15, 4, 0, 0), MoveData("e7e5", "+1.23", 430, 15, 3, 0, 0),
@@ -91,11 +87,9 @@ Nf6 {+10.15/18 1.821s, engine1 got checkmated} 0-1
     TEST_CASE("PGN Creation Black Start") {
         MatchData match_data;
         match_data.players.black.config.name = "engine1";
-        match_data.players.black.color       = chess::Color::BLACK;
         match_data.players.black.result      = chess::GameResult::NONE;
 
         match_data.players.white.config.name = "engine2";
-        match_data.players.white.color       = chess::Color::WHITE;
         match_data.players.white.result      = chess::GameResult::NONE;
 
         match_data.moves = {MoveData("e8g8", "+1.00", 1321, 15, 4, 0, 0), MoveData("e1g1", "+1.23", 430, 15, 3, 0, 0),
@@ -130,12 +124,10 @@ Nf6 {+10.15/18 1.821s, engine1 got checkmated} 0-1
     TEST_CASE("PGN Creation Fixed Time per Move") {
         MatchData match_data;
         match_data.players.black.config.name                = "engine1";
-        match_data.players.black.color                      = chess::Color::BLACK;
         match_data.players.black.result                     = chess::GameResult::NONE;
         match_data.players.black.config.limit.tc.fixed_time = 1000;
 
         match_data.players.white.config.name                = "engine2";
-        match_data.players.white.color                      = chess::Color::WHITE;
         match_data.players.white.result                     = chess::GameResult::NONE;
         match_data.players.white.config.limit.tc.fixed_time = 1000;
 
@@ -171,13 +163,11 @@ Nf6 {+10.15/18 1.821s, engine1 got checkmated} 0-1
     TEST_CASE("PGN Creation TC") {
         MatchData match_data;
         match_data.players.black.config.name               = "engine1";
-        match_data.players.black.color                     = chess::Color::BLACK;
         match_data.players.black.result                    = chess::GameResult::NONE;
         match_data.players.black.config.limit.tc.time      = 0;
         match_data.players.black.config.limit.tc.increment = 5;
 
         match_data.players.white.config.name               = "engine2";
-        match_data.players.white.color                     = chess::Color::WHITE;
         match_data.players.white.result                    = chess::GameResult::NONE;
         match_data.players.white.config.limit.tc.time      = 1;
         match_data.players.white.config.limit.tc.increment = 5;
@@ -219,12 +209,10 @@ Nc5 {+1.45/16 0.310s, n=0, sd=24, aborted} *
     TEST_CASE("PGN Creation Multiple Fixed Time per Move") {
         MatchData match_data;
         match_data.players.black.config.name                = "engine1";
-        match_data.players.black.color                      = chess::Color::BLACK;
         match_data.players.black.result                     = chess::GameResult::NONE;
         match_data.players.black.config.limit.tc.fixed_time = 200;
 
         match_data.players.white.config.name                = "engine2";
-        match_data.players.white.color                      = chess::Color::WHITE;
         match_data.players.white.result                     = chess::GameResult::NONE;
         match_data.players.white.config.limit.tc.fixed_time = 1000;
 

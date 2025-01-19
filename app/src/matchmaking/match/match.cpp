@@ -126,9 +126,6 @@ void Match::start(engine::UciEngine& white, engine::UciEngine& black, const std:
     Player white_player = Player(white);
     Player black_player = Player(black);
 
-    white_player.color = Color::WHITE;
-    black_player.color = Color::BLACK;
-
     if (!white_player.engine.start()) {
         Logger::trace<true>("Failed to start engines, stopping tournament.");
         atomic::stop = true;
@@ -183,9 +180,8 @@ void Match::start(engine::UciEngine& white, engine::UciEngine& black, const std:
     data_.end_time = util::time::datetime("%Y-%m-%dT%H:%M:%S %z");
     data_.duration = util::time::duration(chrono::duration_cast<chrono::seconds>(end - start));
 
-    data_.players =
-        GamePair(MatchData::PlayerInfo{white_player.engine.getConfig(), white_player.getResult(), white_player.color},
-                 MatchData::PlayerInfo{black_player.engine.getConfig(), black_player.getResult(), black_player.color});
+    data_.players = GamePair(MatchData::PlayerInfo{white_player.engine.getConfig(), white_player.getResult()},
+                             MatchData::PlayerInfo{black_player.engine.getConfig(), black_player.getResult()});
 }
 
 bool Match::playMove(Player& us, Player& them) {

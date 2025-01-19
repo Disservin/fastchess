@@ -37,8 +37,8 @@ class BaseTournament {
     [[nodiscard]] stats_map getResults() noexcept { return scoreboard_.getResults(); }
 
    protected:
-    using start_callback    = std::function<void()>;
-    using finished_callback = std::function<void(const Stats &stats, const std::string &reason, const engines &)>;
+    using start_fn  = std::function<void()>;
+    using finish_fn = std::function<void(const Stats &stats, const std::string &reason, const engines &)>;
 
     // Gets called after a game has finished
     virtual void startNext() = 0;
@@ -50,15 +50,14 @@ class BaseTournament {
     void saveJson();
 
     // play one game and write it to the pgn file
-    void playGame(const GamePair<EngineConfiguration, EngineConfiguration> &configs, start_callback start,
-                  finished_callback finish, const book::Opening &opening, std::size_t round_id, std::size_t game_id);
+    void playGame(const GamePair<EngineConfiguration, EngineConfiguration> &configs, const start_fn &start,
+                  const finish_fn &finish, const book::Opening &opening, std::size_t round_id, std::size_t game_id);
 
     // We keep engines alive after they were used to avoid the overhead of starting them again.
+    ScoreBoard scoreboard_    = {};
     EngineCache engine_cache_ = {};
-    util::ThreadPool pool_    = util::ThreadPool(1);
-
-    ScoreBoard scoreboard_ = ScoreBoard();
-    PlayerTracker tracker_ = PlayerTracker();
+    PlayerTracker tracker_    = {};
+    util::ThreadPool pool_    = util::ThreadPool{1};
 
     std::unique_ptr<Scheduler> generator_;
     std::unique_ptr<IOutput> output_;
@@ -67,12 +66,9 @@ class BaseTournament {
     std::unique_ptr<util::FileWriter> file_writer_epd_;
     std::unique_ptr<book::OpeningBook> book_;
 
-    // number of games played
     std::atomic<std::uint64_t> match_count_ = 0;
-    std::uint64_t initial_matchcount_;
-
-    // number of games to be played
-    std::atomic<uint64_t> total_ = 0;
+    std::uint64_t initial_matchcount_       = 0;
+    std::uint64_t final_matchcount_         = 0;
 
    private:
     [[nodiscard]] std::size_t setResults(const stats_map &results);

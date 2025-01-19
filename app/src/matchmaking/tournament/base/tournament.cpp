@@ -82,7 +82,7 @@ void BaseTournament::start() {
 void BaseTournament::create() {
     Logger::trace("Creating matches...");
 
-    total_ = generator_->total();
+    final_matchcount_ = generator_->total();
 
     for (int i = 0; i < pool_.getNumThreads(); i++) {
         startNext();
@@ -107,7 +107,7 @@ void BaseTournament::saveJson() {
 }
 
 void BaseTournament::playGame(const GamePair<EngineConfiguration, EngineConfiguration> &engine_configs,
-                              start_callback start, finished_callback finish, const book::Opening &opening,
+                              const start_fn &start, const finish_fn &finish, const book::Opening &opening,
                               std::size_t round_id, std::size_t game_id) {
     if (atomic::stop) return;
 

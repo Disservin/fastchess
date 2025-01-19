@@ -45,7 +45,7 @@ void RoundRobin::start() {
     auto save_iter = initial_matchcount_ + save_interval;
 
     // Wait for games to finish
-    while (match_count_ < total_ && !atomic::stop) {
+    while (match_count_ < final_matchcount_ && !atomic::stop) {
         if (save_interval > 0 && match_count_ >= save_iter) {
             saveJson();
             save_iter += save_interval;
@@ -86,7 +86,7 @@ void RoundRobin::createMatch(const Scheduler::Pairing& pairing) {
     }
 
     // callback functions, do not capture by reference
-    const auto start = [this, configs, pairing]() { output_->startGame(configs, pairing.game_id, total_); };
+    const auto start = [this, configs, pairing]() { output_->startGame(configs, pairing.game_id, final_matchcount_); };
 
     // callback functions, do not capture by reference
     const auto finish = [this, configs, first, second, pairing](const Stats& stats, const std::string& reason,
@@ -137,7 +137,7 @@ void RoundRobin::updateSprtStatus(const std::vector<EngineConfiguration>& engine
     const auto stats = scoreboard_.getStats(engine_configs[0].name, engine_configs[1].name);
     const auto llr   = sprt_.getLLR(stats, config::TournamentConfig->report_penta);
 
-    if (sprt_.getResult(llr) != SPRT_CONTINUE || match_count_ == total_) {
+    if (sprt_.getResult(llr) != SPRT_CONTINUE || match_count_ == final_matchcount_) {
         atomic::stop = true;
 
         Logger::info("SPRT test finished: {} {}", sprt_.getBounds(), sprt_.getElo());

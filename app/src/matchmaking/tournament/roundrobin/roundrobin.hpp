@@ -42,7 +42,7 @@ class RoundRobin : public BaseTournament {
     // print score result based on scoreinterval if output format is cutechess
     bool shouldPrintScoreInterval() const noexcept;
 
-    bool allMatchesPlayed() const noexcept { return match_count_ + 1 == total_; }
+    bool allMatchesPlayed() const noexcept { return match_count_ + 1 == final_matchcount_; }
 
     void createMatch(const Scheduler::Pairing& pairing);
 

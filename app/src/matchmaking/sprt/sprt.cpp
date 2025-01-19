@@ -5,8 +5,6 @@
 #include <sstream>
 #include <stdexcept>
 #include <string>
-#include <utility>
-#include <vector>
 
 #include <core/logger/logger.hpp>
 #include <matchmaking/stats.hpp>

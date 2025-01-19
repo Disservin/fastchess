@@ -1,5 +1,12 @@
 #include <matchmaking/tournament/base/tournament.hpp>
 
+#include <atomic>
+#include <functional>
+#include <memory>
+#include <string>
+#include <utility>
+#include <vector>
+
 #include <affinity/affinity_manager.hpp>
 #include <core/filesystem/file_writer.hpp>
 #include <core/logger/logger.hpp>

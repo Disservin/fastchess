@@ -1,5 +1,13 @@
 #include <matchmaking/tournament/roundrobin/roundrobin.hpp>
 
+#include <atomic>
+#include <memory>
+#include <mutex>
+#include <optional>
+#include <thread>
+#include <utility>
+#include <vector>
+
 #include <chess.hpp>
 
 #include <core/logger/logger.hpp>

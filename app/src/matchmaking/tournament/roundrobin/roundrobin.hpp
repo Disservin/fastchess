@@ -1,5 +1,9 @@
 #pragma once
 
+#include <atomic>
+#include <mutex>
+#include <vector>
+
 #include <affinity/affinity_manager.hpp>
 #include <core/filesystem/file_writer.hpp>
 #include <core/memory/cache.hpp>

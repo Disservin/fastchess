@@ -38,8 +38,6 @@ class Player {
 
     engine::UciEngine &engine;
 
-    chess::Color color = chess::Color::NONE;
-
    private:
     chess::GameResult result = chess::GameResult::NONE;
     TimeControl time_control_;

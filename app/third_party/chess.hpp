@@ -25,7 +25,7 @@ THIS FILE IS AUTO GENERATED DO NOT CHANGE MANUALLY.
 
 Source: https://github.com/Disservin/chess-library
 
-VERSION: 0.7.0
+VERSION: 0.7.1
 */
 
 #ifndef CHESS_HPP
@@ -1766,7 +1766,7 @@ class Board {
             rooks[color][static_cast<int>(castle)] = rook_file;
         }
 
-        constexpr void clear() { std::fill_n(&rooks[0][0], 4, File::NO_FILE); }
+        constexpr void clear() { rooks[0][0] = rooks[0][1] = rooks[1][0] = rooks[1][1] = File::NO_FILE; }
 
         constexpr int clear(Color color, Side castle) {
             rooks[color][static_cast<int>(castle)] = File::NO_FILE;

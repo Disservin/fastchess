@@ -4,7 +4,6 @@
 #include <functional>
 #include <memory>
 #include <string>
-#include <utility>
 #include <vector>
 
 #include <affinity/affinity_manager.hpp>

@@ -1,12 +1,8 @@
 #pragma once
 
-#include <array>
 #include <fstream>
-#include <iostream>
 #include <map>
 #include <string>
-#include <thread>
-#include <unordered_map>
 #include <vector>
 
 #include <affinity/cpuinfo/cpu_info.hpp>

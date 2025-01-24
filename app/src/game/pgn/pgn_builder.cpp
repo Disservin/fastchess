@@ -1,6 +1,5 @@
 #include <game/pgn/pgn_builder.hpp>
 
-#include <iomanip>
 #include <sstream>
 #include <string>
 #include <string_view>

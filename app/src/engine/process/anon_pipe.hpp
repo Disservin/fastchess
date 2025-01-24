@@ -3,7 +3,6 @@
 #ifdef _WIN64
 
 #    include <cassert>
-#    include <cstdint>
 #    include <stdexcept>
 #    include <string>
 

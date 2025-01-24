@@ -1,6 +1,5 @@
 #include <game/book/opening_book.hpp>
 
-#include <fstream>
 #include <optional>
 #include <string>
 

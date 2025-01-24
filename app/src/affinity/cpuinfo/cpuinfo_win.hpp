@@ -1,11 +1,10 @@
 #pragma once
 
 #include <windows.h>
-#include <array>
 #include <map>
 #include <memory>
-#include <thread>
 #include <vector>
+#include <cassert>
 
 #include <affinity/cpuinfo/cpu_info.hpp>
 #include <core/logger/logger.hpp>

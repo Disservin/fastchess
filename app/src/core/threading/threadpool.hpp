@@ -1,15 +1,11 @@
 #pragma once
 
 #include <atomic>
-#include <chrono>
-#include <cmath>
 #include <functional>
 #include <future>
-#include <iostream>
 #include <queue>
 #include <stdexcept>
 #include <thread>
-#include <type_traits>
 #include <vector>
 
 namespace fastchess::util {

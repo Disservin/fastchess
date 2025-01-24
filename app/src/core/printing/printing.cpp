@@ -1,5 +1,3 @@
-
-
 #include "./printing.h"
 
 #include <iostream>

@@ -1,10 +1,8 @@
 #pragma once
 
 #include <atomic>
-#include <iostream>
 #include <mutex>
-#include <sstream>
-#include <stack>
+#include <deque>
 
 #include <chess.hpp>
 

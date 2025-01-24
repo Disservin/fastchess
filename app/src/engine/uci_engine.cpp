@@ -2,7 +2,6 @@
 
 #include <condition_variable>
 #include <mutex>
-#include <stdexcept>
 #include <string>
 #include <vector>
 

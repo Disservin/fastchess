@@ -1,6 +1,5 @@
 #pragma once
 
-// #include <signal.h>
 #ifdef _WIN64
 #    include <windows.h>
 #endif

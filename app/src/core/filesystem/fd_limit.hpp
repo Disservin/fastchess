@@ -5,7 +5,6 @@
 #    include <sys/resource.h>
 #else
 #    include <windows.h>
-#    include <limits>
 #endif
 
 namespace fastchess::util::fd_limit {

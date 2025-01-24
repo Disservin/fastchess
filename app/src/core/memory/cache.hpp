@@ -1,9 +1,6 @@
 #pragma once
 
-#include <atomic>
 #include <deque>
-#include <functional>
-#include <iostream>
 #include <memory>
 #include <mutex>
 

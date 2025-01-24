@@ -1,5 +1,4 @@
 #include <cstdlib>
-#include <thread>
 
 #include <core/printing/printing.h>
 #include <cli/cli.hpp>

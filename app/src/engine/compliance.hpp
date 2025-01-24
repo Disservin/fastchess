@@ -9,7 +9,7 @@
 
 namespace fastchess::engine {
 
-bool compliant(int argc, char const *argv[]) {
+inline bool compliant(int argc, char const *argv[]) {
     int step = 0;
 
     EngineConfiguration config;

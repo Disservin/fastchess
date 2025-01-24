@@ -1,8 +1,6 @@
 #pragma once
 
 #include <optional>
-#include <tuple>
-#include <vector>
 
 #include <core/config/config.hpp>
 #include <game/book/opening_book.hpp>

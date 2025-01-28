@@ -3,6 +3,8 @@
 #include <optional>
 #include <string>
 
+#include <chess.hpp>
+
 #include <core/config/config.hpp>
 #include <core/logger/logger.hpp>
 #include <game/book/epd_reader.hpp>

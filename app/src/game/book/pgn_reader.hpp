@@ -6,8 +6,6 @@
 #include <core/helper.hpp>
 #include <game/book/opening.hpp>
 
-#include <chess.hpp>
-
 namespace fastchess::book {
 
 class PgnReader {

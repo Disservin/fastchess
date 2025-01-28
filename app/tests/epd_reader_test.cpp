@@ -2,7 +2,6 @@
 
 #include <memory>
 
-#include <chess.hpp>
 #include <doctest/doctest.hpp>
 
 namespace fastchess {

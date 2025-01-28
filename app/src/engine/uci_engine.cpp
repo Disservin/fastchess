@@ -5,6 +5,8 @@
 #include <string>
 #include <vector>
 
+#include <chess.hpp>
+
 #include <core/config/config.hpp>
 #include <core/helper.hpp>
 #include <core/logger/logger.hpp>

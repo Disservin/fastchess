@@ -8,8 +8,6 @@
 #include <utility>
 #include <vector>
 
-#include <chess.hpp>
-
 #include <core/logger/logger.hpp>
 #include <core/memory/scope_guard.hpp>
 #include <core/rand.hpp>

@@ -1,10 +1,10 @@
 #pragma once
 
+#include <array>
 #include <atomic>
-#include <mutex>
 #include <deque>
-
-#include <chess.hpp>
+#include <mutex>
+#include <vector>
 
 #ifdef _WIN64
 #    include <affinity/cpuinfo/cpuinfo_win.hpp>

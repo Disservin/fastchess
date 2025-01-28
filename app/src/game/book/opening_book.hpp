@@ -13,8 +13,6 @@
 #include <types/enums.hpp>
 #include <types/tournament.hpp>
 
-#include <chess.hpp>
-
 namespace fastchess::book {
 
 struct Openings {

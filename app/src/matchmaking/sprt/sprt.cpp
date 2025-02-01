@@ -152,10 +152,7 @@ static std::tuple<double, double> mean_and_variance(std::array<double, N> x, std
 // Preserving Minmax Optimality. ACM Trans. Math. Softw. 47, 1, Article 5 (March 2021).
 // https://doi.org/10.1145/3423597
 template <typename F>
-static double itp(F f, double a, double b, double k_1, double k_2, double n_0, double epsilon) {
-    double f_a = f(a);
-    double f_b = f(b);
-
+static double itp(F f, double a, double b, double f_a, double f_b, double k_1, double k_2, double n_0, double epsilon) {
     if (f_a > 0) {
         std::swap(a, b);
         std::swap(f_a, f_b);
@@ -216,7 +213,7 @@ double SPRT::getLLR_logistic(double total, std::array<double, N> scores, std::ar
                 }
                 return result;
             },
-            min_theta, max_theta, 0.1, 2.0, 0.99, theta_epsilon);
+            min_theta, max_theta, INFINITY, -INFINITY, 0.1, 2.0, 0.99, theta_epsilon);
 
         // ML distribution is given by equation 1.2 in [1].
         std::array<double, N> p;
@@ -279,7 +276,7 @@ double SPRT::getLLR_normalized(double total, std::array<double, N> scores, std::
                     }
                     return result;
                 },
-                min_theta, max_theta, 0.1, 2.0, 0.99, theta_epsilon);
+                min_theta, max_theta, INFINITY, -INFINITY, 0.1, 2.0, 0.99, theta_epsilon);
 
             double max_diff = 0.0;
             // Calculate new estimate

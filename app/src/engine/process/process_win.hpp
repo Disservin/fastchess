@@ -50,7 +50,10 @@ class Process : public IProcess {
     constexpr static int buffer_size = 4096;
 
    public:
-    ~Process() override { terminate(); }
+    ~Process() override {
+        Logger::trace<true>("Process destructor called for {} with pid {}", log_name_, pi_.dwProcessId);
+        terminate();
+    }
 
     Status init(const std::string &dir, const std::string &path, const std::string &args,
                 const std::string &log_name) override {

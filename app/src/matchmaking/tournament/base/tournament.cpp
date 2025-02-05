@@ -211,7 +211,9 @@ int BaseTournament::getMaxAffinity(const std::vector<EngineConfiguration> &confi
 
 void BaseTournament::restartEngine(std::unique_ptr<engine::UciEngine> &engine) {
     Logger::trace<true>("Restarting engine {}", engine->getConfig().name);
-    engine = std::make_unique<engine::UciEngine>(engine->getConfig(), engine->isRealtimeLogging());
+    auto config = engine->getConfig();
+    auto rl     = engine->isRealtimeLogging();
+    engine      = std::make_unique<engine::UciEngine>(config, rl);
 }
 
 std::size_t BaseTournament::setResults(const stats_map &results) {

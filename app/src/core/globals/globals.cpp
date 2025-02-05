@@ -28,6 +28,7 @@ void writeToOpenPipes() {
     process_list.lock();
 
     for (const auto &process : process_list) {
+        Logger::trace("Writing to process with pid/handle: {}", process.identifier);
 #ifdef _WIN64
         [[maybe_unused]] DWORD bytes_written;
         WriteFile(process.fd_write, &nullbyte, 1, &bytes_written, nullptr);

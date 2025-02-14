@@ -136,6 +136,7 @@ void RoundRobin::updateSprtStatus(const std::vector<EngineConfiguration>& engine
     const auto llr   = sprt_.getLLR(stats, config::TournamentConfig->report_penta);
 
     if (sprt_.getResult(llr) != SPRT_CONTINUE || match_count_ == final_matchcount_) {
+        Logger::trace("SPRT test finished, stopping tournament.");
         atomic::stop = true;
 
         Logger::info("SPRT test finished: {} {}", sprt_.getBounds(), sprt_.getElo());

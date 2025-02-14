@@ -60,7 +60,11 @@ void stopProcesses() {
     process_list.unlock();
 }
 
-void consoleHandlerAction() { atomic::stop = true; }
+void consoleHandlerAction() {
+    Logger::trace("Received signal signal, stopping tournament.");
+
+    atomic::stop = true;
+}
 
 #ifdef _WIN64
 BOOL WINAPI handler(DWORD signal) {

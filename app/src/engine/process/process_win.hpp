@@ -77,7 +77,7 @@ class Process : public IProcess {
             }
 
         } catch (const std::exception &e) {
-            Logger::trace<true>("Process creation failed: {}", e.what());
+            LOG_TRACE_THREAD("Process creation failed: {}", e.what());
         }
 
         return Status::ERR;

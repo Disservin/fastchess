@@ -121,7 +121,7 @@ class Process : public IProcess {
         } catch (const std::exception &e) {
             startup_error_ = true;
 
-            Logger::err("Failed to start process: {}", e.what());
+            LOG_ERR_THREAD("Failed to start process: {}", e.what());
 
             posix_spawn_file_actions_destroy(&file_actions);
             return Status::ERR;

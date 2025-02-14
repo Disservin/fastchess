@@ -135,4 +135,15 @@ class Logger {
     static std::mutex log_mutex_;
 };
 
+#define LOG_TRACE(...) Logger::trace(__FILE__, __LINE__, __VA_ARGS__)
+#define LOG_WARN(...) Logger::warn(__FILE__, __LINE__, __VA_ARGS__)
+#define LOG_INFO(...) Logger::info(__FILE__, __LINE__, __VA_ARGS__)
+#define LOG_ERR(...) Logger::err(__FILE__, __LINE__, __VA_ARGS__)
+#define LOG_FATAL(...) Logger::fatal(__FILE__, __LINE__, __VA_ARGS__)
+
+#define LOG_TRACE_THREAD(...) Logger::trace<true>(__FILE__, __LINE__, __VA_ARGS__)
+#define LOG_WARN_THREAD(...) Logger::warn<true>(__FILE__, __LINE__, __VA_ARGS__)
+#define LOG_INFO_THREAD(...) Logger::info<true>(__FILE__, __LINE__, __VA_ARGS__)
+#define LOG_ERR_THREAD(...) Logger::err<true>(__FILE__, __LINE__, __VA_ARGS__)
+#define LOG_FATAL_THREAD(...) Logger::fatal<true>(__FILE__, __LINE__, __VA_ARGS__)
 }  // namespace fastchess

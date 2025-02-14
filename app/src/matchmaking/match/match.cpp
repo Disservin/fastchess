@@ -170,7 +170,7 @@ void Match::start(engine::UciEngine& white, engine::UciEngine& black, const std:
             if (!playMove(second, first)) break;
         }
     } catch (const std::exception& e) {
-        Logger::fatal<true>("Match failed with exception; {}", e.what());
+        LOG_FATAL_THREAD("Match failed with exception; {}", e.what());
     }
 
     const auto end = clock::now();

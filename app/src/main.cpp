@@ -29,6 +29,8 @@ int main(int argc, char const* argv[]) {
     } catch (const std::exception& e) {
         stopProcesses();
 
+        LOG_TRACE("Caught exception: {}", e.what());
+
         std::cerr << e.what() << std::endl;
 
         return EXIT_FAILURE;

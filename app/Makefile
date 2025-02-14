@@ -171,7 +171,7 @@ ifeq ($(ZLIB), true)
 	LDFLAGS += -lz
 endif
 
-include ./compatability/spawn-check.mk
+include ./configuration/spawn-check.mk
 
 ifeq ($(HAVE_POSIX_SPAWN_FILE_ACTIONS_ADDCHDIR),1)
     CXXFLAGS += -DHAVE_POSIX_SPAWN_FILE_ACTIONS_ADDCHDIR

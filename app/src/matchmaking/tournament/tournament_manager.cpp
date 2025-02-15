@@ -28,15 +28,16 @@ void TournamentManager::start(const cli::Args& args) {
     Logger::setLevel(config::TournamentConfig->log.level);
     Logger::setCompress(config::TournamentConfig->log.compress);
     Logger::openFile(config::TournamentConfig->log.file);
+    Logger::setEngineComs(config::TournamentConfig->log.engine_coms);
 
-    LOG_TRACE("{}", cli::OptionsParser::Version);
+    LOG_INFO("{}", cli::OptionsParser::Version);
 
     util::random::seed(config::TournamentConfig->seed);
 
     LOG_TRACE("Creating tournament...");
     auto round_robin = RoundRobin(options.getResults());
 
-    LOG_TRACE("Starting tournament...");
+    LOG_INFO("Starting tournament...");
     round_robin.start();
 }
 }  // namespace fastchess

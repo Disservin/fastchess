@@ -82,7 +82,7 @@ process::Status UciEngine::isready(std::chrono::milliseconds threshold) {
 
     if (res != process::Status::OK) {
         LOG_TRACE_THREAD("Engine {} didn't respond to isready.", config_.name);
-        LOG_WARN_THREAD("Warning; Engine {} is not responsive.", config_.name);
+        Logger::print<Logger::Level::WARN>("Warning; Engine {} is not responsive.", config_.name);
 
         return res;
     }
@@ -158,7 +158,7 @@ bool UciEngine::ucinewgame() {
     auto res = writeEngine("ucinewgame");
 
     if (!res) {
-        LOG_TRACE_THREAD("Failed to send ucinewgame to engine {}", config_.name);
+        LOG_WARN_THREAD("Failed to send ucinewgame to engine {}", config_.name);
         return false;
     }
 
@@ -167,12 +167,13 @@ bool UciEngine::ucinewgame() {
 
 std::optional<std::string> UciEngine::idName() {
     if (!uci()) {
-        LOG_WARN_THREAD("Warning; Engine {} didn't respond to uci.", config_.name);
+        Logger::print<Logger::Level::WARN>("Warning; Engine {} didn't respond to uci.", config_.name);
+
         return std::nullopt;
     }
 
     if (!uciok()) {
-        LOG_WARN_THREAD("Warning; Engine {} didn't respond to uci.", config_.name);
+        Logger::print<Logger::Level::WARN>("Warning; Engine {} didn't respond to uci.", config_.name);
         return std::nullopt;
     }
 
@@ -189,12 +190,14 @@ std::optional<std::string> UciEngine::idName() {
 
 std::optional<std::string> UciEngine::idAuthor() {
     if (!uci()) {
-        LOG_WARN_THREAD("Warning; Engine {} didn't respond to uci.", config_.name);
+        Logger::print<Logger::Level::WARN>("Warning; Engine {} didn't respond to uci.", config_.name);
+
         return std::nullopt;
     }
 
     if (!uciok()) {
-        LOG_WARN_THREAD("Warning; Engine {} didn't respond to uci.", config_.name);
+        Logger::print<Logger::Level::WARN>("Warning; Engine {} didn't respond to uci.", config_.name);
+
         return std::nullopt;
     }
 
@@ -214,7 +217,7 @@ bool UciEngine::uci() {
     const auto res = writeEngine("uci");
 
     if (!res) {
-        LOG_TRACE_THREAD("Failed to send uci to engine {}", config_.name);
+        LOG_WARN_THREAD("Failed to send uci to engine {}", config_.name);
         return false;
     }
 
@@ -238,7 +241,7 @@ bool UciEngine::uciok(std::chrono::milliseconds threshold) {
         }
     }
 
-    if (!res) LOG_TRACE_THREAD("Engine {} did not respond to uciok in time.", config_.name);
+    if (!res) LOG_WARN_THREAD("Engine {} did not respond to uciok in time.", config_.name);
 
     return res;
 }
@@ -255,12 +258,14 @@ void UciEngine::sendSetoption(const std::string &name, const std::string &value)
     auto option = uci_options_.getOption(name);
 
     if (!option.has_value()) {
-        LOG_INFO_THREAD("Warning; {} doesn't have option {}", config_.name, name);
+        Logger::print<Logger::Level::WARN>("Warning; {} doesn't have option {}", config_.name, name);
+
         return;
     }
 
     if (!option.value()->isValid(value)) {
-        LOG_INFO_THREAD("Warning; Invalid value for option {}; {}", name, value);
+        Logger::print<Logger::Level::WARN>("Warning; Invalid value for option {}; {}", name, value);
+
         return;
     }
 
@@ -272,7 +277,7 @@ void UciEngine::sendSetoption(const std::string &name, const std::string &value)
         }
 
         if (!writeEngine(fmt::format("setoption name {}", name))) {
-            LOG_TRACE_THREAD("Failed to send setoption to engine {} {}", config_.name, name);
+            LOG_WARN_THREAD("Failed to send setoption to engine {} {}", config_.name, name);
             return;
         }
 
@@ -280,7 +285,7 @@ void UciEngine::sendSetoption(const std::string &name, const std::string &value)
     }
 
     if (!writeEngine(fmt::format("setoption name {} value {}", name, value))) {
-        LOG_TRACE_THREAD("Failed to send setoption to engine {} {} {}", config_.name, name, value);
+        LOG_WARN_THREAD("Failed to send setoption to engine {} {} {}", config_.name, name, value);
         return;
     }
 
@@ -297,7 +302,7 @@ bool UciEngine::start() {
 
     // Creates the engine process and sets the pipes
     if (process_.init(config_.dir, path, config_.args, config_.name) != process::Status::OK) {
-        LOG_WARN_THREAD("Warning; Cannot start engine {};", config_.name);
+        Logger::print<Logger::Level::WARN>("Warning; Cannot start engine {};", config_.name);
         LOG_WARN_THREAD("Cannot execute command: {}", path);
 
         return false;
@@ -324,7 +329,7 @@ bool UciEngine::refreshUci() {
     LOG_TRACE_THREAD("Refreshing engine {}", config_.name);
 
     if (!ucinewgame()) {
-        LOG_TRACE_THREAD("Engine {} failed to refresh.", config_.name);
+        LOG_WARN_THREAD("Engine {} failed to refresh.", config_.name);
         return false;
     }
 
@@ -337,7 +342,7 @@ bool UciEngine::refreshUci() {
     }
 
     if (!ucinewgame()) {
-        LOG_TRACE_THREAD("Engine {} didn't respond to ucinewgame.", config_.name);
+        LOG_WARN_THREAD("Engine {} didn't respond to ucinewgame.", config_.name);
         return false;
     }
 
@@ -381,14 +386,15 @@ bool UciEngine::writeEngine(const std::string &input) {
 
 std::optional<std::string> UciEngine::bestmove() const {
     if (output_.empty()) {
-        LOG_WARN_THREAD("Warning; No output from {}", config_.name);
+        Logger::print<Logger::Level::WARN>("Warning; No output from {}", config_.name);
+
         return std::nullopt;
     }
 
     const auto bm = str_utils::findElement<std::string>(str_utils::splitString(output_.back().line, ' '), "bestmove");
 
     if (!bm.has_value()) {
-        LOG_WARN_THREAD("Warning; No bestmove found in the last line from {}", config_.name);
+        Logger::print<Logger::Level::WARN>("Warning; No bestmove found in the last line from {}", config_.name);
 
         return std::nullopt;
     }
@@ -400,7 +406,7 @@ std::vector<std::string> UciEngine::lastInfo(bool exact) const {
     const auto last_info = lastInfoLine(exact);
 
     if (last_info.empty()) {
-        LOG_WARN_THREAD("Warning; Last info string with score not found from {}", config_.name);
+        Logger::print<Logger::Level::WARN>("Warning; Last info string with score not found from {}", config_.name);
         return {};
     }
 

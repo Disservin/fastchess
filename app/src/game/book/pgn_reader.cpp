@@ -43,7 +43,7 @@ class PGNVisitor : public chess::pgn::Visitor {
         try {
             move_i = chess::uci::parseSan(board_, move);
         } catch (const chess::uci::SanParseError& e) {
-            LOG_WARN("Failed to parse move: {}", e.what());
+            LOG_ERR("Failed to parse move: {}", e.what());
             early_stop_ = true;
             return;
         }

@@ -38,12 +38,12 @@ void OpeningBook::setup(const std::string& file, FormatType type) {
     if (type == FormatType::NONE) return;
 
     if (order_ == OrderType::RANDOM) {
-        LOG_INFO("Indexing opening suite...");
+        Logger::print("Indexing opening suite...");
         std::visit([](auto& arg) { Openings::shuffle(arg.get()); }, openings_);
     }
 
     if (offset_ > 0) {
-        LOG_TRACE("Offsetting the opening book by {} openings...", offset_);
+        LOG_INFO("Offsetting the opening book by {} openings...", offset_);
         std::visit([offset = offset_](auto& arg) { Openings::rotate(arg.get(), offset); }, openings_);
     }
 

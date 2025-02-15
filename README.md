@@ -15,6 +15,10 @@ short time controls (0.2+0.002s), it exhibits minimal timeout issues, with only
 
 ## What's New
 
+- **Logging Changes**: Logs no longer include the engine output by default.
+  You can enable this feature by adding `engine=true` to
+  the log option.
+
 - **UCI Compliance Checker**: Fastchess now offers a built-in UCI compliance checker,  
   allowing you to verify that engines adhere to the UCI protocol.  
   To use this feature, simply run the following command:

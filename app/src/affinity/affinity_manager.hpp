@@ -66,7 +66,7 @@ class AffinityManager {
         std::lock_guard<std::mutex> lock(core_mutex_);
 
         if (cores_[HT_1].empty() && cores_[HT_2].empty()) {
-            LOG_TRACE("No cores available");
+            LOG_ERR("No cores available");
 
             throw std::runtime_error("No cores available");
         }
@@ -81,7 +81,7 @@ class AffinityManager {
             }
         }
 
-        LOG_TRACE("No cores available, all are in use");
+        LOG_ERR("No cores available, all are in use");
 
         throw std::runtime_error("No cores available");
     }

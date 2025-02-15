@@ -127,7 +127,7 @@ void Match::start(engine::UciEngine& white, engine::UciEngine& black, const std:
     Player black_player = Player(black);
 
     if (!white_player.engine.start()) {
-        LOG_TRACE_THREAD("Failed to start engines, stopping tournament.");
+        LOG_FATAL_THREAD("Failed to start engines, stopping tournament.");
         atomic::stop = true;
         return;
     }
@@ -137,7 +137,7 @@ void Match::start(engine::UciEngine& white, engine::UciEngine& black, const std:
     }
 
     if (!black_player.engine.start()) {
-        LOG_TRACE_THREAD("Failed to start engines, stopping tournament.");
+        LOG_FATAL_THREAD("Failed to start engines, stopping tournament.");
         atomic::stop = true;
         return;
     }
@@ -381,7 +381,7 @@ void Match::setEngineCrashStatus(Player& loser, Player& winner) {
     data_.termination = MatchTermination::DISCONNECT;
     data_.reason      = color + Match::DISCONNECT_MSG;
 
-    LOG_TRACE_THREAD("Engine {} disconnects", name);
+    LOG_WARN_THREAD("Engine {} disconnects", name);
 }
 
 void Match::setEngineStallStatus(Player& loser, Player& winner) {
@@ -396,7 +396,7 @@ void Match::setEngineStallStatus(Player& loser, Player& winner) {
     data_.termination = MatchTermination::STALL;
     data_.reason      = color + Match::STALL_MSG;
 
-    LOG_TRACE_THREAD("Engine {} stalls", name);
+    LOG_WARN_THREAD("Engine {} stalls", name);
 }
 
 void Match::setEngineTimeoutStatus(Player& loser, Player& winner) {
@@ -409,7 +409,7 @@ void Match::setEngineTimeoutStatus(Player& loser, Player& winner) {
     data_.termination = MatchTermination::TIMEOUT;
     data_.reason      = color + Match::TIMEOUT_MSG;
 
-    LOG_TRACE_THREAD("Engine {} loses on time", name);
+    LOG_WARN_THREAD("Engine {} loses on time", name);
 
     // we send a stop command to the engine to prevent it from thinking
     // and wait for a bestmove to appear
@@ -436,11 +436,11 @@ void Match::setEngineIllegalMoveStatus(Player& loser, Player& winner, const std:
     auto mv = best_move.value_or("<none>");
 
     if (invalid_format) {
-        LOG_WARN_THREAD("Warning; Move does not match uci move format, lowercase and 4/5 chars. Move {} played by {}",
-                        mv, name);
+        Logger::print<Logger::Level::WARN>(
+            "Warning; Move does not match uci move format, lowercase and 4/5 chars. Move {} played by {}", mv, name);
     }
 
-    LOG_WARN_THREAD("Warning; Illegal move {} played by {}", mv, name);
+    Logger::print<Logger::Level::WARN>("Warning; Illegal move {} played by {}", mv, name);
 }
 
 bool Match::isUciMove(const std::string& move) noexcept {
@@ -493,7 +493,7 @@ void Match::verifyPvLines(const Player& us) {
                 auto position = fmt::format("position {}", startpos == "startpos" ? "startpos" : ("fen " + startpos));
                 auto fmt2     = fmt::format("From; {} moves {}", position, str_utils::join(uci_moves, " "));
 
-                LOG_WARN_THREAD("{}\n{}", fmt, fmt2);
+                Logger::print<Logger::Level::WARN>("{}\n{}", fmt, fmt2);
 
                 break;
             }

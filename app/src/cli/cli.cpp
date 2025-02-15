@@ -399,7 +399,7 @@ void parseLog(const std::vector<std::string> &params, ArgumentData &argument_dat
 
 namespace json_config {
 void loadJson(ArgumentData &argument_data, const std::string &filename) {
-    Logger::info("Loading config file: {}", filename);
+    Logger::print<Logger::Level::INFO>("Loading config file: {}", filename);
 
     std::ifstream f(filename);
 

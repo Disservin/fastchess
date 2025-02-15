@@ -58,17 +58,17 @@ BaseTournament::~BaseTournament() {
 
     if (config::TournamentConfig->output == OutputType::FASTCHESS) {
         if (tracker_.begin() != tracker_.end()) {
-            Logger::info("");
+            Logger::print<Logger::Level::INFO>("");
         }
 
         for (const auto &[name, tracked] : tracker_) {
-            Logger::info("Player: {}", name);
-            Logger::info("  Timeouts: {}", tracked.timeouts);
-            Logger::info("  Crashed: {}", tracked.disconnects);
+            Logger::print<Logger::Level::INFO>("Player: {}", name);
+            Logger::print<Logger::Level::INFO>("  Timeouts: {}", tracked.timeouts);
+            Logger::print<Logger::Level::INFO>("  Crashed: {}", tracked.disconnects);
         }
 
         if (tracker_.begin() != tracker_.end()) {
-            Logger::info("");
+            Logger::print<Logger::Level::INFO>("");
         }
     }
 }

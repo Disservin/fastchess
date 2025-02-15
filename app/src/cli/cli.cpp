@@ -432,7 +432,7 @@ void parseConfig(const std::vector<std::string> &params, ArgumentData &argument_
         } else if (key == "outname") {
             argument_data.tournament_config.config_name = value;
         } else if (key == "discard" && value == "true") {
-            Logger::info("Discarding config file");
+            Logger::print<Logger::Level::INFO>("Discarding config file");
             argument_data.tournament_config = argument_data.old_tournament_config;
             argument_data.configs           = argument_data.old_configs;
             argument_data.stats.clear();
@@ -624,7 +624,7 @@ void parseDebug(const std::vector<std::string> &, ArgumentData &) {
 }
 
 OptionsParser::OptionsParser(const cli::Args &args) {
-    Logger::trace("Reading options...");
+    LOG_TRACE("Reading options...");
 
     if (args.argc() == 1) {
         printHelp();

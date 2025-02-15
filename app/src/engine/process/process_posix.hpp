@@ -319,7 +319,7 @@ class Process : public IProcess {
             status = exit_code_.value();
         }
 
-        Logger::trace("Terminating process with pid: {} {}", process_pid_, status);
+        LOG_TRACE_THREAD("Terminating process with pid: {} {}", process_pid_, status);
 
         // log the status of the process
         Logger::readFromEngine(signalToString(status), util::time::datetime_precise(), log_name_, true);

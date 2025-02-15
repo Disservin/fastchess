@@ -28,7 +28,7 @@ void writeToOpenPipes() {
     process_list.lock();
 
     for (const auto &process : process_list) {
-        Logger::trace("Writing to process with pid/handle: {}", process.identifier);
+        LOG_TRACE("Writing to process with pid/handle: {}", process.identifier);
 #ifdef _WIN64
         [[maybe_unused]] DWORD bytes_written;
         WriteFile(process.fd_write, &nullbyte, 1, &bytes_written, nullptr);
@@ -46,7 +46,7 @@ void stopProcesses() {
     process_list.lock();
 
     for (const auto &process : process_list) {
-        Logger::trace("Cleaning up process with pid/handle: {}", process.identifier);
+        LOG_TRACE("Cleaning up process with pid/handle: {}", process.identifier);
 
 #ifdef _WIN64
         TerminateProcess(process.identifier, 1);
@@ -61,7 +61,7 @@ void stopProcesses() {
 }
 
 void consoleHandlerAction() {
-    Logger::trace("Received signal, stopping tournament.");
+    LOG_TRACE("Received signal, stopping tournament.");
 
     atomic::stop = true;
 }
@@ -82,7 +82,7 @@ BOOL WINAPI handler(DWORD signal) {
 
 void setCtrlCHandler() {
     if (!SetConsoleCtrlHandler(handler, TRUE)) {
-        Logger::fatal("Could not set control handler.");
+        LOG_FATAL("Could not set control handler.");
     }
 }
 

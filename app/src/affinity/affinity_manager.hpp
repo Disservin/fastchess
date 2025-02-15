@@ -53,7 +53,7 @@ class AffinityManager {
 
         if (use_affinity_) {
             setupCores(cpu_info::getCpuInfo());
-            Logger::trace("Using affinity");
+            LOG_TRACE("Using affinity");
         }
     }
 
@@ -66,7 +66,7 @@ class AffinityManager {
         std::lock_guard<std::mutex> lock(core_mutex_);
 
         if (cores_[HT_1].empty() && cores_[HT_2].empty()) {
-            Logger::trace("No cores available");
+            LOG_TRACE("No cores available");
 
             throw std::runtime_error("No cores available");
         }
@@ -81,7 +81,7 @@ class AffinityManager {
             }
         }
 
-        Logger::trace("No cores available, all are in use");
+        LOG_TRACE("No cores available, all are in use");
 
         throw std::runtime_error("No cores available");
     }
@@ -90,7 +90,7 @@ class AffinityManager {
     // Setup the cores for the affinity, later entries from the core pool will be just
     // picked up.
     void setupCores(const cpu_info::CpuInfo& cpu_info) {
-        Logger::trace("Setting up cores");
+        LOG_TRACE("Setting up cores");
         std::lock_guard<std::mutex> lock(core_mutex_);
 
         // @TODO: fix logic for multiple threads and multiple concurrencies

@@ -51,7 +51,7 @@ class Process : public IProcess {
 
    public:
     ~Process() override {
-        Logger::trace<true>("Process destructor called for {} with pid {}", log_name_, pi_.dwProcessId);
+        LOG_TRACE_THREAD("Process destructor called for {} with pid {}", log_name_, pi_.dwProcessId);
         terminate();
     }
 

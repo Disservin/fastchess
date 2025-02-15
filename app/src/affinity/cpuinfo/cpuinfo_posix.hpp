@@ -11,7 +11,7 @@
 namespace fastchess::affinity::cpu_info {
 
 inline CpuInfo getCpuInfo() {
-    Logger::trace("Getting CPU info");
+    LOG_TRACE("Getting CPU info");
 
     std::ifstream cpuinfo("/proc/cpuinfo");
 

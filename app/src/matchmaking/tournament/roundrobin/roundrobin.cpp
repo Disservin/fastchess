@@ -29,10 +29,10 @@ RoundRobin::RoundRobin(const stats_map& results) : BaseTournament(results) {
         std::make_unique<RoundRobinScheduler>(book_.get(), num_players, config.rounds, config.games, match_count_);
 }
 
-RoundRobin::~RoundRobin() { Logger::trace("~RoundRobin()"); }
+RoundRobin::~RoundRobin() { LOG_TRACE("~RoundRobin()"); }
 
 void RoundRobin::start() {
-    Logger::trace("Starting round robin tournament...");
+    LOG_TRACE("Starting round robin tournament...");
 
     BaseTournament::start();
 
@@ -61,7 +61,7 @@ void RoundRobin::startNext() {
     auto match = generator_->next();
 
     if (!match) {
-        Logger::trace("No more matches to generate");
+        LOG_TRACE("No more matches to generate");
         return;
     }
 
@@ -136,7 +136,7 @@ void RoundRobin::updateSprtStatus(const std::vector<EngineConfiguration>& engine
     const auto llr   = sprt_.getLLR(stats, config::TournamentConfig->report_penta);
 
     if (sprt_.getResult(llr) != SPRT_CONTINUE || match_count_ == final_matchcount_) {
-        Logger::trace("SPRT test finished, stopping tournament.");
+        LOG_TRACE("SPRT test finished, stopping tournament.");
         atomic::stop = true;
 
         Logger::info("SPRT test finished: {} {}", sprt_.getBounds(), sprt_.getElo());

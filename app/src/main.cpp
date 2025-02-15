@@ -38,7 +38,7 @@ int main(int argc, char const* argv[]) {
 
     stopProcesses();
 
-    Logger::info("Finished match");
+    LOG_INFO("Finished match");
 
     return 0;
 }

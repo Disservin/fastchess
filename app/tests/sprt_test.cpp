@@ -25,7 +25,7 @@ TEST_SUITE("SPRT") {
         Stats stats(4250, 0, 0);
         SPRT sprt(0.05, 0.05, 0, 10, "normalized", true);
 
-        CHECK(sprt.getLLR(stats, false) == doctest::Approx(2.97).epsilon(0.01));
+        CHECK(sprt.getLLR(stats, false) == doctest::Approx(120.56).epsilon(0.01));
     }
 
     TEST_CASE("logistic trinomial 1") {
@@ -74,7 +74,7 @@ TEST_SUITE("SPRT") {
         Stats stats(0, 0, 0, 0, 0, 5550);
         SPRT sprt(0.05, 0.05, 0, 5, "normalized", true);
 
-        CHECK(sprt.getLLR(stats, true) == doctest::Approx(2.94).epsilon(0.01));
+        CHECK(sprt.getLLR(stats, true) == doctest::Approx(111.82).epsilon(0.01));
     }
 
     TEST_CASE("logistic pentanomial 1") {

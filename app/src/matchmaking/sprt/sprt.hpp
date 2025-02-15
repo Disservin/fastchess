@@ -1,5 +1,6 @@
 #pragma once
 
+#include <array>
 #include <string>
 
 namespace fastchess {
@@ -37,6 +38,13 @@ class SPRT {
     [[nodiscard]] double getLLR(int win, int draw, int loss) const noexcept;
     [[nodiscard]] double getLLR(int penta_WW, int penta_WD, int penta_WL, int penta_DD, int penta_LD,
                                 int penta_LL) const noexcept;
+
+    template <size_t N>
+    [[nodiscard]] double getLLR_logistic(double total, std::array<double, N> scores, std::array<double, N> probs,
+                                         double s0, double s1) const noexcept;
+    template <size_t N>
+    [[nodiscard]] double getLLR_normalized(double total, std::array<double, N> scores, std::array<double, N> probs,
+                                           double t0, double t1) const noexcept;
 
     double lower_ = 0.0;
     double upper_ = 0.0;

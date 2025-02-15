@@ -302,8 +302,8 @@ bool UciEngine::start() {
 
     // Creates the engine process and sets the pipes
     if (process_.init(config_.dir, path, config_.args, config_.name) != process::Status::OK) {
-        Logger::print<Logger::Level::WARN>("Warning; Cannot start engine {};", config_.name);
-        LOG_WARN_THREAD("Cannot execute command: {}", path);
+        Logger::print<Logger::Level::ERR>("Warning; Cannot start engine {};", config_.name);
+        Logger::print<Logger::Level::ERR>("Cannot execute command: {}", path);
 
         return false;
     }

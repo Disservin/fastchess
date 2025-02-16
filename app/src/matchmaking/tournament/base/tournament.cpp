@@ -47,40 +47,40 @@ BaseTournament::BaseTournament(const stats_map &results) {
 }
 
 BaseTournament::~BaseTournament() {
-    Logger::trace("~BaseTournament()");
+    LOG_TRACE("~BaseTournament()");
 
     saveJson();
 
-    Logger::trace("Instructing engines to stop...");
+    LOG_TRACE("Instructing engines to stop...");
     writeToOpenPipes();
 
     pool_.kill();
 
     if (config::TournamentConfig->output == OutputType::FASTCHESS) {
         if (tracker_.begin() != tracker_.end()) {
-            Logger::info("");
+            Logger::print<Logger::Level::INFO>("");
         }
 
         for (const auto &[name, tracked] : tracker_) {
-            Logger::info("Player: {}", name);
-            Logger::info("  Timeouts: {}", tracked.timeouts);
-            Logger::info("  Crashed: {}", tracked.disconnects);
+            Logger::print<Logger::Level::INFO>("Player: {}", name);
+            Logger::print<Logger::Level::INFO>("  Timeouts: {}", tracked.timeouts);
+            Logger::print<Logger::Level::INFO>("  Crashed: {}", tracked.disconnects);
         }
 
         if (tracker_.begin() != tracker_.end()) {
-            Logger::info("");
+            Logger::print<Logger::Level::INFO>("");
         }
     }
 }
 
 void BaseTournament::start() {
-    Logger::trace("Starting tournament...");
+    LOG_TRACE("Starting tournament...");
 
     create();
 }
 
 void BaseTournament::create() {
-    Logger::trace("Creating matches...");
+    LOG_TRACE("Creating matches...");
 
     final_matchcount_ = generator_->total();
 
@@ -90,7 +90,7 @@ void BaseTournament::create() {
 }
 
 void BaseTournament::saveJson() {
-    Logger::trace("Saving results...");
+    LOG_TRACE("Saving results...");
 
     const auto &config = *config::TournamentConfig;
 
@@ -103,7 +103,7 @@ void BaseTournament::saveJson() {
     std::ofstream file(filename);
     file << std::setw(4) << jsonfile << std::endl;
 
-    Logger::trace("Saved results.");
+    LOG_TRACE("Saved results to.");
 }
 
 void BaseTournament::playGame(const GamePair<EngineConfiguration, EngineConfiguration> &engine_configs,
@@ -127,27 +127,27 @@ void BaseTournament::playGame(const GamePair<EngineConfiguration, EngineConfigur
     if (white_engine.get()->getConfig().restart) restartEngine(white_engine.get());
     if (black_engine.get()->getConfig().restart) restartEngine(black_engine.get());
 
-    Logger::trace<true>("Game {} between {} and {} starting", game_id, white_name, black_name);
+    LOG_TRACE_THREAD("Game {} between {} and {} starting", game_id, white_name, black_name);
 
     start();
 
     auto match = Match(opening);
     match.start(*white_engine.get(), *black_engine.get(), core.get().cpus);
 
-    Logger::trace<true>("Game {} between {} and {} finished", game_id, white_name, black_name);
+    LOG_TRACE_THREAD("Game {} between {} and {} finished", game_id, white_name, black_name);
 
     if (match.isStallOrDisconnect()) {
-        Logger::trace<true>("Game {} between {} and {} stalled / disconnected", game_id, white_name, black_name);
+        LOG_WARN_THREAD("Game {} between {} and {} stalled / disconnected", game_id, white_name, black_name);
 
         if (!config.recover) {
-            Logger::trace<true>("No recover option set for engine, stopping tournament.");
+            LOG_WARN_THREAD("No recover option set for engine, stopping tournament.");
             atomic::stop = true;
             return;
         }
 
         // restart the engine when recover is enabled
 
-        Logger::trace<true>("Restarting engine...");
+        LOG_TRACE_THREAD("Restarting engine...");
 
         if (white_engine.get()->isready() != engine::process::Status::OK) restartEngine(white_engine.get());
         if (black_engine.get()->isready() != engine::process::Status::OK) restartEngine(black_engine.get());
@@ -166,7 +166,7 @@ void BaseTournament::playGame(const GamePair<EngineConfiguration, EngineConfigur
         }
 
         const auto result = pgn::PgnBuilder::getResultFromMatch(match_data.players.white, match_data.players.black);
-        Logger::trace<true>("Game {} finished with result {}", game_id, result);
+        LOG_TRACE_THREAD("Game {} finished with result {}", game_id, result);
 
         finish({match_data}, match_data.reason, {*white_engine.get(), *black_engine.get()});
 
@@ -211,14 +211,14 @@ int BaseTournament::getMaxAffinity(const std::vector<EngineConfiguration> &confi
 }
 
 void BaseTournament::restartEngine(std::unique_ptr<engine::UciEngine> &engine) {
-    Logger::trace<true>("Restarting engine {}", engine->getConfig().name);
+    LOG_TRACE_THREAD("Restarting engine {}", engine->getConfig().name);
     auto config = engine->getConfig();
     auto rl     = engine->isRealtimeLogging();
     engine      = std::make_unique<engine::UciEngine>(config, rl);
 }
 
 std::size_t BaseTournament::setResults(const stats_map &results) {
-    Logger::trace("Setting results...");
+    LOG_TRACE("Setting results...");
 
     scoreboard_.setResults(results);
 

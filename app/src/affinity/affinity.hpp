@@ -19,7 +19,7 @@ namespace affinity {
 #ifdef _WIN64
 
 inline bool setAffinity(const std::vector<int>& cpus, HANDLE process_handle) noexcept {
-    Logger::trace("Setting affinity mask for process handle: {}", process_handle);
+    LOG_TRACE("Setting affinity mask for process handle: {}", process_handle);
 
     DWORD_PTR affinity_mask = 0;
 
@@ -48,7 +48,7 @@ inline void setAffinity(const std::vector<int>&) noexcept {
 #else
 
 inline bool setAffinity(const std::vector<int>& cpus, pid_t process_pid) noexcept {
-    Logger::trace("Setting affinity mask for process pid: {}", process_pid);
+    LOG_TRACE("Setting affinity mask for process pid: {}", process_pid);
 
     cpu_set_t mask;
     CPU_ZERO(&mask);

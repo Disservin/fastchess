@@ -1,11 +1,12 @@
 #include <game/book/pgn_reader.hpp>
 
+#include <fstream>
 #include <iostream>
 #include <memory>
-#include <fstream>
 
 #include <chess.hpp>
 
+#include <core/logger/logger.hpp>
 #include <game/book/opening.hpp>
 
 namespace fastchess::book {
@@ -42,7 +43,7 @@ class PGNVisitor : public chess::pgn::Visitor {
         try {
             move_i = chess::uci::parseSan(board_, move);
         } catch (const chess::uci::SanParseError& e) {
-            std::cerr << e.what() << '\n';
+            LOG_ERR("Failed to parse move: {}", e.what());
             early_stop_ = true;
             return;
         }

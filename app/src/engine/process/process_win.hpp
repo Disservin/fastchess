@@ -51,7 +51,7 @@ class Process : public IProcess {
 
    public:
     ~Process() override {
-        Logger::trace<true>("Process destructor called for {} with pid {}", log_name_, pi_.dwProcessId);
+        LOG_TRACE_THREAD("Process destructor called for {} with pid {}", log_name_, pi_.dwProcessId);
         terminate();
     }
 
@@ -77,7 +77,7 @@ class Process : public IProcess {
             }
 
         } catch (const std::exception &e) {
-            Logger::trace<true>("Process creation failed: {}", e.what());
+            LOG_FATAL_THREAD("Process creation failed: {}", e.what());
         }
 
         return Status::ERR;

@@ -20,7 +20,6 @@
 
 namespace fastchess {
 
-// Singleton class for logging messages to the console/file.
 class Logger {
    public:
 #ifdef USE_ZLIB
@@ -31,16 +30,15 @@ class Logger {
 
     enum class Level { ALL, TRACE, WARN, INFO, ERR, FATAL };
 
-    Logger(Logger const &) = delete;
-
+    Logger(Logger const &)         = delete;
     void operator=(Logger const &) = delete;
 
     static void setLevel(Level level) { Logger::level_ = level; }
-
     static void setCompress(bool compress) { compress_ = compress; }
-
     static void openFile(const std::string &file);
+    static void setEngineComs(bool engine_coms) { engine_coms_ = engine_coms; }
 
+    // Direct function calls - no file path
     template <bool thread = false, typename... T>
     static void trace(fmt::format_string<T...> format, T &&...args) {
         log<Level::TRACE, thread>(format, std::forward<T>(args)...);
@@ -66,8 +64,20 @@ class Logger {
         log<Level::FATAL, thread>(format, std::forward<T>(args)...);
     }
 
-    static void writeToEngine(const std::string &msg, const std::string &time, const std::string &name);
+    template <Level LEVEL = Level::INFO, bool thread = false, typename... T>
+    static void print(fmt::format_string<T...> format, T &&...args) {
+        const auto msg = fmt::format(format, std::forward<T>(args)...);
 
+        std::cout << msg << std::endl;
+
+        if (!should_log_) {
+            return;
+        }
+
+        log<LEVEL, thread>("{}", msg);
+    }
+
+    static void writeToEngine(const std::string &msg, const std::string &time, const std::string &name);
     static void readFromEngine(const std::string &msg, const std::string &time, const std::string &name,
                                bool err = false, std::thread::id id = std::this_thread::get_id());
 
@@ -82,16 +92,11 @@ class Logger {
 
         const auto message = fmt::format(format, std::forward<T>(args)...) + "\n";
 
-        if (level >= Level::WARN) {
-            std::cout << message << std::flush;
-        }
-
         if (!should_log_) {
             return;
         }
 
         std::string label;
-
         switch (level) {
             case Level::TRACE:
                 label = "TRACE";
@@ -112,17 +117,20 @@ class Logger {
                 break;
         }
 
+        /*
+        label, time, thread_id, message
+        */
+
+        const auto fmt = "[{:<6}] [{:>15}] <{:>20}> fastchess --- {}";
         std::string fmt_message;
 
         if constexpr (thread) {
-            fmt_message = fmt::format("[{:<6}] [{}] <{:>3}> fastchess --- {}", label, util::time::datetime_precise(),
-                                      std::this_thread::get_id(), message);
+            fmt_message = fmt::format(fmt, label, util::time::datetime_precise(), std::this_thread::get_id(), message);
         } else {
-            fmt_message = fmt::format("[{:<6}] [{}] <fastchess> {}", label, util::time::datetime_precise(), message);
+            fmt_message = fmt::format(fmt, label, util::time::datetime_precise(), "", message);
         }
 
         const std::lock_guard<std::mutex> lock(log_mutex_);
-
         std::visit([&](auto &&arg) { arg << fmt_message << std::flush; }, log_);
     }
 
@@ -130,9 +138,20 @@ class Logger {
 
     static Level level_;
     static bool compress_;
-
+    static bool engine_coms_;
     static log_file_type log_;
     static std::mutex log_mutex_;
 };
 
+#define LOG_TRACE(...) Logger::trace(__VA_ARGS__)
+#define LOG_WARN(...) Logger::warn(__VA_ARGS__)
+#define LOG_INFO(...) Logger::info(__VA_ARGS__)
+#define LOG_ERR(...) Logger::err(__VA_ARGS__)
+#define LOG_FATAL(...) Logger::fatal(__VA_ARGS__)
+
+#define LOG_TRACE_THREAD(...) Logger::trace<true>(__VA_ARGS__)
+#define LOG_WARN_THREAD(...) Logger::warn<true>(__VA_ARGS__)
+#define LOG_INFO_THREAD(...) Logger::info<true>(__VA_ARGS__)
+#define LOG_ERR_THREAD(...) Logger::err<true>(__VA_ARGS__)
+#define LOG_FATAL_THREAD(...) Logger::fatal<true>(__VA_ARGS__)
 }  // namespace fastchess

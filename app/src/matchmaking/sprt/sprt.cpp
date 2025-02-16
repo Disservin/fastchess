@@ -26,7 +26,7 @@ SPRT::SPRT(double alpha, double beta, double elo0, double elo1, std::string mode
 
         model_ = model;
 
-        Logger::trace("Initialized valid SPRT configuration.");
+        LOG_TRACE("Initialized valid SPRT configuration.");
     }
 }
 
@@ -62,7 +62,7 @@ void SPRT::isValid(double alpha, double beta, double elo0, double elo1, std::str
     }
 
     if (model == "bayesian" && report_penta) {
-        Logger::warn(
+        Logger::print<Logger::Level::WARN>(
             "Warning: Bayesian SPRT model not available with pentanomial statistics. Disabling "
             "pentanomial reports...");
         report_penta = false;

@@ -40,7 +40,7 @@ void sanitize(config::Tournament& config) {
 
 #ifdef _WIN64
     if (config.concurrency > 63 && !util::fd_limit::isWindows11OrNewer()) {
-        Logger::warn(
+        Logger::print<Logger::Level::WARN>(
             "A concurrency setting of more than 63 is currently not supported on Windows.\nIf this affects "
             "your system, please open an issue or get in touch with the maintainers.");
         config.concurrency = 63;  // not 64 because we need one thread for the main thread
@@ -48,7 +48,7 @@ void sanitize(config::Tournament& config) {
 #else
     if (util::fd_limit::maxSystemFileDescriptorCount() <
         util::fd_limit::minFileDescriptorRequired(config.concurrency)) {
-        Logger::warn(
+        Logger::print<Logger::Level::WARN>(
             "There aren't enough file descriptors available for the specified concurrency.\nPlease increase the limit "
             "using ulimit -n 65536 for each shell manually or \nadjust the defaults (e.g. /etc/security/limits.conf,"
             "/etc/systemd/system.conf, and/or /etc/systemd/user.conf).\nThe maximum number of file descriptors "
@@ -58,7 +58,7 @@ void sanitize(config::Tournament& config) {
         const auto max_supported_concurrency =
             util::fd_limit::maxConcurrency(util::fd_limit::maxSystemFileDescriptorCount());
 
-        Logger::warn("Limiting concurrency to: {}", max_supported_concurrency);
+        Logger::print<Logger::Level::WARN>("Limiting concurrency to: {}", max_supported_concurrency);
 
         if (max_supported_concurrency < 1) {
             throw std::runtime_error("Error: Not enough file descriptors available for the specified concurrency.");
@@ -73,14 +73,15 @@ void sanitize(config::Tournament& config) {
     }
 
     if (config.opening.file.empty()) {
-        Logger::warn(
+        Logger::print<Logger::Level::WARN>(
             "Warning: No opening book specified! Consider using one, otherwise all games will be "
             "played from the starting position.");
     }
 
     if (config.opening.format != FormatType::EPD && config.opening.format != FormatType::PGN) {
-        Logger::warn("Warning: Unknown opening format, {}. All games will be played from the starting position.",
-                     int(config.opening.format));
+        Logger::print<Logger::Level::WARN>(
+            "Warning: Unknown opening format, {}. All games will be played from the starting position.",
+            int(config.opening.format));
     }
 
     if (config.ratinginterval == 0) config.ratinginterval = std::numeric_limits<int>::max();

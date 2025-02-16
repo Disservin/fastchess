@@ -127,7 +127,7 @@ void Match::start(engine::UciEngine& white, engine::UciEngine& black, const std:
     Player black_player = Player(black);
 
     if (!white_player.engine.start()) {
-        Logger::trace<true>("Failed to start engines, stopping tournament.");
+        LOG_FATAL_THREAD("Failed to start engines, stopping tournament.");
         atomic::stop = true;
         return;
     }
@@ -137,7 +137,7 @@ void Match::start(engine::UciEngine& white, engine::UciEngine& black, const std:
     }
 
     if (!black_player.engine.start()) {
-        Logger::trace<true>("Failed to start engines, stopping tournament.");
+        LOG_FATAL_THREAD("Failed to start engines, stopping tournament.");
         atomic::stop = true;
         return;
     }
@@ -170,7 +170,7 @@ void Match::start(engine::UciEngine& white, engine::UciEngine& black, const std:
             if (!playMove(second, first)) break;
         }
     } catch (const std::exception& e) {
-        Logger::fatal<true>("Match failed with exception; {}", e.what());
+        LOG_FATAL_THREAD("Match failed with exception; {}", e.what());
     }
 
     const auto end = clock::now();
@@ -223,7 +223,7 @@ bool Match::playMove(Player& us, Player& them) {
     if (!validConnection(us, them)) return false;
 
     // write go command
-    Logger::trace<true>("Engine {} is thinking", name);
+    LOG_TRACE_THREAD("Engine {} is thinking", name);
     if (!us.engine.go(us.getTimeControl(), them.getTimeControl(), board_.sideToMove())) {
         setEngineCrashStatus(us, them);
         return false;
@@ -237,7 +237,7 @@ bool Match::playMove(Player& us, Player& them) {
     const auto status = us.engine.readEngineLowLat("bestmove", us.getTimeoutThreshold());
     const auto t1     = clock::now();
 
-    Logger::trace<true>("Engine {} is done thinking", name);
+    LOG_TRACE_THREAD("Engine {} is done thinking", name);
 
     if (!config::TournamentConfig->log.realtime) {
         us.engine.writeLog();
@@ -249,7 +249,7 @@ bool Match::playMove(Player& us, Player& them) {
         return false;
     }
 
-    Logger::trace<true>("Check if engine {} is in a ready state", name);
+    LOG_TRACE_THREAD("Check if engine {} is in a ready state", name);
 
     if (status == engine::process::Status::ERR) {
         setEngineCrashStatus(us, them);
@@ -260,7 +260,7 @@ bool Match::playMove(Player& us, Player& them) {
     // the search completed
     if (!validConnection(us, them)) return false;
 
-    Logger::trace<true>("Engine {} is in a ready state", name);
+    LOG_TRACE_THREAD("Engine {} is in a ready state", name);
 
     const auto elapsed_ms = chrono::duration_cast<chrono::milliseconds>(t1 - t0).count();
 
@@ -268,7 +268,7 @@ bool Match::playMove(Player& us, Player& them) {
     const auto last_time = us.engine.lastTime().count();
     const auto latency   = elapsed_ms - last_time;
     if (config::TournamentConfig->show_latency) {
-        Logger::info<true>("Engine {} latency: {}ms (elapsed: {}, reported: {})", name, latency, elapsed_ms, last_time);
+        LOG_INFO_THREAD("Engine {} latency: {}ms (elapsed: {}, reported: {})", name, latency, elapsed_ms, last_time);
     }
 
     const auto best_move = us.engine.bestmove();
@@ -381,7 +381,7 @@ void Match::setEngineCrashStatus(Player& loser, Player& winner) {
     data_.termination = MatchTermination::DISCONNECT;
     data_.reason      = color + Match::DISCONNECT_MSG;
 
-    Logger::trace<true>("Engine {} disconnects", name);
+    LOG_WARN_THREAD("Engine {} disconnects", name);
 }
 
 void Match::setEngineStallStatus(Player& loser, Player& winner) {
@@ -396,7 +396,7 @@ void Match::setEngineStallStatus(Player& loser, Player& winner) {
     data_.termination = MatchTermination::STALL;
     data_.reason      = color + Match::STALL_MSG;
 
-    Logger::trace<true>("Engine {}'s connection stalls", name);
+    LOG_WARN_THREAD("Engine {} stalls", name);
 }
 
 void Match::setEngineTimeoutStatus(Player& loser, Player& winner) {
@@ -409,7 +409,7 @@ void Match::setEngineTimeoutStatus(Player& loser, Player& winner) {
     data_.termination = MatchTermination::TIMEOUT;
     data_.reason      = color + Match::TIMEOUT_MSG;
 
-    Logger::trace<true>("Engine {} loses on time", name);
+    LOG_WARN_THREAD("Engine {} loses on time", name);
 
     // we send a stop command to the engine to prevent it from thinking
     // and wait for a bestmove to appear
@@ -436,11 +436,11 @@ void Match::setEngineIllegalMoveStatus(Player& loser, Player& winner, const std:
     auto mv = best_move.value_or("<none>");
 
     if (invalid_format) {
-        Logger::warn<true>(
+        Logger::print<Logger::Level::WARN>(
             "Warning; Move does not match uci move format, lowercase and 4/5 chars. Move {} played by {}", mv, name);
     }
 
-    Logger::warn<true>("Warning; Illegal move {} played by {}", mv, name);
+    Logger::print<Logger::Level::WARN>("Warning; Illegal move {} played by {}", mv, name);
 }
 
 bool Match::isUciMove(const std::string& move) noexcept {
@@ -493,7 +493,7 @@ void Match::verifyPvLines(const Player& us) {
                 auto position = fmt::format("position {}", startpos == "startpos" ? "startpos" : ("fen " + startpos));
                 auto fmt2     = fmt::format("From; {} moves {}", position, str_utils::join(uci_moves, " "));
 
-                Logger::warn<true>("{}\n{}", fmt, fmt2);
+                Logger::print<Logger::Level::WARN>("{}\n{}", fmt, fmt2);
 
                 break;
             }

@@ -11,7 +11,7 @@ namespace fastchess::affinity::cpu_info {
 
 // Some dumb code for macOS, setting the affinity is not really supported.
 inline CpuInfo getCpuInfo() noexcept {
-    Logger::trace("Getting CPU info");
+    LOG_TRACE("Getting CPU info");
 
     CpuInfo cpu_info;
 

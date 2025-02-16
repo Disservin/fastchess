@@ -389,6 +389,8 @@ void parseLog(const std::vector<std::string> &params, ArgumentData &argument_dat
             argument_data.tournament_config.log.compress = value == "true";
         } else if (key == "realtime" && is_bool(value)) {
             argument_data.tournament_config.log.realtime = value == "true";
+        } else if (key == "engine" && is_bool(value)) {
+            argument_data.tournament_config.log.engine_coms = value == "true";
         } else {
             OptionsParser::throwMissing("log", key, value);
         }
@@ -397,7 +399,7 @@ void parseLog(const std::vector<std::string> &params, ArgumentData &argument_dat
 
 namespace json_config {
 void loadJson(ArgumentData &argument_data, const std::string &filename) {
-    Logger::info("Loading config file: {}", filename);
+    Logger::print<Logger::Level::INFO>("Loading config file: {}", filename);
 
     std::ifstream f(filename);
 
@@ -430,7 +432,7 @@ void parseConfig(const std::vector<std::string> &params, ArgumentData &argument_
         } else if (key == "outname") {
             argument_data.tournament_config.config_name = value;
         } else if (key == "discard" && value == "true") {
-            Logger::info("Discarding config file");
+            Logger::print<Logger::Level::INFO>("Discarding config file");
             argument_data.tournament_config = argument_data.old_tournament_config;
             argument_data.configs           = argument_data.old_configs;
             argument_data.stats.clear();
@@ -622,7 +624,7 @@ void parseDebug(const std::vector<std::string> &, ArgumentData &) {
 }
 
 OptionsParser::OptionsParser(const cli::Args &args) {
-    Logger::trace("Reading options...");
+    LOG_TRACE("Reading options...");
 
     if (args.argc() == 1) {
         printHelp();

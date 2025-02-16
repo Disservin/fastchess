@@ -15,7 +15,7 @@ TournamentManager::TournamentManager() {}
 
 TournamentManager::~TournamentManager() {
     atomic::stop = true;
-    Logger::trace("~TournamentManager()");
+    LOG_TRACE("~TournamentManager()");
 }
 
 void TournamentManager::start(const cli::Args& args) {
@@ -28,15 +28,16 @@ void TournamentManager::start(const cli::Args& args) {
     Logger::setLevel(config::TournamentConfig->log.level);
     Logger::setCompress(config::TournamentConfig->log.compress);
     Logger::openFile(config::TournamentConfig->log.file);
+    Logger::setEngineComs(config::TournamentConfig->log.engine_coms);
 
-    Logger::trace("{}", cli::OptionsParser::Version);
+    LOG_INFO("{}", cli::OptionsParser::Version);
 
     util::random::seed(config::TournamentConfig->seed);
 
-    Logger::trace("Creating tournament...");
+    LOG_TRACE("Creating tournament...");
     auto round_robin = RoundRobin(options.getResults());
 
-    Logger::trace("Starting tournament...");
+    LOG_INFO("Starting tournament...");
     round_robin.start();
 }
 }  // namespace fastchess

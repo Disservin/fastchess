@@ -19,6 +19,7 @@ std::atomic_bool Logger::should_log_ = false;
 
 std::mutex Logger::log_mutex_;
 Logger::log_file_type Logger::log_;
+bool Logger::engine_coms_ = false;
 
 void Logger::openFile(const std::string &file) {
     if (file.empty()) {
@@ -55,13 +56,13 @@ void Logger::openFile(const std::string &file) {
 }
 
 void Logger::writeToEngine(const std::string &msg, const std::string &time, const std::string &name) {
-    if (!should_log_) {
+    if (!should_log_ || !engine_coms_) {
         return;
     }
 
     const auto id = std::this_thread::get_id();
 
-    auto fmt_message = fmt::format("[{:<6}] [{}] <{:>3}> {} <--- {}\n", "Engine", time, id, name, msg);
+    auto fmt_message = fmt::format("[{:<6}] [{:>15}] <{:>20}> {} <--- {}\n", "Engine", time, id, name, msg);
 
     const std::lock_guard<std::mutex> lock(log_mutex_);
     std::visit([&](auto &&arg) { arg << fmt_message << std::flush; }, log_);
@@ -69,12 +70,12 @@ void Logger::writeToEngine(const std::string &msg, const std::string &time, cons
 
 void Logger::readFromEngine(const std::string &msg, const std::string &time, const std::string &name, bool err,
                             std::thread::id id) {
-    if (!should_log_) {
+    if (!should_log_ || !engine_coms_) {
         return;
     }
 
-    auto fmt_message =
-        fmt::format("[{:<6}] [{}] <{:>3}> {}{} ---> {}\n", "Engine", time, id, (err ? "<stderr> " : ""), name, msg);
+    auto fmt_message = fmt::format("[{:<6}] [{:>15}] <{:>20}> {}{} ---> {}\n", "Engine", time, id,
+                                   (err ? "<stderr> " : ""), name, msg);
 
     const std::lock_guard<std::mutex> lock(log_mutex_);
     std::visit([&](auto &&arg) { arg << fmt_message << std::flush; }, log_);

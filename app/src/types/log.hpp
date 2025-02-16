@@ -11,6 +11,7 @@ struct Log {
     Logger::Level level = Logger::Level::WARN;
     bool compress       = false;
     bool realtime       = true;
+    bool engine_coms    = false;
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Log, file, level, compress, realtime)
 

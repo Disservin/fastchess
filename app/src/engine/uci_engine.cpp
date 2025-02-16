@@ -64,7 +64,7 @@ process::Status UciEngine::isready(std::chrono::milliseconds threshold) {
     const auto is_alive = process_.alive();
     if (is_alive != process::Status::OK) return is_alive;
 
-    Logger::trace<true>("Pinging engine {}", config_.name);
+    LOG_TRACE_THREAD("Pinging engine {}", config_.name);
 
     writeEngine("isready");
 
@@ -81,13 +81,13 @@ process::Status UciEngine::isready(std::chrono::milliseconds threshold) {
     }
 
     if (res != process::Status::OK) {
-        Logger::trace<true>("Engine {} didn't respond to isready.", config_.name);
-        Logger::warn<true>("Warning; Engine {} is not responsive.", config_.name);
+        LOG_TRACE_THREAD("Engine {} didn't respond to isready.", config_.name);
+        Logger::print<Logger::Level::WARN>("Warning; Engine {} is not responsive.", config_.name);
 
         return res;
     }
 
-    Logger::trace<true>("Engine {} is {}", config_.name, "responsive.");
+    LOG_TRACE_THREAD("Engine {} is {}", config_.name, "responsive.");
 
     return res;
 }
@@ -154,11 +154,11 @@ bool UciEngine::go(const TimeControl &our_tc, const TimeControl &enemy_tc, chess
 }
 
 bool UciEngine::ucinewgame() {
-    Logger::trace<true>("Sending ucinewgame to engine {}", config_.name);
+    LOG_TRACE_THREAD("Sending ucinewgame to engine {}", config_.name);
     auto res = writeEngine("ucinewgame");
 
     if (!res) {
-        Logger::trace<true>("Failed to send ucinewgame to engine {}", config_.name);
+        LOG_WARN_THREAD("Failed to send ucinewgame to engine {}", config_.name);
         return false;
     }
 
@@ -167,12 +167,13 @@ bool UciEngine::ucinewgame() {
 
 std::optional<std::string> UciEngine::idName() {
     if (!uci()) {
-        Logger::warn<true>("Warning; Engine {} didn't respond to uci.", config_.name);
+        Logger::print<Logger::Level::WARN>("Warning; Engine {} didn't respond to uci.", config_.name);
+
         return std::nullopt;
     }
 
     if (!uciok()) {
-        Logger::warn<true>("Warning; Engine {} didn't respond to uci.", config_.name);
+        Logger::print<Logger::Level::WARN>("Warning; Engine {} didn't respond to uci.", config_.name);
         return std::nullopt;
     }
 
@@ -189,12 +190,14 @@ std::optional<std::string> UciEngine::idName() {
 
 std::optional<std::string> UciEngine::idAuthor() {
     if (!uci()) {
-        Logger::warn<true>("Warning; Engine {} didn't respond to uci.", config_.name);
+        Logger::print<Logger::Level::WARN>("Warning; Engine {} didn't respond to uci.", config_.name);
+
         return std::nullopt;
     }
 
     if (!uciok()) {
-        Logger::warn<true>("Warning; Engine {} didn't respond to uci.", config_.name);
+        Logger::print<Logger::Level::WARN>("Warning; Engine {} didn't respond to uci.", config_.name);
+
         return std::nullopt;
     }
 
@@ -210,11 +213,11 @@ std::optional<std::string> UciEngine::idAuthor() {
 }
 
 bool UciEngine::uci() {
-    Logger::trace<true>("Sending uci to engine {}", config_.name);
+    LOG_TRACE_THREAD("Sending uci to engine {}", config_.name);
     const auto res = writeEngine("uci");
 
     if (!res) {
-        Logger::trace<true>("Failed to send uci to engine {}", config_.name);
+        LOG_WARN_THREAD("Failed to send uci to engine {}", config_.name);
         return false;
     }
 
@@ -222,7 +225,7 @@ bool UciEngine::uci() {
 }
 
 bool UciEngine::uciok(std::chrono::milliseconds threshold) {
-    Logger::trace<true>("Waiting for uciok from engine {}", config_.name);
+    LOG_TRACE_THREAD("Waiting for uciok from engine {}", config_.name);
 
     const auto res = readEngine("uciok", threshold) == process::Status::OK;
 
@@ -238,7 +241,7 @@ bool UciEngine::uciok(std::chrono::milliseconds threshold) {
         }
     }
 
-    if (!res) Logger::trace<true>("Engine {} did not respond to uciok in time.", config_.name);
+    if (!res) LOG_WARN_THREAD("Engine {} did not respond to uciok in time.", config_.name);
 
     return res;
 }
@@ -247,7 +250,7 @@ void UciEngine::loadConfig(const EngineConfiguration &config) { config_ = config
 
 void UciEngine::quit() {
     if (!initialized_) return;
-    Logger::trace<true>("Sending quit to engine {}", config_.name);
+    LOG_TRACE_THREAD("Sending quit to engine {}", config_.name);
     writeEngine("quit");
 }
 
@@ -255,16 +258,18 @@ void UciEngine::sendSetoption(const std::string &name, const std::string &value)
     auto option = uci_options_.getOption(name);
 
     if (!option.has_value()) {
-        Logger::info<true>("Warning; {} doesn't have option {}", config_.name, name);
+        Logger::print<Logger::Level::WARN>("Warning; {} doesn't have option {}", config_.name, name);
+
         return;
     }
 
     if (!option.value()->isValid(value)) {
-        Logger::info<true>("Warning; Invalid value for option {}; {}", name, value);
+        Logger::print<Logger::Level::WARN>("Warning; Invalid value for option {}; {}", name, value);
+
         return;
     }
 
-    Logger::trace<true>("Sending setoption to engine {} {} {}", config_.name, name, value);
+    LOG_TRACE_THREAD("Sending setoption to engine {} {} {}", config_.name, name, value);
 
     if (option.value()->getType() == UCIOption::Type::Button) {
         if (value != "true") {
@@ -272,7 +277,7 @@ void UciEngine::sendSetoption(const std::string &name, const std::string &value)
         }
 
         if (!writeEngine(fmt::format("setoption name {}", name))) {
-            Logger::trace<true>("Failed to send setoption to engine {} {}", config_.name, name);
+            LOG_WARN_THREAD("Failed to send setoption to engine {} {}", config_.name, name);
             return;
         }
 
@@ -280,7 +285,7 @@ void UciEngine::sendSetoption(const std::string &name, const std::string &value)
     }
 
     if (!writeEngine(fmt::format("setoption name {} value {}", name, value))) {
-        Logger::trace<true>("Failed to send setoption to engine {} {} {}", config_.name, name, value);
+        LOG_WARN_THREAD("Failed to send setoption to engine {} {} {}", config_.name, name, value);
         return;
     }
 
@@ -293,26 +298,25 @@ bool UciEngine::start() {
     AcquireSemaphore semaphore_acquire(semaphore);
 
     const auto path = config_.cmd;
-    Logger::trace<true>("Starting engine {} at {}", config_.name, path);
+    LOG_TRACE_THREAD("Starting engine {} at {}", config_.name, path);
 
     // Creates the engine process and sets the pipes
     if (process_.init(config_.dir, path, config_.args, config_.name) != process::Status::OK) {
-        Logger::warn<true>("Warning; Cannot start engine {};", config_.name);
-        Logger::warn<true>("Cannot execute command: {}", path);
+        Logger::print<Logger::Level::ERR>("Warning; Cannot start engine {};", config_.name);
+        Logger::print<Logger::Level::ERR>("Cannot execute command: {}", path);
 
         return false;
     }
 
     // Wait for the engine to start
     if (!uci()) {
-        Logger::warn<true>("Couldnt write uci to engine.", config_.name);
+        LOG_WARN_THREAD("Couldnt write uci to engine {}", config_.name);
 
         return false;
     }
 
     if (!uciok(startup_time_)) {
-        Logger::warn<true>("Engine {} didn't respond to uci with uciok after startup.", config_.name);
-
+        LOG_WARN_THREAD("Engine {} didn't respond to uci with uciok after startup.", config_.name);
         return false;
     }
 
@@ -322,10 +326,10 @@ bool UciEngine::start() {
 }
 
 bool UciEngine::refreshUci() {
-    Logger::trace<true>("Refreshing engine {}", config_.name);
+    LOG_TRACE_THREAD("Refreshing engine {}", config_.name);
 
     if (!ucinewgame()) {
-        Logger::trace<true>("Engine {} failed to refresh.", config_.name);
+        LOG_WARN_THREAD("Engine {} failed to refresh.", config_.name);
         return false;
     }
 
@@ -338,7 +342,7 @@ bool UciEngine::refreshUci() {
     }
 
     if (!ucinewgame()) {
-        Logger::trace<true>("Engine {} didn't respond to ucinewgame.", config_.name);
+        LOG_WARN_THREAD("Engine {} didn't respond to ucinewgame.", config_.name);
         return false;
     }
 
@@ -382,14 +386,15 @@ bool UciEngine::writeEngine(const std::string &input) {
 
 std::optional<std::string> UciEngine::bestmove() const {
     if (output_.empty()) {
-        Logger::warn<true>("Warning; No output from {}", config_.name);
+        Logger::print<Logger::Level::WARN>("Warning; No output from {}", config_.name);
+
         return std::nullopt;
     }
 
     const auto bm = str_utils::findElement<std::string>(str_utils::splitString(output_.back().line, ' '), "bestmove");
 
     if (!bm.has_value()) {
-        Logger::warn<true>("Warning; No bestmove found in the last line from {}", config_.name);
+        Logger::print<Logger::Level::WARN>("Warning; No bestmove found in the last line from {}", config_.name);
 
         return std::nullopt;
     }
@@ -401,7 +406,7 @@ std::vector<std::string> UciEngine::lastInfo(bool exact) const {
     const auto last_info = lastInfoLine(exact);
 
     if (last_info.empty()) {
-        Logger::warn<true>("Warning; Last info string with score not found from {}", config_.name);
+        Logger::print<Logger::Level::WARN>("Warning; Last info string with score not found from {}", config_.name);
         return {};
     }
 

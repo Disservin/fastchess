@@ -1,10 +1,10 @@
 #pragma once
 
 #include <windows.h>
+#include <cassert>
 #include <map>
 #include <memory>
 #include <vector>
-#include <cassert>
 
 #include <affinity/cpuinfo/cpu_info.hpp>
 #include <core/logger/logger.hpp>
@@ -32,7 +32,7 @@ namespace fastchess::affinity::cpu_info {
 }
 
 inline CpuInfo getCpuInfo() noexcept(false) {
-    Logger::trace("Getting CPU info");
+    LOG_TRACE("Getting CPU info");
 
     DWORD byte_length = 0;
 

@@ -29,14 +29,14 @@ int main(int argc, char const* argv[]) {
     } catch (const std::exception& e) {
         stopProcesses();
 
-        std::cerr << e.what() << std::endl;
+        LOG_FATAL("Caught exception: {}", e.what());
 
         return EXIT_FAILURE;
     }
 
     stopProcesses();
 
-    Logger::info("Finished match");
+    Logger::print("Finished match");
 
     return 0;
 }

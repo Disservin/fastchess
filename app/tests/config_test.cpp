@@ -36,7 +36,7 @@ TEST_SUITE("Start from config") {
                 TournamentManager tournament = TournamentManager();
                 tournament.start(args);
 
-                Logger::info("Finished match");
+                Logger::print("Finished match");
             } catch (const std::exception& e) {
                 stopProcesses();
                 atomic::stop = false;

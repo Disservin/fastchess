@@ -18,7 +18,7 @@ inline uint64_t random_uint64() {
 }
 
 inline void seed(uint64_t seed) {
-    Logger::trace("Setting seed to: {}", seed);
+    LOG_INFO("Setting seed to: {}", seed);
     mersenne_rand.seed(seed);
 }
 }  // namespace fastchess::util::random

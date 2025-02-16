@@ -61,7 +61,7 @@ void stopProcesses() {
 }
 
 void consoleHandlerAction() {
-    Logger::trace("Received signal signal, stopping tournament.");
+    Logger::trace("Received signal, stopping tournament.");
 
     atomic::stop = true;
 }

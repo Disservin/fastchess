@@ -131,6 +131,15 @@ std::string PgnBuilder::addMove(chess::Board &board, const MoveData &move, std::
                                              : "");
     ss << (illegal ? move.move : moveNotation(board, move.move));
 
+    std::string info_lines;
+
+    if (!move.additional_lines.empty()) {
+        for (const auto &line : move.additional_lines) {
+            info_lines += info_lines.empty() ? "" : " ";
+            info_lines += "line=\"" + line + "\"";
+        }
+    }
+
     if (!pgn_config_.min) {
         if (move.book) {
             ss << addComment("book");
@@ -144,6 +153,7 @@ std::string PgnBuilder::addMove(chess::Board &board, const MoveData &move, std::
                 pgn_config_.track_nps ? "nps=" + std::to_string(move.nps) : "",                 //
                 pgn_config_.track_hashfull ? "hashfull=" + std::to_string(move.hashfull) : "",  //
                 pgn_config_.track_tbhits ? "tbhits=" + std::to_string(move.tbhits) : "",        //
+                info_lines.empty() ? "" : info_lines,                                           //
                 last ? match_.reason : ""                                                       //
             );
         }

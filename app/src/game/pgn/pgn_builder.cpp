@@ -135,7 +135,7 @@ std::string PgnBuilder::addMove(chess::Board &board, const MoveData &move, std::
 
     if (!move.additional_lines.empty()) {
         for (const auto &line : move.additional_lines) {
-            info_lines += info_lines.empty() ? "" : " ";
+            info_lines += info_lines.empty() ? "" : ", ";
             info_lines += "line=\"" + line + "\"";
         }
     }

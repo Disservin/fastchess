@@ -8,6 +8,7 @@
 namespace fastchess::config {
 
 struct Pgn {
+    std::vector<std::string> additional_lines_rgx;
     std::string event_name = "Fastchess Tournament";
     std::string site       = "?";
 

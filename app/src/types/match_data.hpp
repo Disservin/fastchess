@@ -26,6 +26,7 @@ struct MoveData {
           legal(_legal),
           book(_book) {}
 
+    std::vector<std::string> additional_lines;
     std::string move;
     std::string score_string;
     int64_t elapsed_millis = 0;

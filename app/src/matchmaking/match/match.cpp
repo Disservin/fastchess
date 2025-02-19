@@ -1,6 +1,7 @@
 #include <matchmaking/match/match.hpp>
 
 #include <algorithm>
+#include <regex>
 
 #include <core/helper.hpp>
 #include <core/logger/logger.hpp>
@@ -84,6 +85,20 @@ void Match::addMoveData(const Player& player, int64_t measured_time_ms, int64_t 
     move_data.latency  = latency;
 
     move_data.score_string = Match::convertScoreToString(move_data.score, score_type);
+
+    if (!config::TournamentConfig->pgn.additional_lines_rgx.empty()) {
+        for (const auto& rgx : config::TournamentConfig->pgn.additional_lines_rgx) {
+            const auto lines = player.engine.output();
+            const auto regex = std::regex(rgx);
+            // find the last line that matches the regex, iterate in reverse
+            for (auto it = lines.rbegin(); it != lines.rend(); ++it) {
+                if (std::regex_search(it->line, regex)) {
+                    move_data.additional_lines.push_back(it->line);
+                    break;
+                }
+            }
+        }
+    }
 
     verifyPvLines(player);
 

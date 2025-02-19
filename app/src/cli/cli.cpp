@@ -215,6 +215,8 @@ void parsePgnOut(const std::vector<std::string> &params, ArgumentData &argument_
                 } else {
                     OptionsParser::throwMissing("pgnout notation", key, value);
                 }
+            } else if (key == "match_line") {
+                argument_data.tournament_config.pgn.additional_lines_rgx.push_back(value);
             } else {
                 OptionsParser::throwMissing("pgnout", key, value);
             }

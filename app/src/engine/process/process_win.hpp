@@ -59,12 +59,12 @@ class Process : public IProcess {
         saAttr.lpSecurityDescriptor = NULL;
 
         // Create pipes for stdout
-        if (!CreatePipe(&hChildStdoutRead, &hChildStdoutWrite, &saAttr, 0)) {
+        if (!CreatePipeEx(&hChildStdoutRead, &hChildStdoutWrite, &saAttr)) {
             throw std::runtime_error("Failed to create stdout pipe");
         }
 
         // Create pipes for stdin
-        if (!CreatePipe(&hChildStdinRead, &hChildStdinWrite, &saAttr, 0)) {
+        if (!CreatePipeEx(&hChildStdinRead, &hChildStdinWrite, &saAttr)) {
             CloseHandle(hChildStdoutRead);
             CloseHandle(hChildStdoutWrite);
             throw std::runtime_error("Failed to create stdin pipe");
@@ -159,58 +159,72 @@ class Process : public IProcess {
         // }
 
         // std::array<char, buffer_size> buffer;
-        std::string partial;
-        std::string result;
 
         const auto timeout = threshold.count() == 0 ? INFINITE : static_cast<DWORD>(threshold.count());
-
         while (true) {
             auto currentTime = std::chrono::steady_clock::now();
             auto elapsedMs   = std::chrono::duration_cast<std::chrono::milliseconds>(currentTime - startTime).count();
 
-            if (elapsedMs >= timeout) {
+            if (elapsedMs > timeout) {
                 return Status::TIMEOUT;
             }
 
-            DWORD bytesRead;
-            OVERLAPPED overlapped = {};
-            overlapped.hEvent     = CreateEvent(NULL, TRUE, FALSE, NULL);
-            if (!overlapped.hEvent) {
-                // throw std::runtime_error("Failed to create event for overlapped I/O");
+            // Create a new event for this specific read operation
+            HANDLE hEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
+            if (!hEvent) {
+                throw std::runtime_error("Failed to create event");
             }
 
-            if (!ReadFile(hChildStdoutRead, buffer.data(), buffer.size(), &bytesRead, &overlapped)) {
-                if (GetLastError() != ERROR_IO_PENDING) {
-                    CloseHandle(overlapped.hEvent);
+            OVERLAPPED overlapped = {};
+            overlapped.hEvent     = hEvent;
+
+            DWORD bytesRead = 0;
+            BOOL readResult = ReadFile(hChildStdoutRead, buffer.data(), buffer_size, &bytesRead, &overlapped);
+
+            if (atomic::stop) {
+                return Status::ERR;
+            }
+
+            if (!readResult) {
+                DWORD error = GetLastError();
+                if (error == ERROR_IO_PENDING) {
+                    // Wait for completion with a very short timeout
+                    DWORD waitResult = WaitForSingleObject(hEvent, 1);
+
+                    if (waitResult == WAIT_OBJECT_0) {
+                        // Read completed
+                        if (!GetOverlappedResult(hChildStdoutRead, &overlapped, &bytesRead, FALSE)) {
+                            CloseHandle(hEvent);
+                            DWORD error = GetLastError();
+                            if (error != ERROR_BROKEN_PIPE) {
+                                throw std::runtime_error("Failed to get overlapped result");
+                            }
+                            continue;
+                        }
+                    } else if (waitResult == WAIT_TIMEOUT) {
+                        // No data available yet
+                        CancelIo(hChildStdoutRead);
+                        CloseHandle(hEvent);
+
+                        continue;
+                    } else {
+                        CloseHandle(hEvent);
+                        throw std::runtime_error("Wait failed");
+                    }
+                } else if (error != ERROR_BROKEN_PIPE) {
+                    CloseHandle(hEvent);
                     throw std::runtime_error("Failed to read from pipe");
                 }
+            }
 
-                DWORD waitResult = WaitForSingleObject(overlapped.hEvent, timeout);
-                if (waitResult == WAIT_TIMEOUT) {
-                    CancelIo(hChildStdoutRead);
-                    CloseHandle(overlapped.hEvent);
-                    return Status::TIMEOUT;
-                }
-                if (waitResult != WAIT_OBJECT_0) {
-                    CloseHandle(overlapped.hEvent);
-                    throw std::runtime_error("Wait failed");
-                }
+            CloseHandle(hEvent);
 
-                if (!GetOverlappedResult(hChildStdoutRead, &overlapped, &bytesRead, FALSE)) {
-                    CloseHandle(overlapped.hEvent);
-                    throw std::runtime_error("Failed to get overlapped result");
+            if (bytesRead > 0) {
+                if (readBytes(buffer, bytesRead, lines, last_word)) {
+                    return Status::OK;
                 }
             }
 
-            CloseHandle(overlapped.hEvent);
-
-            if (bytesRead == 0) {
-                continue;
-            }
-
-            if (readBytes(buffer, bytesRead, lines, last_word)) {
-                return Status::OK;
-            }
             // partial.append(buffer.data(), bytesRead);
 
             // size_t pos;

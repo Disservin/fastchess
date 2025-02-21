@@ -427,10 +427,7 @@ void Match::setEngineTimeoutStatus(Player& loser, Player& winner) {
     data_.termination = MatchTermination::TIMEOUT;
     data_.reason      = color + Match::TIMEOUT_MSG;
 
-<<<<<<< HEAD
     LOG_WARN_THREAD("Engine {} loses on time", name);
-    == == == = Logger::info<true>("Engine {} loses on time", name);
->>>>>>> d26bcc9 (wip)
 
     // we send a stop command to the engine to prevent it from thinking
     // and wait for a bestmove to appear
@@ -457,19 +454,11 @@ void Match::setEngineIllegalMoveStatus(Player& loser, Player& winner, const std:
     auto mv = best_move.value_or("<none>");
 
     if (invalid_format) {
-<<<<<<< HEAD
         Logger::print<Logger::Level::WARN>(
             "Warning; Move does not match uci move format, lowercase and 4/5 chars. Move {} played by {}", mv, name);
     }
 
     Logger::print<Logger::Level::WARN>("Warning; Illegal move {} played by {}", mv, name);
-    == == ==
-        = Logger::info<true>(
-            "Warning; Move does not match uci move format, lowercase and 4/5 chars. Move {} played by {}", mv, name);
-}
-
-Logger::info<true>("Warning; Illegal move {} played by {}", mv, name);
->>>>>>> d26bcc9 (wip)
 }
 
 bool Match::isUciMove(const std::string& move) noexcept {

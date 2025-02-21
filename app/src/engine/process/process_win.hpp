@@ -91,7 +91,7 @@ class Process : public IProcess {
             si.dwFlags |= STARTF_USESTDHANDLES;
 
             if (createProcess(si)) {
-                process_list.push(ProcessInformation{pi_.hProcess, hChildStdinWrite});
+                process_list.push(ProcessInformation{pi_.hProcess, hChildStdoutWrite});
                 return Status::OK;
             }
 
@@ -180,7 +180,6 @@ class Process : public IProcess {
 
             DWORD bytesRead = 0;
             BOOL readResult = ReadFile(hChildStdoutRead, buffer.data(), buffer_size, &bytesRead, &overlapped);
-
             if (atomic::stop) {
                 return Status::ERR;
             }
@@ -189,7 +188,7 @@ class Process : public IProcess {
                 DWORD error = GetLastError();
                 if (error == ERROR_IO_PENDING) {
                     // Wait for completion with a very short timeout
-                    DWORD waitResult = WaitForSingleObject(hEvent, 1);
+                    DWORD waitResult = WaitForSingleObject(hEvent, timeout);
 
                     if (waitResult == WAIT_OBJECT_0) {
                         // Read completed
@@ -201,6 +200,7 @@ class Process : public IProcess {
                             }
                             continue;
                         }
+
                     } else if (waitResult == WAIT_TIMEOUT) {
                         // No data available yet
                         CancelIo(hChildStdoutRead);

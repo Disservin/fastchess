@@ -58,27 +58,23 @@ class Process : public IProcess {
         saAttr.bInheritHandle       = TRUE;
         saAttr.lpSecurityDescriptor = NULL;
 
-        // Create pipes for stdout
         if (!CreatePipeEx(&hChildStdoutRead, &hChildStdoutWrite, &saAttr)) {
             throw std::runtime_error("Failed to create stdout pipe");
         }
 
-        // Create pipes for stdin
         if (!CreatePipeEx(&hChildStdinRead, &hChildStdinWrite, &saAttr)) {
             CloseHandle(hChildStdoutRead);
             CloseHandle(hChildStdoutWrite);
             throw std::runtime_error("Failed to create stdin pipe");
         }
 
-        // Ensure the read handle to the stdout pipe is not inherited
         if (!SetHandleInformation(hChildStdoutRead, HANDLE_FLAG_INHERIT, 0)) {
-            CloseProcessHandles();
+            closesHandles();
             throw std::runtime_error("Failed to set stdout handle information");
         }
 
-        // Ensure the write handle to the stdin pipe is not inherited
         if (!SetHandleInformation(hChildStdinWrite, HANDLE_FLAG_INHERIT, 0)) {
-            CloseProcessHandles();
+            closesHandles();
             throw std::runtime_error("Failed to set stdin handle information");
         }
 
@@ -102,7 +98,7 @@ class Process : public IProcess {
         return Status::ERR;
     }
 
-    void CloseProcessHandles() {
+    void closesHandles() {
         if (hChildStdoutRead) CloseHandle(hChildStdoutRead);
         if (hChildStdoutWrite) CloseHandle(hChildStdoutWrite);
         if (hChildStdinRead) CloseHandle(hChildStdinRead);
@@ -124,7 +120,7 @@ class Process : public IProcess {
     }
 
     void terminate() {
-        CloseProcessHandles();
+        closesHandles();
 
         if (!is_initialized_) {
             return;
@@ -152,17 +148,8 @@ class Process : public IProcess {
 
         lines.clear();
 
-        auto startTime = std::chrono::steady_clock::now();
-
-        // if (!async_read_context_.completion_event) {
-        //     return Status::ERR;
-        // }
-
-        // std::array<char, buffer_size> buffer;
-        std::string partial;
-        std::string result;
-
-        const auto timeout = threshold.count() == 0 ? INFINITE : static_cast<DWORD>(threshold.count());
+        const auto startTime = std::chrono::steady_clock::now();
+        const auto timeout   = threshold.count() == 0 ? INFINITE : static_cast<DWORD>(threshold.count());
 
         while (true) {
             auto currentTime = std::chrono::steady_clock::now();
@@ -179,14 +166,17 @@ class Process : public IProcess {
             DWORD bytesRead;
             OVERLAPPED overlapped = {};
             overlapped.hEvent     = CreateEvent(NULL, TRUE, FALSE, NULL);
+
             if (!overlapped.hEvent) {
-                throw std::runtime_error("Failed to create event for overlapped I/O");
+                // throw std::runtime_error("Failed to create event for overlapped I/O");
+                return Status::ERR;
             }
 
             if (!ReadFile(hChildStdoutRead, buffer.data(), buffer.size(), &bytesRead, &overlapped)) {
                 if (GetLastError() != ERROR_IO_PENDING) {
                     CloseHandle(overlapped.hEvent);
-                    throw std::runtime_error("Failed to read from pipe");
+                    // throw std::runtime_error("Failed to read from pipe");
+                    return Status::ERR;
                 }
 
                 DWORD waitResult = WaitForSingleObject(overlapped.hEvent, timeout);
@@ -197,12 +187,14 @@ class Process : public IProcess {
                 }
                 if (waitResult != WAIT_OBJECT_0) {
                     CloseHandle(overlapped.hEvent);
-                    throw std::runtime_error("Wait failed");
+                    // throw std::runtime_error("Wait failed");
+                    return Status::ERR;
                 }
 
                 if (!GetOverlappedResult(hChildStdoutRead, &overlapped, &bytesRead, FALSE)) {
                     CloseHandle(overlapped.hEvent);
-                    throw std::runtime_error("Failed to get overlapped result");
+                    // throw std::runtime_error("Failed to get overlapped result");
+                    return Status::ERR;
                 }
             }
 
@@ -215,62 +207,6 @@ class Process : public IProcess {
             if (readBytes(buffer, bytesRead, lines, last_word)) {
                 return Status::OK;
             }
-            // partial.append(buffer.data(), bytesRead);
-
-            // size_t pos;
-            // while ((pos = partial.find('\n')) != std::string::npos) {
-            //     std::string line = partial.substr(0, pos);
-            //     if (!line.empty() && line.back() == '\r') {
-            //         line.pop_back();
-            //     }
-            //     result += line + '\n';
-
-            //     // Check if the line starts with the stop string
-            //     if (line.compare(0, stopString.length(), stopString) == 0) {
-            //         return result;
-            //     }
-
-            //     partial = partial.substr(pos + 1);
-            // }
-            // // Start asynchronous read
-            // BOOL read_result = ReadFileEx(in_pipe_.read_end(), buffer.data(), static_cast<DWORD>(buffer_size),
-            //                               &async_read_context_.overlapped, nullptr);
-
-            // if (!read_result) {
-            //     return Status::ERR;
-            // }
-
-            // DWORD bytes_transferred = 0;
-
-            // // Wait for completion or timeout
-            // BOOL completion_result = GetOverlappedResultEx(in_pipe_.read_end(), &async_read_context_.overlapped,
-            //                                                &bytes_transferred, timeout, FALSE);
-
-            // if (!completion_result) {
-            //     DWORD error = GetLastError();
-
-            //     if (error == WAIT_TIMEOUT) {
-            //         CancelIo(in_pipe_.read_end());
-            //         return Status::TIMEOUT;
-            //     }
-
-            //     return Status::ERR;
-            // }
-
-            // if (atomic::stop) {
-            //     return Status::ERR;
-            // }
-
-            // if (bytes_transferred == 0) {
-            //     continue;
-            // }
-
-            // if (readBytes(buffer, bytes_transferred, lines, last_word)) {
-            //     return Status::OK;
-            // }
-
-            // // Reset for next iteration
-            // ResetEvent(async_read_context_.completion_event);
         }
     }
 
@@ -328,7 +264,6 @@ class Process : public IProcess {
             &pi_                                  //
         );
 
-        // out_pipe_.close_read();
         is_initialized_ = true;
 
         return success;

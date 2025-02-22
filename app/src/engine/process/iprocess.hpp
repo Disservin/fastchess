@@ -60,7 +60,7 @@ class IProcess {
         return path;
     }
 
-    bool realtime_logging_ = false;
+    bool realtime_logging_ = true;
 };
 
 }  // namespace fastchess::engine::process

@@ -25,7 +25,7 @@ constexpr std::array<std::uint32_t, 256> generate_crc_table() {
     return table;
 }
 
-static constexpr auto crc_table = generate_crc_table();
+inline constexpr auto crc_table = generate_crc_table();
 
 inline std::optional<std::uint32_t> calculate_crc32(const std::string& filename) {
     std::ifstream file(filename, std::ios::binary);

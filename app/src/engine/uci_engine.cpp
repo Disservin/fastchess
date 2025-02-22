@@ -380,7 +380,7 @@ std::string UciEngine::lastInfoLine(bool exact) const {
 }
 
 bool UciEngine::writeEngine(const std::string &input) {
-    Logger::writeToEngine(input, util::time::datetime_precise(), config_.name);
+    Logger::writeToEngine(input, "", config_.name);
     return process_.writeInput(input + "\n") == process::Status::OK;
 }
 

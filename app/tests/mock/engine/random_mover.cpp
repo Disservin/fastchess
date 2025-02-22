@@ -1,5 +1,4 @@
 #include <random>
-#include <thread>
 
 #include "../../../third_party/chess.hpp"
 
@@ -76,7 +75,6 @@ void uci_line(Board &board, const std::string &line) {
     } else if (tokens[0] == "go") {
         const auto move = random_move(board);
         std::cout << "info depth 1 pv " << uci::moveToUci(move) << " score cp 0 " << std::endl;
-        std::this_thread::sleep_for(std::chrono::seconds(20));
         std::cout << "bestmove " << uci::moveToUci(move) << std::endl;
     }
 }

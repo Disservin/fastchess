@@ -58,27 +58,23 @@ class Process : public IProcess {
         saAttr.bInheritHandle       = TRUE;
         saAttr.lpSecurityDescriptor = NULL;
 
-        // Create pipes for stdout
         if (!CreatePipeEx(&hChildStdoutRead, &hChildStdoutWrite, &saAttr)) {
             throw std::runtime_error("Failed to create stdout pipe");
         }
 
-        // Create pipes for stdin
         if (!CreatePipeEx(&hChildStdinRead, &hChildStdinWrite, &saAttr)) {
             CloseHandle(hChildStdoutRead);
             CloseHandle(hChildStdoutWrite);
             throw std::runtime_error("Failed to create stdin pipe");
         }
 
-        // Ensure the read handle to the stdout pipe is not inherited
         if (!SetHandleInformation(hChildStdoutRead, HANDLE_FLAG_INHERIT, 0)) {
-            CloseProcessHandles();
+            closeHandles();
             throw std::runtime_error("Failed to set stdout handle information");
         }
 
-        // Ensure the write handle to the stdin pipe is not inherited
         if (!SetHandleInformation(hChildStdinWrite, HANDLE_FLAG_INHERIT, 0)) {
-            CloseProcessHandles();
+            closeHandles();
             throw std::runtime_error("Failed to set stdin handle information");
         }
 
@@ -102,7 +98,7 @@ class Process : public IProcess {
         return Status::ERR;
     }
 
-    void CloseProcessHandles() {
+    void closeHandles() {
         if (hChildStdoutRead) CloseHandle(hChildStdoutRead);
         if (hChildStdoutWrite) CloseHandle(hChildStdoutWrite);
         if (hChildStdinRead) CloseHandle(hChildStdinRead);
@@ -124,7 +120,7 @@ class Process : public IProcess {
     }
 
     void terminate() {
-        CloseProcessHandles();
+        closeHandles();
 
         if (!is_initialized_) {
             return;
@@ -152,24 +148,14 @@ class Process : public IProcess {
 
         lines.clear();
 
-        auto startTime = std::chrono::steady_clock::now();
+        const auto startTime = std::chrono::steady_clock::now();
+        const auto timeout   = threshold.count() == 0 ? INFINITE : static_cast<DWORD>(threshold.count());
 
-        // if (!async_read_context_.completion_event) {
-        //     return Status::ERR;
-        // }
-
-        // std::array<char, buffer_size> buffer;
-
-        const auto timeout = threshold.count() == 0 ? INFINITE : static_cast<DWORD>(threshold.count());
         while (true) {
-            auto currentTime = std::chrono::steady_clock::now();
-            auto elapsedMs   = std::chrono::duration_cast<std::chrono::milliseconds>(currentTime - startTime).count();
-
-            if (elapsedMs > timeout) {
+            if (std::chrono::steady_clock::now() - startTime > threshold) {
                 return Status::TIMEOUT;
             }
 
-            // Create a new event for this specific read operation
             HANDLE hEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
             if (!hEvent) {
                 throw std::runtime_error("Failed to create event");
@@ -180,107 +166,49 @@ class Process : public IProcess {
 
             DWORD bytesRead = 0;
             BOOL readResult = ReadFile(hChildStdoutRead, buffer.data(), buffer_size, &bytesRead, &overlapped);
-            if (atomic::stop) {
-                return Status::ERR;
-            }
 
-            if (!readResult) {
-                DWORD error = GetLastError();
-                if (error == ERROR_IO_PENDING) {
-                    // Wait for completion with a very short timeout
-                    DWORD waitResult = WaitForSingleObject(hEvent, timeout);
+            if (atomic::stop) goto cleanup_return_err;
+            if (readResult) goto process_data;
 
-                    if (waitResult == WAIT_OBJECT_0) {
-                        // Read completed
-                        if (!GetOverlappedResult(hChildStdoutRead, &overlapped, &bytesRead, FALSE)) {
-                            CloseHandle(hEvent);
-                            DWORD error = GetLastError();
-                            if (error != ERROR_BROKEN_PIPE) {
-                                throw std::runtime_error("Failed to get overlapped result");
-                            }
-                            continue;
-                        }
-
-                    } else if (waitResult == WAIT_TIMEOUT) {
-                        // No data available yet
-                        CancelIo(hChildStdoutRead);
-                        CloseHandle(hEvent);
-
-                        continue;
-                    } else {
-                        CloseHandle(hEvent);
-                        throw std::runtime_error("Wait failed");
+            switch (GetLastError()) {
+                case ERROR_IO_PENDING:
+                    if (WaitForSingleObject(hEvent, timeout) != WAIT_OBJECT_0) {
+                        if (GetLastError() == WAIT_TIMEOUT) CancelIo(hChildStdoutRead);
+                        goto cleanup_continue;
                     }
-                } else if (error != ERROR_BROKEN_PIPE) {
-                    CloseHandle(hEvent);
-                    throw std::runtime_error("Failed to read from pipe");
-                }
+
+                    if (!GetOverlappedResult(hChildStdoutRead, &overlapped, &bytesRead, FALSE)) {
+                        if (GetLastError() == ERROR_BROKEN_PIPE) goto cleanup_continue;
+                        goto cleanup_throw;
+                    }
+
+                    break;
+
+                case ERROR_BROKEN_PIPE:
+                    goto cleanup_continue;
+
+                default:
+                    goto cleanup_throw;
             }
 
+        process_data:
             CloseHandle(hEvent);
-
-            if (bytesRead > 0) {
-                if (readBytes(buffer, bytesRead, lines, last_word)) {
-                    return Status::OK;
-                }
+            if (bytesRead > 0 && readBytes(buffer, bytesRead, lines, last_word)) {
+                return Status::OK;
             }
+            continue;
 
-            // partial.append(buffer.data(), bytesRead);
+        cleanup_continue:
+            CloseHandle(hEvent);
+            continue;
 
-            // size_t pos;
-            // while ((pos = partial.find('\n')) != std::string::npos) {
-            //     std::string line = partial.substr(0, pos);
-            //     if (!line.empty() && line.back() == '\r') {
-            //         line.pop_back();
-            //     }
-            //     result += line + '\n';
+        cleanup_return_err:
+            CloseHandle(hEvent);
+            return Status::ERR;
 
-            //     // Check if the line starts with the stop string
-            //     if (line.compare(0, stopString.length(), stopString) == 0) {
-            //         return result;
-            //     }
-
-            //     partial = partial.substr(pos + 1);
-            // }
-            // // Start asynchronous read
-            // BOOL read_result = ReadFileEx(in_pipe_.read_end(), buffer.data(), static_cast<DWORD>(buffer_size),
-            //                               &async_read_context_.overlapped, nullptr);
-
-            // if (!read_result) {
-            //     return Status::ERR;
-            // }
-
-            // DWORD bytes_transferred = 0;
-
-            // // Wait for completion or timeout
-            // BOOL completion_result = GetOverlappedResultEx(in_pipe_.read_end(), &async_read_context_.overlapped,
-            //                                                &bytes_transferred, timeout, FALSE);
-
-            // if (!completion_result) {
-            //     DWORD error = GetLastError();
-
-            //     if (error == WAIT_TIMEOUT) {
-            //         CancelIo(in_pipe_.read_end());
-            //         return Status::TIMEOUT;
-            //     }
-
-            //     return Status::ERR;
-            // }
-
-            // if (atomic::stop) {
-            //     return Status::ERR;
-            // }
-
-            // if (bytes_transferred == 0) {
-            //     continue;
-            // }
-
-            // if (readBytes(buffer, bytes_transferred, lines, last_word)) {
-            //     return Status::OK;
-            // }
-
-            // // Reset for next iteration
-            // ResetEvent(async_read_context_.completion_event);
+        cleanup_throw:
+            CloseHandle(hEvent);
+            throw std::runtime_error("Read operation failed");
         }
     }
 

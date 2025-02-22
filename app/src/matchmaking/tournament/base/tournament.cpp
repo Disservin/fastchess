@@ -132,7 +132,7 @@ void BaseTournament::playGame(const GamePair<EngineConfiguration, EngineConfigur
     start();
 
     auto match = Match(opening);
-    match.start(*white_engine.get(), *black_engine.get(), core.get().cpus, game_id);
+    match.start(*white_engine.get(), *black_engine.get(), core.get().cpus);
 
     LOG_TRACE_THREAD("Game {} between {} and {} finished", game_id, white_name, black_name);
 

@@ -132,10 +132,8 @@ void Match::prepare() {
     maxmoves_tracker_ = MaxMovesTracker();
 }
 
-void Match::start(engine::UciEngine& white, engine::UciEngine& black, const std::vector<int>& cpus, int game_id) {
+void Match::start(engine::UciEngine& white, engine::UciEngine& black, const std::vector<int>& cpus) {
     prepare();
-
-    game_id_ = game_id;
 
     std::transform(data_.moves.begin(), data_.moves.end(), std::back_inserter(uci_moves_),
                    [](const MoveData& data) { return data.move; });
@@ -305,7 +303,7 @@ bool Match::playMove(Player& us, Player& them) {
     // we report a loss on time when the engine didnt respond in time
     // and otherwise an illegal move
     if (best_move == std::nullopt) {
-        Logger::info<true>("No bestmove from engine {} gameid {}", name, game_id_);
+        Logger::info<true>("No bestmove from engine {}", name);
         // Time forfeit
         if (timeout) {
             setEngineTimeoutStatus(us, them);

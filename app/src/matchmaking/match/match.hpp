@@ -108,7 +108,7 @@ class Match {
     Match(const book::Opening& opening) : opening_(opening) {}
 
     // starts the match
-    void start(engine::UciEngine& white, engine::UciEngine& black, const std::vector<int>& cpus, int game_id);
+    void start(engine::UciEngine& white, engine::UciEngine& black, const std::vector<int>& cpus);
 
     // returns the match data, only valid after the match has finished
     [[nodiscard]] const MatchData& get() const { return data_; }
@@ -174,8 +174,6 @@ class Match {
     std::string start_position_;
 
     bool stall_or_disconnect_ = false;
-
-    int game_id_ = 0;
 
     inline static constexpr char INSUFFICIENT_MSG[]     = "Draw by insufficient mating material";
     inline static constexpr char REPETITION_MSG[]       = "Draw by 3-fold repetition";

@@ -40,11 +40,11 @@ BaseTournament::BaseTournament(const stats_map &results) {
     cores_  = std::make_unique<affinity::AffinityManager>(config.affinity, getMaxAffinity(*config::EngineConfigs));
     book_   = std::make_unique<book::OpeningBook>(config, initial_matchcount_);
 
-    if (!config.pgn.file.empty()) file_writer_pgn_ = std::make_unique<util::FileWriter>(config.pgn.file);
+    if (!config.pgn.file.empty())
+        file_writer_pgn_ = std::make_unique<util::FileWriter>(config.pgn.file, config.pgn.crc);
     if (!config.epd.file.empty()) file_writer_epd_ = std::make_unique<util::FileWriter>(config.epd.file);
 
     pool_.resize(config.concurrency);
-
 }
 
 BaseTournament::~BaseTournament() {

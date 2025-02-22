@@ -38,6 +38,9 @@ The following options are available:
 - --compliance ENGINE [ARGS]  
     Check the UCI compliance of an engine by running it with the specified arguments.
 
+- -crc32 pgn=true
+    Calculate the CRC32 checksum for the PGN file.
+
 - --force-concurrency  
     Ignore the hardware concurrency limit and force the specified concurrency.
 

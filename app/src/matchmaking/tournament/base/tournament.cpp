@@ -44,6 +44,7 @@ BaseTournament::BaseTournament(const stats_map &results) {
     if (!config.epd.file.empty()) file_writer_epd_ = std::make_unique<util::FileWriter>(config.epd.file);
 
     pool_.resize(config.concurrency);
+
 }
 
 BaseTournament::~BaseTournament() {
@@ -158,7 +159,8 @@ void BaseTournament::playGame(const GamePair<EngineConfiguration, EngineConfigur
     // If the game was interrupted(didn't completely finish)
     if (match_data.termination != MatchTermination::INTERRUPT && !atomic::stop) {
         if (!config.pgn.file.empty()) {
-            file_writer_pgn_->write(pgn::PgnBuilder(config.pgn, match_data, round_id + 1).get());
+            const auto pgn_str = pgn::PgnBuilder(config.pgn, match_data, round_id + 1).get();
+            file_writer_pgn_->write(pgn_str);
         }
 
         if (!config.epd.file.empty()) {

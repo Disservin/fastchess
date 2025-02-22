@@ -56,7 +56,8 @@ SRC_FILES_TEST   := \
 	$(TESTDIR)/scoreboard_test.cpp \
 	$(TESTDIR)/sprt_test.cpp \
 	$(TESTDIR)/timecontrol_test.cpp \
-	$(TESTDIR)/uci_engine_test.cpp
+	$(TESTDIR)/uci_engine_test.cpp \
+	$(TESTDIR)/crc32.cpp
 
 # Only used for formatting
 HEADERS := $(shell find $(SRCDIR) -name "*.hpp") $(shell find $(TESTDIR) -maxdepth 1 -name "*.hpp")

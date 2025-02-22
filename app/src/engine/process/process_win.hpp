@@ -174,12 +174,17 @@ class Process : public IProcess {
             switch (GetLastError()) {
                 case ERROR_IO_PENDING:
                     if (WaitForSingleObject(hEvent, timeout) != WAIT_OBJECT_0) {
-                        if (GetLastError() == WAIT_TIMEOUT) CancelIo(hChildStdoutRead);
+                        if (GetLastError() == WAIT_TIMEOUT) {
+                            CancelIo(hChildStdoutRead);
+                            CloseHandle(hEvent);
+                            return Status::TIMEOUT;
+                        }
+
                         goto cleanup_continue;
                     }
 
                     if (!GetOverlappedResult(hChildStdoutRead, &overlapped, &bytesRead, FALSE)) {
-                        if (GetLastError() == ERROR_BROKEN_PIPE) goto cleanup_continue;
+                        if (GetLastError() == ERROR_BROKEN_PIPE) goto cleanup_return_err;
                         goto cleanup_throw;
                     }
 
@@ -194,9 +199,11 @@ class Process : public IProcess {
 
         process_data:
             CloseHandle(hEvent);
+
             if (bytesRead > 0 && readBytes(buffer, bytesRead, lines, last_word)) {
                 return Status::OK;
             }
+
             continue;
 
         cleanup_continue:

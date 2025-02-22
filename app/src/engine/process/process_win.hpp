@@ -152,7 +152,8 @@ class Process : public IProcess {
         const auto timeout   = threshold.count() == 0 ? INFINITE : static_cast<DWORD>(threshold.count());
 
         while (true) {
-            if (std::chrono::steady_clock::now() - startTime > threshold) {
+            const auto elapsedTime = std::chrono::steady_clock::now() - startTime;
+            if (std::chrono::duration_cast<std::chrono::milliseconds>(elapsedTime) > threshold) {
                 return Status::TIMEOUT;
             }
 

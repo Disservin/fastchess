@@ -59,23 +59,27 @@ class Process : public IProcess {
         saAttr.lpSecurityDescriptor = NULL;
 
         if (!CreatePipeEx(&hChildStdoutRead, &hChildStdoutWrite, &saAttr)) {
-            throw std::runtime_error("Failed to create stdout pipe");
+            LOG_FATAL_THREAD("Failed to create stdout pipe");
+            return Status::ERR;
         }
 
         if (!CreatePipeEx(&hChildStdinRead, &hChildStdinWrite, &saAttr)) {
             CloseHandle(hChildStdoutRead);
             CloseHandle(hChildStdoutWrite);
-            throw std::runtime_error("Failed to create stdin pipe");
+            LOG_FATAL_THREAD("Failed to create stdout pipe");
+            return Status::ERR;
         }
 
         if (!SetHandleInformation(hChildStdoutRead, HANDLE_FLAG_INHERIT, 0)) {
             closesHandles();
-            throw std::runtime_error("Failed to set stdout handle information");
+            LOG_FATAL_THREAD("Failed to set stdout handle information");
+            return Status::ERR;
         }
 
         if (!SetHandleInformation(hChildStdinWrite, HANDLE_FLAG_INHERIT, 0)) {
             closesHandles();
-            throw std::runtime_error("Failed to set stdin handle information");
+            LOG_FATAL_THREAD("Failed to set stdin handle information");
+            return Status::ERR;
         }
 
         try {
@@ -168,14 +172,14 @@ class Process : public IProcess {
             overlapped.hEvent     = CreateEvent(NULL, TRUE, FALSE, NULL);
 
             if (!overlapped.hEvent) {
-                // throw std::runtime_error("Failed to create event for overlapped I/O");
+                LOG_FATAL_THREAD("Failed to create event for overlapped I/O");
                 return Status::ERR;
             }
 
             if (!ReadFile(hChildStdoutRead, buffer.data(), buffer.size(), &bytesRead, &overlapped)) {
                 if (GetLastError() != ERROR_IO_PENDING) {
                     CloseHandle(overlapped.hEvent);
-                    // throw std::runtime_error("Failed to read from pipe");
+                    LOG_FATAL_THREAD("Failed to read from pipe");
                     return Status::ERR;
                 }
 
@@ -187,13 +191,13 @@ class Process : public IProcess {
                 }
                 if (waitResult != WAIT_OBJECT_0) {
                     CloseHandle(overlapped.hEvent);
-                    // throw std::runtime_error("Wait failed");
+                    LOG_FATAL_THREAD("Wait failed");
                     return Status::ERR;
                 }
 
                 if (!GetOverlappedResult(hChildStdoutRead, &overlapped, &bytesRead, FALSE)) {
                     CloseHandle(overlapped.hEvent);
-                    // throw std::runtime_error("Failed to get overlapped result");
+                    LOG_FATAL_THREAD("Failed to get overlapped result");
                     return Status::ERR;
                 }
             }

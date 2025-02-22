@@ -16,9 +16,17 @@ TEST_SUITE("CRC32") {
     }
 
     TEST_CASE("From File") {
-        auto crc = crc::calculate_crc32("./app/tests/functions_test.cpp");
+        // create tmp file
+        std::ofstream file("tmp.txt");
+        file << "Hello, world!";
+        file.close();
+
+        auto crc = crc::calculate_crc32("tmp.txt");
 
         CHECK(crc.has_value());
-        CHECK(crc.value() == 0x7bad45e1);
+        CHECK(crc.value() == 0xebe6c6e6);
+
+        // remove tmp file
+        std::remove("tmp.txt");
     }
 }

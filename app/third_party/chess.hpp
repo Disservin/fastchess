@@ -25,7 +25,7 @@ THIS FILE IS AUTO GENERATED DO NOT CHANGE MANUALLY.
 
 Source: https://github.com/Disservin/chess-library
 
-VERSION: 0.7.6
+VERSION: 0.8.0
 */
 
 #ifndef CHESS_HPP
@@ -4570,32 +4570,31 @@ class uci {
             return Move::NO_MOVE;
         }
 
-        PieceType piece = board.at(source).type();
+        auto pt = board.at(source).type();
 
         // castling in chess960
-        if (board.chess960() && piece == PieceType::KING && board.at(target).type() == PieceType::ROOK &&
+        if (board.chess960() && pt == PieceType::KING && board.at(target).type() == PieceType::ROOK &&
             board.at(target).color() == board.sideToMove()) {
             return Move::make<Move::CASTLING>(source, target);
         }
 
         // convert to king captures rook
         // in chess960 the move should be sent as king captures rook already!
-        if (!board.chess960() && piece == PieceType::KING && Square::distance(target, source) == 2) {
+        if (!board.chess960() && pt == PieceType::KING && Square::distance(target, source) == 2) {
             target = Square(target > source ? File::FILE_H : File::FILE_A, source.rank());
             return Move::make<Move::CASTLING>(source, target);
         }
 
         // en passant
-        if (piece == PieceType::PAWN && target == board.enpassantSq()) {
+        if (pt == PieceType::PAWN && target == board.enpassantSq()) {
             return Move::make<Move::ENPASSANT>(source, target);
         }
 
         // promotion
-        if (piece == PieceType::PAWN && uci.length() == 5 && Square::back_rank(target, ~board.sideToMove())) {
+        if (pt == PieceType::PAWN && uci.length() == 5 && Square::back_rank(target, ~board.sideToMove())) {
             auto promotion = PieceType(uci.substr(4, 1));
 
-            if (promotion != PieceType::QUEEN && promotion != PieceType::ROOK && promotion != PieceType::BISHOP &&
-                promotion != PieceType::KNIGHT) {
+            if (promotion == PieceType::NONE || promotion == PieceType::KING || promotion == PieceType::PAWN) {
                 return Move::NO_MOVE;
             }
 
@@ -4664,26 +4663,32 @@ class uci {
 
     /**
      * @brief Parse a san string and return the move.
-     * @tparam PEDANTIC
+     * This function will throw a SanParseError if the san string is invalid.
      * @param board
      * @param san
      * @return
      */
-    template <bool PEDANTIC = false>
     [[nodiscard]] static Move parseSan(const Board &board, std::string_view san) noexcept(false) {
         Movelist moves;
 
-        return parseSan<PEDANTIC>(board, san, moves);
+        return parseSan(board, san, moves);
     }
 
-    template <bool PEDANTIC = false>
+    /**
+     * @brief Parse a san string and return the move.
+     * This function will throw a SanParseError if the san string is invalid.
+     * @param board
+     * @param san
+     * @param moves
+     * @return
+     */
     [[nodiscard]] static Move parseSan(const Board &board, std::string_view san, Movelist &moves) noexcept(false) {
         if (san.empty()) {
             return Move::NO_MOVE;
         }
 
         static constexpr auto pt_to_pgt = [](PieceType pt) { return 1 << (pt); };
-        const SanMoveInformation info   = parseSanInfo<PEDANTIC>(san);
+        const SanMoveInformation info   = parseSanInfo(san);
 
         if (info.capture) {
             movegen::legalmoves<movegen::MoveGenType::CAPTURE>(moves, board, pt_to_pgt(info.piece));
@@ -4771,9 +4776,11 @@ class uci {
         PieceType promotion = PieceType::NONE;
 
         Square from = Square::underlying::NO_SQ;
-        Square to   = Square::underlying::NO_SQ;  // a valid move always has a to square
+        // a valid move always has a to square
+        Square to = Square::underlying::NO_SQ;
 
-        PieceType piece = PieceType::NONE;  // a valid move always has a piece
+        // a valid move always has a piece
+        PieceType piece = PieceType::NONE;
 
         bool castling_short = false;
         bool castling_long  = false;
@@ -4781,13 +4788,10 @@ class uci {
         bool capture = false;
     };
 
-    template <bool PEDANTIC = false>
     [[nodiscard]] static SanMoveInformation parseSanInfo(std::string_view san) noexcept(false) {
 #ifndef CHESS_NO_EXCEPTIONS
-        if constexpr (PEDANTIC) {
-            if (san.length() < 2) {
-                throw SanParseError("Failed to parse san. At step 0: " + std::string(san));
-            }
+        if (san.length() < 2) {
+            throw SanParseError("Failed to parse san. At step 0: " + std::string(san));
         }
 #endif
         constexpr auto parse_castle = [](std::string_view &san, SanMoveInformation &info, char castling_char) {
@@ -4895,6 +4899,8 @@ class uci {
     template <bool LAN = false>
     static void moveToRep(Board board, const Move &move, std::string &str) {
         if (handleCastling(move, str)) {
+            board.makeMove(move);
+            if (board.inCheck()) appendCheckSymbol(board, str);
             return;
         }
 

@@ -28,26 +28,14 @@ extern std::atomic_bool stop;
 
 namespace engine::process {
 
-struct AsyncReadContext {
-    OVERLAPPED overlapped;
-    DWORD bytes_read{0};
-    DWORD error_code{0};
-    HANDLE completion_event{nullptr};
-
-    AsyncReadContext() {
-        ZeroMemory(&overlapped, sizeof(OVERLAPPED));
-        completion_event = CreateEvent(nullptr, TRUE, FALSE, nullptr);
-    }
-
-    ~AsyncReadContext() {
-        if (completion_event) {
-            CloseHandle(completion_event);
-        }
-    }
-};
-
 class Process : public IProcess {
     constexpr static int buffer_size = 4096;
+
+    HANDLE hChildStdoutRead  = NULL;
+    HANDLE hChildStdoutWrite = NULL;
+    HANDLE hChildStdinRead   = NULL;
+    HANDLE hChildStdinWrite  = NULL;
+    std::array<char, buffer_size> buffer;
 
    public:
     ~Process() override {
@@ -65,14 +53,45 @@ class Process : public IProcess {
         current_line_.reserve(300);
         pi_ = PROCESS_INFORMATION{};
 
-        try {
-            in_pipe_.create();
-            out_pipe_.create();
+        SECURITY_ATTRIBUTES saAttr;
+        saAttr.nLength              = sizeof(SECURITY_ATTRIBUTES);
+        saAttr.bInheritHandle       = TRUE;
+        saAttr.lpSecurityDescriptor = NULL;
 
-            auto si = createStartupInfo();
+        if (!CreatePipeEx(&hChildStdoutRead, &hChildStdoutWrite, &saAttr)) {
+            LOG_FATAL_THREAD("Failed to create stdout pipe");
+            return Status::ERR;
+        }
+
+        if (!CreatePipeEx(&hChildStdinRead, &hChildStdinWrite, &saAttr)) {
+            CloseHandle(hChildStdoutRead);
+            CloseHandle(hChildStdoutWrite);
+            LOG_FATAL_THREAD("Failed to create stdout pipe");
+            return Status::ERR;
+        }
+
+        if (!SetHandleInformation(hChildStdoutRead, HANDLE_FLAG_INHERIT, 0)) {
+            closesHandles();
+            LOG_FATAL_THREAD("Failed to set stdout handle information");
+            return Status::ERR;
+        }
+
+        if (!SetHandleInformation(hChildStdinWrite, HANDLE_FLAG_INHERIT, 0)) {
+            closesHandles();
+            LOG_FATAL_THREAD("Failed to set stdin handle information");
+            return Status::ERR;
+        }
+
+        try {
+            STARTUPINFOA si = {};
+            si.cb           = sizeof(STARTUPINFOA);
+            si.hStdOutput   = hChildStdoutWrite;
+            si.hStdInput    = hChildStdinRead;
+            si.hStdError    = hChildStdoutWrite;
+            si.dwFlags |= STARTF_USESTDHANDLES;
 
             if (createProcess(si)) {
-                process_list.push(ProcessInformation{pi_.hProcess, in_pipe_.write_end()});
+                process_list.push(ProcessInformation{pi_.hProcess, hChildStdoutWrite});
                 return Status::OK;
             }
 
@@ -81,6 +100,14 @@ class Process : public IProcess {
         }
 
         return Status::ERR;
+    }
+
+    void closesHandles() {
+        if (hChildStdoutRead) CloseHandle(hChildStdoutRead);
+        if (hChildStdoutWrite) CloseHandle(hChildStdoutWrite);
+        if (hChildStdinRead) CloseHandle(hChildStdinRead);
+        if (hChildStdinWrite) CloseHandle(hChildStdinWrite);
+        hChildStdoutRead = hChildStdoutWrite = hChildStdinRead = hChildStdinWrite = NULL;
     }
 
     [[nodiscard]] Status alive() noexcept override {
@@ -97,7 +124,11 @@ class Process : public IProcess {
     }
 
     void terminate() {
-        if (!is_initialized_) return;
+        closesHandles();
+
+        if (!is_initialized_) {
+            return;
+        }
 
         process_list.remove_if([this](const auto &pi) { return pi.identifier == pi_.hProcess; });
 
@@ -108,16 +139,10 @@ class Process : public IProcess {
             TerminateProcess(pi_.hProcess, 0);
         }
 
-        closeHandles();
-
         is_initialized_ = false;
     }
 
-    void setupRead() override {
-        current_line_.clear();
-
-        async_read_context_ = AsyncReadContext();
-    }
+    void setupRead() override { current_line_.clear(); }
 
     // Read stdout until the line matches last_word or timeout is reached
     // 0 means no timeout
@@ -127,54 +152,65 @@ class Process : public IProcess {
 
         lines.clear();
 
-        if (!async_read_context_.completion_event) {
-            return Status::ERR;
-        }
-
-        std::array<char, buffer_size> buffer;
-
-        const auto timeout = threshold.count() == 0 ? INFINITE : static_cast<DWORD>(threshold.count());
+        const auto startTime = std::chrono::steady_clock::now();
+        const auto timeout   = threshold.count() == 0 ? INFINITE : static_cast<DWORD>(threshold.count());
 
         while (true) {
-            // Start asynchronous read
-            BOOL read_result = ReadFileEx(in_pipe_.read_end(), buffer.data(), static_cast<DWORD>(buffer_size),
-                                          &async_read_context_.overlapped, nullptr);
+            auto currentTime = std::chrono::steady_clock::now();
+            auto elapsedMs   = std::chrono::duration_cast<std::chrono::milliseconds>(currentTime - startTime).count();
 
-            if (!read_result) {
-                return Status::ERR;
-            }
-
-            DWORD bytes_transferred = 0;
-
-            // Wait for completion or timeout
-            BOOL completion_result = GetOverlappedResultEx(in_pipe_.read_end(), &async_read_context_.overlapped,
-                                                           &bytes_transferred, timeout, FALSE);
-
-            if (!completion_result) {
-                DWORD error = GetLastError();
-
-                if (error == WAIT_TIMEOUT) {
-                    CancelIo(in_pipe_.read_end());
-                    return Status::TIMEOUT;
-                }
-
-                return Status::ERR;
+            if (elapsedMs >= timeout) {
+                return Status::TIMEOUT;
             }
 
             if (atomic::stop) {
                 return Status::ERR;
             }
 
-            if (bytes_transferred == 0) {
+            DWORD bytesRead;
+            OVERLAPPED overlapped = {};
+            overlapped.hEvent     = CreateEvent(NULL, TRUE, FALSE, NULL);
+
+            if (!overlapped.hEvent) {
+                LOG_FATAL_THREAD("Failed to create event for overlapped I/O");
+                return Status::ERR;
+            }
+
+            if (!ReadFile(hChildStdoutRead, buffer.data(), buffer.size(), &bytesRead, &overlapped)) {
+                if (GetLastError() != ERROR_IO_PENDING) {
+                    CloseHandle(overlapped.hEvent);
+                    LOG_FATAL_THREAD("Failed to read from pipe");
+                    return Status::ERR;
+                }
+
+                DWORD waitResult = WaitForSingleObject(overlapped.hEvent, timeout);
+                if (waitResult == WAIT_TIMEOUT) {
+                    CancelIo(hChildStdoutRead);
+                    CloseHandle(overlapped.hEvent);
+                    return Status::TIMEOUT;
+                }
+                if (waitResult != WAIT_OBJECT_0) {
+                    CloseHandle(overlapped.hEvent);
+                    LOG_FATAL_THREAD("Wait failed");
+                    return Status::ERR;
+                }
+
+                if (!GetOverlappedResult(hChildStdoutRead, &overlapped, &bytesRead, FALSE)) {
+                    CloseHandle(overlapped.hEvent);
+                    LOG_FATAL_THREAD("Failed to get overlapped result");
+                    return Status::ERR;
+                }
+            }
+
+            CloseHandle(overlapped.hEvent);
+
+            if (bytesRead == 0) {
                 continue;
             }
 
-            if (readBytes(buffer, bytes_transferred, lines, last_word)) {
+            if (readBytes(buffer, bytesRead, lines, last_word)) {
                 return Status::OK;
             }
-
-            // Reset for next iteration
-            ResetEvent(async_read_context_.completion_event);
         }
     }
 
@@ -184,7 +220,7 @@ class Process : public IProcess {
         if (alive() != Status::OK) terminate();
 
         DWORD bytes_written;
-        auto res = WriteFile(out_pipe_.write_end(), input.c_str(), input.length(), &bytes_written, nullptr);
+        auto res = WriteFile(hChildStdinWrite, input.c_str(), input.length(), &bytes_written, nullptr);
 
         return res ? Status::OK : Status::ERR;
     }
@@ -216,19 +252,6 @@ class Process : public IProcess {
         return false;
     }
 
-    [[nodiscard]] STARTUPINFOA createStartupInfo() const {
-        STARTUPINFOA si = STARTUPINFOA{};
-        si.dwFlags      = STARTF_USESTDHANDLES;
-
-        SetHandleInformation(in_pipe_.read_end(), HANDLE_FLAG_INHERIT, 0);
-        si.hStdOutput = in_pipe_.write_end();
-
-        SetHandleInformation(out_pipe_.write_end(), HANDLE_FLAG_INHERIT, 0);
-        si.hStdInput = out_pipe_.read_end();
-
-        return si;
-    }
-
     [[nodiscard]] bool createProcess(STARTUPINFOA &si) {
         const auto cmd = command_ + " " + args_;
 
@@ -245,17 +268,9 @@ class Process : public IProcess {
             &pi_                                  //
         );
 
-        out_pipe_.close_read();
         is_initialized_ = true;
 
         return success;
-    }
-
-    void closeHandles() const {
-        assert(is_initialized_);
-
-        CloseHandle(pi_.hThread);
-        CloseHandle(pi_.hProcess);
     }
 
     void addLine(std::vector<Line> &lines) const {
@@ -283,10 +298,6 @@ class Process : public IProcess {
     bool is_initialized_ = false;
 
     PROCESS_INFORMATION pi_;
-
-    AsyncReadContext async_read_context_;
-
-    Pipe in_pipe_ = {}, out_pipe_ = {};
 
     const std::thread::id thread_id = std::this_thread::get_id();
 };

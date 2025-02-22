@@ -122,9 +122,9 @@ TEST_SUITE("Uci Engine Communication Tests") {
 
         CHECK(uci_engine.writeEngine("sleep"));
         const auto res2 = uci_engine.readEngine("done", std::chrono::milliseconds(5000));
-        CHECK(res2 == engine::process::Status::OK);
         CHECK(uci_engine.output().size() == 1);
         CHECK(uci_engine.output()[0].line == "done");
+        CHECK(res2 == engine::process::Status::OK);
     }
 
     TEST_CASE("Testing the EngineProcess class with lower level class functions") {

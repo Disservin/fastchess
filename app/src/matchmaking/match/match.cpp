@@ -303,7 +303,6 @@ bool Match::playMove(Player& us, Player& them) {
     // we report a loss on time when the engine didnt respond in time
     // and otherwise an illegal move
     if (best_move == std::nullopt) {
-        Logger::info<true>("No bestmove from engine {}", name);
         // Time forfeit
         if (timeout) {
             setEngineTimeoutStatus(us, them);

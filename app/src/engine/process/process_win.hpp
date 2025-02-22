@@ -266,7 +266,6 @@ class Process : public IProcess {
             &pi_                                  //
         );
 
-        // out_pipe_.close_read();
         is_initialized_ = true;
 
         return success;

@@ -343,9 +343,6 @@ class Process : public IProcess {
             threshold = std::chrono::milliseconds(-1);
         }
 
-        // buffer to read into
-        std::array<char, 4096> buffer;
-
         // We prefer to use poll instead of select because
         // poll is more efficient and select has a filedescriptor limit of 1024
         // which can be a problem when running with a high concurrency
@@ -482,6 +479,9 @@ class Process : public IProcess {
         int read_end() const { return fds_[0]; }
         int write_end() const { return fds_[1]; }
     };
+
+    // buffer to read into
+    std::array<char, 4096> buffer;
 
     std::string wd_;
 

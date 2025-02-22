@@ -59,12 +59,12 @@ class Process : public IProcess {
         saAttr.lpSecurityDescriptor = NULL;
 
         // Create pipes for stdout
-        if (!CreatePipe(&hChildStdoutRead, &hChildStdoutWrite, &saAttr, 0)) {
+        if (!CreatePipeEx(&hChildStdoutRead, &hChildStdoutWrite, &saAttr)) {
             throw std::runtime_error("Failed to create stdout pipe");
         }
 
         // Create pipes for stdin
-        if (!CreatePipe(&hChildStdinRead, &hChildStdinWrite, &saAttr, 0)) {
+        if (!CreatePipeEx(&hChildStdinRead, &hChildStdinWrite, &saAttr)) {
             CloseHandle(hChildStdoutRead);
             CloseHandle(hChildStdoutWrite);
             throw std::runtime_error("Failed to create stdin pipe");
@@ -91,7 +91,7 @@ class Process : public IProcess {
             si.dwFlags |= STARTF_USESTDHANDLES;
 
             if (createProcess(si)) {
-                process_list.push(ProcessInformation{pi_.hProcess, hChildStdinWrite});
+                process_list.push(ProcessInformation{pi_.hProcess, hChildStdoutWrite});
                 return Status::OK;
             }
 
@@ -172,11 +172,15 @@ class Process : public IProcess {
                 return Status::TIMEOUT;
             }
 
+            if (atomic::stop) {
+                return Status::ERR;
+            }
+
             DWORD bytesRead;
             OVERLAPPED overlapped = {};
             overlapped.hEvent     = CreateEvent(NULL, TRUE, FALSE, NULL);
             if (!overlapped.hEvent) {
-                // throw std::runtime_error("Failed to create event for overlapped I/O");
+                throw std::runtime_error("Failed to create event for overlapped I/O");
             }
 
             if (!ReadFile(hChildStdoutRead, buffer.data(), buffer.size(), &bytesRead, &overlapped)) {

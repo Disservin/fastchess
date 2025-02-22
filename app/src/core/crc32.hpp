@@ -3,6 +3,7 @@
 #include <array>
 #include <cstdint>
 #include <iostream>
+#include <optional>
 #include <string>
 
 namespace fastchess::crc {
@@ -25,18 +26,23 @@ constexpr std::array<std::uint32_t, 256> generate_crc_table() {
 
 static constexpr auto crc_table = generate_crc_table();
 
-inline std::uint32_t calculate_crc32(const std::string& filename) {
+inline std::optional<std::uint32_t> calculate_crc32(const std::string& filename) {
     std::ifstream file(filename, std::ios::binary);
+
+    if (!file.is_open()) {
+        return std::nullopt;
+    }
 
     std::uint32_t crc = 0xFFFFFFFF;
     char buffer[4096];
 
-    while (file.read(buffer, sizeof(buffer))) {
+    do {
+        file.read(buffer, sizeof(buffer));
         size_t count = file.gcount();
         for (size_t i = 0; i < count; i++) {
             crc = (crc >> 8) ^ crc_table[(crc & 0xFF) ^ static_cast<unsigned char>(buffer[i])];
         }
-    }
+    } while (file);
 
     return ~crc;
 }

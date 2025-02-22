@@ -22,7 +22,13 @@ class FileWriter {
         if (isEmpty) {
             crc32_ = crc::initial_crc32();
         } else {
-            crc32_ = ~crc::calculate_crc32(filename);
+            const auto c = crc::calculate_crc32(filename);
+
+            if (c.has_value()) {
+                crc32_ = ~c.value();
+            } else {
+                crc32_ = crc::initial_crc32();
+            }
         }
     }
 

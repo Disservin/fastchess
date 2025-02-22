@@ -35,6 +35,11 @@ class BaseTournament {
 
     [[nodiscard]] stats_map getResults() noexcept { return scoreboard_.getResults(); }
 
+    std::optional<std::uint32_t> getPgnCRC32() {
+        if (file_writer_pgn_) return file_writer_pgn_->getCrc32();
+        return std::nullopt;
+    }
+
    protected:
     using start_fn  = std::function<void()>;
     using finish_fn = std::function<void(const Stats &stats, const std::string &reason, const engines &)>;

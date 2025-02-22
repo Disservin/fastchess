@@ -479,6 +479,16 @@ void parseConcurrency(const std::vector<std::string> &params, ArgumentData &argu
     parseValue(params, argument_data.tournament_config.concurrency);
 }
 
+void parseCrc(const std::vector<std::string> &params, ArgumentData &argument_data) {
+    parseDashOptions(params, [&](const std::string &key, const std::string &value) {
+        if (key == "pgn" && is_bool(value)) {
+            argument_data.tournament_config.pgn.crc = value == "true";
+        } else {
+            OptionsParser::throwMissing("crc", key, value);
+        }
+    });
+}
+
 void parseForceConcurrency(const std::vector<std::string> &, ArgumentData &argument_data) {
     argument_data.tournament_config.force_concurrency = true;
 }
@@ -647,6 +657,7 @@ OptionsParser::OptionsParser(const cli::Args &args) {
     addOption("report", parseReport);
     addOption("output", parseOutput);
     addOption("concurrency", parseConcurrency);
+    addOption("crc32", parseCrc);
     addOption("-force-concurrency", parseForceConcurrency);
     addOption("event", parseEvent);
     addOption("site", parseSite);

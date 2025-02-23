@@ -39,9 +39,5 @@ void TournamentManager::start(const cli::Args& args) {
 
     LOG_INFO("Starting tournament...");
     round_robin.start();
-
-    if (auto crc32 = round_robin.getPgnCRC32(); crc32) {
-        Logger::print("Games written to {} with CRC32: {:#x}", config::TournamentConfig->pgn.file, *crc32);
-    }
 }
 }  // namespace fastchess

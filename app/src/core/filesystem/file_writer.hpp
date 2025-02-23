@@ -58,9 +58,10 @@ class FileWriter {
     }
     std::ofstream file_;
     std::mutex file_mutex_;
-    std::string filename_;
     std::uint32_t crc32_;
-    bool calculate_crc_;
+
+    const std::string filename_;
+    const bool calculate_crc_;
 };
 
 }  // namespace fastchess::util

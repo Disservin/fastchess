@@ -29,7 +29,7 @@ int main(int argc, char const* argv[]) {
     } catch (const std::exception& e) {
         stopProcesses();
 
-        LOG_FATAL("Caught exception: {}", e.what());
+        Logger::print("{}", e.what());
 
         return EXIT_FAILURE;
     }

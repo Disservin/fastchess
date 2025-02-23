@@ -143,8 +143,8 @@ TEST_SUITE("PGN Reader") {
 
         CHECK(games[1].fen_epd == chess::constants::STARTPOS);
         CHECK(games[1].moves.size() == 13);
-        CHECK(games[1].moves[12] == chess::Move::make(chess::Square::underlying::SQ_G1,
-                                                      chess::Square::underlying::SQ_F3, chess::PieceType::KNIGHT));
+        CHECK(games[1].moves[12] ==
+              chess::Move::make(chess::Square::SQ_G1, chess::Square::SQ_F3, chess::PieceType::KNIGHT));
     }
 
     TEST_CASE("Read PGN file with invalid file") {

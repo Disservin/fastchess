@@ -154,6 +154,16 @@ constexpr char tolower(char c) { return (c >= 'A' && c <= 'Z') ? (c - 'A' + 'a')
 
 namespace chess {
 
+#define CHESS_DECLARE_RANK(N)                            \
+    static constexpr auto SQ_A##N = underlying::SQ_A##N; \
+    static constexpr auto SQ_B##N = underlying::SQ_B##N; \
+    static constexpr auto SQ_C##N = underlying::SQ_C##N; \
+    static constexpr auto SQ_D##N = underlying::SQ_D##N; \
+    static constexpr auto SQ_E##N = underlying::SQ_E##N; \
+    static constexpr auto SQ_F##N = underlying::SQ_F##N; \
+    static constexpr auto SQ_G##N = underlying::SQ_G##N; \
+    static constexpr auto SQ_H##N = underlying::SQ_H##N;
+
 class File {
    public:
     enum class underlying : std::uint8_t { FILE_A, FILE_B, FILE_C, FILE_D, FILE_E, FILE_F, FILE_G, FILE_H, NO_FILE };
@@ -275,6 +285,24 @@ class Square {
         NO_SQ
     };
     // clang-format on
+
+// when c++20
+#if __cplusplus >= 202002L
+    using enum underlying;
+#else
+
+    CHESS_DECLARE_RANK(1)
+    CHESS_DECLARE_RANK(2)
+    CHESS_DECLARE_RANK(3)
+    CHESS_DECLARE_RANK(4)
+    CHESS_DECLARE_RANK(5)
+    CHESS_DECLARE_RANK(6)
+    CHESS_DECLARE_RANK(7)
+    CHESS_DECLARE_RANK(8)
+
+    static constexpr auto NO_SQ = underlying::NO_SQ;
+
+#endif
 
     constexpr Square() : sq(underlying::NO_SQ) {}
 
@@ -470,7 +498,7 @@ class Square {
      * @return
      */
     [[nodiscard]] static constexpr Square castling_king_square(bool is_king_side, Color c) noexcept {
-        return Square(is_king_side ? Square::underlying::SQ_G1 : Square::underlying::SQ_C1).relative_square(c);
+        return Square(is_king_side ? Square::SQ_G1 : Square::SQ_C1).relative_square(c);
     }
 
     /**
@@ -480,7 +508,7 @@ class Square {
      * @return
      */
     [[nodiscard]] static constexpr Square castling_rook_square(bool is_king_side, Color c) noexcept {
-        return Square(is_king_side ? Square::underlying::SQ_F1 : Square::underlying::SQ_D1).relative_square(c);
+        return Square(is_king_side ? Square::SQ_F1 : Square::SQ_D1).relative_square(c);
     }
 
     /**
@@ -517,6 +545,8 @@ enum class Direction : int8_t {
 constexpr Square operator+(Square sq, Direction dir) {
     return static_cast<Square>(sq.index() + static_cast<int8_t>(dir));
 }
+
+#undef CHESS_DECLARE_RANK
 
 }  // namespace chess
 
@@ -1945,7 +1975,7 @@ class Board {
 
         // Append information about the en passant square (if any)
         // and the half-move clock and full move number to the FEN string
-        if (ep_sq_ == Square::underlying::NO_SQ)
+        if (ep_sq_ == Square::NO_SQ)
             ss += " -";
         else {
             ss += ' ';
@@ -1998,8 +2028,8 @@ class Board {
         hfm_++;
         plies_++;
 
-        if (ep_sq_ != Square::underlying::NO_SQ) key_ ^= Zobrist::enpassant(ep_sq_.file());
-        ep_sq_ = Square::underlying::NO_SQ;
+        if (ep_sq_ != Square::NO_SQ) key_ ^= Zobrist::enpassant(ep_sq_.file());
+        ep_sq_ = Square::NO_SQ;
 
         if (capture) {
             removePiece(captured, move.to());
@@ -2221,8 +2251,8 @@ class Board {
         prev_states_.emplace_back(key_, cr_, ep_sq_, hfm_, Piece::NONE);
 
         key_ ^= Zobrist::sideToMove();
-        if (ep_sq_ != Square::underlying::NO_SQ) key_ ^= Zobrist::enpassant(ep_sq_.file());
-        ep_sq_ = Square::underlying::NO_SQ;
+        if (ep_sq_ != Square::NO_SQ) key_ ^= Zobrist::enpassant(ep_sq_.file());
+        ep_sq_ = Square::NO_SQ;
 
         stm_ = ~stm_;
 
@@ -2543,7 +2573,7 @@ class Board {
         }
 
         U64 ep_hash = 0ULL;
-        if (ep_sq_ != Square::underlying::NO_SQ) ep_hash ^= Zobrist::enpassant(ep_sq_.file());
+        if (ep_sq_ != Square::NO_SQ) ep_hash ^= Zobrist::enpassant(ep_sq_.file());
 
         U64 stm_hash = 0ULL;
         if (stm_ == Color::WHITE) stm_hash ^= Zobrist::sideToMove();
@@ -2654,7 +2684,7 @@ class Board {
             const auto castling   = params[2].has_value() ? *params[2] : "-";
             const auto en_passant = params[3].has_value() ? *params[3] : "-";
 
-            const auto ep  = en_passant == "-" ? Square::underlying::NO_SQ : Square(en_passant);
+            const auto ep  = en_passant == "-" ? Square::NO_SQ : Square(en_passant);
             const auto stm = (move_right == "w") ? Color::WHITE : Color::BLACK;
 
             CastlingRights cr;
@@ -2823,7 +2853,7 @@ class Board {
         // 14 => any black rook with castling rights, side will be deduced from the file
         // 15 => black king and black is side to move
         static std::uint8_t convertMeaning(const CastlingRights &cr, Color stm, Square ep, Square sq, Piece piece) {
-            if (piece.type() == PieceType::PAWN && ep != Square::underlying::NO_SQ) {
+            if (piece.type() == PieceType::PAWN && ep != Square::NO_SQ) {
                 if (Square(static_cast<int>(sq.index()) ^ 8) == ep) return 12;
             }
 
@@ -2861,7 +2891,7 @@ class Board {
     CastlingRights cr_ = {};
     uint16_t plies_    = 0;
     Color stm_         = Color::WHITE;
-    Square ep_sq_      = Square::underlying::NO_SQ;
+    Square ep_sq_      = Square::NO_SQ;
     uint8_t hfm_       = 0;
 
     bool chess960_ = false;
@@ -2942,7 +2972,7 @@ class Board {
         plies_ = parseStringViewToInt(full_move).value_or(1);
 
         plies_ = plies_ * 2 - 2;
-        ep_sq_ = en_passant == "-" ? Square::underlying::NO_SQ : Square(en_passant);
+        ep_sq_ = en_passant == "-" ? Square::NO_SQ : Square(en_passant);
         stm_   = (move_right == "w") ? Color::WHITE : Color::BLACK;
         key_   = 0ULL;
         cr_.clear();
@@ -2978,8 +3008,7 @@ class Board {
         static const auto find_rook = [](const Board &board, CastlingRights::Side side, Color color) {
             const auto king_side = CastlingRights::Side::KING_SIDE;
             const auto king_sq   = board.kingSq(color);
-            const auto sq_corner = Square(side == king_side ? Square::underlying::SQ_H1 : Square::underlying::SQ_A1)
-                                       .relative_square(color);
+            const auto sq_corner = Square(side == king_side ? Square::SQ_H1 : Square::SQ_A1).relative_square(color);
 
             const auto start = side == king_side ? king_sq + 1 : king_sq - 1;
 
@@ -3034,13 +3063,13 @@ class Board {
         }
 
         // check if ep square itself is valid
-        if (ep_sq_ != Square::underlying::NO_SQ && !((ep_sq_.rank() == Rank::RANK_3 && stm_ == Color::BLACK) ||
-                                                     (ep_sq_.rank() == Rank::RANK_6 && stm_ == Color::WHITE))) {
-            ep_sq_ = Square::underlying::NO_SQ;
+        if (ep_sq_ != Square::NO_SQ && !((ep_sq_.rank() == Rank::RANK_3 && stm_ == Color::BLACK) ||
+                                         (ep_sq_.rank() == Rank::RANK_6 && stm_ == Color::WHITE))) {
+            ep_sq_ = Square::NO_SQ;
         }
 
         // check if ep square is valid, i.e. if there is a pawn that can capture it
-        if (ep_sq_ != Square::underlying::NO_SQ) {
+        if (ep_sq_ != Square::NO_SQ) {
             bool valid;
 
             if (stm_ == Color::WHITE) {
@@ -3050,7 +3079,7 @@ class Board {
             }
 
             if (!valid)
-                ep_sq_ = Square::underlying::NO_SQ;
+                ep_sq_ = Square::NO_SQ;
             else
                 key_ ^= Zobrist::enpassant(ep_sq_.file());
         }
@@ -3555,7 +3584,7 @@ inline void movegen::generatePawnMoves(const Board &board, Movelist &moves, Bitb
 
     const Square ep = board.enpassantSq();
 
-    if (ep != Square::underlying::NO_SQ) {
+    if (ep != Square::NO_SQ) {
         auto m = generateEPMove(board, checkmask, pin_d, pawns_lr, ep, c);
 
         for (const auto &move : m) {
@@ -4735,7 +4764,7 @@ class uci {
                 }
             }
             // Handle moves with specific from square
-            else if (info.from != Square::underlying::NO_SQ) {
+            else if (info.from != Square::NO_SQ) {
                 if (move.from() != info.from) {
                     continue;
                 }
@@ -4775,9 +4804,9 @@ class uci {
 
         PieceType promotion = PieceType::NONE;
 
-        Square from = Square::underlying::NO_SQ;
+        Square from = Square::NO_SQ;
         // a valid move always has a to square
-        Square to = Square::underlying::NO_SQ;
+        Square to = Square::NO_SQ;
 
         // a valid move always has a piece
         PieceType piece = PieceType::NONE;

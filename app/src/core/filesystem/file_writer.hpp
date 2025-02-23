@@ -28,7 +28,7 @@ class FileWriter {
 
         if (calculate_crc_) {
             crc32_ = crc::incremental_crc32(crc32_, data);
-            Logger::print("File {} has CRC32: {:#x}", filename_, crc32_);
+            Logger::print("File {} has CRC32: {:#x}", filename_, getCrc32().value());
         }
     }
 

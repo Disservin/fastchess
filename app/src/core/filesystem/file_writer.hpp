@@ -24,12 +24,12 @@ class FileWriter {
     void write(const std::string &data) {
         std::lock_guard<std::mutex> lock(file_mutex_);
 
+        file_ << data << std::flush;
+
         if (calculate_crc_) {
             crc32_ = crc::incremental_crc32(crc32_, data);
             Logger::print("File {} has CRC32: {:#x}", filename_, crc32_);
         }
-
-        file_ << data << std::flush;
     }
 
     std::optional<std::uint32_t> getCrc32() const noexcept {

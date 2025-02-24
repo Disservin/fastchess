@@ -18,7 +18,7 @@ class FileWriter {
             initCrc();
         }
 
-        file_.open(filename_, std::ios::app);
+        file_.open(filename_, std::ios::app | std::ios::binary);
     }
 
     void write(const std::string &data) {

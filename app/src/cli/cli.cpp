@@ -1,6 +1,5 @@
 #include <cli/cli.hpp>
 
-#include <core/printing/printing.h>
 #include <cli/cli_args.hpp>
 #include <cli/sanitize.hpp>
 #include <core/filesystem/file_system.hpp>
@@ -538,11 +537,7 @@ void parseVersion(const std::vector<std::string> &, ArgumentData &) {
     std::exit(0);
 }
 
-void parseHelp(const std::vector<std::string> &, ArgumentData &) {
-    setTerminalOutput();
-
-    OptionsParser::printHelp();
-}
+void parseHelp(const std::vector<std::string> &, ArgumentData &) { OptionsParser::printHelp(); }
 
 void parseRecover(const std::vector<std::string> &, ArgumentData &argument_data) {
     argument_data.tournament_config.recover = true;

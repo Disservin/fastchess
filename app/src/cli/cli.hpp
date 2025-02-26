@@ -8,6 +8,7 @@
 #include <unordered_map>
 #include <vector>
 
+#include <core/printing/printing.h>
 #include <cli/cli_args.hpp>
 #include <cli/man.hpp>
 #include <core/config/config.hpp>
@@ -96,6 +97,8 @@ class OptionsParser {
     }
 
     static void printHelp() {
+        setTerminalOutput();
+
         for (const auto c : man::man) {
             std::cout << c;
         }

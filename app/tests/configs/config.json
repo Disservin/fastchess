@@ -23,6 +23,7 @@
         "start": 1
     },
     "pgn": {
+        "additional_lines_rgx": [],
         "event_name": "Fastchess Tournament",
         "site": "?",
         "file": "",
@@ -34,7 +35,8 @@
         "track_tbhits": false,
         "track_timeleft": false,
         "track_latency": false,
-        "min": false
+        "min": false,
+        "crc": false
     },
     "epd": {
         "file": ""

@@ -24,7 +24,8 @@ struct Pgn {
     bool min              = false;
     bool crc              = false;
 };
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Pgn, event_name, site, file, notation, track_nodes, track_seldepth, track_nps,
-                                   track_hashfull, track_tbhits, track_timeleft, track_latency, min)
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Pgn, additional_lines_rgx, event_name, site, file, notation, track_nodes,
+                                   track_seldepth, track_nps, track_hashfull, track_tbhits, track_timeleft,
+                                   track_latency, min, crc)
 
 }  // namespace fastchess::config

@@ -63,8 +63,8 @@ struct MatchData {
     MatchData() {}
 
     explicit MatchData(std::string fen) : fen(std::move(fen)) {
-        start_time = util::time::datetime("%Y-%m-%dT%H:%M:%S %z");
-        date       = util::time::datetime("%Y.%m.%d");
+        start_time = util::time::datetime("%Y-%m-%dT%H:%M:%S %z").value_or("-");
+        date       = util::time::datetime("%Y.%m.%d").value_or("-");
     }
 
     GamePair<PlayerInfo, PlayerInfo> players;

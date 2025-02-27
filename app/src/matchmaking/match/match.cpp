@@ -192,7 +192,7 @@ void Match::start(engine::UciEngine& white, engine::UciEngine& black, const std:
 
     data_.variant = config::TournamentConfig->variant;
 
-    data_.end_time = util::time::datetime("%Y-%m-%dT%H:%M:%S %z");
+    data_.end_time = util::time::datetime("%Y-%m-%dT%H:%M:%S %z").value_or("-");
     data_.duration = util::time::duration(chrono::duration_cast<chrono::seconds>(end - start));
 
     data_.players = GamePair(MatchData::PlayerInfo{white_player.engine.getConfig(), white_player.getResult()},

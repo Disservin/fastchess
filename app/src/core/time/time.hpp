@@ -3,6 +3,7 @@
 #include <chrono>
 #include <ctime>
 #include <iomanip>
+#include <optional>
 #include <sstream>
 #include <string>
 
@@ -13,16 +14,16 @@ namespace sc = std::chrono;
 namespace time {
 
 // Get the current date and time in a given format.
-[[nodiscard]] inline std::string datetime(const std::string &format) {
+[[nodiscard]] inline std::optional<std::string> datetime(const std::string &format) {
     // Get the current time in UTC
     const auto now        = sc::system_clock::now();
     const auto time_t_now = sc::system_clock::to_time_t(now);
-    struct tm buf {};
+    struct tm buf{};
 
 #ifdef _WIN64
     auto res = localtime_s(&buf, &time_t_now);
     if (res != 0) {
-        throw std::runtime_error("Warning; localtime_s failed");
+        return std::nullopt;
     }
 
     // Format the time as an ISO 8601 string
@@ -60,7 +61,7 @@ namespace time {
     const auto str        = datetime("%H:%M:%S");
 
     std::stringstream ss;
-    ss << str << "." << std::setfill('0') << std::setw(6) << elapsed_ms.count();
+    ss << str.value_or("") << "." << std::setfill('0') << std::setw(6) << elapsed_ms.count();
     return ss.str();
 }
 }  // namespace time

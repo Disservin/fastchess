@@ -67,19 +67,15 @@ Match::Match(const book::Opening& opening) : opening_(opening) {
 }
 
 std::string Match::convertScoreToString(int score, engine::ScoreType score_type) {
-    std::stringstream ss;
-
     if (score_type == engine::ScoreType::CP) {
-        ss << (score > 0 ? "+" : score < 0 ? "-" : "");
-        ss << std::fixed << std::setprecision(2) << (float(std::abs(score)) / 100);
+        float normalized_score = static_cast<float>(std::abs(score)) / 100;
+        return fmt::format("{}{:.2f}", score > 0 ? "+" : score < 0 ? "-" : "", normalized_score);
     } else if (score_type == engine::ScoreType::MATE) {
         uint64_t plies = score > 0 ? score * 2 - 1 : score * -2;
-        ss << (score > 0 ? "+M" : "-M") << std::to_string(plies);
-    } else {
-        ss << "ERR";
+        return fmt::format("{}M{}", score > 0 ? "+" : "-", plies);
     }
 
-    return ss.str();
+    return "ERR";
 }
 
 void Match::addMoveData(const Player& player, int64_t measured_time_ms, int64_t latency, int64_t timeleft, bool legal) {

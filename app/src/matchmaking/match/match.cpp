@@ -510,10 +510,8 @@ void Match::verifyPvLines(const Player& us) {
                 auto moves    = fmt::format("Moves; {}", str_utils::join(uci_moves, " "));
 
                 auto separator = config::TournamentConfig->test_env ? " :: " : "\n";
-                auto last_sep  = config::TournamentConfig->test_env ? "" : "\n";
 
-                Logger::print<Logger::Level::WARN>("{1}{0}{2}{0}{3}{0}{4}{5}", separator, out, uci_info, position,
-                                                   moves, last_sep);
+                Logger::print<Logger::Level::WARN>("{1}{0}{2}{0}{3}{0}{4}", separator, out, uci_info, position, moves);
 
                 break;
             }

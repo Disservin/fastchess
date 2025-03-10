@@ -105,7 +105,7 @@ class MaxMovesTracker {
 
 class Match {
    public:
-    Match(const book::Opening& opening) : opening_(opening) {}
+    Match(const book::Opening& opening);
 
     // starts the match
     void start(engine::UciEngine& white, engine::UciEngine& black, const std::vector<int>& cpus);
@@ -129,9 +129,6 @@ class Match {
 
     static bool isUciMove(const std::string& move) noexcept;
     void verifyPvLines(const Player& us);
-
-    // Add opening moves to played moves
-    void prepare();
 
     // append the move data to the match data
     void addMoveData(const Player& player, int64_t latency, int64_t measured_time_ms, int64_t timeleft, bool legal);

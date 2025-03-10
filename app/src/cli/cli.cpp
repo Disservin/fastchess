@@ -630,6 +630,10 @@ void parseDebug(const std::vector<std::string> &, ArgumentData &) {
     throw std::runtime_error(error_message);
 }
 
+void parseTestEnv(const std::vector<std::string> &, ArgumentData &argument_data) {
+    argument_data.tournament_config.test_env = true;
+}
+
 OptionsParser::OptionsParser(const cli::Args &args) {
     LOG_TRACE("Reading options...");
 
@@ -678,6 +682,7 @@ OptionsParser::OptionsParser(const cli::Args &args) {
     addOption("use-affinity", parseAffinity);
     addOption("show-latency", parseLatency);
     addOption("debug", parseDebug);
+    addOption("testEnv", parseTestEnv);
 
     parse(args);
 

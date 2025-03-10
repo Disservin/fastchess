@@ -68,6 +68,9 @@ The following options are available:
     It is also possible that the latency is negative, due to different measurement methods or missing synchronization of the clocks
     between different threads.
 
+- -testEnv
+    Specifies that the program is running in a test environment (OpenBench/Fishtest). This will change some outputs/settings.
+
 - -draw movenumber=NUMBER movecount=COUNT score=SCORE  
     Enables draw adjudication based on number of moves, move count, and score threshold.
 

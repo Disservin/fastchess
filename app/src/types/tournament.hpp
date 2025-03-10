@@ -64,6 +64,7 @@ struct Tournament {
     bool recover      = false;
     bool affinity     = false;
     bool show_latency = false;
+    bool test_env     = false;
 
     Log log = {};
 };

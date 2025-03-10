@@ -483,7 +483,7 @@ bool Match::isUciMove(const std::string& move) noexcept {
 
 void Match::verifyPvLines(const Player& us) {
     const static auto verifyPv = [](Board board, const std::string& startpos, const std::vector<std::string>& uci_moves,
-                                    const std::string& info) {
+                                    const std::string& info, std::string_view name) {
         // skip lines without pv
         const auto tokens = str_utils::splitString(info, ' ');
         if (!str_utils::contains(tokens, "pv")) return;
@@ -504,11 +504,16 @@ void Match::verifyPvLines(const Player& us) {
             }
 
             if (gameover || std::find(moves.begin(), moves.end(), uci::uciToMove(board, *it_start)) == moves.end()) {
-                auto fmt      = fmt::format("Warning; Illegal pv move {} pv; {}", *it_start, info);
-                auto position = fmt::format("position {}", startpos == "startpos" ? "startpos" : ("fen " + startpos));
-                auto fmt2     = fmt::format("From; {} moves {}", position, str_utils::join(uci_moves, " "));
+                auto out      = fmt::format("Warning; Illegal pv move {} from {}", *it_start, name);
+                auto uci_info = fmt::format("Info; {}", info);
+                auto position = fmt::format("Position; {}", startpos == "startpos" ? "startpos" : ("fen " + startpos));
+                auto moves    = fmt::format("Moves; {}", str_utils::join(uci_moves, " "));
 
-                Logger::print<Logger::Level::WARN>("{}\n{}", fmt, fmt2);
+                auto separator = config::TournamentConfig->test_env ? " :: " : "\n";
+                auto last_sep  = config::TournamentConfig->test_env ? "" : "\n";
+
+                Logger::print<Logger::Level::WARN>("{1}{0}{2}{0}{3}{0}{4}{5}", separator, out, uci_info, position,
+                                                   moves, last_sep);
 
                 break;
             }
@@ -520,7 +525,7 @@ void Match::verifyPvLines(const Player& us) {
     };
 
     for (const auto& info : us.engine.output()) {
-        verifyPv(board_, start_position_, uci_moves_, info.line);
+        verifyPv(board_, start_position_, uci_moves_, info.line, us.engine.getConfig().name);
     }
 }
 

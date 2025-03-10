@@ -43,6 +43,29 @@ bool isFen(const std::string& line) { return line.find(';') == std::string::npos
 
 }  // namespace
 
+Match::Match(const book::Opening& opening) : opening_(opening) {
+    board_.set960(config::TournamentConfig->variant == VariantType::FRC);
+
+    if (isFen(opening_.fen_epd))
+        board_.setFen(opening_.fen_epd);
+    else
+        board_.setEpd(opening_.fen_epd);
+
+    const auto fen = board_.getFen();
+
+    data_           = MatchData(fen);
+    start_position_ = fen == chess::constants::STARTPOS ? "startpos" : fen;
+
+    const auto insert_move = [&](const auto& opening_move) {
+        const auto move = uci::moveToUci(opening_move, board_.chess960());
+        board_.makeMove(opening_move);
+
+        return MoveData(move, "0.00", 0, 0, 0, 0, 0, true, true);
+    };
+
+    std::transform(opening_.moves.begin(), opening_.moves.end(), std::back_inserter(data_.moves), insert_move);
+}
+
 std::string Match::convertScoreToString(int score, engine::ScoreType score_type) {
     std::stringstream ss;
 
@@ -106,35 +129,7 @@ void Match::addMoveData(const Player& player, int64_t measured_time_ms, int64_t 
     uci_moves_.push_back(move);
 }
 
-void Match::prepare() {
-    board_.set960(config::TournamentConfig->variant == VariantType::FRC);
-
-    if (isFen(opening_.fen_epd))
-        board_.setFen(opening_.fen_epd);
-    else
-        board_.setEpd(opening_.fen_epd);
-
-    start_position_ = board_.getFen() == chess::constants::STARTPOS ? "startpos" : board_.getFen();
-
-    const auto insert_move = [&](const auto& opening_move) {
-        const auto move = uci::moveToUci(opening_move, board_.chess960());
-        board_.makeMove(opening_move);
-
-        return MoveData(move, "0.00", 0, 0, 0, 0, 0, true, true);
-    };
-
-    data_ = MatchData(board_.getFen());
-
-    std::transform(opening_.moves.begin(), opening_.moves.end(), std::back_inserter(data_.moves), insert_move);
-
-    draw_tracker_     = DrawTracker();
-    resign_tracker_   = ResignTracker();
-    maxmoves_tracker_ = MaxMovesTracker();
-}
-
 void Match::start(engine::UciEngine& white, engine::UciEngine& black, const std::vector<int>& cpus) {
-    prepare();
-
     std::transform(data_.moves.begin(), data_.moves.end(), std::back_inserter(uci_moves_),
                    [](const MoveData& data) { return data.move; });
 
@@ -488,9 +483,8 @@ void Match::verifyPvLines(const Player& us) {
         const auto tokens = str_utils::splitString(info, ' ');
         if (!str_utils::contains(tokens, "pv")) return;
 
-        const auto fen = board.getFen();
-        auto it_start  = std::find(tokens.begin(), tokens.end(), "pv") + 1;
-        auto it_end    = std::find_if(it_start, tokens.end(), [](const auto& token) { return !isUciMove(token); });
+        auto it_start = std::find(tokens.begin(), tokens.end(), "pv") + 1;
+        auto it_end   = std::find_if(it_start, tokens.end(), [](const auto& token) { return !isUciMove(token); });
 
         Movelist moves;
 

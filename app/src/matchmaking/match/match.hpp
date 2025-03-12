@@ -12,46 +12,40 @@ namespace fastchess {
 
 class DrawTracker {
    public:
-    DrawTracker() noexcept {
-        move_number_ = config::TournamentConfig->draw.move_number;
-        move_count_  = config::TournamentConfig->draw.move_count;
-        draw_score   = config::TournamentConfig->draw.score;
-    }
+    DrawTracker(uint32_t move_number, int move_count, int draw_score)
+        : draw_score_(draw_score), move_number_(move_number), move_count_(move_count) {}
 
     void update(const int score, engine::ScoreType score_type, const int hmvc) noexcept {
-        if (hmvc == 0) draw_moves = 0;
+        if (hmvc == 0) draw_moves_ = 0;
 
         if (move_count_ > 0) {
-            if (std::abs(score) <= draw_score && score_type == engine::ScoreType::CP) {
-                draw_moves++;
+            if (std::abs(score) <= draw_score_ && score_type == engine::ScoreType::CP) {
+                draw_moves_++;
             } else {
-                draw_moves = 0;
+                draw_moves_ = 0;
             }
         }
     }
 
     [[nodiscard]] bool adjudicatable(uint32_t plies) const noexcept {
-        return plies >= move_number_ && draw_moves >= move_count_ * 2;
+        return plies >= move_number_ && draw_moves_ >= move_count_ * 2;
     }
 
    private:
     // number of moves below the draw threshold
-    int draw_moves = 0;
+    int draw_moves_ = 0;
     // the score must be below this threshold to draw
-    int draw_score = 0;
+    int draw_score_;
 
     // config
-    uint32_t move_number_ = 0;
-    int move_count_       = 0;
+    uint32_t move_number_;
+    int move_count_;
 };
 
 class ResignTracker {
    public:
-    ResignTracker() noexcept {
-        resign_score = config::TournamentConfig->resign.score;
-        move_count_  = config::TournamentConfig->resign.move_count;
-        twosided_    = config::TournamentConfig->resign.twosided;
-    }
+    ResignTracker(int resign_score, int move_count, bool twosided) noexcept
+        : resign_score(resign_score), move_count_(move_count), twosided_(twosided) {}
 
     void update(const int score, engine::ScoreType score_type, chess::Color color) noexcept {
         if (twosided_) {
@@ -85,22 +79,22 @@ class ResignTracker {
 
     // config
     // the score muust be above this threshold to resign
-    int resign_score = 0;
-    int move_count_  = 0;
-    bool twosided_   = false;
+    int resign_score;
+    int move_count_;
+    bool twosided_;
 };
 
 class MaxMovesTracker {
    public:
-    MaxMovesTracker() noexcept { move_count_ = config::TournamentConfig->maxmoves.move_count; }
+    MaxMovesTracker(int move_count) noexcept : move_count_(move_count) {}
 
     void update() noexcept { max_moves++; }
 
     [[nodiscard]] bool maxmovesreached() const noexcept { return max_moves >= move_count_ * 2; }
 
    private:
-    int max_moves   = 0;
-    int move_count_ = 0;
+    int max_moves = 0;
+    int move_count_;
 };
 
 class Match {
@@ -143,7 +137,6 @@ class Match {
 
     [[nodiscard]] static std::string convertChessReason(const std::string&, chess::GameResultReason) noexcept;
 
-
     bool isLegal(chess::Move move) const noexcept;
 
     const book::Opening& opening_;
@@ -151,9 +144,9 @@ class Match {
     MatchData data_     = {};
     chess::Board board_ = chess::Board();
 
-    DrawTracker draw_tracker_         = DrawTracker();
-    ResignTracker resign_tracker_     = ResignTracker();
-    MaxMovesTracker maxmoves_tracker_ = MaxMovesTracker();
+    DrawTracker draw_tracker_;
+    ResignTracker resign_tracker_;
+    MaxMovesTracker maxmoves_tracker_;
 
     std::vector<std::string> uci_moves_;
 

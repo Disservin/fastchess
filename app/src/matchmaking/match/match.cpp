@@ -43,7 +43,13 @@ bool isFen(const std::string& line) { return line.find(';') == std::string::npos
 
 }  // namespace
 
-Match::Match(const book::Opening& opening) : opening_(opening) {
+Match::Match(const book::Opening& opening)
+    : opening_(opening),
+      draw_tracker_(config::TournamentConfig->draw.move_number, config::TournamentConfig->draw.move_count,
+                    config::TournamentConfig->draw.score),
+      resign_tracker_(config::TournamentConfig->resign.score, config::TournamentConfig->resign.move_count,
+                      config::TournamentConfig->resign.twosided),
+      maxmoves_tracker_(config::TournamentConfig->maxmoves.move_count) {
     board_.set960(config::TournamentConfig->variant == VariantType::FRC);
 
     if (isFen(opening_.fen_epd))

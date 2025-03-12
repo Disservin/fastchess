@@ -14,8 +14,7 @@ namespace chrono = std::chrono;
 
 using namespace std::literals;
 using namespace chess;
-using clock  = chrono::steady_clock;
-using Engine = engine::UciEngine;
+using clock = chrono::steady_clock;
 
 namespace atomic {
 
@@ -126,7 +125,7 @@ void Match::addMoveData(const Player& player, int64_t measured_time_ms, int64_t 
     uci_moves_.push_back(move);
 }
 
-void Match::start(Engine& white, Engine& black, const std::vector<int>& cpus) {
+void Match::start(engine::UciEngine& white, engine::UciEngine& black, const std::vector<int>& cpus) {
     std::transform(data_.moves.begin(), data_.moves.end(), std::back_inserter(uci_moves_),
                    [](const MoveData& data) { return data.move; });
 

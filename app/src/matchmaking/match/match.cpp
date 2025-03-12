@@ -206,7 +206,7 @@ bool Match::playMove(Player& us, Player& them) {
 
     if (gameover.first != GameResultReason::NONE) {
         data_.termination = MatchTermination::NORMAL;
-        data_.reason      = convertChessReason(getColorString(), gameover.first);
+        data_.reason      = convertChessReason((~board_.sideToMove()).longStr(), gameover.first);
         return false;
     }
 
@@ -285,7 +285,7 @@ bool Match::playMove(Player& us, Player& them) {
     const auto timeleft = us.getTimeControl().getTimeLeft();
 
     if (best_move) {
-        addMoveData(us, elapsed_ms, latency, timeleft, legal && isUciMove(best_move.value()));
+        addMoveData(us, elapsed_ms, latency, timeleft, legal && uci::isUciMove(best_move.value()));
     }
 
     // there are two reasons why best_move could be empty
@@ -304,7 +304,7 @@ bool Match::playMove(Player& us, Player& them) {
         return false;
     }
 
-    if (best_move && !isUciMove(best_move.value())) {
+    if (best_move && !uci::isUciMove(best_move.value())) {
         setEngineIllegalMoveStatus(us, them, best_move, true);
         return false;
     }
@@ -382,7 +382,7 @@ void Match::setEngineCrashStatus(Player& loser, Player& winner) {
     stall_or_disconnect_ = true;
 
     const auto name  = loser.engine.getConfig().name;
-    const auto color = getColorString();
+    const auto color = board_.sideToMove().longStr();
 
     data_.termination = MatchTermination::DISCONNECT;
     data_.reason      = color + Match::DISCONNECT_MSG;
@@ -397,7 +397,7 @@ void Match::setEngineStallStatus(Player& loser, Player& winner) {
     stall_or_disconnect_ = true;
 
     const auto name  = loser.engine.getConfig().name;
-    const auto color = getColorString();
+    const auto color = board_.sideToMove().longStr();
 
     data_.termination = MatchTermination::STALL;
     data_.reason      = color + Match::STALL_MSG;
@@ -410,7 +410,7 @@ void Match::setEngineTimeoutStatus(Player& loser, Player& winner) {
     winner.setWon();
 
     const auto name  = loser.engine.getConfig().name;
-    const auto color = getColorString();
+    const auto color = board_.sideToMove().longStr();
 
     data_.termination = MatchTermination::TIMEOUT;
     data_.reason      = color + Match::TIMEOUT_MSG;
@@ -434,7 +434,7 @@ void Match::setEngineIllegalMoveStatus(Player& loser, Player& winner, const std:
     winner.setWon();
 
     const auto name  = loser.engine.getConfig().name;
-    const auto color = getColorString();
+    const auto color = board_.sideToMove().longStr();
 
     data_.termination = MatchTermination::ILLEGAL_MOVE;
     data_.reason      = color + Match::ILLEGAL_MSG;
@@ -449,29 +449,6 @@ void Match::setEngineIllegalMoveStatus(Player& loser, Player& winner, const std:
     Logger::print<Logger::Level::WARN>("Warning; Illegal move {} played by {}", mv, name);
 }
 
-bool Match::isUciMove(const std::string& move) noexcept {
-    bool is_uci = false;
-
-    constexpr auto is_digit     = [](char c) { return c >= '0' && c <= '9'; };
-    constexpr auto is_file      = [](char c) { return c >= 'a' && c <= 'h'; };
-    constexpr auto is_promotion = [](char c) { return c == 'n' || c == 'b' || c == 'r' || c == 'q'; };
-
-    // assert that the move is in uci format, [abcdefgh][0-9][abcdefgh][0-9][nbrq]
-    if (move.size() >= 4) {
-        is_uci = is_file(move[0]) && is_digit(move[1]) && is_file(move[2]) && is_digit(move[3]);
-    }
-
-    if (move.size() == 5) {
-        is_uci = is_uci && is_promotion(move[4]);
-    }
-
-    if (move.size() > 5) {
-        return false;
-    }
-
-    return is_uci;
-}
-
 void Match::verifyPvLines(const Player& us) {
     const static auto verifyPv = [](Board board, const std::string& startpos, const std::vector<std::string>& uci_moves,
                                     const std::string& info, std::string_view name) {
@@ -480,7 +457,7 @@ void Match::verifyPvLines(const Player& us) {
         if (!str_utils::contains(tokens, "pv")) return;
 
         auto it_start = std::find(tokens.begin(), tokens.end(), "pv") + 1;
-        auto it_end   = std::find_if(it_start, tokens.end(), [](const auto& token) { return !isUciMove(token); });
+        auto it_end   = std::find_if(it_start, tokens.end(), [](const auto& token) { return !uci::isUciMove(token); });
 
         Movelist moves;
 
@@ -522,7 +499,7 @@ bool Match::adjudicate(Player& us, Player& them) noexcept {
         us.setLost();
         them.setWon();
 
-        const auto color = getColorString(board_.sideToMove());
+        const auto color = board_.sideToMove().longStr();
 
         data_.termination = MatchTermination::ADJUDICATION;
         data_.reason      = color + Match::ADJUDICATION_WIN_MSG;
@@ -553,9 +530,8 @@ bool Match::adjudicate(Player& us, Player& them) noexcept {
     return false;
 }
 
-std::string Match::convertChessReason(const std::string& engine_color, GameResultReason reason) noexcept {
+std::string Match::convertChessReason(const std::string& color, GameResultReason reason) noexcept {
     if (reason == GameResultReason::CHECKMATE) {
-        std::string color = engine_color == "White" ? "Black" : "White";
         return color + Match::CHECKMATE_MSG;
     }
 

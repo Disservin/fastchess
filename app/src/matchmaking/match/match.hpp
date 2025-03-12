@@ -127,7 +127,6 @@ class Match {
     void setEngineIllegalMoveStatus(Player& loser, Player& winner, const std::optional<std::string>& best_move,
                                     bool invalid_format = false);
 
-    static bool isUciMove(const std::string& move) noexcept;
     void verifyPvLines(const Player& us);
 
     // append the move data to the match data
@@ -142,8 +141,7 @@ class Match {
     // returns true if adjudicated
     [[nodiscard]] bool adjudicate(Player& us, Player& them) noexcept;
 
-    [[nodiscard]] static std::string convertChessReason(const std::string& engine_color,
-                                                        chess::GameResultReason reason) noexcept;
+    [[nodiscard]] static std::string convertChessReason(const std::string&, chess::GameResultReason) noexcept;
 
     [[nodiscard]] std::string getColorString() const noexcept {
         return board_.sideToMove() == chess::Color::WHITE ? "White" : "Black";

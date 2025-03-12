@@ -25,7 +25,7 @@ THIS FILE IS AUTO GENERATED DO NOT CHANGE MANUALLY.
 
 Source: https://github.com/Disservin/chess-library
 
-VERSION: 0.8.0
+VERSION: 0.8.1
 */
 
 #ifndef CHESS_HPP
@@ -4795,6 +4795,34 @@ class uci {
         }
 
         return matchingMove;
+    }
+
+    /**
+     * @brief Check if a string is a valid UCI move. Must also have the correct length.
+     * @param move
+     * @return
+     */
+    static bool isUciMove(const std::string &move) noexcept {
+        bool is_uci = false;
+
+        static constexpr auto is_digit     = [](char c) { return c >= '1' && c <= '8'; };
+        static constexpr auto is_file      = [](char c) { return c >= 'a' && c <= 'h'; };
+        static constexpr auto is_promotion = [](char c) { return c == 'n' || c == 'b' || c == 'r' || c == 'q'; };
+
+        // assert that the move is in uci format, [abcdefgh][1-8][abcdefgh][1-8][nbrq]
+        if (move.size() >= 4) {
+            is_uci = is_file(move[0]) && is_digit(move[1]) && is_file(move[2]) && is_digit(move[3]);
+        }
+
+        if (move.size() == 5) {
+            is_uci = is_uci && is_promotion(move[4]);
+        }
+
+        if (move.size() > 5) {
+            return false;
+        }
+
+        return is_uci;
     }
 
    private:

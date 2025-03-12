@@ -206,7 +206,7 @@ bool Match::playMove(Player& us, Player& them) {
 
     if (gameover.first != GameResultReason::NONE) {
         data_.termination = MatchTermination::NORMAL;
-        data_.reason      = convertChessReason(getColorString(~board_.sideToMove()), gameover.first);
+        data_.reason      = convertChessReason((~board_.sideToMove()).longStr(), gameover.first);
         return false;
     }
 
@@ -382,7 +382,7 @@ void Match::setEngineCrashStatus(Player& loser, Player& winner) {
     stall_or_disconnect_ = true;
 
     const auto name  = loser.engine.getConfig().name;
-    const auto color = getColorString();
+    const auto color = board_.sideToMove().longStr();
 
     data_.termination = MatchTermination::DISCONNECT;
     data_.reason      = color + Match::DISCONNECT_MSG;
@@ -397,7 +397,7 @@ void Match::setEngineStallStatus(Player& loser, Player& winner) {
     stall_or_disconnect_ = true;
 
     const auto name  = loser.engine.getConfig().name;
-    const auto color = getColorString();
+    const auto color = board_.sideToMove().longStr();
 
     data_.termination = MatchTermination::STALL;
     data_.reason      = color + Match::STALL_MSG;
@@ -410,7 +410,7 @@ void Match::setEngineTimeoutStatus(Player& loser, Player& winner) {
     winner.setWon();
 
     const auto name  = loser.engine.getConfig().name;
-    const auto color = getColorString();
+    const auto color = board_.sideToMove().longStr();
 
     data_.termination = MatchTermination::TIMEOUT;
     data_.reason      = color + Match::TIMEOUT_MSG;
@@ -434,7 +434,7 @@ void Match::setEngineIllegalMoveStatus(Player& loser, Player& winner, const std:
     winner.setWon();
 
     const auto name  = loser.engine.getConfig().name;
-    const auto color = getColorString();
+    const auto color = board_.sideToMove().longStr();
 
     data_.termination = MatchTermination::ILLEGAL_MOVE;
     data_.reason      = color + Match::ILLEGAL_MSG;
@@ -499,7 +499,7 @@ bool Match::adjudicate(Player& us, Player& them) noexcept {
         us.setLost();
         them.setWon();
 
-        const auto color = getColorString();
+        const auto color = board_.sideToMove().longStr();
 
         data_.termination = MatchTermination::ADJUDICATION;
         data_.reason      = color + Match::ADJUDICATION_WIN_MSG;

@@ -143,13 +143,6 @@ class Match {
 
     [[nodiscard]] static std::string convertChessReason(const std::string&, chess::GameResultReason) noexcept;
 
-    [[nodiscard]] std::string getColorString() const noexcept {
-        return board_.sideToMove() == chess::Color::WHITE ? "White" : "Black";
-    }
-
-    [[nodiscard]] std::string getColorString(chess::Color c) const noexcept {
-        return c == chess::Color::WHITE ? "White" : "Black";
-    }
 
     bool isLegal(chess::Move move) const noexcept;
 

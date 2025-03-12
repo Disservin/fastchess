@@ -25,7 +25,7 @@ THIS FILE IS AUTO GENERATED DO NOT CHANGE MANUALLY.
 
 Source: https://github.com/Disservin/chess-library
 
-VERSION: 0.8.1
+VERSION: 0.8.2
 */
 
 #ifndef CHESS_HPP
@@ -75,6 +75,22 @@ class Color {
             color = underlying::WHITE;
         } else if (str == "b") {
             color = underlying::BLACK;
+        }
+    }
+
+    /**
+     * @brief Gets the long string representation of the color
+     * @return "White" for WHITE, "Black" for BLACK
+     * "None" for NONE
+     */
+    [[nodiscard]] std::string longStr() const {
+        switch (color) {
+            case underlying::WHITE:
+                return "White";
+            case underlying::BLACK:
+                return "Black";
+            default:
+                return "None";
         }
     }
 

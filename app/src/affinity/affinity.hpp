@@ -3,6 +3,7 @@
 #include <core/logger/logger.hpp>
 
 #ifdef _WIN64
+#    include <processthreadsapi.h>
 #    include <windows.h>
 #elif defined(__APPLE__)
 #    include <mach/thread_act.h>
@@ -21,11 +22,43 @@ namespace affinity {
 inline bool setAffinity(const std::vector<int>& cpus, HANDLE process_handle) noexcept {
     LOG_TRACE("Setting affinity mask for process handle: {}", process_handle);
 
+    // Check if SetProcessDefaultCpuSetMasks is available
+    const HMODULE hModule = GetModuleHandle(TEXT("kernel32.dll"));
+    if (hModule) {
+        // casting the function pointer to the target type is required by the API, so temporarily suppress the warning.
+#    pragma GCC diagnostic push
+#    pragma GCC diagnostic ignored "-Wcast-function-type"
+        const auto pSetProcessDefaultCpuSetMasks = reinterpret_cast<decltype(&SetProcessDefaultCpuSetMasks)>(
+            GetProcAddress(hModule, "SetProcessDefaultCpuSetMasks"));
+#    pragma GCC diagnostic pop
+
+        if (pSetProcessDefaultCpuSetMasks) {
+            // Create an array of GROUP_AFFINITY structures
+            std::vector<GROUP_AFFINITY> groupAffinities(cpus.size());
+
+            for (size_t i = 0; i < cpus.size(); ++i) {
+                GROUP_AFFINITY& ga = groupAffinities[i];
+                ZeroMemory(&ga, sizeof(GROUP_AFFINITY));
+                ga.Mask  = 1ull << (cpus[i] % 64);           // Assuming cpus[i] is the logical processor number
+                ga.Group = static_cast<WORD>(cpus[i] / 64);  // Assuming each group has 64 processors
+            }
+
+            // Set the CPU set masks for the process
+            return pSetProcessDefaultCpuSetMasks(process_handle, groupAffinities.data(),
+                                                 static_cast<USHORT>(groupAffinities.size())) == TRUE;
+        }
+    }
+
+    // Fallback to SetProcessAffinityMask for older Windows versions
     DWORD_PTR affinity_mask = 0;
 
     for (const auto& cpu : cpus) {
-        assert(cpu <= 63);
-
+        if (cpu > 63) {
+            Logger::print<Logger::Level::ERR>(
+                "Setting affinity for more than 64 logical CPUs is not supported: requires at least Windows 11 or "
+                "Windows Server 2022.");
+            return false;
+        }
         affinity_mask |= (1ull << cpu);
     }
 

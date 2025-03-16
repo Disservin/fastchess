@@ -63,7 +63,9 @@ chess::GameResult probeSyzygyWdl(const chess::Board& board) {
             return chess::GameResult::LOSE;
     }
 
-    assert(("This should be unreachable!", false));
+    // Should be unreachable.
+    assert(false);
+
     return chess::GameResult::NONE;
 }
 

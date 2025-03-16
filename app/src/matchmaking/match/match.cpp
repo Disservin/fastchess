@@ -502,38 +502,8 @@ void Match::verifyPvLines(const Player& us) {
 }
 
 bool Match::adjudicate(Player& us, Player& them) noexcept {
-    if (config::TournamentConfig->resign.enabled && resign_tracker_.resignable() && us.engine.lastScore() < 0) {
-        us.setLost();
-        them.setWon();
-
-        const auto color = board_.sideToMove().longStr();
-
-        data_.termination = MatchTermination::ADJUDICATION;
-        data_.reason      = color + Match::ADJUDICATION_WIN_MSG;
-
-        return true;
-    }
-
-    if (config::TournamentConfig->draw.enabled && draw_tracker_.adjudicatable(board_.fullMoveNumber() - 1)) {
-        us.setDraw();
-        them.setDraw();
-
-        data_.termination = MatchTermination::ADJUDICATION;
-        data_.reason      = Match::ADJUDICATION_MSG;
-
-        return true;
-    }
-
-    if (config::TournamentConfig->maxmoves.enabled && maxmoves_tracker_.maxmovesreached()) {
-        us.setDraw();
-        them.setDraw();
-
-        data_.termination = MatchTermination::ADJUDICATION;
-        data_.reason      = Match::ADJUDICATION_MSG;
-
-        return true;
-    }
-
+    // Start with TB adjudication, if applicable, since this provides a sort of 'exact' result, whereas the other
+    // adjudication methods are more heuristic.
     if (config::TournamentConfig->tb_adjudication.enabled && tb_adjudication_tracker_.adjudicatable(board_)) {
         const GameResult result = tb_adjudication_tracker_.adjudicate(board_);
         if (result != GameResult::NONE) {
@@ -564,6 +534,38 @@ bool Match::adjudicate(Player& us, Player& them) noexcept {
 
             return true;
         }
+    }
+
+    if (config::TournamentConfig->resign.enabled && resign_tracker_.resignable() && us.engine.lastScore() < 0) {
+        us.setLost();
+        them.setWon();
+
+        const auto color = board_.sideToMove().longStr();
+
+        data_.termination = MatchTermination::ADJUDICATION;
+        data_.reason      = color + Match::ADJUDICATION_WIN_MSG;
+
+        return true;
+    }
+
+    if (config::TournamentConfig->draw.enabled && draw_tracker_.adjudicatable(board_.fullMoveNumber() - 1)) {
+        us.setDraw();
+        them.setDraw();
+
+        data_.termination = MatchTermination::ADJUDICATION;
+        data_.reason      = Match::ADJUDICATION_MSG;
+
+        return true;
+    }
+
+    if (config::TournamentConfig->maxmoves.enabled && maxmoves_tracker_.maxmovesreached()) {
+        us.setDraw();
+        them.setDraw();
+
+        data_.termination = MatchTermination::ADJUDICATION;
+        data_.reason      = Match::ADJUDICATION_MSG;
+
+        return true;
     }
 
     return false;

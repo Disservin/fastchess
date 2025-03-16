@@ -6,6 +6,7 @@ BINARY_PATH	  	 := .
 
 # Source, Includes
 SRCDIR           := src
+THIRDPARTYDIR    := third_party
 TESTDIR          := tests
 BUILDDIR         := tmp
 INCDIR           := src
@@ -35,7 +36,8 @@ SRC_FILES        := \
 	$(SRCDIR)/matchmaking/sprt/sprt.cpp \
 	$(SRCDIR)/matchmaking/tournament/base/tournament.cpp \
 	$(SRCDIR)/matchmaking/tournament/roundrobin/roundrobin.cpp \
-	$(SRCDIR)/matchmaking/tournament/tournament_manager.cpp
+	$(SRCDIR)/matchmaking/tournament/tournament_manager.cpp \
+	$(THIRDPARTYDIR)/pyrrhic/tbprobe.cpp
 
 SRC_FILES_TEST   := \
 	$(TESTDIR)/cli_test.cpp \

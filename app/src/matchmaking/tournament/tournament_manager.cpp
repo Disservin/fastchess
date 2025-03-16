@@ -41,7 +41,7 @@ void TournamentManager::start(const cli::Args& args) {
         LOG_INFO("Loading Syzygy tablebases...");
         const int tbPieces = initSyzygy(config::TournamentConfig->tb_adjudication.syzygy_dirs);
         if (tbPieces == 0) {
-            throw std::runtime_error("Failed to load Syzygy tablebases from the following directories: " +
+            throw std::runtime_error("Error: Failed to load Syzygy tablebases from the following directories: " +
                                      config::TournamentConfig->tb_adjudication.syzygy_dirs);
         }
         LOG_INFO("Loaded {}-piece Syzygy tablebases.", tbPieces);

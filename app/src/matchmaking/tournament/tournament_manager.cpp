@@ -17,6 +17,10 @@ namespace fastchess {
 TournamentManager::TournamentManager() {}
 
 TournamentManager::~TournamentManager() {
+    if (initialized_tbs_) {
+        tearDownSyzygy();
+    }
+
     atomic::stop = true;
     LOG_TRACE("~TournamentManager()");
 }
@@ -45,6 +49,7 @@ void TournamentManager::start(const cli::Args& args) {
                                      config::TournamentConfig->tb_adjudication.syzygy_dirs);
         }
         LOG_INFO("Loaded {}-piece Syzygy tablebases.", tbPieces);
+        initialized_tbs_ = true;
     }
 
     LOG_TRACE("Creating tournament...");

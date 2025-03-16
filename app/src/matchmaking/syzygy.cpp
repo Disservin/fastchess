@@ -18,7 +18,7 @@ int initSyzygy(const std::string_view syzygyDirs) {
     return TB_LARGEST;
 }
 
-void tearDownSyzgy() { tb_free(); }
+void tearDownSyzygy() { tb_free(); }
 
 bool canProbeSyzgyWdl(const chess::Board& board) {
     if (board.halfMoveClock() != 0) {

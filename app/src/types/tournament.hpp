@@ -15,6 +15,7 @@
 #include <types/pgn.hpp>
 #include <types/resign_adjudication.hpp>
 #include <types/sprt.hpp>
+#include <types/tb_adjudication.hpp>
 
 namespace fastchess::config {
 
@@ -27,9 +28,10 @@ struct Tournament {
 
     std::string config_name;
 
-    DrawAdjudication draw         = {};
-    ResignAdjudication resign     = {};
-    MaxMovesAdjudication maxmoves = {};
+    DrawAdjudication draw          = {};
+    ResignAdjudication resign      = {};
+    MaxMovesAdjudication maxmoves  = {};
+    TbAdjudication tb_adjudication = {};
 
     VariantType variant = VariantType::STANDARD;
 
@@ -68,9 +70,9 @@ struct Tournament {
 
     Log log = {};
 };
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Tournament, resign, draw, maxmoves, opening, pgn, epd, sprt, config_name, output,
-                                   seed, variant, ratinginterval, scoreinterval, wait, autosaveinterval, games, rounds,
-                                   concurrency, force_concurrency, recover, noswap, reverse, report_penta, affinity,
-                                   show_latency, log)
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Tournament, resign, draw, maxmoves, tb_adjudication, opening, pgn, epd, sprt,
+                                   config_name, output, seed, variant, ratinginterval, scoreinterval, wait,
+                                   autosaveinterval, games, rounds, concurrency, force_concurrency, recover, noswap,
+                                   reverse, report_penta, affinity, show_latency, log)
 
 }  // namespace fastchess::config

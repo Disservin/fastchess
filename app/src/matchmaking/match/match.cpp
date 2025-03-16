@@ -49,7 +49,8 @@ Match::Match(const book::Opening& opening)
                     config::TournamentConfig->draw.score),
       resign_tracker_(config::TournamentConfig->resign.score, config::TournamentConfig->resign.move_count,
                       config::TournamentConfig->resign.twosided),
-      maxmoves_tracker_(config::TournamentConfig->maxmoves.move_count) {
+      maxmoves_tracker_(config::TournamentConfig->maxmoves.move_count),
+      tb_adjudication_tracker_() {
     board_.set960(config::TournamentConfig->variant == VariantType::FRC);
 
     if (isFen(opening_.fen_epd))
@@ -531,6 +532,38 @@ bool Match::adjudicate(Player& us, Player& them) noexcept {
         data_.reason      = Match::ADJUDICATION_MSG;
 
         return true;
+    }
+
+    if (config::TournamentConfig->tb_adjudication.enabled && tb_adjudication_tracker_.adjudicatable(board_)) {
+        const GameResult result = tb_adjudication_tracker_.adjudicate(board_);
+        if (result != GameResult::NONE) {
+            // Note: 'them' is the player to move at this point, so the result is from their perspective.
+
+            if (result == GameResult::DRAW) {
+                us.setDraw();
+                them.setDraw();
+
+                data_.reason = Match::ADJUDICATION_TB_DRAW_MSG;
+            } else if (result == GameResult::WIN) {
+                us.setLost();
+                them.setWon();
+
+                const auto color = board_.sideToMove().longStr();
+                data_.reason     = color + Match::ADJUDICATION_TB_WIN_MSG;
+            } else {
+                assert(result == GameResult::LOSE);
+
+                us.setWon();
+                them.setLost();
+
+                const auto color = (~board_.sideToMove()).longStr();
+                data_.reason     = color + Match::ADJUDICATION_TB_WIN_MSG;
+            }
+
+            data_.termination = MatchTermination::ADJUDICATION;
+
+            return true;
+        }
     }
 
     return false;

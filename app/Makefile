@@ -30,6 +30,7 @@ SRC_FILES        := \
 	$(SRCDIR)/game/pgn/pgn_builder.cpp \
 	$(SRCDIR)/game/timecontrol/timecontrol.cpp \
 	$(SRCDIR)/main.cpp \
+	$(SRCDIR)/matchmaking/syzygy.cpp \
 	$(SRCDIR)/matchmaking/elo/elo_pentanomial.cpp \
 	$(SRCDIR)/matchmaking/elo/elo_wdl.cpp \
 	$(SRCDIR)/matchmaking/match/match.cpp \

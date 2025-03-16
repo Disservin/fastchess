@@ -58,6 +58,7 @@ SRC_FILES_TEST   := \
 	$(TESTDIR)/player.cpp \
 	$(TESTDIR)/scoreboard_test.cpp \
 	$(TESTDIR)/sprt_test.cpp \
+	$(TESTDIR)/syzygy_test.cpp \
 	$(TESTDIR)/timecontrol_test.cpp \
 	$(TESTDIR)/tournament_manager_test.cpp \
 	$(TESTDIR)/uci_engine_test.cpp \

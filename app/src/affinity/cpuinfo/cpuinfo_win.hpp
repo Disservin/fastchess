@@ -36,12 +36,12 @@ inline CpuInfo getCpuInfo() noexcept(false) {
 
     DWORD byte_length = 0;
 
-    GetLogicalProcessorInformationEx(RelationProcessorCore, nullptr, &byte_length);
+    GetLogicalProcessorInformationEx(RelationProcessorPackage, nullptr, &byte_length);
 
     std::unique_ptr<char[]> buffer(new char[byte_length]);
     auto ptr = PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX(buffer.get());
 
-    if (!GetLogicalProcessorInformationEx(RelationProcessorCore, ptr, &byte_length)) {
+    if (!GetLogicalProcessorInformationEx(RelationProcessorPackage, ptr, &byte_length)) {
         std::cerr << "GetLogicalProcessorInformationEx failed." << std::endl;
     }
 
@@ -68,18 +68,20 @@ inline CpuInfo getCpuInfo() noexcept(false) {
 
     DWORD offset = 0;
     while (offset < byte_length) {
-        if (ptr->Relationship == RelationProcessorCore) {
-            // If the PROCESSOR_RELATIONSHIP structure represents a processor core, the GroupCount
-            // member is always 1.
-            auto mask = ptr->Processor.GroupMask[0].Mask;
+        if (ptr->Relationship == RelationProcessorPackage) {
+            const int groupCount = ptr->Processor.GroupCount;
 
-            while (mask) {
-                const int processor = pop(mask);
-                // proper way to get this idx?
-                cpu_info.physical_cpus[physical_id].cores[idx].processors.emplace_back(processor);
+            for (int groupIdx = 0; groupIdx < groupCount; ++groupIdx) {
+                auto mask = ptr->Processor.GroupMask[groupIdx].Mask;
+
+                while (mask) {
+                    const int processor = pop(mask) + groupIdx * 64;
+                    // proper way to get this idx?
+                    cpu_info.physical_cpus[physical_id].cores[idx].processors.emplace_back(processor);
+                }
+
+                idx++;
             }
-
-            idx++;
         }
 
         offset += ptr->Size;

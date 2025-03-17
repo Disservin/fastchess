@@ -207,6 +207,17 @@ TEST_SUITE("Option Parsing Tests") {
         CHECK_THROWS_WITH_AS(cli::OptionsParser{args}, "Engine not found at: ./foo.exe", std::runtime_error);
     }
 
+    TEST_CASE("Should throw error empty TB paths") {
+        const auto args = cli::Args{
+            "fastchess.exe",
+            "-tb",
+        };
+
+        CHECK_THROWS_WITH_AS(cli::OptionsParser{args},
+                             "Error: Must provide a ;-separated list of Syzygy tablebase directories.",
+                             std::runtime_error);
+    }
+
     TEST_CASE("General Config Parsing") {
         const auto args = cli::Args{"fastchess.exe",
                                     "-engine",

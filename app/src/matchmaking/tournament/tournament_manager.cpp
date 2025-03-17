@@ -7,13 +7,19 @@
 #include <core/globals/globals.hpp>
 #include <core/logger/logger.hpp>
 #include <core/rand.hpp>
+#include <matchmaking/syzygy.hpp>
 #include <matchmaking/tournament/tournament_manager.hpp>
+
+#include <stdexcept>
 
 namespace fastchess {
 
 TournamentManager::TournamentManager() {}
 
 TournamentManager::~TournamentManager() {
+    // Note: this is safe to call even if initSyzygy() was not called.
+    tearDownSyzygy();
+
     atomic::stop = true;
     LOG_TRACE("~TournamentManager()");
 }
@@ -33,6 +39,16 @@ void TournamentManager::start(const cli::Args& args) {
     LOG_INFO("{}", cli::OptionsParser::Version);
 
     util::random::seed(config::TournamentConfig->seed);
+
+    if (config::TournamentConfig->tb_adjudication.enabled) {
+        LOG_INFO("Loading Syzygy tablebases...");
+        const int tbPieces = initSyzygy(config::TournamentConfig->tb_adjudication.syzygy_dirs);
+        if (tbPieces == 0) {
+            throw std::runtime_error("Error: Failed to load Syzygy tablebases from the following directories: " +
+                                     config::TournamentConfig->tb_adjudication.syzygy_dirs);
+        }
+        LOG_INFO("Loaded {}-piece Syzygy tablebases.", tbPieces);
+    }
 
     LOG_TRACE("Creating tournament...");
     auto round_robin = RoundRobin(options.getResults());

@@ -6,6 +6,7 @@
 #include <core/config/config.hpp>
 #include <game/book/opening_book.hpp>
 #include <matchmaking/player.hpp>
+#include <matchmaking/syzygy.hpp>
 #include <types/match_data.hpp>
 
 namespace fastchess {
@@ -97,6 +98,17 @@ class MaxMovesTracker {
     int move_count_;
 };
 
+class TbAdjudicationTracker {
+   public:
+    TbAdjudicationTracker() = default;
+
+    [[nodiscard]] bool adjudicatable(const chess::Board& board) const noexcept { return canProbeSyzgyWdl(board); }
+
+    [[nodiscard]] chess::GameResult adjudicate(const chess::Board& board) const noexcept {
+        return probeSyzygyWdl(board);
+    }
+};
+
 class Match {
    public:
     Match(const book::Opening& opening);
@@ -147,6 +159,7 @@ class Match {
     DrawTracker draw_tracker_;
     ResignTracker resign_tracker_;
     MaxMovesTracker maxmoves_tracker_;
+    TbAdjudicationTracker tb_adjudication_tracker_;
 
     std::vector<std::string> uci_moves_;
 
@@ -156,16 +169,18 @@ class Match {
 
     bool stall_or_disconnect_ = false;
 
-    inline static constexpr char INSUFFICIENT_MSG[]     = "Draw by insufficient mating material";
-    inline static constexpr char REPETITION_MSG[]       = "Draw by 3-fold repetition";
-    inline static constexpr char ILLEGAL_MSG[]          = " makes an illegal move";
-    inline static constexpr char ADJUDICATION_WIN_MSG[] = " wins by adjudication";
-    inline static constexpr char ADJUDICATION_MSG[]     = "Draw by adjudication";
-    inline static constexpr char FIFTY_MSG[]            = "Draw by fifty moves rule";
-    inline static constexpr char STALEMATE_MSG[]        = "Draw by stalemate";
-    inline static constexpr char CHECKMATE_MSG[]        = /*..*/ " mates";
-    inline static constexpr char TIMEOUT_MSG[]          = /*.. */ " loses on time";
-    inline static constexpr char DISCONNECT_MSG[]       = /*.. */ " disconnects";
-    inline static constexpr char STALL_MSG[]            = /*.. */ "'s connection stalls";
+    inline static constexpr char INSUFFICIENT_MSG[]         = "Draw by insufficient mating material";
+    inline static constexpr char REPETITION_MSG[]           = "Draw by 3-fold repetition";
+    inline static constexpr char ILLEGAL_MSG[]              = " makes an illegal move";
+    inline static constexpr char ADJUDICATION_WIN_MSG[]     = " wins by adjudication";
+    inline static constexpr char ADJUDICATION_TB_WIN_MSG[]  = " wins by Syzygy TB adjudication";
+    inline static constexpr char ADJUDICATION_MSG[]         = "Draw by adjudication";
+    inline static constexpr char ADJUDICATION_TB_DRAW_MSG[] = "Draw by Syzgy TB adjudication";
+    inline static constexpr char FIFTY_MSG[]                = "Draw by fifty moves rule";
+    inline static constexpr char STALEMATE_MSG[]            = "Draw by stalemate";
+    inline static constexpr char CHECKMATE_MSG[]            = /*..*/ " mates";
+    inline static constexpr char TIMEOUT_MSG[]              = /*.. */ " loses on time";
+    inline static constexpr char DISCONNECT_MSG[]           = /*.. */ " disconnects";
+    inline static constexpr char STALL_MSG[]                = /*.. */ "'s connection stalls";
 };
 }  // namespace fastchess

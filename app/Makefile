@@ -6,6 +6,7 @@ BINARY_PATH	  	 := .
 
 # Source, Includes
 SRCDIR           := src
+THIRDPARTYDIR    := third_party
 TESTDIR          := tests
 BUILDDIR         := tmp
 INCDIR           := src
@@ -29,13 +30,15 @@ SRC_FILES        := \
 	$(SRCDIR)/game/pgn/pgn_builder.cpp \
 	$(SRCDIR)/game/timecontrol/timecontrol.cpp \
 	$(SRCDIR)/main.cpp \
+	$(SRCDIR)/matchmaking/syzygy.cpp \
 	$(SRCDIR)/matchmaking/elo/elo_pentanomial.cpp \
 	$(SRCDIR)/matchmaking/elo/elo_wdl.cpp \
 	$(SRCDIR)/matchmaking/match/match.cpp \
 	$(SRCDIR)/matchmaking/sprt/sprt.cpp \
 	$(SRCDIR)/matchmaking/tournament/base/tournament.cpp \
 	$(SRCDIR)/matchmaking/tournament/roundrobin/roundrobin.cpp \
-	$(SRCDIR)/matchmaking/tournament/tournament_manager.cpp
+	$(SRCDIR)/matchmaking/tournament/tournament_manager.cpp \
+	$(THIRDPARTYDIR)/pyrrhic/tbprobe.cpp
 
 SRC_FILES_TEST   := \
 	$(TESTDIR)/cli_test.cpp \
@@ -55,7 +58,9 @@ SRC_FILES_TEST   := \
 	$(TESTDIR)/player.cpp \
 	$(TESTDIR)/scoreboard_test.cpp \
 	$(TESTDIR)/sprt_test.cpp \
+	$(TESTDIR)/syzygy_test.cpp \
 	$(TESTDIR)/timecontrol_test.cpp \
+	$(TESTDIR)/tournament_manager_test.cpp \
 	$(TESTDIR)/uci_engine_test.cpp \
 	$(TESTDIR)/crc32.cpp
 

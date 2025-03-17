@@ -360,6 +360,11 @@ void parseMaxMoves(const std::vector<std::string> &params, ArgumentData &argumen
     argument_data.tournament_config.maxmoves.enabled = true;
 }
 
+void parseTbAdjudication(const std::vector<std::string> &params, ArgumentData &argument_data) {
+    parseValue(params, argument_data.tournament_config.tb_adjudication.syzygy_dirs);
+    argument_data.tournament_config.tb_adjudication.enabled = true;
+}
+
 void parseAutoSaveInterval(const std::vector<std::string> &params, ArgumentData &argument_data) {
     parseValue(params, argument_data.tournament_config.autosaveinterval);
 }
@@ -650,6 +655,7 @@ OptionsParser::OptionsParser(const cli::Args &args) {
     addOption("draw", parseDraw);
     addOption("resign", parseResign);
     addOption("maxmoves", parseMaxMoves);
+    addOption("tb", parseTbAdjudication);
     addOption("autosaveinterval", parseAutoSaveInterval);
     addOption("log", parseLog);
     addOption("config", json_config::parseConfig);

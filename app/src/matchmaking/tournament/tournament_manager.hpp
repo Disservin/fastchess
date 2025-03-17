@@ -14,9 +14,6 @@ class TournamentManager {
     ~TournamentManager();
 
     void start(const cli::Args& args);
-
-   private:
-    bool initialized_tbs_ = false;
 };
 
 }  // namespace fastchess

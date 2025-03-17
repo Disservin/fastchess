@@ -34,4 +34,17 @@ TEST_SUITE("Tournament Manager Tests") {
         // Revert that modification manually.
         atomic::stop = atomicStopBackup;
     }
+
+    TEST_CASE("Destruct without TBs") {
+        const bool atomicStopBackup = atomic::stop;
+
+        // Verify that running the destructor without having loaded TBs does not cause issues.
+        {
+            TournamentManager tm;
+        }
+
+        // ~TournamentManager modifies atomic::stop which pollutes the global state for subsequent tests.
+        // Revert that modification manually.
+        atomic::stop = atomicStopBackup;
+    }
 }

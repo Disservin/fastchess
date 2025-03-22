@@ -173,9 +173,9 @@ class Match {
     inline static constexpr char REPETITION_MSG[]           = "Draw by 3-fold repetition";
     inline static constexpr char ILLEGAL_MSG[]              = " makes an illegal move";
     inline static constexpr char ADJUDICATION_WIN_MSG[]     = " wins by adjudication";
-    inline static constexpr char ADJUDICATION_TB_WIN_MSG[]  = " wins by Syzygy TB adjudication";
+    inline static constexpr char ADJUDICATION_TB_WIN_MSG[]  = " wins by adjudication: SyzygyTB";
     inline static constexpr char ADJUDICATION_MSG[]         = "Draw by adjudication";
-    inline static constexpr char ADJUDICATION_TB_DRAW_MSG[] = "Draw by Syzgy TB adjudication";
+    inline static constexpr char ADJUDICATION_TB_DRAW_MSG[] = "Draw by adjudication: SyzygyTB";
     inline static constexpr char FIFTY_MSG[]                = "Draw by fifty moves rule";
     inline static constexpr char STALEMATE_MSG[]            = "Draw by stalemate";
     inline static constexpr char CHECKMATE_MSG[]            = /*..*/ " mates";

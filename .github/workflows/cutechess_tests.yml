@@ -34,7 +34,7 @@ jobs:
 
       - name: cache syzygy
         id: cache-syzygy
-        uses: actions/cache@v4
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684
         with:
            path: |
               cutechess-testing/3-4-5-wdl/

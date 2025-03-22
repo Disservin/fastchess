@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <regex>
 
+#include <core/globals/globals.hpp>
 #include <core/helper.hpp>
 #include <core/logger/logger.hpp>
 #include <core/time/time.hpp>
@@ -15,12 +16,6 @@ namespace chrono = std::chrono;
 using namespace std::literals;
 using namespace chess;
 using clock = chrono::steady_clock;
-
-namespace atomic {
-
-extern std::atomic_bool stop;
-
-}  // namespace atomic
 
 namespace {
 
@@ -142,7 +137,8 @@ void Match::start(engine::UciEngine& white, engine::UciEngine& black, const std:
 
     if (!white_player.engine.start()) {
         LOG_FATAL_THREAD("Failed to start engines, stopping tournament.");
-        atomic::stop = true;
+        atomic::stop                 = true;
+        atomic::abnormal_termination = true;
         return;
     }
 
@@ -152,7 +148,8 @@ void Match::start(engine::UciEngine& white, engine::UciEngine& black, const std:
 
     if (!black_player.engine.start()) {
         LOG_FATAL_THREAD("Failed to start engines, stopping tournament.");
-        atomic::stop = true;
+        atomic::stop                 = true;
+        atomic::abnormal_termination = true;
         return;
     }
 

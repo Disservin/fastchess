@@ -26,7 +26,7 @@ struct Tournament {
 
     Sprt sprt = {};
 
-    std::string config_name;
+    std::string config_name = "config.json";
 
     DrawAdjudication draw          = {};
     ResignAdjudication resign      = {};

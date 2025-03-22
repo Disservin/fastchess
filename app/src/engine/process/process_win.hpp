@@ -22,10 +22,6 @@ namespace fastchess {
 
 extern util::ThreadVector<ProcessInformation> process_list;
 
-namespace atomic {
-extern std::atomic_bool stop;
-}
-
 namespace engine::process {
 
 class Process : public IProcess {

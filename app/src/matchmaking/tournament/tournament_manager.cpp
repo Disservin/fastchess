@@ -20,7 +20,9 @@ TournamentManager::~TournamentManager() {
     // Note: this is safe to call even if initSyzygy() was not called.
     tearDownSyzygy();
 
-    atomic::stop = true;
+    if (!atomic::stop.exchange(true)) {
+        atomic::abnormal_termination = true;
+    }
     LOG_TRACE("~TournamentManager()");
 }
 

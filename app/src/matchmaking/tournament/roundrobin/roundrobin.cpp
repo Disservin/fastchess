@@ -142,8 +142,7 @@ void RoundRobin::updateSprtStatus(const std::vector<EngineConfiguration>& engine
         atomic::stop = true;
 
         const std::string terminationMessage =
-            fmt::format("SPRT test finished: {} {} - {} was accepted", sprt_.getBounds(), sprt_.getElo(),
-                        sprtResult == SPRT_H0 ? "H0" : "H1");
+            fmt::format("SPRT ({}) completed - {} was accepted", sprt_.getElo(), sprtResult == SPRT_H0 ? "H0" : "H1");
 
         Logger::info(terminationMessage);
 

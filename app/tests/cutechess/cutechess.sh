@@ -15,7 +15,7 @@ tb_args=()
 # Use Syzygy TBs if they exist
 if [[ -d 3-4-5-wdl ]] && [[ -d 3-4-5-dtz ]]; then
     echo "Using 3-4-5 tablebases"
-    tb_args=("-tb" "3-4-5-wdl:3-4-5-dtz")
+    tb_args=("-tb" "3-4-5-wdl:3-4-5-dtz" "-tbpieces" "4")
 else
     echo "No 3-4-5 tablebases found"
 fi

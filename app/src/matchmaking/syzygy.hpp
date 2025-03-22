@@ -23,6 +23,6 @@ void tearDownSyzygy();
 // If the probe is successful, one of GameResult::WIN, GameResult::DRAW, GameResult::LOSE is
 // returned, representing the game result from the perspective of the side to move.
 // Otherwise, GameResult::NONE is returned.
-[[nodiscard]] chess::GameResult probeSyzygyWdl(const chess::Board& board);
+[[nodiscard]] chess::GameResult probeSyzygyWdl(const chess::Board& board, bool ignore50MoveRule);
 
 }  // namespace fastchess

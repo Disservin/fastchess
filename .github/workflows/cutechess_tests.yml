@@ -1,8 +1,6 @@
 name: cutechess tests
 
 on:
-  push:
-    branches: [ tb-adjudication ]
   workflow_call:
 
 jobs:

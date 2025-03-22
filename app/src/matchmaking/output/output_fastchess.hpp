@@ -70,7 +70,8 @@ class Fastchess : public IOutput {
         if (sprt.isEnabled()) {
             double llr = sprt.getLLR(stats, report_penta_);
 
-            return fmt::format("LLR: {:.2f} {} {}\n", llr, sprt.getBounds(), sprt.getElo());
+            return fmt::format("LLR: {:.2f} ({:.1f}%) {} {}\n", llr, sprt.getFraction(llr) * 100., sprt.getBounds(),
+                               sprt.getElo());
         }
 
         return "";

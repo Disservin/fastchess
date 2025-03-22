@@ -141,8 +141,11 @@ void BaseTournament::playGame(const GamePair<EngineConfiguration, EngineConfigur
         LOG_WARN_THREAD("Game {} between {} and {} stalled / disconnected", game_id, white_name, black_name);
 
         if (!config.recover) {
-            LOG_WARN_THREAD("No recover option set for engine, stopping tournament.");
-            atomic::stop = true;
+            if (!atomic::stop.exchange(true)) {
+                Logger::print<Logger::Level::WARN>(
+                    "Game {} stalled / disconnected and no recover option set for engine, stopping tournament.",
+                    game_id);
+            }
             return;
         }
 

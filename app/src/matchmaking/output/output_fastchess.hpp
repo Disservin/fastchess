@@ -90,7 +90,13 @@ class Fastchess : public IOutput {
                   << std::flush;
     }
 
-    void endTournament() override { std::cout << "Tournament finished" << std::endl; }
+    void endTournament(std::string_view terminationMessage = "") override {
+        if (!terminationMessage.empty()) {
+            std::cout << terminationMessage << std::endl;
+        } else {
+            std::cout << "Tournament finished" << std::endl;
+        }
+    }
 
     OutputType getType() const override { return OutputType::FASTCHESS; }
 

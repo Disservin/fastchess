@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <string_view>
 #include <utility>
 
 #include <cli/cli.hpp>
@@ -53,7 +54,7 @@ class IOutput {
                          const std::string& annotation, std::size_t id) = 0;
 
     // Print tournament end.
-    virtual void endTournament() = 0;
+    virtual void endTournament(std::string_view terminationMessage = "") = 0;
 
     virtual OutputType getType() const = 0;
 

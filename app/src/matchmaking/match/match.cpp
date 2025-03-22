@@ -392,8 +392,13 @@ void Match::setEngineCrashStatus(Player& loser, Player& winner) {
     const auto name  = loser.engine.getConfig().name;
     const auto color = board_.sideToMove().longStr();
 
-    data_.termination = MatchTermination::DISCONNECT;
-    data_.reason      = color + Match::DISCONNECT_MSG;
+    if (atomic::stop) {
+        data_.termination = MatchTermination::INTERRUPT;
+        data_.reason      = Match::INTERRUPTED_MSG;
+    } else {
+        data_.termination = MatchTermination::DISCONNECT;
+        data_.reason      = color + Match::DISCONNECT_MSG;
+    }
 
     LOG_WARN_THREAD("Engine {} disconnects", name);
 }

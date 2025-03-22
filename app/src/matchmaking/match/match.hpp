@@ -192,5 +192,6 @@ class Match {
     inline static constexpr char TIMEOUT_MSG[]              = /*.. */ " loses on time";
     inline static constexpr char DISCONNECT_MSG[]           = /*.. */ " disconnects";
     inline static constexpr char STALL_MSG[]                = /*.. */ "'s connection stalls";
+    inline static constexpr char INTERRUPTED_MSG[]          = "Game interrupted";
 };
 }  // namespace fastchess

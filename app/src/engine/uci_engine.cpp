@@ -81,8 +81,10 @@ process::Status UciEngine::isready(std::chrono::milliseconds threshold) {
     }
 
     if (res != process::Status::OK) {
-        LOG_TRACE_THREAD("Engine {} didn't respond to isready.", config_.name);
-        Logger::print<Logger::Level::WARN>("Warning; Engine {} is not responsive.", config_.name);
+        if (!atomic::stop) {
+            LOG_TRACE_THREAD("Engine {} didn't respond to isready.", config_.name);
+            Logger::print<Logger::Level::WARN>("Warning; Engine {} is not responsive.", config_.name);
+        }
 
         return res;
     }

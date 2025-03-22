@@ -305,9 +305,9 @@ SPRTResult SPRT::getResult(double llr) const noexcept {
     if (!enabled_) return SPRT_CONTINUE;
 
     if (llr >= upper_)
-        return SPRT_H0;
-    else if (llr <= lower_)
         return SPRT_H1;
+    else if (llr <= lower_)
+        return SPRT_H0;
     return SPRT_CONTINUE;
 }
 

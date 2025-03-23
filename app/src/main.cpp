@@ -34,8 +34,6 @@ int main(int argc, char const* argv[]) {
             } else {
                 Logger::print("Tournament was interrupted.");
             }
-        } else {
-            Logger::print("Finished match");
         }
     } catch (const std::exception& e) {
         stopProcesses();
@@ -46,6 +44,8 @@ int main(int argc, char const* argv[]) {
     }
 
     stopProcesses();
+
+    Logger::print("Finished match");
 
     return atomic::abnormal_termination ? EXIT_FAILURE : EXIT_SUCCESS;
 }

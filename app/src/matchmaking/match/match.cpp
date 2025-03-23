@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <regex>
 
+#include <core/globals/globals.hpp>
 #include <core/helper.hpp>
 #include <core/logger/logger.hpp>
 #include <core/time/time.hpp>
@@ -15,12 +16,6 @@ namespace chrono = std::chrono;
 using namespace std::literals;
 using namespace chess;
 using clock = chrono::steady_clock;
-
-namespace atomic {
-
-extern std::atomic_bool stop;
-
-}  // namespace atomic
 
 namespace {
 
@@ -142,7 +137,8 @@ void Match::start(engine::UciEngine& white, engine::UciEngine& black, const std:
 
     if (!white_player.engine.start()) {
         LOG_FATAL_THREAD("Failed to start engines, stopping tournament.");
-        atomic::stop = true;
+        atomic::stop                 = true;
+        atomic::abnormal_termination = true;
         return;
     }
 
@@ -152,7 +148,8 @@ void Match::start(engine::UciEngine& white, engine::UciEngine& black, const std:
 
     if (!black_player.engine.start()) {
         LOG_FATAL_THREAD("Failed to start engines, stopping tournament.");
-        atomic::stop = true;
+        atomic::stop                 = true;
+        atomic::abnormal_termination = true;
         return;
     }
 
@@ -392,8 +389,13 @@ void Match::setEngineCrashStatus(Player& loser, Player& winner) {
     const auto name  = loser.engine.getConfig().name;
     const auto color = board_.sideToMove().longStr();
 
-    data_.termination = MatchTermination::DISCONNECT;
-    data_.reason      = color + Match::DISCONNECT_MSG;
+    if (atomic::stop) {
+        data_.termination = MatchTermination::INTERRUPT;
+        data_.reason      = Match::INTERRUPTED_MSG;
+    } else {
+        data_.termination = MatchTermination::DISCONNECT;
+        data_.reason      = color + Match::DISCONNECT_MSG;
+    }
 
     LOG_WARN_THREAD("Engine {} disconnects", name);
 }

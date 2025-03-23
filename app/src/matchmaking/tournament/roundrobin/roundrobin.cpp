@@ -135,16 +135,21 @@ void RoundRobin::updateSprtStatus(const std::vector<EngineConfiguration>& engine
     const auto stats = scoreboard_.getStats(engine_configs[0].name, engine_configs[1].name);
     const auto llr   = sprt_.getLLR(stats, config::TournamentConfig->report_penta);
 
-    if (sprt_.getResult(llr) != SPRT_CONTINUE || match_count_ == final_matchcount_) {
+    const auto sprtResult = sprt_.getResult(llr);
+
+    if (sprtResult != SPRT_CONTINUE || match_count_ == final_matchcount_) {
         LOG_TRACE("SPRT test finished, stopping tournament.");
         atomic::stop = true;
 
-        Logger::info("SPRT test finished: {} {}", sprt_.getBounds(), sprt_.getElo());
+        const std::string terminationMessage =
+            fmt::format("SPRT ({}) completed - {} was accepted", sprt_.getElo(), sprtResult == SPRT_H0 ? "H0" : "H1");
+
+        Logger::info(terminationMessage);
 
         output_->printResult(stats, engine_configs[0].name, engine_configs[1].name);
         output_->printInterval(sprt_, stats, engine_configs[0].name, engine_configs[1].name, engines,
                                config::TournamentConfig->opening.file, scoreboard_);
-        output_->endTournament();
+        output_->endTournament(terminationMessage);
     }
 }
 

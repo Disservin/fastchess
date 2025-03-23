@@ -1,10 +1,17 @@
 #pragma once
 
+#include <atomic>
+
 #ifdef _WIN64
 #    include <windows.h>
 #endif
 
 namespace fastchess {
+
+namespace atomic {
+extern std::atomic_bool stop;
+extern std::atomic_bool abnormal_termination;
+}  // namespace atomic
 
 /**
  * Information about the started processes (engines).

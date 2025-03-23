@@ -101,7 +101,9 @@ class Cutechess : public IOutput {
                   << std::flush;
     }
 
-    void endTournament() override { std::cout << "Tournament finished" << std::endl; }
+    void endTournament(std::string_view /*terminationMessage*/ = "") override {
+        std::cout << "Tournament finished" << std::endl;
+    }
 
     OutputType getType() const override { return OutputType::CUTECHESS; }
 };

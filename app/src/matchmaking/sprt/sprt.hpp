@@ -19,6 +19,8 @@ class SPRT {
 
     [[nodiscard]] double getLLR(const Stats& stats, bool penta) const noexcept;
 
+    [[nodiscard]] double getFraction(double llr) const noexcept;
+
     [[nodiscard]] SPRTResult getResult(double llr) const noexcept;
 
     [[nodiscard]] std::string getBounds() const noexcept;

@@ -6,6 +6,7 @@
 
 #include <affinity/affinity_manager.hpp>
 #include <core/filesystem/file_writer.hpp>
+#include <core/globals/globals.hpp>
 #include <core/memory/cache.hpp>
 #include <core/rand.hpp>
 #include <core/threading/threadpool.hpp>
@@ -19,10 +20,6 @@
 #include <matchmaking/tournament/base/tournament.hpp>
 
 namespace fastchess {
-
-namespace atomic {
-extern std::atomic_bool stop;
-}  // namespace atomic
 
 class RoundRobin : public BaseTournament {
    public:

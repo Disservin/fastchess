@@ -26,6 +26,15 @@ int main(int argc, char const* argv[]) {
     try {
         auto tournament = TournamentManager();
         tournament.start(cli::Args(argc, argv));
+
+        if (atomic::abnormal_termination) {
+            if (argc > 0 && config::TournamentConfig) {
+                Logger::print("Tournament was interrupted. To resume the tournament, run: {} -config file={}", argv[0],
+                              config::TournamentConfig->config_name);
+            } else {
+                Logger::print("Tournament was interrupted.");
+            }
+        }
     } catch (const std::exception& e) {
         stopProcesses();
 
@@ -38,5 +47,5 @@ int main(int argc, char const* argv[]) {
 
     Logger::print("Finished match");
 
-    return 0;
+    return atomic::abnormal_termination ? EXIT_FAILURE : EXIT_SUCCESS;
 }

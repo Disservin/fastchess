@@ -1,6 +1,5 @@
 #include <core/globals/globals.hpp>
 
-#include <atomic>
 #include <cassert>
 
 #ifdef _WIN64
@@ -17,7 +16,8 @@
 namespace fastchess {
 
 namespace atomic {
-std::atomic_bool stop = false;
+std::atomic_bool stop                 = false;
+std::atomic_bool abnormal_termination = false;
 }  // namespace atomic
 
 util::ThreadVector<ProcessInformation> process_list;
@@ -61,9 +61,10 @@ void stopProcesses() {
 }
 
 void consoleHandlerAction() {
-    LOG_WARN("Received signal, stopping tournament.");
+    Logger::print<Logger::Level::WARN>("Received signal, stopping tournament.");
 
-    atomic::stop = true;
+    atomic::stop                 = true;
+    atomic::abnormal_termination = true;
 }
 
 #ifdef _WIN64

@@ -66,10 +66,6 @@ static inline int portable_spawn_file_actions_addchdir(posix_spawn_file_actions_
 namespace fastchess {
 extern util::ThreadVector<ProcessInformation> process_list;
 
-namespace atomic {
-extern std::atomic_bool stop;
-}
-
 namespace engine::process {
 
 class Process : public IProcess {

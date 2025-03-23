@@ -81,6 +81,14 @@ double SPRT::getLLR(const Stats& stats, bool penta) const noexcept {
     return getLLR(stats.wins, stats.draws, stats.losses);
 }
 
+double SPRT::getFraction(const double llr) const noexcept {
+    if (llr >= 0) {
+        return llr / upper_;
+    } else {
+        return -llr / lower_;
+    }
+}
+
 double SPRT::getLLR(int win, int draw, int loss) const noexcept {
     if (!enabled_) return 0.0;
 
@@ -305,9 +313,9 @@ SPRTResult SPRT::getResult(double llr) const noexcept {
     if (!enabled_) return SPRT_CONTINUE;
 
     if (llr >= upper_)
-        return SPRT_H0;
-    else if (llr <= lower_)
         return SPRT_H1;
+    else if (llr <= lower_)
+        return SPRT_H0;
     return SPRT_CONTINUE;
 }
 

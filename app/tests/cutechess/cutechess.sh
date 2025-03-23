@@ -11,6 +11,15 @@ mkdir -p cutechess-testing
 cp fastchess cutechess-testing
 cd cutechess-testing
 
+tb_args=()
+# Use Syzygy TBs if they exist
+if [[ -d 3-4-5-wdl ]] && [[ -d 3-4-5-dtz ]]; then
+    echo "Using 3-4-5 tablebases"
+    tb_args=("-tb" "3-4-5-wdl:3-4-5-dtz" "-tbpieces" "4")
+else
+    echo "No 3-4-5 tablebases found"
+fi
+
 # Get a copy of SF
 if [[ ! -f ./sf_2 ]]; then
    echo "Downloading SF 16.1"
@@ -48,7 +57,8 @@ $binary         -recover -repeat -games 2 -rounds 100\
                 -variant standard -concurrency 4 -openings file=UHO_4060_v2.epd format=epd order=sequential \
                 -engine name=sf_1 tc=inf depth=6 cmd=./sf_1 dir=.\
                 -engine name=sf_2 tc=inf depth=8 cmd=./sf_2 dir=.\
-                -each proto=uci option.Threads=1
+                -each proto=uci option.Threads=1\
+                "${tb_args[@]}"
 
 ) | grep "Finished game" | sort -n -k 3 > $binary-out.finished
 

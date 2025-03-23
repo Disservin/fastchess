@@ -100,13 +100,23 @@ class MaxMovesTracker {
 
 class TbAdjudicationTracker {
    public:
-    TbAdjudicationTracker() = default;
+    TbAdjudicationTracker(const int max_pieces, const bool ignore_50_move_rule)
+        : max_pieces_(max_pieces), ignore_50_move_rule_(ignore_50_move_rule) {}
 
-    [[nodiscard]] bool adjudicatable(const chess::Board& board) const noexcept { return canProbeSyzgyWdl(board); }
+    [[nodiscard]] bool adjudicatable(const chess::Board& board) const noexcept {
+        if (max_pieces_ != 0 && board.occ().count() > max_pieces_) {
+            return false;
+        }
+        return canProbeSyzgyWdl(board);
+    }
 
     [[nodiscard]] chess::GameResult adjudicate(const chess::Board& board) const noexcept {
-        return probeSyzygyWdl(board);
+        return probeSyzygyWdl(board, ignore_50_move_rule_);
     }
+
+   private:
+    int max_pieces_;
+    bool ignore_50_move_rule_;
 };
 
 class Match {
@@ -173,9 +183,9 @@ class Match {
     inline static constexpr char REPETITION_MSG[]           = "Draw by 3-fold repetition";
     inline static constexpr char ILLEGAL_MSG[]              = " makes an illegal move";
     inline static constexpr char ADJUDICATION_WIN_MSG[]     = " wins by adjudication";
-    inline static constexpr char ADJUDICATION_TB_WIN_MSG[]  = " wins by Syzygy TB adjudication";
+    inline static constexpr char ADJUDICATION_TB_WIN_MSG[]  = " wins by adjudication: SyzygyTB";
     inline static constexpr char ADJUDICATION_MSG[]         = "Draw by adjudication";
-    inline static constexpr char ADJUDICATION_TB_DRAW_MSG[] = "Draw by Syzgy TB adjudication";
+    inline static constexpr char ADJUDICATION_TB_DRAW_MSG[] = "Draw by adjudication: SyzygyTB";
     inline static constexpr char FIFTY_MSG[]                = "Draw by fifty moves rule";
     inline static constexpr char STALEMATE_MSG[]            = "Draw by stalemate";
     inline static constexpr char CHECKMATE_MSG[]            = /*..*/ " mates";

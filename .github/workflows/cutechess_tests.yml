@@ -28,6 +28,27 @@ jobs:
           clang++ --version
           g++ --version
 
+      - name: Create cutechess-testing directory
+        run: |
+          mkdir cutechess-testing
+
+      - name: cache syzygy
+        id: cache-syzygy
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684
+        with:
+           path: |
+              cutechess-testing/3-4-5-wdl/
+              cutechess-testing/3-4-5-dtz/
+           key: key-syzygy
+
+      # Note: unlike fastchess, cutechess requires both wdl and dtz tables for adjudication to work correctly.
+      - name: download syzygy 3-4-5 if needed
+        working-directory: cutechess-testing
+        if: steps.cache-syzygy.outputs.cache-hit != 'true'
+        run: |
+          wget --no-verbose -r -nH --cut-dirs=2 --no-parent --reject="index.html*" -e robots=off https://tablebase.lichess.ovh/tables/standard/3-4-5-wdl/
+          wget --no-verbose -r -nH --cut-dirs=2 --no-parent --reject="index.html*" -e robots=off https://tablebase.lichess.ovh/tables/standard/3-4-5-dtz/
+
       - name: Run cutechess tests
         run: |
           bash app/tests/cutechess/cutechess.sh

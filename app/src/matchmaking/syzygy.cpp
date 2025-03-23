@@ -34,7 +34,7 @@ bool canProbeSyzgyWdl(const chess::Board& board) {
     return true;
 }
 
-chess::GameResult probeSyzygyWdl(const chess::Board& board) {
+chess::GameResult probeSyzygyWdl(const chess::Board& board, const bool ignore50MoveRule) {
     assert(canProbeSyzgyWdl(board));
     // We now assume that the half move clock is 0 and the castling rights are empty.
     // If these conditions are not fulfilled, the probe result may be incorrect.
@@ -55,9 +55,13 @@ chess::GameResult probeSyzygyWdl(const chess::Board& board) {
             return chess::GameResult::WIN;
 
         case TB_CURSED_WIN:
-        case TB_BLESSED_LOSS:
+            return ignore50MoveRule ? chess::GameResult::WIN : chess::GameResult::DRAW;
+
         case TB_DRAW:
             return chess::GameResult::DRAW;
+
+        case TB_BLESSED_LOSS:
+            return ignore50MoveRule ? chess::GameResult::LOSE : chess::GameResult::DRAW;
 
         case TB_LOSS:
             return chess::GameResult::LOSE;

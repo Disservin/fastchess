@@ -365,6 +365,14 @@ void parseTbAdjudication(const std::vector<std::string> &params, ArgumentData &a
     argument_data.tournament_config.tb_adjudication.enabled = true;
 }
 
+void parseTbMaxPieces(const std::vector<std::string> &params, ArgumentData &argument_data) {
+    parseValue(params, argument_data.tournament_config.tb_adjudication.max_pieces);
+}
+
+void parseTbIgnore50(const std::vector<std::string> & /*params*/, ArgumentData &argument_data) {
+    argument_data.tournament_config.tb_adjudication.ignore_50_move_rule = true;
+}
+
 void parseAutoSaveInterval(const std::vector<std::string> &params, ArgumentData &argument_data) {
     parseValue(params, argument_data.tournament_config.autosaveinterval);
 }
@@ -656,6 +664,8 @@ OptionsParser::OptionsParser(const cli::Args &args) {
     addOption("resign", parseResign);
     addOption("maxmoves", parseMaxMoves);
     addOption("tb", parseTbAdjudication);
+    addOption("tbpieces", parseTbMaxPieces);
+    addOption("tbignore50", parseTbIgnore50);
     addOption("autosaveinterval", parseAutoSaveInterval);
     addOption("log", parseLog);
     addOption("config", json_config::parseConfig);

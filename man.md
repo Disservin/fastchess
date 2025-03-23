@@ -87,10 +87,17 @@ The following options are available:
 
 - -maxmoves N  
     Enables draw adjudication if the game reaches N moves without a result.
+
 - -tb PATHS  
     Adjudicate games using Syzygy tablebases. PATHS must be a semicolon-separated (on Windows) or colon-separated (other platforms)
     list of paths to the tablebase directories.
     Only the WDL tablebase files are required.
+
+- -tbpieces N  
+    Only use tablebase adjudication for positions with N pieces or less.
+
+- -tbignore50  
+    Disable the fifty move rule for tablebase adjudication.
 
 - -openings file=NAME format=(epd|pgn) [order=ORDER] [plies=PLIES] [start=START]  
     Specifies an opening book file and its format for game starting positions.

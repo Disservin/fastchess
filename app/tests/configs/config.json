@@ -17,6 +17,8 @@
   },
   "tb_adjudication": {
     "syzygy_dirs": "",
+	"max_pieces": 0,
+	"ignore_50_move_rule": false,
     "enabled": false
   },
   "opening": {

@@ -50,7 +50,8 @@ Match::Match(const book::Opening& opening)
       resign_tracker_(config::TournamentConfig->resign.score, config::TournamentConfig->resign.move_count,
                       config::TournamentConfig->resign.twosided),
       maxmoves_tracker_(config::TournamentConfig->maxmoves.move_count),
-      tb_adjudication_tracker_() {
+      tb_adjudication_tracker_(config::TournamentConfig->tb_adjudication.max_pieces,
+                               config::TournamentConfig->tb_adjudication.ignore_50_move_rule) {
     board_.set960(config::TournamentConfig->variant == VariantType::FRC);
 
     if (isFen(opening_.fen_epd))

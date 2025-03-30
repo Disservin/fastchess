@@ -9,7 +9,7 @@ framework.
 
 With Fastchess, you can effortlessly orchestrate chess tournaments, configure
 time controls, and execute matches concurrently for optimal time efficiency.
-Extensively tested for high concurrency (supporting up to 250 threads) with
+Extensively tested for high concurrency (with up to 250 threads) and
 short time controls (0.2+0.002s), it exhibits minimal timeout issues, with only
 10 matches out of 20,000 experiencing timeouts.
 

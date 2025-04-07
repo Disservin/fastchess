@@ -28,14 +28,17 @@ class AffinityManager {
         HT_2,
     };
 
-    class AffinityProcessor : public util::ScopeEntry {
+    class AffinityProcessor {
        public:
-        AffinityProcessor(const std::vector<int>& cpus) : util::ScopeEntry(true), cpus(cpus) {}
+        AffinityProcessor() = default;
+        AffinityProcessor(const std::vector<int>& cpus) : cpus(cpus) {}
 
         std::vector<int> cpus;
 
         friend class AffinityManager;
     };
+
+    using ManagedProcessor = util::Resource<AffinityProcessor>;
 
    public:
     // Hyperthreads are split up into two groups: HT_1 and HT_2
@@ -58,7 +61,7 @@ class AffinityManager {
     }
 
     // Get a core from the pool of available cores.
-    [[nodiscard]] AffinityProcessor& consume() {
+    [[nodiscard]] ManagedProcessor& consume() {
         if (!use_affinity_) {
             return null_core_;
         }
@@ -74,8 +77,8 @@ class AffinityManager {
         // find first available core
         for (const auto grp : {HT_1, HT_2}) {
             for (auto& core : cores_[grp]) {
-                if (core.available_) {
-                    core.available_ = false;
+                if (core.available()) {
+                    core.acquire();
                     return core;
                 }
             }
@@ -110,11 +113,11 @@ class AffinityManager {
         }
     }
 
-    std::array<std::deque<AffinityProcessor>, 2> cores_;
+    std::array<std::deque<ManagedProcessor>, 2> cores_;
     std::mutex core_mutex_;
 
     // This is a dummy core which is returned when affinity is disabled.
-    AffinityProcessor null_core_ = {{}};
+    ManagedProcessor null_core_ = {};
 
     bool use_affinity_ = false;
 };

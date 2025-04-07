@@ -8,19 +8,13 @@
 
 namespace fastchess::util {
 
-// An entry for the cache pool, should be guarded by a ScopeGuard to release the entry
-// when it goes out of scope and make it available for other threads to use again.
 template <typename T, typename ID>
-class CachedEntry : public ScopeEntry {
+class CachedEntry : public Resource<T> {
    public:
     template <typename... ARGS>
-    CachedEntry(const ID &identifier, ARGS &&...arg)
-        : ScopeEntry(false), entry_(std::make_unique<T>(std::forward<ARGS>(arg)...)), id(identifier) {}
-
-    [[nodiscard]] auto &get() noexcept { return entry_; }
+    CachedEntry(const ID &identifier, ARGS &&...arg) : Resource<T>(std::forward<ARGS>(arg)...), id(identifier) {}
 
    private:
-    std::unique_ptr<T> entry_;
     ID id;
 
     template <typename TT, typename II>
@@ -37,9 +31,8 @@ class CachePool {
         std::lock_guard<std::mutex> lock(access_mutex_);
 
         for (auto &entry : cache_) {
-            if (entry.available_ && entry.id == identifier) {
-                // block the entry from being used by other threads
-                entry.available_ = false;
+            if (entry.available() && entry.id == identifier) {
+                entry.acquire();
                 return entry;
             }
         }

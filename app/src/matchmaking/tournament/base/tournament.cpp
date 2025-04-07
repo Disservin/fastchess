@@ -109,26 +109,32 @@ void BaseTournament::playGame(const GamePair<EngineConfiguration, EngineConfigur
 
     const auto &config = *config::TournamentConfig;
     const auto rl      = config.log.realtime;
-    const auto core    = util::ScopeGuard(cores_->consume());
 
     const auto white_name = engine_configs.white.name;
     const auto black_name = engine_configs.black.name;
 
-    auto &white_engine = engine_cache_.getEntry(white_name, engine_configs.white, rl);
-    auto &black_engine = engine_cache_.getEntry(black_name, engine_configs.black, rl);
+    auto &core = cores_->consume();
+    auto &white_entry =
+        engine_cache_.getEntry(white_name, std::make_unique<engine::UciEngine>(engine_configs.white, rl));
+    auto &black_entry =
+        engine_cache_.getEntry(black_name, std::make_unique<engine::UciEngine>(engine_configs.black, rl));
 
-    util::ScopeGuard lock1(white_engine);
-    util::ScopeGuard lock2(black_engine);
+    util::make_scope_exit([&core]() { core.release(); });
+    util::make_scope_exit([&white_entry]() { white_entry.release(); });
+    util::make_scope_exit([&black_entry]() { black_entry.release(); });
 
-    if (white_engine.get()->getConfig().restart) restartEngine(white_engine.get());
-    if (black_engine.get()->getConfig().restart) restartEngine(black_engine.get());
+    auto &white_engine = *(*white_entry);
+    auto &black_engine = *(*black_entry);
+
+    if (white_engine.getConfig().restart) restartEngine(*white_entry);
+    if (black_engine.getConfig().restart) restartEngine(*black_entry);
 
     LOG_TRACE_THREAD("Game {} between {} and {} starting", game_id, white_name, black_name);
 
     start();
 
     auto match = Match(opening);
-    match.start(*white_engine.get(), *black_engine.get(), core.get().cpus);
+    match.start(white_engine, black_engine, core->cpus);
 
     LOG_TRACE_THREAD("Game {} between {} and {} finished", game_id, white_name, black_name);
 
@@ -150,8 +156,8 @@ void BaseTournament::playGame(const GamePair<EngineConfiguration, EngineConfigur
 
         LOG_TRACE_THREAD("Restarting engine...");
 
-        if (white_engine.get()->isready() != engine::process::Status::OK) restartEngine(white_engine.get());
-        if (black_engine.get()->isready() != engine::process::Status::OK) restartEngine(black_engine.get());
+        if (white_engine.isready() != engine::process::Status::OK) restartEngine(*white_entry);
+        if (black_engine.isready() != engine::process::Status::OK) restartEngine(*black_entry);
     }
 
     const auto match_data = match.get();
@@ -170,7 +176,7 @@ void BaseTournament::playGame(const GamePair<EngineConfiguration, EngineConfigur
         const auto result = pgn::PgnBuilder::getResultFromMatch(match_data.players.white, match_data.players.black);
         LOG_TRACE_THREAD("Game {} finished with result {}", game_id, result);
 
-        finish({match_data}, match_data.reason, {*white_engine.get(), *black_engine.get()});
+        finish({match_data}, match_data.reason, {white_engine, black_engine});
 
         startNext();
     }

@@ -24,7 +24,7 @@
 namespace fastchess {
 
 class BaseTournament {
-    using EngineCache = util::CachePool<engine::UciEngine, std::string>;
+    using EngineCache = util::CachePool<std::unique_ptr<engine::UciEngine>, std::string>;
 
    public:
     BaseTournament(const stats_map &results);

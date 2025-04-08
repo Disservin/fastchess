@@ -5,31 +5,31 @@
 
 namespace fastchess::affinity::cpu_info {
 
-// Contains information about all the cpu's in the system.
+// Represents the complete CPU topology of the system
 struct CpuInfo {
-    struct PhysicalCpu {
-        struct Core {
-            struct Processor {
-                Processor(int processor_id) : processor_id(processor_id) {}
-                int processor_id;
+    struct PhysicalPackage {
+        struct PhysicalCore {
+            struct LogicalProcessor {
+                LogicalProcessor(int logical_id) : logical_id(logical_id) {}
+                int logical_id;
             };
 
-            Core() = default;
+            PhysicalCore() = default;
 
-            Core(int core_id, const std::vector<Processor>& processor_ids)
-                : processors(processor_ids), core_id(core_id) {}
+            PhysicalCore(int core_id, const std::vector<LogicalProcessor>& logical_processors)
+                : logical_processors(logical_processors), core_id(core_id) {}
 
-            // Processor's in this core. Probably 2. Can be 1 on non-HT systems or something
-            // else on weird systems.
-            std::vector<Processor> processors;
+            // Logical processors in this physical core. Typically 2 with SMT enabled,
+            // 1 on non-SMT systems, or more on specialized architectures.
+            std::vector<LogicalProcessor> logical_processors;
             int core_id;
         };
 
-        std::map<int, Core> cores;
-        int physical_id;
+        std::map<int, PhysicalCore> cores;
+        int socket_id;
     };
 
-    std::map<int, PhysicalCpu> physical_cpus;
+    std::map<int, PhysicalPackage> packages;
 };
 
 }  // namespace fastchess::affinity::cpu_info

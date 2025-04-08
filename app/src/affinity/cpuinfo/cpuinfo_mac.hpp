@@ -16,9 +16,9 @@ inline CpuInfo getCpuInfo() noexcept {
     CpuInfo cpu_info;
 
     for (int i = 0; i < static_cast<int>(std::thread::hardware_concurrency()); ++i) {
-        CpuInfo::PhysicalCpu::Core core = {i, {i}};
+        CpuInfo::PhysicalPackage::PhysicalCore core = {i, {i}};
 
-        cpu_info.physical_cpus[0].cores[i] = core;
+        cpu_info.packages[0].cores[i] = core;
     }
 
     return cpu_info;

@@ -8,44 +8,45 @@
 
 namespace fastchess::util {
 
-// An entry for the cache pool, should be guarded by a ScopeGuard to release the entry
-// when it goes out of scope and make it available for other threads to use again.
 template <typename T, typename ID>
-class CachedEntry : public ScopeEntry {
+class CachedEntry {
    public:
     template <typename... ARGS>
-    CachedEntry(const ID &identifier, ARGS &&...arg)
-        : ScopeEntry(false), entry_(std::make_unique<T>(std::forward<ARGS>(arg)...)), id(identifier) {}
+    CachedEntry(const ID& identifier, ARGS&&... arg)
+        : entry_(std::make_shared<T>(std::forward<ARGS>(arg)...)), id(identifier) {}
 
-    [[nodiscard]] auto &get() noexcept { return entry_; }
+    [[nodiscard]] auto& get() noexcept { return entry_; }
 
    private:
-    std::unique_ptr<T> entry_;
+    std::shared_ptr<T> entry_;
     ID id;
 
     template <typename TT, typename II>
     friend class CachePool;
 };
 
-// CachePool is a pool of objects which can be reused. An object is indentified by an ID
-// type and value. The pool is thread safe.
 template <typename T, typename ID>
 class CachePool {
    public:
     template <typename... ARGS>
-    [[nodiscard]] CachedEntry<T, ID> &getEntry(const ID &identifier, ARGS &&...arg) {
+    [[nodiscard]] auto get_or_emplace(const ID& identifier, ARGS&&... arg) {
         std::lock_guard<std::mutex> lock(access_mutex_);
 
-        for (auto &entry : cache_) {
-            if (entry.available_ && entry.id == identifier) {
-                // block the entry from being used by other threads
-                entry.available_ = false;
+        for (auto it = cache_.begin(); it != cache_.end(); ++it) {
+            if (it->id == identifier) {
+                auto& entry = *it;
+                cache_.erase(it);
                 return entry;
             }
         }
 
         cache_.emplace_back(identifier, std::forward<ARGS>(arg)...);
         return cache_.back();
+    }
+
+    void put(CachedEntry<T, ID>& entry) {
+        std::lock_guard<std::mutex> lock(access_mutex_);
+        cache_.push_back(std::move(entry));
     }
 
    private:

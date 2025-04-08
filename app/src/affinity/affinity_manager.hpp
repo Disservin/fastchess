@@ -28,9 +28,9 @@ class AffinityManager {
         HT_2,
     };
 
-    class AffinityProcessor : public util::ScopeEntry {
+    class AffinityProcessor {
        public:
-        AffinityProcessor(const std::vector<int>& cpus) : util::ScopeEntry(true), cpus(cpus) {}
+        AffinityProcessor(const std::vector<int>& cpus) : cpus(cpus) {}
 
         std::vector<int> cpus;
 
@@ -58,7 +58,7 @@ class AffinityManager {
     }
 
     // Get a core from the pool of available cores.
-    [[nodiscard]] AffinityProcessor& consume() {
+    [[nodiscard]] auto& consume() {
         if (!use_affinity_) {
             return null_core_;
         }
@@ -74,8 +74,8 @@ class AffinityManager {
         // find first available core
         for (const auto grp : {HT_1, HT_2}) {
             for (auto& core : cores_[grp]) {
-                if (core.available_) {
-                    core.available_ = false;
+                if (core.isAvailable()) {
+                    core.acquire();
                     return core;
                 }
             }
@@ -95,14 +95,14 @@ class AffinityManager {
 
         // @TODO: fix logic for multiple threads and multiple concurrencies
 
-        for (const auto& physical_cpu : cpu_info.physical_cpus) {
+        for (const auto& physical_cpu : cpu_info.packages) {
             for (const auto& core : physical_cpu.second.cores) {
                 int idx = 0;
-                for (const auto& processor : core.second.processors) {
+                for (const auto& processor : core.second.logical_processors) {
                     Group group = idx % 2 == 0 ? HT_1 : HT_2;
 
                     // this looks wrong??
-                    cores_[group].emplace_back(std::vector{processor.processor_id});
+                    cores_[group].emplace_back(std::vector{processor.logical_id});
 
                     idx++;
                 }
@@ -110,11 +110,11 @@ class AffinityManager {
         }
     }
 
-    std::array<std::deque<AffinityProcessor>, 2> cores_;
+    std::array<std::deque<util::Resource<AffinityProcessor>>, 2> cores_;
     std::mutex core_mutex_;
 
     // This is a dummy core which is returned when affinity is disabled.
-    AffinityProcessor null_core_ = {{}};
+    util::Resource<AffinityProcessor> null_core_ = {std::vector<int>{}};
 
     bool use_affinity_ = false;
 };

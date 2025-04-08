@@ -64,7 +64,7 @@ inline CpuInfo getCpuInfo() noexcept(false) {
     int physical_id = 0;
 
     CpuInfo cpu_info;
-    cpu_info.physical_cpus[physical_id].physical_id = physical_id;
+    cpu_info.packages[physical_id].socket_id = physical_id;
 
     DWORD offset = 0;
     while (offset < byte_length) {
@@ -77,7 +77,7 @@ inline CpuInfo getCpuInfo() noexcept(false) {
                 while (mask) {
                     const int processor = pop(mask) + groupIdx * 64;
                     // proper way to get this idx?
-                    cpu_info.physical_cpus[physical_id].cores[idx].processors.emplace_back(processor);
+                    cpu_info.packages[physical_id].cores[idx].logical_processors.emplace_back(processor);
                 }
 
                 idx++;

@@ -42,7 +42,7 @@ inline CpuInfo getCpuInfo() {
         }
 
         if (coreId != -1 && processorId != -1 && physicalId != -1) {
-            cpu_info.physical_cpus[physicalId].cores[coreId].processors.emplace_back(processorId);
+            cpu_info.packages[physicalId].cores[coreId].logical_processors.emplace_back(processorId);
 
             coreId      = -1;
             processorId = -1;

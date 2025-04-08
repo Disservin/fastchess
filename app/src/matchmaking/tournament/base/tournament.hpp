@@ -74,7 +74,7 @@ class BaseTournament {
 
     [[nodiscard]] int getMaxAffinity(const std::vector<EngineConfiguration> &configs) const noexcept;
 
-    void restartEngine(std::unique_ptr<engine::UciEngine> &engine);
+    void restartEngine(std::shared_ptr<engine::UciEngine> &engine);
 };
 
 }  // namespace fastchess

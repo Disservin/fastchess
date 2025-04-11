@@ -210,7 +210,7 @@ To start a match between two engines using random openings from book.epd:
 ```sh
 $ fastchess -engine cmd=Engine1.exe name=Engine1 -engine cmd=Engine2.exe \
   name=Engine2 -openings file=book.epd format=epd order=random \
-  -each tc=10+0.1 -rounds 200 -repeat -concurrency 4
+  -each tc=60+0.6 option.Hash=64 -rounds 200 -repeat -concurrency 4
 ```
 
 # AUTHORS

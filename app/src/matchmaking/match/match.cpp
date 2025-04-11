@@ -96,7 +96,7 @@ void Match::addMoveData(const Player& player, int64_t measured_time_ms, int64_t 
     const auto score_type = player.engine.lastScoreType();
     const auto info       = player.engine.lastInfo();
 
-    move_data.nps      = str_utils::findElement<int>(info, "nps").value_or(0);
+    move_data.nps      = str_utils::findElement<uint64_t>(info, "nps").value_or(0);
     move_data.hashfull = str_utils::findElement<int>(info, "hashfull").value_or(0);
     move_data.tbhits   = str_utils::findElement<uint64_t>(info, "tbhits").value_or(0);
     move_data.depth    = str_utils::findElement<int>(info, "depth").value_or(0);

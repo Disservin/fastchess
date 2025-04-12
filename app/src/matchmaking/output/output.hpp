@@ -4,7 +4,7 @@
 #include <string_view>
 #include <utility>
 
-#include <cli/cli.hpp>
+#include <matchmaking/scoreboard.hpp>
 #include <matchmaking/sprt/sprt.hpp>
 #include <matchmaking/stats.hpp>
 #include <types/engine_config.hpp>

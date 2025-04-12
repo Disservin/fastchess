@@ -2,7 +2,6 @@
 
 #include <chess.hpp>
 
-#include <cli/cli.hpp>
 #include <core/config/config.hpp>
 #include <game/book/opening_book.hpp>
 #include <matchmaking/player.hpp>

@@ -16,10 +16,8 @@
 #include <types/engine_config.hpp>
 #include <types/tournament.hpp>
 
-#define FMT_HEADER_ONLY
-#include "../../third_party/fmt/include/fmt/core.h"
+namespace fastchess::cli {
 
-namespace fastchess::cli_new {
 // Holds the data of the OptionParser (same as before)
 struct ArgumentData {
     config::Tournament tournament_config;
@@ -135,7 +133,7 @@ class CommandLineParser {
         return *this;
     }
 
-    ArgumentData parse(int argc, char** argv);
+    ArgumentData parse(int argc, char const* argv[]);
     ArgumentData parse(const std::vector<std::string>& args);
     void printHelp(std::ostream& out = std::cout) const;
 
@@ -160,5 +158,4 @@ int to_int(const std::string& value);
 float to_float(const std::string& value);
 }  // namespace converters
 
-CommandLineParser create_parser();
-}  // namespace fastchess::cli_new
+}  // namespace fastchess::cli

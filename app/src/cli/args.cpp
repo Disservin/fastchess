@@ -1,4 +1,4 @@
-#include <cli/cli_new.hpp>
+#include <cli/cli.hpp>
 
 #include <cli/cli_args.hpp>
 #include <cli/sanitize.hpp>
@@ -10,51 +10,7 @@
 #include <types/engine_config.hpp>
 #include <types/tournament.hpp>
 
-namespace fastchess::engine {
-TimeControl::Limits parseTc(const std::string& tcString) {
-    if (str_utils::contains(tcString, "hg")) throw std::runtime_error("Hourglass time control not supported.");
-    if (tcString == "infinite" || tcString == "inf") return {};
-
-    TimeControl::Limits tc;
-
-    std::string remainingStringVector = tcString;
-    const bool has_moves              = str_utils::contains(tcString, "/");
-    const bool has_inc                = str_utils::contains(tcString, "+");
-    const bool has_minutes            = str_utils::contains(tcString, ":");
-
-    if (has_moves) {
-        const auto moves = str_utils::splitString(tcString, '/');
-        if (moves[0] == "inf" || moves[0] == "infinite") {
-            tc.moves = 0;
-        } else {
-            tc.moves = std::stoi(moves[0]);
-        }
-        remainingStringVector = moves[1];
-    }
-
-    if (has_inc) {
-        const auto inc        = str_utils::splitString(remainingStringVector, '+');
-        tc.increment          = static_cast<uint64_t>(std::stod(inc[1]) * 1000);
-        remainingStringVector = inc[0];
-    }
-
-    if (has_minutes) {
-        const auto clock_vector = str_utils::splitString(remainingStringVector, ':');
-        tc.time                 = static_cast<int64_t>(std::stod(clock_vector[0]) * 1000 * 60) +
-                  static_cast<int64_t>(std::stod(clock_vector[1]) * 1000);
-    } else {
-        tc.time = static_cast<int64_t>(std::stod(remainingStringVector) * 1000);
-    }
-
-    return tc;
-}
-
-bool isEngineSettableOption(std::string_view stringFormat) { return str_utils::startsWith(stringFormat, "option."); }
-}  // namespace fastchess::engine
-
-namespace fastchess::cli_new {
-
-// Implementation of the validator and parsing methods
+namespace fastchess::cli {
 
 bool SubOption::validate(const std::string& value, std::string& error) const {
     // Check allowed values
@@ -151,7 +107,7 @@ void Option::parse(const std::vector<std::string>& params, ArgumentData& data) c
     }
 }
 
-ArgumentData CommandLineParser::parse(int argc, char** argv) {
+ArgumentData CommandLineParser::parse(int argc, char const* argv[]) {
     return parse(std::vector<std::string>(argv, argv + argc));
 }
 
@@ -268,93 +224,5 @@ int to_int(const std::string& value) { return std::stoi(value); }
 
 float to_float(const std::string& value) { return std::stof(value); }
 }  // namespace converters
-}  // namespace fastchess::cli_new
 
-namespace fastchess::cli_new {
-
-CommandLineParser create_parser() {
-    CommandLineParser parser("Chess Tournament", "A chess tournament management program");
-
-    Option engine("engine", "Configure an engine for the tournament");
-
-    engine.setBeforeProcess([](ArgumentData& data) { data.configs.emplace_back(); });
-
-    engine.addSubOption(
-        SubOption("cmd", "Engine executable path")
-            .required()
-            .setSetter([](const std::string& value, ArgumentData& data) { data.configs.back().cmd = value; }));
-
-    engine.addSubOption(SubOption("name", "Engine name").setSetter([](const std::string& value, ArgumentData& data) {
-        data.configs.back().name = value;
-    }));
-
-    engine.addSubOption(SubOption("tc", "Time control (e.g., '40/60' or '5+0.1')")
-                            .setSetter([](const std::string& value, ArgumentData& data) {
-                                data.configs.back().limit.tc = engine::parseTc(value);
-                            }));
-
-    engine.addSubOption(SubOption("st", "Fixed time (e.g., '5.0' for 5 seconds")
-                            .setSetter([](const std::string& value, ArgumentData& data) {
-                                data.configs.back().limit.tc.fixed_time = static_cast<int64_t>(std::stod(value) * 1000);
-                            }));
-
-    engine.addSubOption(SubOption("timemargin", "Time margin in milliseconds")
-                            .setSetter([](const std::string& value, ArgumentData& data) {
-                                data.configs.back().limit.tc.timemargin = std::stoi(value);
-                                if (data.configs.back().limit.tc.timemargin < 0) {
-                                    throw std::runtime_error("The value for timemargin cannot be a negative number.");
-                                }
-                            }));
-
-    engine.addSubOption(SubOption("nodes", "Node limit").setSetter([](const std::string& value, ArgumentData& data) {
-        data.configs.back().limit.nodes = std::stoll(value);
-    }));
-
-    engine.addSubOption(SubOption("plies", "Ply limit").setSetter([](const std::string& value, ArgumentData& data) {
-        data.configs.back().limit.plies = std::stoll(value);
-    }));
-
-    engine.addSubOption(
-        SubOption("dir", "Engine directory").setSetter([](const std::string& value, ArgumentData& data) {
-            data.configs.back().dir = value;
-        }));
-
-    engine.addSubOption(
-        SubOption("args", "Engine arguments").setSetter([](const std::string& value, ArgumentData& data) {
-            data.configs.back().args = value;
-        }));
-
-    engine.addSubOption(
-        SubOption("restart", "Restart engine (on/off)").setSetter([](const std::string& value, ArgumentData& data) {
-            if (value != "on" && value != "off") {
-                throw std::runtime_error("Invalid parameter (must be either \"on\" or \"off\"): " + value);
-            }
-            data.configs.back().restart = value == "on";
-        }));
-
-    engine.addSubOption(
-        SubOption("proto", "Protocol (e.g., 'uci')").setSetter([](const std::string& value, ArgumentData& data) {
-            if (value != "uci") {
-                throw std::runtime_error("Unsupported protocol.");
-            }
-        }));
-
-    // Dynamic engine options handler (for option.* parameters)
-    engine.setDynamicOptionHandler([](const std::string& key, const std::string& value, ArgumentData& data) -> bool {
-        if (engine::isEngineSettableOption(key)) {
-            // Strip option.Name of the option part
-            const std::size_t pos         = key.find('.');
-            const std::string strippedKey = key.substr(pos + 1);
-            data.configs.back().options.emplace_back(strippedKey, value);
-            return true;
-        }
-        return false;
-    });
-
-    Option each("each", "Apply engine settings to all engines");
-
-    parser.addOption(std::move(engine));
-
-    return parser;
-}
-}  // namespace fastchess::cli_new
+}  // namespace fastchess::cli

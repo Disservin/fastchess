@@ -25,18 +25,17 @@ TournamentManager::~TournamentManager() {
 }
 
 void TournamentManager::start(const cli::Args& args) {
-    const auto options = cli::OptionsParser(args);
+    auto options = cli::cli_parse(args);
 
     config::TournamentConfig = std::make_unique<config::Tournament>(options.getTournamentConfig());
-
-    config::EngineConfigs = std::make_unique<std::vector<EngineConfiguration>>(options.getEngineConfigs());
+    config::EngineConfigs    = std::make_unique<std::vector<EngineConfiguration>>(options.getEngineConfigs());
 
     Logger::setLevel(config::TournamentConfig->log.level);
     Logger::setCompress(config::TournamentConfig->log.compress);
     Logger::openFile(config::TournamentConfig->log.file);
     Logger::setEngineComs(config::TournamentConfig->log.engine_coms);
 
-    LOG_INFO("{}", cli::OptionsParser::Version);
+    LOG_INFO("{}", cli::Version);
 
     util::random::seed(config::TournamentConfig->seed);
 

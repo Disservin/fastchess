@@ -56,11 +56,9 @@ void loadJson(ArgumentData &argument_data, const std::string &filename) {
 
 namespace engine {
 
-TimeControl::Limits parseTc(const std::string &tcString) {
+void parseTc(TimeControl::Limits &tc, const std::string &tcString) {
     if (str_utils::contains(tcString, "hg")) throw std::runtime_error("Hourglass time control not supported.");
-    if (tcString == "infinite" || tcString == "inf") return {};
-
-    TimeControl::Limits tc;
+    if (tcString == "infinite" || tcString == "inf") return;
 
     std::string remainingStringVector = tcString;
     const bool has_moves              = str_utils::contains(tcString, "/");
@@ -90,8 +88,6 @@ TimeControl::Limits parseTc(const std::string &tcString) {
     } else {
         tc.time = static_cast<int64_t>(std::stod(remainingStringVector) * 1000);
     }
-
-    return tc;
 }
 
 bool isEngineSettableOption(std::string_view stringFormat) { return str_utils::startsWith(stringFormat, "option."); }
@@ -102,7 +98,7 @@ void parseEngineKeyValues(EngineConfiguration &engineConfig, const std::string &
     } else if (key == "name")
         engineConfig.name = value;
     else if (key == "tc")
-        engineConfig.limit.tc = parseTc(value);
+        parseTc(engineConfig.limit.tc, value);
     else if (key == "st")
         engineConfig.limit.tc.fixed_time = static_cast<int64_t>(std::stod(value) * 1000);
     else if (key == "timemargin") {
@@ -155,13 +151,14 @@ CommandLineParser create_parser() {
 
             .addSubOption(SubOption("tc", "Time control (e.g., '40/60' or '5+0.1')")
                               .setSetter([](const std::string &value, ArgumentData &data) {
-                                  data.configs.back().limit.tc = engine::parseTc(value);
+                                  engine::parseTc(data.configs.back().limit.tc, value);
                               }))
 
             .addSubOption(SubOption("st", "Fixed time (e.g., '5.0' for 5 seconds")
                               .setSetter([](const std::string &value, ArgumentData &data) {
                                   data.configs.back().limit.tc.fixed_time =
                                       static_cast<int64_t>(std::stod(value) * 1000);
+                                  std::cout << "Fixed time: " << data.configs.back().limit.tc.fixed_time << "\n";
                               }))
 
             .addSubOption(SubOption("timemargin", "Time margin in milliseconds")
@@ -181,6 +178,11 @@ CommandLineParser create_parser() {
             .addSubOption(SubOption("plies", "Ply limit").setSetter([](const std::string &value, ArgumentData &data) {
                 data.configs.back().limit.plies = std::stoll(value);
             }))
+
+            .addSubOption(SubOption("depth", "Depth limit (does the same as plies)")
+                              .setSetter([](const std::string &value, ArgumentData &data) {
+                                  data.configs.back().limit.plies = std::stoll(value);
+                              }))
 
             .addSubOption(
                 SubOption("dir", "Engine directory").setSetter([](const std::string &value, ArgumentData &data) {
@@ -379,23 +381,23 @@ CommandLineParser create_parser() {
                                            .required()
                                            .addValidator(validators::is_float)
                                            .setSetter([](const std::string &value, ArgumentData &data) {
-                                               data.tournament_config.sprt.elo0 = converters::to_float(value);
+                                               data.tournament_config.sprt.elo0 = converters::to_double(value);
                                            }))
                          .addSubOption(SubOption("elo1", "Alternative hypothesis ELO difference")
                                            .required()
                                            .addValidator(validators::is_float)
                                            .setSetter([](const std::string &value, ArgumentData &data) {
-                                               data.tournament_config.sprt.elo1 = converters::to_float(value);
+                                               data.tournament_config.sprt.elo1 = converters::to_double(value);
                                            }))
                          .addSubOption(SubOption("alpha", "Type I error rate")
                                            .addValidator(validators::is_float)
                                            .setSetter([](const std::string &value, ArgumentData &data) {
-                                               data.tournament_config.sprt.alpha = converters::to_float(value);
+                                               data.tournament_config.sprt.alpha = converters::to_double(value);
                                            }))
                          .addSubOption(SubOption("beta", "Type II error rate")
                                            .addValidator(validators::is_float)
                                            .setSetter([](const std::string &value, ArgumentData &data) {
-                                               data.tournament_config.sprt.beta = converters::to_float(value);
+                                               data.tournament_config.sprt.beta = converters::to_double(value);
                                            }))
                          .addSubOption(SubOption("model", "Statistical model to use")
                                            .setSetter([](const std::string &value, ArgumentData &data) {

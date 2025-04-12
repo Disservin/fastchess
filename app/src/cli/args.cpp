@@ -10,6 +10,52 @@
 #include <types/engine_config.hpp>
 #include <types/tournament.hpp>
 
+#define FMT_HEADER_ONLY
+#include <fmt/include/fmt/core.h>
+#include <fmt/include/fmt/std.h>
+
+template <typename K, typename V>
+class InsertionOrderMap {
+   private:
+    std::unordered_map<K, V> data;
+    std::vector<K> order;
+
+   public:
+    V& operator[](const K& key) {
+        if (data.find(key) == data.end()) {
+            order.push_back(key);
+        }
+        return data[key];
+    }
+
+    class iterator {
+       private:
+        InsertionOrderMap* parent;
+        size_t index;
+
+       public:
+        iterator(InsertionOrderMap* p, size_t i) : parent(p), index(i) {}
+
+        std::pair<const K&, V&> operator*() {
+            const K& key = parent->order[index];
+            return {key, parent->data[key]};
+        }
+
+        iterator& operator++() {
+            ++index;
+            return *this;
+        }
+
+        bool operator!=(const iterator& other) const { return index != other.index; }
+    };
+
+    iterator begin() { return iterator(this, 0); }
+
+    iterator end() { return iterator(this, order.size()); }
+
+    auto has_key(const K& key) const { return data.find(key) != data.end(); }
+};
+
 namespace fastchess::cli {
 
 bool SubOption::validate(const std::string& value, std::string& error) const {
@@ -59,7 +105,7 @@ void Option::parse(const std::vector<std::string>& params, ArgumentData& data) c
 
     if (has_key_value) {
         // Process as key=value pairs
-        std::map<std::string, std::string> values;
+        InsertionOrderMap<std::string, std::string> values;
         for (const auto& param : params) {
             size_t pos = param.find('=');
             if (pos != std::string::npos) {
@@ -71,7 +117,7 @@ void Option::parse(const std::vector<std::string>& params, ArgumentData& data) c
 
         // Check for required sub-options
         for (const auto& [sub_name, sub_option] : sub_options_) {
-            if (sub_option.isRequired() && values.find(sub_name) == values.end() && sub_option.defaultValue().empty()) {
+            if (sub_option.isRequired() && !values.has_key(sub_name) && sub_option.defaultValue().empty()) {
                 throw std::runtime_error("Required sub-option '" + sub_name + "' missing for option '" + name_ + "'");
             }
         }
@@ -95,7 +141,7 @@ void Option::parse(const std::vector<std::string>& params, ArgumentData& data) c
 
         // Apply defaults for unspecified options
         for (const auto& [sub_name, sub_option] : sub_options_) {
-            if (values.find(sub_name) == values.end() && !sub_option.defaultValue().empty()) {
+            if (!values.has_key(sub_name) && !sub_option.defaultValue().empty()) {
                 sub_option.apply(sub_option.defaultValue(), data);
             }
         }
@@ -137,7 +183,10 @@ ArgumentData CommandLineParser::parse(const std::vector<std::string>& args) {
         try {
             it->second.parse(params, data);
         } catch (const std::exception& e) {
-            throw std::runtime_error("Error in option '" + option_name + "': " + e.what());
+            auto err = fmt::format("Error while reading option \"{}\" with value \"{}\"", arg, std::string(args[i]));
+            auto msg = fmt::format("Reason: {}", e.what());
+
+            throw std::runtime_error(err + "\n" + msg);
         }
     }
 
@@ -223,6 +272,8 @@ bool to_bool(const std::string& value) { return value == "true" || value == "1" 
 int to_int(const std::string& value) { return std::stoi(value); }
 
 float to_float(const std::string& value) { return std::stof(value); }
+
+double to_double(const std::string& value) { return std::stod(value); }
 }  // namespace converters
 
 }  // namespace fastchess::cli

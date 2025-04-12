@@ -156,6 +156,7 @@ namespace converters {
 bool to_bool(const std::string& value);
 int to_int(const std::string& value);
 float to_float(const std::string& value);
+double to_double(const std::string& value);
 }  // namespace converters
 
 }  // namespace fastchess::cli

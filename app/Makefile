@@ -109,7 +109,7 @@ endif
 endif
 
 ifeq ($(build), debug)
-	CXXFLAGS := -O2 -std=c++17 -Wall -Wextra -pedantic -Wuninitialized -g3
+	CXXFLAGS := -O0 -std=c++17 -Wall -Wextra -pedantic -Wuninitialized -g3
 endif
 
 ifeq ($(build), release)

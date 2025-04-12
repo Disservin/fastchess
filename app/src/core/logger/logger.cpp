@@ -46,7 +46,7 @@ void Logger::openFile(const std::string &file) {
 
     std::visit(
         [&](auto &&arg) {
-            if (!arg.is_open()) {
+            if (!arg) {
                 std::cerr << "Failed to open log file." << std::endl;
             }
         },

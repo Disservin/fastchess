@@ -7,6 +7,10 @@
 
 #include <core/memory/heap_str.hpp>
 
+#ifdef USE_ZLIB
+#    include "../../../third_party/gzip/gzstream.h"
+#endif
+
 namespace {
 std::istream& safeGetline(std::istream& is, std::string& t) {
     t.clear();
@@ -49,8 +53,19 @@ EpdReader::EpdReader(const std::string& epd_file_path) : epd_file_(epd_file_path
     }
 
     std::string line;
-    while (safeGetline(openingFile, line))
-        if (!line.empty()) openings_.emplace_back(util::heap_string(line.c_str()));
+    if (epd_file_.size() >= 3 && epd_file_.substr(epd_file_.size() - 3) == ".gz") {
+        openingFile.close();
+#ifdef USE_ZLIB
+        igzstream input(epd_file_.c_str());
+        while (safeGetline(input, line))
+            if (!line.empty()) openings_.emplace_back(util::heap_string(line.c_str()));
+#else
+        throw std::runtime_error("Compressed book is provided but program wasn't compiled with zlib.");
+#endif
+    } else {
+        while (safeGetline(openingFile, line))
+            if (!line.empty()) openings_.emplace_back(util::heap_string(line.c_str()));
+    }
 
     if (openings_.empty()) {
         throw std::runtime_error("No openings found in file: " + epd_file_);

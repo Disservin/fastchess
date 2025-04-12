@@ -9,6 +9,10 @@
 #include <core/logger/logger.hpp>
 #include <game/book/opening.hpp>
 
+#ifdef USE_ZLIB
+#    include "../../../third_party/gzip/gzstream.h"
+#endif
+
 namespace fastchess::book {
 
 class PGNVisitor : public chess::pgn::Visitor {
@@ -81,8 +85,19 @@ PgnReader::PgnReader(const std::string& pgn_file_path, int plies_limit)
     }
 
     auto vis = std::make_unique<PGNVisitor>(pgns_, plies_limit_);
-    chess::pgn::StreamParser parser(file);
-    parser.readGames(*vis);
+    if (file_name_.size() >= 3 && file_name_.substr(file_name_.size() - 3) == ".gz") {
+        file.close();
+#ifdef USE_ZLIB
+        igzstream input(file_name_.c_str());
+        chess::pgn::StreamParser parser(input);
+        parser.readGames(*vis);
+#else
+        throw std::runtime_error("Compressed book is provided but program wasn't compiled with zlib.");
+#endif
+    } else {
+        chess::pgn::StreamParser parser(file);
+        parser.readGames(*vis);
+    }
 
     if (pgns_.empty()) {
         throw std::runtime_error("No openings found in file: " + file_name_);

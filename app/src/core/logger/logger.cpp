@@ -42,17 +42,18 @@ void Logger::openFile(const std::string &file) {
     }
 #endif
 
+    Logger::should_log_ = true;
+
     // verify that the file was opened
 
     std::visit(
         [&](auto &&arg) {
             if (!arg.is_open()) {
                 std::cerr << "Failed to open log file." << std::endl;
+                Logger::should_log_ = false;
             }
         },
         log_);
-
-    Logger::should_log_ = true;
 }
 
 void Logger::writeToEngine(const std::string &msg, const std::string &time, const std::string &name) {

@@ -19,6 +19,7 @@ INC              := -I$(INCDIR) -Ithird_party
 
 SRC_FILES        := \
 	$(SRCDIR)/cli/cli.cpp \
+	$(SRCDIR)/cli/cli_new.cpp \
 	$(SRCDIR)/cli/sanitize.cpp \
 	$(SRCDIR)/core/globals/globals.cpp \
 	$(SRCDIR)/core/logger/logger.cpp \

@@ -3,6 +3,7 @@
 #include <core/printing/printing.h>
 #include <cli/cli.hpp>
 #include <cli/cli_args.hpp>
+#include <cli/cli_new.hpp>
 #include <core/config/config.hpp>
 #include <core/globals/globals.hpp>
 #include <core/rand.hpp>
@@ -17,6 +18,12 @@ using namespace fastchess;
 
 int main(int argc, char const* argv[]) {
     setCtrlCHandler();
+
+    auto parser = cli_new::create_parser();
+
+    parser.printHelp();
+
+    return 1;
 
     if (argc >= 3 && std::string(argv[1]) == "--compliance") {
         setTerminalOutput();

@@ -30,7 +30,7 @@ void Logger::openFile(const std::string &file) {
     if (compress_) {
         auto t   = std::chrono::system_clock::now();
         auto fmt = fmt::format("{}{:%Y-%m-%dT.%H.%M.%S}.gz", file, t);
-        log_.emplace<ogzstream>(fmt.c_str(), std::ios::out);
+        log_.emplace<fcgzstream>(fmt.c_str(), std::ios::out);
     } else {
         log_.emplace<std::ofstream>(file.c_str(), std::ios::app);
     }

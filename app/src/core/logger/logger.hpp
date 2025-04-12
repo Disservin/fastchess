@@ -16,6 +16,14 @@
 
 #ifdef USE_ZLIB
 #    include "../../../third_party/gzip/gzstream.h"
+
+class fcgzstream : public ogzstream {
+   public:
+    fcgzstream() : ogzstream() {}
+    fcgzstream(const char *name, int mode = std::ios::out) : ogzstream(name, mode) {}
+
+    bool is_open() { return rdbuf()->is_open(); }
+};
 #endif
 
 namespace fastchess {
@@ -23,7 +31,7 @@ namespace fastchess {
 class Logger {
    public:
 #ifdef USE_ZLIB
-    using log_file_type = std::variant<std::ofstream, ogzstream>;
+    using log_file_type = std::variant<std::ofstream, fcgzstream>;
 #else
     using log_file_type = std::variant<std::ofstream>;
 #endif

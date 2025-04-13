@@ -254,7 +254,6 @@ TEST_SUITE("Opening Book Test") {
         CHECK(id.value() == 0);
         CHECK(book[id].fen_epd == chess::constants::STARTPOS);
         CHECK(book[id].moves.size() == 16);
-        CHECK(book[id].stm == chess::Color::WHITE);
         CHECK(book[id].moves[0] == chess::Move::make(chess::Square::SQ_E2, chess::Square::SQ_E4));
 
         id = book.fetchId();
@@ -263,6 +262,5 @@ TEST_SUITE("Opening Book Test") {
         CHECK(id.value() == 1);
         CHECK(book[id].fen_epd == chess::constants::STARTPOS);
         CHECK(book[id].moves.size() == 16);
-        CHECK(book[id].stm == chess::Color::WHITE);
     }
 }

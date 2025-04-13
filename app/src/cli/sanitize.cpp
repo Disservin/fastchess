@@ -39,24 +39,22 @@ void sanitize(config::Tournament& config) {
     }
 
 #ifdef _WIN64
-    if (config.concurrency > 63 && !util::fd_limit::isWindows11OrNewer()) {
+    if (config.concurrency > 63 && !fd_limit::isWindows11OrNewer()) {
         Logger::print<Logger::Level::WARN>(
             "A concurrency setting of more than 63 is currently not supported on Windows.\nIf this affects "
             "your system, please open an issue or get in touch with the maintainers.");
         config.concurrency = 63;  // not 64 because we need one thread for the main thread
     }
 #else
-    if (util::fd_limit::maxSystemFileDescriptorCount() <
-        util::fd_limit::minFileDescriptorRequired(config.concurrency)) {
+    if (fd_limit::maxSystemFileDescriptorCount() < fd_limit::minFileDescriptorRequired(config.concurrency)) {
         Logger::print<Logger::Level::WARN>(
             "There aren't enough file descriptors available for the specified concurrency.\nPlease increase the limit "
             "using ulimit -n 65536 for each shell manually or \nadjust the defaults (e.g. /etc/security/limits.conf,"
             "/etc/systemd/system.conf, and/or /etc/systemd/user.conf).\nThe maximum number of file descriptors "
             "required for this configuration is: {}",
-            util::fd_limit::minFileDescriptorRequired(config.concurrency));
+            fd_limit::minFileDescriptorRequired(config.concurrency));
 
-        const auto max_supported_concurrency =
-            util::fd_limit::maxConcurrency(util::fd_limit::maxSystemFileDescriptorCount());
+        const auto max_supported_concurrency = fd_limit::maxConcurrency(fd_limit::maxSystemFileDescriptorCount());
 
         Logger::print<Logger::Level::WARN>("Limiting concurrency to: {}", max_supported_concurrency);
 

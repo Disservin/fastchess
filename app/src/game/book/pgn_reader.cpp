@@ -78,30 +78,33 @@ class PGNVisitor : public chess::pgn::Visitor {
 
 PgnReader::PgnReader(const std::string& pgn_file_path, int plies_limit)
     : file_name_(pgn_file_path), plies_limit_(plies_limit) {
-    std::ifstream file(file_name_);
+    auto vis        = std::make_unique<PGNVisitor>(pgns_, plies_limit_);
+    bool is_gzipped = file_name_.size() >= 3 && file_name_.substr(file_name_.size() - 3) == ".gz";
 
-    if (!file.is_open()) {
-        throw std::runtime_error("Failed to open file: " + file_name_);
-    }
+    std::unique_ptr<std::istream> input_stream;
 
-    auto vis = std::make_unique<PGNVisitor>(pgns_, plies_limit_);
-    if (file_name_.size() >= 3 && file_name_.substr(file_name_.size() - 3) == ".gz") {
-        file.close();
+    if (is_gzipped) {
 #ifdef USE_ZLIB
-        igzstream input(file_name_.c_str());
-        chess::pgn::StreamParser parser(input);
-        parser.readGames(*vis);
+        input_stream = std::make_unique<igzstream>(file_name_.c_str());
+
+        if (dynamic_cast<igzstream*>(input_stream.get())->rdbuf()->is_open() == false) {
+            throw std::runtime_error("Failed to open file: " + file_name_);
+        }
 #else
         throw std::runtime_error("Compressed book is provided but program wasn't compiled with zlib.");
 #endif
     } else {
-        chess::pgn::StreamParser parser(file);
-        parser.readGames(*vis);
+        input_stream = std::make_unique<std::ifstream>(file_name_);
+
+        if (dynamic_cast<std::ifstream*>(input_stream.get())->is_open() == false) {
+            throw std::runtime_error("Failed to open file: " + file_name_);
+        }
     }
 
+    chess::pgn::StreamParser parser(*input_stream);
+    parser.readGames(*vis);
     if (pgns_.empty()) {
         throw std::runtime_error("No openings found in file: " + file_name_);
     }
-}
 
 }  // namespace fastchess::book

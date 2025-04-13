@@ -42,7 +42,7 @@ install: ## Install the binary and man page
 	@echo "Done."
 
 manpage: ## Generate the man page from Markdown using lowdown
-	@lowdown -s -Tman -o  $(MANPAGE_OUTPUT) $(MANPAGE_SOURCE) -mtitle="FastChess"
+	@lowdown -s -Tman -o  $(MANPAGE_OUTPUT) $(MANPAGE_SOURCE) -mtitle="Fastchess"
 
 install-manpage: manpage ## Install the man page to $(MANDIR)
 	@install -d $(MANDIR)

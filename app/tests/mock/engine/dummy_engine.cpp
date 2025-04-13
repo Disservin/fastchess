@@ -28,7 +28,7 @@ int main(int argc, char const *argv[]) {
             cout << "readyok" << endl;
         } else if (cmd == "uci") {
             cout << "id name Dummy Engine" << endl;
-            cout << "id author FastChess" << endl;
+            cout << "id author Fastchess" << endl;
             cout << "line0" << endl;
             cout << "line1" << endl;
             cout << "uciok" << endl;

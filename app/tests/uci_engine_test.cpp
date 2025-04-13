@@ -49,7 +49,7 @@ TEST_SUITE("Uci Engine Communication Tests") {
         CHECK(uci_engine.idName().value() == "Dummy Engine");
 
         CHECK(uci_engine.idAuthor().has_value());
-        CHECK(uci_engine.idAuthor().value() == "FastChess");
+        CHECK(uci_engine.idAuthor().value() == "Fastchess");
     }
 
     TEST_CASE("Test engine::UciEngine Args Complex") {
@@ -110,7 +110,7 @@ TEST_SUITE("Uci Engine Communication Tests") {
         CHECK(uci);
         CHECK(uciOutput.size() == 5);
         CHECK(uciOutput[0].line == "id name Dummy Engine");
-        CHECK(uciOutput[1].line == "id author FastChess");
+        CHECK(uciOutput[1].line == "id author Fastchess");
         CHECK(uciOutput[2].line == "line0");
         CHECK(uciOutput[3].line == "line1");
         CHECK(uciOutput[4].line == "uciok");
@@ -144,7 +144,7 @@ TEST_SUITE("Uci Engine Communication Tests") {
         CHECK(res == engine::process::Status::OK);
         CHECK(uci_engine.output().size() == 5);
         CHECK(uci_engine.output()[0].line == "id name Dummy Engine");
-        CHECK(uci_engine.output()[1].line == "id author FastChess");
+        CHECK(uci_engine.output()[1].line == "id author Fastchess");
         CHECK(uci_engine.output()[2].line == "line0");
         CHECK(uci_engine.output()[3].line == "line1");
         CHECK(uci_engine.output()[4].line == "uciok");
@@ -187,7 +187,7 @@ TEST_SUITE("Uci Engine Communication Tests") {
         CHECK(res == engine::process::Status::OK);
         CHECK(uci_engine->output().size() == 5);
         CHECK(uci_engine->output()[0].line == "id name Dummy Engine");
-        CHECK(uci_engine->output()[1].line == "id author FastChess");
+        CHECK(uci_engine->output()[1].line == "id author Fastchess");
         CHECK(uci_engine->output()[2].line == "line0");
         CHECK(uci_engine->output()[3].line == "line1");
         CHECK(uci_engine->output()[4].line == "uciok");
@@ -202,7 +202,7 @@ TEST_SUITE("Uci Engine Communication Tests") {
         CHECK(res2 == engine::process::Status::OK);
         CHECK(uci_engine->output().size() == 5);
         CHECK(uci_engine->output()[0].line == "id name Dummy Engine");
-        CHECK(uci_engine->output()[1].line == "id author FastChess");
+        CHECK(uci_engine->output()[1].line == "id author Fastchess");
         CHECK(uci_engine->output()[2].line == "line0");
         CHECK(uci_engine->output()[3].line == "line1");
         CHECK(uci_engine->output()[4].line == "uciok");

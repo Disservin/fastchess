@@ -25,7 +25,7 @@ THIS FILE IS AUTO GENERATED DO NOT CHANGE MANUALLY.
 
 Source: https://github.com/Disservin/chess-library
 
-VERSION: 0.8.10
+VERSION: 0.8.11
 */
 
 #ifndef CHESS_HPP
@@ -1847,6 +1847,7 @@ class Board {
     explicit Board(std::string_view fen = constants::STARTPOS, bool chess960 = false) {
         prev_states_.reserve(256);
         chess960_ = chess960;
+        assert(setFenInternal<true>(constants::STARTPOS));
         setFenInternal<true>(fen);
     }
 
@@ -2940,13 +2941,11 @@ class Board {
 
         if (move_right != "w" && move_right != "b") return false;
 
-        auto half_move_opt = detail::parseStringViewToInt(half_move);
-        if (!half_move_opt) return false;
-        hfm_ = *half_move_opt;
+        const auto half_move_opt = detail::parseStringViewToInt(half_move).value_or(0);
+        hfm_                     = half_move_opt;
 
-        auto full_move_opt = detail::parseStringViewToInt(full_move);
-        if (!full_move_opt || *full_move_opt <= 0) return false;
-        plies_ = *full_move_opt;
+        const auto full_move_opt = detail::parseStringViewToInt(full_move).value_or(1);
+        plies_                   = full_move_opt;
 
         plies_ = plies_ * 2 - 2;
 
@@ -2968,19 +2967,11 @@ class Board {
         }
 
         auto square = 56;
-        int rank    = 7;
         for (char curr : position) {
             if (isdigit(curr)) {
-                int skip = curr - '0';
-                square += skip;
-                if (square > 63) return false;
+                square += (curr - '0');
             } else if (curr == '/') {
-                if ((square - 56) % 8 != 0) return false;
-
                 square -= 16;
-                rank--;
-
-                if (rank < 0) return false;
             } else {
                 auto p = Piece(std::string_view(&curr, 1));
                 if (p == Piece::NONE || !Square::is_valid_sq(square) || at(square) != Piece::NONE) return false;
@@ -2993,12 +2984,8 @@ class Board {
 
                 key_ ^= Zobrist::piece(p, Square(square));
                 ++square;
-
-                if (square > 63) return false;
             }
         }
-
-        if (rank != 0 || square != 64) return false;
 
         static const auto find_rook = [](const Board &board, CastlingRights::Side side, Color color) -> File {
             const auto king_side = CastlingRights::Side::KING_SIDE;

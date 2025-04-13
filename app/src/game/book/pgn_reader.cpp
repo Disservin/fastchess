@@ -106,5 +106,6 @@ PgnReader::PgnReader(const std::string& pgn_file_path, int plies_limit)
     if (pgns_.empty()) {
         throw std::runtime_error("No openings found in file: " + file_name_);
     }
+}
 
 }  // namespace fastchess::book

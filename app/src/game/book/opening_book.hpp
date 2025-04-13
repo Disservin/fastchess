@@ -20,7 +20,7 @@ struct Openings {
     template <typename T>
     static void shuffle(T& vec) {
         for (std::size_t i = 0; i + 2 <= vec.size(); i++) {
-            auto rand     = util::random::mersenne_rand();
+            auto rand     = random::mersenne_rand();
             std::size_t j = i + (rand % (vec.size() - i));
             std::swap(vec[i], vec[j]);
         }

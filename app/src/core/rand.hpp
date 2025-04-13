@@ -6,7 +6,7 @@
 
 #include <core/logger/logger.hpp>
 
-namespace fastchess::util::random {
+namespace fastchess::random {
 inline std::mt19937_64 mersenne_rand;
 
 inline uint64_t random_uint64() {
@@ -21,4 +21,4 @@ inline void seed(uint64_t seed) {
     LOG_INFO("Setting seed to: {}", seed);
     mersenne_rand.seed(seed);
 }
-}  // namespace fastchess::util::random
+}  // namespace fastchess::random

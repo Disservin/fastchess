@@ -38,7 +38,7 @@ void TournamentManager::start(const cli::Args& args) {
 
     LOG_INFO("{}", cli::OptionsParser::Version);
 
-    util::random::seed(config::TournamentConfig->seed);
+    random::seed(config::TournamentConfig->seed);
 
     if (config::TournamentConfig->tb_adjudication.enabled) {
         LOG_INFO("Loading Syzygy tablebases...");

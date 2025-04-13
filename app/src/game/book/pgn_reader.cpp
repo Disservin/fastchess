@@ -58,10 +58,7 @@ class PGNVisitor : public chess::pgn::Visitor {
         pgn_.moves.push_back(move_i);
     }
 
-    void endPgn() override {
-        pgn_.stm = board_.sideToMove();
-        pgns_.push_back(pgn_);
-    }
+    void endPgn() override { pgns_.push_back(pgn_); }
 
    private:
     std::vector<Opening>& pgns_;

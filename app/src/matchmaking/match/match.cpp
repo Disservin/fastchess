@@ -19,6 +19,20 @@ using clock = chrono::steady_clock;
 
 namespace {
 
+std::string to_escaped_string(const std::string& binary_str) {
+    std::stringstream ss;
+
+    for (unsigned char c : binary_str) {
+        if (c >= 32 && c <= 126) {
+            ss << c;
+        } else {
+            ss << "\\x" << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(c);
+        }
+    }
+
+    return ss.str();
+}
+
 bool isFen(const std::string& line) { return line.find(';') == std::string::npos; }
 
 [[nodiscard]] std::pair<GameResultReason, GameResult> isGameOverSimple(const Board& board) {
@@ -49,10 +63,17 @@ Match::Match(const book::Opening& opening)
                                config::TournamentConfig->tb_adjudication.ignore_50_move_rule) {
     board_.set960(config::TournamentConfig->variant == VariantType::FRC);
 
-    if (isFen(opening_.fen_epd))
-        board_.setFen(opening_.fen_epd);
-    else
-        board_.setEpd(opening_.fen_epd);
+    const auto success = isFen(opening_.fen_epd) ? board_.setFen(opening_.fen_epd) : board_.setEpd(opening_.fen_epd);
+
+    if (!success) {
+        LOG_FATAL_THREAD("Failed to set board position from opening book");
+        atomic::stop                 = true;
+        atomic::abnormal_termination = true;
+        auto fen                     = to_escaped_string(opening_.fen_epd);
+
+        Logger::print<Logger::Level::FATAL>("Failed to set position from opening book, invalid FEN or EPD: {}", fen);
+        throw std::runtime_error("Failed to set position from opening book, invalid FEN or EPD: " + fen);
+    }
 
     const auto fen = board_.getFen();
 

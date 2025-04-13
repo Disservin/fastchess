@@ -52,14 +52,15 @@ void OpeningBook::setup(const std::string& file, FormatType type) {
 }
 
 Opening OpeningBook::operator[](std::optional<std::size_t> idx) const noexcept {
-    if (!idx.has_value()) return {chess::constants::STARTPOS, {}, chess::Color::WHITE};
+    if (!idx.has_value()) return {chess::constants::STARTPOS, {}};
 
     assert(idx.value() < std::visit([](const auto& arg) { return arg.get().size(); }, openings_));
 
     if (std::holds_alternative<EpdReader>(openings_)) {
         const auto& reader = std::get<EpdReader>(openings_);
         const auto fen     = reader.get()[idx.value()];
-        return {std::string(fen.c_str()), {}, chess::Board(fen.c_str()).sideToMove()};
+
+        return {std::string(fen.c_str()), {}};
     }
 
     const auto& reader = std::get<PgnReader>(openings_);

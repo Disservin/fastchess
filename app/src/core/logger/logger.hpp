@@ -133,9 +133,9 @@ class Logger {
         std::string fmt_message;
 
         if constexpr (thread) {
-            fmt_message = fmt::format(fmt, label, util::time::datetime_precise(), std::this_thread::get_id(), message);
+            fmt_message = fmt::format(fmt, label, time::datetime_precise(), std::this_thread::get_id(), message);
         } else {
-            fmt_message = fmt::format(fmt, label, util::time::datetime_precise(), "", message);
+            fmt_message = fmt::format(fmt, label, time::datetime_precise(), "", message);
         }
 
         const std::lock_guard<std::mutex> lock(log_mutex_);

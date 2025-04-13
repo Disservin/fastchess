@@ -318,7 +318,7 @@ class Process : public IProcess {
         LOG_TRACE_THREAD("Terminating process with pid: {} {}", process_pid_, status);
 
         // log the status of the process
-        Logger::readFromEngine(signalToString(status), util::time::datetime_precise(), log_name_, true);
+        Logger::readFromEngine(signalToString(status), time::datetime_precise(), log_name_, true);
 
         is_initalized_ = false;
     }
@@ -365,8 +365,8 @@ class Process : public IProcess {
 
             // timeout
             if (ready == 0) {
-                if (!current_line_.empty()) lines.emplace_back(Line{current_line_, util::time::datetime_precise()});
-                if (realtime_logging_) Logger::readFromEngine(current_line_, util::time::datetime_precise(), log_name_);
+                if (!current_line_.empty()) lines.emplace_back(Line{current_line_, time::datetime_precise()});
+                if (realtime_logging_) Logger::readFromEngine(current_line_, time::datetime_precise(), log_name_);
 
                 return Status::TIMEOUT;
             }
@@ -446,7 +446,7 @@ class Process : public IProcess {
             // to the vector and reset the current_line_.
             // Dont add empty lines
             if (!current_line_.empty()) {
-                const auto time = Logger::should_log_ ? util::time::datetime_precise() : "";
+                const auto time = Logger::should_log_ ? time::datetime_precise() : "";
 
                 lines.emplace_back(Line{current_line_, time});
 

@@ -7,11 +7,9 @@
 #include <sstream>
 #include <string>
 
-namespace fastchess::util {
+namespace fastchess::time {
 
 namespace sc = std::chrono;
-
-namespace time {
 
 // Get the current date and time in a given format.
 [[nodiscard]] inline std::optional<std::string> datetime(const std::string &format) {
@@ -64,6 +62,5 @@ namespace time {
     ss << str.value_or("") << "." << std::setfill('0') << std::setw(6) << elapsed_ms.count();
     return ss.str();
 }
-}  // namespace time
 
-}  // namespace fastchess::util
+}  // namespace fastchess::time

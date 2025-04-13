@@ -61,7 +61,7 @@ void Logger::writeToEngine(const std::string &msg, const std::string &time, cons
         return;
     }
 
-    const auto timestamp = time.empty() ? util::time::datetime_precise() : time;
+    const auto timestamp = time.empty() ? time::datetime_precise() : time;
 
     const auto id = std::this_thread::get_id();
 

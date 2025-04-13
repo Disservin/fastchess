@@ -270,7 +270,7 @@ class Process : public IProcess {
     }
 
     void addLine(std::vector<Line> &lines) const {
-        const auto timestamp = Logger::should_log_ ? util::time::datetime_precise() : "";
+        const auto timestamp = Logger::should_log_ ? time::datetime_precise() : "";
 
         lines.emplace_back(Line{current_line_, timestamp});
 

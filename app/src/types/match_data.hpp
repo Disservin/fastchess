@@ -1,5 +1,6 @@
 #pragma once
 
+#include <chrono>
 #include <cstdint>
 #include <string>
 #include <utility>
@@ -63,7 +64,7 @@ struct MatchData {
     MatchData() {}
 
     explicit MatchData(std::string fen) : fen(std::move(fen)) {
-        start_time = time::datetime("%Y-%m-%dT%H:%M:%S %z").value_or("-");
+        start_time = time::datetime_iso();
         date       = time::datetime("%Y.%m.%d").value_or("-");
     }
 

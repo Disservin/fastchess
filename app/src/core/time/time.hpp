@@ -7,6 +7,10 @@
 #include <sstream>
 #include <string>
 
+#define FMT_HEADER_ONLY
+#include "../../../third_party/fmt/include/fmt/core.h"
+#include "../../../third_party/fmt/include/fmt/std.h"
+
 namespace fastchess::time {
 
 namespace sc = std::chrono;
@@ -36,6 +40,34 @@ namespace sc = std::chrono;
     ss << std::put_time(res, format.c_str());
     return ss.str();
 #endif
+}
+
+[[nodiscard]] inline std::string datetime_iso() {
+    auto now   = std::chrono::system_clock::now();
+    auto now_c = std::chrono::system_clock::to_time_t(now);
+
+    std::tm local_tm = *std::localtime(&now_c);
+
+    std::string datetime = fmt::format("{:%Y-%m-%dT%H:%M:%S}", local_tm);
+
+    // gmt == utc
+    std::time_t gmt, local;
+    std::tm tm_local = local_tm;
+    std::tm tm_gmt   = *std::gmtime(&now_c);
+
+    tm_local.tm_isdst = 0;
+    tm_gmt.tm_isdst   = 0;
+
+    local = std::mktime(&tm_local);
+    gmt   = std::mktime(&tm_gmt);
+
+    int diff      = (local - gmt) / 60;
+    int hour_diff = diff / 60;
+    int min_diff  = std::abs(diff % 60);
+
+    std::string timezone = fmt::format("{}{:02d}{:02d}", (hour_diff >= 0 ? "+" : "-"), std::abs(hour_diff), min_diff);
+
+    return datetime + " " + timezone;
 }
 
 // Formats a duration in seconds to a string in the format HH:MM:SS.

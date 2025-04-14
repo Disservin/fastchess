@@ -3,6 +3,7 @@
 #include <chrono>
 #include <ctime>
 #include <iomanip>
+#include <mutex>
 #include <optional>
 #include <sstream>
 #include <string>
@@ -14,6 +15,8 @@
 namespace fastchess::time {
 
 namespace sc = std::chrono;
+
+inline std::mutex mutex_time;
 
 // Get the current date and time in a given format.
 [[nodiscard]] inline std::optional<std::string> datetime(const std::string &format) {
@@ -43,6 +46,8 @@ namespace sc = std::chrono;
 }
 
 [[nodiscard]] inline std::string datetime_iso() {
+    std::lock_guard<std::mutex> lock(mutex_time);
+
     auto now   = std::chrono::system_clock::now();
     auto now_c = std::chrono::system_clock::to_time_t(now);
 

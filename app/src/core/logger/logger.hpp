@@ -128,8 +128,12 @@ class Logger {
         /*
         label, time, thread_id, message
         */
+        #ifdef _WIN32
+        const auto fmt = "[{:<6}] [{:>15}] <{:>3}> fastchess --- {}";
+        #else
+        const auto fmt = "[{:<6}] [{:>15}] <{:>20}> fastchess --- {}";
+        #endif
 
-        const auto fmt = "[{:<6}] [{:>15}] <{:>1}> fastchess --- {}";
         auto thread_id_str = thread ? fmt::format("{}", std::this_thread::get_id()) : "";
        
         std::string fmt_message = fmt::format(fmt, label, time::datetime_precise(), thread_id_str, message);

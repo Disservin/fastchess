@@ -129,14 +129,10 @@ class Logger {
         label, time, thread_id, message
         */
 
-        const auto fmt = "[{:<6}] [{:>15}] <{:>20}> fastchess --- {}";
-        std::string fmt_message;
-
-        if constexpr (thread) {
-            fmt_message = fmt::format(fmt, label, time::datetime_precise(), std::this_thread::get_id(), message);
-        } else {
-            fmt_message = fmt::format(fmt, label, time::datetime_precise(), "", message);
-        }
+        const auto fmt = "[{:<6}] [{:>15}] <{:>1}> fastchess --- {}";
+        auto thread_id_str = thread ? fmt::format("{}", std::this_thread::get_id()) : "";
+       
+        std::string fmt_message = fmt::format(fmt, label, time::datetime_precise(), thread_id_str, message);
 
         const std::lock_guard<std::mutex> lock(log_mutex_);
         std::visit([&](auto &&arg) { arg << fmt_message << std::flush; }, log_);

@@ -65,7 +65,11 @@ void Logger::writeToEngine(const std::string &msg, const std::string &time, cons
 
     const auto id = std::this_thread::get_id();
 
+    #ifdef _WIN32
+    auto fmt_message = fmt::format("[{:<6}] [{:>15}] <{:>3}> {} <--- {}\n", "Engine", timestamp, id, name, msg);
+    #else
     auto fmt_message = fmt::format("[{:<6}] [{:>15}] <{:>20}> {} <--- {}\n", "Engine", timestamp, id, name, msg);
+    #endif
 
     const std::lock_guard<std::mutex> lock(log_mutex_);
     std::visit([&](auto &&arg) { arg << fmt_message << std::flush; }, log_);
@@ -77,8 +81,13 @@ void Logger::readFromEngine(const std::string &msg, const std::string &time, con
         return;
     }
 
+    #ifdef _WIN32
+    auto fmt_message = fmt::format("[{:<6}] [{:>15}] <{:>3}> {}{} ---> {}\n", "Engine", time, id,
+                                   (err ? "<stderr> " : ""), name, msg);
+    #else
     auto fmt_message = fmt::format("[{:<6}] [{:>15}] <{:>20}> {}{} ---> {}\n", "Engine", time, id,
                                    (err ? "<stderr> " : ""), name, msg);
+    #endif
 
     const std::lock_guard<std::mutex> lock(log_mutex_);
     std::visit([&](auto &&arg) { arg << fmt_message << std::flush; }, log_);

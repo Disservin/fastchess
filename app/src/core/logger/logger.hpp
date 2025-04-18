@@ -11,11 +11,11 @@
 #include <core/time/time.hpp>
 
 #define FMT_HEADER_ONLY
-#include "../../../third_party/fmt/include/fmt/core.h"
-#include "../../../third_party/fmt/include/fmt/std.h"
+#include "fmt/include/fmt/core.h"
+#include "fmt/include/fmt/std.h"
 
 #ifdef USE_ZLIB
-#    include "../../../third_party/gzip/gzstream.h"
+#    include "gzip/gzstream.h"
 
 class fcgzstream : public ogzstream {
    public:
@@ -125,17 +125,17 @@ class Logger {
                 break;
         }
 
-        /*
-        label, time, thread_id, message
-        */
-        #ifdef _WIN32
+/*
+label, time, thread_id, message
+*/
+#ifdef _WIN32
         const auto fmt = "[{:<6}] [{:>15}] <{:>3}> fastchess --- {}";
-        #else
+#else
         const auto fmt = "[{:<6}] [{:>15}] <{:>20}> fastchess --- {}";
-        #endif
+#endif
 
         auto thread_id_str = thread ? fmt::format("{}", std::this_thread::get_id()) : "";
-       
+
         std::string fmt_message = fmt::format(fmt, label, time::datetime_precise(), thread_id_str, message);
 
         const std::lock_guard<std::mutex> lock(log_mutex_);

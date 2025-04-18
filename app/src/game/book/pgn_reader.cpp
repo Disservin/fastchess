@@ -10,7 +10,7 @@
 #include <game/book/opening.hpp>
 
 #ifdef USE_ZLIB
-#    include "../../../third_party/gzip/gzstream.h"
+#    include "gzip/gzstream.h"
 #endif
 
 namespace fastchess::book {

@@ -17,7 +17,7 @@
 #include <types/tournament.hpp>
 
 #define FMT_HEADER_ONLY
-#include "../../third_party/fmt/include/fmt/core.h"
+#include "fmt/include/fmt/core.h"
 
 namespace fastchess {
 extern const char *version;

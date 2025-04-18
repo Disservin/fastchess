@@ -9,8 +9,8 @@
 #include <string>
 
 #define FMT_HEADER_ONLY
-#include "../../../third_party/fmt/include/fmt/core.h"
-#include "../../../third_party/fmt/include/fmt/std.h"
+#include "fmt/include/fmt/core.h"
+#include "fmt/include/fmt/std.h"
 
 namespace fastchess::time {
 

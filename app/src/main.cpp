@@ -18,6 +18,11 @@ using namespace fastchess;
 int main(int argc, char const* argv[]) {
     setCtrlCHandler();
 
+    if (argc == 1) {
+        cli::create_parser().printHelp();
+        return EXIT_SUCCESS;
+    }
+
     if (argc >= 3 && std::string(argv[1]) == "--compliance") {
         setTerminalOutput();
         return !engine::compliant(argc, argv);

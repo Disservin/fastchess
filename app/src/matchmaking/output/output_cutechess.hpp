@@ -6,6 +6,7 @@
 #include <tuple>
 #include <vector>
 
+#include <core/config/config.hpp>
 #include <core/logger/logger.hpp>
 #include <matchmaking/elo/elo_wdl.hpp>
 #include <matchmaking/output/output.hpp>

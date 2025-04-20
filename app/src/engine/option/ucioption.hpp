@@ -2,6 +2,8 @@
 
 #include <string>
 
+#include <expected.hpp>
+
 namespace fastchess {
 
 enum class option_error {

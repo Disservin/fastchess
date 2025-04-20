@@ -24,7 +24,10 @@ enum class process_err {
     process_spawn,
     posix_spawn_file_actions_add,
     posix_spawn_file_actions_addclose,
-    posix_spawn_file_actions_addchdir
+    posix_spawn_file_actions_addchdir,
+    failed_to_create_pipe,
+    failed_to_set_handle_info,
+    failed_to_create_process
 };
 
 class IProcess {

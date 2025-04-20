@@ -20,7 +20,7 @@ std::atomic_bool Logger::should_log_ = false;
 std::mutex Logger::log_mutex_;
 Logger::log_file_type Logger::log_;
 bool Logger::engine_coms_ = false;
-bool Logger::auto_log_    = true;
+bool Logger::auto_log_    = false;
 
 std::unordered_map<std::thread::id, std::vector<std::string>> log_buffer_;
 

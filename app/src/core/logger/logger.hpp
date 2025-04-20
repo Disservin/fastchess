@@ -45,6 +45,7 @@ class Logger {
     static void setCompress(bool compress) { compress_ = compress; }
     static void openFile(const std::string &file);
     static void setEngineComs(bool engine_coms) { engine_coms_ = engine_coms; }
+    static void setAutoLog(bool auto_log) { auto_log_ = auto_log; }
 
     // Direct function calls - no file path
     template <bool thread = false, typename... T>

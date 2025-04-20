@@ -161,7 +161,7 @@ The following options are available:
 - -srand SEED  
     Specify the seed for opening book randomization.
 
-- -log file=NAME level=LEVEL compress=(true|false) realtime=(true|false) engine=(true|false)
+- -log file=NAME level=LEVEL compress=(true|false) realtime=(true|false) engine=(true|false) auto_log=(true|false)
     Specify a log file with a specific log level. Set compress to true to gzip the file. Default is false.
     By default engine logs are disabled. Set engine to true to enable them.
 

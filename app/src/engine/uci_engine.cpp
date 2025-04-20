@@ -82,14 +82,14 @@ process::Status UciEngine::isready(std::chrono::milliseconds threshold) {
 
     if (res != process::Status::OK) {
         if (!atomic::stop) {
-            LOG_TRACE_THREAD("Engine {} didn't respond to isready.", config_.name);
-            Logger::print<Logger::Level::WARN>("Warning; Engine {} is not responsive.", config_.name);
+            LOG_TRACE_THREAD("Engine {} didn't respond to isready", config_.name);
+            Logger::print<Logger::Level::WARN>("Warning; Engine {} is not responsive", config_.name);
         }
 
         return res;
     }
 
-    LOG_TRACE_THREAD("Engine {} is {}", config_.name, "responsive.");
+    LOG_TRACE_THREAD("Engine {} is {}", config_.name, "responsive");
 
     return res;
 }
@@ -331,7 +331,7 @@ bool UciEngine::refreshUci() {
     LOG_TRACE_THREAD("Refreshing engine {}", config_.name);
 
     if (!ucinewgame()) {
-        LOG_WARN_THREAD("Engine {} failed to refresh.", config_.name);
+        LOG_WARN_THREAD("Engine {} failed to start/refresh (ucinewgame).", config_.name);
         return false;
     }
 
@@ -343,10 +343,7 @@ bool UciEngine::refreshUci() {
         sendSetoption("UCI_Chess960", "true");
     }
 
-    if (!ucinewgame()) {
-        LOG_WARN_THREAD("Engine {} didn't respond to ucinewgame.", config_.name);
-        return false;
-    }
+    LOG_TRACE_THREAD("Engine {} refreshed.", config_.name);
 
     return true;
 }

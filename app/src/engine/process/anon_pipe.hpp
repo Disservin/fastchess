@@ -63,57 +63,6 @@ inline bool CreatePipeEx(LPHANDLE lpReadPipe, LPHANDLE lpWritePipe, LPSECURITY_A
     return true;
 }
 
-class Pipe {
-   public:
-    Pipe() : handles_{INVALID_HANDLE_VALUE, INVALID_HANDLE_VALUE} {}
-
-    ~Pipe() {
-        close_read();
-        close_write();
-    }
-
-    void create() {
-        close_read();
-        close_write();
-
-        SECURITY_ATTRIBUTES sa{};
-
-        sa.nLength        = sizeof(SECURITY_ATTRIBUTES);
-        sa.bInheritHandle = TRUE;
-
-        if (!CreatePipeEx(&handles_[0], &handles_[1], &sa)) {
-            throw std::runtime_error("CreatePipeEx() failed");
-        }
-    }
-
-    void close_read() {
-        if (handles_[0] != INVALID_HANDLE_VALUE) {
-            CloseHandle(handles_[0]);
-            handles_[0] = INVALID_HANDLE_VALUE;
-        }
-    }
-
-    void close_write() {
-        if (handles_[1] != INVALID_HANDLE_VALUE) {
-            CloseHandle(handles_[1]);
-            handles_[1] = INVALID_HANDLE_VALUE;
-        }
-    }
-
-    HANDLE read_end() const {
-        assert(handles_[0] != INVALID_HANDLE_VALUE);
-        return handles_[0];
-    }
-
-    HANDLE write_end() const {
-        assert(handles_[1] != INVALID_HANDLE_VALUE);
-        return handles_[1];
-    }
-
-   private:
-    std::array<HANDLE, 2> handles_;
-};
-
 }  // namespace engine::process
 }  // namespace fastchess
 

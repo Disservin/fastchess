@@ -15,11 +15,15 @@
 #include "spin_option.hpp"
 #include "string_option.hpp"
 
+#include <expected.hpp>
+
 namespace fastchess {
+
+
 
 class UCIOptionFactory {
    public:
-    static std::unique_ptr<UCIOption> parseUCIOptionLine(const std::string& line) {
+    static tl::expected<std::unique_ptr<UCIOption>, option_error> parseUCIOptionLine(const std::string& line) {
         std::istringstream ss(line);
         std::string token, name, type;
         std::unordered_map<std::string, std::string> params;
@@ -63,7 +67,7 @@ class UCIOptionFactory {
                 return createSpinOption<double>(name, params["min"], params["max"], params["default"]);
             }
 
-            throw std::invalid_argument("The spin values are not numeric.");
+            return tl::unexpected(option_error::not_numeric);
         } else if (type == "combo") {
             std::istringstream varStream(params["var"]);
             std::vector<std::string> options;

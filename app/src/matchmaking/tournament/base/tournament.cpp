@@ -107,6 +107,8 @@ void BaseTournament::playGame(const GamePair<EngineConfiguration, EngineConfigur
                               std::size_t round_id, std::size_t game_id) {
     if (atomic::stop) return;
 
+    Logger::clear_log_buffer(std::this_thread::get_id());
+
     const auto &config = *config::TournamentConfig;
     const auto rl      = config.log.realtime;
     const auto core    = util::ScopeGuard(cores_->consume());

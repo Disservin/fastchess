@@ -167,8 +167,8 @@ The following options are available:
 
     - LEVEL:
         - trace
-        - warn (default)
         - info
+        - warn (default)
         - err
         - fatal
 

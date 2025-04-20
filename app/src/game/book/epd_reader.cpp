@@ -8,7 +8,7 @@
 #include <core/memory/heap_str.hpp>
 
 #ifdef USE_ZLIB
-#    include "gzip/gzstream.h"
+#    include <gzip/gzstream.h>
 #endif
 
 namespace {

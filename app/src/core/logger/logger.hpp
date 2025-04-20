@@ -11,11 +11,11 @@
 #include <core/time/time.hpp>
 
 #define FMT_HEADER_ONLY
-#include "fmt/include/fmt/core.h"
+#include <fmt/include/fmt/core.h>
 #include "fmt/include/fmt/std.h"
 
 #ifdef USE_ZLIB
-#    include "gzip/gzstream.h"
+#    include <gzip/gzstream.h>
 
 class fcgzstream : public ogzstream {
    public:

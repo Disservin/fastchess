@@ -17,8 +17,8 @@
   },
   "tb_adjudication": {
     "syzygy_dirs": "",
-	"max_pieces": 0,
-	"ignore_50_move_rule": false,
+    "max_pieces": 0,
+    "ignore_50_move_rule": false,
     "enabled": false
   },
   "opening": {
@@ -77,7 +77,8 @@
     "file": "",
     "level": 2,
     "compress": false,
-    "realtime": true
+    "realtime": true,
+    "auto_log": false
   },
   "engines": [
     {

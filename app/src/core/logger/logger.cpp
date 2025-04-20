@@ -20,6 +20,9 @@ std::atomic_bool Logger::should_log_ = false;
 std::mutex Logger::log_mutex_;
 Logger::log_file_type Logger::log_;
 bool Logger::engine_coms_ = false;
+bool Logger::auto_log_    = false;
+
+std::unordered_map<std::thread::id, std::vector<std::string>> log_buffer_;
 
 void Logger::openFile(const std::string &file) {
     if (file.empty()) {
@@ -44,6 +47,10 @@ void Logger::openFile(const std::string &file) {
 
     Logger::should_log_ = true;
 
+    if (auto_log_) {
+        should_log_ = false;
+    }
+
     // verify that the file was opened
 
     std::visit(
@@ -57,7 +64,7 @@ void Logger::openFile(const std::string &file) {
 }
 
 void Logger::writeToEngine(const std::string &msg, const std::string &time, const std::string &name) {
-    if (!should_log_ || !engine_coms_) {
+    if (!auto_log_ && (!should_log_ || !engine_coms_)) {
         return;
     }
 
@@ -71,13 +78,17 @@ void Logger::writeToEngine(const std::string &msg, const std::string &time, cons
     auto fmt_message = fmt::format("[{:<6}] [{:>15}] <{:>20}> {} <--- {}\n", "Engine", timestamp, id, name, msg);
 #endif
 
-    const std::lock_guard<std::mutex> lock(log_mutex_);
-    std::visit([&](auto &&arg) { arg << fmt_message << std::flush; }, log_);
+    if (!auto_log_) {
+        const std::lock_guard<std::mutex> lock(log_mutex_);
+        std::visit([&](auto &&arg) { arg << fmt_message << std::flush; }, log_);
+    } else {
+        auto_log(Level::INFO, fmt_message, id);
+    }
 }
 
 void Logger::readFromEngine(const std::string &msg, const std::string &time, const std::string &name, bool err,
                             std::thread::id id) {
-    if (!should_log_ || !engine_coms_) {
+    if (!auto_log_ && (!should_log_ || !engine_coms_)) {
         return;
     }
 
@@ -89,8 +100,43 @@ void Logger::readFromEngine(const std::string &msg, const std::string &time, con
                                    (err ? "<stderr> " : ""), name, msg);
 #endif
 
-    const std::lock_guard<std::mutex> lock(log_mutex_);
-    std::visit([&](auto &&arg) { arg << fmt_message << std::flush; }, log_);
+    if (!auto_log_) {
+        const std::lock_guard<std::mutex> lock(log_mutex_);
+        std::visit([&](auto &&arg) { arg << fmt_message << std::flush; }, log_);
+    } else {
+        auto_log(Level::INFO, fmt_message, id);
+    }
+}
+
+void Logger::auto_log(Level level, std::string_view message, std::thread::id id) {
+    const auto timestamp = time::datetime_precise();
+
+    auto &logs = log_buffer_[id];
+    logs.emplace_back(message);
+
+    if (level >= Level::WARN) {
+        flush_log_buffer(id);
+        clear_log_buffer(id);
+    }
+}
+
+void Logger::clear_log_buffer(std::thread::id id) {
+    auto it = log_buffer_.find(id);
+    if (it != log_buffer_.end()) {
+        it->second.clear();
+    }
+}
+
+void Logger::flush_log_buffer(std::thread::id id) {
+    auto it = log_buffer_.find(id);
+
+    if (it != log_buffer_.end()) {
+        for (const auto &msg : it->second) {
+            const std::lock_guard<std::mutex> lock(log_mutex_);
+
+            std::visit([&](auto &&arg) { arg << msg << std::flush; }, log_);
+        }
+    }
 }
 
 }  // namespace fastchess

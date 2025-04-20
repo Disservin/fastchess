@@ -12,7 +12,8 @@ struct Log {
     bool compress       = false;
     bool realtime       = true;
     bool engine_coms    = false;
+    bool auto_log       = false;
 };
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Log, file, level, compress, realtime)
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Log, file, level, compress, realtime, auto_log)
 
 }  // namespace fastchess::config

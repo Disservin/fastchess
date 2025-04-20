@@ -35,6 +35,7 @@ void TournamentManager::start(const cli::Args& args) {
     Logger::setCompress(config::TournamentConfig->log.compress);
     Logger::openFile(config::TournamentConfig->log.file);
     Logger::setEngineComs(config::TournamentConfig->log.engine_coms);
+    Logger::setAutoLog(config::TournamentConfig->log.auto_log);
 
     LOG_INFO("{}", cli::OptionsParser::Version);
 

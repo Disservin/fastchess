@@ -36,7 +36,7 @@ class Logger {
     using log_file_type = std::variant<std::ofstream>;
 #endif
 
-    enum class Level { ALL, TRACE, WARN, INFO, ERR, FATAL };
+    enum class Level { ALL, TRACE, INFO, WARN, ERR, FATAL };
 
     Logger(Logger const &)         = delete;
     void operator=(Logger const &) = delete;
@@ -45,6 +45,7 @@ class Logger {
     static void setCompress(bool compress) { compress_ = compress; }
     static void openFile(const std::string &file);
     static void setEngineComs(bool engine_coms) { engine_coms_ = engine_coms; }
+    static void setAutoLog(bool auto_log) { auto_log_ = auto_log; }
 
     // Direct function calls - no file path
     template <bool thread = false, typename... T>
@@ -89,18 +90,20 @@ class Logger {
     static void readFromEngine(const std::string &msg, const std::string &time, const std::string &name,
                                bool err = false, std::thread::id id = std::this_thread::get_id());
 
+    static void clear_log_buffer(std::thread::id id);
+
     static std::atomic_bool should_log_;
 
    private:
     template <Level level = Level::WARN, bool thread = false, typename... T>
     static void log(fmt::format_string<T...> format, T &&...args) {
-        if (level < level_) {
+        if (!auto_log_ && level < level_) {
             return;
         }
 
         const auto message = fmt::format(format, std::forward<T>(args)...) + "\n";
 
-        if (!should_log_) {
+        if (!auto_log_ && !should_log_) {
             return;
         }
 
@@ -138,9 +141,17 @@ label, time, thread_id, message
 
         std::string fmt_message = fmt::format(fmt, label, time::datetime_precise(), thread_id_str, message);
 
-        const std::lock_guard<std::mutex> lock(log_mutex_);
-        std::visit([&](auto &&arg) { arg << fmt_message << std::flush; }, log_);
+        if (!auto_log_) {
+            const std::lock_guard<std::mutex> lock(log_mutex_);
+            std::visit([&](auto &&arg) { arg << fmt_message << std::flush; }, log_);
+        } else if (thread) {
+            auto_log(level, fmt_message, std::this_thread::get_id());
+        }
     }
+
+    static void auto_log(Level level, std::string_view message, std::thread::id id);
+
+    static void flush_log_buffer(std::thread::id id);
 
     Logger() {}
 
@@ -149,6 +160,7 @@ label, time, thread_id, message
     static bool engine_coms_;
     static log_file_type log_;
     static std::mutex log_mutex_;
+    static bool auto_log_;
 };
 
 #define LOG_TRACE(...) Logger::trace(__VA_ARGS__)

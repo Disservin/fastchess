@@ -15,15 +15,17 @@ class ComboOption : public UCIOption {
 
     std::string getName() const override { return name; }
 
-    void setValue(const std::string& value) override {
-        if (isValid(value)) {
+    tl::expected<void, option_error> setValue(const std::string& value) override {
+        if (isValid(value).value()) {
             this->value = value;
         }
+
+        return tl::unexpected(option_error::invalid_combo_option_value);
     }
 
     std::string getValue() const override { return value; }
 
-    bool isValid(const std::string& value) const override {
+    tl::expected<bool, option_error> isValid(const std::string& value) const override {
         return std::find(options.begin(), options.end(), value) != options.end();
     }
 

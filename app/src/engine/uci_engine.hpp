@@ -63,7 +63,6 @@ class UciEngine {
     bool writeEngine(const std::string &input);
 
     // Waits for the engine to output the last_word or until the threshold_ms is reached.
-    // May throw if the read fails.
     process::Status readEngine(std::string_view last_word, std::chrono::milliseconds threshold = ping_time_);
 
     process::Status readEngineLowLat(std::string_view last_word, std::chrono::milliseconds threshold = ping_time_) {

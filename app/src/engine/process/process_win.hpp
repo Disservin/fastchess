@@ -39,8 +39,8 @@ class Process : public IProcess {
         terminate();
     }
 
-    Status init(const std::string &dir, const std::string &path, const std::string &args,
-                const std::string &log_name) override {
+    tl::expected<void, process_err> init(const std::string &dir, const std::string &path, const std::string &args,
+                                         const std::string &log_name) override {
         wd_       = dir;
         command_  = getPath(dir, path);
         args_     = args;
@@ -78,21 +78,16 @@ class Process : public IProcess {
             return Status::ERR;
         }
 
-        try {
-            STARTUPINFOA si = {};
-            si.cb           = sizeof(STARTUPINFOA);
-            si.hStdOutput   = hChildStdoutWrite;
-            si.hStdInput    = hChildStdinRead;
-            si.hStdError    = hChildStdoutWrite;
-            si.dwFlags |= STARTF_USESTDHANDLES;
+        STARTUPINFOA si = {};
+        si.cb           = sizeof(STARTUPINFOA);
+        si.hStdOutput   = hChildStdoutWrite;
+        si.hStdInput    = hChildStdinRead;
+        si.hStdError    = hChildStdoutWrite;
+        si.dwFlags |= STARTF_USESTDHANDLES;
 
-            if (createProcess(si)) {
-                process_list.push(ProcessInformation{pi_.hProcess, hChildStdoutWrite});
-                return Status::OK;
-            }
-
-        } catch (const std::exception &e) {
-            LOG_FATAL_THREAD("Process creation failed: {}", e.what());
+        if (createProcess(si)) {
+            process_list.push(ProcessInformation{pi_.hProcess, hChildStdoutWrite});
+            return Status::OK;
         }
 
         return Status::ERR;

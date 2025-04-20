@@ -12,15 +12,17 @@ class StringOption : public UCIOption {
 
     std::string getName() const override { return name; }
 
-    void setValue(const std::string& value) override {
-        if (isValid(value)) {
+    tl::expected<void, option_error> setValue(const std::string& value) override {
+        if (isValid(value).value()) {
             this->value = value;
         }
+
+        return {};
     }
 
     std::string getValue() const override { return value.empty() ? "<empty>" : value; }
 
-    bool isValid(const std::string&) const override {
+    tl::expected<bool, option_error> isValid(const std::string&) const override {
         return true;  // All string values are valid
     }
 

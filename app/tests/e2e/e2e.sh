@@ -89,12 +89,12 @@ OUTPUT_FILE_3=$(mktemp)
     -openings file=app/tests/data/openings.pgn format=pgn order=random -log file=log.txt level=info  2>&1 | tee $OUTPUT_FILE_3
 
 if ! grep -q "Warning; random_move_1 doesn't have option Threads" $OUTPUT_FILE_3; then
-    echo "Failed to save results."
+    echo "Failed to report missing option Threads."
     exit 1
 fi
 
 if ! grep -q "Warning; Invalid value for option Hash; -16" $OUTPUT_FILE_3; then
-    echo "Failed to save results."
+    echo "Failed to report invalid value for option Hash."
     exit 1
 fi
 

@@ -7,7 +7,11 @@ namespace fastchess {
 TEST_SUITE("Uci Options") {
     TEST_CASE("Parse Spin Option Integer") {
         std::string line = "name Hash type spin default 16 min 1 max 16384";
-        auto option      = UCIOptionFactory::parseUCIOptionLine(line);
+        auto ex_option   = UCIOptionFactory::parseUCIOptionLine(line);
+
+        CHECK(ex_option.has_value());
+
+        auto option = std::move(ex_option.value());
 
         CHECK(option->getName() == "Hash");
 
@@ -28,7 +32,11 @@ TEST_SUITE("Uci Options") {
 
     TEST_CASE("Parse Spin Option Double") {
         std::string line = "name x1 type spin default 321.12321 min 0 max 321321.3213";
-        auto option      = UCIOptionFactory::parseUCIOptionLine(line);
+        auto ex_option   = UCIOptionFactory::parseUCIOptionLine(line);
+
+        CHECK(ex_option.has_value());
+
+        auto option = std::move(ex_option.value());
 
         CHECK(option->getName() == "x1");
 
@@ -84,7 +92,11 @@ TEST_SUITE("Uci Options") {
 
     TEST_CASE("Parse Combo Option") {
         std::string line = "name Style type combo default Normal var Solid var Normal var Risky";
-        auto option      = UCIOptionFactory::parseUCIOptionLine(line);
+        auto ex_option   = UCIOptionFactory::parseUCIOptionLine(line);
+
+        CHECK(ex_option.has_value());
+
+        auto option = std::move(ex_option.value());
 
         CHECK(option->getName() == "Style");
 
@@ -106,7 +118,11 @@ TEST_SUITE("Uci Options") {
 
     TEST_CASE("Parse Button Option") {
         std::string line = "name Clear Hash type button";
-        auto option      = UCIOptionFactory::parseUCIOptionLine(line);
+        auto ex_option   = UCIOptionFactory::parseUCIOptionLine(line);
+
+        CHECK(ex_option.has_value());
+
+        auto option = std::move(ex_option.value());
 
         CHECK(option->getName() == "Clear Hash");
 
@@ -123,7 +139,11 @@ TEST_SUITE("Uci Options") {
 
     TEST_CASE("Parse Check Option") {
         std::string line = "name OwnBook type check default false";
-        auto option      = UCIOptionFactory::parseUCIOptionLine(line);
+        auto ex_option   = UCIOptionFactory::parseUCIOptionLine(line);
+
+        CHECK(ex_option.has_value());
+
+        auto option = std::move(ex_option.value());
 
         CHECK(option->getName() == "OwnBook");
 
@@ -140,7 +160,11 @@ TEST_SUITE("Uci Options") {
 
     TEST_CASE("Parse String Option") {
         std::string line = "name NalimovPath type string default <empty>";
-        auto option      = UCIOptionFactory::parseUCIOptionLine(line);
+        auto ex_option   = UCIOptionFactory::parseUCIOptionLine(line);
+
+        CHECK(ex_option.has_value());
+
+        auto option = std::move(ex_option.value());
 
         CHECK(option->getName() == "NalimovPath");
 
@@ -157,7 +181,11 @@ TEST_SUITE("Uci Options") {
 
     TEST_CASE("Parse String Option Default Foo") {
         std::string line = "name NalimovPath type string default Foo";
-        auto option      = UCIOptionFactory::parseUCIOptionLine(line);
+        auto ex_option   = UCIOptionFactory::parseUCIOptionLine(line);
+
+        CHECK(ex_option.has_value());
+
+        auto option = std::move(ex_option.value());
 
         CHECK(option->getName() == "NalimovPath");
 

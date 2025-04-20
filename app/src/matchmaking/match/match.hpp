@@ -154,7 +154,7 @@ class Match {
     [[nodiscard]] bool playMove(Player& us, Player& them);
 
     // returns false if the connection is invalid
-    [[nodiscard]] bool validConnection(Player& us, Player& them);
+    bool validConnection(Player& us, Player& them);
 
     // returns true if adjudicated
     [[nodiscard]] bool adjudicate(Player& us, Player& them) noexcept;

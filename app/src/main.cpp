@@ -13,6 +13,7 @@ namespace fastchess {
 const char* version = "alpha 1.4.0 ";
 }
 
+namespace ch = std::chrono;
 using namespace fastchess;
 
 int main(int argc, char const* argv[]) {
@@ -22,6 +23,8 @@ int main(int argc, char const* argv[]) {
         setTerminalOutput();
         return !engine::compliant(argc, argv);
     }
+
+    const auto t0 = ch::steady_clock::now();
 
     try {
         auto tournament = TournamentManager();
@@ -49,6 +52,13 @@ int main(int argc, char const* argv[]) {
     stopProcesses();
 
     Logger::print("Finished match");
+
+    const auto duration = ch::steady_clock::now() - t0;
+    const auto h        = ch::duration_cast<ch::hours>(duration).count();
+    const auto m        = ch::duration_cast<ch::minutes>(duration % ch::hours(1)).count();
+    const auto s        = ch::duration_cast<ch::seconds>(duration % ch::minutes(1)).count();
+
+    std::cout << fmt::format("Total Time: {:02}:{:02}:{:02} (hours:minutes:seconds)\n", h, m, s);
 
     return atomic::abnormal_termination ? EXIT_FAILURE : EXIT_SUCCESS;
 }

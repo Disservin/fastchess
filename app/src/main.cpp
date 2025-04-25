@@ -58,7 +58,7 @@ int main(int argc, char const* argv[]) {
     const auto m        = ch::duration_cast<ch::minutes>(duration % ch::hours(1)).count();
     const auto s        = ch::duration_cast<ch::seconds>(duration % ch::minutes(1)).count();
 
-    std::cout << fmt::format("Total Time: {:02}:{:02}:{:02} (hours:minutes:seconds)\n", h, m, s);
+    Logger::print("Total Time: {:02}:{:02}:{:02} (hours:minutes:seconds)\n", h, m, s);
 
     return atomic::abnormal_termination ? EXIT_FAILURE : EXIT_SUCCESS;
 }

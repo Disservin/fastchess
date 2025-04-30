@@ -32,7 +32,7 @@ class SpinOption : public UCIOption {
 
         auto parsedValue = parseValue(value);
 
-        if (parsedValue && isValid(value).value()) {
+        if (parsedValue && isValid(value)) {
             this->value = parsedValue.value();
             return {};
         }

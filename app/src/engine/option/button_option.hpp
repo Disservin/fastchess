@@ -23,7 +23,13 @@ class ButtonOption : public UCIOption {
 
     std::string getValue() const override { return value ? "true" : "false"; }
 
-    tl::expected<bool, option_error> isValid(const std::string& value) const override { return value == "true"; }
+    tl::expected<void, option_error> isValid(const std::string& value) const override {
+        if (value != "true") {
+            return tl::unexpected(option_error::invalid_button_option_value);
+        }
+
+        return {};
+    }
 
     Type getType() const override { return Type::Button; }
 

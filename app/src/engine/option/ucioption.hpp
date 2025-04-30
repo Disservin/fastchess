@@ -24,7 +24,7 @@ class UCIOption {
     virtual std::string getName() const                                              = 0;
     virtual tl::expected<void, option_error> setValue(const std::string& value)      = 0;
     virtual std::string getValue() const                                             = 0;
-    virtual tl::expected<bool, option_error> isValid(const std::string& value) const = 0;
+    virtual tl::expected<void, option_error> isValid(const std::string& value) const = 0;
     virtual Type getType() const                                                     = 0;
 };
 

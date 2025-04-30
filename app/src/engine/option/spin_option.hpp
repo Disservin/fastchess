@@ -42,14 +42,16 @@ class SpinOption : public UCIOption {
 
     std::string getValue() const override { return std::to_string(value); }
 
-    tl::expected<bool, option_error> isValid(const std::string& value) const override {
+    tl::expected<void, option_error> isValid(const std::string& value) const override {
         auto parsedValue = parseValue(value);
 
         if (!parsedValue.has_value()) {
             return tl::unexpected(option_error::unsupported_value_conversion);
         }
 
-        return parsedValue >= minValue && parsedValue <= maxValue;
+        if (parsedValue < minValue || parsedValue > maxValue) return tl::unexpected(option_error::value_out_of_range);
+
+        return {};
     }
 
     Type getType() const override { return Type::Spin; }

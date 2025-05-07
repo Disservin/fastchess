@@ -21,23 +21,19 @@ class SpinOption : public UCIOption {
 
     std::string getName() const override { return name; }
 
-    tl::expected<void, option_error> setValue(const std::string& value) override {
+    std::optional<option_error> setValue(const std::string& value) override {
         if (!minValue || !maxValue) {
-            return tl::unexpected(option_error::unsupported_value_conversion);
-        }
-
-        if (this->minValue > this->maxValue) {
-            return tl::unexpected(option_error::min_greater_than_max);
+            return option_error::unsupported_value_conversion;
         }
 
         auto parsedValue = parseValue(value);
 
         if (parsedValue && isValid(value)) {
             this->value = parsedValue.value();
-            return {};
+            return std::nullopt;
         }
 
-        return tl::unexpected(option_error::value_out_of_range);
+        return option_error::value_out_of_range;
     }
 
     std::string getValue() const override { return std::to_string(value); }
@@ -52,6 +48,15 @@ class SpinOption : public UCIOption {
         if (parsedValue < minValue || parsedValue > maxValue) return tl::unexpected(option_error::value_out_of_range);
 
         return {};
+    }
+
+    std::optional<option_error> hasError() const override {
+        if (this->minValue > this->maxValue) {
+            std::cout << "Error: minValue is greater than maxValue." << std::endl;
+            return option_error::min_greater_than_max;
+        }
+
+        return std::nullopt;
     }
 
     Type getType() const override { return Type::Spin; }

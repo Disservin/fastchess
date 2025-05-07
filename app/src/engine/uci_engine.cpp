@@ -273,7 +273,7 @@ void UciEngine::sendSetoption(const std::string &name, const std::string &value)
         return;
     }
 
-    if (!option.value()->isValid(value)) {
+    if (option.value()->isInvalid(value)) {
         Logger::print<Logger::Level::WARN>("Warning; Invalid value for option {}; {}", name, value);
 
         return;

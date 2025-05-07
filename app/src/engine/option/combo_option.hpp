@@ -15,7 +15,7 @@ class ComboOption : public UCIOption {
     std::string getName() const override { return name; }
 
     std::optional<option_error> setValue(const std::string& value) override {
-        if (isValid(value)) {
+        if (!isInvalid(value)) {
             this->value = value;
             return std::nullopt;
         }
@@ -25,9 +25,9 @@ class ComboOption : public UCIOption {
 
     std::string getValue() const override { return value; }
 
-    tl::expected<void, option_error> isValid(const std::string& value) const override {
+    std::optional<option_error> isInvalid(const std::string& value) const override {
         if (std::find(options.begin(), options.end(), value) == options.end()) {
-            return tl::unexpected(option_error::invalid_combo_option_value);
+            return option_error::invalid_combo_option_value;
         }
 
         return {};

@@ -28,7 +28,7 @@ class SpinOption : public UCIOption {
 
         auto parsedValue = parseValue(value);
 
-        if (parsedValue && isValid(value)) {
+        if (parsedValue && !isInvalid(value)) {
             this->value = parsedValue.value();
             return std::nullopt;
         }
@@ -38,14 +38,14 @@ class SpinOption : public UCIOption {
 
     std::string getValue() const override { return std::to_string(value); }
 
-    tl::expected<void, option_error> isValid(const std::string& value) const override {
+    std::optional<option_error> isInvalid(const std::string& value) const override {
         auto parsedValue = parseValue(value);
 
         if (!parsedValue.has_value()) {
-            return tl::unexpected(option_error::unsupported_value_conversion);
+            return option_error::unsupported_value_conversion;
         }
 
-        if (parsedValue < minValue || parsedValue > maxValue) return tl::unexpected(option_error::value_out_of_range);
+        if (parsedValue < minValue || parsedValue > maxValue) return option_error::value_out_of_range;
 
         return {};
     }

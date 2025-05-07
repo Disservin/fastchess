@@ -13,7 +13,7 @@ class StringOption : public UCIOption {
     std::string getName() const override { return name; }
 
     std::optional<option_error> setValue(const std::string& value) override {
-        if (isValid(value)) {
+        if (!isInvalid(value)) {
             this->value = value;
         }
 
@@ -22,7 +22,7 @@ class StringOption : public UCIOption {
 
     std::string getValue() const override { return value.empty() ? "<empty>" : value; }
 
-    tl::expected<void, option_error> isValid(const std::string&) const override {
+    std::optional<option_error> isInvalid(const std::string&) const override {
         return {};  // All string values are valid
     }
 

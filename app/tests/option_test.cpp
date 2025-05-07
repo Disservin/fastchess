@@ -19,11 +19,11 @@ TEST_SUITE("Uci Options") {
 
         CHECK(option->getValue() == "16");
 
-        CHECK(option->isValid("1"));
-        CHECK(option->isValid("16384"));
+        CHECK(!option->isInvalid("1"));
+        CHECK(!option->isInvalid("16384"));
 
-        CHECK(!option->isValid("0"));
-        CHECK(!option->isValid("16385"));
+        CHECK(option->isInvalid("0"));
+        CHECK(option->isInvalid("16385"));
 
         option->setValue("1");
 
@@ -44,11 +44,11 @@ TEST_SUITE("Uci Options") {
 
         CHECK(option->getValue() == "321.123210");
 
-        CHECK(option->isValid("1"));
-        CHECK(option->isValid("16384"));
+        CHECK(!option->isInvalid("1"));
+        CHECK(!option->isInvalid("16384"));
 
-        CHECK(!option->isValid("-1"));
-        CHECK(!option->isValid("321322"));
+        CHECK(option->isInvalid("-1"));
+        CHECK(option->isInvalid("321322"));
 
         option->setValue("1");
 
@@ -100,12 +100,12 @@ TEST_SUITE("Uci Options") {
 
         CHECK(option->getValue() == "Normal");
 
-        CHECK(option->isValid("Solid"));
-        CHECK(option->isValid("Normal"));
-        CHECK(option->isValid("Risky"));
+        CHECK(!option->isInvalid("Solid"));
+        CHECK(!option->isInvalid("Normal"));
+        CHECK(!option->isInvalid("Risky"));
 
-        CHECK(!option->isValid("0"));
-        CHECK(!option->isValid("Random"));
+        CHECK(option->isInvalid("0"));
+        CHECK(option->isInvalid("Random"));
 
         option->setValue("Solid");
 
@@ -126,7 +126,7 @@ TEST_SUITE("Uci Options") {
 
         CHECK(option->getValue() == "false");
 
-        CHECK(option->isValid("true"));
+        CHECK(!option->isInvalid("true"));
 
         option->setValue("true");
 
@@ -147,7 +147,7 @@ TEST_SUITE("Uci Options") {
 
         CHECK(option->getValue() == "false");
 
-        CHECK(option->isValid("true"));
+        CHECK(!option->isInvalid("true"));
 
         option->setValue("true");
 
@@ -168,7 +168,7 @@ TEST_SUITE("Uci Options") {
 
         CHECK(option->getValue() == "<empty>");
 
-        CHECK(option->isValid(""));
+        CHECK(!option->isInvalid(""));
 
         option->setValue("nalimov");
 
@@ -189,7 +189,7 @@ TEST_SUITE("Uci Options") {
 
         CHECK(option->getValue() == "Foo");
 
-        CHECK(option->isValid(""));
+        CHECK(!option->isInvalid(""));
 
         option->setValue("nalimov");
 

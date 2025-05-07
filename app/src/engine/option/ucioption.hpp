@@ -22,12 +22,12 @@ class UCIOption {
    public:
     enum class Type { Button, Check, Combo, Spin, String };
 
-    virtual ~UCIOption()                                                             = default;
-    virtual std::string getName() const                                              = 0;
-    virtual std::optional<option_error> setValue(const std::string& value)           = 0;
-    virtual std::string getValue() const                                             = 0;
-    virtual tl::expected<void, option_error> isValid(const std::string& value) const = 0;
-    virtual Type getType() const                                                     = 0;
+    virtual ~UCIOption()                                                          = default;
+    virtual std::string getName() const                                           = 0;
+    virtual std::optional<option_error> setValue(const std::string& value)        = 0;
+    virtual std::string getValue() const                                          = 0;
+    virtual std::optional<option_error> isInvalid(const std::string& value) const = 0;
+    virtual Type getType() const                                                  = 0;
 
     virtual std::optional<option_error> hasError() const { return std::nullopt; }
 };

@@ -11,7 +11,7 @@ class CheckOption : public UCIOption {
     std::string getName() const override { return name; }
 
     std::optional<option_error> setValue(const std::string& value) override {
-        if (isValid(value)) {
+        if (!isInvalid(value)) {
             this->value = (value == "true");
             return std::nullopt;
         }
@@ -21,9 +21,9 @@ class CheckOption : public UCIOption {
 
     std::string getValue() const override { return value ? "true" : "false"; }
 
-    tl::expected<void, option_error> isValid(const std::string& value) const override {
+    std::optional<option_error> isInvalid(const std::string& value) const override {
         if (value != "true" && value != "false") {
-            return tl::unexpected(option_error::invalid_check_option_value);
+            return option_error::invalid_check_option_value;
         }
 
         return {};

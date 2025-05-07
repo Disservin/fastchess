@@ -1,5 +1,6 @@
 #pragma once
 
+#include <optional>
 #include <string>
 
 #include <expected.hpp>
@@ -13,7 +14,8 @@ enum class option_error {
     unsupported_value_conversion,
     invalid_check_option_value,
     invalid_button_option_value,
-    invalid_combo_option_value
+    invalid_combo_option_value,
+    unknown_option_type,
 };
 
 class UCIOption {
@@ -22,10 +24,12 @@ class UCIOption {
 
     virtual ~UCIOption()                                                             = default;
     virtual std::string getName() const                                              = 0;
-    virtual tl::expected<void, option_error> setValue(const std::string& value)      = 0;
+    virtual std::optional<option_error> setValue(const std::string& value)           = 0;
     virtual std::string getValue() const                                             = 0;
     virtual tl::expected<void, option_error> isValid(const std::string& value) const = 0;
     virtual Type getType() const                                                     = 0;
+
+    virtual std::optional<option_error> hasError() const { return std::nullopt; }
 };
 
 }  // namespace fastchess

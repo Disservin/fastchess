@@ -6,6 +6,7 @@
 #include <vector>
 
 #include <core/filesystem/file_system.hpp>
+#include <expected.hpp>
 
 namespace fastchess::engine::process {
 
@@ -16,6 +17,17 @@ struct Line {
     std::string line;
     std::string time;
     Standard std = Standard::OUTPUT;
+};
+
+enum class process_err {
+    posix_spawn,
+    process_spawn,
+    posix_spawn_file_actions_add,
+    posix_spawn_file_actions_addclose,
+    posix_spawn_file_actions_addchdir,
+    failed_to_create_pipe,
+    failed_to_set_handle_info,
+    failed_to_create_process
 };
 
 class IProcess {
@@ -33,8 +45,8 @@ class IProcess {
     virtual void setupRead() = 0;
 
     // Initialize the process
-    virtual Status init(const std::string &wd, const std::string &command, const std::string &args,
-                        const std::string &log_name) = 0;
+    virtual tl::expected<void, process_err> init(const std::string &wd, const std::string &command,
+                                                 const std::string &args, const std::string &log_name) = 0;
 
     // Returns true if the process is alive
     [[nodiscard]] virtual Status alive() noexcept = 0;

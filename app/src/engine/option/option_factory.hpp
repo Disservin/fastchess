@@ -15,11 +15,13 @@
 #include "spin_option.hpp"
 #include "string_option.hpp"
 
+#include <expected.hpp>
+
 namespace fastchess {
 
 class UCIOptionFactory {
    public:
-    static std::unique_ptr<UCIOption> parseUCIOptionLine(const std::string& line) {
+    static tl::expected<std::unique_ptr<UCIOption>, option_error> parseUCIOptionLine(const std::string& line) {
         std::istringstream ss(line);
         std::string token, name, type;
         std::unordered_map<std::string, std::string> params;
@@ -52,44 +54,56 @@ class UCIOptionFactory {
             }
         }
 
+        std::unique_ptr<UCIOption> option;
+
         if (type == "check") {
-            auto option = std::make_unique<CheckOption>(name);
-            option->setValue(params["default"]);
-            return option;
+            option = std::make_unique<CheckOption>(name);
         } else if (type == "spin") {
             if (isInteger(params["default"]) && isInteger(params["min"]) && isInteger(params["max"])) {
-                return createSpinOption<int>(name, params["min"], params["max"], params["default"]);
+                option = std::make_unique<SpinOption<int>>(name, params["min"], params["max"]);
             } else if (isFloat(params["default"]) && isFloat(params["min"]) && isFloat(params["max"])) {
-                return createSpinOption<double>(name, params["min"], params["max"], params["default"]);
+                option = std::make_unique<SpinOption<double>>(name, params["min"], params["max"]);
+            } else {
+                return tl::unexpected(option_error::not_numeric);
             }
-
-            throw std::invalid_argument("The spin values are not numeric.");
         } else if (type == "combo") {
             std::istringstream varStream(params["var"]);
             std::vector<std::string> options;
-            std::string option;
-            while (varStream >> option) {
-                options.push_back(option);
+
+            {
+                std::string option;
+                while (varStream >> option) {
+                    options.push_back(option);
+                }
             }
-            return std::make_unique<ComboOption>(name, options, params["default"]);
+
+            option = std::make_unique<ComboOption>(name, options);
         } else if (type == "button") {
-            return std::make_unique<ButtonOption>(name);
+            option = std::make_unique<ButtonOption>(name);
         } else if (type == "string") {
-            return std::make_unique<StringOption>(name, params["default"]);
+            option = std::make_unique<StringOption>(name);
         }
 
-        return nullptr;
-    }
+        if (!option) {
+            return tl::unexpected(option_error::unknown_option_type);
+        }
 
-   private:
-    template <typename T>
-    static std::unique_ptr<SpinOption<T>> createSpinOption(const std::string& name, const std::string& min,
-                                                           const std::string& max, const std::string& defaultValue) {
-        auto option = std::make_unique<SpinOption<T>>(name, min, max);
-        option->setValue(defaultValue);
+        if (option->hasError().has_value()) {
+            return tl::unexpected(option->hasError().value());
+        }
+
+        if (params.find("default") != params.end()) {
+            auto ret = option->setValue(params["default"]);
+
+            if (ret.has_value()) {
+                return tl::unexpected(ret.value());
+            }
+        }
+
         return option;
     }
 
+   private:
     static bool isInteger(const std::string& s) {
         std::stringstream ss(s);
         int num;

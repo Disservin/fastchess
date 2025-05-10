@@ -163,6 +163,10 @@ void Match::start(engine::UciEngine& white, engine::UciEngine& black, const std:
         return;
     }
 
+    if (atomic::stop.load()) {
+        return;
+    }
+
     if (!black_player.engine.start()) {
         LOG_FATAL_THREAD("Failed to start engines, stopping tournament.");
         atomic::stop                 = true;
@@ -170,20 +174,8 @@ void Match::start(engine::UciEngine& white, engine::UciEngine& black, const std:
         return;
     }
 
-    if (atomic::stop.load()) {
-        return;
-    }
-
-    if (!white_player.engine.refreshUci()) {
-        setEngineCrashStatus(white_player, black_player);
-    }
-
-    if (!black_player.engine.refreshUci()) {
-        setEngineCrashStatus(black_player, white_player);
-    }
-
-    // check connection
-    validConnection(white_player, black_player);
+    white_player.engine.refreshUci();
+    black_player.engine.refreshUci();
 
     white_player.engine.setCpus(cpus);
     black_player.engine.setCpus(cpus);
@@ -193,22 +185,6 @@ void Match::start(engine::UciEngine& white, engine::UciEngine& black, const std:
 
     const auto start = clock::now();
 
-    if (data_.termination == MatchTermination::None) {
-        gameLoop(first, second);
-    }
-
-    const auto end = clock::now();
-
-    data_.variant = config::TournamentConfig->variant;
-
-    data_.end_time = time::datetime_iso();
-    data_.duration = time::duration(chrono::duration_cast<chrono::seconds>(end - start));
-
-    data_.players = GamePair(MatchData::PlayerInfo{white_player.engine.getConfig(), white_player.getResult()},
-                             MatchData::PlayerInfo{black_player.engine.getConfig(), black_player.getResult()});
-}
-
-void Match::gameLoop(Player& first, Player& second) {
     try {
         while (true) {
             if (atomic::stop.load()) {
@@ -228,6 +204,16 @@ void Match::gameLoop(Player& first, Player& second) {
     } catch (const std::exception& e) {
         LOG_FATAL_THREAD("Match failed with exception; {}", e.what());
     }
+
+    const auto end = clock::now();
+
+    data_.variant = config::TournamentConfig->variant;
+
+    data_.end_time = time::datetime_iso();
+    data_.duration = time::duration(chrono::duration_cast<chrono::seconds>(end - start));
+
+    data_.players = GamePair(MatchData::PlayerInfo{white_player.engine.getConfig(), white_player.getResult()},
+                             MatchData::PlayerInfo{black_player.engine.getConfig(), black_player.getResult()});
 }
 
 bool Match::playMove(Player& us, Player& them) {

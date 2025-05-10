@@ -74,13 +74,23 @@ class Process : public IProcess {
 
     tl::expected<void, process_err> init(const std::string &wd, const std::string &command, const std::string &args,
                                          const std::string &log_name) override {
+        std::stringstream initmsg;
+        initmsg << "Initializing process: thid: " << std::this_thread::get_id() << "\n";
+        std::cout << initmsg.str() << std::flush;
+
+        if (!is_initalized_) {
+            std::stringstream dbg;
+            dbg << "thid failed: " << std::this_thread::get_id() << "\n";
+            std::cout << dbg.str() << std::flush;
+            return tl::unexpected(process_err::process_spawn);
+        }
+
         assert(!is_initalized_);
 
         wd_            = wd;
         command_       = command;
         args_          = args;
         log_name_      = log_name;
-        is_initalized_ = true;
         startup_error_ = false;
 
 #    ifdef NO_POSIX_SPAWN_FILE_ACTIONS_ADDCHDIR
@@ -118,9 +128,12 @@ class Process : public IProcess {
         posix_spawn_file_actions_destroy(&file_actions);
 
         if (!result) {
+            startup_error_ = true;
             LOG_ERR_THREAD("Failed to start process");
             return result;
         }
+
+        is_initalized_ = true;
 
         // Append the process to the list of running processes
         // which are killed when the program exits, as a last resort

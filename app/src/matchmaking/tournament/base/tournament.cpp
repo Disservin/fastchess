@@ -51,7 +51,7 @@ BaseTournament::~BaseTournament() {
 
     writeToOpenPipes();
 
-    pool_.kill();
+    // pool_.kill();
 
     if (config::TournamentConfig->output == OutputType::FASTCHESS) {
         if (tracker_.begin() != tracker_.end()) {

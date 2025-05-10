@@ -14,7 +14,7 @@ class ScopeEntry {
     void release() noexcept { available_ = true; }
 
    protected:
-    std::atomic<bool> available_;
+    std::atomic_bool available_;
 };
 
 // RAII class that releases the entry when it goes out of scope

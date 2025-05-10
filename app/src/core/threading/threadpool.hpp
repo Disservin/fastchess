@@ -27,6 +27,7 @@ class ThreadPool {
             tasks_.emplace([task]() { (*task)(); });
         }
 
+        std::unique_lock<std::mutex> lock(queue_mutex_);
         condition_.notify_one();
     }
 
@@ -52,9 +53,9 @@ class ThreadPool {
             std::unique_lock<std::mutex> lock(queue_mutex_);
             stop_  = true;
             tasks_ = {};
-        }
 
-        condition_.notify_all();
+            condition_.notify_all();
+        }
 
         for (auto &worker : workers_) {
             if (worker.joinable()) worker.join();

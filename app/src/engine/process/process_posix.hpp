@@ -78,7 +78,7 @@ class Process : public IProcess {
         initmsg << "Initializing process: thid: " << std::this_thread::get_id() << "\n";
         std::cout << initmsg.str() << std::flush;
 
-        if (!is_initalized_) {
+        if (is_initalized_ == true) {
             std::stringstream dbg;
             dbg << "thid failed: " << std::this_thread::get_id() << "\n";
             std::cout << dbg.str() << std::flush;

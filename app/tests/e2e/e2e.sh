@@ -140,7 +140,7 @@ OUTPUT_FILE_4=$(mktemp)
 # Cannot execute command: ../python-chess-engine/pythonchess.sh
 
 # check if the output contains the expected error message
-if ! grep -q "   Cannot execute: /home/max/Github/fastchess/app/tests/mock/engine/missing_shebang.sh" $OUTPUT_FILE_4; then
+if ! grep -q "   Cannot execute: app/tests/mock/engine/missing_shebang.sh" $OUTPUT_FILE_4; then
     echo "Failed to report invalid command."
     exit 1
 fi

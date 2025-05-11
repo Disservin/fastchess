@@ -74,10 +74,6 @@ class Process : public IProcess {
 
     tl::expected<void, process_err> init(const std::string &wd, const std::string &command, const std::string &args,
                                          const std::string &log_name) override {
-        std::stringstream initmsg;
-        initmsg << "Initializing process: thid: " << std::this_thread::get_id() << "\n";
-        std::cout << initmsg.str() << std::flush;
-
         if (is_initalized_ == true) {
             std::stringstream dbg;
             dbg << "thid failed: " << std::this_thread::get_id() << "\n";

@@ -312,9 +312,9 @@ bool UciEngine::start() {
 
     // Creates the engine process and sets the pipes
     if (auto res = process_.init(config_.dir, path, config_.args, config_.name); !res) {
-        auto fmt = fmt::format("Warning; Cannot start engine {};", config_.name);
-        fmt += fmt::format("Cannot execute command: {}", path);
-        fmt += fmt::format("Error: {}", magic_enum::enum_name(res.error()));
+        auto fmt = fmt::format("Warning; Failed to start {} engine\n", config_.name);
+        fmt += fmt::format("   Cannot execute: {}\n", path);
+        fmt += fmt::format("   Error: {}", magic_enum::enum_name(res.error()));
 
         Logger::print<Logger::Level::ERR>(fmt);
 

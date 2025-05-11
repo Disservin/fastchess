@@ -61,7 +61,7 @@ void stopProcesses() {
 }
 
 void consoleHandlerAction() {
-    Logger::print<Logger::Level::WARN>("Received signal, stopping tournament.");
+    // Logger::print<Logger::Level::WARN>("Received signal, stopping tournament.");
 
     atomic::stop                 = true;
     atomic::abnormal_termination = true;
@@ -88,9 +88,22 @@ void setCtrlCHandler() {
 }
 
 #else
-void handler(int) { consoleHandlerAction(); }
+void handler(int, siginfo_t *, void *) { consoleHandlerAction(); }
 
-void setCtrlCHandler() { signal(SIGINT, handler); }
+void setCtrlCHandler() {
+    struct sigaction sa;
+
+    memset(&sa, 0, sizeof(sa));
+
+    sa.sa_sigaction = handler;
+    sa.sa_flags     = SA_SIGINFO;
+
+    sigfillset(&sa.sa_mask);
+
+    if (sigaction(SIGINT, &sa, NULL) == -1) {
+        perror("Error setting up signal handler");
+    }
+}
 #endif
 
 }  // namespace fastchess

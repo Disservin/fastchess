@@ -23,6 +23,7 @@ SRC_FILES        := \
 	$(SRCDIR)/core/globals/globals.cpp \
 	$(SRCDIR)/core/logger/logger.cpp \
 	$(SRCDIR)/core/printing/printing.cpp \
+	$(SRCDIR)/core/time/time.cpp \
 	$(SRCDIR)/engine/uci_engine.cpp \
 	$(SRCDIR)/game/book/epd_reader.cpp \
 	$(SRCDIR)/game/book/opening_book.cpp \

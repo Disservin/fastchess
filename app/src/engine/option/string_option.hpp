@@ -8,20 +8,22 @@ namespace fastchess {
 
 class StringOption : public UCIOption {
    public:
-    StringOption(const std::string& name, const std::string& defaultValue) : name(name), value(defaultValue) {}
+    StringOption(const std::string& name) : name(name) {}
 
     std::string getName() const override { return name; }
 
-    void setValue(const std::string& value) override {
-        if (isValid(value)) {
+    std::optional<option_error> setValue(const std::string& value) override {
+        if (!isInvalid(value)) {
             this->value = value;
         }
+
+        return std::nullopt;
     }
 
     std::string getValue() const override { return value.empty() ? "<empty>" : value; }
 
-    bool isValid(const std::string&) const override {
-        return true;  // All string values are valid
+    std::optional<option_error> isInvalid(const std::string&) const override {
+        return {};  // All string values are valid
     }
 
     Type getType() const override { return Type::String; }

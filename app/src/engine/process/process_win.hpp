@@ -39,8 +39,8 @@ class Process : public IProcess {
         terminate();
     }
 
-    Status init(const std::string &dir, const std::string &path, const std::string &args,
-                const std::string &log_name) override {
+    tl::expected<void, process_err> init(const std::string &dir, const std::string &path, const std::string &args,
+                                         const std::string &log_name) override {
         wd_       = dir;
         command_  = getPath(dir, path);
         args_     = args;
@@ -56,46 +56,41 @@ class Process : public IProcess {
 
         if (!CreatePipeEx(&hChildStdoutRead, &hChildStdoutWrite, &saAttr)) {
             LOG_FATAL_THREAD("Failed to create stdout pipe");
-            return Status::ERR;
+            return tl::unexpected(process_err::failed_to_create_pipe);
         }
 
         if (!CreatePipeEx(&hChildStdinRead, &hChildStdinWrite, &saAttr)) {
             CloseHandle(hChildStdoutRead);
             CloseHandle(hChildStdoutWrite);
             LOG_FATAL_THREAD("Failed to create stdout pipe");
-            return Status::ERR;
+            return tl::unexpected(process_err::failed_to_create_pipe);
         }
 
         if (!SetHandleInformation(hChildStdoutRead, HANDLE_FLAG_INHERIT, 0)) {
             closesHandles();
             LOG_FATAL_THREAD("Failed to set stdout handle information");
-            return Status::ERR;
+            return tl::unexpected(process_err::failed_to_set_handle_info);
         }
 
         if (!SetHandleInformation(hChildStdinWrite, HANDLE_FLAG_INHERIT, 0)) {
             closesHandles();
             LOG_FATAL_THREAD("Failed to set stdin handle information");
-            return Status::ERR;
+            return tl::unexpected(process_err::failed_to_set_handle_info);
         }
 
-        try {
-            STARTUPINFOA si = {};
-            si.cb           = sizeof(STARTUPINFOA);
-            si.hStdOutput   = hChildStdoutWrite;
-            si.hStdInput    = hChildStdinRead;
-            si.hStdError    = hChildStdoutWrite;
-            si.dwFlags |= STARTF_USESTDHANDLES;
+        STARTUPINFOA si = {};
+        si.cb           = sizeof(STARTUPINFOA);
+        si.hStdOutput   = hChildStdoutWrite;
+        si.hStdInput    = hChildStdinRead;
+        si.hStdError    = hChildStdoutWrite;
+        si.dwFlags |= STARTF_USESTDHANDLES;
 
-            if (createProcess(si)) {
-                process_list.push(ProcessInformation{pi_.hProcess, hChildStdoutWrite});
-                return Status::OK;
-            }
-
-        } catch (const std::exception &e) {
-            LOG_FATAL_THREAD("Process creation failed: {}", e.what());
+        if (createProcess(si)) {
+            process_list.push(ProcessInformation{pi_.hProcess, hChildStdoutWrite});
+            return {};
         }
 
-        return Status::ERR;
+        return tl::unexpected(process_err::failed_to_create_process);
     }
 
     void closesHandles() {

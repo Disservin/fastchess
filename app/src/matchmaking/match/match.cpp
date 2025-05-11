@@ -163,6 +163,10 @@ void Match::start(engine::UciEngine& white, engine::UciEngine& black, const std:
         return;
     }
 
+    if (atomic::stop.load()) {
+        return;
+    }
+
     if (!black_player.engine.start()) {
         LOG_FATAL_THREAD("Failed to start engines, stopping tournament.");
         atomic::stop                 = true;

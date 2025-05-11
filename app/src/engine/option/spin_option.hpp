@@ -1,7 +1,10 @@
 #pragma once
 
+#include <optional>
 #include <stdexcept>
 #include <type_traits>
+
+#include <expected.hpp>
 #include "ucioption.hpp"
 
 namespace fastchess {
@@ -14,29 +17,46 @@ class SpinOption : public UCIOption {
     SpinOption(const std::string& name, const std::string& minValue, const std::string& maxValue) : name(name) {
         this->minValue = parseValue(minValue);
         this->maxValue = parseValue(maxValue);
-
-        if (this->minValue > this->maxValue) {
-            throw std::invalid_argument("Min value cannot be greater than max value.");
-        }
     }
 
     std::string getName() const override { return name; }
 
-    void setValue(const std::string& value) override {
-        T parsedValue = parseValue(value);
-
-        if (isValid(value)) {
-            this->value = parsedValue;
-        } else {
-            throw std::out_of_range("Value is out of the allowed range.");
+    std::optional<option_error> setValue(const std::string& value) override {
+        if (!minValue || !maxValue) {
+            return option_error::unsupported_value_conversion;
         }
+
+        auto parsedValue = parseValue(value);
+
+        if (parsedValue && !isInvalid(value)) {
+            this->value = parsedValue.value();
+            return std::nullopt;
+        }
+
+        return option_error::value_out_of_range;
     }
 
     std::string getValue() const override { return std::to_string(value); }
 
-    bool isValid(const std::string& value) const override {
-        T parsedValue = parseValue(value);
-        return parsedValue >= minValue && parsedValue <= maxValue;
+    std::optional<option_error> isInvalid(const std::string& value) const override {
+        auto parsedValue = parseValue(value);
+
+        if (!parsedValue.has_value()) {
+            return option_error::unsupported_value_conversion;
+        }
+
+        if (parsedValue < minValue || parsedValue > maxValue) return option_error::value_out_of_range;
+
+        return {};
+    }
+
+    std::optional<option_error> hasError() const override {
+        if (this->minValue > this->maxValue) {
+            std::cout << "Error: minValue is greater than maxValue." << std::endl;
+            return option_error::min_greater_than_max;
+        }
+
+        return std::nullopt;
     }
 
     Type getType() const override { return Type::Spin; }
@@ -44,17 +64,17 @@ class SpinOption : public UCIOption {
    private:
     std::string name;
     T value;
-    T minValue;
-    T maxValue;
+    std::optional<T> minValue;
+    std::optional<T> maxValue;
 
     // Helper function to parse the value as type T
-    T parseValue(const std::string& valueStr) const {
+    std::optional<T> parseValue(const std::string& valueStr) const {
         if constexpr (std::is_integral<T>::value) {
             return static_cast<T>(std::stoi(valueStr));
         } else if constexpr (std::is_floating_point<T>::value) {
             return static_cast<T>(std::stod(valueStr));
         } else {
-            throw std::invalid_argument("Unsupported type for SpinOption.");
+            return std::nullopt;
         }
     }
 };

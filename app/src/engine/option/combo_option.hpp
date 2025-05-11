@@ -10,21 +10,27 @@ namespace fastchess {
 
 class ComboOption : public UCIOption {
    public:
-    ComboOption(const std::string& name, const std::vector<std::string>& options, const std::string& defaultValue)
-        : name(name), options(options), value(defaultValue) {}
+    ComboOption(const std::string& name, const std::vector<std::string>& options) : name(name), options(options) {}
 
     std::string getName() const override { return name; }
 
-    void setValue(const std::string& value) override {
-        if (isValid(value)) {
+    std::optional<option_error> setValue(const std::string& value) override {
+        if (!isInvalid(value)) {
             this->value = value;
+            return std::nullopt;
         }
+
+        return option_error::invalid_combo_option_value;
     }
 
     std::string getValue() const override { return value; }
 
-    bool isValid(const std::string& value) const override {
-        return std::find(options.begin(), options.end(), value) != options.end();
+    std::optional<option_error> isInvalid(const std::string& value) const override {
+        if (std::find(options.begin(), options.end(), value) == options.end()) {
+            return option_error::invalid_combo_option_value;
+        }
+
+        return {};
     }
 
     Type getType() const override { return Type::Combo; }

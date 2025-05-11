@@ -72,15 +72,21 @@ class Process : public IProcess {
    public:
     virtual ~Process() override { terminate(); }
 
-    Status init(const std::string &wd, const std::string &command, const std::string &args,
-                const std::string &log_name) override {
+    tl::expected<void, process_err> init(const std::string &wd, const std::string &command, const std::string &args,
+                                         const std::string &log_name) override {
+        if (is_initalized_ == true) {
+            std::stringstream dbg;
+            dbg << "thid failed: " << std::this_thread::get_id() << "\n";
+            std::cout << dbg.str() << std::flush;
+            return tl::unexpected(process_err::process_spawn);
+        }
+
         assert(!is_initalized_);
 
         wd_            = wd;
         command_       = command;
         args_          = args;
         log_name_      = log_name;
-        is_initalized_ = true;
         startup_error_ = false;
 
 #    ifdef NO_POSIX_SPAWN_FILE_ACTIONS_ADDCHDIR
@@ -97,37 +103,39 @@ class Process : public IProcess {
         posix_spawn_file_actions_t file_actions;
         posix_spawn_file_actions_init(&file_actions);
 
-        try {
-            setup_spawn_file_actions(file_actions, out_pipe_.read_end(), STDIN_FILENO);
-            setup_close_file_actions(file_actions, out_pipe_.read_end());
+        auto result =  //
+            setup_spawn_file_actions(file_actions, out_pipe_.read_end(), STDIN_FILENO)
+                .and_then([&]() { return setup_close_file_actions(file_actions, out_pipe_.read_end()); })
+                .and_then([&]() {
+                    // keep open for self to pipe trick
+                    return setup_spawn_file_actions(file_actions, in_pipe_.write_end(), STDOUT_FILENO);
+                })
+                .and_then(
+                    [&]() { return setup_spawn_file_actions(file_actions, err_pipe_.write_end(), STDERR_FILENO); })
+                .and_then([&]() { return setup_close_file_actions(file_actions, err_pipe_.write_end()); })
+                .and_then([&]() { return setup_wd_file_actions(file_actions, wd_); })
+                .and_then([&]() -> tl::expected<void, process_err> {
+                    if (posix_spawn(&process_pid_, command_.c_str(), &file_actions, nullptr, execv_argv, environ) != 0)
+                        return tl::unexpected(process_err::posix_spawn);
 
-            // keep open for self to pipe trick
-            setup_spawn_file_actions(file_actions, in_pipe_.write_end(), STDOUT_FILENO);
+                    return {};
+                });
 
-            setup_spawn_file_actions(file_actions, err_pipe_.write_end(), STDERR_FILENO);
-            setup_close_file_actions(file_actions, err_pipe_.write_end());
+        posix_spawn_file_actions_destroy(&file_actions);
 
-            setup_wd_file_actions(file_actions, wd_);
-
-            if (posix_spawn(&process_pid_, command_.c_str(), &file_actions, nullptr, execv_argv, environ) != 0) {
-                throw std::runtime_error("posix_spawn failed");
-            }
-
-            posix_spawn_file_actions_destroy(&file_actions);
-        } catch (const std::exception &e) {
+        if (!result) {
             startup_error_ = true;
-
-            LOG_ERR_THREAD("Failed to start process: {}", e.what());
-
-            posix_spawn_file_actions_destroy(&file_actions);
-            return Status::ERR;
+            LOG_ERR_THREAD("Failed to start process");
+            return result;
         }
+
+        is_initalized_ = true;
 
         // Append the process to the list of running processes
         // which are killed when the program exits, as a last resort
         process_list.push(ProcessInformation{process_pid_, in_pipe_.write_end()});
 
-        return Status::OK;
+        return {};
     }
 
     Status alive() noexcept override {
@@ -142,6 +150,7 @@ class Process : public IProcess {
 
         return r == 0 ? Status::OK : Status::ERR;
     }
+
     std::string signalToString(int status) {
         std::stringstream result;
 
@@ -401,33 +410,41 @@ class Process : public IProcess {
     }
 
    private:
-    void setup_spawn_file_actions(posix_spawn_file_actions_t &file_actions, int fd, int target_fd) {
+    tl::expected<void, process_err> setup_spawn_file_actions(posix_spawn_file_actions_t &file_actions, int fd,
+                                                             int target_fd) {
         if (posix_spawn_file_actions_adddup2(&file_actions, fd, target_fd) != 0) {
-            throw std::runtime_error("posix_spawn_file_actions_add* failed");
+            return tl::unexpected(process_err::posix_spawn_file_actions_add);
         }
+
+        return {};
     }
 
-    void setup_close_file_actions(posix_spawn_file_actions_t &file_actions, int fd) {
+    tl::expected<void, process_err> setup_close_file_actions(posix_spawn_file_actions_t &file_actions, int fd) {
         if (posix_spawn_file_actions_addclose(&file_actions, fd) != 0) {
-            throw std::runtime_error("posix_spawn_file_actions_addclose failed");
+            return tl::unexpected(process_err::posix_spawn_file_actions_addclose);
         }
+
+        return {};
     }
 
-    void setup_wd_file_actions(posix_spawn_file_actions_t &file_actions, const std::string &wd) {
-        if (wd.empty()) return;
+    tl::expected<void, process_err> setup_wd_file_actions(posix_spawn_file_actions_t &file_actions,
+                                                          const std::string &wd) {
+        if (wd.empty()) return {};
 
 #    ifdef NO_POSIX_SPAWN_FILE_ACTIONS_ADDCHDIR
         // dir added to the command directly
-        return;
+        return {};
 #    endif
 
         if (portable_spawn_file_actions_addchdir(&file_actions, wd.c_str()) != 0) {
             // chdir is broken on macos so lets just ignore the return code,
             // https://github.com/rust-lang/rust/pull/80537
 #    if !(defined(__MAC_OS_X_VERSION_MIN_REQUIRED) && __MAC_OS_X_VERSION_MIN_REQUIRED >= 101500)
-            throw std::runtime_error("posix_spawn_file_actions_addchdir failed");
+            return tl::unexpected(process_err::posix_spawn_file_actions_addchdir);
 #    endif
         }
+
+        return {};
     }
 
     [[nodiscard]] Status processBuffer(const std::array<char, 4096> &buffer, ssize_t bytes_read,

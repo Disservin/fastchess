@@ -6,6 +6,7 @@
 #include <vector>
 
 #include <chess.hpp>
+#include <magic_enum.hpp>
 
 #include <core/config/config.hpp>
 #include <core/helper.hpp>
@@ -238,8 +239,15 @@ bool UciEngine::uciok(std::chrono::milliseconds threshold) {
 
         auto option = UCIOptionFactory::parseUCIOptionLine(line.line);
 
-        if (option != nullptr) {
-            uci_options_.addOption(std::move(option));
+        if (!option.has_value()) {
+            LOG_WARN_THREAD("Engine {} send/has invalid option: {}. Error: {}", config_.name, line.line,
+                            magic_enum::enum_name(option.error()));
+
+            continue;
+        }
+
+        if (option.value() != nullptr) {
+            uci_options_.addOption(std::move(option.value()));
         }
     }
 
@@ -265,7 +273,7 @@ void UciEngine::sendSetoption(const std::string &name, const std::string &value)
         return;
     }
 
-    if (!option.value()->isValid(value)) {
+    if (option.value()->isInvalid(value)) {
         Logger::print<Logger::Level::WARN>("Warning; Invalid value for option {}; {}", name, value);
 
         return;
@@ -303,9 +311,12 @@ bool UciEngine::start() {
     LOG_TRACE_THREAD("Starting engine {} at {}", config_.name, path);
 
     // Creates the engine process and sets the pipes
-    if (process_.init(config_.dir, path, config_.args, config_.name) != process::Status::OK) {
-        Logger::print<Logger::Level::ERR>("Warning; Cannot start engine {};", config_.name);
-        Logger::print<Logger::Level::ERR>("Cannot execute command: {}", path);
+    if (auto res = process_.init(config_.dir, path, config_.args, config_.name); !res) {
+        auto fmt = fmt::format("Warning; Cannot start engine {};", config_.name);
+        fmt += fmt::format("Cannot execute command: {}\n", path);
+        fmt += fmt::format("Error; {}", magic_enum::enum_name(res.error()));
+
+        Logger::print<Logger::Level::ERR>(fmt);
 
         return false;
     }

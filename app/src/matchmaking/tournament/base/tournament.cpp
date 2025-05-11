@@ -47,8 +47,6 @@ BaseTournament::BaseTournament(const stats_map &results) {
 BaseTournament::~BaseTournament() {
     LOG_TRACE("~BaseTournament()");
 
-    saveJson();
-
     LOG_TRACE("Instructing engines to stop...");
 
     writeToOpenPipes();
@@ -70,6 +68,8 @@ BaseTournament::~BaseTournament() {
             Logger::print<Logger::Level::INFO>("");
         }
     }
+
+    saveJson();
 }
 
 void BaseTournament::start() {

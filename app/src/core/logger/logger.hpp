@@ -74,9 +74,9 @@ class Logger {
 
     template <Level LEVEL = Level::INFO, bool thread = false, typename... T>
     static void print(fmt::format_string<T...> format, T &&...args) {
-        const auto msg = fmt::format(format, std::forward<T>(args)...);
+        const auto msg = fmt::format(format, std::forward<T>(args)...) + "\n";
 
-        std::cout << msg << std::endl;
+        std::cout << msg << std::flush;
 
         if (!should_log_) {
             return;

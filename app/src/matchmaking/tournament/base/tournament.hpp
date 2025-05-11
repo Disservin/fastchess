@@ -65,9 +65,9 @@ class BaseTournament {
     std::unique_ptr<util::FileWriter> file_writer_epd_;
     std::unique_ptr<book::OpeningBook> book_;
 
-    std::atomic<std::uint64_t> match_count_ = 0;
-    std::uint64_t initial_matchcount_       = 0;
-    std::uint64_t final_matchcount_         = 0;
+    std::atomic<std::uint64_t> match_count_      = 0;
+    std::uint64_t initial_matchcount_            = 0;
+    std::atomic<std::uint64_t> final_matchcount_ = 0;
 
    private:
     [[nodiscard]] std::size_t setResults(const stats_map &results);

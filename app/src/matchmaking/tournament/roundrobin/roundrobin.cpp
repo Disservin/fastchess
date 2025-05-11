@@ -29,8 +29,6 @@ RoundRobin::RoundRobin(const stats_map& results) : BaseTournament(results) {
         std::make_unique<RoundRobinScheduler>(book_.get(), num_players, config.rounds, config.games, match_count_);
 }
 
-RoundRobin::~RoundRobin() { LOG_TRACE("~RoundRobin()"); }
-
 void RoundRobin::start() {
     LOG_TRACE("Starting round robin tournament...");
 
@@ -84,7 +82,11 @@ void RoundRobin::createMatch(const Scheduler::Pairing& pairing) {
     }
 
     // callback functions, do not capture by reference
-    const auto start = [this, configs, pairing]() { output_->startGame(configs, pairing.game_id, final_matchcount_); };
+    const auto start = [this, configs, pairing]() {
+        std::lock_guard<std::mutex> lock(output_mutex_);
+
+        output_->startGame(configs, pairing.game_id, final_matchcount_);
+    };
 
     // callback functions, do not capture by reference
     const auto finish = [this, configs, first, second, pairing](const Stats& stats, const std::string& reason,

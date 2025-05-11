@@ -25,8 +25,6 @@ class RoundRobin : public BaseTournament {
    public:
     explicit RoundRobin(const stats_map& results);
 
-    ~RoundRobin();
-
     // starts the round robin
     void start() override;
 

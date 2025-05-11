@@ -50,6 +50,7 @@ BaseTournament::~BaseTournament() {
     saveJson();
 
     LOG_TRACE("Instructing engines to stop...");
+
     writeToOpenPipes();
 
     pool_.kill();

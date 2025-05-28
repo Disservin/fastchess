@@ -60,7 +60,7 @@ Opening OpeningBook::operator[](std::optional<std::size_t> idx) const noexcept {
         const auto& reader = std::get<EpdReader>(openings_);
         const auto fen     = reader.get()[idx.value()];
 
-        return {std::string(fen.c_str()), {}};
+        return {std::string(fen.view.data()), {}};
     }
 
     const auto& reader = std::get<PgnReader>(openings_);

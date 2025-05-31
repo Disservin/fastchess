@@ -1,5 +1,6 @@
 #include <engine/uci_engine.hpp>
 
+#include <algorithm>
 #include <condition_variable>
 #include <mutex>
 #include <string>
@@ -335,7 +336,12 @@ bool UciEngine::refreshUci() {
         return false;
     }
 
-    for (const auto &option : config_.options) {
+    // Reorder to send Threads option first, to help multi-threaded configurations
+
+    auto options = config_.options;
+    std::stable_partition(options.begin(), options.end(), [](const auto &p) { return p.first == "Threads"; });
+
+    for (const auto &option : options) {
         sendSetoption(option.first, option.second);
     }
 

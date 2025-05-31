@@ -373,6 +373,21 @@ void parseTbIgnore50(const std::vector<std::string> & /*params*/, ArgumentData &
     argument_data.tournament_config.tb_adjudication.ignore_50_move_rule = true;
 }
 
+void parseTbAdjudicate(const std::vector<std::string> &params, ArgumentData &argument_data) {
+    std::string type;
+    parseValue(params, type);
+
+    if (type == "WIN_LOSS") {
+        argument_data.tournament_config.tb_adjudication.result_type = config::TbAdjudication::ResultType::WIN_LOSS;
+    } else if (type == "DRAW") {
+        argument_data.tournament_config.tb_adjudication.result_type = config::TbAdjudication::ResultType::DRAW;
+    } else if (type == "BOTH") {
+        argument_data.tournament_config.tb_adjudication.result_type = config::TbAdjudication::ResultType::BOTH;
+    } else {
+        throw std::runtime_error("Invalid tb adjudication type: " + type);
+    }
+}
+
 void parseAutoSaveInterval(const std::vector<std::string> &params, ArgumentData &argument_data) {
     parseValue(params, argument_data.tournament_config.autosaveinterval);
 }
@@ -666,6 +681,7 @@ OptionsParser::OptionsParser(const cli::Args &args) {
     addOption("tb", parseTbAdjudication);
     addOption("tbpieces", parseTbMaxPieces);
     addOption("tbignore50", parseTbIgnore50);
+    addOption("tbadjudicate", parseTbAdjudicate);
     addOption("autosaveinterval", parseAutoSaveInterval);
     addOption("log", parseLog);
     addOption("config", json_config::parseConfig);

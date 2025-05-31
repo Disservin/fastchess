@@ -69,7 +69,7 @@ EpdReader::EpdReader(const std::string& epd_file_path) : epd_file_(epd_file_path
 
     std::string line;
     while (safeGetline(*input_stream, line)) {
-        if (!line.empty()) openings_.emplace_back(util::heap_string(line.c_str()));
+        if (!line.empty()) openings_.emplace_back(util::heap_string(line));
     }
 
     if (openings_.empty()) {

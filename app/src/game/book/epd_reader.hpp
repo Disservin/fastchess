@@ -7,6 +7,7 @@
 #include <core/memory/heap_str.hpp>
 
 namespace fastchess::book {
+
 class EpdReader {
    public:
     EpdReader() = default;

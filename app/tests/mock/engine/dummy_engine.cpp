@@ -29,6 +29,10 @@ int main(int argc, char const *argv[]) {
         } else if (cmd == "uci") {
             cout << "id name Dummy Engine" << endl;
             cout << "id author Fastchess" << endl;
+            cout << "option name Threads type spin default 1 min 1 max 1024" << endl;
+            cout << "option name Hash type spin default 1 min 1 max 500000" << endl;
+            cout << "option name MultiPV type spin default 1 min 1 max 256" << endl;
+            cout << "option name UCI_Chess960 type check default false" << endl;
             cout << "line0" << endl;
             cout << "line1" << endl;
             cout << "uciok" << endl;
@@ -78,6 +82,9 @@ int main(int argc, char const *argv[]) {
             }
         } else if (contains(cmd, "go")) {
             std::cout << "bestmove " << moves[moveIndex] << std::endl;
+        } else if (contains(cmd, "setoption")) {
+            // Simulate setting an option
+            std::cout << "option set: " << cmd << std::endl;
         }
     }
 

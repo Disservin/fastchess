@@ -101,7 +101,7 @@ The following options are available:
 
 - -tbadjudicate SETTING
     Control when tablebase adjudication is applied. SETTING can be:
-    - WIN_LOSS: Only adjudicate winning/lost positions
+    - WON_LOST: Only adjudicate winning/lost positions
     - DRAW: Only adjudicate drawn positions
     - BOTH: Adjudicate both wins and draws (default)
 

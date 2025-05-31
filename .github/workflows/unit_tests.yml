@@ -103,4 +103,4 @@ jobs:
         run: |
           make clean
           make -j2 tests CXX=g++
-          valgrind --error-exitcode=1 --errors-for-leak-kinds=all --leak-check=full ./fastchess-tests* -tse="*PERFT*"
+          valgrind --quiet --track-fds=yes --error-exitcode=1 --errors-for-leak-kinds=all --leak-check=full ./fastchess-tests* -tse="*PERFT*"

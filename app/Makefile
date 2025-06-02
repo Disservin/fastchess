@@ -38,6 +38,7 @@ SRC_FILES        := \
 	$(SRCDIR)/matchmaking/sprt/sprt.cpp \
 	$(SRCDIR)/matchmaking/tournament/base/tournament.cpp \
 	$(SRCDIR)/matchmaking/tournament/roundrobin/roundrobin.cpp \
+	$(SRCDIR)/matchmaking/tournament/gauntlet/gauntlet.cpp \
 	$(SRCDIR)/matchmaking/tournament/tournament_manager.cpp \
 	$(THIRDPARTYDIR)/pyrrhic/tbprobe.cpp
 

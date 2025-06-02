@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cli/cli_args.hpp>
+#include <matchmaking/tournament/gauntlet/gauntlet.hpp>
 #include <matchmaking/tournament/roundrobin/roundrobin.hpp>
 #include <types/tournament.hpp>
 

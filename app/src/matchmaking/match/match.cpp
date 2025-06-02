@@ -547,7 +547,7 @@ bool Match::adjudicate(Player& us, Player& them) noexcept {
         const auto desired_adju = config::TournamentConfig->tb_adjudication.result_type;
 
         if ((result == GameResult::WIN || result == GameResult::LOSE) &&
-            desired_adju & config::TbAdjudication::ResultType::WIN_LOSS) {
+            desired_adju & config::TbAdjudication::ResultType::WON_LOST) {
             Color c = Color::NONE;
 
             if (result == GameResult::WIN) {

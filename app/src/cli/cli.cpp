@@ -377,8 +377,8 @@ void parseTbAdjudicate(const std::vector<std::string> &params, ArgumentData &arg
     std::string type;
     parseValue(params, type);
 
-    if (type == "WON_LOST") {
-        argument_data.tournament_config.tb_adjudication.result_type = config::TbAdjudication::ResultType::WON_LOST;
+    if (type == "WIN_LOSS") {
+        argument_data.tournament_config.tb_adjudication.result_type = config::TbAdjudication::ResultType::WIN_LOSS;
     } else if (type == "DRAW") {
         argument_data.tournament_config.tb_adjudication.result_type = config::TbAdjudication::ResultType::DRAW;
     } else if (type == "BOTH") {

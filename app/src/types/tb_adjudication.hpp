@@ -7,7 +7,7 @@
 namespace fastchess::config {
 
 struct TbAdjudication {
-    enum ResultType { WON_LOST = 1, DRAW = 2, BOTH = WON_LOST | DRAW };
+    enum ResultType { WIN_LOSS = 1, DRAW = 2, BOTH = WIN_LOSS | DRAW };
 
     std::string syzygy_dirs;
     int max_pieces           = 0;

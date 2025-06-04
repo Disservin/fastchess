@@ -544,30 +544,35 @@ bool Match::adjudicate(Player& us, Player& them) noexcept {
     // adjudication methods are more heuristic.
     if (config::TournamentConfig->tb_adjudication.enabled && tb_adjudication_tracker_.adjudicatable(board_)) {
         const GameResult result = tb_adjudication_tracker_.adjudicate(board_);
-        if (result != GameResult::NONE) {
-            // Note: 'them' is the player to move at this point, so the result is from their perspective.
+        const auto desired_adju = config::TournamentConfig->tb_adjudication.result_type;
 
-            if (result == GameResult::DRAW) {
-                us.setDraw();
-                them.setDraw();
+        if ((result == GameResult::WIN || result == GameResult::LOSE) &&
+            desired_adju & config::TbAdjudication::ResultType::WIN_LOSS) {
+            Color c = Color::NONE;
 
-                data_.reason = Match::ADJUDICATION_TB_DRAW_MSG;
-            } else if (result == GameResult::WIN) {
+            if (result == GameResult::WIN) {
                 us.setLost();
                 them.setWon();
 
-                const auto color = board_.sideToMove().longStr();
-                data_.reason     = color + Match::ADJUDICATION_TB_WIN_MSG;
+                c = board_.sideToMove();
             } else {
-                assert(result == GameResult::LOSE);
-
                 us.setWon();
                 them.setLost();
 
-                const auto color = (~board_.sideToMove()).longStr();
-                data_.reason     = color + Match::ADJUDICATION_TB_WIN_MSG;
+                c = (~board_.sideToMove());
             }
 
+            data_.reason      = c.longStr() + Match::ADJUDICATION_TB_WIN_MSG;
+            data_.termination = MatchTermination::ADJUDICATION;
+
+            return true;
+        }
+
+        if (result == GameResult::DRAW && desired_adju & config::TbAdjudication::ResultType::DRAW) {
+            us.setDraw();
+            them.setDraw();
+
+            data_.reason      = Match::ADJUDICATION_TB_DRAW_MSG;
             data_.termination = MatchTermination::ADJUDICATION;
 
             return true;

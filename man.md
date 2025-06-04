@@ -99,6 +99,12 @@ The following options are available:
 - -tbignore50  
     Disable the fifty move rule for tablebase adjudication.
 
+- -tbadjudicate SETTING
+    Control when tablebase adjudication is applied. SETTING can be:
+    - WIN_LOSS: Only adjudicate winning/lost positions
+    - DRAW: Only adjudicate drawn positions
+    - BOTH: Adjudicate both wins and draws (default)
+
 - -openings file=NAME format=(epd|pgn) [order=ORDER] [plies=PLIES] [start=START]  
     Specifies an opening book file and its format for game starting positions.
 

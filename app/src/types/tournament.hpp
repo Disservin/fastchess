@@ -34,6 +34,8 @@ struct Tournament {
     TbAdjudication tb_adjudication = {};
 
     VariantType variant = VariantType::STANDARD;
+    TournamentType type = TournamentType::ROUNDROBIN;
+    int gauntlet_seeds = 1;
 
 #ifdef USE_CUTE
     // output format, fastchess or cutechess

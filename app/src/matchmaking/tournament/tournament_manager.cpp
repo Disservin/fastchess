@@ -51,9 +51,13 @@ void TournamentManager::start(const cli::Args& args) {
     }
 
     LOG_TRACE("Creating tournament...");
-    auto round_robin = RoundRobin(options.getResults());
+    BaseTournament *tournament;
+    if (config::TournamentConfig->type == TournamentType::ROUNDROBIN)
+        tournament = new RoundRobin(options.getResults());
+    else if (config::TournamentConfig->type == TournamentType::GAUNTLET)
+        tournament = new Gauntlet(options.getResults());
 
     LOG_INFO("Starting tournament...");
-    round_robin.start();
+    tournament->start();
 }
 }  // namespace fastchess

@@ -23,7 +23,7 @@ class EpdBuilder {
 
             if (illegal) break;
 
-            board.makeMove(chess::uci::uciToMove(board, move.move));
+            board.makeMove<true>(chess::uci::uciToMove(board, move.move));
         }
 
         epd << board.getEpd() << "\n";

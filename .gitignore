@@ -87,3 +87,5 @@ app/coverage
 
 test
 test.c
+
+.cache

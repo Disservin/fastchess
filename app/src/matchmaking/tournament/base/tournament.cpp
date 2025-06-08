@@ -115,21 +115,21 @@ void BaseTournament::playGame(const GamePair<EngineConfiguration, EngineConfigur
     const auto white_name = engine_configs.white.name;
     const auto black_name = engine_configs.black.name;
 
-    auto &white_engine = engine_cache_.getEntry(white_name, engine_configs.white, rl);
-    auto &black_engine = engine_cache_.getEntry(black_name, engine_configs.black, rl);
+    auto white_engine = engine_cache_.getEntry(white_name, engine_configs.white, rl);
+    auto black_engine = engine_cache_.getEntry(black_name, engine_configs.black, rl);
 
-    util::ScopeGuard lock1(white_engine);
-    util::ScopeGuard lock2(black_engine);
+    auto &w_engine_ref = *(white_engine->get().get());
+    auto &b_engine_ref = *(black_engine->get().get());
 
-    if (white_engine.get()->getConfig().restart) restartEngine(white_engine.get());
-    if (black_engine.get()->getConfig().restart) restartEngine(black_engine.get());
+    util::ScopeGuard lock1(w_engine_ref.getConfig().restart ? nullptr : &(*white_engine));
+    util::ScopeGuard lock2(b_engine_ref.getConfig().restart ? nullptr : &(*black_engine));
 
     LOG_TRACE_THREAD("Game {} between {} and {} starting", game_id, white_name, black_name);
 
     start();
 
     auto match = Match(opening);
-    match.start(*white_engine.get(), *black_engine.get(), core.get().cpus);
+    match.start(w_engine_ref, b_engine_ref, core.get().cpus);
 
     LOG_TRACE_THREAD("Game {} between {} and {} finished", game_id, white_name, black_name);
 
@@ -149,8 +149,8 @@ void BaseTournament::playGame(const GamePair<EngineConfiguration, EngineConfigur
 
         // restart the engine when recover is enabled
 
-        if (white_engine.get()->isready() != engine::process::Status::OK) restartEngine(white_engine.get());
-        if (black_engine.get()->isready() != engine::process::Status::OK) restartEngine(black_engine.get());
+        if (w_engine_ref.isready() != engine::process::Status::OK) restartEngine(white_engine->get());
+        if (b_engine_ref.isready() != engine::process::Status::OK) restartEngine(black_engine->get());
     }
 
     const auto match_data = match.get();
@@ -169,10 +169,14 @@ void BaseTournament::playGame(const GamePair<EngineConfiguration, EngineConfigur
         const auto result = pgn::PgnBuilder::getResultFromMatch(match_data.players.white, match_data.players.black);
         LOG_TRACE_THREAD("Game {} finished with result {}", game_id, result);
 
-        finish({match_data}, match_data.reason, {*white_engine.get(), *black_engine.get()});
+        finish({match_data}, match_data.reason, {w_engine_ref, b_engine_ref});
 
         startNext();
     }
+
+    // remove engines if restart is enabled, frees up memory
+    if (w_engine_ref.getConfig().restart) engine_cache_.deleteFromCache(white_engine);
+    if (b_engine_ref.getConfig().restart) engine_cache_.deleteFromCache(black_engine);
 
     const auto &loser = match_data.players.white.result == chess::GameResult::LOSE ? white_name : black_name;
 
@@ -212,6 +216,7 @@ int BaseTournament::getMaxAffinity(const std::vector<EngineConfiguration> &confi
 }
 
 void BaseTournament::restartEngine(std::unique_ptr<engine::UciEngine> &engine) {
+    std::cout << "Restarting engine " << engine->getConfig().name << std::endl;
     LOG_TRACE_THREAD("Restarting engine {}", engine->getConfig().name);
     auto config = engine->getConfig();
     auto rl     = engine->isRealtimeLogging();

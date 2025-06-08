@@ -21,21 +21,29 @@ class ScopeEntry {
 template <typename T>
 class ScopeGuard {
    public:
-    explicit ScopeGuard(T &entry) : entry_(entry) {
+    explicit ScopeGuard(T *entry) : entry_(entry) {
         static_assert(std::is_base_of<ScopeEntry, T>::value,
                       "type parameter of this class must derive from ScopeEntry");
     }
 
-    ~ScopeGuard() { entry_.release(); }
+    explicit ScopeGuard(T &entry) : entry_(&entry) {
+        static_assert(std::is_base_of<ScopeEntry, T>::value,
+                      "type parameter of this class must derive from ScopeEntry");
+    }
+
+    ~ScopeGuard() {
+        if (entry_ == nullptr) return;
+        entry_->release();
+    }
 
     ScopeGuard(const ScopeGuard &)            = delete;
     ScopeGuard &operator=(const ScopeGuard &) = delete;
 
-    [[nodiscard]] auto &get() noexcept { return entry_; }
-    [[nodiscard]] auto &get() const noexcept { return entry_; }
+    [[nodiscard]] auto &get() noexcept { return *entry_; }
+    [[nodiscard]] auto &get() const noexcept { return *entry_; }
 
    private:
-    T &entry_;
+    T *entry_;
 };
 
 }  // namespace fastchess::util

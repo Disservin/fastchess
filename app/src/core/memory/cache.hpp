@@ -1,6 +1,7 @@
 #pragma once
 
-#include <deque>
+#include <cassert>
+#include <list>
 #include <memory>
 #include <mutex>
 
@@ -33,23 +34,31 @@ template <typename T, typename ID>
 class CachePool {
    public:
     template <typename... ARGS>
-    [[nodiscard]] CachedEntry<T, ID> &getEntry(const ID &identifier, ARGS &&...arg) {
+    [[nodiscard]] auto getEntry(const ID &identifier, ARGS &&...arg) {
         std::lock_guard<std::mutex> lock(access_mutex_);
 
-        for (auto &entry : cache_) {
-            if (entry.available_ && entry.id == identifier) {
+        for (auto it = cache_.begin(); it != cache_.end();) {
+            if (it->available_ && it->id == identifier) {
                 // block the entry from being used by other threads
-                entry.available_ = false;
-                return entry;
+                it->available_ = false;
+                return it;
             }
+            ++it;
         }
 
         cache_.emplace_back(identifier, std::forward<ARGS>(arg)...);
-        return cache_.back();
+        return std::prev(cache_.end());
+    }
+
+    void deleteFromCache(const typename std::list<CachedEntry<T, ID>>::iterator &it) {
+        assert(it != cache_.end());
+        assert(!it->available_);
+        std::lock_guard<std::mutex> lock(access_mutex_);
+        cache_.erase(it);
     }
 
    private:
-    std::deque<CachedEntry<T, ID>> cache_;
+    std::list<CachedEntry<T, ID>> cache_;
     std::mutex access_mutex_;
 };
 

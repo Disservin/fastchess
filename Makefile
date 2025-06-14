@@ -33,7 +33,7 @@ install: ## Install the binary and man page
 	@install -d $(BINDIR)
 	@install fastchess $(BINDIR)
 	@if [ "$(shell uname)" = "Linux" ] && [ "$(LOWDOWN_INSTALLED)" = "no" ]; then \
-		echo "\033[33mWarning: 'lowdown' is not installed. Man page will not be generated.\033[0m"; \
+		printf "\033[33mWarning: 'lowdown' is not installed. Man page will not be generated.\033[0m\n"; \
 	else \
 		make install-manpage --no-print-directory ; \
 	fi

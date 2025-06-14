@@ -4,8 +4,6 @@ MANDIR = $(PREFIX)/share/man/man1
 MANPAGE_SOURCE = man.md  # Path to the markdown file for the man page
 MANPAGE_OUTPUT = fastchess.1
 
-.PHONY: all tests install manpage install-manpage update-man clean format update-fmt help coverage
-
 ifeq ($(shell uname), Linux)
 	LOWDOWN_INSTALLED := $(shell command -v lowdown >/dev/null 2>&1 && echo yes || echo no)
 endif
@@ -84,3 +82,4 @@ clean: ## Clean up
 help: ## Print this help
 	@egrep -h '\s##\s' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m  %-30s\033[0m %s\n", $$1, $$2}'
 
+.PHONY: all tests install manpage install-manpage update-man clean format update-fmt help coverage

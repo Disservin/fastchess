@@ -15,7 +15,7 @@ namespace fastchess {
 class RoundRobinScheduler : public Scheduler {
    public:
     RoundRobinScheduler(book::OpeningBook* opening_book, std::size_t players, std::size_t rounds, std::size_t games,
-                        std::size_t played_games)
+                        std::size_t engine_seeds, TournamentType type, std::size_t played_games)
         : opening_book_(opening_book),
           n_players(players),
           n_rounds(rounds),
@@ -25,7 +25,11 @@ class RoundRobinScheduler : public Scheduler {
           player1(0),
           player2(1),
           games_per_pair(0),
-          pair_counter(played_games / games) {
+          pair_counter(played_games / games),
+          n_seeds(std::min(engine_seeds, n_players - 1)),
+          t_type(type) {
+
+        player1_limit = (t_type == TournamentType::GAUNTLET ? n_seeds : n_players - 1);
         current_round = (played_games / games) + 1;
 
         if (n_players < 2 || n_rounds < 1 || n_games_per_round < 1) {
@@ -70,7 +74,7 @@ class RoundRobinScheduler : public Scheduler {
             }
 
             // If we've exhausted all pairs for this round, move to the next round
-            if (player1 >= n_players - 1) {
+            if (player1 >= player1_limit) {
                 current_round++;
 
                 player1 = 0;
@@ -81,7 +85,12 @@ class RoundRobinScheduler : public Scheduler {
         return next_game;
     }
 
-    std::size_t total() const override { return (n_players * (n_players - 1) / 2) * n_rounds * n_games_per_round; }
+    std::size_t total() const override {
+        if (t_type == TournamentType::ROUNDROBIN)
+            return (n_players * (n_players - 1) / 2) * n_rounds * n_games_per_round;
+        else
+            return (n_seeds * n_players -  n_seeds * (n_seeds + 1) / 2) * n_rounds * n_games_per_round;
+    }
 
    private:
     book::OpeningBook* opening_book_;
@@ -95,6 +104,10 @@ class RoundRobinScheduler : public Scheduler {
     std::size_t player2;
     std::size_t games_per_pair;
     std::size_t pair_counter;
+    std::size_t n_seeds;
+    TournamentType t_type;
+    std::size_t player1_limit;
+
 };
 
 }  // namespace fastchess

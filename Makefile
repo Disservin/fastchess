@@ -29,9 +29,9 @@ scan:
 	@echo "Done."
 
 install: ## Install the binary and man page
-	@echo "Installing fastchess binary to: $(BINDIR)"
-	@install -d $(BINDIR)
-	@install fastchess $(BINDIR)
+	@echo "Installing fastchess binary to: $(DESTDIR)$(BINDIR)"
+	@install -d $(DESTDIR)$(BINDIR)
+	@install fastchess $(DESTDIR)$(BINDIR)
 	@if [ "$(shell uname)" = "Linux" ] && [ "$(LOWDOWN_INSTALLED)" = "no" ]; then \
 		printf "\033[33mWarning: 'lowdown' is not installed. Man page will not be generated.\033[0m\n"; \
 	else \
@@ -43,8 +43,8 @@ manpage: ## Generate the man page from Markdown using lowdown
 	@lowdown -s -Tman -o  $(MANPAGE_OUTPUT) $(MANPAGE_SOURCE) -mtitle="Fastchess"
 
 install-manpage: manpage ## Install the man page to $(MANDIR)
-	@install -d $(MANDIR)
-	@install -m 644 $(MANPAGE_OUTPUT) $(MANDIR)
+	@install -d $(DESTDIR)$(MANDIR)
+	@install -m 644 $(MANPAGE_OUTPUT) $(DESTDIR)$(MANDIR)
 	@echo "Installed man page."
 
 update-man: ## Update man like page

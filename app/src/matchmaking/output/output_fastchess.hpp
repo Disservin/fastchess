@@ -51,16 +51,23 @@ class Fastchess : public IOutput {
         std::sort(elos.begin(), elos.end(),
                   [](const auto& a, const auto& b) { return std::get<1>(a)->diff() > std::get<1>(b)->diff(); });
 
-        int rank        = 0;
-        std::string out = fmt::format("{:<4} {:<25} {:>10} {:>10} {:>10} {:>10} {:>10} {:>10} {:>10} {:>20}\n", "Rank",
-                                      "Name", "Elo", "+/-", "nElo", "+/-", "Games", "Score", "Draw", "Ptnml(0-2)");
+        int rank = 0;
+
+        size_t max_name_length = 25     ;
+        for (const auto& [ec, elo, stats] : elos) {
+            max_name_length = std::max(max_name_length, ec->name.length());
+        }
+
+        std::string out =
+            fmt::format("{:<4} {:<{}} {:>10} {:>10} {:>10} {:>10} {:>10} {:>10} {:>10} {:>20}\n", "Rank", "Name",
+                        max_name_length, "Elo", "+/-", "nElo", "+/-", "Games", "Score", "Draw", "Ptnml(0-2)");
 
         for (const auto& [ec, elo, stats] : elos) {
-            out +=
-                fmt::format("{:>4} {:<25} {:>10.2f} {:>10.2f} {:>10.2f} {:>10.2f} {:>10} {:>9.1f}% {:>9.1f}% {:>20}\n",
-                            ++rank, ec->name, elo->diff(), elo->error(), elo->nEloDiff(), elo->nEloError(), stats.sum(),
-                            stats.pointsRatio(), report_penta_ ? stats.drawRatioPenta() : stats.drawRatio(),
-                            report_penta_ ? formatPentaStats(stats) : "");
+            out += fmt::format(
+                "{:>4} {:<{}} {:>10.2f} {:>10.2f} {:>10.2f} {:>10.2f} {:>10} {:>9.1f}% {:>9.1f}% {:>20}\n", ++rank,
+                ec->name, max_name_length, elo->diff(), elo->error(), elo->nEloDiff(), elo->nEloError(), stats.sum(),
+                stats.pointsRatio(), report_penta_ ? stats.drawRatioPenta() : stats.drawRatio(),
+                report_penta_ ? formatPentaStats(stats) : "");
         }
 
         return out;

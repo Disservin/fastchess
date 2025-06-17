@@ -514,7 +514,7 @@ void Match::verifyPvLines(const Player& us) {
             const auto gameoverResult = isGameOverSimple(board);
             const auto gameover       = gameoverResult.second != GameResult::NONE;
 
-            if (!gameover) {
+            if (gameoverResult.first != GameResultReason::CHECKMATE && gameoverResult.first != GameResultReason::STALEMATE) {
                 movegen::legalmoves(moves, board);
             }
 
@@ -523,7 +523,9 @@ void Match::verifyPvLines(const Player& us) {
 
             if (gameover || illegal_move) {
                 std::string warning;
-                if (gameoverResult.first == GameResultReason::THREEFOLD_REPETITION) {
+                if (illegal_move) {
+                    warning = "Warning: Illegal PV move - move {} from {}";
+                } else if (gameoverResult.first == GameResultReason::THREEFOLD_REPETITION) {
                     warning = "Warning: PV continues after threefold repetition - move {} from {}";
                 } else if (gameoverResult.first == GameResultReason::FIFTY_MOVE_RULE) {
                     warning = "Warning: PV continues after fifty-move rule - move {} from {}";
@@ -531,8 +533,6 @@ void Match::verifyPvLines(const Player& us) {
                     warning = "Warning: PV continues after checkmate - move {} from {}";
                 } else if (gameoverResult.first == GameResultReason::STALEMATE) {
                     warning = "Warning: PV continues after stalemate - move {} from {}";
-                } else if (illegal_move) {
-                    warning = "Warning: PV continues after illegal move - move {} from {}";
                 }
 
                 assert(!warning.empty());

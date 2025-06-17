@@ -524,15 +524,15 @@ void Match::verifyPvLines(const Player& us) {
             if (gameover || illegal_move) {
                 std::string warning;
                 if (illegal_move) {
-                    warning = "Warning: Illegal PV move - move {} from {}";
+                    warning = "Warning; Illegal PV move - move {} from {}";
                 } else if (gameoverResult.first == GameResultReason::THREEFOLD_REPETITION) {
-                    warning = "Warning: PV continues after threefold repetition - move {} from {}";
+                    warning = "Warning; PV continues after threefold repetition - move {} from {}";
                 } else if (gameoverResult.first == GameResultReason::FIFTY_MOVE_RULE) {
-                    warning = "Warning: PV continues after fifty-move rule - move {} from {}";
+                    warning = "Warning; PV continues after fifty-move rule - move {} from {}";
                 } else if (gameoverResult.first == GameResultReason::CHECKMATE) {
-                    warning = "Warning: PV continues after checkmate - move {} from {}";
+                    warning = "Warning; PV continues after checkmate - move {} from {}";
                 } else if (gameoverResult.first == GameResultReason::STALEMATE) {
-                    warning = "Warning: PV continues after stalemate - move {} from {}";
+                    warning = "Warning; PV continues after stalemate - move {} from {}";
                 }
 
                 assert(!warning.empty());

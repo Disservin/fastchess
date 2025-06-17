@@ -125,6 +125,7 @@ class OptionsParser {
     // Parses the command line arguments and calls the corresponding option. Parse will
     // increment i if need be.
     void parse(const cli::Args &args) {
+        std::vector<std::string> each;
         for (int i = 1; i < args.argc(); i++) {
             const std::string arg = args[i];
             if (options_.count(arg) == 0) {
@@ -135,14 +136,28 @@ class OptionsParser {
                 std::vector<std::string> params;
 
                 while (i + 1 < args.argc() && args[i + 1][0] != '-') {
-                    params.push_back(args[++i]);
+                    if (arg != "-each")
+                        params.push_back(args[++i]);
+                    else
+                        each.push_back(args[++i]);
                 }
-
-                options_.at(arg)(params, argument_data_);
+                if (arg != "-each")
+                    options_.at(arg)(params, argument_data_);
 
             } catch (const std::exception &e) {
                 auto err =
                     fmt::format("Error while reading option \"{}\" with value \"{}\"", arg, std::string(args[i]));
+                auto msg = fmt::format("Reason: {}", e.what());
+
+                throw std::runtime_error(err + "\n" + msg);
+            }
+        }
+        if (each.size() > 0) {
+            try {
+                options_.at("-each")(each, argument_data_);
+            } catch (const std::exception &e) {
+                auto err =
+                    fmt::format("Error while reading option \"{}\" with value \"{}\"", "-each", each.back());
                 auto msg = fmt::format("Reason: {}", e.what());
 
                 throw std::runtime_error(err + "\n" + msg);

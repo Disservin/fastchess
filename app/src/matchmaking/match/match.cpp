@@ -509,7 +509,8 @@ void Match::verifyPvLines(const Player& us) {
         while (it_start != it_end) {
             moves.clear();
 
-            const auto gameover = isGameOverSimple(board).second != GameResult::NONE;
+            const auto gameoverPair = isGameOverSimple(board);
+            const auto gameover = gameoverPair.second != GameResult::NONE && (gameoverPair.first == GameResultReason::CHECKMATE || gameoverPair.first == GameResultReason::STALEMATE);
 
             if (!gameover) {
                 movegen::legalmoves(moves, board);

@@ -1,8 +1,10 @@
+#include <cassert>
 #include <matchmaking/match/match.hpp>
 
 #include <algorithm>
 #include <regex>
 
+#include <chess.hpp>
 #include <core/globals/globals.hpp>
 #include <core/helper.hpp>
 #include <core/logger/logger.hpp>
@@ -509,15 +511,33 @@ void Match::verifyPvLines(const Player& us) {
         while (it_start != it_end) {
             moves.clear();
 
-            const auto gameoverPair = isGameOverSimple(board);
-            const auto gameover = gameoverPair.second != GameResult::NONE && (gameoverPair.first == GameResultReason::CHECKMATE || gameoverPair.first == GameResultReason::STALEMATE);
+            const auto gameoverResult = isGameOverSimple(board);
+            const auto gameover       = gameoverResult.second != GameResult::NONE;
 
             if (!gameover) {
                 movegen::legalmoves(moves, board);
             }
 
-            if (gameover || std::find(moves.begin(), moves.end(), uci::uciToMove(board, *it_start)) == moves.end()) {
-                auto out      = fmt::format("Warning; Illegal pv move {} from {}", *it_start, name);
+            const auto illegal_move =
+                std::find(moves.begin(), moves.end(), uci::uciToMove(board, *it_start)) == moves.end();
+
+            if (gameover || illegal_move) {
+                std::string warning;
+                if (gameoverResult.first == GameResultReason::THREEFOLD_REPETITION) {
+                    warning = "Warning: PV continues after threefold repetition - move {} from {}";
+                } else if (gameoverResult.first == GameResultReason::FIFTY_MOVE_RULE) {
+                    warning = "Warning: PV continues after fifty-move rule - move {} from {}";
+                } else if (gameoverResult.first == GameResultReason::CHECKMATE) {
+                    warning = "Warning: PV continues after checkmate - move {} from {}";
+                } else if (gameoverResult.first == GameResultReason::STALEMATE) {
+                    warning = "Warning: PV continues after stalemate - move {} from {}";
+                } else if (illegal_move) {
+                    warning = "Warning: PV continues after illegal move - move {} from {}";
+                }
+
+                assert(!warning.empty());
+
+                auto out      = fmt::format(fmt::runtime(warning), *it_start, name);
                 auto uci_info = fmt::format("Info; {}", info);
                 auto position = fmt::format("Position; {}", startpos == "startpos" ? "startpos" : ("fen " + startpos));
                 auto moves    = fmt::format("Moves; {}", str_utils::join(uci_moves, " "));

@@ -248,9 +248,15 @@ TEST_SUITE("Option Parsing Tests") {
                                     "-games",
                                     "2",
                                     "-pgnout",
-                                    "file=PGNs/Alexandria-EA649FED_vs_Alexandria-27E42728"};
+                                    "file=PGNs/Alexandria-EA649FED_vs_Alexandria-27E42728",
+                                    "-use-affinity",
+                                    "0-1"};
 
         cli::OptionsParser options = cli::OptionsParser(args);
+
+        CHECK(options.getTournamentConfig().affinity_cpus.size() == 2);
+        CHECK(options.getTournamentConfig().affinity_cpus[0] == 0);
+        CHECK(options.getTournamentConfig().affinity_cpus[1] == 1);
 
         auto configs = options.getEngineConfigs();
 

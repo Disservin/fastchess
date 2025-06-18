@@ -34,7 +34,7 @@ BaseTournament::BaseTournament(const stats_map &results) {
     match_count_        = total;
 
     output_ = OutputFactory::create(config.output, config.report_penta);
-    cores_  = std::make_unique<affinity::AffinityManager>(config.affinity, getMaxAffinity(*config::EngineConfigs));
+    cores_  = std::make_unique<affinity::AffinityManager>(config.affinity, config.affinity_cpus, getMaxAffinity(*config::EngineConfigs));
     book_   = std::make_unique<book::OpeningBook>(config, initial_matchcount_);
 
     if (!config.pgn.file.empty())

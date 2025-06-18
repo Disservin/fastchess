@@ -68,6 +68,8 @@ struct Tournament {
     bool show_latency = false;
     bool test_env     = false;
 
+    std::vector<int> affinity_cpus;
+
     Log log = {};
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Tournament, resign, draw, maxmoves, tb_adjudication, opening, pgn, epd, sprt,

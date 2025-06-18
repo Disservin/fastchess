@@ -178,8 +178,10 @@ The following options are available:
         - err
         - fatal
 
-- -use-affinity  
+- -use-affinity [CPUS]  
     Enable thread affinity for binding engines to CPU cores.
+
+    - CPUS - The cpus to use as a list of the form "3,5,7-11,13".
 
 - -report penta=(true|false)  
     Reports pentanomial statistics (for fastchess output). Defaults to true.

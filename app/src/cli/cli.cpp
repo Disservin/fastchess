@@ -54,6 +54,36 @@ void parseValue(const std::vector<std::string> &params, T &value) {
         value = str;
 }
 
+// Parse a list of integers on the form 5,10,13-17,23 -> 5,10,13,14,15,16,17,23
+bool parseIntList(std::istringstream &iss, std::vector<int> &list) {
+    int int1, int2;
+    char c;
+
+    if (!(iss >> int1))
+        return true;
+    list.emplace_back(int1);
+    if (iss >> c) {
+        switch (c) {
+            case '-':
+                if (!(iss >> int2) || int2 <= int1)
+                    return true;
+                for (int i = int1 + 1; i <= int2; i++)
+                    list.emplace_back(i);
+                if (!(iss >> c))
+                    return false;
+                else if (c == ',')
+                    return parseIntList(iss, list);
+                return true;
+                break;
+            case ',':
+                return parseIntList(iss, list);
+        default:
+                return true;
+        }
+    }
+    return false;
+}
+
 std::string concat(const std::vector<std::string> &params) {
     std::string str;
 
@@ -641,8 +671,13 @@ void parseQuick(const std::vector<std::string> &params, ArgumentData &argument_d
     argument_data.tournament_config.output = OutputType::CUTECHESS;
 }
 
-void parseAffinity(const std::vector<std::string> &, ArgumentData &argument_data) {
+void parseAffinity(const std::vector<std::string> &params, ArgumentData &argument_data) {
     argument_data.tournament_config.affinity = true;
+    if (params.size() > 0) {
+        auto iss = std::istringstream(params[0]);
+        if (parseIntList(iss, argument_data.tournament_config.affinity_cpus))
+            throw std::runtime_error("Bad cpu list.");
+    }
 }
 
 void parseLatency(const std::vector<std::string> &, ArgumentData &argument_data) {

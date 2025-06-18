@@ -44,7 +44,7 @@ class AffinityManager {
     // physical core. When all cores in HT_1 are used, HT_2 is used.
 
     // Construct a new Affinity Manager object
-    AffinityManager(bool use_affinity, int tpe) {
+    AffinityManager(bool use_affinity, const std::vector<int>& cpus, int tpe) {
         use_affinity_ = use_affinity;
 
         if (tpe > 1) {
@@ -52,7 +52,10 @@ class AffinityManager {
         }
 
         if (use_affinity_) {
-            setupCores(cpu_info::getCpuInfo());
+            if (cpus.size() == 0)
+                setupCores(cpu_info::getCpuInfo());
+            else
+                setupSelectedCores(cpus);
             LOG_TRACE("Using affinity");
         }
     }
@@ -108,6 +111,14 @@ class AffinityManager {
                 }
             }
         }
+    }
+
+    void setupSelectedCores(const std::vector<int> cpus) {
+        LOG_TRACE("Setting up selected cores");
+        std::lock_guard<std::mutex> lock(core_mutex_);
+
+        for (int cpu : cpus)
+            cores_[HT_1].emplace_back(std::vector{cpu});
     }
 
     std::array<std::deque<AffinityProcessor>, 2> cores_;

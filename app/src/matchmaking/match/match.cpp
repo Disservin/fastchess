@@ -187,6 +187,14 @@ void Match::start(engine::UciEngine& white, engine::UciEngine& black, const std:
     // check connection
     validConnection(white_player, black_player);
 
+    if (!cpus.empty()) {
+#if defined(__linux__)
+        affinity::setAffinity(cpus, getpid());
+#elif defined(_WIN32)
+        affinity::setAffinity(cpus, GetCurrentProcessId());
+#endif
+    }
+
     white_player.engine.setCpus(cpus);
     black_player.engine.setCpus(cpus);
 
@@ -514,7 +522,8 @@ void Match::verifyPvLines(const Player& us) {
             const auto gameoverResult = isGameOverSimple(board);
             const auto gameover       = gameoverResult.second != GameResult::NONE;
 
-            if (gameoverResult.first != GameResultReason::CHECKMATE && gameoverResult.first != GameResultReason::STALEMATE) {
+            if (gameoverResult.first != GameResultReason::CHECKMATE &&
+                gameoverResult.first != GameResultReason::STALEMATE) {
                 movegen::legalmoves(moves, board);
             }
 

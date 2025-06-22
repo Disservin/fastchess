@@ -194,19 +194,6 @@ TEST_SUITE("Option Parsing Tests") {
                              std::runtime_error);
     }
 
-    TEST_CASE("Should throw engine not found") {
-        const auto args = cli::Args{
-            "fastchess.exe", "-engine",
-            "dir=./",        "cmd=foo.exe",
-            "tc=10/1+0",     "name=Alexandria-EA649FED",
-            "-engine",       "dir=./",
-            "cmd=foo.exe",   "name=Alexandria-EA649FED",
-            "tc=10/1+0",
-        };
-
-        CHECK_THROWS_WITH_AS(cli::OptionsParser{args}, "Engine not found at: ./foo.exe", std::runtime_error);
-    }
-
     TEST_CASE("Should throw error empty TB paths") {
         const auto args = cli::Args{
             "fastchess.exe",

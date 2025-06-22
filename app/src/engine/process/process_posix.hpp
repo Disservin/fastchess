@@ -109,7 +109,7 @@ class Process : public IProcess {
 
             setup_wd_file_actions(file_actions, wd_);
 
-            if (posix_spawn(&process_pid_, command_.c_str(), &file_actions, nullptr, execv_argv, environ) != 0) {
+            if (posix_spawnp(&process_pid_, command_.c_str(), &file_actions, nullptr, execv_argv, environ) != 0) {
                 throw std::runtime_error("posix_spawn failed");
             }
 

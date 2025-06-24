@@ -57,7 +57,10 @@ inline int portable_execvpe(const char *file, char *const argv[], char *const en
 
     for (p = path;; p = z) {
         auto b = std::make_unique<char[]>(l + k + 1);
-        z      = strchrnul(p, ':');
+
+        z = strchr(p, ':');
+        if (!z) z = p + strlen(p);
+
         if (static_cast<size_t>(z - p) >= l) {
             if (!*z++) break;
             continue;

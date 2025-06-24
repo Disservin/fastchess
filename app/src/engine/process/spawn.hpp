@@ -13,7 +13,9 @@
 #include <stdexcept>
 #include <string>
 
+#ifndef __APPLE__
 extern char **environ;
+#endif
 
 namespace fastchess::engine::process {
 
@@ -67,7 +69,7 @@ inline int spawn_process(const std::string &command, char *const argv[], const s
 
 #ifdef __APPLE__
         char **&environ = *_NSGetEnviron();
-        environ         = envp_arr;
+        // environ         = envp_arr;
         execvp(command.c_str(), argv);
 #else
         execvpe(command.c_str(), argv, environ);

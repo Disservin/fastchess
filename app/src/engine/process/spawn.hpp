@@ -15,6 +15,8 @@
 
 #ifndef __APPLE__
 extern char **environ;
+#else
+#include <crt_externs.h>
 #endif
 
 namespace fastchess::engine::process {

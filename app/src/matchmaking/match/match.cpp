@@ -159,14 +159,15 @@ void Match::start(engine::UciEngine& white, engine::UciEngine& black, const std:
     Player black_player = Player(black);
 
     if (!white_player.engine.start()) {
-        LOG_FATAL_THREAD("Failed to start engines, stopping tournament.");
+        Logger::print<Logger::Level::FATAL>("Failed to start engine: {}, stopping tournament.", white_player.engine.getConfig().name);
+
         atomic::stop                 = true;
         atomic::abnormal_termination = true;
         return;
     }
 
     if (!black_player.engine.start()) {
-        LOG_FATAL_THREAD("Failed to start engines, stopping tournament.");
+        Logger::print<Logger::Level::FATAL>("Failed to start engine: {}, stopping tournament.", black_player.engine.getConfig().name);
         atomic::stop                 = true;
         atomic::abnormal_termination = true;
         return;

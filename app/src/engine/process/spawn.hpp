@@ -35,55 +35,6 @@ inline void change_working_dir(const std::string &wd) {
     }
 }
 
-// https://git.musl-libc.org/cgit/musl/tree/src/process/execvp.c
-// MIT License
-inline int portable_execvpe(const char *file, char *const argv[], char *const envp[]) {
-    const char *p, *z, *path = getenv("PATH");
-    size_t l, k;
-    int seen_eacces = 0;
-
-    errno = ENOENT;
-    if (!*file) return -1;
-
-    if (strchr(file, '/')) return execve(file, argv, envp);
-
-    if (!path) path = "/usr/local/bin:/bin:/usr/bin";
-    k = strnlen(file, NAME_MAX + 1);
-    if (k > NAME_MAX) {
-        errno = ENAMETOOLONG;
-        return -1;
-    }
-    l = strnlen(path, PATH_MAX - 1) + 1;
-
-    for (p = path;; p = z) {
-        auto b = std::make_unique<char[]>(l + k + 1);
-
-        z = strchr(p, ':');
-        if (!z) z = p + strlen(p);
-
-        if (static_cast<size_t>(z - p) >= l) {
-            if (!*z++) break;
-            continue;
-        }
-        memcpy(b.get(), p, z - p);
-        b[z - p] = '/';
-        memcpy(b.get() + (z - p) + (z > p), file, k + 1);
-        execve(b.get(), argv, envp);
-        switch (errno) {
-            case EACCES:
-                seen_eacces = 1;
-            case ENOENT:
-            case ENOTDIR:
-                break;
-            default:
-                return -1;
-        }
-        if (!*z++) break;
-    }
-    if (seen_eacces) errno = EACCES;
-    return -1;
-}
-
 // 0 on success, non-zero on failure
 inline int spawn_process(const std::string &command, char *const argv[], const std::string &working_dir, int stdin_fd,
                          int stdout_fd, int stderr_fd, pid_t &out_pid) {
@@ -114,13 +65,13 @@ inline int spawn_process(const std::string &command, char *const argv[], const s
 
         change_working_dir(working_dir);
 
-        portable_execvpe(command.c_str(), argv, environ);
-
-        // If that failed and command doesn't contain '/', try in current directory
-        if (command.find('/') == std::string::npos) {
-            std::string local_command = "./" + command;
-            execve(local_command.c_str(), argv, environ);
-        }
+#ifdef __APPLE__
+        char **&environ = *_NSGetEnviron();
+        environ         = envp_arr;
+        execvp(command.c_str(), argv);
+#else
+        execvpe(command.c_str(), argv, environ);
+#endif
 
         // If execvp failed
         const char err = '1';

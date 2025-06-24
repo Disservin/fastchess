@@ -17,6 +17,11 @@ namespace ch = std::chrono;
 using namespace fastchess;
 
 int main(int argc, char const* argv[]) {
+    // setlinebuf(stdout);
+    // setlinebuf(stderr);
+    // setvbuf(stdout, NULL, _IOLBF, 0);
+    // setvbuf(stderr, NULL, _IOLBF, 0);
+
     setCtrlCHandler();
 
     if (argc >= 3 && std::string(argv[1]) == "--compliance") {

@@ -79,7 +79,6 @@ class Process : public IProcess {
                 LOG_ERR_THREAD("Failed to start process: spawn_process returned {}", result);
                 return Status::ERR;
             }
-
         } catch (const std::exception &e) {
             startup_error_ = true;
             LOG_ERR_THREAD("Failed to start process: {}", e.what());

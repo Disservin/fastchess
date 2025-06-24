@@ -1,1 +1,1 @@
-./app/tests/mock/engine/random_mover
+./random_mover

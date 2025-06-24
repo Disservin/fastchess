@@ -1,13 +1,14 @@
 #pragma once
 
 #include <fcntl.h>
+#include <stdlib.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
+
 #include <stdexcept>
 #include <string>
 
-// Define this based on your code
 extern char **environ;
 
 namespace fastchess::engine::process {

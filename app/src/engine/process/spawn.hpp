@@ -99,7 +99,7 @@ inline int spawn_process(const std::string &command, char *const argv[], const s
 
     // failure
     // avoid zombie
-    waitpid(pid, nullptr, 0);
+    // waitpid(pid, nullptr, 0);
     return 127;
 }
 

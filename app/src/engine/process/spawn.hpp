@@ -74,7 +74,7 @@ inline int spawn_process(const std::string &command, char *const argv[], const s
         // environ         = envp_arr;
         execvp(command.c_str(), argv);
 #else
-        execvpe(command.c_str(), argv, environ);
+        execvp(command.c_str(), argv);
 #endif
 
         // If execvp failed

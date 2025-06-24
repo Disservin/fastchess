@@ -62,9 +62,15 @@ inline int spawn_process(const std::string &command, char *const argv[], const s
 
         execvpe(command.c_str(), argv, environ);
 
+        // If that failed and command doesn't contain '/', try in current directory
+        if (command.find('/') == std::string::npos) {
+            std::string local_command = "./" + command;
+            execve(local_command.c_str(), argv, environ);
+        }
+
         // If execvp failed
         const char err = '1';
-        write(status_pipe[1], &err, 1);
+        (void)!write(status_pipe[1], &err, 1);
         _exit(127);
     }
 

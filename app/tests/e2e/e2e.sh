@@ -84,7 +84,7 @@ fi
 # Invalid UciOptions Test
 
 OUTPUT_FILE_3=$(mktemp)
-./fastchess -engine cmd=./random_mover name=random_move_1 -engine cmd=./random_mover name=random_move_2 \
+./fastchess -engine cmd=random_mover name=random_move_1 -engine cmd=random_mover name=random_move_2 \
     -each tc=2+0.02s option.Hash=-16 option.Threads=2 -rounds 5 -repeat -concurrency 2 \
     -openings file=app/tests/data/openings.pgn format=pgn order=random -log file=log.txt level=info  2>&1 | tee $OUTPUT_FILE_3
 

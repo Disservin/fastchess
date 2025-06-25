@@ -5,20 +5,14 @@
 #include <limits.h>
 #include <signal.h>
 #include <stdlib.h>
-#include <string.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
-#include <unistd.h>
 
-#include <memory>
-#include <stdexcept>
 #include <string>
 
 #ifndef __APPLE__
 extern char **environ;
-#else
-#    include <crt_externs.h>
 #endif
 
 namespace fastchess::engine::process {
@@ -41,10 +35,9 @@ inline void change_working_dir(const std::string &wd) {
 
 // Returns 0 on success, errno value on failure
 inline int spawn_process(const std::string &command, char *const argv[], const std::string &working_dir, int stdin_fd,
-                         int stdout_fd, int stderr_fd, pid_t &out_pid) {
+                         int stdout_fd, int stderr_fd, pid_t &out_pid, bool use_execve = false) {
     int status_pipe[2];
     int ec = 0;
-
 
     if (pipe(status_pipe) != 0) {
         return errno;
@@ -115,11 +108,17 @@ inline int spawn_process(const std::string &command, char *const argv[], const s
 
         sigprocmask(SIG_SETMASK, &oldmask, nullptr);
 
+        if (use_execve) {
+            execve(command.c_str(), argv, environ);
+        } else {
 #ifdef __APPLE__
-        execvp(command.c_str(), argv);
+            // macos environment does not support execvp
+            execvp(command.c_str(), argv);
 #else
-        execvp(command.c_str(), argv);
+            execvpe(command.c_str(), argv, environ);
 #endif
+        }
+
         ret = -errno;
 
     fail:

@@ -75,8 +75,16 @@ class Process : public IProcess {
                                        err_pipe_.write_end(), process_pid_);
 
             if (result != 0) {
+                out_pipe_ = {}; 
+                in_pipe_  = {};
+                err_pipe_ = {};
+                result = spawn_process("./" + command_, execv_argv, wd_, out_pipe_.read_end(), in_pipe_.write_end(),
+                                       err_pipe_.write_end(), process_pid_, true);
+            }
+
+            if (result != 0) {
                 startup_error_ = true;
-                LOG_ERR_THREAD("Failed to start process: spawn_process returned {}", result);
+                LOG_ERR_THREAD("Failed to start process: {}", strerror(result));
                 return Status::ERR;
             }
         } catch (const std::exception &e) {

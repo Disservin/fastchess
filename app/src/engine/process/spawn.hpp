@@ -9,6 +9,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
+#include <unistd.h>
 
 #include <memory>
 #include <stdexcept>
@@ -44,18 +45,13 @@ inline int spawn_process(const std::string &command, char *const argv[], const s
     int status_pipe[2];
     int ec = 0;
 
-#ifdef O_CLOEXEC
-    if (pipe2(status_pipe, O_CLOEXEC) != 0) {
-        return errno;
-    }
-#else
+
     if (pipe(status_pipe) != 0) {
         return errno;
     }
 
     fcntl(status_pipe[0], F_SETFD, FD_CLOEXEC);
     fcntl(status_pipe[1], F_SETFD, FD_CLOEXEC);
-#endif
 
     sigset_t oldmask, blockset;
     sigfillset(&blockset);

@@ -75,11 +75,11 @@ class Process : public IProcess {
                                        err_pipe_.write_end(), process_pid_);
 
             if (result != 0) {
-                out_pipe_ = {}; 
+                out_pipe_ = {};
                 in_pipe_  = {};
                 err_pipe_ = {};
-                result = spawn_process("./" + command_, execv_argv, wd_, out_pipe_.read_end(), in_pipe_.write_end(),
-                                       err_pipe_.write_end(), process_pid_, true);
+                result    = spawn_process("./" + command_, execv_argv, wd_, out_pipe_.read_end(),
+                                          in_pipe_.write_end(), err_pipe_.write_end(), process_pid_, true);
             }
 
             if (result != 0) {
@@ -407,6 +407,17 @@ class Process : public IProcess {
 
         Pipe() {
             if (pipe(fds_.data()) != 0) throw std::runtime_error("pipe() failed");
+        }
+
+        Pipe(const Pipe &) {
+            if (pipe(fds_.data()) != 0) throw std::runtime_error("pipe() failed");
+        }
+
+        Pipe &operator=(const Pipe &) {
+            close(fds_[0]);
+            close(fds_[1]);
+            if (pipe(fds_.data()) != 0) throw std::runtime_error("pipe() failed");
+            return *this;
         }
 
         ~Pipe() {

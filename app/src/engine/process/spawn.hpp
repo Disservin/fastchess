@@ -50,6 +50,7 @@ inline int spawn_process(const std::string &command, char *const argv[], const s
     sigfillset(&blockset);
     sigprocmask(SIG_BLOCK, &blockset, &oldmask);
 
+
     pid_t pid = fork();
     if (pid < 0) {
         ec = errno;
@@ -58,6 +59,7 @@ inline int spawn_process(const std::string &command, char *const argv[], const s
         sigprocmask(SIG_SETMASK, &oldmask, nullptr);
         return ec;
     }
+
 
     if (pid == 0) {
         // --- Child ---
@@ -132,6 +134,7 @@ inline int spawn_process(const std::string &command, char *const argv[], const s
 
     // --- Parent ---
     close(status_pipe[1]);
+
 
     int child_errno = 0;
     ssize_t n       = read(status_pipe[0], &child_errno, sizeof(child_errno));

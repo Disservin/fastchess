@@ -13,6 +13,8 @@
 
 #ifndef __APPLE__
 extern char **environ;
+#else
+#include <crt_externs.h>  // for _NSGetEnviron
 #endif
 
 namespace fastchess::engine::process {
@@ -111,6 +113,9 @@ inline int spawn_process(const std::string &command, char *const argv[], const s
         sigprocmask(SIG_SETMASK, &oldmask, nullptr);
 
         if (use_execve) {
+            #ifdef __APPLE__
+            char**& environ = *_NSGetEnviron(); 
+            #endif
             execve(command.c_str(), argv, environ);
         } else {
 #ifdef __APPLE__

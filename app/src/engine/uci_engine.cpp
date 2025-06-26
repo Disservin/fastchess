@@ -295,7 +295,7 @@ void UciEngine::sendSetoption(const std::string &name, const std::string &value)
     option.value()->setValue(value);
 }
 
-bool UciEngine::start() {
+tl::expected<bool, std::string> UciEngine::start() {
     if (initialized_) return true;
 
     AcquireSemaphore semaphore_acquire(semaphore);
@@ -305,22 +305,16 @@ bool UciEngine::start() {
 
     // Creates the engine process and sets the pipes
     if (process_.init(config_.dir, path, config_.args, config_.name) != process::Status::OK) {
-        Logger::print<Logger::Level::ERR>("Warning; Cannot start engine {};", config_.name);
-        Logger::print<Logger::Level::ERR>("Cannot execute command: {}", path);
-
-        return false;
+        return tl::make_unexpected("Couldn't start engine process");
     }
 
     // Wait for the engine to start
     if (!uci()) {
-        LOG_WARN_THREAD("Couldnt write uci to engine {}", config_.name);
-
-        return false;
+        return tl::make_unexpected("Couldn't write uci to engine");
     }
 
     if (!uciok(startup_time_)) {
-        LOG_WARN_THREAD("Engine {} didn't respond to uci with uciok after startup.", config_.name);
-        return false;
+        return tl::make_unexpected("Engine didn't respond to uciok after startup");
     }
 
     initialized_ = true;

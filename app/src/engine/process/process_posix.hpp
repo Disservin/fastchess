@@ -467,6 +467,17 @@ class Process : public IProcess {
             if (pipe(fds_.data()) != 0) throw std::runtime_error("pipe() failed");
         }
 
+        Pipe(const Pipe &) {
+            if (pipe(fds_.data()) != 0) throw std::runtime_error("pipe() failed");
+        }
+
+        Pipe &operator=(const Pipe &) {
+            close(fds_[0]);
+            close(fds_[1]);
+            if (pipe(fds_.data()) != 0) throw std::runtime_error("pipe() failed");
+            return *this;
+        }
+
         ~Pipe() {
             close(fds_[0]);
             close(fds_[1]);

@@ -80,9 +80,11 @@ class UciEngine {
     void setCpus(const std::vector<int> &cpus) {
         if (cpus.empty()) return;
 
-        // Apple does not support setting the affinity of a pid
+// Apple does not support setting the affinity of a pid
+#ifdef __APPLE__
+        return;
+#endif
 
-#ifndef __APPLE__
         auto ret = process_.setAffinity(cpus);
 
         if (!ret) {
@@ -96,7 +98,6 @@ class UciEngine {
             Logger::print<Logger::Level::WARN>(
                 "Warning; Failed to set CPU affinity for the engine process to {}. Please restart.", cpu_str);
         }
-#endif
     }
 
     // Get the bestmove from the last output.

@@ -130,6 +130,12 @@ fi
 
 
 # Non UCI responding engine
+# Only continue if linux or mac
+
+if [[ "$OSTYPE" != "linux-gnu" && "$OSTYPE" != "darwin"* ]]; then
+    echo "Skipping non-uci responding engine test on non-linux/macOS systems."
+    exit 0
+fi
 
 OUTPUT_FILE_4=$(mktemp)
 ./fastchess -engine cmd=app/tests/mock/engine/missing_engine.sh name=random_move_1 -engine cmd=./random_mover name=random_move_2 \

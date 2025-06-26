@@ -71,7 +71,7 @@ PgnBuilder::PgnBuilder(const config::Pgn &pgn_config, const MatchData &match, st
     board.set960(is_frc_variant);
     board.setFen(match_.fen);
 
-    std::size_t move_number = int(board.sideToMove() == chess::Color::BLACK) + 1;
+    std::size_t move_number = int(board.sideToMove() == chess::Color::BLACK) + 2 * board.fullMoveNumber() - 1;
     std::size_t line_length = 0;
     bool first_move         = true;
 

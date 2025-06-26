@@ -140,13 +140,13 @@ OUTPUT_FILE_4=$(mktemp)
 # Cannot execute command: ../python-chess-engine/pythonchess.sh
 
 # check if the output contains the expected error message
-if ! grep -q "Cannot execute command: app/tests/mock/engine/missing_shebang.sh" $OUTPUT_FILE_4; then
+if ! grep -q "Fatal; random_move_1 engine startup failure: Couldn't start engine process" $OUTPUT_FILE_4; then
     echo "Failed to report invalid command."
     exit 1
 fi
 
 # check if the output contains the expected error message
-if ! grep -q "Warning; Cannot start engine random_move_1;" $OUTPUT_FILE_4; then
+if ! grep -q "Fatal; random_move_2 engine startup failure: Engine didn't respond to uciok after startup" $OUTPUT_FILE_4; then
     echo "Failed to report warning about invalid command."
     exit 1
 fi

@@ -265,15 +265,14 @@ class Process : public IProcess {
         return result.str();
     }
 
-    void setAffinity(const std::vector<int> &cpus) noexcept override {
+    bool setAffinity(const std::vector<int> &cpus) noexcept override {
         assert(is_initalized_);
-
-        if (!cpus.empty()) {
-            // Apple does not support setting the affinity of a pid
-#    ifndef __APPLE__
-            affinity::setAffinity(cpus, process_pid_);
+        // Apple does not support setting the affinity of a pid
+#    ifdef __APPLE__
+        assert(false && "This function should not be called on Apple devices");
 #    endif
-        }
+
+        return affinity::setAffinity(cpus, process_pid_);
     }
 
     void terminate() {

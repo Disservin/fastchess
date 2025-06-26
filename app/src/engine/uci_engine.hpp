@@ -77,7 +77,27 @@ class UciEngine {
     // This function writes the logs to the logger.
     void writeLog() const;
 
-    void setCpus(const std::vector<int> &cpus) { process_.setAffinity(cpus); }
+    void setCpus(const std::vector<int> &cpus) {
+        if (cpus.empty()) return;
+
+        // Apple does not support setting the affinity of a pid
+
+#ifndef __APPLE__
+        auto ret = process_.setAffinity(cpus);
+
+        if (!ret) {
+            // turn cpus vector into a string for logging
+            std::string cpu_str;
+            for (const auto &cpu : cpus) {
+                if (!cpu_str.empty()) cpu_str += ", ";
+                cpu_str += std::to_string(cpu);
+            }
+
+            Logger::print<Logger::Level::WARN>(
+                "Warning; Failed to set CPU affinity for the engine process to {}. Please restart.", cpu_str);
+        }
+#endif
+    }
 
     // Get the bestmove from the last output.
     [[nodiscard]] std::optional<std::string> bestmove() const;

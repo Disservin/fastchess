@@ -90,7 +90,7 @@ inline bool setAffinity(const std::vector<int>& cpus, pid_t process_pid) noexcep
         CPU_SET(cpu, &mask);
     }
 
-    return sched_setaffinity(process_pid, sizeof(cpu_set_t), &mask);
+    return sched_setaffinity(process_pid, sizeof(cpu_set_t), &mask) == 0;
 }
 
 #endif

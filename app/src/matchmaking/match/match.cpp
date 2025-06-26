@@ -159,16 +159,25 @@ void Match::start(engine::UciEngine& white, engine::UciEngine& black, const std:
     Player black_player = Player(black);
 
     if (auto ret = white_player.engine.start(); !ret) {
-        Logger::print<Logger::Level::FATAL>("Fatal; {} engine startup failure: {}", white_player.engine.getConfig().name, ret.error());
+        if (atomic::stop.load()) return;
+
         atomic::stop                 = true;
         atomic::abnormal_termination = true;
+
+        Logger::print<Logger::Level::FATAL>("Fatal; {} engine startup failure: {}",
+                                            white_player.engine.getConfig().name, ret.error());
+
         return;
     }
 
     if (auto ret = black_player.engine.start(); !ret) {
-        Logger::print<Logger::Level::FATAL>("Fatal; {} engine startup failure: {}", black_player.engine.getConfig().name, ret.error());
+        if (atomic::stop.load()) return;
         atomic::stop                 = true;
         atomic::abnormal_termination = true;
+
+        Logger::print<Logger::Level::FATAL>("Fatal; {} engine startup failure: {}",
+                                            black_player.engine.getConfig().name, ret.error());
+
         return;
     }
 
@@ -514,7 +523,8 @@ void Match::verifyPvLines(const Player& us) {
             const auto gameoverResult = isGameOverSimple(board);
             const auto gameover       = gameoverResult.second != GameResult::NONE;
 
-            if (gameoverResult.first != GameResultReason::CHECKMATE && gameoverResult.first != GameResultReason::STALEMATE) {
+            if (gameoverResult.first != GameResultReason::CHECKMATE &&
+                gameoverResult.first != GameResultReason::STALEMATE) {
                 movegen::legalmoves(moves, board);
             }
 

@@ -106,7 +106,6 @@ void BaseTournament::saveJson() {
 void BaseTournament::playGame(const GamePair<EngineConfiguration, EngineConfiguration> &engine_configs,
                               const start_fn &start, const finish_fn &finish, const book::Opening &opening,
                               std::size_t round_id, std::size_t game_id) {
-    if (atomic::stop) return;
 
     const auto &config = *config::TournamentConfig;
     const auto rl      = config.log.realtime;
@@ -123,6 +122,8 @@ void BaseTournament::playGame(const GamePair<EngineConfiguration, EngineConfigur
 
     util::ScopeGuard lock1(w_engine_ref.getConfig().restart ? nullptr : &(*white_engine));
     util::ScopeGuard lock2(b_engine_ref.getConfig().restart ? nullptr : &(*black_engine));
+
+    if (atomic::stop.load()) return;
 
     LOG_TRACE_THREAD("Game {} between {} and {} starting", game_id, white_name, black_name);
 

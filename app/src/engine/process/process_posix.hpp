@@ -94,32 +94,17 @@ class Process : public IProcess {
 
         char *const *execv_argv = (char *const *)parser.argv();
 
-        posix_spawn_file_actions_t file_actions;
-        posix_spawn_file_actions_init(&file_actions);
+        auto success = start_proces(execv_argv);
 
-        try {
-            setup_spawn_file_actions(file_actions, out_pipe_.read_end(), STDIN_FILENO);
-            setup_close_file_actions(file_actions, out_pipe_.read_end());
+        if (success == Status::ERR) {
+            out_pipe_ = {};
+            in_pipe_  = {};
+            err_pipe_ = {};
+            success   = start_proces(execv_argv, false);
+        }
 
-            // keep open for self to pipe trick
-            setup_spawn_file_actions(file_actions, in_pipe_.write_end(), STDOUT_FILENO);
-
-            setup_spawn_file_actions(file_actions, err_pipe_.write_end(), STDERR_FILENO);
-            setup_close_file_actions(file_actions, err_pipe_.write_end());
-
-            setup_wd_file_actions(file_actions, wd_);
-
-            if (posix_spawnp(&process_pid_, command_.c_str(), &file_actions, nullptr, execv_argv, environ) != 0) {
-                throw std::runtime_error("posix_spawn failed");
-            }
-
-            posix_spawn_file_actions_destroy(&file_actions);
-        } catch (const std::exception &e) {
+        if (success == Status::ERR) {
             startup_error_ = true;
-
-            LOG_ERR_THREAD("Failed to start process: {}", e.what());
-
-            posix_spawn_file_actions_destroy(&file_actions);
             return Status::ERR;
         }
 
@@ -401,6 +386,39 @@ class Process : public IProcess {
     }
 
    private:
+    Status start_proces(char *const *execv_argv, bool use_spawnp = true) {
+        posix_spawn_file_actions_t file_actions;
+        posix_spawn_file_actions_init(&file_actions);
+
+        try {
+            setup_spawn_file_actions(file_actions, out_pipe_.read_end(), STDIN_FILENO);
+            setup_close_file_actions(file_actions, out_pipe_.read_end());
+
+            // keep open for self to pipe trick
+            setup_spawn_file_actions(file_actions, in_pipe_.write_end(), STDOUT_FILENO);
+
+            setup_spawn_file_actions(file_actions, err_pipe_.write_end(), STDERR_FILENO);
+            setup_close_file_actions(file_actions, err_pipe_.write_end());
+
+            setup_wd_file_actions(file_actions, wd_);
+
+            auto func = use_spawnp ? posix_spawnp : posix_spawn;
+
+            if (func(&process_pid_, command_.c_str(), &file_actions, nullptr, execv_argv, environ) != 0) {
+                throw std::runtime_error("posix_spawn failed");
+            }
+
+            posix_spawn_file_actions_destroy(&file_actions);
+        } catch (const std::exception &e) {
+            LOG_ERR_THREAD("Failed to start process: {}", e.what());
+
+            posix_spawn_file_actions_destroy(&file_actions);
+            return Status::ERR;
+        }
+
+        return Status::OK;
+    }
+
     void setup_spawn_file_actions(posix_spawn_file_actions_t &file_actions, int fd, int target_fd) {
         if (posix_spawn_file_actions_adddup2(&file_actions, fd, target_fd) != 0) {
             throw std::runtime_error("posix_spawn_file_actions_add* failed");

@@ -5,6 +5,7 @@
 #include <vector>
 
 #include <chess.hpp>
+#include <expected.hpp>
 
 #ifdef _WIN64
 #    include <engine/process/process_win.hpp>
@@ -33,7 +34,7 @@ class UciEngine {
 
     // Starts the engine, does nothing after the first call.
     // Returns false if the engine is not alive.
-    [[nodiscard]] bool start();
+    [[nodiscard]] tl::expected<bool, std::string> start();
 
     // Restarts the engine, if necessary and reapplies the options.
     bool refreshUci();

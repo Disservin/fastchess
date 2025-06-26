@@ -61,7 +61,7 @@ inline bool compliant(int argc, char const *argv[]) {
     UciEngine uci_engine(config, false);
 
     std::vector<std::pair<std::string, std::function<bool()>>> steps = {
-        {"Start the engine", [&uci_engine] { return uci_engine.start(); }},
+        {"Start the engine", [&uci_engine] { return uci_engine.start().has_value(); }},
         {"Check if engine is ready", [&uci_engine] { return uci_engine.isready() == process::Status::OK; }},
         {"Check id name", [&uci_engine] { return uci_engine.idName().has_value(); }},
         {"Check id author", [&uci_engine] { return uci_engine.idAuthor().has_value(); }},

@@ -67,7 +67,7 @@ inline bool setAffinity(const std::vector<int>& cpus, HANDLE process_handle) noe
 
 #elif defined(__APPLE__)
 
-inline void setAffinity(const std::vector<int>&) noexcept {
+inline bool setAffinity(const std::vector<int>& , pid_t ) noexcept {
     // mach_port_t tid = pthread_mach_thread_np(pthread_self());
     // struct thread_affinity_policy policy;
     // policy.affinity_tag = affinity_mask;
@@ -76,6 +76,7 @@ inline void setAffinity(const std::vector<int>&) noexcept {
     //                          THREAD_AFFINITY_POLICY_COUNT);
 
     // do nothing for now, is affinity_tag supposed to be a mask or the core number?
+    return false;
 }
 
 #else

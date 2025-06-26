@@ -114,9 +114,9 @@ class Process : public IProcess {
         return GetExitCodeProcess(pi_.hProcess, &exitCode) && exitCode == STILL_ACTIVE ? Status::OK : Status::ERR;
     }
 
-    void setAffinity(const std::vector<int> &cpus) noexcept override {
+    bool setAffinity(const std::vector<int> &cpus) noexcept override {
         assert(is_initialized_);
-        if (!cpus.empty()) affinity::setAffinity(cpus, pi_.hProcess);
+        return affinity::setAffinity(cpus, pi_.hProcess);
     }
 
     void terminate() {

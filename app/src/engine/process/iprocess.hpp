@@ -39,7 +39,7 @@ class IProcess {
     // Returns true if the process is alive
     [[nodiscard]] virtual Status alive() noexcept = 0;
 
-    virtual void setAffinity(const std::vector<int> &cpus) noexcept = 0;
+    virtual bool setAffinity(const std::vector<int> &cpus) noexcept = 0;
 
     // Read stdout until the line matches last_word or timeout is reached
     // 0 threshold means no timeout

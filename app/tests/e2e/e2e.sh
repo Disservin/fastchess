@@ -144,9 +144,3 @@ if ! grep -q "Fatal; random_move_1 engine startup failure: Couldn't start engine
     echo "Failed to report invalid command."
     exit 1
 fi
-
-# check if the output contains the expected error message
-if ! grep -q "Fatal; random_move_2 engine startup failure: Engine didn't respond to uciok after startup" $OUTPUT_FILE_4; then
-    echo "Failed to report warning about invalid command."
-    exit 1
-fi

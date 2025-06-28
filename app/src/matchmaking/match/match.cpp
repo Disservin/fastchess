@@ -196,6 +196,14 @@ void Match::start(engine::UciEngine& white, engine::UciEngine& black, const std:
     // check connection
     validConnection(white_player, black_player);
 
+    if (!cpus.empty()) {
+#if defined(__linux__)
+        affinity::setAffinity(cpus, getpid());
+#elif defined(_WIN32)
+        affinity::setAffinity(cpus, GetCurrentProcessId());
+#endif
+    }
+
     white_player.engine.setCpus(cpus);
     black_player.engine.setCpus(cpus);
 

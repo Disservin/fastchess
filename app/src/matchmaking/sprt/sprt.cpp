@@ -257,7 +257,7 @@ double SPRT::getLLR_normalized(double total, std::array<double, N> scores, std::
         std::array<double, N> p;
         std::fill(p.begin(), p.end(), 1.0 / N);
 
-        while (true) {
+        for (int iterations = 0; iterations < 10; iterations++) {
             // Calculate phi.
             auto [mu, var] = mean_and_variance(scores, p);
             std::array<double, N> phi;

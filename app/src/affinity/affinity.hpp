@@ -106,7 +106,14 @@ inline pid_t getProcessHandle() noexcept { return getpid(); }
 #ifdef _WIN64
 inline HANDLE getThreadHandle() noexcept { return GetCurrentThread(); }
 #else
-inline pid_t getThreadHandle() noexcept { return gettid(); }
+inline pid_t getThreadHandle() noexcept { 
+    #ifdef __APPLE__
+    // dummy
+    return 0;
+    #else
+    return gettid();
+#endif
+}
 #endif
 }  // namespace affinity
 

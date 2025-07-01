@@ -126,11 +126,7 @@ void BaseTournament::playGame(const GamePair<EngineConfiguration, EngineConfigur
     if (cpus == std::nullopt) {
         cpus = cores_->consume().cpus;
 
-#if defined(__linux__)
         affinity::setAffinity(*cpus, affinity::getThreadHandle());
-#elif defined(_WIN32)
-        affinity::setAffinity(*cpus, affinity::getThreadHandle());
-#endif
     }
 
     const auto white_name = engine_configs.white.name;

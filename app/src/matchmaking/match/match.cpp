@@ -151,7 +151,7 @@ void Match::addMoveData(const Player& player, int64_t measured_time_ms, int64_t 
     uci_moves_.push_back(move);
 }
 
-void Match::start(engine::UciEngine& white, engine::UciEngine& black, const std::vector<int>& cpus) {
+void Match::start(engine::UciEngine& white, engine::UciEngine& black) {
     std::transform(data_.moves.begin(), data_.moves.end(), std::back_inserter(uci_moves_),
                    [](const MoveData& data) { return data.move; });
 
@@ -195,17 +195,6 @@ void Match::start(engine::UciEngine& white, engine::UciEngine& black, const std:
 
     // check connection
     validConnection(white_player, black_player);
-
-    if (!cpus.empty()) {
-#if defined(__linux__)
-        affinity::setAffinity(cpus, getpid());
-#elif defined(_WIN32)
-        affinity::setAffinity(cpus, GetCurrentProcessId());
-#endif
-    }
-
-    white_player.engine.setCpus(cpus);
-    black_player.engine.setCpus(cpus);
 
     auto& first  = board_.sideToMove() == Color::WHITE ? white_player : black_player;
     auto& second = board_.sideToMove() == Color::WHITE ? black_player : white_player;

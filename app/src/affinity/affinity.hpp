@@ -11,6 +11,7 @@
 #    include <pthread.h>
 #else
 #    include <sched.h>
+#    include <unistd.h>
 #endif
 
 namespace fastchess {
@@ -94,6 +95,18 @@ inline bool setAffinity(const std::vector<int>& cpus, pid_t process_pid) noexcep
     return sched_setaffinity(process_pid, sizeof(cpu_set_t), &mask) == 0;
 }
 
+#endif
+
+#ifdef _WIN64
+inline HANDLE getProcessHandle() noexcept { return GetCurrentProcess(); }
+#else
+inline pid_t getProcessHandle() noexcept { return getpid(); }
+#endif
+
+#ifdef _WIN64
+inline HANDLE getThreadHandle() noexcept { return GetCurrentThread(); }
+#else
+inline pid_t getThreadHandle() noexcept { return gettid(); }
 #endif
 }  // namespace affinity
 

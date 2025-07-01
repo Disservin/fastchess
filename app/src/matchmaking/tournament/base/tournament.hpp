@@ -39,6 +39,8 @@ class BaseTournament {
     using start_fn  = std::function<void()>;
     using finish_fn = std::function<void(const Stats &stats, const std::string &reason, const engines &)>;
 
+    EngineCache &getEngineCache() const;
+
     // Gets called after a game has finished
     virtual void startNext() = 0;
 
@@ -53,10 +55,9 @@ class BaseTournament {
                   const finish_fn &finish, const book::Opening &opening, std::size_t round_id, std::size_t game_id);
 
     // We keep engines alive after they were used to avoid the overhead of starting them again.
-    ScoreBoard scoreboard_    = {};
-    EngineCache engine_cache_ = {};
-    PlayerTracker tracker_    = {};
-    util::ThreadPool pool_    = util::ThreadPool{1};
+    ScoreBoard scoreboard_ = {};
+    PlayerTracker tracker_ = {};
+    util::ThreadPool pool_ = util::ThreadPool{1};
 
     std::unique_ptr<Scheduler> generator_;
     std::unique_ptr<IOutput> output_;

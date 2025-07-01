@@ -1,8 +1,8 @@
 #include <matchmaking/tournament/base/tournament.hpp>
 
 #include <atomic>
-#include <functional>
 #include <memory>
+#include <optional>
 #include <string>
 #include <utility>
 #include <vector>
@@ -34,7 +34,8 @@ BaseTournament::BaseTournament(const stats_map &results) {
     match_count_        = total;
 
     output_ = OutputFactory::create(config.output, config.report_penta);
-    cores_  = std::make_unique<affinity::AffinityManager>(config.affinity, config.affinity_cpus, getMaxAffinity(*config::EngineConfigs));
+    cores_  = std::make_unique<affinity::AffinityManager>(config.affinity, config.affinity_cpus,
+                                                          getMaxAffinity(*config::EngineConfigs));
     book_   = std::make_unique<book::OpeningBook>(config, initial_matchcount_);
 
     if (!config.pgn.file.empty())
@@ -78,6 +79,16 @@ void BaseTournament::start() {
     create();
 }
 
+BaseTournament::EngineCache &BaseTournament::getEngineCache() const {
+    if (config::TournamentConfig->affinity) {
+        thread_local static EngineCache thread_cache;
+        return thread_cache;
+    } else {
+        static EngineCache global_cache;
+        return global_cache;
+    }
+}
+
 void BaseTournament::create() {
     LOG_TRACE("Creating matches...");
 
@@ -109,10 +120,23 @@ void BaseTournament::playGame(const GamePair<EngineConfiguration, EngineConfigur
 
     const auto &config = *config::TournamentConfig;
     const auto rl      = config.log.realtime;
-    const auto core    = util::ScopeGuard(cores_->consume());
+
+    thread_local static std::optional<std::vector<int>> cpus;
+
+    if (cpus == std::nullopt) {
+        cpus = cores_->consume().cpus;
+
+#if defined(__linux__)
+        affinity::setAffinity(*cpus, affinity::getThreadHandle());
+#elif defined(_WIN32)
+        affinity::setAffinity(*cpus, affinity::getThreadHandle());
+#endif
+    }
 
     const auto white_name = engine_configs.white.name;
     const auto black_name = engine_configs.black.name;
+
+    auto &engine_cache_ = getEngineCache();
 
     auto white_engine = engine_cache_.getEntry(white_name, engine_configs.white, rl);
     auto black_engine = engine_cache_.getEntry(black_name, engine_configs.black, rl);
@@ -130,7 +154,7 @@ void BaseTournament::playGame(const GamePair<EngineConfiguration, EngineConfigur
     start();
 
     auto match = Match(opening);
-    match.start(w_engine_ref, b_engine_ref, core.get().cpus);
+    match.start(w_engine_ref, b_engine_ref);
 
     LOG_TRACE_THREAD("Game {} between {} and {} finished", game_id, white_name, black_name);
 

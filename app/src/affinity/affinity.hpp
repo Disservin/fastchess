@@ -68,7 +68,7 @@ inline bool setAffinity(const std::vector<int>& cpus, HANDLE process_handle) noe
 
 #elif defined(__APPLE__)
 
-inline bool setAffinity(const std::vector<int>& , pid_t ) noexcept {
+inline bool setAffinity(const std::vector<int>&, pid_t) noexcept {
     // mach_port_t tid = pthread_mach_thread_np(pthread_self());
     // struct thread_affinity_policy policy;
     // policy.affinity_tag = affinity_mask;
@@ -106,13 +106,13 @@ inline pid_t getProcessHandle() noexcept { return getpid(); }
 #ifdef _WIN64
 inline HANDLE getThreadHandle() noexcept { return GetCurrentThread(); }
 #else
-inline pid_t getThreadHandle() noexcept { 
-    #ifdef __APPLE__
+inline pid_t getThreadHandle() noexcept {
+#    ifdef __APPLE__
     // dummy
     return 0;
-    #else
+#    else
     return gettid();
-#endif
+#    endif
 }
 #endif
 }  // namespace affinity

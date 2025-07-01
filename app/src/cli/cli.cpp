@@ -724,7 +724,7 @@ OptionsParser::OptionsParser(const cli::Args &args) {
     addOption("output", parseOutput);
     addOption("concurrency", parseConcurrency);
     addOption("crc32", parseCrc);
-    addOption("-force-concurrency", parseForceConcurrency);
+    addOption("force-concurrency", parseForceConcurrency);
     addOption("event", parseEvent);
     addOption("site", parseSite);
     addOption("games", parseGames);

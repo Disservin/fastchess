@@ -41,7 +41,7 @@ The following options are available:
 - -crc32 pgn=true
     Calculate the CRC32 checksum for the PGN file.
 
-- --force-concurrency  
+- -force-concurrency
     Ignore the hardware concurrency limit and force the specified concurrency.
 
 - -rounds N  

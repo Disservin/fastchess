@@ -48,7 +48,7 @@ TEST_SUITE("Option Parsing Tests") {
         };
 
         CHECK_THROWS_WITH_AS(cli::OptionsParser{args},
-                             "Error: Concurrency exceeds number of CPUs. Use --force-concurrency to override.",
+                             "Error: Concurrency exceeds number of CPUs. Use -force-concurrency to override.",
                              std::runtime_error);
     }
 

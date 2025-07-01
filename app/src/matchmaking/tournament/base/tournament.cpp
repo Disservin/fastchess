@@ -133,11 +133,28 @@ void BaseTournament::playGame(const GamePair<EngineConfiguration, EngineConfigur
     const auto &config = *config::TournamentConfig;
     const auto rl      = config.log.realtime;
 
+    // ideally this should be also tied to the lifetime of the tournament
     thread_local static std::optional<std::vector<int>> cpus;
 
     if (cpus == std::nullopt) {
         cpus = cores_->consume().cpus;
+        /*
+        CPU Affinity Implementation Strategy:
 
+        Previously, CPU affinity was set on engine processes after they were already running.
+        This approach failed because:
+        1. Chess engines typically spawn worker threads during initialization
+        2. These worker threads were created before affinity was applied
+        3. Child threads don't inherit affinity from parent processes retroactively
+        4. This resulted in engines running on incorrect CPU cores
+
+        Current approach:
+        - Set CPU affinity on the managing thread BEFORE starting any engines
+        - This ensures all subsequently spawned engine processes inherit the correct affinity
+        - Engine caching strategy depends on affinity usage:
+        * With affinity: thread-local engine cache (engines stick to assigned cores)
+        * Without affinity: global engine cache (engines shared across all threads)
+        */
         affinity::setAffinity(*cpus, affinity::getThreadHandle());
     }
 

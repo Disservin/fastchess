@@ -35,7 +35,7 @@ void sanitize(config::Tournament& config) {
     }
 
     if (config.concurrency > static_cast<int>(std::thread::hardware_concurrency()) && !config.force_concurrency) {
-        throw std::runtime_error("Error: Concurrency exceeds number of CPUs. Use --force-concurrency to override.");
+        throw std::runtime_error("Error: Concurrency exceeds number of CPUs. Use -force-concurrency to override.");
     }
 
 #ifdef _WIN64

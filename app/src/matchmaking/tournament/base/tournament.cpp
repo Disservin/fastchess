@@ -1,8 +1,8 @@
 #include <matchmaking/tournament/base/tournament.hpp>
 
 #include <atomic>
-#include <functional>
 #include <memory>
+#include <optional>
 #include <string>
 #include <utility>
 #include <vector>
@@ -34,7 +34,8 @@ BaseTournament::BaseTournament(const stats_map &results) {
     match_count_        = total;
 
     output_ = OutputFactory::create(config.output, config.report_penta);
-    cores_  = std::make_unique<affinity::AffinityManager>(config.affinity, config.affinity_cpus, getMaxAffinity(*config::EngineConfigs));
+    cores_  = std::make_unique<affinity::AffinityManager>(config.affinity, config.affinity_cpus,
+                                                          getMaxAffinity(*config::EngineConfigs));
     book_   = std::make_unique<book::OpeningBook>(config, initial_matchcount_);
 
     if (!config.pgn.file.empty())
@@ -78,6 +79,29 @@ void BaseTournament::start() {
     create();
 }
 
+BaseTournament::EngineCache &BaseTournament::getEngineCache()  {
+    if (config::TournamentConfig->affinity) {
+        // Use per-thread cache
+        std::thread::id tid = std::this_thread::get_id();
+        std::lock_guard<std::mutex> lock(cache_management_mutex_);
+
+        auto it = thread_caches_.find(tid);
+
+        if (it == thread_caches_.end()) {
+            thread_caches_[tid] = std::make_unique<EngineCache>();
+            return *thread_caches_[tid];
+        }
+
+        return *it->second;
+
+    } else {
+        // Use single shared cache
+        std::lock_guard<std::mutex> lock(cache_management_mutex_);
+        if (!global_cache_) global_cache_ = std::make_unique<EngineCache>();
+        return *global_cache_;
+    }
+}
+
 void BaseTournament::create() {
     LOG_TRACE("Creating matches...");
 
@@ -106,13 +130,38 @@ void BaseTournament::saveJson() {
 void BaseTournament::playGame(const GamePair<EngineConfiguration, EngineConfiguration> &engine_configs,
                               const start_fn &start, const finish_fn &finish, const book::Opening &opening,
                               std::size_t round_id, std::size_t game_id) {
-
     const auto &config = *config::TournamentConfig;
     const auto rl      = config.log.realtime;
-    const auto core    = util::ScopeGuard(cores_->consume());
+
+    // ideally this should be also tied to the lifetime of the tournament
+    thread_local static std::optional<std::vector<int>> cpus;
+
+    if (cpus == std::nullopt) {
+        cpus = cores_->consume().cpus;
+        /*
+        CPU Affinity Implementation Strategy:
+
+        Previously, CPU affinity was set on engine processes after they were already running.
+        This approach failed because:
+        1. Chess engines typically spawn worker threads during initialization
+        2. These worker threads were created before affinity was applied
+        3. Child threads don't inherit affinity from parent processes retroactively
+        4. This resulted in engines running on incorrect CPU cores
+
+        Current approach:
+        - Set CPU affinity on the managing thread BEFORE starting any engines
+        - This ensures all subsequently spawned engine processes inherit the correct affinity
+        - Engine caching strategy depends on affinity usage:
+        * With affinity: thread-local engine cache (engines stick to assigned cores)
+        * Without affinity: global engine cache (engines shared across all threads)
+        */
+        affinity::setAffinity(*cpus, affinity::getThreadHandle());
+    }
 
     const auto white_name = engine_configs.white.name;
     const auto black_name = engine_configs.black.name;
+
+    auto &engine_cache_ = getEngineCache();
 
     auto white_engine = engine_cache_.getEntry(white_name, engine_configs.white, rl);
     auto black_engine = engine_cache_.getEntry(black_name, engine_configs.black, rl);
@@ -130,7 +179,7 @@ void BaseTournament::playGame(const GamePair<EngineConfiguration, EngineConfigur
     start();
 
     auto match = Match(opening);
-    match.start(w_engine_ref, b_engine_ref, core.get().cpus);
+    match.start(w_engine_ref, b_engine_ref);
 
     LOG_TRACE_THREAD("Game {} between {} and {} finished", game_id, white_name, black_name);
 

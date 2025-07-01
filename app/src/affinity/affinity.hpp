@@ -11,6 +11,7 @@
 #    include <pthread.h>
 #else
 #    include <sched.h>
+#    include <unistd.h>
 #endif
 
 namespace fastchess {
@@ -67,7 +68,7 @@ inline bool setAffinity(const std::vector<int>& cpus, HANDLE process_handle) noe
 
 #elif defined(__APPLE__)
 
-inline bool setAffinity(const std::vector<int>& , pid_t ) noexcept {
+inline bool setAffinity(const std::vector<int>&, pid_t) noexcept {
     // mach_port_t tid = pthread_mach_thread_np(pthread_self());
     // struct thread_affinity_policy policy;
     // policy.affinity_tag = affinity_mask;
@@ -94,6 +95,25 @@ inline bool setAffinity(const std::vector<int>& cpus, pid_t process_pid) noexcep
     return sched_setaffinity(process_pid, sizeof(cpu_set_t), &mask) == 0;
 }
 
+#endif
+
+#ifdef _WIN64
+inline HANDLE getProcessHandle() noexcept { return GetCurrentProcess(); }
+#else
+inline pid_t getProcessHandle() noexcept { return getpid(); }
+#endif
+
+#ifdef _WIN64
+inline HANDLE getThreadHandle() noexcept { return GetCurrentThread(); }
+#else
+inline pid_t getThreadHandle() noexcept {
+#    ifdef __APPLE__
+    // dummy
+    return 0;
+#    else
+    return gettid();
+#    endif
+}
 #endif
 }  // namespace affinity
 

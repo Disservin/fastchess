@@ -39,7 +39,7 @@ class BaseTournament {
     using start_fn  = std::function<void()>;
     using finish_fn = std::function<void(const Stats &stats, const std::string &reason, const engines &)>;
 
-    EngineCache &getEngineCache() const;
+    EngineCache &getEngineCache();
 
     // Gets called after a game has finished
     virtual void startNext() = 0;
@@ -69,6 +69,15 @@ class BaseTournament {
     std::atomic<std::uint64_t> match_count_      = 0;
     std::uint64_t initial_matchcount_            = 0;
     std::atomic<std::uint64_t> final_matchcount_ = 0;
+
+    // Caches for non-affinity mode (shared by all threads)
+    std::unique_ptr<EngineCache> global_cache_;
+
+    // Per-Thread cache for affinity mode
+    std::unordered_map<std::thread::id, std::unique_ptr<EngineCache>> thread_caches_;
+
+    // Only need mutex for managing the cache containers, not the EngineCache itself
+    std::mutex cache_management_mutex_;
 
    private:
     [[nodiscard]] std::size_t setResults(const stats_map &results);

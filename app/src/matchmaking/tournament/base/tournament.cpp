@@ -79,13 +79,26 @@ void BaseTournament::start() {
     create();
 }
 
-BaseTournament::EngineCache &BaseTournament::getEngineCache() const {
+BaseTournament::EngineCache &BaseTournament::getEngineCache()  {
     if (config::TournamentConfig->affinity) {
-        thread_local static EngineCache thread_cache;
-        return thread_cache;
+        // Use per-thread cache
+        std::thread::id tid = std::this_thread::get_id();
+        std::lock_guard<std::mutex> lock(cache_management_mutex_);
+
+        auto it = thread_caches_.find(tid);
+
+        if (it == thread_caches_.end()) {
+            thread_caches_[tid] = std::make_unique<EngineCache>();
+            return *thread_caches_[tid];
+        }
+
+        return *it->second;
+
     } else {
-        static EngineCache global_cache;
-        return global_cache;
+        // Use single shared cache
+        std::lock_guard<std::mutex> lock(cache_management_mutex_);
+        if (!global_cache_) global_cache_ = std::make_unique<EngineCache>();
+        return *global_cache_;
     }
 }
 
@@ -117,7 +130,6 @@ void BaseTournament::saveJson() {
 void BaseTournament::playGame(const GamePair<EngineConfiguration, EngineConfiguration> &engine_configs,
                               const start_fn &start, const finish_fn &finish, const book::Opening &opening,
                               std::size_t round_id, std::size_t game_id) {
-
     const auto &config = *config::TournamentConfig;
     const auto rl      = config.log.realtime;
 

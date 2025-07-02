@@ -587,6 +587,10 @@ void parseSRand(const std::vector<std::string> &params, ArgumentData &argument_d
     parseValue(params, argument_data.tournament_config.seed);
 }
 
+void parseSeeds(const std::vector<std::string> &params, ArgumentData &argument_data) {
+    parseValue(params, argument_data.tournament_config.gauntlet_seeds);
+}
+
 void parseVersion(const std::vector<std::string> &, ArgumentData &) {
     std::cout << OptionsParser::Version << std::endl;
     std::exit(0);
@@ -615,11 +619,13 @@ void parseVariant(const std::vector<std::string> &params, ArgumentData &argument
     if (val != "fischerandom" && val != "standard") throw std::runtime_error("Unknown variant.");
 }
 
-void parseTournament(const std::vector<std::string> &params, ArgumentData &) {
+void parseTournament(const std::vector<std::string> &params, ArgumentData &argument_data) {
     std::string val;
 
     parseValue(params, val);
-    if (val != "roundrobin") throw std::runtime_error("Unsupported tournament format. Only supports roundrobin.");
+
+    if (val == "gauntlet") argument_data.tournament_config.type = TournamentType::GAUNTLET;
+    if (val != "gauntlet" && val != "roundrobin") throw std::runtime_error("Unsupported tournament format. Only supports roundrobin and gauntlet.");
 }
 
 void parseQuick(const std::vector<std::string> &params, ArgumentData &argument_data) {
@@ -731,6 +737,7 @@ OptionsParser::OptionsParser(const cli::Args &args) {
     addOption("ratinginterval", parseRatinginterval);
     addOption("scoreinterval", parseScoreinterval);
     addOption("srand", parseSRand);
+    addOption("seeds", parseSeeds);
     addOption("version", parseVersion);
     addOption("-version", parseVersion);
     addOption("v", parseVersion);

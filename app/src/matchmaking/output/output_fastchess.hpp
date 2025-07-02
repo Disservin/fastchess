@@ -53,7 +53,7 @@ class Fastchess : public IOutput {
 
         int rank = 0;
 
-        size_t max_name_length = 25     ;
+        size_t max_name_length = 25;
         for (const auto& [ec, elo, stats] : elos) {
             max_name_length = std::max(max_name_length, ec->name.length());
         }

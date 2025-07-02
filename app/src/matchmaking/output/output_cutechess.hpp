@@ -53,20 +53,20 @@ class Cutechess : public IOutput {
         std::sort(elos.begin(), elos.end(),
                   [](const auto& a, const auto& b) { return std::get<1>(a).diff() > std::get<1>(b).diff(); });
 
-        int rank        = 0;
+        int rank = 0;
 
         std::size_t max_name_length = 25;
         for (const auto& [ec, elo, stats] : elos) {
             max_name_length = std::max(max_name_length, ec->name.length());
         }
 
-        std::string out = fmt::format("{:<4} {:<{}} {:>10} {:>10} {:>10} {:>10} {:>10} {:>10} {:>10}\n", "Rank", "Name", max_name_length,
-                                      "Elo", "+/-", "nElo", "+/-", "Games", "Score", "Draw");
+        std::string out = fmt::format("{:<4} {:<{}} {:>10} {:>10} {:>10} {:>10} {:>10} {:>10} {:>10}\n", "Rank", "Name",
+                                      max_name_length, "Elo", "+/-", "nElo", "+/-", "Games", "Score", "Draw");
 
         for (const auto& [ec, elo, stats] : elos) {
             out += fmt::format("{:>4} {:<{}} {:>10.2f} {:>10.2f} {:>10.2f} {:>10.2f} {:>10} {:>9.1f}% {:>9.1f}%\n",
-                               ++rank, ec->name, max_name_length, elo.diff(), elo.error(), elo.nEloDiff(), elo.nEloError(), stats.sum(),
-                               stats.pointsRatio(), stats.drawRatio());
+                               ++rank, ec->name, max_name_length, elo.diff(), elo.error(), elo.nEloDiff(),
+                               elo.nEloError(), stats.sum(), stats.pointsRatio(), stats.drawRatio());
         }
 
         return out;

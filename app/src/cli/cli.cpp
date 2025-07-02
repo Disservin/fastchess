@@ -59,16 +59,13 @@ bool parseIntList(std::istringstream &iss, std::vector<int> &list) {
     int int1, int2;
     char c;
 
-    if (!(iss >> int1))
-        return true;
+    if (!(iss >> int1)) return true;
     list.emplace_back(int1);
     if (iss >> c) {
         switch (c) {
             case '-':
-                if (!(iss >> int2) || int2 <= int1)
-                    return true;
-                for (int i = int1 + 1; i <= int2; i++)
-                    list.emplace_back(i);
+                if (!(iss >> int2) || int2 <= int1) return true;
+                for (int i = int1 + 1; i <= int2; i++) list.emplace_back(i);
                 if (!(iss >> c))
                     return false;
                 else if (c == ',')
@@ -77,7 +74,7 @@ bool parseIntList(std::istringstream &iss, std::vector<int> &list) {
                 break;
             case ',':
                 return parseIntList(iss, list);
-        default:
+            default:
                 return true;
         }
     }
@@ -675,8 +672,7 @@ void parseAffinity(const std::vector<std::string> &params, ArgumentData &argumen
     argument_data.tournament_config.affinity = true;
     if (params.size() > 0) {
         auto iss = std::istringstream(params[0]);
-        if (parseIntList(iss, argument_data.tournament_config.affinity_cpus))
-            throw std::runtime_error("Bad cpu list.");
+        if (parseIntList(iss, argument_data.tournament_config.affinity_cpus)) throw std::runtime_error("Bad cpu list.");
     }
 }
 

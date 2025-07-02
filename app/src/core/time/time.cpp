@@ -25,7 +25,7 @@ std::optional<std::string> datetime(const std::string &format) {
     // Get the current time in UTC
     const auto now        = sc::system_clock::now();
     const auto time_t_now = sc::system_clock::to_time_t(now);
-    struct tm buf{};
+    struct tm buf {};
 
 #ifdef _WIN64
     auto res = localtime_s(&buf, &time_t_now);

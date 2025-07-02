@@ -117,8 +117,7 @@ class AffinityManager {
         LOG_TRACE("Setting up selected cores");
         std::lock_guard<std::mutex> lock(core_mutex_);
 
-        for (int cpu : cpus)
-            cores_[HT_1].emplace_back(std::vector{cpu});
+        for (int cpu : cpus) cores_[HT_1].emplace_back(std::vector{cpu});
     }
 
     std::array<std::deque<AffinityProcessor>, 2> cores_;

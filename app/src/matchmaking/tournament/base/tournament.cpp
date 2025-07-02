@@ -79,7 +79,7 @@ void BaseTournament::start() {
     create();
 }
 
-BaseTournament::EngineCache &BaseTournament::getEngineCache()  {
+BaseTournament::EngineCache &BaseTournament::getEngineCache() {
     if (config::TournamentConfig->affinity) {
         // Use per-thread cache
         std::thread::id tid = std::this_thread::get_id();

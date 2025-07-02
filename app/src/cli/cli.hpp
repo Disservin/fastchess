@@ -141,8 +141,7 @@ class OptionsParser {
                     else
                         each.push_back(args[++i]);
                 }
-                if (arg != "-each")
-                    options_.at(arg)(params, argument_data_);
+                if (arg != "-each") options_.at(arg)(params, argument_data_);
 
             } catch (const std::exception &e) {
                 auto err =
@@ -156,8 +155,7 @@ class OptionsParser {
             try {
                 options_.at("-each")(each, argument_data_);
             } catch (const std::exception &e) {
-                auto err =
-                    fmt::format("Error while reading option \"{}\" with value \"{}\"", "-each", each.back());
+                auto err = fmt::format("Error while reading option \"{}\" with value \"{}\"", "-each", each.back());
                 auto msg = fmt::format("Reason: {}", e.what());
 
                 throw std::runtime_error(err + "\n" + msg);

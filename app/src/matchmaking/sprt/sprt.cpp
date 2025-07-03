@@ -289,7 +289,10 @@ double SPRT::getLLR_normalized(double total, std::array<double, N> scores, std::
         }
 
         for (int iterations = 0; iterations < 10; iterations++) {
-            auto [phi, u, v] = calc_phi();
+            std::array<double, N> phi;
+            double u;
+            double v;
+            std::tie(phi, u, v) = calc_phi();
 
             double min_theta = -1.0 / v;
             double max_theta = -1.0 / u;

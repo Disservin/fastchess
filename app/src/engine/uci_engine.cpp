@@ -336,11 +336,22 @@ bool UciEngine::refreshUci() {
     std::stable_partition(options.begin(), options.end(), [](const auto &p) { return p.first == "Threads"; });
 
     for (const auto &option : options) {
-        sendSetoption(option.first, option.second);
+        try {
+            sendSetoption(option.first, option.second);
+
+        } catch (const std::exception &e) {
+            Logger::print<Logger::Level::WARN>("Warning; Failed to set option {} with value {} for engine {}: {}",
+                                               option.first, option.second, config_.name, e.what());
+        }
     }
 
     if (config_.variant == VariantType::FRC) {
-        sendSetoption("UCI_Chess960", "true");
+        try {
+            sendSetoption("UCI_Chess960", "true");
+        } catch (const std::exception &e) {
+            Logger::print<Logger::Level::WARN>("Warning; Failed to set UCI_Chess960 option for engine {}: {}",
+                                               config_.name, e.what());
+        }
     }
 
     LOG_TRACE_THREAD("Engine {} refreshed.", config_.name);

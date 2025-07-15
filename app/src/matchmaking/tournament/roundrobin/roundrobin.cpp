@@ -67,7 +67,7 @@ void RoundRobin::startNext() {
         try {
             this->createMatch(match.value());
         } catch (const std::exception& e) {
-            Logger::print("Error while creating match: {}", e.what());
+            Logger::print<Logger::Level::ERR>("Error while creating match: {}", e.what());
         }
     });
 }

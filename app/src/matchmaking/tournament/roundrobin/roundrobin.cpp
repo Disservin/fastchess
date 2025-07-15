@@ -63,7 +63,13 @@ void RoundRobin::startNext() {
         return;
     }
 
-    pool_.enqueue(&RoundRobin::createMatch, this, match.value());
+    pool_.enqueue([this, match]() {
+        try {
+            this->createMatch(match.value());
+        } catch (const std::exception& e) {
+            Logger::print<Logger::Level::ERR>("Error while creating match: {}", e.what());
+        }
+    });
 }
 
 void RoundRobin::createMatch(const Scheduler::Pairing& pairing) {

@@ -247,7 +247,7 @@ void parsePgnOut(const std::vector<std::string> &params, ArgumentData &argument_
                 OptionsParser::throwMissing("pgnout", key, value);
             }
         });
-    } else {
+    } else if (params.size() > 0) {
         // try to read as cutechess pgnout
         argument_data.tournament_config.pgn.file = params[0];
         argument_data.tournament_config.pgn.min  = std::find(params.begin(), params.end(), "min") != params.end();

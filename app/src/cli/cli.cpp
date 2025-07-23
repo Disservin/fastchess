@@ -624,8 +624,17 @@ void parseTournament(const std::vector<std::string> &params, ArgumentData &argum
 
     parseValue(params, val);
 
-    if (val == "gauntlet") argument_data.tournament_config.type = TournamentType::GAUNTLET;
-    if (val != "gauntlet" && val != "roundrobin") throw std::runtime_error("Unsupported tournament format. Only supports roundrobin and gauntlet.");
+    if (val == "gauntlet") {
+        argument_data.tournament_config.type = TournamentType::GAUNTLET;
+        return;
+    }
+
+    if (val == "roundrobin") {
+        argument_data.tournament_config.type = TournamentType::GAUNTLET;
+        return;
+    }
+
+    throw std::runtime_error("Unsupported tournament format. Only supports roundrobin and gauntlet.");
 }
 
 void parseQuick(const std::vector<std::string> &params, ArgumentData &argument_data) {

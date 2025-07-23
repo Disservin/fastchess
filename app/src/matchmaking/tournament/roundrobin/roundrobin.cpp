@@ -26,8 +26,7 @@ RoundRobin::RoundRobin(const stats_map& results) : BaseTournament(results) {
     const auto num_players = config::EngineConfigs->size();
 
     generator_ =
-        std::make_unique<RoundRobinScheduler>(book_.get(), num_players, config.rounds, config.games,
-                                              config.gauntlet_seeds, config.type, match_count_);
+        std::make_unique<RoundRobinScheduler>(book_.get(), num_players, config.rounds, config.games, match_count_);
 }
 
 void RoundRobin::start() {

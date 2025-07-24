@@ -56,6 +56,15 @@ The following options are available:
     - standard - play Standard Chess (default)
     - fischerandom - play Fischer Random Chess
 
+- -tournament TYPE
+    Choose type of tournament:
+
+    - roundrobin
+    - gauntlet
+
+- -seeds N
+    First N engines are playing the gauntlet. Default value is 1.
+
 - -repeat  
     Set the number of games to 2. Equivalent to -games 2.
 

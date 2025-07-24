@@ -59,6 +59,8 @@
   "output": 0,
   "seed": 11640166910256665083,
   "variant": 0,
+  "type": 0,
+  "gauntlet_seeds": 1,
   "ratinginterval": 10,
   "scoreinterval": 1,
   "wait": 0,

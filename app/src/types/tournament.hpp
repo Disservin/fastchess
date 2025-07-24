@@ -34,6 +34,8 @@ struct Tournament {
     TbAdjudication tb_adjudication = {};
 
     VariantType variant = VariantType::STANDARD;
+    TournamentType type = TournamentType::ROUNDROBIN;
+    int gauntlet_seeds  = 1;
 
 #ifdef USE_CUTE
     // output format, fastchess or cutechess
@@ -73,8 +75,8 @@ struct Tournament {
     Log log = {};
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Tournament, resign, draw, maxmoves, tb_adjudication, opening, pgn, epd, sprt,
-                                   config_name, output, seed, variant, ratinginterval, scoreinterval, wait,
-                                   autosaveinterval, games, rounds, concurrency, force_concurrency, recover, noswap,
-                                   reverse, report_penta, affinity, show_latency, log)
+                                   config_name, output, seed, variant, type, gauntlet_seeds, ratinginterval,
+                                   scoreinterval, wait, autosaveinterval, games, rounds, concurrency, force_concurrency,
+                                   recover, noswap, reverse, report_penta, affinity, show_latency, log)
 
 }  // namespace fastchess::config

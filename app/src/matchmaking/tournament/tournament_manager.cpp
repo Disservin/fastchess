@@ -8,8 +8,9 @@
 #include <core/logger/logger.hpp>
 #include <core/rand.hpp>
 #include <matchmaking/syzygy.hpp>
+#include <matchmaking/tournament/gauntlet/gauntlet.hpp>
+#include <matchmaking/tournament/roundrobin/roundrobin.hpp>
 #include <matchmaking/tournament/tournament_manager.hpp>
-
 #include <stdexcept>
 
 namespace fastchess {
@@ -51,9 +52,21 @@ void TournamentManager::start(const cli::Args& args) {
     }
 
     LOG_TRACE("Creating tournament...");
-    auto round_robin = RoundRobin(options.getResults());
+
+    std::unique_ptr<BaseTournament> tournament;
+    switch (config::TournamentConfig->type) {
+        case TournamentType::ROUNDROBIN:
+            tournament = std::make_unique<RoundRobin>(options.getResults());
+            break;
+        case TournamentType::GAUNTLET:
+            tournament = std::make_unique<Gauntlet>(options.getResults());
+            break;
+        default:
+            throw std::runtime_error("Unsupported tournament type: " +
+                                     std::to_string(static_cast<int>(config::TournamentConfig->type)));
+    }
 
     LOG_INFO("Starting tournament...");
-    round_robin.start();
+    tournament->start();
 }
 }  // namespace fastchess

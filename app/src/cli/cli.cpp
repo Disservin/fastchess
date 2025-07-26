@@ -630,7 +630,7 @@ void parseTournament(const std::vector<std::string> &params, ArgumentData &argum
     }
 
     if (val == "roundrobin") {
-        argument_data.tournament_config.type = TournamentType::GAUNTLET;
+        argument_data.tournament_config.type = TournamentType::ROUNDROBIN;
         return;
     }
 

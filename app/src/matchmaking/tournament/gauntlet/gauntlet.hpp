@@ -21,6 +21,7 @@
 namespace fastchess {
 
 class Gauntlet : public RoundRobin {
+   public:
     explicit Gauntlet(const stats_map& results) : RoundRobin(results) {
         const auto& config     = *config::TournamentConfig;
         const auto num_players = config::EngineConfigs->size();

@@ -56,13 +56,10 @@ bool isFen(const std::string& line) { return line.find(';') == std::string::npos
 
 Match::Match(const book::Opening& opening)
     : opening_(opening),
-      draw_tracker_(config::TournamentConfig->draw.move_number, config::TournamentConfig->draw.move_count,
-                    config::TournamentConfig->draw.score),
-      resign_tracker_(config::TournamentConfig->resign.score, config::TournamentConfig->resign.move_count,
-                      config::TournamentConfig->resign.twosided),
-      maxmoves_tracker_(config::TournamentConfig->maxmoves.move_count),
-      tb_adjudication_tracker_(config::TournamentConfig->tb_adjudication.max_pieces,
-                               config::TournamentConfig->tb_adjudication.ignore_50_move_rule) {
+      draw_tracker_(config::TournamentConfig->draw),
+      resign_tracker_(config::TournamentConfig->resign),
+      maxmoves_tracker_(config::TournamentConfig->maxmoves),
+      tb_adjudication_tracker_(config::TournamentConfig->tb_adjudication) {
     board_.set960(config::TournamentConfig->variant == VariantType::FRC);
 
     const auto success = isFen(opening_.fen_epd) ? board_.setFen(opening_.fen_epd) : board_.setEpd(opening_.fen_epd);

@@ -16,6 +16,9 @@ class DrawTracker {
     DrawTracker(uint32_t move_number, int move_count, int draw_score)
         : draw_score_(draw_score), move_number_(move_number), move_count_(move_count) {}
 
+    DrawTracker(config::DrawAdjudication draw_adjudication)
+        : DrawTracker(draw_adjudication.move_number, draw_adjudication.move_count, draw_adjudication.score) {}
+
     void update(const int score, engine::ScoreType score_type, const int hmvc) noexcept {
         if (hmvc == 0) draw_moves_ = 0;
 
@@ -47,6 +50,9 @@ class ResignTracker {
    public:
     ResignTracker(int resign_score, int move_count, bool twosided) noexcept
         : resign_score(resign_score), move_count_(move_count), twosided_(twosided) {}
+
+    ResignTracker(config::ResignAdjudication resign_adjudication)
+        : ResignTracker(resign_adjudication.score, resign_adjudication.move_count, resign_adjudication.twosided) {}
 
     void update(const int score, engine::ScoreType score_type, chess::Color color) noexcept {
         if (twosided_) {
@@ -88,6 +94,8 @@ class ResignTracker {
 class MaxMovesTracker {
    public:
     MaxMovesTracker(int move_count) noexcept : move_count_(move_count) {}
+    MaxMovesTracker(config::MaxMovesAdjudication maxmoves_adjudication)
+        : MaxMovesTracker(maxmoves_adjudication.move_count) {}
 
     void update() noexcept { max_moves++; }
 
@@ -102,6 +110,9 @@ class TbAdjudicationTracker {
    public:
     TbAdjudicationTracker(const int max_pieces, const bool ignore_50_move_rule)
         : max_pieces_(max_pieces), ignore_50_move_rule_(ignore_50_move_rule) {}
+
+    TbAdjudicationTracker(config::TbAdjudication tb_adjudication)
+        : TbAdjudicationTracker(tb_adjudication.max_pieces, tb_adjudication.ignore_50_move_rule) {}
 
     [[nodiscard]] bool adjudicatable(const chess::Board& board) const noexcept {
         if (max_pieces_ != 0 && board.occ().count() > max_pieces_) {

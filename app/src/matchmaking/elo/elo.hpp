@@ -18,8 +18,6 @@ class EloBase {
 
     [[nodiscard]] virtual double getScore() const noexcept = 0;
 
-    [[nodiscard]] double scoreToEloDiff(double score) const noexcept { return -400.0 * std::log10(1.0 / score - 1.0); }
-
     [[nodiscard]] double nEloDiff() const noexcept { return nelodiff_; }
     [[nodiscard]] double nEloError() const noexcept { return neloerror_; }
 
@@ -27,6 +25,8 @@ class EloBase {
     [[nodiscard]] double error() const noexcept { return error_; }
 
    protected:
+    [[nodiscard]] double scoreToEloDiff(double score) const noexcept { return -400.0 * std::log10(1.0 / score - 1.0); }
+
     static constexpr double CI95ZSCORE = 1.959963984540054;
 
     double games_;

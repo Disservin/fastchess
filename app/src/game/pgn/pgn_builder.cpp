@@ -5,7 +5,6 @@
 #include <string>
 #include <string_view>
 #include <vector>
-#include <fstream>
 #include <unordered_map>
 
 #include <matchmaking/output/output.hpp>
@@ -84,8 +83,8 @@ PgnBuilder::PgnBuilder(const config::Pgn &pgn_config, const MatchData &match, st
         move_iterator++;
     }
 
-    std::unordered_map<std::string, std::string> move_to_opening_name;
-    std::unordered_map<std::string, std::string> move_to_eco;
+    static std::unordered_map<std::string, std::string> move_to_opening_name;
+    static std::unordered_map<std::string, std::string> move_to_eco;
     if (move_to_opening_name.empty()) {
         std::istringstream file(OPENINGS_CSV);
         std::string line;
@@ -93,14 +92,14 @@ PgnBuilder::PgnBuilder(const config::Pgn &pgn_config, const MatchData &match, st
         // Skip header
         std::getline(file, line);
     
-        // Read TSV into map
+        // Read CSV into map
         while (std::getline(file, line)) {
             std::istringstream ss(line);
             std::string eco, name, pgn;
     
-            std::getline(ss, eco, '\t');
-            std::getline(ss, name, '\t');
-            std::getline(ss, pgn, '\t');
+            std::getline(ss, eco, ';');
+            std::getline(ss, name, ';');
+            std::getline(ss, pgn, ';');
 
             eco.erase(0, eco.find_first_not_of(" \t\r\n"));
             eco.erase(eco.find_last_not_of(" \t\r\n") + 1);

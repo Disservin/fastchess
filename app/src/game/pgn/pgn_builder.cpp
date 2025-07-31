@@ -66,7 +66,11 @@ PgnBuilder::PgnBuilder(const config::Pgn &pgn_config, const MatchData &match, st
     std::string opening_move_list;
     int move_iterator = 1;
     for (auto it = match_.moves.begin(); it != match_.moves.end(); ++it) {
-        opening_move_list += std::to_string(move_iterator) + ". " + it->move + " ";
+        int move_number = (move_iterator + 1) / 2;
+        if (move_iterator % 2 == 1) {
+            opening_move_list += std::to_string(move_number) + ". " ;
+        }
+        opening_move_list += it->move + " ";
         move_iterator++;
     }
 

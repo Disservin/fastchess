@@ -128,11 +128,28 @@ class Process : public IProcess {
 
         process_list.remove_if([this](const auto &pi) { return pi.identifier == pi_.hProcess; });
 
-        DWORD exitCode = 0;
-        GetExitCodeProcess(pi_.hProcess, &exitCode);
+        DWORD exitCode        = 0;
+        const auto start_time = std::chrono::steady_clock::now();
+
+        // give the process time to die gracefully
+        while (std::chrono::steady_clock::now() - start_time < IProcess::kill_timeout) {
+            GetExitCodeProcess(pi_.hProcess, &exitCode);
+
+            if (exitCode != STILL_ACTIVE) {
+                // Process has terminated
+                break;
+            }
+
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        }
 
         if (exitCode == STILL_ACTIVE) {
-            TerminateProcess(pi_.hProcess, 0);
+            LOG_TRACE_THREAD("Force terminating process with pid: {}", pi_.hProcess);
+            TerminateProcess(pi_.hProcess, 1);
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            GetExitCodeProcess(pi_.hProcess, &exitCode);
+        } else {
+            LOG_TRACE_THREAD("Process with pid: {} terminated with status: {}", pi_.hProcess, exitCode);
         }
 
         is_initialized_ = false;

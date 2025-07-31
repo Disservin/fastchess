@@ -1,4 +1,3 @@
-#include <game/pgn/openings_data.hpp>
 #include <game/pgn/pgn_builder.hpp>
 
 #include <sstream>

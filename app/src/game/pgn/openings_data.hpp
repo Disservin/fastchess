@@ -3,7 +3,12 @@
 #include <unordered_map>
 #include <utility>
 
-inline const std::unordered_map<std::string, std::pair<std::string, std::string>> EPD_TO_OPENING = {
+struct Opening {
+    std::string eco;
+    std::string name;
+};
+
+inline const std::unordered_map<std::string, Opening> EPD_TO_OPENING = {
     {"rnbqkbnr/pppppppp/8/8/8/7N/PPPPPPPP/RNBQKB1R b KQkq -", {"A00", "Amar Opening"}},
     {"rnbqkbnr/ppp2ppp/8/3pp3/5P2/6PN/PPPPP2P/RNBQKB1R b KQkq -", {"A00", "Amar Opening: Paris Gambit"}},
     {"rn1qkbnr/ppp2ppp/8/3p4/8/6PB/PPPPP3/RNBQ1RK1 b kq -", {"A00", "Amar Opening: Paris Gambit, Gent Gambit"}},

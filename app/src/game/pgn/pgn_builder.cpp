@@ -85,47 +85,15 @@ PgnBuilder::PgnBuilder(const config::Pgn &pgn_config, const MatchData &match, st
         }
     }
 
-    static std::unordered_map<std::string, std::string> move_to_opening_name;
-    static std::unordered_map<std::string, std::string> move_to_eco;
-    if (move_to_opening_name.empty()) {
-        std::istringstream file(OPENINGS_CSV);
-        std::string line;
-    
-        // Skip header
-        std::getline(file, line);
-    
-        // Read CSV into map
-        while (std::getline(file, line)) {
-            std::istringstream ss(line);
-            std::string eco, name, pgn;
-    
-            std::getline(ss, eco, ';');
-            std::getline(ss, name, ';');
-            std::getline(ss, pgn, ';');
-
-            eco.erase(0, eco.find_first_not_of(" \t\r\n"));
-            eco.erase(eco.find_last_not_of(" \t\r\n") + 1);
-        
-            name.erase(0, name.find_first_not_of(" \t\r\n"));
-            name.erase(name.find_last_not_of(" \t\r\n") + 1);
-        
-            pgn.erase(0, pgn.find_first_not_of(" \t\r\n"));
-            pgn.erase(pgn.find_last_not_of(" \t\r\n") + 1);
-    
-            move_to_opening_name[pgn] = name;
-            move_to_eco[pgn] = eco;
-        }
-    }
-
     std::string best_match = "";
     std::string best_opening = "";
     std::string best_eco = "";
     // Find the longest matching prefix
-    for (const auto& [pgn, name] : move_to_opening_name) {
+    for (const auto& [pgn, pair] : MOVE_TO_OPENING) {
         if (opening_move_list.rfind(pgn, 0) == 0 && pgn.size() > best_match.size()) {
             best_match = pgn;
-            best_opening = name;
-            best_eco = move_to_eco[pgn];
+            best_eco = pair.first;
+            best_opening = pair.second;
         }
     }
 

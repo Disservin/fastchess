@@ -79,7 +79,7 @@ with open(input_file, encoding="utf-8") as f, open(output_file, "w", encoding="u
     reader = csv.DictReader(f, delimiter='\t')
 
     out.write('#pragma once\n')
-    out.write('#include <string>\n')
+    out.write('#include <string_view>\n')
     out.write('#include <unordered_map>\n')
     out.write('#include <utility>\n\n')
     out.write('/*\n')
@@ -96,10 +96,10 @@ with open(input_file, encoding="utf-8") as f, open(output_file, "w", encoding="u
     out.write(' * and distributed without restriction.\n')
     out.write(' */\n\n')
     out.write('struct Opening {\n')
-    out.write('    std::string eco;\n')
-    out.write('    std::string name;\n')
+    out.write('    std::string_view eco;\n')
+    out.write('    std::string_view name;\n')
     out.write('};\n\n')
-    out.write('inline const std::unordered_map<std::string, Opening> EPD_TO_OPENING = {\n')    
+    out.write('inline const std::unordered_map<std::string_view, Opening> EPD_TO_OPENING = {\n')    
 
     for row in reader:
         epd = row["epd"].strip().replace('"', r'\"')

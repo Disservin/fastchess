@@ -95,7 +95,7 @@ PgnBuilder::PgnBuilder(const config::Pgn &pgn_config, const MatchData &match, st
     std::string best_opening = "";
     std::string best_eco = "";
     // Find the longest matching prefix
-    for (const auto& [pgn, name] : move_to_opening) {
+    for (const auto& [pgn, name] : move_to_opening_name) {
         if (opening_move_list.rfind(pgn, 0) == 0 && pgn.size() > best_match.size()) {
             best_match = pgn;
             best_opening = name;

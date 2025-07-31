@@ -69,7 +69,7 @@ PgnBuilder::PgnBuilder(const config::Pgn &pgn_config, const MatchData &match, st
     opening_board.setFen(match_.fen);
     int move_iterator = 1;
     for (auto it = match_.moves.begin(); it != match_.moves.end(); ++it) {
-        const auto illegal = it->legal;
+        const auto illegal = !it->legal;
         int move_number = (move_iterator + 1) / 2;
         if (move_iterator % 2 == 1) {
             opening_move_list += std::to_string(move_number) + ". " ;
@@ -118,7 +118,7 @@ PgnBuilder::PgnBuilder(const config::Pgn &pgn_config, const MatchData &match, st
     if (!pgn_config_.min) {
         if (!best_eco.empty() && !best_opening.empty()){
             addHeader("ECO", best_eco);
-            addHeader("OpeningName", best_opening);
+            addHeader("Opening", best_opening);
         }
     }
     

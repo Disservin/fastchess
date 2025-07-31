@@ -68,8 +68,7 @@ PgnBuilder::PgnBuilder(const config::Pgn &pgn_config, const MatchData &match, st
     opening_board.set960(is_frc_variant);
     opening_board.setFen(match_.fen);
     int move_iterator = 1;
-    int starting_move_number = int(opening_board.sideToMove() == chess::Color::BLACK) + 2 * opening_board.fullMoveNumber() - 1;
-    if (starting_move_number == 1){
+    if (opening_board.fullMoveNumber() == 1 && opening_board.sideToMove() == chess::Color::WHITE){
         for (auto it = match_.moves.begin(); it != match_.moves.end(); ++it) {
             const auto illegal = !it->legal;
             int move_number = (move_iterator + 1) / 2;

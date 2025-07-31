@@ -130,9 +130,8 @@ class Process : public IProcess {
 
         DWORD exitCode        = 0;
         const auto start_time = std::chrono::steady_clock::now();
-        const auto timeout    = std::chrono::seconds(10);
 
-        while (std::chrono::steady_clock::now() - start_time < timeout) {
+        while (std::chrono::steady_clock::now() - start_time < IProcess::kill_timeout) {
             GetExitCodeProcess(pi_.hProcess, &exitCode);
 
             if (exitCode != STILL_ACTIVE) {

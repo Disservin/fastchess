@@ -289,12 +289,11 @@ class Process : public IProcess {
 
         if (!exit_code_.has_value()) {
             const auto start_time = std::chrono::steady_clock::now();
-            const auto timeout    = std::chrono::seconds(10);
 
             pid_t pid = 0;
 
             // give the process 10s to die gracefully
-            while (std::chrono::steady_clock::now() - start_time < timeout) {
+            while (std::chrono::steady_clock::now() - start_time < IProcess::kill_timeout) {
                 pid = waitpid(process_pid_, &status, WNOHANG);
 
                 if (pid > 0) {

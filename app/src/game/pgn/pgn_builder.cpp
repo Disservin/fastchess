@@ -70,25 +70,27 @@ PgnBuilder::PgnBuilder(const config::Pgn &pgn_config, const MatchData &match, st
         move_iterator++;
     }
 
-    std::unordered_map<std::string, std::string> move_to_opening_name;
-    std::unordered_map<std::string, std::string> move_to_eco;
-    std::ifstream file("openings.tsv");
-    std::string line;
-
-    // Skip header
-    std::getline(file, line);
-
-    // Read TSV into map
-    while (std::getline(file, line)) {
-        std::istringstream ss(line);
-        std::string eco, name, pgn;
-
-        std::getline(ss, eco, '\t');
-        std::getline(ss, name, '\t');
-        std::getline(ss, pgn, '\t');
-
-        move_to_opening_name[pgn] = name;
-        move_to_eco[pgn] = eco;
+    static std::unordered_map<std::string, std::string> move_to_opening_name;
+    static std::unordered_map<std::string, std::string> move_to_eco;
+    if (move_to_opening_name.empty()) {
+        std::ifstream file("openings.tsv");
+        std::string line;
+    
+        // Skip header
+        std::getline(file, line);
+    
+        // Read TSV into map
+        while (std::getline(file, line)) {
+            std::istringstream ss(line);
+            std::string eco, name, pgn;
+    
+            std::getline(ss, eco, '\t');
+            std::getline(ss, name, '\t');
+            std::getline(ss, pgn, '\t');
+    
+            move_to_opening_name[pgn] = name;
+            move_to_eco[pgn] = eco;
+        }
     }
 
     std::string best_match = "";

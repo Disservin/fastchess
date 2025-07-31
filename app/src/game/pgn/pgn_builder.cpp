@@ -1,5 +1,5 @@
-#include <game/pgn/pgn_builder.hpp>
 #include <game/pgn/openings_data.hpp>
+#include <game/pgn/pgn_builder.hpp>
 
 #include <sstream>
 #include <string>
@@ -62,37 +62,11 @@ PgnBuilder::PgnBuilder(const config::Pgn &pgn_config, const MatchData &match, st
         }
     }
 
-    chess::Board opening_board = chess::Board();
-    opening_board.set960(is_frc_variant);
-    opening_board.setFen(match_.fen);
-    std::string best_opening = "";
-    std::string best_eco = "";
-    std::string current_fen = opening_board.getFen(false);
-    if (!is_frc_variant){
-        auto found = EPD_TO_OPENING.find(current_fen);
-        if (found != EPD_TO_OPENING.end()) {
-            best_eco = found->second.first;
-            best_opening = found->second.second;
-        }
-        
-        for (auto it = match_.moves.begin(); it != match_.moves.end(); ++it) {
-            const auto illegal = !it->legal;
-            if (illegal) break;   
-
-            opening_board.makeMove<true>(chess::uci::uciToMove(opening_board, it->move));
-            current_fen = opening_board.getFen(false);
-        
-            auto found = EPD_TO_OPENING.find(current_fen);
-            if (found != EPD_TO_OPENING.end()) {
-                best_eco = found->second.first;
-                best_opening = found->second.second;
-            }
-        }
-    }
+    const auto opening = getOpeningClassification(is_frc_variant);
        
-    if (!pgn_config_.min && !best_eco.empty() && !best_opening.empty()) {
-        addHeader("ECO", best_eco);
-        addHeader("Opening", best_opening);
+    if (!pgn_config_.min && opening) {
+        addHeader("ECO", opening->eco);
+        addHeader("Opening", opening->name);
     }
     
 
@@ -150,6 +124,37 @@ void PgnBuilder::addHeader(std::string_view name, const T &value) noexcept {
         }
     }
     pgn_ << "[" << name << " \"" << value << "\"]\n";
+}
+
+std::optional<Opening> PgnBuilder::getOpeningClassification(bool is_frc_variant) const {
+    chess::Board opening_board;
+    opening_board.set960(is_frc_variant);
+    opening_board.setFen(match_.fen);
+
+    if (is_frc_variant) {
+        return std::nullopt;
+    }
+
+    auto find_opening = [](const std::string &fen) -> std::optional<Opening> {
+        if (auto it = EPD_TO_OPENING.find(fen); it != EPD_TO_OPENING.end()) {
+            return it->second;
+        }
+        return std::nullopt;
+    };
+
+    auto current_opening = find_opening(opening_board.getFen(false));
+
+    for (const auto &move : match_.moves) {
+        if (!move.legal) break;
+
+        opening_board.makeMove<true>(chess::uci::uciToMove(opening_board, move.move));
+
+        if (auto opening = find_opening(opening_board.getFen(false))) {
+            current_opening = opening;
+        }
+    }
+
+    return current_opening;
 }
 
 std::string PgnBuilder::moveNotation(chess::Board &board, const std::string &move) const noexcept {

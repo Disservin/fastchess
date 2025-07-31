@@ -74,7 +74,7 @@ PgnBuilder::PgnBuilder(const config::Pgn &pgn_config, const MatchData &match, st
         if (move_iterator % 2 == 1) {
             opening_move_list += std::to_string(move_number) + ". " ;
         }
-        opening_move_list += (illegal ? move.move : moveNotation(opening_board, it->move)) + " ";
+        opening_move_list += (illegal ? it->move : moveNotation(opening_board, it->move)) + " ";
         opening_board.makeMove<true>(chess::uci::uciToMove(opening_board, it->move));
         move_iterator++;
         if (illegal) break;

@@ -290,7 +290,7 @@ Nc5 {+1.45/16 0.310s, n=0, sd=24, aborted} *
         CHECK(pgn_builder.get() == expected);
     }
 
-    TEST_CASE("PGN Opening ECO") {
+    TEST_CASE("PGN Opening ECO Side to Move") {
         MatchData match_data;
         match_data.players.white.config.name = "engine1";
         match_data.players.white.result      = chess::GameResult::WIN;
@@ -321,14 +321,15 @@ Nc5 {+1.45/16 0.310s, n=0, sd=24, aborted} *
 [White "engine1"]
 [Black "engine2"]
 [Result "1-0"]
-[PlyCount "4"]
+[PlyCount "8"]
 [Termination "normal"]
 [TimeControl "-"]
-[ECO "C42"]
-[Opening "Petrov's Defense"]
+[ECO "B12"]
+[Opening "Caro-Kann Defense: Advance Variation, Botvinnik-Carls Defense"]
 
-1. e4 {+1.00/15 1.321s} e5 {+1.23/15 0.430s} 2. Nf3 {+1.45/16 0.310s}
-Nf6 {+10.15/18 1.821s, engine2 got checkmated} 1-0
+1. e4 {+1.00/15 1.321s} c6 {+1.23/15 0.430s} 2. d4 {+1.45/16 0.310s}
+d5 {+1.45/16 0.310s} 3. e5 {+1.45/16 0.310s} c5 {+1.45/16 0.310s}
+4. dxc5 {+1.45/16 0.310s} e6 {+10.15/18 1.821s, engine2 got checkmated} 1-0
 
 )";
 

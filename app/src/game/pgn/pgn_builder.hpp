@@ -11,6 +11,8 @@
 
 #include <types/tournament.hpp>
 
+#include <game/pgn/openings_data.hpp>
+
 namespace fastchess::pgn {
 
 class PgnBuilder {

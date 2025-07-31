@@ -4,6 +4,8 @@
 #include <string>
 #include <string_view>
 #include <vector>
+#include <fstream>
+#include <unordered_map>
 
 #include <matchmaking/output/output.hpp>
 
@@ -60,6 +62,54 @@ PgnBuilder::PgnBuilder(const config::Pgn &pgn_config, const MatchData &match, st
             addHeader("BlackTimeControl", str::to_string(black_player.config.limit.tc));
         }
     }
+
+    std::string opening_move_list;
+    int move_iterator = 1;
+    for (auto it = match_.moves.begin(); it != match_.moves.end(); ++it) {
+        opening_move_list += std::to_string(move_iterator) + ". " + it->move + " ";
+        move_iterator++;
+    }
+
+    std::unordered_map<std::string, std::string> move_to_opening_name;
+    std::unordered_map<std::string, std::string> move_to_eco;
+    std::ifstream file("openings.tsv");
+    std::string line;
+
+    // Skip header
+    std::getline(file, line);
+
+    // Read TSV into map
+    while (std::getline(file, line)) {
+        std::istringstream ss(line);
+        std::string eco, name, pgn;
+
+        std::getline(ss, eco, '\t');
+        std::getline(ss, name, '\t');
+        std::getline(ss, pgn, '\t');
+
+        move_to_opening_name[pgn] = name;
+        move_to_eco[pgn] = eco;
+    }
+
+    std::string best_match = "";
+    std::string best_opening = "";
+    std::string best_eco = "";
+    // Find the longest matching prefix
+    for (const auto& [pgn, name] : move_to_opening) {
+        if (opening_move_list.rfind(pgn, 0) == 0 && pgn.size() > best_match.size()) {
+            best_match = pgn;
+            best_opening = name;
+            best_eco = move_to_eco[pgn];
+        }
+    }
+
+    if (!pgn_config_.min) {
+        if (!best_eco.empty() && !best_opening.empty()){
+            addHeader("ECO", best_eco);
+            addHeader("OpeningName", best_opening);
+        }
+    }
+    
 
     pgn_ << "\n";
     // add body

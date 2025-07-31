@@ -34,6 +34,8 @@ TEST_SUITE("PGN Builder Tests") {
 [PlyCount "4"]
 [Termination "normal"]
 [TimeControl "-"]
+[ECO "C42"]
+[Opening "Petrov's Defense"]
 
 1. e4 {+1.00/15 1.321s} e5 {+1.23/15 0.430s} 2. Nf3 {+1.45/16 0.310s}
 Nf6 {+10.15/18 1.821s, engine2 got checkmated} 1-0
@@ -74,6 +76,8 @@ Nf6 {+10.15/18 1.821s, engine2 got checkmated} 1-0
 [PlyCount "4"]
 [Termination "normal"]
 [TimeControl "-"]
+[ECO "C42"]
+[Opening "Petrov's Defense"]
 
 1. e4 {+1.00/15 1.321s} e5 {+1.23/15 0.430s} 2. Nf3 {+1.45/16 0.310s}
 Nf6 {+10.15/18 1.821s, engine1 got checkmated} 0-1

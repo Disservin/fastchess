@@ -149,7 +149,7 @@ class Process : public IProcess {
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
             GetExitCodeProcess(pi_.hProcess, &exitCode);
         } else {
-            LOG_TRACE_THREAD("Process with pid: {} terminated with status: {}", process_pid_, exitCode);
+            LOG_TRACE_THREAD("Process with pid: {} terminated with status: {}", pi_.hProcess, exitCode);
         }
 
         is_initialized_ = false;

@@ -1,14 +1,28 @@
 #pragma once
-#include <string>
+#include <string_view>
 #include <unordered_map>
 #include <utility>
 
+/*
+ * Data source:
+ *   https://github.com/lichess-org/chess-openings
+ *
+ * License:
+ *   CC0 1.0 Universal
+ *   https://creativecommons.org/publicdomain/zero/1.0/
+ *
+ * The following data was adapted from the Lichess "chess-openings" project.
+ * As stated in their repository, the content is released under the CC0 license,
+ * meaning it is dedicated to the public domain and may be freely used, modified,
+ * and distributed without restriction.
+ */
+
 struct Opening {
-    std::string eco;
-    std::string name;
+    std::string_view eco;
+    std::string_view name;
 };
 
-inline const std::unordered_map<std::string, Opening> EPD_TO_OPENING = {
+inline const std::unordered_map<std::string_view, Opening> EPD_TO_OPENING = {
     {"rnbqkbnr/pppppppp/8/8/8/7N/PPPPPPPP/RNBQKB1R b KQkq -", {"A00", "Amar Opening"}},
     {"rnbqkbnr/ppp2ppp/8/3pp3/5P2/6PN/PPPPP2P/RNBQKB1R b KQkq -", {"A00", "Amar Opening: Paris Gambit"}},
     {"rn1qkbnr/ppp2ppp/8/3p4/8/6PB/PPPPP3/RNBQ1RK1 b kq -", {"A00", "Amar Opening: Paris Gambit, Gent Gambit"}},
@@ -3373,6 +3387,7 @@ inline const std::unordered_map<std::string, Opening> EPD_TO_OPENING = {
     {"rnbqk2r/ppp2ppp/4p3/3p4/2PPn3/P7/1PQ1PPPP/R1B1KBNR b KQkq -", {"E37", "Nimzo-Indian Defense: Classical Variation, Noa Variation"}},
     {"r1bqk2r/ppp2ppp/2n5/3pp3/2PPn3/P3P3/1PQ2PPP/R1B1KBNR w KQkq -", {"E37", "Nimzo-Indian Defense: Classical Variation, Noa Variation, San Remo Variation"}},
     {"rnbqk2r/pp1p1ppp/4pn2/2p5/1bPP4/2N5/PPQ1PPPP/R1B1KBNR w KQkq -", {"E38", "Nimzo-Indian Defense: Classical Variation, Berlin Variation"}},
+    {"rnbq1rk1/pp3ppp/4pn2/2pp4/1bPP4/2N1PN2/PPQ2PPP/R1B1KB1R w KQ -", {"E38", "Nimzo-Indian Defense: Classical Variation, Berlin Variation"}},
     {"rnbqk2r/pp1p1ppp/4pn2/2P5/2P5/2b5/PPQ1PPPP/R1B1KBNR w KQkq -", {"E38", "Nimzo-Indian Defense: Classical Variation, Berlin Variation, Steiner Variation"}},
     {"rnbq1rk1/p2p1ppp/1p2pn2/2b5/2P5/P1N2N2/1PQ1PPPP/R1B1KB1R w KQ -", {"E39", "Nimzo-Indian Defense: Classical Variation, Berlin Variation, Macieja System"}},
     {"rnbq1rk1/pp1p1ppp/4pn2/2P5/1bP5/2N5/PPQ1PPPP/R1B1KBNR w KQ -", {"E39", "Nimzo-Indian Defense: Classical Variation, Berlin Variation, Pirc Variation"}},
@@ -3422,6 +3437,7 @@ inline const std::unordered_map<std::string, Opening> EPD_TO_OPENING = {
     {"r1bq1rk1/pp3ppp/2n1pn2/2pp4/1bPP4/2NBPN2/PP3PPP/R1BQ1RK1 w - -", {"E56", "Nimzo-Indian Defense: Normal Variation, Gligoric System, Bernstein Defense"}},
     {"r1bq1rk1/pp3ppp/2n1pn2/2pp4/2PP4/P1PBPN2/5PPP/R1BQ1RK1 b - -", {"E58", "Nimzo-Indian Defense: Normal Variation, Bernstein Defense, Exchange Line"}},
     {"r1bq1rk1/pp3ppp/2n1pn2/2p5/2BP4/P1P1PN2/5PPP/R1BQ1RK1 b - -", {"E59", "Nimzo-Indian Defense: Normal Variation, Bernstein Defense"}},
+    {"r1b2rk1/ppq2ppp/2n1pn2/2p5/2BP4/P1P1PN2/2Q2PPP/R1B2RK1 b - -", {"E59", "Nimzo-Indian Defense: Normal Variation, Bernstein Defense"}},
     {"rnbqk2r/ppp1ppbp/5np1/3p4/2PP4/6P1/PP2PPBP/RNBQK1NR w KQkq -", {"E60", "Grünfeld Defense: Counterthrust Variation"}},
     {"rnbqkb1r/p1pppp1p/5np1/1p1P4/2P5/8/PP2PPPP/RNBQKBNR w KQkq -", {"E60", "Indian Defense: Anti-Grünfeld, Adorjan Gambit"}},
     {"rnbqkb1r/pppppp1p/5np1/3P4/2P5/8/PP2PPPP/RNBQKBNR b KQkq -", {"E60", "Indian Defense: Anti-Grünfeld, Advance Variation"}},

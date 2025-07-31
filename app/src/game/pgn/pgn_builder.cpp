@@ -135,7 +135,7 @@ std::optional<Opening> PgnBuilder::getOpeningClassification(bool is_frc_variant)
     }
 
     auto find_opening = [](const std::string &fen) -> std::optional<Opening> {
-        if (auto it = EPD_TO_OPENING.find(fen); it != EPD_TO_OPENING.end()) {
+        if (auto it = EPD_TO_OPENING.find(std::string_view(fen)); it != EPD_TO_OPENING.end()) {
             return it->second;
         }
         return std::nullopt;

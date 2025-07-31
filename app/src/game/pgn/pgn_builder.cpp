@@ -1,4 +1,5 @@
 #include <game/pgn/pgn_builder.hpp>
+#include <game/pgn/openings_data.hpp>
 
 #include <sstream>
 #include <string>
@@ -86,7 +87,7 @@ PgnBuilder::PgnBuilder(const config::Pgn &pgn_config, const MatchData &match, st
     std::unordered_map<std::string, std::string> move_to_opening_name;
     std::unordered_map<std::string, std::string> move_to_eco;
     if (move_to_opening_name.empty()) {
-        std::ifstream file("openings.tsv");
+        std::istringstream file(OPENINGS_CSV);
         std::string line;
     
         // Skip header

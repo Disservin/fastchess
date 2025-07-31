@@ -83,8 +83,8 @@ PgnBuilder::PgnBuilder(const config::Pgn &pgn_config, const MatchData &match, st
         move_iterator++;
     }
 
-    static std::unordered_map<std::string, std::string> move_to_opening_name;
-    static std::unordered_map<std::string, std::string> move_to_eco;
+    std::unordered_map<std::string, std::string> move_to_opening_name;
+    std::unordered_map<std::string, std::string> move_to_eco;
     if (move_to_opening_name.empty()) {
         std::ifstream file("openings.tsv");
         std::string line;

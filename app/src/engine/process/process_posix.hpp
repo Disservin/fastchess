@@ -292,7 +292,7 @@ class Process : public IProcess {
 
             pid_t pid = 0;
 
-            // give the process 10s to die gracefully
+            // give the process time to die gracefully
             while (std::chrono::steady_clock::now() - start_time < IProcess::kill_timeout) {
                 pid = waitpid(process_pid_, &status, WNOHANG);
 

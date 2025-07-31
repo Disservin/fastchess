@@ -131,6 +131,7 @@ class Process : public IProcess {
         DWORD exitCode        = 0;
         const auto start_time = std::chrono::steady_clock::now();
 
+        // give the process time to die gracefully
         while (std::chrono::steady_clock::now() - start_time < IProcess::kill_timeout) {
             GetExitCodeProcess(pi_.hProcess, &exitCode);
 

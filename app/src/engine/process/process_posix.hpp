@@ -288,18 +288,36 @@ class Process : public IProcess {
         int status = 0;
 
         if (!exit_code_.has_value()) {
-            const pid_t pid = waitpid(process_pid_, &status, WNOHANG);
+            const auto start_time = std::chrono::steady_clock::now();
+            const auto timeout    = std::chrono::seconds(10);
 
-            // If the process is still running, kill it
+            pid_t pid = 0;
+
+            // give the process 10s to die gracefully
+            while (std::chrono::steady_clock::now() - start_time < timeout) {
+                pid = waitpid(process_pid_, &status, WNOHANG);
+
+                if (pid > 0) {
+                    break;
+                } else if (pid < 0) {
+                    break;
+                }
+
+                std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            }
+
+            // If process is still running after timeout, force kill it
             if (pid == 0) {
+                LOG_TRACE_THREAD("Force terminating process with pid: {} {}", process_pid_, status);
+
                 kill(process_pid_, SIGKILL);
-                wait(nullptr);
+                waitpid(process_pid_, &status, 0);
+            } else {
+                LOG_TRACE_THREAD("Process with pid: {} terminated with status: {}", process_pid_, status);
             }
         } else {
             status = exit_code_.value();
         }
-
-        LOG_TRACE_THREAD("Terminating process with pid: {} {}", process_pid_, status);
 
         // log the status of the process
         Logger::readFromEngine(signalToString(status), time::datetime_precise(), log_name_, true);

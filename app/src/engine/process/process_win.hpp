@@ -129,11 +129,16 @@ class Process : public IProcess {
         process_list.remove_if([this](const auto &pi) { return pi.identifier == pi_.hProcess; });
 
         DWORD exitCode = 0;
-        GetExitCodeProcess(pi_.hProcess, &exitCode);
 
-        if (exitCode == STILL_ACTIVE) {
-            TerminateProcess(pi_.hProcess, 0);
+        // Wait for the process to terminate, with a 10-second timeout
+        DWORD waitResult = WaitForSingleObject(pi_.hProcess, 10000);
+
+        if (waitResult == WAIT_TIMEOUT) {
+            TerminateProcess(pi_.hProcess, 1);
+            WaitForSingleObject(pi_.hProcess, 1000);
         }
+
+        GetExitCodeProcess(pi_.hProcess, &exitCode);
 
         is_initialized_ = false;
     }

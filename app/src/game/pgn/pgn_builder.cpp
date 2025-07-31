@@ -62,45 +62,32 @@ PgnBuilder::PgnBuilder(const config::Pgn &pgn_config, const MatchData &match, st
         }
     }
 
-    std::string opening_move_list;
     chess::Board opening_board = chess::Board();
     opening_board.set960(is_frc_variant);
     opening_board.setFen(match_.fen);
-    int move_iterator = 1;
-    if (match_.fen == chess::constants::STARTPOS && !is_frc_variant){
-        for (auto it = match_.moves.begin(); it != match_.moves.end(); ++it) {
-            const auto illegal = !it->legal;
-            int move_number = (move_iterator + 1) / 2;
-            if (move_iterator % 2 == 1) {
-                opening_move_list += std::to_string(move_number) + ". " ;
-            }
-            opening_move_list += (illegal ? it->move : chess::uci::moveToSan(opening_board, chess::uci::uciToMove(opening_board, it->move)));
-            if (move_iterator != match_.moves.size()) {
-                opening_move_list += " ";
-            }
-            if (illegal) break;
-            opening_board.makeMove<true>(chess::uci::uciToMove(opening_board, it->move));
-            move_iterator++;
-        }
-    }
-
-    std::string best_match = "";
     std::string best_opening = "";
     std::string best_eco = "";
-    // Find the longest matching prefix
-    for (const auto& [pgn, pair] : MOVE_TO_OPENING) {
-        if (opening_move_list.rfind(pgn, 0) == 0 && pgn.size() > best_match.size()) {
-            best_match = pgn;
-            best_eco = pair.first;
-            best_opening = pair.second;
+    std::string current_fen = opening_board.getFen(false);
+    if (!is_frc_variant){
+        for (auto it = match_.moves.begin(); it != match_.moves.end(); ++it) {
+            const auto illegal = !it->legal;
+            if (illegal) break;   
+
+            for (const auto& [epd, pair] : EPD_TO_OPENING) {
+                if (opening_move_list.rfind(epd, 0) == 0) {
+                    best_eco = pair.first;
+                    best_opening = pair.second;
+                }
+            }
+            
+            opening_board.makeMove<true>(chess::uci::uciToMove(opening_board, it->move));
+            current_fen = opening_board.getFen(false);
         }
     }
-
-    if (!pgn_config_.min) {
-        if (!best_eco.empty() && !best_opening.empty()){
-            addHeader("ECO", best_eco);
-            addHeader("Opening", best_opening);
-        }
+       
+    if (!pgn_config_.min && !best_eco.empty() && !best_opening.empty()) {
+        addHeader("ECO", best_eco);
+        addHeader("Opening", best_opening);
     }
     
 

@@ -69,19 +69,24 @@ PgnBuilder::PgnBuilder(const config::Pgn &pgn_config, const MatchData &match, st
     std::string best_eco = "";
     std::string current_fen = opening_board.getFen(false);
     if (!is_frc_variant){
+        auto found = EPD_TO_OPENING.find(current_fen);
+        if (found != EPD_TO_OPENING.end()) {
+            best_eco = found->second.first;
+            best_opening = found->second.second;
+        }
+        
         for (auto it = match_.moves.begin(); it != match_.moves.end(); ++it) {
             const auto illegal = !it->legal;
             if (illegal) break;   
 
-            for (const auto& [epd, pair] : EPD_TO_OPENING) {
-                if (current_fen == epd) {
-                    best_eco = pair.first;
-                    best_opening = pair.second;
-                }
-            }
-            
             opening_board.makeMove<true>(chess::uci::uciToMove(opening_board, it->move));
             current_fen = opening_board.getFen(false);
+        
+            auto found = EPD_TO_OPENING.find(current_fen);
+            if (found != EPD_TO_OPENING.end()) {
+                best_eco = found->second.first;
+                best_opening = found->second.second;
+            }
         }
     }
        

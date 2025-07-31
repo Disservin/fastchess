@@ -74,7 +74,7 @@ PgnBuilder::PgnBuilder(const config::Pgn &pgn_config, const MatchData &match, st
             if (illegal) break;   
 
             for (const auto& [epd, pair] : EPD_TO_OPENING) {
-                if (opening_move_list.rfind(epd, 0) == 0) {
+                if (current_fen.rfind(epd, 0) == 0) {
                     best_eco = pair.first;
                     best_opening = pair.second;
                 }

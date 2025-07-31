@@ -100,6 +100,15 @@ PgnBuilder::PgnBuilder(const config::Pgn &pgn_config, const MatchData &match, st
             std::getline(ss, eco, '\t');
             std::getline(ss, name, '\t');
             std::getline(ss, pgn, '\t');
+
+            eco.erase(0, eco.find_first_not_of(" \t\r\n"));
+            eco.erase(eco.find_last_not_of(" \t\r\n") + 1);
+        
+            name.erase(0, name.find_first_not_of(" \t\r\n"));
+            name.erase(name.find_last_not_of(" \t\r\n") + 1);
+        
+            pgn.erase(0, pgn.find_first_not_of(" \t\r\n"));
+            pgn.erase(pgn.find_last_not_of(" \t\r\n") + 1);
     
             move_to_opening_name[pgn] = name;
             move_to_eco[pgn] = eco;

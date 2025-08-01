@@ -34,6 +34,8 @@ TEST_SUITE("PGN Builder Tests") {
 [PlyCount "4"]
 [Termination "normal"]
 [TimeControl "-"]
+[ECO "C42"]
+[Opening "Petrov's Defense"]
 
 1. e4 {+1.00/15 1.321s} e5 {+1.23/15 0.430s} 2. Nf3 {+1.45/16 0.310s}
 Nf6 {+10.15/18 1.821s, engine2 got checkmated} 1-0
@@ -74,6 +76,8 @@ Nf6 {+10.15/18 1.821s, engine2 got checkmated} 1-0
 [PlyCount "4"]
 [Termination "normal"]
 [TimeControl "-"]
+[ECO "C42"]
+[Opening "Petrov's Defense"]
 
 1. e4 {+1.00/15 1.321s} e5 {+1.23/15 0.430s} 2. Nf3 {+1.45/16 0.310s}
 Nf6 {+10.15/18 1.821s, engine1 got checkmated} 0-1
@@ -286,6 +290,53 @@ Nc5 {+1.45/16 0.310s, n=0, sd=24, aborted} *
         CHECK(pgn_builder.get() == expected);
     }
 
+    TEST_CASE("PGN Opening ECO Side to Move") {
+        MatchData match_data;
+        match_data.players.white.config.name = "engine1";
+        match_data.players.white.result      = chess::GameResult::WIN;
+
+        match_data.players.black.config.name = "engine2";
+        match_data.players.black.result      = chess::GameResult::LOSE;
+
+        match_data.moves = {MoveData("e2e4", "+1.00", 1321, 15, 4, 0, 0), MoveData("c7c6", "+1.23", 430, 15, 3, 0, 0),
+                            MoveData("d2d4", "+1.45", 310, 16, 24, 0, 0),
+                            MoveData("d7d5", "+1.45", 310, 16, 24, 0, 0),
+                            MoveData("e4e5", "+1.45", 310, 16, 24, 0, 0),
+                            MoveData("c6c5", "+1.45", 310, 16, 24, 0, 0),
+                            MoveData("d4c5", "+1.45", 310, 16, 24, 0, 0),
+                            MoveData("e7e6", "+10.15", 1821, 18, 7, 0, 0)};
+
+        match_data.fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+
+        match_data.termination = MatchTermination::NORMAL;
+
+        match_data.reason = "engine2 got checkmated";
+
+        config::Pgn pgn_config;
+        pgn_config.site = "localhost";
+
+        std::string expected = R"([Event "Fastchess Tournament"]
+[Site "localhost"]
+[Round "1"]
+[White "engine1"]
+[Black "engine2"]
+[Result "1-0"]
+[PlyCount "8"]
+[Termination "normal"]
+[TimeControl "-"]
+[ECO "B12"]
+[Opening "Caro-Kann Defense: Advance Variation, Botvinnik-Carls Defense"]
+
+1. e4 {+1.00/15 1.321s} c6 {+1.23/15 0.430s} 2. d4 {+1.45/16 0.310s}
+d5 {+1.45/16 0.310s} 3. e5 {+1.45/16 0.310s} c5 {+1.45/16 0.310s}
+4. dxc5 {+1.45/16 0.310s} e6 {+10.15/18 1.821s, engine2 got checkmated} 1-0
+
+)";
+
+        pgn::PgnBuilder pgn_builder = pgn::PgnBuilder(pgn_config, match_data, 1);
+        CHECK(pgn_builder.get() == expected);
+    }
+
     TEST_CASE("PGN Start Fullmove > 1 and White to Move") {
         MatchData match_data;
         match_data.players.white.config.name = "engine1";
@@ -318,6 +369,8 @@ Nc5 {+1.45/16 0.310s, n=0, sd=24, aborted} *
 [PlyCount "4"]
 [Termination "normal"]
 [TimeControl "-"]
+[ECO "C42"]
+[Opening "Petrov's Defense"]
 
 17. e4 {+1.00/15 1.321s} e5 {+1.23/15 0.430s} 18. Nf3 {+1.45/16 0.310s}
 Nf6 {+10.15/18 1.821s, engine2 got checkmated} 1-0

@@ -11,6 +11,8 @@
 
 #include <types/tournament.hpp>
 
+#include <game/pgn/openings_data.hpp>
+
 namespace fastchess::pgn {
 
 class PgnBuilder {
@@ -37,6 +39,8 @@ class PgnBuilder {
 
     std::string addMove(chess::Board &board, const MoveData &move, std::size_t move_number, int dots, bool illegal,
                         bool last) noexcept;
+
+    std::optional<Opening> getOpeningClassification(bool is_frc_variant) const;
 
     // Adds a comment to the pgn. The comment is formatted as {first, args}
     template <typename First, typename... Args>

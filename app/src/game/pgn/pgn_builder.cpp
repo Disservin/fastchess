@@ -61,6 +61,13 @@ PgnBuilder::PgnBuilder(const config::Pgn &pgn_config, const MatchData &match, st
         }
     }
 
+    const auto opening = getOpeningClassification(is_frc_variant);
+
+    if (!pgn_config_.min && opening) {
+        addHeader("ECO", opening->eco);
+        addHeader("Opening", opening->name);
+    }
+
     pgn_ << "\n";
     // add body
 
@@ -115,6 +122,35 @@ void PgnBuilder::addHeader(std::string_view name, const T &value) noexcept {
         }
     }
     pgn_ << "[" << name << " \"" << value << "\"]\n";
+}
+
+std::optional<Opening> PgnBuilder::getOpeningClassification(bool is_frc_variant) const {
+    chess::Board opening_board;
+    opening_board.set960(is_frc_variant);
+    opening_board.setFen(match_.fen);
+
+    if (is_frc_variant) {
+        return std::nullopt;
+    }
+
+    auto find_opening = [](const std::string_view fen) -> std::optional<Opening> {
+        if (auto it = EPD_TO_OPENING.find(fen); it != EPD_TO_OPENING.end()) return it->second;
+        return std::nullopt;
+    };
+
+    auto current_opening = find_opening(opening_board.getFen(false));
+
+    for (const auto &move : match_.moves) {
+        if (!move.legal) break;
+
+        opening_board.makeMove<true>(chess::uci::uciToMove(opening_board, move.move));
+
+        if (auto opening = find_opening(opening_board.getFen(false))) {
+            current_opening = opening;
+        }
+    }
+
+    return current_opening;
 }
 
 std::string PgnBuilder::moveNotation(chess::Board &board, const std::string &move) const noexcept {

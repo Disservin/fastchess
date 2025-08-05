@@ -62,12 +62,11 @@ PgnBuilder::PgnBuilder(const config::Pgn &pgn_config, const MatchData &match, st
     }
 
     const auto opening = getOpeningClassification(is_frc_variant);
-       
+
     if (!pgn_config_.min && opening) {
         addHeader("ECO", opening->eco);
         addHeader("Opening", opening->name);
     }
-    
 
     pgn_ << "\n";
     // add body
@@ -134,10 +133,8 @@ std::optional<Opening> PgnBuilder::getOpeningClassification(bool is_frc_variant)
         return std::nullopt;
     }
 
-    auto find_opening = [](const std::string &fen) -> std::optional<Opening> {
-        if (auto it = EPD_TO_OPENING.find(std::string_view(fen)); it != EPD_TO_OPENING.end()) {
-            return it->second;
-        }
+    auto find_opening = [](const std::string_view fen) -> std::optional<Opening> {
+        if (auto it = EPD_TO_OPENING.find(fen); it != EPD_TO_OPENING.end()) return it->second;
         return std::nullopt;
     };
 

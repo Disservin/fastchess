@@ -22,6 +22,7 @@ namespace affinity {
 
 inline bool setAffinity(const std::vector<int>& cpus, HANDLE process_handle) noexcept {
     LOG_TRACE("Setting affinity mask for process handle: {}", process_handle);
+    using SetProcessDefaultCpuSetMasksFunc = BOOL(WINAPI*)(HANDLE, PGROUP_AFFINITY, USHORT);
 
     // Check if SetProcessDefaultCpuSetMasks is available
     const HMODULE hModule = GetModuleHandle(TEXT("kernel32.dll"));
@@ -29,8 +30,8 @@ inline bool setAffinity(const std::vector<int>& cpus, HANDLE process_handle) noe
         // casting the function pointer to the target type is required by the API, so temporarily suppress the warning.
 #    pragma GCC diagnostic push
 #    pragma GCC diagnostic ignored "-Wcast-function-type"
-        const auto pSetProcessDefaultCpuSetMasks = reinterpret_cast<decltype(&SetProcessDefaultCpuSetMasks)>(
-            GetProcAddress(hModule, "SetProcessDefaultCpuSetMasks"));
+        const auto pSetProcessDefaultCpuSetMasks =
+            reinterpret_cast<SetProcessDefaultCpuSetMasksFunc>(GetProcAddress(hModule, "SetProcessDefaultCpuSetMasks"));
 #    pragma GCC diagnostic pop
 
         if (pSetProcessDefaultCpuSetMasks) {

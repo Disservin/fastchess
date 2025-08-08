@@ -1,13 +1,23 @@
 # Script that downloads bin/gen.py from lichess-org/chess-openings, runs it to generate combined data, and updates 'openings_data.cpp' file
 
-import requests
 import os
 import csv
 import shutil
 import subprocess
 import sys
 from pathlib import Path
-
+try:
+    import chess
+    import chess.pgn
+except ImportError:
+    print("Error importing module: No module named 'chess'. Install with: 'pip3 install chess'")
+    sys.exit(1)
+try:
+    import requests
+except ImportError:
+    print("Error importing module: No module named 'requests'. Install with: 'pip3 install requests'")
+    sys.exit(1)
+    
 # === CONFIGURATION ===
 REPO_BASE_URL = (
     "https://raw.githubusercontent.com/lichess-org/chess-openings/refs/heads/master"

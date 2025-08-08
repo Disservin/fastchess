@@ -69,4 +69,12 @@ template <typename T>
 
     return result;
 }
+
+[[nodiscard]] inline std::optional<std::string> stringAfter(const std::vector<std::string> &haystack, std::string_view needle) {
+    auto position = std::find(haystack.begin(), haystack.end(), needle);
+    auto index    = position - haystack.begin();
+    if (position == haystack.end()) return std::nullopt;
+    std::vector<std::string> trailing(haystack.begin() + index + 1, haystack.end());
+    return join(trailing, " ");
+}
 }  // namespace fastchess::str_utils

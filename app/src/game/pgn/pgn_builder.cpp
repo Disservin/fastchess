@@ -193,6 +193,7 @@ std::string PgnBuilder::addMove(chess::Board &board, const MoveData &move, std::
                 pgn_config_.track_nps ? "nps=" + std::to_string(move.nps) : "",                 //
                 pgn_config_.track_hashfull ? "hashfull=" + std::to_string(move.hashfull) : "",  //
                 pgn_config_.track_tbhits ? "tbhits=" + std::to_string(move.tbhits) : "",        //
+                pgn_config_.track_pv ? "pv=" + move.pv : "",                                    //
                 info_lines.empty() ? "" : info_lines,                                           //
                 last ? match_.reason : ""                                                       //
             );

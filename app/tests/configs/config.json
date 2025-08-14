@@ -41,6 +41,7 @@
     "track_tbhits": false,
     "track_timeleft": false,
     "track_latency": false,
+    "track_pv": false,
     "min": false,
     "crc": false
   },

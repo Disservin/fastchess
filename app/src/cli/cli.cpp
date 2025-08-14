@@ -243,7 +243,7 @@ void parsePgnOut(const std::vector<std::string> &params, ArgumentData &argument_
                 }
             } else if (key == "match_line") {
                 argument_data.tournament_config.pgn.additional_lines_rgx.push_back(value);
-            } else if (key == "pv") {
+            } else if (key == "pv" && is_bool(value)) {
                 argument_data.tournament_config.pgn.track_pv = value == "true";
             } else {
                 OptionsParser::throwMissing("pgnout", key, value);

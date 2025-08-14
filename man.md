@@ -14,16 +14,16 @@ fastchess is a command-line tool designed to manage and orchestrate chess games 
 
 The following options are available:
 
-- -quick cmd=ENGINE1 cmd=ENGINE2 book=BOOK
+- -quick cmd=ENGINE1 cmd=ENGINE2 book=BOOK  
     Shortcut for predefined game settings involving two engines, time controls, rounds, and concurrency.
 
-- -event NAME
+- -event NAME  
     Set the event name for the PGN header.
 
-- -site NAME
+- -site NAME  
     Set the site name for the PGN header.
 
-- -config [file=NAME] [discard=(true|false)] [outname=NAME] [stats=(true|false)]
+- -config [file=NAME] [discard=(true|false)] [outname=NAME] [stats=(true|false)]  
     Load engine configurations to resume games from previous sessions.
 
     - file - the file name to load the configuration from.
@@ -32,10 +32,10 @@ The following options are available:
     - outname - the auto-generated file name of the config. Default is "config.json".
     - stats - load the stats from the config file. Defaults to true.
 
-- -concurrency N
+- -concurrency N  
     Play N games concurrently, limited by the number of hardware threads. Default value is 1.
 
-- --compliance ENGINE [ARGS]
+- --compliance ENGINE [ARGS]  
     Check the UCI compliance of an engine by running it with the specified arguments.
 
 - -crc32 pgn=true
@@ -44,13 +44,13 @@ The following options are available:
 - -force-concurrency
     Ignore the hardware concurrency limit and force the specified concurrency.
 
-- -rounds N
+- -rounds N  
     Play N rounds of games where each game within the round uses the same opening. Default value is 2.
 
-- -games N
+- -games N  
     Play N games in each round. Default value is 2. Setting this higher than 2 does not provide meaningful results.
 
-- -variant VARIANT
+- -variant VARIANT  
     Choose between the following game variants:
 
     - standard - play Standard Chess (default)
@@ -65,10 +65,10 @@ The following options are available:
 - -seeds N
     First N engines are playing the gauntlet. Default value is 1.
 
-- -repeat
+- -repeat  
     Set the number of games to 2. Equivalent to -games 2.
 
-- -recover
+- -recover  
     Enables crash recovery to attempt to recover the engine after a crash and continue the tournament.
 
 - -show-latency
@@ -80,32 +80,32 @@ The following options are available:
 - -testEnv
     Specifies that the program is running in a test environment (OpenBench/Fishtest). This will change some outputs/settings.
 
-- -draw movenumber=NUMBER movecount=COUNT score=SCORE
+- -draw movenumber=NUMBER movecount=COUNT score=SCORE  
     Enables draw adjudication based on number of moves, move count, and score threshold.
 
     - NUMBER - number of moves before checking for a draw. Default is 0.
     - COUNT - number of consecutive moves below the score threshold. Default is 1.
     - SCORE - score threshold (in centipawns) for a draw. Default is 0.
 
-- -resign movecount=COUNT score=SCORE [twosided=(true|false)]
+- -resign movecount=COUNT score=SCORE [twosided=(true|false)]  
     Configures engine resignation based on move count and score threshold.
 
     - twosided - if true, enables two-sided resignation. Defaults to false.
     - COUNT - number of consecutive moves above the score threshold. Default is 1.
     - SCORE - score threshold (in centipawns) to resign. Default is 0.
 
-- -maxmoves N
+- -maxmoves N  
     Enables draw adjudication if the game reaches N moves without a result.
 
-- -tb PATHS
+- -tb PATHS  
     Adjudicate games using Syzygy tablebases. PATHS must be a semicolon-separated (on Windows) or colon-separated (other platforms)
     list of paths to the tablebase directories.
     Only the WDL tablebase files are required.
 
-- -tbpieces N
+- -tbpieces N  
     Only use tablebase adjudication for positions with N pieces or less.
 
-- -tbignore50
+- -tbignore50  
     Disable the fifty move rule for tablebase adjudication.
 
 - -tbadjudicate SETTING
@@ -114,7 +114,7 @@ The following options are available:
     - DRAW: Only adjudicate drawn positions
     - BOTH: Adjudicate both wins and draws (default)
 
-- -openings file=NAME format=(epd|pgn) [order=ORDER] [plies=PLIES] [start=START]
+- -openings file=NAME format=(epd|pgn) [order=ORDER] [plies=PLIES] [start=START]  
     Specifies an opening book file and its format for game starting positions.
 
     - format - file format, either epd or pgn.
@@ -122,10 +122,10 @@ The following options are available:
     - PLIES - number of plies for pgn. Defaults to max available plies.
     - START - starting index of the opening book. Default is 1.
 
-- -output format=FORMAT
+- -output format=FORMAT  
     Choose the output format for game results (cutechess or fastchess). Default is fastchess.
 
-- -pgnout file=NAME notation=(san|lan|uci) [nodes=(true|false)] [seldepth=(true|false)] [nps=(true|false)] [hashfull=(true|false)] [tbhits=(true|false)] [timeleft=(true|false)] [latency=(true|false)] [min=(true|false)] [match_line=REGEX]
+- -pgnout file=NAME notation=(san|lan|uci) [nodes=(true|false)] [seldepth=(true|false)] [nps=(true|false)] [hashfull=(true|false)] [tbhits=(true|false)] [pv=(true|false)] [timeleft=(true|false)] [latency=(true|false)] [min=(true|false)] [match_line=REGEX]
     Export games in PGN format with specified notations and optional tracking of nodes, seldepth, and others.
 
     - notation:
@@ -145,28 +145,28 @@ The following options are available:
     - min - Minimal PGN format. Default is false.
     - match_line - Add lines to the PGN that match the given regex.
 
-- -epdout file=NAME
+- -epdout file=NAME  
     Export the final position of each game in EPD format.
 
-- -wait N
+- -wait N  
     Wait N milliseconds between games. Default is 0.
 
-- -noswap
+- -noswap  
     Prevent swapping of colors.
 
-- -reverse
+- -reverse  
     Use a tournament schedule with reversed colors.
 
-- -ratinginterval N
+- -ratinginterval N  
     Set rating interval for the report. Default is 10. Set to 0 to disable.
 
-- -scoreinterval N
+- -scoreinterval N  
     For cutechess output, set interval for printing score results. Default is 1.
 
-- -autosaveinterval N
+- -autosaveinterval N  
     Automatically saves the tournament state every N games. Default is 20. Set to 0 to disable.
 
-- -sprt elo0=ELO0 elo1=ELO1 alpha=ALPHA beta=BETA model=MODEL
+- -sprt elo0=ELO0 elo1=ELO1 alpha=ALPHA beta=BETA model=MODEL  
     Set parameters for the Sequential Probability Ratio Test (SPRT).
 
     - MODEL:
@@ -174,7 +174,7 @@ The following options are available:
         - bayesian - Uses BayesElo.
         - normalized - Uses nElo (default).
 
-- -srand SEED
+- -srand SEED  
     Specify the seed for opening book randomization.
 
 - -log file=NAME level=LEVEL compress=(true|false) realtime=(true|false) engine=(true|false)
@@ -188,24 +188,24 @@ The following options are available:
         - err
         - fatal
 
-- -use-affinity [CPUS]
+- -use-affinity [CPUS]  
     Enable thread affinity for binding engines to CPU cores.
 
     - CPUS - The cpus to use as a list of the form "3,5,7-11,13".
 
-- -report penta=(true|false)
+- -report penta=(true|false)  
     Reports pentanomial statistics (for fastchess output). Defaults to true.
 
-- -version
+- -version  
     Print version number and exit.
 
-- -help
+- -help  
     Print help message and exit.
 
-- -each OPTIONS
+- -each OPTIONS  
     Apply specified OPTIONS to both engines.
 
-- -engine OPTIONS
+- -engine OPTIONS  
     Apply specified OPTIONS to the next engine.
 
     - cmd=COMMAND - Specify engine command.

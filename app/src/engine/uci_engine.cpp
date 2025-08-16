@@ -308,6 +308,8 @@ tl::expected<bool, std::string> UciEngine::start() {
         return tl::make_unexpected("Couldn't start engine process");
     }
 
+    initialized_ = true;
+
     // Wait for the engine to start
     if (!uci()) {
         return tl::make_unexpected("Couldn't write uci to engine");
@@ -316,8 +318,6 @@ tl::expected<bool, std::string> UciEngine::start() {
     if (!uciok(startup_time_)) {
         return tl::make_unexpected("Engine didn't respond to uciok after startup");
     }
-
-    initialized_ = true;
 
     return true;
 }

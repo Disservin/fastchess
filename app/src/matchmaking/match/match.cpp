@@ -1,8 +1,9 @@
-#include <cassert>
 #include <matchmaking/match/match.hpp>
 
 #include <algorithm>
+#include <cassert>
 #include <regex>
+#include <string_view>
 
 #include <chess.hpp>
 #include <core/globals/globals.hpp>
@@ -50,6 +51,20 @@ bool isFen(const std::string& line) { return line.find(';') == std::string::npos
     }
 
     return {GameResultReason::NONE, GameResult::NONE};
+}
+
+[[nodiscard]] std::optional<std::vector<std::string>> extractPvFromInfo(const std::vector<std::string>& info) {
+    if (!str_utils::contains(info, "pv")) return std::nullopt;
+
+    auto it_start = std::find(info.begin(), info.end(), "pv") + 1;
+    auto it_end   = std::find_if(it_start, info.end(), [](const auto& token) { return !uci::isUciMove(token); });
+
+    return std::vector<std::string>(it_start, it_end);
+}
+
+[[nodiscard]] std::optional<std::vector<std::string>> extractPvFromInfo(const std::string& info) {
+    const auto tokens = str_utils::splitString(info, ' ');
+    return extractPvFromInfo(tokens);
 }
 
 }  // namespace
@@ -122,6 +137,7 @@ void Match::addMoveData(const Player& player, int64_t measured_time_ms, int64_t 
     move_data.depth    = str_utils::findElement<int>(info, "depth").value_or(0);
     move_data.seldepth = str_utils::findElement<int>(info, "seldepth").value_or(0);
     move_data.nodes    = str_utils::findElement<uint64_t>(info, "nodes").value_or(0);
+    move_data.pv       = str_utils::join(extractPvFromInfo(info).value_or(std::vector<std::string>{}), " ");
     move_data.score    = player.engine.lastScore();
     move_data.timeleft = timeleft;
     move_data.latency  = latency;
@@ -503,15 +519,15 @@ void Match::verifyPvLines(const Player& us) {
     const static auto verifyPv = [](Board board, const std::string& startpos, const std::vector<std::string>& uci_moves,
                                     const std::string& info, std::string_view name) {
         // skip lines without pv
-        const auto tokens = str_utils::splitString(info, ' ');
-        if (!str_utils::contains(tokens, "pv")) return;
+        auto pv = extractPvFromInfo(info);
 
-        auto it_start = std::find(tokens.begin(), tokens.end(), "pv") + 1;
-        auto it_end   = std::find_if(it_start, tokens.end(), [](const auto& token) { return !uci::isUciMove(token); });
+        if (!pv.has_value() || pv->empty()) {
+            return;
+        }
 
         Movelist moves;
 
-        while (it_start != it_end) {
+        for (const auto& move : *pv) {
             moves.clear();
 
             const auto gameoverResult = isGameOverSimple(board);
@@ -522,8 +538,7 @@ void Match::verifyPvLines(const Player& us) {
                 movegen::legalmoves(moves, board);
             }
 
-            const auto illegal_move =
-                std::find(moves.begin(), moves.end(), uci::uciToMove(board, *it_start)) == moves.end();
+            const auto illegal_move = std::find(moves.begin(), moves.end(), uci::uciToMove(board, move)) == moves.end();
 
             if (gameover || illegal_move) {
                 std::string warning;
@@ -541,7 +556,7 @@ void Match::verifyPvLines(const Player& us) {
 
                 assert(!warning.empty());
 
-                auto out      = fmt::format(fmt::runtime(warning), *it_start, name);
+                auto out      = fmt::format(fmt::runtime(warning), move, name);
                 auto uci_info = fmt::format("Info; {}", info);
                 auto position = fmt::format("Position; {}", startpos == "startpos" ? "startpos" : ("fen " + startpos));
                 auto moves    = fmt::format("Moves; {}", str_utils::join(uci_moves, " "));
@@ -553,9 +568,7 @@ void Match::verifyPvLines(const Player& us) {
                 break;
             }
 
-            board.makeMove<true>(uci::uciToMove(board, *it_start));
-
-            it_start++;
+            board.makeMove<true>(uci::uciToMove(board, move));
         }
     };
 

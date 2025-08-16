@@ -67,6 +67,7 @@ template <typename T>
         result += string + delimiter;
     }
 
-    return result;
+    // remove delimiter at the end
+    return result.substr(0, result.size() - delimiter.size());
 }
 }  // namespace fastchess::str_utils

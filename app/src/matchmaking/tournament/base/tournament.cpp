@@ -39,8 +39,9 @@ BaseTournament::BaseTournament(const stats_map &results) {
     book_   = std::make_unique<book::OpeningBook>(config, initial_matchcount_);
 
     if (!config.pgn.file.empty())
-        file_writer_pgn_ = std::make_unique<util::FileWriter>(config.pgn.file, config.pgn.crc);
-    if (!config.epd.file.empty()) file_writer_epd_ = std::make_unique<util::FileWriter>(config.epd.file);
+        file_writer_pgn_ = std::make_unique<util::FileWriter>(config.pgn.file, config.pgn.append_file, config.pgn.crc);
+    if (!config.epd.file.empty())
+        file_writer_epd_ = std::make_unique<util::FileWriter>(config.epd.file, config.epd.append_file);
 
     pool_.resize(config.concurrency);
 }
@@ -118,6 +119,8 @@ void BaseTournament::saveJson() {
     const auto &config = *config::TournamentConfig;
 
     nlohmann::ordered_json jsonfile = config;
+    jsonfile["pgn"]["append_file"]  = true;
+    jsonfile["epd"]["append_file"]  = true;
     jsonfile["engines"]             = *config::EngineConfigs;
     jsonfile["stats"]               = getResults();
 

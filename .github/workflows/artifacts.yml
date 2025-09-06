@@ -97,7 +97,10 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install g++-multilib gcc-riscv64-linux-gnu g++-riscv64-linux-gnu
+          sudo apt-get install g++-multilib
+          # Install RISC-V toolchain
+          sudo apt-get install crossbuild-essential-riscv64 || \
+          sudo apt-get install gcc-riscv64-unknown-elf g++-riscv64-unknown-elf
           $COMPILER --version
 
       - name: Install windows make

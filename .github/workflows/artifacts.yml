@@ -36,10 +36,13 @@ jobs:
           - {
               name: "Ubuntu 22.04 GCC RISC-V",
               os: ubuntu-22.04,
-              compiler: riscv64-linux-gnu-g++,
+              compiler: g++,
               comp: gcc,
               shell: "bash {0}",
-              native: "-march=rv64gc",
+              native: "",
+              docker: true,
+              platform: "linux/riscv64",
+              image: "riscv64/ubuntu:22.04",
             }
 
           # macOS
@@ -93,14 +96,38 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Extract the commit sha
+        run: |
+          git rev-parse --short "$GITHUB_SHA" > sha
+          echo "COMMIT_SHA=$(cat sha)" >> $GITHUB_ENV
+          echo "Git sha:" $(cat sha)
+
+      - name: Get commit date
+        id: commit_date
+        run: echo "COMMIT_DATE=$(git show -s --date=format:'%Y%m%d' --format=%cd HEAD)" >> $GITHUB_ENV
+
+      # Build RISC-V in Docker
+      - name: Build in Docker (RISC-V)
+        if: matrix.config.docker == true
+        run: |
+          docker run --rm --platform ${{ matrix.config.platform }} \
+            -v ${{ github.workspace }}:/workspace \
+            -w /workspace \
+            ${{ matrix.config.image }} \
+            bash -c "
+              apt-get update &&
+              apt-get install -y build-essential g++ make &&
+              make -j2 build=release NATIVE='${{ matrix.config.native }}' COMPILER='${{ matrix.config.compiler }}' COMPILE_MSG='compiled for ${{ matrix.config.os }} ${{ env.COMMIT_DATE }}-${{ env.COMMIT_SHA }} (CI)' &&
+              strip ./fastchess${{ matrix.config.ext }} || true &&
+              mv fastchess${{ matrix.config.ext }} fastchess-${{ matrix.config.os }}${{ matrix.config.ext }} &&
+              ./fastchess* -version || true
+            "
+
       - name: Installing required packages
-        if: runner.os == 'Linux'
+        if: runner.os == 'Linux' && matrix.config.docker != true
         run: |
           sudo apt-get update
           sudo apt-get install g++-multilib
-          # Install RISC-V toolchain
-          sudo apt-get install crossbuild-essential-riscv64 || \
-          sudo apt-get install gcc-riscv64-unknown-elf g++-riscv64-unknown-elf
           $COMPILER --version
 
       - name: Install windows make
@@ -110,16 +137,9 @@ jobs:
           msystem: ${{matrix.config.msys_sys}}
           install: mingw-w64-${{matrix.config.msys_env}} make git expect
 
-      - name: Extract the commit sha
-        run: |
-          git rev-parse --short "$GITHUB_SHA" > sha && echo "COMMIT_SHA=$(cat sha)" >> $GITHUB_ENV && echo "Git sha:" $(cat sha)
-
-      - name: Get commit date
-        id: commit_date
-        run: echo "COMMIT_DATE=$(git show -s --date=format:'%Y%m%d' --format=%cd HEAD)" >> $GITHUB_ENV
-
-      # Build
+      # Build (non-Docker)
       - name: Building fastchess
+        if: matrix.config.docker != true
         run: |
           make -j2 build=release NATIVE="$NATIVE" COMPILER="$COMPILER" COMPILE_MSG="compiled for ${{ matrix.config.os }} ${{ env.COMMIT_DATE }}-${{ env.COMMIT_SHA }} (CI)"
           strip ./fastchess$EXT || true

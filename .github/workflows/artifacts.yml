@@ -106,10 +106,16 @@ jobs:
         id: commit_date
         run: echo "COMMIT_DATE=$(git show -s --date=format:'%Y%m%d' --format=%cd HEAD)" >> $GITHUB_ENV
 
+      - name: Set up QEMU
+        if: matrix.config.base_image
+        uses: docker/setup-qemu-action@v3
+
       # Build RISC-V in Docker
       - name: Build in Docker (RISC-V)
         if: matrix.config.docker == true
         run: |
+          sudo apt-get update
+          sudo apt-get install qemu-user-static
           docker run --rm --platform ${{ matrix.config.platform }} \
             -v ${{ github.workspace }}:/workspace \
             -w /workspace \

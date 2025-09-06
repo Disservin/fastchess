@@ -24,6 +24,7 @@ jobs:
               comp: gcc,
               shell: "bash {0}",
               native: "-march=x86-64",
+              extra_ldflags: "",
             }
           - {
               name: "Ubuntu 22.04 GCC ARM64",
@@ -32,6 +33,7 @@ jobs:
               comp: gcc,
               shell: "bash {0}",
               native: "-march=armv8-a",
+              extra_ldflags: "",
             }
           - {
               name: "Ubuntu 22.04 GCC RISC-V",
@@ -39,7 +41,8 @@ jobs:
               compiler: g++,
               comp: gcc,
               shell: "bash {0}",
-              native: "-latomic",
+              native: "",
+              extra_ldflags: "-latomic",
               docker: true,
               platform: "linux/riscv64",
               image: "riscv64/ubuntu:22.04",
@@ -53,6 +56,7 @@ jobs:
               comp: clang,
               shell: "bash {0}",
               native: "",
+              extra_ldflags: "",
             }
           - {
               name: "MacOS Apple Clang ARM64",
@@ -61,6 +65,7 @@ jobs:
               comp: clang,
               shell: "bash {0}",
               native: "",
+              extra_ldflags: "",
             }
 
           # Windows (MSYS2 / MinGW)
@@ -74,6 +79,7 @@ jobs:
               shell: "msys2 {0}",
               ext: .exe,
               native: "-march=x86-64",
+              extra_ldflags: "",
             }
           - {
               name: "Windows GCC ARM64",
@@ -85,6 +91,7 @@ jobs:
               shell: "msys2 {0}",
               ext: .exe,
               native: "",
+              extra_ldflags: "",
             }
 
     defaults:
@@ -137,7 +144,7 @@ jobs:
             bash -c "
               apt-get update &&
               apt-get install -y build-essential g++ make &&
-              make -j2 build=release NATIVE='${{ matrix.config.native }}' COMPILER='${{ matrix.config.compiler }}' COMPILE_MSG='compiled for ${{ matrix.config.os }} ${{ env.COMMIT_DATE }}-${{ env.COMMIT_SHA }} (CI)' &&
+              make -j2 build=release EXTRA_LDFLAGS='${{ matrix.config.extra_ldflags }}' NATIVE='${{ matrix.config.native }}' COMPILER='${{ matrix.config.compiler }}' COMPILE_MSG='compiled for ${{ matrix.config.os }} ${{ env.COMMIT_DATE }}-${{ env.COMMIT_SHA }} (CI)' &&
               strip ./fastchess${{ matrix.config.ext }} || true &&
               mv fastchess${{ matrix.config.ext }} fastchess-${{ matrix.config.os }}${{ matrix.config.ext }} &&
               ./fastchess* -version
@@ -147,7 +154,7 @@ jobs:
       - name: Building fastchess
         if: matrix.config.docker != true
         run: |
-          make -j2 build=release NATIVE="$NATIVE" COMPILER="$COMPILER" COMPILE_MSG="compiled for ${{ matrix.config.os }} ${{ env.COMMIT_DATE }}-${{ env.COMMIT_SHA }} (CI)"
+          make -j2 build=release EXTRA_LDFLAGS='${{ matrix.config.extra_ldflags }}' NATIVE="$NATIVE" COMPILER="$COMPILER" COMPILE_MSG="compiled for ${{ matrix.config.os }} ${{ env.COMMIT_DATE }}-${{ env.COMMIT_SHA }} (CI)"
           strip ./fastchess$EXT || true
           mv fastchess$EXT fastchess-$OS$EXT
           ./fastchess* -version

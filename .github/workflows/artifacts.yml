@@ -12,25 +12,70 @@ jobs:
       COMP: ${{ matrix.config.comp }}
       EXT: ${{ matrix.config.ext }}
       OS: ${{ matrix.config.os }}
+      NATIVE: ${{ matrix.config.native }}
     strategy:
       matrix:
         config:
+          # Linux
           - {
-              name: "Ubuntu 22.04 GCC",
+              name: "Ubuntu 22.04 GCC x86-64",
               os: ubuntu-22.04,
               compiler: g++,
               comp: gcc,
               shell: "bash {0}",
+              native: "-march=x86-64",
+              arch: "x86-64",
+              extra_ldflags: "",
             }
           - {
-              name: "MacOS Apple Clang",
+              name: "Ubuntu 22.04 GCC ARM64",
+              os: ubuntu-22.04-arm,
+              compiler: g++,
+              comp: gcc,
+              shell: "bash {0}",
+              native: "",
+              arch: "arm64",
+              extra_ldflags: "",
+            }
+          - {
+              name: "Ubuntu 22.04 GCC RISC-V",
+              os: ubuntu-22.04,
+              compiler: g++,
+              comp: gcc,
+              shell: "bash {0}",
+              native: "",
+              extra_ldflags: "-latomic",
+              docker: true,
+              platform: "linux/riscv64",
+              image: "riscv64/ubuntu:22.04",
+              arch: "risc-v",
+            }
+
+          # macOS
+          - {
+              name: "MacOS Apple Clang x86-64",
+              os: macos-13,
+              compiler: clang++,
+              comp: clang,
+              shell: "bash {0}",
+              native: "",
+              extra_ldflags: "",
+              arch: "x86-64",
+            }
+          - {
+              name: "MacOS Apple Clang ARM64",
               os: macos-latest,
               compiler: clang++,
               comp: clang,
               shell: "bash {0}",
+              native: "",
+              extra_ldflags: "",
+              arch: "arm64",
             }
+
+          # Windows (MSYS2 / MinGW)
           - {
-              name: "Windows GCC",
+              name: "Windows GCC x86-64",
               os: windows-latest,
               compiler: g++,
               comp: MINGW,
@@ -38,21 +83,39 @@ jobs:
               msys_env: "x86_64-gcc",
               shell: "msys2 {0}",
               ext: .exe,
+              native: "-march=x86-64",
+              extra_ldflags: "",
+              arch: "x86-64",
             }
+          - {
+              name: "Windows GCC ARM64",
+              os: windows-11-arm,
+              compiler: g++,
+              comp: MINGW,
+              msys_sys: "mingw64",
+              msys_env: "x86_64-gcc",
+              shell: "msys2 {0}",
+              ext: .exe,
+              native: "",
+              extra_ldflags: "",
+              arch: "arm64",
+            }
+
     defaults:
       run:
         shell: ${{ matrix.config.shell }}
+
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
       - name: Installing required packages
-        if: runner.os == 'Linux'
+        if: runner.os == 'Linux' && matrix.config.docker != true
         run: |
           sudo apt-get update
           sudo apt-get install g++-multilib
-          g++ --version
+          $COMPILER --version
 
       - name: Install windows make
         if: runner.os == 'Windows'
@@ -63,18 +126,43 @@ jobs:
 
       - name: Extract the commit sha
         run: |
-          git rev-parse --short "$GITHUB_SHA" > sha && echo "COMMIT_SHA=$(cat sha)" >> $GITHUB_ENV && echo "Git sha:" $(cat sha)
+          git rev-parse --short "$GITHUB_SHA" > sha
+          echo "COMMIT_SHA=$(cat sha)" >> $GITHUB_ENV
+          echo "Git sha:" $(cat sha)
 
       - name: Get commit date
         id: commit_date
         run: echo "COMMIT_DATE=$(git show -s --date=format:'%Y%m%d' --format=%cd HEAD)" >> $GITHUB_ENV
 
-      # Compiles
+      - name: Set up QEMU
+        if: matrix.config.base_image
+        uses: docker/setup-qemu-action@v3
 
-      - name: Building fastchess
+      # Build RISC-V in Docker
+      - name: Build in Docker (RISC-V)
+        if: matrix.config.docker == true
         run: |
-          make -j2 build=release COMPILE_MSG="compiled for ${{ matrix.config.os }} ${{ env.COMMIT_DATE }}-${{ env.COMMIT_SHA }} (CI)"
-          strip ./fastchess$EXT
+          sudo apt-get update
+          sudo apt-get install qemu-user-static
+          docker run --rm --platform ${{ matrix.config.platform }} \
+            -v ${{ github.workspace }}:/workspace \
+            -w /workspace \
+            ${{ matrix.config.image }} \
+            bash -c "
+              apt-get update &&
+              apt-get install -y build-essential g++ make &&
+              make -j2 build=release EXTRA_LDFLAGS='${{ matrix.config.extra_ldflags }}' NATIVE='${{ matrix.config.native }}' COMPILER='${{ matrix.config.compiler }}' COMPILE_MSG='compiled for ${{ matrix.config.os }} ${{ env.COMMIT_DATE }}-${{ env.COMMIT_SHA }} (CI)' &&
+              strip ./fastchess${{ matrix.config.ext }} || true &&
+              mv fastchess${{ matrix.config.ext }} fastchess-${{ matrix.config.os }}${{ matrix.config.ext }} &&
+              ./fastchess* -version
+            "
+
+      # Build (non-Docker)
+      - name: Building fastchess
+        if: matrix.config.docker != true
+        run: |
+          make -j2 build=release EXTRA_LDFLAGS='${{ matrix.config.extra_ldflags }}' NATIVE="$NATIVE" COMPILER="$COMPILER" COMPILE_MSG="compiled for ${{ matrix.config.os }} ${{ env.COMMIT_DATE }}-${{ env.COMMIT_SHA }} (CI)"
+          strip ./fastchess$EXT || true
           mv fastchess$EXT fastchess-$OS$EXT
           ./fastchess* -version
 
@@ -85,7 +173,7 @@ jobs:
       - name: Archive binaries
         uses: actions/upload-artifact@v4
         with:
-          name: fastchess-${{ matrix.config.os }}
+          name: fastchess-${{ matrix.config.os }}-${{ matrix.config.arch }}
           path: |
             app
             .clang-format

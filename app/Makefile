@@ -17,6 +17,9 @@ CXXFLAGS_TEST    := -O2 -std=c++17 -Wall -Wextra -pedantic -Wuninitialized -g3 -
 CXXFLAGS_COV     := -O0 --coverage -g -std=c++17 -Wall -Wextra -pedantic -Wuninitialized -g3 -fno-omit-frame-pointer
 INC              := -I$(INCDIR) -Ithird_party
 
+# CLI defined..
+EXTRA_LDFLAGS    :=
+
 SRC_FILES        := \
 	$(SRCDIR)/cli/cli.cpp \
 	$(SRCDIR)/cli/sanitize.cpp \
@@ -200,7 +203,7 @@ coverage: tests
 	mkdir -p coverage && cd coverage &&  gcovr --html-details coverage.html --gcov-ignore-errors=no_working_dir_found --gcov-ignore-parse-errors -f "../src" -r ../. ..
 
 tests: $(TARGET) compile-random-mover
-	$(CXX) $(CXXFLAGS) ./tests/mock/engine/dummy_engine.cpp -o ./tests/mock/engine/dummy_engine$(SUFFIX) $(LDFLAGS)
+	$(CXX) $(CXXFLAGS) ./tests/mock/engine/dummy_engine.cpp -o ./tests/mock/engine/dummy_engine$(SUFFIX) $(LDFLAGS) $(EXTRA_LDFLAGS)
 
 format: $(SRC_FILES) $(HEADERS)
 	clang-format -i $^
@@ -212,7 +215,7 @@ compile-random-mover: $(TARGET)
 	$(CXX) -O3 -std=c++17 ./tests/mock/engine/random_mover.cpp -o ./tests/mock/engine/random_mover
 
 $(TARGET): $(OBJECTS)
-	$(CXX) $(CXXFLAGS) $(NATIVE) $(INC) $(DEPFLAGS) -o $@ $^ $(LDFLAGS)
+	$(CXX) $(CXXFLAGS) $(NATIVE) $(INC) $(DEPFLAGS) -o $@ $^ $(LDFLAGS) $(EXTRA_LDFLAGS)
 
 $(BUILDDIR)/%.o: %.cpp | build_directories
 	$(CXX) $(CXXFLAGS) $(NATIVE) $(INC) $(DEPFLAGS) -c $< -o $@

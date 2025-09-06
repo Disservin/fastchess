@@ -39,7 +39,7 @@ jobs:
               compiler: g++,
               comp: gcc,
               shell: "bash {0}",
-              native: "",
+              native: "-latomic",
               docker: true,
               platform: "linux/riscv64",
               image: "riscv64/ubuntu:22.04",

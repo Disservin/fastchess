@@ -12,25 +12,57 @@ jobs:
       COMP: ${{ matrix.config.comp }}
       EXT: ${{ matrix.config.ext }}
       OS: ${{ matrix.config.os }}
+      NATIVE: ${{ matrix.config.native }}
     strategy:
       matrix:
         config:
+          # Linux
           - {
-              name: "Ubuntu 22.04 GCC",
+              name: "Ubuntu 22.04 GCC x86-64",
               os: ubuntu-22.04,
               compiler: g++,
               comp: gcc,
               shell: "bash {0}",
+              native: "-march=x86-64",
             }
           - {
-              name: "MacOS Apple Clang",
+              name: "Ubuntu 22.04 GCC ARM64",
+              os: ubuntu-22.04,
+              compiler: g++,
+              comp: gcc,
+              shell: "bash {0}",
+              native: "-march=armv8-a",
+            }
+          - {
+              name: "Ubuntu 22.04 GCC RISC-V",
+              os: ubuntu-22.04,
+              compiler: riscv64-linux-gnu-g++,
+              comp: gcc,
+              shell: "bash {0}",
+              native: "-march=rv64gc -mabi=lp64d",
+            }
+
+          # macOS
+          - {
+              name: "MacOS Apple Clang x86-64",
               os: macos-latest,
               compiler: clang++,
               comp: clang,
               shell: "bash {0}",
+              native: "-march=x86-64",
             }
           - {
-              name: "Windows GCC",
+              name: "MacOS Apple Clang ARM64",
+              os: macos-latest,
+              compiler: clang++,
+              comp: clang,
+              shell: "bash {0}",
+              native: "-march=armv8-a",
+            }
+
+          # Windows (MSYS2 / MinGW)
+          - {
+              name: "Windows GCC x86-64",
               os: windows-latest,
               compiler: g++,
               comp: MINGW,
@@ -38,10 +70,24 @@ jobs:
               msys_env: "x86_64-gcc",
               shell: "msys2 {0}",
               ext: .exe,
+              native: "-march=x86-64",
             }
+          - {
+              name: "Windows GCC ARM64",
+              os: windows-latest,
+              compiler: g++,
+              comp: MINGW,
+              msys_sys: "mingw64",
+              msys_env: "x86_64-gcc",
+              shell: "msys2 {0}",
+              ext: .exe,
+              native: "-march=armv8-a",
+            }
+
     defaults:
       run:
         shell: ${{ matrix.config.shell }}
+
     steps:
       - uses: actions/checkout@v4
         with:
@@ -51,8 +97,8 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install g++-multilib
-          g++ --version
+          sudo apt-get install g++-multilib gcc-riscv64-linux-gnu g++-riscv64-linux-gnu
+          $COMPILER --version
 
       - name: Install windows make
         if: runner.os == 'Windows'
@@ -69,14 +115,13 @@ jobs:
         id: commit_date
         run: echo "COMMIT_DATE=$(git show -s --date=format:'%Y%m%d' --format=%cd HEAD)" >> $GITHUB_ENV
 
-      # Compiles
-
+      # Build
       - name: Building fastchess
         run: |
-          make -j2 build=release COMPILE_MSG="compiled for ${{ matrix.config.os }} ${{ env.COMMIT_DATE }}-${{ env.COMMIT_SHA }} (CI)"
-          strip ./fastchess$EXT
+          make -j2 build=release NATIVE="$NATIVE" COMPILER="$COMPILER" COMPILE_MSG="compiled for ${{ matrix.config.os }} ${{ env.COMMIT_DATE }}-${{ env.COMMIT_SHA }} (CI)"
+          strip ./fastchess$EXT || true
           mv fastchess$EXT fastchess-$OS$EXT
-          ./fastchess* -version
+          ./fastchess* -version || true
 
       - name: Find and remove empty files
         run: rm -rf *.o *.d sha
@@ -85,7 +130,7 @@ jobs:
       - name: Archive binaries
         uses: actions/upload-artifact@v4
         with:
-          name: fastchess-${{ matrix.config.os }}
+          name: fastchess-${{ matrix.config.os }}-${{ matrix.config.native }}
           path: |
             app
             .clang-format

@@ -48,11 +48,11 @@ jobs:
           # macOS
           - {
               name: "MacOS Apple Clang x86-64",
-              os: macos-latest,
+              os: macos-13,
               compiler: clang++,
               comp: clang,
               shell: "bash {0}",
-              native: "-march=x86-64",
+              native: "",
             }
           - {
               name: "MacOS Apple Clang ARM64",
@@ -140,7 +140,7 @@ jobs:
               make -j2 build=release NATIVE='${{ matrix.config.native }}' COMPILER='${{ matrix.config.compiler }}' COMPILE_MSG='compiled for ${{ matrix.config.os }} ${{ env.COMMIT_DATE }}-${{ env.COMMIT_SHA }} (CI)' &&
               strip ./fastchess${{ matrix.config.ext }} || true &&
               mv fastchess${{ matrix.config.ext }} fastchess-${{ matrix.config.os }}${{ matrix.config.ext }} &&
-              ./fastchess* -version || true
+              ./fastchess* -version
             "
 
       # Build (non-Docker)
@@ -150,7 +150,7 @@ jobs:
           make -j2 build=release NATIVE="$NATIVE" COMPILER="$COMPILER" COMPILE_MSG="compiled for ${{ matrix.config.os }} ${{ env.COMMIT_DATE }}-${{ env.COMMIT_SHA }} (CI)"
           strip ./fastchess$EXT || true
           mv fastchess$EXT fastchess-$OS$EXT
-          ./fastchess* -version || true
+          ./fastchess* -version
 
       - name: Find and remove empty files
         run: rm -rf *.o *.d sha

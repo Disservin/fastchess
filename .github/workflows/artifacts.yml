@@ -9,10 +9,10 @@ jobs:
     runs-on: ${{ matrix.config.os }}
     env:
       COMPILER: ${{ matrix.config.compiler }}
-      COMP: ${{ matrix.config.comp }}
       EXT: ${{ matrix.config.ext }}
       OS: ${{ matrix.config.os }}
       NATIVE: ${{ matrix.config.native }}
+      PLATFORM: ${{ matrix.config.platform }}
     strategy:
       matrix:
         config:
@@ -21,34 +21,34 @@ jobs:
               name: "Ubuntu 22.04 GCC x86-64",
               os: ubuntu-22.04,
               compiler: g++,
-              comp: gcc,
               shell: "bash {0}",
               native: "-march=x86-64",
               arch: "x86-64",
               extra_ldflags: "",
+              platform: "linux",
             }
           - {
               name: "Ubuntu 22.04 GCC ARM64",
               os: ubuntu-22.04-arm,
               compiler: g++,
-              comp: gcc,
               shell: "bash {0}",
               native: "",
               arch: "arm64",
               extra_ldflags: "",
+              platform: "linux",
             }
           - {
               name: "Ubuntu 22.04 GCC RISC-V",
               os: ubuntu-22.04,
               compiler: g++,
-              comp: gcc,
               shell: "bash {0}",
               native: "",
               extra_ldflags: "-latomic",
               docker: true,
-              platform: "linux/riscv64",
+              docker_platform: "linux/riscv64",
               image: "riscv64/ubuntu:22.04",
               arch: "risc-v",
+              platform: "linux",
             }
 
           # macOS
@@ -56,21 +56,21 @@ jobs:
               name: "MacOS Apple Clang x86-64",
               os: macos-13,
               compiler: clang++,
-              comp: clang,
               shell: "bash {0}",
               native: "",
               extra_ldflags: "",
               arch: "x86-64",
+              platform: "mac",
             }
           - {
               name: "MacOS Apple Clang ARM64",
               os: macos-latest,
               compiler: clang++,
-              comp: clang,
               shell: "bash {0}",
               native: "",
               extra_ldflags: "",
               arch: "arm64",
+              platform: "mac",
             }
 
           # Windows (MSYS2 / MinGW)
@@ -78,7 +78,6 @@ jobs:
               name: "Windows GCC x86-64",
               os: windows-latest,
               compiler: g++,
-              comp: MINGW,
               msys_sys: "mingw64",
               msys_env: "x86_64-gcc",
               shell: "msys2 {0}",
@@ -86,12 +85,12 @@ jobs:
               native: "-march=x86-64",
               extra_ldflags: "",
               arch: "x86-64",
+              platform: "windows",
             }
           - {
               name: "Windows GCC ARM64",
               os: windows-11-arm,
               compiler: g++,
-              comp: MINGW,
               msys_sys: "mingw64",
               msys_env: "x86_64-gcc",
               shell: "msys2 {0}",
@@ -99,6 +98,7 @@ jobs:
               native: "",
               extra_ldflags: "",
               arch: "arm64",
+              platform: "windows",
             }
 
     defaults:
@@ -144,7 +144,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install qemu-user-static
-          docker run --rm --platform ${{ matrix.config.platform }} \
+          docker run --rm --platform ${{ matrix.config.docker_platform }} \
             -v ${{ github.workspace }}:/workspace \
             -w /workspace \
             ${{ matrix.config.image }} \
@@ -153,7 +153,7 @@ jobs:
               apt-get install -y build-essential g++ make &&
               make -j2 build=release EXTRA_LDFLAGS='${{ matrix.config.extra_ldflags }}' NATIVE='${{ matrix.config.native }}' COMPILER='${{ matrix.config.compiler }}' COMPILE_MSG='compiled for ${{ matrix.config.os }} ${{ env.COMMIT_DATE }}-${{ env.COMMIT_SHA }} (CI)' &&
               strip ./fastchess${{ matrix.config.ext }} || true &&
-              mv fastchess${{ matrix.config.ext }} fastchess-${{ matrix.config.os }}${{ matrix.config.ext }} &&
+              mv fastchess${{ matrix.config.ext }} fastchess-${{ matrix.config.platform }}${{ matrix.config.ext }} &&
               ./fastchess* -version
             "
 
@@ -163,7 +163,6 @@ jobs:
         run: |
           make -j2 build=release EXTRA_LDFLAGS='${{ matrix.config.extra_ldflags }}' NATIVE="$NATIVE" COMPILER="$COMPILER" COMPILE_MSG="compiled for ${{ matrix.config.os }} ${{ env.COMMIT_DATE }}-${{ env.COMMIT_SHA }} (CI)"
           strip ./fastchess$EXT || true
-          mv fastchess$EXT fastchess-$OS$EXT
           ./fastchess* -version
 
       - name: Find and remove empty files
@@ -173,7 +172,7 @@ jobs:
       - name: Archive binaries
         uses: actions/upload-artifact@v4
         with:
-          name: fastchess-${{ matrix.config.os }}-${{ matrix.config.arch }}
+          name: fastchess-${{ matrix.config.platform }}-${{ matrix.config.arch }}
           path: |
             app
             .clang-format
@@ -182,4 +181,4 @@ jobs:
             man
             README.md
             LICENSE
-            fastchess-${{ matrix.config.os }}${{ matrix.config.ext }}
+            fastchess${{ matrix.config.ext }}

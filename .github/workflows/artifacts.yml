@@ -39,7 +39,7 @@ jobs:
               compiler: riscv64-linux-gnu-g++,
               comp: gcc,
               shell: "bash {0}",
-              native: "-march=rv64gc -mabi=lp64d",
+              native: "-march=rv64gc",
             }
 
           # macOS

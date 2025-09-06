@@ -24,6 +24,7 @@ jobs:
               comp: gcc,
               shell: "bash {0}",
               native: "-march=x86-64",
+              arch: "x86-64",
               extra_ldflags: "",
             }
           - {
@@ -32,7 +33,8 @@ jobs:
               compiler: g++,
               comp: gcc,
               shell: "bash {0}",
-              native: "-march=armv8-a",
+              native: "",
+              arch: "arm64",
               extra_ldflags: "",
             }
           - {
@@ -46,6 +48,7 @@ jobs:
               docker: true,
               platform: "linux/riscv64",
               image: "riscv64/ubuntu:22.04",
+              arch: "risc-v",
             }
 
           # macOS
@@ -57,6 +60,7 @@ jobs:
               shell: "bash {0}",
               native: "",
               extra_ldflags: "",
+              arch: "x86-64",
             }
           - {
               name: "MacOS Apple Clang ARM64",
@@ -66,6 +70,7 @@ jobs:
               shell: "bash {0}",
               native: "",
               extra_ldflags: "",
+              arch: "arm64",
             }
 
           # Windows (MSYS2 / MinGW)
@@ -80,6 +85,7 @@ jobs:
               ext: .exe,
               native: "-march=x86-64",
               extra_ldflags: "",
+              arch: "x86-64",
             }
           - {
               name: "Windows GCC ARM64",
@@ -92,6 +98,7 @@ jobs:
               ext: .exe,
               native: "",
               extra_ldflags: "",
+              arch: "arm64",
             }
 
     defaults:
@@ -166,7 +173,7 @@ jobs:
       - name: Archive binaries
         uses: actions/upload-artifact@v4
         with:
-          name: fastchess-${{ matrix.config.os }}-${{ matrix.config.native }}
+          name: fastchess-${{ matrix.config.os }}-${{ matrix.config.arch }}
           path: |
             app
             .clang-format

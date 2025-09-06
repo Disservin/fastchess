@@ -96,6 +96,20 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Installing required packages
+        if: runner.os == 'Linux' && matrix.config.docker != true
+        run: |
+          sudo apt-get update
+          sudo apt-get install g++-multilib
+          $COMPILER --version
+
+      - name: Install windows make
+        if: runner.os == 'Windows'
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: ${{matrix.config.msys_sys}}
+          install: mingw-w64-${{matrix.config.msys_env}} make git expect
+
       - name: Extract the commit sha
         run: |
           git rev-parse --short "$GITHUB_SHA" > sha
@@ -128,20 +142,6 @@ jobs:
               mv fastchess${{ matrix.config.ext }} fastchess-${{ matrix.config.os }}${{ matrix.config.ext }} &&
               ./fastchess* -version || true
             "
-
-      - name: Installing required packages
-        if: runner.os == 'Linux' && matrix.config.docker != true
-        run: |
-          sudo apt-get update
-          sudo apt-get install g++-multilib
-          $COMPILER --version
-
-      - name: Install windows make
-        if: runner.os == 'Windows'
-        uses: msys2/setup-msys2@v2
-        with:
-          msystem: ${{matrix.config.msys_sys}}
-          install: mingw-w64-${{matrix.config.msys_env}} make git expect
 
       # Build (non-Docker)
       - name: Building fastchess

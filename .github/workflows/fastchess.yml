@@ -12,6 +12,10 @@ jobs:
   Artifacts:
     if: github.ref == 'refs/heads/master' || github.ref_type == 'tag'
     uses: ./.github/workflows/artifacts.yml
+  Release:
+    if: github.ref_type == 'tag'
+    needs: [Artifacts]
+    uses: ./.github/workflows/release.yml
   E2E-Tests:
     if: github.ref_type != 'tag'
     uses: ./.github/workflows/e2e_tests.yml

@@ -2,6 +2,8 @@ name: Fastchess
 
 on:
   push:
+    tags:
+      - "v*"
     branches: ["master"]
   pull_request:
     branches: ["master"]
@@ -11,8 +13,11 @@ jobs:
     if: github.ref == 'refs/heads/master'
     uses: ./.github/workflows/artifacts.yml
   E2E-Tests:
+    if: github.ref_type != 'tag'
     uses: ./.github/workflows/e2e_tests.yml
   Unit-Tests:
+    if: github.ref_type != 'tag'
     uses: ./.github/workflows/unit_tests.yml
   Cutechess-Tests:
+    if: github.ref_type != 'tag'
     uses: ./.github/workflows/cutechess_tests.yml

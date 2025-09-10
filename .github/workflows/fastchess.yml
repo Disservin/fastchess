@@ -12,12 +12,29 @@ jobs:
   Artifacts:
     if: github.ref == 'refs/heads/master' || github.ref_type == 'tag'
     uses: ./.github/workflows/artifacts.yml
+  PreCreateRelease:
+    needs: [Artifacts]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Release
+        uses: softprops/action-gh-release@6cbd405e2c4e67a21c47fa9e383d020e4e28b836 # v2.3.3
+        if: github.ref_type == 'tag'
+        with:
+          draft: true
+          generate_release_notes: true
+          token: ${{ secrets.token }}
+
   Release:
     if: github.ref_type == 'tag'
-    needs: [Artifacts]
+    needs: [PreCreateRelease]
+    permissions:
+      contents: write
+    uses: ./.github/workflows/release.yml
     secrets:
       token: ${{ secrets.GITHUB_TOKEN }}
-    uses: ./.github/workflows/release.yml
   E2E-Tests:
     if: github.ref_type != 'tag'
     uses: ./.github/workflows/e2e_tests.yml

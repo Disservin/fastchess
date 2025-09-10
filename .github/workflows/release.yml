@@ -1,4 +1,4 @@
-name: Upload Artifacts
+name: Create Release
 
 on:
   workflow_call:
@@ -9,7 +9,8 @@ jobs:
   Artifacts:
     name: ${{ matrix.config.name }} Binary
     runs-on: ubuntu-latest
-    # needs: [Archive]
+    permissions:
+      contents: write
     if: startsWith(github.ref_name, 'v') && github.ref_type == 'tag'
     strategy:
       matrix:

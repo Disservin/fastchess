@@ -73,10 +73,10 @@ jobs:
           zip -r fastchess-${{ matrix.config.platform }}-${{ matrix.config.arch }}.zip fastchess-${{ matrix.config.platform }}-${{ matrix.config.arch }}
 
       - name: Release
-        continue-on-error: true
-        uses: softprops/action-gh-release@4634c16e79c963813287e889244c50009e7f0981
+        uses: softprops/action-gh-release@6cbd405e2c4e67a21c47fa9e383d020e4e28b836 # v2.3.3
         if: github.ref_type == 'tag'
         with:
           draft: true
+          generate_release_notes: true
           files: fastchess-${{ matrix.config.platform }}-${{ matrix.config.arch }}.${{ matrix.config.archive_ext }}
           token: ${{ secrets.token }}

@@ -34,6 +34,7 @@
     "site": "?",
     "file": "",
     "notation": 0,
+    "append_file": true,
     "track_nodes": false,
     "track_seldepth": false,
     "track_nps": false,
@@ -46,7 +47,8 @@
     "crc": false
   },
   "epd": {
-    "file": ""
+    "file": "",
+    "append_file": true
   },
   "sprt": {
     "alpha": 0.0,

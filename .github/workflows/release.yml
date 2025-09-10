@@ -7,7 +7,7 @@ on:
         required: true
 jobs:
   Artifacts:
-    name: ${{ matrix.config.name }} Binary
+    name: ${{ matrix.config.os }} ${{ matrix.config.arch }} binary
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -17,32 +17,32 @@ jobs:
         config:
           # Linux
           - {
-              os: ubuntu,
+              os: "ubuntu",
               arch: "x86-64",
               platform: "linux",
               archive_ext: "tar",
             }
           - { os: ubuntu, arch: "arm64", platform: "linux", archive_ext: "tar" }
           - {
-              os: ubuntu,
+              os: "ubuntu",
               arch: "risc-v",
               platform: "linux",
               archive_ext: "tar",
             }
 
           # macOS
-          - { os: macos, arch: "x86-64", platform: "mac", archive_ext: "tar" }
-          - { os: macos, arch: "arm64", platform: "mac", archive_ext: "tar" }
+          - { os: "macos", arch: "x86-64", platform: "mac", archive_ext: "tar" }
+          - { os: "macos", arch: "arm64", platform: "mac", archive_ext: "tar" }
 
           # Windows (MSYS2 / MinGW)
           - {
-              os: windows,
+              os: "windows",
               archive_ext: "zip",
               arch: "x86-64",
               platform: "windows",
             }
           - {
-              os: windows,
+              os: "windows",
               archive_ext: "zip",
               arch: "arm64",
               platform: "windows",
@@ -63,13 +63,13 @@ jobs:
           path: fastchess-${{ matrix.config.platform }}-${{ matrix.config.arch }}
 
       - name: Create tar
-        if: ${{ matrix.config.os }} != 'windows'
+        if: matrix.config.os != 'windows'
         run: |
           chmod +x ./fastchess-${{ matrix.config.platform }}-${{ matrix.config.arch }}/fastchess
           tar -cvf fastchess-${{ matrix.config.platform }}-${{ matrix.config.arch }}.tar fastchess-${{ matrix.config.platform }}-${{ matrix.config.arch }}
 
       - name: Create zip
-        if: ${{ matrix.config.os }} == 'windows'
+        if: matrix.config.os == 'windows'
         run: |
           zip -r fastchess-${{ matrix.config.platform }}-${{ matrix.config.arch }}.zip fastchess-${{ matrix.config.platform }}-${{ matrix.config.arch }}
 

@@ -12,9 +12,11 @@ jobs:
   Artifacts:
     if: github.ref == 'refs/heads/master' || github.ref_type == 'tag'
     uses: ./.github/workflows/artifacts.yml
-  PreCreateRelease:
+  Precreate-Release:
     needs: [Artifacts]
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -25,11 +27,11 @@ jobs:
         with:
           draft: true
           generate_release_notes: true
-          token: ${{ secrets.token }}
+          token: ${{ secrets.GITHUB_TOKEN }}
 
   Release:
     if: github.ref_type == 'tag'
-    needs: [PreCreateRelease]
+    needs: [Precreate-Release]
     permissions:
       contents: write
     uses: ./.github/workflows/release.yml

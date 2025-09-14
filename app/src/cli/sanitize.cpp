@@ -133,7 +133,7 @@ void sanitize(std::vector<EngineConfiguration>& configs) {
         }
 
         if (!configs[i].dir.empty() || enginePath.is_absolute()) {
-            if (!(std::filesystem::exists(enginePath) && std::filesystem::is_regular_file(enginePath))) {
+            if (!std::filesystem::is_regular_file(enginePath)) {
                 throw std::runtime_error("Engine binary does not exist: " + enginePath.string());
             }
         }

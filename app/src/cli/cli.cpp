@@ -155,9 +155,6 @@ bool isEngineSettableOption(std::string_view stringFormat) { return str_utils::s
 void parseEngineKeyValues(EngineConfiguration &engineConfig, const std::string &key, const std::string &value) {
     if (key == "cmd") {
         engineConfig.cmd = value;
-        if (!(std::filesystem::exists(engineConfig.cmd) && std::filesystem::is_regular_file(engineConfig.cmd))) {
-            throw std::runtime_error("Engine binary does not exist: " + engineConfig.cmd);
-        }
     } else if (key == "name")
         engineConfig.name = value;
     else if (key == "tc")

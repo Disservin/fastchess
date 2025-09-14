@@ -125,6 +125,19 @@ void sanitize(std::vector<EngineConfiguration>& configs) {
                 throw std::runtime_error("Error: Engine with the same name are not allowed!: " + configs[i].name);
             }
         }
+
+#ifndef NO_STD_FILESYSTEM
+        std::filesystem::path enginePath = configs[i].cmd;
+        if (!configs[i].dir.empty()) {
+            enginePath = (std::filesystem::path(configs[i].dir) / configs[i].cmd);
+        }
+
+        if (!configs[i].dir.empty() || enginePath.is_absolute()) {
+            if (!(std::filesystem::exists(enginePath) && std::filesystem::is_regular_file(enginePath))) {
+                throw std::runtime_error("Engine binary does not exist: " + enginePath.string());
+            }
+        }
+#endif
     }
 }
 

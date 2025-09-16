@@ -8,6 +8,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
+#include <sys/prctl.h>
 
 #include <string>
 
@@ -67,6 +68,8 @@ inline int spawn_process(const std::string &command, char *const argv[], const s
         // --- Child ---
         int ret = 0;
         int p   = status_pipe[1];
+
+        prctl(PR_SET_PDEATHSIG, SIGKILL);
 
         close(status_pipe[0]);
 

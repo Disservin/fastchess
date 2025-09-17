@@ -408,13 +408,8 @@ class Process : public IProcess {
 
         try {
             setup_spawn_file_actions(file_actions, out_pipe_.read_end(), STDIN_FILENO);
-            setup_close_file_actions(file_actions, out_pipe_.read_end());
-
-            // keep open for self to pipe trick
             setup_spawn_file_actions(file_actions, in_pipe_.write_end(), STDOUT_FILENO);
-
             setup_spawn_file_actions(file_actions, err_pipe_.write_end(), STDERR_FILENO);
-            setup_close_file_actions(file_actions, err_pipe_.write_end());
 
             setup_wd_file_actions(file_actions, wd_);
 
@@ -438,12 +433,6 @@ class Process : public IProcess {
     void setup_spawn_file_actions(posix_spawn_file_actions_t &file_actions, int fd, int target_fd) {
         if (posix_spawn_file_actions_adddup2(&file_actions, fd, target_fd) != 0) {
             throw std::runtime_error("posix_spawn_file_actions_add* failed");
-        }
-    }
-
-    void setup_close_file_actions(posix_spawn_file_actions_t &file_actions, int fd) {
-        if (posix_spawn_file_actions_addclose(&file_actions, fd) != 0) {
-            throw std::runtime_error("posix_spawn_file_actions_addclose failed");
         }
     }
 
@@ -497,18 +486,14 @@ class Process : public IProcess {
     struct Pipe {
         std::array<int, 2> fds_;
 
-        Pipe() {
-            if (pipe(fds_.data()) != 0) throw std::runtime_error("pipe() failed");
-        }
+        Pipe() { initialize(); }
 
-        Pipe(const Pipe &) {
-            if (pipe(fds_.data()) != 0) throw std::runtime_error("pipe() failed");
-        }
+        Pipe(const Pipe &) { initialize(); }
 
         Pipe &operator=(const Pipe &) {
             close(fds_[0]);
             close(fds_[1]);
-            if (pipe(fds_.data()) != 0) throw std::runtime_error("pipe() failed");
+            initialize();
             return *this;
         }
 
@@ -519,6 +504,13 @@ class Process : public IProcess {
 
         int read_end() const { return fds_[0]; }
         int write_end() const { return fds_[1]; }
+
+       private:
+        void initialize() {
+            if (pipe(fds_.data()) != 0) throw std::runtime_error("pipe() failed");
+            if (fcntl(fds_[0], F_SETFD, FD_CLOEXEC) == -1 || fcntl(fds_[1], F_SETFD, FD_CLOEXEC) == -1)
+                throw std::runtime_error("fcntl() failed");
+        }
     };
 
     // buffer to read into

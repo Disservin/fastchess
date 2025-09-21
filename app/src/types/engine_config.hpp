@@ -41,15 +41,14 @@ struct EngineConfiguration {
     bool restart = false;
 
     // UCI options
-    std::vector<std::pair<std::string, std::string>> options;
+    std::unordered_map<std::string, std::string> options;
 
     // Chess variant
     VariantType variant = VariantType::STANDARD;
 
     template <typename T, typename Predicate>
     std::optional<T> getOption(std::string_view option_name, Predicate transform) const {
-        const auto it = std::find_if(options.begin(), options.end(),
-                                     [&option_name](const auto &option) { return option.first == option_name; });
+        const auto it = options.find(option_name.data());
 
         if (it != options.end()) {
             return std::optional<T>(transform(it->second));

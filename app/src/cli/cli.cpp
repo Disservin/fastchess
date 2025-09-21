@@ -181,9 +181,9 @@ void parseEngineKeyValues(EngineConfiguration &engineConfig, const std::string &
         engineConfig.restart = value == "on";
     } else if (isEngineSettableOption(key)) {
         // Strip option.Name of the option. Part
-        const std::size_t pos         = key.find('.');
-        const std::string strippedKey = key.substr(pos + 1);
-        engineConfig.options.emplace_back(strippedKey, value);
+        const std::size_t pos             = key.find('.');
+        const std::string strippedKey     = key.substr(pos + 1);
+        engineConfig.options[strippedKey] = value;
     } else if (key == "proto") {
         if (value != "uci") {
             throw std::runtime_error("Unsupported protocol.");

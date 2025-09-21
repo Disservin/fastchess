@@ -160,7 +160,8 @@ jobs:
               exit 0
             fi
           fi
-          sed -i "s/const char\* version = \"[^\"]*\"/const char* version = \"alpha $TAG \"/" app/src/main.cpp
+          VERSION=$(echo "$TAG" | sed 's/^v//' | sed 's/-alpha$//')
+          sed -i "s/const char\* version = \"[^\"]*\"/const char* version = \"alpha $VERSION \"/" app/src/main.cpp
           cat app/src/main.cpp
 
       # Build RISC-V in Docker

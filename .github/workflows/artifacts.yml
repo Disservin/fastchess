@@ -144,6 +144,25 @@ jobs:
         if: matrix.config.base_image
         uses: docker/setup-qemu-action@v3
 
+      # replace version string if this is a tagged build
+      - name: Version replace
+        run: |
+          if [ -n "$GITHUB_REF" ] && [[ "$GITHUB_REF" == refs/tags/* ]]; then
+            TAG="${GITHUB_REF#refs/tags/}"
+            echo "Current tag found: $TAG"
+          else
+            TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+            if [ -n "$TAG" ]; then
+              echo "Last tag found: $TAG"
+            else
+              echo "No tags found, using default version string."
+              cat app/src/main.cpp
+              exit 0
+            fi
+          fi
+          sed -i "s/const char\* version = \"[^\"]*\"/const char* version = \"alpha $TAG \"/" app/src/main.cpp
+          cat app/src/main.cpp
+
       # Build RISC-V in Docker
       - name: Build in Docker
         if: matrix.config.docker == true

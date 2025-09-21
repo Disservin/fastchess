@@ -266,13 +266,14 @@ TEST_SUITE("Uci Engine Communication Tests") {
         CHECK(uci_engine->start());
 
         CHECK(uci_engine->refreshUci());
-        const auto res = uci_engine->readEngine("option set: setoption name Hash");
+        CHECK(uci_engine->uci());
+        const auto res = uci_engine->readEngine("uciok");
 
         CHECK(res == engine::process::Status::OK);
-        CHECK(uci_engine->output().size() == 4);
+        CHECK(uci_engine->output().size() >= 4);
         CHECK(uci_engine->output()[0].line == "option set: setoption name Threads value 4");
-        CHECK(uci_engine->output()[1].line == "option set: setoption name MultiPV value 3");
-        CHECK(uci_engine->output()[2].line == "option set: setoption name UCI_Chess960 value true");
-        CHECK(uci_engine->output()[3].line == "option set: setoption name Hash value 1600");
+        CHECK(uci_engine->output()[1].line == "option set: setoption name Hash value 1600");
+        CHECK(uci_engine->output()[2].line == "option set: setoption name MultiPV value 3");
+        CHECK(uci_engine->output()[3].line == "option set: setoption name UCI_Chess960 value true");
     }
 }

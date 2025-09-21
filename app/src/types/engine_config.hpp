@@ -41,7 +41,7 @@ struct EngineConfiguration {
     bool restart = false;
 
     // UCI options
-    std::unordered_map<std::string, std::string> options;
+    std::map<std::string, std::string> options;
 
     // Chess variant
     VariantType variant = VariantType::STANDARD;

@@ -38,8 +38,8 @@ inline CpuInfo getCpuInfo() noexcept(false) {
 
     GetLogicalProcessorInformationEx(RelationProcessorPackage, nullptr, &byte_length);
 
-    std::unique_ptr<char[]> buffer(new char[byte_length]);
-    auto ptr = PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX(buffer.get());
+    auto buffer = std::make_unique<char[]>(byte_length);
+    auto ptr    = PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX(buffer.get());
 
     if (!GetLogicalProcessorInformationEx(RelationProcessorPackage, ptr, &byte_length)) {
         std::cerr << "GetLogicalProcessorInformationEx failed." << std::endl;

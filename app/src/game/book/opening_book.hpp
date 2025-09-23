@@ -60,7 +60,7 @@ class OpeningBook {
     [[nodiscard]] Opening operator[](std::optional<std::size_t> idx) const noexcept;
 
    private:
-    void setup(const std::string& file, FormatType type);
+    void setup(const std::string& file, FormatType type, VariantType vt);
 
     std::size_t start_         = 0;
     std::size_t opening_index_ = 0;

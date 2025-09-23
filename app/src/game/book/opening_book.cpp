@@ -21,16 +21,16 @@ OpeningBook::OpeningBook(const config::Tournament& config, std::size_t initial_m
 
     // - 1 because start starts at 1 in the opening options
     offset_ = start_ - 1 + initial_matchcount / games_;
-    setup(config.opening.file, config.opening.format);
+    setup(config.opening.file, config.opening.format, config.variant);
 }
 
-void OpeningBook::setup(const std::string& file, FormatType type) {
+void OpeningBook::setup(const std::string& file, FormatType type, VariantType vt) {
     if (file.empty()) {
         return;
     }
 
     if (type == FormatType::PGN) {
-        openings_.emplace<PgnReader>(file, plies_);
+        openings_.emplace<PgnReader>(file, plies_, vt == VariantType::FRC);
     } else if (type == FormatType::EPD) {
         openings_.emplace<EpdReader>(file);
     }

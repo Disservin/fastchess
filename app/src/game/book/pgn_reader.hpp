@@ -11,7 +11,7 @@ namespace fastchess::book {
 class PgnReader {
    public:
     PgnReader() = default;
-    explicit PgnReader(const std::string& pgn_file_path, int plies_limit = -1);
+    explicit PgnReader(const std::string& pgn_file_path, int plies_limit = -1, bool is_frc = false);
 
     // Extracts all pgns from the file
     [[nodiscard]] std::vector<Opening>& get() noexcept { return pgns_; }

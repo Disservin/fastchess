@@ -658,7 +658,7 @@ void parseQuick(const std::vector<std::string> &params, ArgumentData &argument_d
             else if (str_utils::endsWith(value, ".epd"))
                 argument_data.tournament_config.opening.format = FormatType::EPD;
             else
-                throw std::runtime_error("Please include the .png or .epd file extension for the opening book.");
+                throw std::runtime_error("Please include the .pgn or .epd file extension for the opening book.");
         } else {
             OptionsParser::throwMissing("quick", key, value);
         }

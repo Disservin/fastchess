@@ -17,7 +17,10 @@ namespace fastchess::book {
 
 class PGNVisitor : public chess::pgn::Visitor {
    public:
-    PGNVisitor(std::vector<Opening>& pgns, int plies_limit) : pgns_(pgns), plies_limit_(plies_limit) {}
+    PGNVisitor(std::vector<Opening>& pgns, int plies_limit, bool is_frc)
+        : pgns_(pgns), plies_limit_(plies_limit), is_frc_(is_frc) {
+        board_.set960(is_frc_);
+    }
     virtual ~PGNVisitor() {}
 
     void startPgn() override {
@@ -70,12 +73,13 @@ class PGNVisitor : public chess::pgn::Visitor {
     chess::Board board_;
     const int plies_limit_;
     int plie_count_  = 0;
+    bool is_frc_     = false;
     bool early_stop_ = false;
 };
 
-PgnReader::PgnReader(const std::string& pgn_file_path, int plies_limit)
+PgnReader::PgnReader(const std::string& pgn_file_path, int plies_limit, bool is_frc)
     : file_name_(pgn_file_path), plies_limit_(plies_limit) {
-    auto vis        = std::make_unique<PGNVisitor>(pgns_, plies_limit_);
+    auto vis        = std::make_unique<PGNVisitor>(pgns_, plies_limit_, is_frc);
     bool is_gzipped = file_name_.size() >= 3 && file_name_.substr(file_name_.size() - 3) == ".gz";
 
     std::unique_ptr<std::istream> input_stream;

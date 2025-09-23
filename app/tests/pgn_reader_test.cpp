@@ -153,5 +153,24 @@ TEST_SUITE("PGN Reader") {
         CHECK_THROWS_WITH_AS(reader = std::make_unique<book::PgnReader>("app/tests/data/das.pgn"),
                              "Failed to open file: app/tests/data/das.pgn", std::runtime_error);
     }
+
+    TEST_CASE("Read DFRC PGN file") {
+        book::PgnReader reader("app/tests/data/dfrc.pgn", -1);
+        const auto games = reader.get();
+
+        CHECK(games.size() == 4);
+
+        CHECK(games[0].fen_epd == "bbqnnrkr/pppppppp/8/8/8/8/PPPPPPPP/BBQNNRKR w HFhf - 0 1");
+        CHECK(games[0].moves.size() == 0);
+
+        CHECK(games[1].fen_epd == "bqnbnrkr/pppppppp/8/8/8/8/PPPPPPPP/BBQNNRKR w HFhf - 0 1");
+        CHECK(games[1].moves.size() == 0);
+
+        CHECK(games[2].fen_epd == "bqnnrbkr/pppppppp/8/8/8/8/PPPPPPPP/BBQNNRKR w HFhe - 0 1");
+        CHECK(games[2].moves.size() == 0);
+
+        CHECK(games[3].fen_epd == "bqnnrkrb/pppppppp/8/8/8/8/PPPPPPPP/BBQNNRKR w HFge - 0 1");
+        CHECK(games[3].moves.size() == 0);
+    }
 }
 }  // namespace fastchess

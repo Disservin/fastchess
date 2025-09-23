@@ -330,15 +330,23 @@ bool UciEngine::refreshUci() {
         return false;
     }
 
-    // Reorder to send Threads option first, to help multi-threaded configurations
+    auto options    = config_.options;
+    auto threads_it = options.find("Threads");
 
-    auto options = config_.options;
-    std::stable_partition(options.begin(), options.end(), [](const auto &p) { return p.first == "Threads"; });
+    // Send Threads option first, to help multi-threaded configurations
+    if (threads_it != options.end()) {
+        try {
+            sendSetoption(threads_it->first, threads_it->second);
+        } catch (const std::exception &e) {
+            Logger::print<Logger::Level::WARN>("Warning; Failed to set option {} with value {} for engine {}: {}",
+                                               threads_it->first, threads_it->second, config_.name, e.what());
+        }
+    }
 
     for (const auto &option : options) {
+        if (option.first == "Threads") continue;
         try {
             sendSetoption(option.first, option.second);
-
         } catch (const std::exception &e) {
             Logger::print<Logger::Level::WARN>("Warning; Failed to set option {} with value {} for engine {}: {}",
                                                option.first, option.second, config_.name, e.what());

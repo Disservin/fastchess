@@ -258,10 +258,8 @@ TEST_SUITE("Option Parsing Tests") {
         CHECK(config0.limit.tc.fixed_time == 5000);
         CHECK(config0.limit.nodes == 5000);
         CHECK(config0.limit.plies == 5);
-        CHECK(config0.options.at(0).first == "Threads");
-        CHECK(config0.options.at(0).second == "1");
-        CHECK(config0.options.at(1).first == "Hash");
-        CHECK(config0.options.at(1).second == "16");
+        CHECK(config0.options["Threads"] == "1");
+        CHECK(config0.options["Hash"] == "16");
         CHECK(config1.name == "Alexandria-27E42728");
         CHECK(config1.limit.tc.moves == 40);
         CHECK(config1.limit.tc.time == 69650);
@@ -270,10 +268,8 @@ TEST_SUITE("Option Parsing Tests") {
         CHECK(config1.limit.tc.timemargin == 243);
         CHECK(config1.limit.nodes == 0);
         CHECK(config1.limit.plies == 7);
-        CHECK(config1.options.at(0).first == "Threads");
-        CHECK(config1.options.at(0).second == "1");
-        CHECK(config1.options.at(1).first == "Hash");
-        CHECK(config1.options.at(1).second == "32");
+        CHECK(config1.options["Threads"] == "1");
+        CHECK(config1.options["Hash"] == "32");
     }
 
     TEST_CASE("General Config Parsing 2") {

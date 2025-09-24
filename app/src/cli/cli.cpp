@@ -215,6 +215,8 @@ void parsePgnOut(const std::vector<std::string> &params, ArgumentData &argument_
         parseDashOptions(params, [&](const std::string &key, const std::string &value) {
             if (key == "file") {
                 argument_data.tournament_config.pgn.file = value;
+            } else if (key == "append" && is_bool(value)) {
+                argument_data.tournament_config.pgn.append_file = value == "true";
             } else if (key == "nodes" && is_bool(value)) {
                 argument_data.tournament_config.pgn.track_nodes = value == "true";
             } else if (key == "seldepth" && is_bool(value)) {
@@ -263,6 +265,8 @@ void parseEpdOut(const std::vector<std::string> &params, ArgumentData &argument_
         parseDashOptions(params, [&](const std::string &key, const std::string &value) {
             if (key == "file") {
                 argument_data.tournament_config.epd.file = value;
+            } else if (key == "append" && is_bool(value)) {
+                argument_data.tournament_config.epd.append_file = value == "true";
             } else {
                 OptionsParser::throwMissing("epdout", key, value);
             }

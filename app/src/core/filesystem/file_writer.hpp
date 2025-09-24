@@ -13,12 +13,13 @@ namespace fastchess::util {
 // Writes to a file in a thread safe manner.
 class FileWriter {
    public:
-    FileWriter(const std::string &filename, bool crc = false) : filename_(filename), calculate_crc_(crc) {
+    FileWriter(const std::string &filename, bool append = true, bool crc = false)
+        : filename_(filename), calculate_crc_(crc) {
         if (calculate_crc_) {
-            initCrc();
+            initCrc(append);
         }
 
-        file_.open(filename_, std::ios::app | std::ios::binary);
+        file_.open(filename_, append ? std::ios::app | std::ios::binary : std::ios::binary);
     }
 
     void write(const std::string &data) {
@@ -38,9 +39,9 @@ class FileWriter {
     }
 
    private:
-    void initCrc() {
+    void initCrc(bool append) {
         std::ifstream checkFile(filename_);
-        bool isEmpty = checkFile.peek() == std::ifstream::traits_type::eof();
+        bool isEmpty = !append || checkFile.peek() == std::ifstream::traits_type::eof();
         checkFile.close();
 
         // if the file is empty, we start with the initial crc32 value

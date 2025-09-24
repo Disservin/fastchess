@@ -125,7 +125,7 @@ The following options are available:
 - -output format=FORMAT  
     Choose the output format for game results (cutechess or fastchess). Default is fastchess.
 
-- -pgnout file=NAME notation=(san|lan|uci) [nodes=(true|false)] [seldepth=(true|false)] [nps=(true|false)] [hashfull=(true|false)] [tbhits=(true|false)] [pv=(true|false)] [timeleft=(true|false)] [latency=(true|false)] [min=(true|false)] [match_line=REGEX]
+- -pgnout file=NAME notation=(san|lan|uci) [append=(true|false)] [nodes=(true|false)] [seldepth=(true|false)] [nps=(true|false)] [hashfull=(true|false)] [tbhits=(true|false)] [pv=(true|false)] [timeleft=(true|false)] [latency=(true|false)] [min=(true|false)] [match_line=REGEX]
     Export games in PGN format with specified notations and optional tracking of nodes, seldepth, and others.
 
     - notation:
@@ -134,6 +134,7 @@ The following options are available:
         - lan - Long Algebraic Notation
         - uci - Universal Chess Interface
 
+    - append - Append to file. Default is true.
     - nodes - Track node count. Default is false.
     - seldepth - Track seldepth. Default is false.
     - nps - Track nps. Default is false.
@@ -145,8 +146,10 @@ The following options are available:
     - min - Minimal PGN format. Default is false.
     - match_line - Add lines to the PGN that match the given regex.
 
-- -epdout file=NAME  
+- -epdout file=NAME [append=(true|false)]
     Export the final position of each game in EPD format.
+
+    - append - Append to file. Default is true.
 
 - -wait N  
     Wait N milliseconds between games. Default is 0.

@@ -142,7 +142,7 @@ void BaseTournament::playGame(const GamePair<EngineConfiguration, EngineConfigur
         CPU Affinity Implementation Strategy:
 
         Previously, CPU affinity was set on engine processes after they were already running.
-        This approach failed because:
+        This approach failed on Linux because:
         1. Chess engines typically spawn worker threads during initialization
         2. These worker threads were created before affinity was applied
         3. Child threads don't inherit affinity from parent processes retroactively
@@ -150,12 +150,18 @@ void BaseTournament::playGame(const GamePair<EngineConfiguration, EngineConfigur
 
         Current approach:
         - Set CPU affinity on the managing thread BEFORE starting any engines
-        - This ensures all subsequently spawned engine processes inherit the correct affinity
+        - On linux, this ensures all subsequently spawned engine processes inherit the correct affinity
         - Engine caching strategy depends on affinity usage:
         * With affinity: thread-local engine cache (engines stick to assigned cores)
         * Without affinity: global engine cache (engines shared across all threads)
+        - Additionally, explicitly set engine process affinity as part of starting the match. This ensures
+          that on Windows the affinity of the engine process (and all threads it contains) is set correctly.
+          Note that due to the caching behavior, this is only done once (for each engine) per tournament thread.
         */
-        affinity::setAffinity(*cpus, affinity::getThreadHandle());
+        const bool success = affinity::setThreadAffinity(*cpus, affinity::getThreadHandle());
+        if (!success) {
+            Logger::print<Logger::Level::WARN>("Warning; Failed to set CPU affinity for the tournament thread.");
+        }
     }
 
     const auto white_name = engine_configs.white.name;
@@ -179,7 +185,7 @@ void BaseTournament::playGame(const GamePair<EngineConfiguration, EngineConfigur
     start();
 
     auto match = Match(opening);
-    match.start(*w_engine_ptr, *b_engine_ptr);
+    match.start(*w_engine_ptr, *b_engine_ptr, cpus);
 
     LOG_TRACE_THREAD("Game {} between {} and {} finished", game_id, white_name, black_name);
 

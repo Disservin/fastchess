@@ -164,14 +164,14 @@ void Match::addMoveData(const Player& player, int64_t measured_time_ms, int64_t 
     uci_moves_.push_back(move);
 }
 
-void Match::start(engine::UciEngine& white, engine::UciEngine& black) {
+void Match::start(engine::UciEngine& white, engine::UciEngine& black, std::optional<std::vector<int>>& cpus) {
     std::transform(data_.moves.begin(), data_.moves.end(), std::back_inserter(uci_moves_),
                    [](const MoveData& data) { return data.move; });
 
     Player white_player = Player(white);
     Player black_player = Player(black);
 
-    if (auto ret = white_player.engine.start(); !ret) {
+    if (auto ret = white_player.engine.start(cpus); !ret) {
         if (atomic::stop.load()) return;
 
         atomic::stop                 = true;
@@ -183,7 +183,7 @@ void Match::start(engine::UciEngine& white, engine::UciEngine& black) {
         return;
     }
 
-    if (auto ret = black_player.engine.start(); !ret) {
+    if (auto ret = black_player.engine.start(cpus); !ret) {
         if (atomic::stop.load()) return;
         atomic::stop                 = true;
         atomic::abnormal_termination = true;

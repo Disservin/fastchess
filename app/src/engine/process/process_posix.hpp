@@ -272,7 +272,7 @@ class Process : public IProcess {
         assert(false && "This function should not be called on Apple devices");
 #    endif
 
-        return affinity::setAffinity(cpus, process_pid_);
+        return affinity::setProcessAffinity(cpus, process_pid_);
     }
 
     void terminate() {

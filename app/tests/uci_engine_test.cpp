@@ -34,7 +34,7 @@ TEST_SUITE("Uci Engine Communication Tests") {
 
         engine::UciEngine uci_engine = engine::UciEngine(config, false);
 
-        CHECK(uci_engine.start());
+        CHECK(uci_engine.start(/*cpus*/ std::nullopt));
 
         for (const auto& line : uci_engine.output()) {
             std::cout << line.line << std::endl;
@@ -63,7 +63,7 @@ TEST_SUITE("Uci Engine Communication Tests") {
 
         engine::UciEngine uci_engine = engine::UciEngine(config, false);
 
-        CHECK(uci_engine.start());
+        CHECK(uci_engine.start(/*cpus*/ std::nullopt));
 
         for (const auto& line : uci_engine.output()) {
             std::cout << line.line << std::endl;
@@ -86,7 +86,7 @@ TEST_SUITE("Uci Engine Communication Tests") {
 
         engine::UciEngine uci_engine = engine::UciEngine(config, false);
 
-        CHECK(uci_engine.start());
+        CHECK(uci_engine.start(/*cpus*/ std::nullopt));
 
         CHECK(uci_engine.output().size() == 12);
         CHECK(uci_engine.output()[0].line == "argv[1]: arg1");
@@ -129,7 +129,7 @@ TEST_SUITE("Uci Engine Communication Tests") {
 
         engine::UciEngine uci_engine = engine::UciEngine(config, false);
 
-        CHECK(uci_engine.start());
+        CHECK(uci_engine.start(/*cpus*/ std::nullopt));
 
         CHECK(uci_engine.writeEngine("uci"));
         const auto res = uci_engine.readEngine("uciok");
@@ -171,7 +171,7 @@ TEST_SUITE("Uci Engine Communication Tests") {
 
         std::unique_ptr<engine::UciEngine> uci_engine = std::make_unique<MockUciEngine>(config, false);
 
-        CHECK(uci_engine->start());
+        CHECK(uci_engine->start(/*cpus*/ std::nullopt));
 
         CHECK(uci_engine->writeEngine("uci"));
         const auto res = uci_engine->readEngine("uciok");
@@ -190,7 +190,7 @@ TEST_SUITE("Uci Engine Communication Tests") {
 
         uci_engine = std::make_unique<MockUciEngine>(config, false);
 
-        CHECK(uci_engine->start());
+        CHECK(uci_engine->start(/*cpus*/ std::nullopt));
 
         CHECK(uci_engine->writeEngine("uci"));
         const auto res2 = uci_engine->readEngine("uciok");
@@ -214,7 +214,7 @@ TEST_SUITE("Uci Engine Communication Tests") {
 
         std::unique_ptr<engine::UciEngine> uci_engine = std::make_unique<MockUciEngine>(config, false);
 
-        CHECK(uci_engine->start());
+        CHECK(uci_engine->start(/*cpus*/ std::nullopt));
 
         CHECK(uci_engine->writeEngine("uci"));
         const auto res = uci_engine->readEngine("uciok");
@@ -233,7 +233,7 @@ TEST_SUITE("Uci Engine Communication Tests") {
 
         uci_engine = std::make_unique<MockUciEngine>(config, false);
 
-        CHECK(uci_engine->start());
+        CHECK(uci_engine->start(/*cpus*/ std::nullopt));
 
         CHECK(uci_engine->writeEngine("uci"));
         const auto res2 = uci_engine->readEngine("uciok");
@@ -263,7 +263,7 @@ TEST_SUITE("Uci Engine Communication Tests") {
 
         std::unique_ptr<engine::UciEngine> uci_engine = std::make_unique<MockUciEngine>(config, false);
 
-        CHECK(uci_engine->start());
+        CHECK(uci_engine->start(/*cpus*/ std::nullopt));
 
         CHECK(uci_engine->refreshUci());
         const auto res = uci_engine->readEngine("option set: setoption name UCI_Chess960");

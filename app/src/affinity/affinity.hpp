@@ -53,7 +53,7 @@ template <typename F>
 
 }  // namespace detail
 
-inline bool setThreadAffinity(const std::vector<int>& cpus, HANDLE thread_handle) noexcept {
+[[nodiscard]] inline bool setThreadAffinity(const std::vector<int>& cpus, HANDLE thread_handle) noexcept {
     LOG_TRACE("Setting affinity mask for thread handle: {}", thread_handle);
     using SetThreadSelectedCpuSetMasksFunc = BOOL(WINAPI*)(HANDLE, PGROUP_AFFINITY, USHORT);
 
@@ -83,7 +83,7 @@ inline bool setThreadAffinity(const std::vector<int>& cpus, HANDLE thread_handle
     return SetThreadAffinityMask(thread_handle, affinity_mask) != 0;
 }
 
-inline bool setProcessAffinity(const std::vector<int>& cpus, HANDLE process_handle) noexcept {
+[[nodiscard]] inline bool setProcessAffinity(const std::vector<int>& cpus, HANDLE process_handle) noexcept {
     LOG_TRACE("Setting affinity mask for process handle: {}", process_handle);
     using SetProcessDefaultCpuSetMasksFunc = BOOL(WINAPI*)(HANDLE, PGROUP_AFFINITY, USHORT);
 
@@ -116,12 +116,12 @@ inline bool setProcessAffinity(const std::vector<int>& cpus, HANDLE process_hand
 
 #elif defined(__APPLE__)
 
-inline bool setThreadAffinity(const std::vector<int>&, pid_t) noexcept {
+[[nodiscard]] inline bool setThreadAffinity(const std::vector<int>&, pid_t) noexcept {
     // Not implemented.
     return false;
 }
 
-inline bool setProcessAffinity(const std::vector<int>&, pid_t) noexcept {
+[[nodiscard]] inline bool setProcessAffinity(const std::vector<int>&, pid_t) noexcept {
     // mach_port_t tid = pthread_mach_thread_np(pthread_self());
     // struct thread_affinity_policy policy;
     // policy.affinity_tag = affinity_mask;
@@ -135,7 +135,7 @@ inline bool setProcessAffinity(const std::vector<int>&, pid_t) noexcept {
 
 #else
 
-inline bool setThreadAffinity(const std::vector<int>& cpus, pid_t thread_pid) noexcept {
+[[nodiscard]] inline bool setThreadAffinity(const std::vector<int>& cpus, pid_t thread_pid) noexcept {
     LOG_TRACE("Setting affinity mask for thread pid: {}", thread_pid);
 
     cpu_set_t mask;
@@ -148,22 +148,22 @@ inline bool setThreadAffinity(const std::vector<int>& cpus, pid_t thread_pid) no
     return sched_setaffinity(thread_pid, sizeof(cpu_set_t), &mask) == 0;
 }
 
-inline bool setProcessAffinity(const std::vector<int>& cpus, pid_t process_pid) noexcept {
+[[nodiscard]] inline bool setProcessAffinity(const std::vector<int>& cpus, pid_t process_pid) noexcept {
     // Set the affinity for the process by setting the affinity for its main thread.
     return setThreadAffinity(cpus, process_pid);
 }
 #endif
 
 #ifdef _WIN64
-inline HANDLE getProcessHandle() noexcept { return GetCurrentProcess(); }
+[[nodiscard]] inline HANDLE getProcessHandle() noexcept { return GetCurrentProcess(); }
 #else
-inline pid_t getProcessHandle() noexcept { return getpid(); }
+[[nodiscard]] inline pid_t getProcessHandle() noexcept { return getpid(); }
 #endif
 
 #ifdef _WIN64
-inline HANDLE getThreadHandle() noexcept { return GetCurrentThread(); }
+[[nodiscard]] inline HANDLE getThreadHandle() noexcept { return GetCurrentThread(); }
 #else
-inline pid_t getThreadHandle() noexcept {
+[[nodiscard]] inline pid_t getThreadHandle() noexcept {
 #    ifdef __APPLE__
     // dummy
     return 0;

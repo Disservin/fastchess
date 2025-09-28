@@ -116,7 +116,7 @@ class Process : public IProcess {
 
     bool setAffinity(const std::vector<int> &cpus) noexcept override {
         assert(is_initialized_);
-        return affinity::setAffinity(cpus, pi_.hProcess);
+        return affinity::setProcessAffinity(cpus, pi_.hProcess);
     }
 
     void terminate() {

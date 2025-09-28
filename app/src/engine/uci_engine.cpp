@@ -295,7 +295,7 @@ void UciEngine::sendSetoption(const std::string &name, const std::string &value)
     option.value()->setValue(value);
 }
 
-tl::expected<bool, std::string> UciEngine::start() {
+tl::expected<bool, std::string> UciEngine::start(const std::optional<std::vector<int>> &cpus) {
     if (initialized_) return true;
 
     AcquireSemaphore semaphore_acquire(semaphore);
@@ -306,6 +306,10 @@ tl::expected<bool, std::string> UciEngine::start() {
     // Creates the engine process and sets the pipes
     if (process_.init(config_.dir, path, config_.args, config_.name) != process::Status::OK) {
         return tl::make_unexpected("Couldn't start engine process");
+    }
+
+    if (cpus) {
+        setCpus(*cpus);
     }
 
     initialized_ = true;

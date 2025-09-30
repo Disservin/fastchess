@@ -12,6 +12,7 @@
 #else
 #    include <sched.h>
 #    include <unistd.h>
+#    include <sys/syscall.h>
 #endif
 
 namespace fastchess {
@@ -168,7 +169,7 @@ template <typename F>
     // dummy
     return 0;
 #    else
-    return gettid();
+    return static_cast<pid_t>(syscall(SYS_gettid));
 #    endif
 }
 #endif

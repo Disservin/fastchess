@@ -2,7 +2,6 @@
 
 #include <functional>
 #include <iostream>
-#include <map>
 #include <sstream>
 #include <string>
 #include <unordered_map>
@@ -165,7 +164,7 @@ class OptionsParser {
 
     ArgumentData argument_data_;
 
-    std::map<std::string, parseFunc> options_;
+    std::unordered_map<std::string, parseFunc> options_;
 };
 
 }  // namespace fastchess::cli

@@ -133,7 +133,6 @@ class OptionsParser {
 
             try {
                 std::vector<std::string> params;
-                params.reserve(2);
 
                 while (i + 1 < args.argc() && args[i + 1][0] != '-') {
                     if (arg != "-each")

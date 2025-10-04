@@ -2,7 +2,6 @@
 
 #include <functional>
 #include <iostream>
-#include <map>
 #include <sstream>
 #include <string>
 #include <unordered_map>
@@ -151,7 +150,7 @@ class OptionsParser {
                 throw std::runtime_error(err + "\n" + msg);
             }
         }
-        if (each.size() > 0) {
+        if (!each.empty()) {
             try {
                 options_.at("-each")(each, argument_data_);
             } catch (const std::exception &e) {
@@ -165,7 +164,7 @@ class OptionsParser {
 
     ArgumentData argument_data_;
 
-    std::map<std::string, parseFunc> options_;
+    std::unordered_map<std::string, parseFunc> options_;
 };
 
 }  // namespace fastchess::cli

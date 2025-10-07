@@ -248,7 +248,7 @@ $ fastchess -engine cmd=Engine1.exe name=Engine1 -engine cmd=Engine2.exe \
   -each tc=60+0.6 option.Hash=64 -rounds 200 -repeat -concurrency 4
 ```
 
-To start a SPRT test between two engines up to 100000 rounds (200000 games) with 3 concurrent games with one engine playing with 2 million nodes per move and 1 thread and the other playing with 1 million nodes per move and 2 threads, and both having a time control of 5 minutes plus 5 seconds increment per move, using random openings from UHO_Lichess_4852_v1.epd, Fishtest adjudication rules, and saving the games to a file in a specific folder with SAN notation and nodes count:
+To start a SPRT test between two engines up to 100000 rounds (200000 games) with 3 concurrent games with one engine playing with 2 million nodes per move and 1 thread and the other playing with 1 million nodes per move and 2 threads, and both having a time control of 5 minutes plus 5 seconds increment per move, using random openings from UHO\_Lichess\_4852\_v1.epd, Fishtest adjudication rules, and saving the games to a file in a specific folder with SAN notation and nodes count:
 
 ```sh
 $ fastchess \

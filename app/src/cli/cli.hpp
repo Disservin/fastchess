@@ -4,7 +4,10 @@
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <string_view>
+#include <type_traits>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
 #include <core/printing/printing.h>
@@ -41,7 +44,14 @@ struct ArgumentData {
 };
 
 class OptionsParser {
-    using parseFunc = std::function<void((const std::vector<std::string> &, ArgumentData &))>;
+    using parseFunc = std::function<void(const std::vector<std::string> &, ArgumentData &)>;
+
+    enum class ParamStyle { Free, None, Single, KeyValue };
+
+    struct OptionEntry {
+        parseFunc func;
+        bool deferred = false;
+    };
 
     static std::string getVersion() {
         const static std::unordered_map<std::string, std::string> months(  //
@@ -117,10 +127,21 @@ class OptionsParser {
     const inline static auto Version = getVersion();
 
    private:
-    // Adds an option to the parser
-    void addOption(const std::string &optionName, parseFunc func) {
-        options_.insert(std::make_pair("-" + optionName, func));
+    template <typename Handler>
+    void addOption(const std::string &optionName, Handler &&handler, bool deferred = false) {
+        addOption<ParamStyle::Free>(optionName, std::forward<Handler>(handler), deferred);
     }
+
+    template <ParamStyle Style, typename Handler>
+    void addOption(const std::string &optionName, Handler &&handler, bool deferred = false) {
+        std::string flag = optionName;
+        if (flag.empty() || flag[0] != '-') flag.insert(flag.begin(), '-');
+
+        options_.insert(std::make_pair(
+            flag, OptionEntry{wrapHandler<Style>(flag, std::forward<Handler>(handler)), deferred}));
+    }
+
+    void registerOptions();
 
     // Parses the command line arguments and calls the corresponding option. Parse will
     // increment i if need be.
@@ -141,7 +162,11 @@ class OptionsParser {
                     else
                         each.push_back(args[++i]);
                 }
-                if (arg != "-each") options_.at(arg)(params, argument_data_);
+
+                const auto &entry = options_.at(arg);
+                if (entry.deferred) continue;
+
+                entry.func(params, argument_data_);
 
             } catch (const std::exception &e) {
                 auto err =
@@ -153,7 +178,8 @@ class OptionsParser {
         }
         if (!each.empty()) {
             try {
-                options_.at("-each")(each, argument_data_);
+                const auto &entry = options_.at("-each");
+                entry.func(each, argument_data_);
             } catch (const std::exception &e) {
                 auto err = fmt::format("Error while reading option \"{}\" with value \"{}\"", "-each", each.back());
                 auto msg = fmt::format("Reason: {}", e.what());
@@ -163,9 +189,64 @@ class OptionsParser {
         }
     }
 
+    template <ParamStyle Style, typename Handler>
+    parseFunc wrapHandler(const std::string &flag, Handler &&handler) {
+        if constexpr (Style == ParamStyle::None) {
+            static_assert(std::is_invocable_r_v<void, Handler, ArgumentData &>,
+                          "Handler must accept (ArgumentData&)");
+            std::function<void(ArgumentData &)> fn = std::forward<Handler>(handler);
+            return [flag, fn](const std::vector<std::string> &params, ArgumentData &data) {
+                if (!params.empty()) {
+                    throw std::runtime_error("Option \"" + flag + "\" does not accept parameters.");
+                }
+                fn(data);
+            };
+        } else if constexpr (Style == ParamStyle::Single) {
+            static_assert(std::is_invocable_r_v<void, Handler, std::string_view, ArgumentData &>,
+                          "Handler must accept (std::string_view, ArgumentData&)");
+            std::function<void(std::string_view, ArgumentData &)> fn = std::forward<Handler>(handler);
+            return [flag, fn](const std::vector<std::string> &params, ArgumentData &data) {
+                if (params.size() != 1) {
+                    throw std::runtime_error("Option \"" + flag + "\" expects exactly one value.");
+                }
+                fn(params.front(), data);
+            };
+        } else if constexpr (Style == ParamStyle::KeyValue) {
+            static_assert(std::is_invocable_r_v<void, Handler,
+                                                const std::vector<std::pair<std::string, std::string>> &,
+                                                ArgumentData &>,
+                          "Handler must accept (key/value list, ArgumentData&)");
+            std::function<void(const std::vector<std::pair<std::string, std::string>> &, ArgumentData &)> fn =
+                std::forward<Handler>(handler);
+            return [flag, fn](const std::vector<std::string> &params, ArgumentData &data) {
+                if (params.empty()) {
+                    throw std::runtime_error("Option \"" + flag + "\" expects key=value parameters.");
+                }
+
+                std::vector<std::pair<std::string, std::string>> kv;
+                kv.reserve(params.size());
+                for (const auto &param : params) {
+                    const auto pos = param.find('=');
+                    if (pos == std::string::npos || pos == 0 || pos + 1 == param.size()) {
+                        throw std::runtime_error("Option \"" + flag + "\" expects key=value pairs, got \"" + param +
+                                                 "\".");
+                    }
+                    kv.emplace_back(param.substr(0, pos), param.substr(pos + 1));
+                }
+
+                fn(kv, data);
+            };
+        } else {
+            static_assert(std::is_invocable_r_v<void, Handler, const std::vector<std::string> &, ArgumentData &>,
+                          "Handler must accept (value list, ArgumentData&)");
+            std::function<void(const std::vector<std::string> &, ArgumentData &)> fn = std::forward<Handler>(handler);
+            return [fn](const std::vector<std::string> &params, ArgumentData &data) { fn(params, data); };
+        }
+    }
+
     ArgumentData argument_data_;
 
-    std::unordered_map<std::string, parseFunc> options_;
+    std::unordered_map<std::string, OptionEntry> options_;
 };
 
 }  // namespace fastchess::cli

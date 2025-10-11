@@ -14,6 +14,7 @@
 #include <matchmaking/scoreboard.hpp>
 #include <types/engine_config.hpp>
 #include <types/tournament.hpp>
+#include <types/exception.hpp>
 
 #define FMT_HEADER_ONLY
 #include <fmt/include/fmt/core.h>
@@ -91,7 +92,7 @@ class OptionsParser {
     OptionsParser(const cli::Args &args);
 
     static void throwMissing(std::string_view name, std::string_view key, std::string_view value) {
-        throw std::runtime_error("Unrecognized " + std::string(name) + " option \"" + std::string(key) +
+        throw fastchess_exception("Unrecognized " + std::string(name) + " option \"" + std::string(key) +
                                  "\" with value \"" + std::string(value) + "\".");
     }
 
@@ -128,7 +129,7 @@ class OptionsParser {
         for (int i = 1; i < args.argc(); i++) {
             const std::string arg = args[i];
             if (options_.count(arg) == 0) {
-                throw std::runtime_error("Unrecognized option: " + arg + " parsing failed.");
+                throw fastchess_exception("Unrecognized option: " + arg + " parsing failed.");
             }
 
             try {
@@ -147,7 +148,7 @@ class OptionsParser {
                     fmt::format("Error while reading option \"{}\" with value \"{}\"", arg, std::string(args[i]));
                 auto msg = fmt::format("Reason: {}", e.what());
 
-                throw std::runtime_error(err + "\n" + msg);
+                throw fastchess_exception(err + "\n" + msg);
             }
         }
         if (!each.empty()) {
@@ -157,7 +158,7 @@ class OptionsParser {
                 auto err = fmt::format("Error while reading option \"{}\" with value \"{}\"", "-each", each.back());
                 auto msg = fmt::format("Reason: {}", e.what());
 
-                throw std::runtime_error(err + "\n" + msg);
+                throw fastchess_exception(err + "\n" + msg);
             }
         }
     }

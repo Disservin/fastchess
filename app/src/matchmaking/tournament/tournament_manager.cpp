@@ -11,7 +11,7 @@
 #include <matchmaking/tournament/gauntlet/gauntlet.hpp>
 #include <matchmaking/tournament/roundrobin/roundrobin.hpp>
 #include <matchmaking/tournament/tournament_manager.hpp>
-#include <stdexcept>
+#include <types/exception.hpp>
 
 namespace fastchess {
 
@@ -45,7 +45,7 @@ void TournamentManager::start(const cli::Args& args) {
         LOG_INFO("Loading Syzygy tablebases...");
         const int tbPieces = initSyzygy(config::TournamentConfig->tb_adjudication.syzygy_dirs);
         if (tbPieces == 0) {
-            throw std::runtime_error("Error: Failed to load Syzygy tablebases from the following directories: " +
+            throw fastchess_exception("Error: Failed to load Syzygy tablebases from the following directories: " +
                                      config::TournamentConfig->tb_adjudication.syzygy_dirs);
         }
         LOG_INFO("Loaded {}-piece Syzygy tablebases.", tbPieces);
@@ -62,7 +62,7 @@ void TournamentManager::start(const cli::Args& args) {
             tournament = std::make_unique<Gauntlet>(options.getResults());
             break;
         default:
-            throw std::runtime_error("Unsupported tournament type: " +
+            throw fastchess_exception("Unsupported tournament type: " +
                                      std::to_string(static_cast<int>(config::TournamentConfig->type)));
     }
 

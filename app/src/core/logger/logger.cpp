@@ -6,6 +6,7 @@
 #include <variant>
 
 #include <core/time/time.hpp>
+#include <types/exception.hpp>
 
 #ifdef USE_ZLIB
 #    include <gzip/gzstream.h>
@@ -38,7 +39,7 @@ void Logger::openFile(const std::string &file) {
     if (!compress_) {
         log_.emplace<std::ofstream>(file.c_str(), std::ios::app);
     } else {
-        throw std::runtime_error("Compress is enabled but program wasn't compiled with zlib.");
+        throw fastchess_exception("Compress is enabled but program wasn't compiled with zlib.");
     }
 #endif
 

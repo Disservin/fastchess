@@ -1,7 +1,9 @@
 #include <core/globals/globals.hpp>
 #include <matchmaking/tournament/tournament_manager.hpp>
+#include <types/exception.hpp>
 
 #include <doctest/doctest.hpp>
+
 
 using namespace fastchess;
 
@@ -27,7 +29,7 @@ TEST_SUITE("Tournament Manager Tests") {
             CHECK_THROWS_WITH_AS(
                 tm.start(args),
                 "Error: Failed to load Syzygy tablebases from the following directories: path_does_not_exist",
-                std::runtime_error);
+                fastchess_exception);
         }
 
         // ~TournamentManager modifies atomic::stop which pollutes the global state for subsequent tests.

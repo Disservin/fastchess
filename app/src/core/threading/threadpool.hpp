@@ -8,6 +8,8 @@
 #include <thread>
 #include <vector>
 
+#include <types/exception.hpp>
+
 namespace fastchess::util {
 
 class ThreadPool {
@@ -23,7 +25,7 @@ class ThreadPool {
 
         {
             std::unique_lock<std::mutex> lock(queue_mutex_);
-            if (stop_) throw std::runtime_error("Error; enqueue on stopped ThreadPool");
+            if (stop_) throw fastchess_exception("Error; enqueue on stopped ThreadPool");
             tasks_.emplace([task]() { (*task)(); });
         }
 
@@ -32,7 +34,7 @@ class ThreadPool {
     }
 
     void resize(std::size_t num_threads) {
-        if (num_threads == 0) throw std::invalid_argument("Error; ThreadPool::resize() - num_threads cannot be 0");
+        if (num_threads == 0) throw fastchess_exception("Error; ThreadPool::resize() - num_threads cannot be 0");
 
         if (num_threads == workers_.size()) return;
 

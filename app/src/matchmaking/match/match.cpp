@@ -87,7 +87,7 @@ Match::Match(const book::Opening& opening)
         auto fen                     = to_escaped_string(opening_.fen_epd);
 
         Logger::print<Logger::Level::FATAL>("Failed to set position from opening book, invalid FEN or EPD: {}", fen);
-        throw FastChessException("Failed to set position from opening book, invalid FEN or EPD: " + fen);
+        throw fastchess_exception("Failed to set position from opening book, invalid FEN or EPD: " + fen);
     }
 
     const auto fen = board_.getFen();

@@ -28,7 +28,7 @@ class TournamentSchedulerBase : public Scheduler {
         current_round = (played_games / games) + 1;
 
         if (n_players < 2 || n_rounds < 1 || n_games_per_round < 1) {
-            throw FastChessException("Invalid number of players, rounds, or games per round");
+            throw fastchess_exception("Invalid number of players, rounds, or games per round");
         }
     }
 

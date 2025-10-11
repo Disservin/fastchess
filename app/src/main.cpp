@@ -39,7 +39,7 @@ int main(int argc, char const* argv[]) {
             }
         }
     } 
-    catch (const FastChessException& e) {
+    catch (const fastchess_exception& e) {
         stopProcesses();
 
         Logger::print("{}", e.what());

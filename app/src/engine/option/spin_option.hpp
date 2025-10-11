@@ -19,7 +19,7 @@ class SpinOption : public UCIOption {
         this->maxValue = parseValue(maxValue);
 
         if (this->minValue > this->maxValue) {
-            throw FastChessException("Min value cannot be greater than max value.");
+            throw fastchess_exception("Min value cannot be greater than max value.");
         }
     }
 
@@ -31,7 +31,7 @@ class SpinOption : public UCIOption {
         if (isValid(value)) {
             this->value = parsedValue;
         } else {
-            throw FastChessException("Value is out of the allowed range.");
+            throw fastchess_exception("Value is out of the allowed range.");
         }
     }
 
@@ -57,7 +57,7 @@ class SpinOption : public UCIOption {
         } else if constexpr (std::is_floating_point<T>::value) {
             return static_cast<T>(std::stod(valueStr));
         } else {
-            throw FastChessException("Unsupported type for SpinOption.");
+            throw fastchess_exception("Unsupported type for SpinOption.");
         }
     }
 };

@@ -65,7 +65,7 @@ class UCIOptionFactory {
                 return createSpinOption<double>(name, params["min"], params["max"], params["default"]);
             }
 
-            throw FastChessException("The spin values are not numeric.");
+            throw fastchess_exception("The spin values are not numeric.");
         } else if (type == "combo") {
             std::istringstream varStream(params["var"]);
             std::vector<std::string> options;

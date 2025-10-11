@@ -55,16 +55,16 @@ EpdReader::EpdReader(const std::string& epd_file_path) : epd_file_(epd_file_path
         input_stream = std::make_unique<igzstream>(epd_file_path.c_str());
 
         if (dynamic_cast<igzstream*>(input_stream.get())->rdbuf()->is_open() == false) {
-            throw FastChessException("Failed to open file: " + epd_file_path);
+            throw fastchess_exception("Failed to open file: " + epd_file_path);
         }
 #else
-        throw FastChessException("Compressed book is provided but program wasn't compiled with zlib.");
+        throw fastchess_exception("Compressed book is provided but program wasn't compiled with zlib.");
 #endif
     } else {
         input_stream = std::make_unique<std::ifstream>(epd_file_path);
 
         if (dynamic_cast<std::ifstream*>(input_stream.get())->is_open() == false) {
-            throw FastChessException("Failed to open file: " + epd_file_path);
+            throw fastchess_exception("Failed to open file: " + epd_file_path);
         }
     }
 
@@ -74,7 +74,7 @@ EpdReader::EpdReader(const std::string& epd_file_path) : epd_file_(epd_file_path
     }
 
     if (openings_.empty()) {
-        throw FastChessException("No openings found in file: " + epd_file_path);
+        throw fastchess_exception("No openings found in file: " + epd_file_path);
     }
 }
 

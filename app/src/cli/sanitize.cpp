@@ -20,7 +20,7 @@ void sanitize(config::Tournament& config) {
         std::swap(config.games, config.rounds);
 
         if (config.games > 2) {
-            throw FastChessException("Error: Exceeded -game limit! Must be less than 2");
+            throw fastchess_exception("Error: Exceeded -game limit! Must be less than 2");
         }
     }
 
@@ -36,7 +36,7 @@ void sanitize(config::Tournament& config) {
     }
 
     if (config.concurrency > static_cast<int>(std::thread::hardware_concurrency()) && !config.force_concurrency) {
-        throw FastChessException("Error: Concurrency exceeds number of CPUs. Use -force-concurrency to override.");
+        throw fastchess_exception("Error: Concurrency exceeds number of CPUs. Use -force-concurrency to override.");
     }
 
 #ifdef _WIN64
@@ -60,7 +60,7 @@ void sanitize(config::Tournament& config) {
         Logger::print<Logger::Level::WARN>("Limiting concurrency to: {}", max_supported_concurrency);
 
         if (max_supported_concurrency < 1) {
-            throw FastChessException("Error: Not enough file descriptors available for the specified concurrency.");
+            throw fastchess_exception("Error: Not enough file descriptors available for the specified concurrency.");
         }
 
         config.concurrency = max_supported_concurrency;
@@ -68,7 +68,7 @@ void sanitize(config::Tournament& config) {
 #endif
 
     if (config.variant == VariantType::FRC && config.opening.file.empty()) {
-        throw FastChessException("Error: Please specify a Chess960 opening book");
+        throw fastchess_exception("Error: Please specify a Chess960 opening book");
     }
 
     if (config.opening.file.empty()) {
@@ -89,14 +89,14 @@ void sanitize(config::Tournament& config) {
 
     if (config.tb_adjudication.enabled) {
         if (config.tb_adjudication.syzygy_dirs.empty()) {
-            throw FastChessException("Error: Must provide a ;-separated list of Syzygy tablebase directories.");
+            throw fastchess_exception("Error: Must provide a ;-separated list of Syzygy tablebase directories.");
         }
     }
 }
 
 void sanitize(std::vector<EngineConfiguration>& configs) {
     if (configs.size() < 2) {
-        throw FastChessException("Error: Need at least two engines to start!");
+        throw fastchess_exception("Error: Need at least two engines to start!");
     }
 
     for (std::size_t i = 0; i < configs.size(); i++) {
@@ -108,22 +108,22 @@ void sanitize(std::vector<EngineConfiguration>& configs) {
 #endif
 
         if (configs[i].name.empty()) {
-            throw FastChessException("Error; please specify a name for each engine!");
+            throw fastchess_exception("Error; please specify a name for each engine!");
         }
 
         if ((configs[i].limit.tc.time + configs[i].limit.tc.increment) == 0 && configs[i].limit.tc.fixed_time == 0 &&
             configs[i].limit.nodes == 0 && configs[i].limit.plies == 0) {
-            throw FastChessException("Error; no TimeControl specified!");
+            throw fastchess_exception("Error; no TimeControl specified!");
         }
 
         if ((((configs[i].limit.tc.time + configs[i].limit.tc.increment) != 0) +
              (configs[i].limit.tc.fixed_time != 0)) > 1) {
-            throw FastChessException("Error; cannot use tc and st together!");
+            throw fastchess_exception("Error; cannot use tc and st together!");
         }
 
         for (std::size_t j = 0; j < i; j++) {
             if (configs[i].name == configs[j].name) {
-                throw FastChessException("Error: Engine with the same name are not allowed!: " + configs[i].name);
+                throw fastchess_exception("Error: Engine with the same name are not allowed!: " + configs[i].name);
             }
         }
 
@@ -135,7 +135,7 @@ void sanitize(std::vector<EngineConfiguration>& configs) {
 
         if (!configs[i].dir.empty() || enginePath.is_absolute()) {
             if (!std::filesystem::is_regular_file(enginePath)) {
-                throw FastChessException("Engine binary does not exist: " + enginePath.string());
+                throw fastchess_exception("Engine binary does not exist: " + enginePath.string());
             }
         }
 #endif

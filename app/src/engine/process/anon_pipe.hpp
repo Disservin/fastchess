@@ -84,7 +84,7 @@ class Pipe {
         sa.bInheritHandle = TRUE;
 
         if (!CreatePipeEx(&handles_[0], &handles_[1], &sa)) {
-            throw FastChessException("CreatePipeEx() failed");
+            throw fastchess_exception("CreatePipeEx() failed");
         }
     }
 

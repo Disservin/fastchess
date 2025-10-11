@@ -1,6 +1,7 @@
 #include <cli/cli.hpp>
 
 #include <algorithm>
+#include <sstream>
 #include <string_view>
 #include <type_traits>
 

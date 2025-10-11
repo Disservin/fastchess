@@ -218,7 +218,7 @@ class OptionsParser {
             std::function<void(ArgumentData &)> fn = std::forward<Handler>(handler);
             return [flag, fn](const std::vector<std::string> &params, ArgumentData &data) {
                 if (!params.empty()) {
-                    throw std::runtime_error("Option \"" + flag + "\" does not accept parameters.");
+                    throw fastchess_exception("Option \"" + flag + "\" does not accept parameters.");
                 }
                 fn(data);
             };
@@ -228,7 +228,7 @@ class OptionsParser {
             std::function<void(std::string_view, ArgumentData &)> fn = std::forward<Handler>(handler);
             return [flag, fn](const std::vector<std::string> &params, ArgumentData &data) {
                 if (params.size() != 1) {
-                    throw std::runtime_error("Option \"" + flag + "\" expects exactly one value.");
+                    throw fastchess_exception("Option \"" + flag + "\" expects exactly one value.");
                 }
                 fn(params.front(), data);
             };
@@ -241,7 +241,7 @@ class OptionsParser {
                 std::forward<Handler>(handler);
             return [flag, fn](const std::vector<std::string> &params, ArgumentData &data) {
                 if (params.empty()) {
-                    throw std::runtime_error("Option \"" + flag + "\" expects key=value parameters.");
+                    throw fastchess_exception("Option \"" + flag + "\" expects key=value parameters.");
                 }
 
                 std::vector<std::pair<std::string, std::string>> kv;
@@ -249,7 +249,7 @@ class OptionsParser {
                 for (const auto &param : params) {
                     const auto pos = param.find('=');
                     if (pos == std::string::npos || pos == 0 || pos + 1 == param.size()) {
-                        throw std::runtime_error("Option \"" + flag + "\" expects key=value pairs, got \"" + param +
+                        throw fastchess_exception("Option \"" + flag + "\" expects key=value pairs, got \"" + param +
                                                  "\".");
                     }
                     kv.emplace_back(param.substr(0, pos), param.substr(pos + 1));

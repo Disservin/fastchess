@@ -34,7 +34,7 @@ T parseScalar(std::string_view value) {
     } else if constexpr (std::is_same_v<T, bool>) {
         if (str == "true") return true;
         if (str == "false") return false;
-        throw std::runtime_error("Expected boolean value (true/false), got: " + str);
+        throw fastchess::fastchess_exception("Expected boolean value (true/false), got: " + str);
     } else if constexpr (std::is_same_v<T, std::size_t>) {
         return static_cast<std::size_t>(std::stoull(str));
     } else {

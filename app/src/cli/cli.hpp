@@ -127,18 +127,26 @@ class OptionsParser {
     const inline static auto Version = getVersion();
 
    private:
+    enum class Dispatch { Immediate, Deferred };
+
     template <typename Handler>
-    void addOption(const std::string &optionName, Handler &&handler, bool deferred = false) {
-        addOption<ParamStyle::Free>(optionName, std::forward<Handler>(handler), deferred);
+    void addOption(const std::string &optionName, Handler &&handler) {
+        addOption<ParamStyle::Free, Dispatch::Immediate>(optionName, std::forward<Handler>(handler));
     }
 
     template <ParamStyle Style, typename Handler>
-    void addOption(const std::string &optionName, Handler &&handler, bool deferred = false) {
+    void addOption(const std::string &optionName, Handler &&handler) {
+        addOption<Style, Dispatch::Immediate>(optionName, std::forward<Handler>(handler));
+    }
+
+    template <ParamStyle Style, Dispatch Mode, typename Handler>
+    void addOption(const std::string &optionName, Handler &&handler) {
         std::string flag = optionName;
         if (flag.empty() || flag[0] != '-') flag.insert(flag.begin(), '-');
 
         options_.insert(std::make_pair(
-            flag, OptionEntry{wrapHandler<Style>(flag, std::forward<Handler>(handler)), deferred}));
+            flag, OptionEntry{wrapHandler<Style>(flag, std::forward<Handler>(handler)),
+                              Mode == Dispatch::Deferred}));
     }
 
     void registerOptions();
@@ -146,7 +154,18 @@ class OptionsParser {
     // Parses the command line arguments and calls the corresponding option. Parse will
     // increment i if need be.
     void parse(const cli::Args &args) {
-        std::vector<std::string> each;
+        std::unordered_map<std::string, std::vector<std::string>> deferred;
+
+        const auto joinParams = [](const std::vector<std::string> &params) -> std::string {
+            if (params.empty()) return std::string("<none>");
+            std::ostringstream oss;
+            for (std::size_t i = 0; i < params.size(); ++i) {
+                if (i != 0) oss << ' ';
+                oss << params[i];
+            }
+            return oss.str();
+        };
+
         for (int i = 1; i < args.argc(); i++) {
             const std::string arg = args[i];
             if (options_.count(arg) == 0) {
@@ -157,14 +176,15 @@ class OptionsParser {
                 std::vector<std::string> params;
 
                 while (i + 1 < args.argc() && args[i + 1][0] != '-') {
-                    if (arg != "-each")
-                        params.push_back(args[++i]);
-                    else
-                        each.push_back(args[++i]);
+                    params.push_back(args[++i]);
                 }
 
                 const auto &entry = options_.at(arg);
-                if (entry.deferred) continue;
+                if (entry.deferred) {
+                    auto &slot = deferred[arg];
+                    slot.insert(slot.end(), params.begin(), params.end());
+                    continue;
+                }
 
                 entry.func(params, argument_data_);
 
@@ -176,12 +196,13 @@ class OptionsParser {
                 throw fastchess_exception(err + "\n" + msg);
             }
         }
-        if (!each.empty()) {
+
+        for (auto &[flag, params] : deferred) {
             try {
-                const auto &entry = options_.at("-each");
-                entry.func(each, argument_data_);
+                const auto &entry = options_.at(flag);
+                entry.func(params, argument_data_);
             } catch (const std::exception &e) {
-                auto err = fmt::format("Error while reading option \"{}\" with value \"{}\"", "-each", each.back());
+                auto err = fmt::format("Error while reading option \"{}\" with value \"{}\"", flag, joinParams(params));
                 auto msg = fmt::format("Reason: {}", e.what());
 
                 throw fastchess_exception(err + "\n" + msg);

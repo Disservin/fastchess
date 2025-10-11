@@ -1,4 +1,5 @@
 #include <game/book/pgn_reader.hpp>
+#include <types/exception.hpp>
 
 #include <memory>
 
@@ -151,7 +152,7 @@ TEST_SUITE("PGN Reader") {
         std::unique_ptr<book::PgnReader> reader;
 
         CHECK_THROWS_WITH_AS(reader = std::make_unique<book::PgnReader>("app/tests/data/das.pgn"),
-                             "Failed to open file: app/tests/data/das.pgn", std::runtime_error);
+                             "Failed to open file: app/tests/data/das.pgn", fastchess_exception);
     }
 
     TEST_CASE("Read DFRC PGN file") {

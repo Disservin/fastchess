@@ -2,9 +2,44 @@
 #include <cli/cli_args.hpp>
 #include <types/exception.hpp>
 
+#include <algorithm>
+#include <iterator>
+#include <vector>
+
 #include <doctest/doctest.hpp>
 
 using namespace fastchess;
+
+namespace {
+
+cli::Args buildArgs(std::vector<std::string> args) {
+    std::vector<const char*> raw;
+    raw.reserve(args.size());
+    for (auto &value : args) {
+        raw.push_back(value.c_str());
+    }
+    return cli::Args(static_cast<int>(raw.size()), raw.data());
+}
+
+cli::Args baseArgs(std::vector<std::string> extras = {}) {
+    std::vector<std::string> args = {
+        "fastchess.exe",
+        "-engine",
+        "cmd=app/tests/mock/engine/dummy_engine",
+        "name=Alpha",
+        "tc=10/1+0",
+        "-engine",
+        "cmd=app/tests/mock/engine/dummy_engine",
+        "name=Beta",
+        "tc=10/1+0",
+    };
+
+    args.insert(args.end(), std::make_move_iterator(extras.begin()), std::make_move_iterator(extras.end()));
+
+    return buildArgs(std::move(args));
+}
+
+}  // namespace
 
 TEST_SUITE("Option Parsing Tests") {
     TEST_CASE("Should throw tc and st not usable together") {
@@ -394,4 +429,265 @@ TEST_SUITE("Option Parsing Tests") {
         CHECK(gameOptions.opening.plies == 16);
         CHECK(gameOptions.opening.start == 4);
     }
+
+    TEST_CASE("Engine key/value propagation via -each") {
+        const cli::OptionsParser parser{baseArgs({"-each", "option.Hash=128"})};
+        const auto engines = parser.getEngineConfigs();
+
+        REQUIRE(engines.size() == 2);
+        auto hasHash = [](const EngineConfiguration &engine) {
+            return std::any_of(engine.options.begin(), engine.options.end(), [&](const auto &opt) {
+                return opt.first == "Hash" && opt.second == "128";
+            });
+        };
+        CHECK(hasHash(engines[0]));
+        CHECK(hasHash(engines[1]));
+    }
+
+    TEST_CASE("Scalar options update tournament config") {
+        const cli::OptionsParser parser{baseArgs({"-concurrency",
+                                                   "2",
+                                                   "-force-concurrency",
+                                                   "-ratinginterval",
+                                                   "5",
+                                                   "-scoreinterval",
+                                                   "4",
+                                                   "-autosaveinterval",
+                                                   "7",
+                                                   "-srand",
+                                                   "123",
+                                                   "-seeds",
+                                                   "3",
+                                                   "-wait",
+                                                   "250",
+                                                   "-noswap",
+                                                   "-reverse"})};
+        const auto config = parser.getTournamentConfig();
+
+        CHECK(config.concurrency == 2);
+        CHECK(config.force_concurrency);
+        CHECK(config.ratinginterval == 5);
+        CHECK(config.scoreinterval == 4);
+        CHECK(config.autosaveinterval == 7);
+        CHECK(config.seed == 123);
+        CHECK(config.gauntlet_seeds == 3);
+        CHECK(config.wait == 250);
+        CHECK(config.noswap);
+        CHECK(config.reverse);
+    }
+
+    TEST_CASE("Key/value options populate outputs and tablebases") {
+        const cli::OptionsParser parser{baseArgs({"-pgnout",
+                                                   "file=games.pgn",
+                                                   "nodes=true",
+                                                   "pv=true",
+                                                   "tbhits=true",
+                                                   "timeleft=true",
+                                                   "latency=true",
+                                                   "match_line=.*",
+                                                   "notation=lan",
+                                                   "-output",
+                                                   "format=cutechess",
+                                                   "-tb",
+                                                   "app/tests/data/syzygy_wdl3",
+                                                   "-tbignore50",
+                                                   "-crc32",
+                                                   "pgn=true",
+                                                   "-site",
+                                                   "Test",
+                                                   "Arena"})};
+        const auto config = parser.getTournamentConfig();
+
+        CHECK(config.output == OutputType::CUTECHESS);
+        CHECK(config.pgn.file == "games.pgn");
+        CHECK(config.pgn.track_nodes);
+        CHECK(config.pgn.track_pv);
+        CHECK(config.pgn.track_tbhits);
+        CHECK(config.pgn.track_timeleft);
+        CHECK(config.pgn.track_latency);
+        CHECK(config.pgn.notation == NotationType::LAN);
+        CHECK(config.pgn.crc);
+        CHECK(config.pgn.site == "TestArena");
+        CHECK(config.tb_adjudication.enabled);
+        CHECK(config.tb_adjudication.syzygy_dirs == "app/tests/data/syzygy_wdl3");
+        CHECK(config.tb_adjudication.ignore_50_move_rule);
+    }
+
+    TEST_CASE("Tablebase adjudication parameters applied") {
+        const cli::OptionsParser parser{baseArgs({"-tb",
+                                                   "app/tests/data/syzygy_wdl3",
+                                                   "-tbpieces",
+                                                   "6",
+                                                   "-tbadjudicate",
+                                                   "DRAW"})};
+
+        const auto config = parser.getTournamentConfig();
+        CHECK(config.tb_adjudication.max_pieces == 6);
+        CHECK(config.tb_adjudication.result_type == config::TbAdjudication::ResultType::DRAW);
+    }
+
+    TEST_CASE("Logging options configure logger") {
+        const cli::OptionsParser parser{baseArgs({"-log",
+                                                   "file=fast.log",
+                                                   "level=trace",
+                                                   "compress=true",
+                                                   "realtime=true",
+                                                   "engine=true"})};
+
+        const auto &log = parser.getTournamentConfig().log;
+        CHECK(log.file == "fast.log");
+        CHECK(log.level == Logger::Level::TRACE);
+        CHECK(log.compress);
+        CHECK(log.realtime);
+        CHECK(log.engine_coms);
+    }
+
+    TEST_CASE("Report option toggles pentanomial") {
+        const cli::OptionsParser parser{baseArgs({"-report", "penta=false"})};
+        CHECK_FALSE(parser.getTournamentConfig().report_penta);
+    }
+
+    TEST_CASE("Config option loads configuration file") {
+        const cli::OptionsParser parser{
+            buildArgs({"fastchess.exe", "-config", "file=app/tests/configs/config.json", "stats=false",
+                       "outname=custom.json"})};
+
+        const auto config = parser.getTournamentConfig();
+        CHECK(config.rounds == 5);
+        CHECK(config.show_latency);
+        CHECK(config.log.realtime);
+        CHECK(config.config_name == "custom.json");
+
+        const auto engines = parser.getEngineConfigs();
+        REQUIRE(engines.size() == 2);
+        CHECK(engines[0].name == "engine1");
+        CHECK(engines[1].name == "engine2");
+    }
+
+    TEST_CASE("Quick option creates two engines and presets tournament") {
+        const cli::OptionsParser parser{
+            buildArgs({"fastchess.exe",
+                       "-quick",
+                       "cmd=app/tests/mock/engine/dummy_engine",
+                       "cmd=app/tests/mock/engine/dummy_engine",
+                       "book=app/tests/data/test.epd"})};
+
+        const auto config  = parser.getTournamentConfig();
+        const auto engines = parser.getEngineConfigs();
+
+        REQUIRE(engines.size() == 2);
+        CHECK(config.games == 2);
+        CHECK(config.rounds == 25000);
+        CHECK(config.opening.file == "app/tests/data/test.epd");
+        CHECK(config.opening.order == OrderType::RANDOM);
+        CHECK(config.recover);
+    }
+
+    TEST_CASE("Repeat option resets games to default pair") {
+        const cli::OptionsParser parser{baseArgs({"-games", "4", "-repeat"})};
+        CHECK(parser.getTournamentConfig().games == 2);
+    }
+
+    TEST_CASE("Wait and event options stored") {
+        const cli::OptionsParser parser{baseArgs({"-wait", "150", "-event", "My", "Event"})};
+        const auto config = parser.getTournamentConfig();
+        CHECK(config.wait == 150);
+        CHECK(config.pgn.event_name == "MyEvent");
+    }
+
+    TEST_CASE("Tournament type selection with seeds") {
+        const cli::OptionsParser parser{baseArgs({"-tournament", "gauntlet", "-seeds", "2"})};
+        const auto config = parser.getTournamentConfig();
+        CHECK(config.type == TournamentType::GAUNTLET);
+        CHECK(config.gauntlet_seeds == 2);
+    }
+
+    TEST_CASE("Show latency and test environment toggles") {
+        const cli::OptionsParser parser{baseArgs({"-show-latency", "-testEnv"})};
+        const auto config = parser.getTournamentConfig();
+        CHECK(config.show_latency);
+        CHECK(config.test_env);
+    }
+
+    TEST_CASE("Debug option reports helpful error") {
+        CHECK_THROWS_WITH_AS(cli::OptionsParser{baseArgs({"-debug"})},
+                             "Error while reading option \"-debug\" with value \"-debug\"\nReason: The 'debug' option does not exist in fastchess. Use the 'log' option instead to write all engine input and output into a text file.",
+                             fastchess_exception);
+    }
+
+    TEST_CASE("Unknown option should throw an error") {
+        const auto args = cli::Args{"fastchess.exe", "-unknown"};
+        CHECK_THROWS_AS(cli::OptionsParser{args}, fastchess_exception);
+    }
+
+    TEST_CASE("SPRT valid models logistic and normalized parse correctly") {
+        const auto args1 = baseArgs({"-sprt", "alpha=0.05", "beta=0.05", "elo0=-1", "elo1=2", "model=logistic"});
+        const auto args2 = baseArgs({"-sprt", "alpha=0.05", "beta=0.05", "elo0=-1", "elo1=2", "model=normalized"});
+        CHECK(cli::OptionsParser(args1).getTournamentConfig().sprt.model == "logistic");
+        CHECK(cli::OptionsParser(args2).getTournamentConfig().sprt.model == "normalized");
+    }
+
+    TEST_CASE("SPRT missing parameter should throw") {
+        const auto args = baseArgs({"-sprt", "alpha=0.05", "elo0=0"});
+        CHECK_THROWS_AS(cli::OptionsParser{args}, fastchess_exception);
+    }
+
+    TEST_CASE("Engine proto and args options parse correctly") {
+        const cli::OptionsParser parser{baseArgs({"-each", "proto=uci", "args=--debug --fast"})};
+        const auto engines = parser.getEngineConfigs();
+        CHECK(engines[0].args == "--debug --fast");
+    }
+
+    TEST_CASE("Engine restart on/off accepted") {
+        const auto args = baseArgs({"-engine", "restart=on", "name=foobar", "tc=10/1+0", "cmd=app/tests/mock/engine/dummy_engine"});
+        const auto engines = cli::OptionsParser(args).getEngineConfigs();
+        CHECK(engines[2].restart);
+    }
+
+    TEST_CASE("Adjudication WIN_LOSS and BOTH parse correctly") {
+        const auto args1 = baseArgs({"-tb", "app/tests/data/syzygy_wdl3", "-tbadjudicate", "WIN_LOSS"});
+        const auto args2 = baseArgs({"-tb", "app/tests/data/syzygy_wdl3", "-tbadjudicate", "BOTH"});
+        const auto c1 = cli::OptionsParser(args1).getTournamentConfig();
+        const auto c2 = cli::OptionsParser(args2).getTournamentConfig();
+        CHECK(c1.tb_adjudication.result_type == config::TbAdjudication::ResultType::WIN_LOSS);
+        CHECK(c2.tb_adjudication.result_type == config::TbAdjudication::ResultType::BOTH);
+    }
+
+    TEST_CASE("Output format fastchess parses correctly") {
+        const auto args = baseArgs({"-output", "format=fastchess"});
+        CHECK(cli::OptionsParser(args).getTournamentConfig().output == OutputType::FASTCHESS);
+    }
+
+    TEST_CASE("Report penta true explicitly sets flag") {
+        const auto args = baseArgs({"-report", "penta=true"});
+        CHECK(cli::OptionsParser(args).getTournamentConfig().report_penta);
+    }
+
+    TEST_CASE("Compliance mode throws until implemented") {
+        const auto args = cli::Args{"fastchess.exe", "--compliance", "app/tests/mock/engine/dummy_engine"};
+        CHECK_THROWS_AS(cli::OptionsParser{args}, fastchess_exception);
+    }
+
+    TEST_CASE("CRC32 false disables checksum") {
+        const auto args = baseArgs({"-crc32", "pgn=false"});
+        const auto config = cli::OptionsParser(args).getTournamentConfig();
+        CHECK_FALSE(config.pgn.crc);
+    }
+
+    TEST_CASE("Invalid log level throws") {
+        const auto args = baseArgs({"-log", "level=verbose"});
+        CHECK_THROWS_AS(cli::OptionsParser{args}, fastchess_exception);
+    }
+
+    TEST_CASE("Complex affinity string parses correctly") {
+        const auto args = baseArgs({"-use-affinity", "3,5,7-9"});
+        const auto cpus = cli::OptionsParser(args).getTournamentConfig().affinity_cpus;
+        CHECK(cpus == std::vector<int>({3,5,7,8,9}));
+    }
+
+    TEST_CASE("Use-affinity without args just enables affinity") {
+        const auto args = baseArgs({"-use-affinity"});
+        CHECK(cli::OptionsParser(args).getTournamentConfig().affinity);
+    }
+
 }

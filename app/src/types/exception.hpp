@@ -3,7 +3,6 @@
 #include <exception>
 #include <string>
 
-
 namespace fastchess {
 
 class fastchess_exception : public std::exception {
@@ -14,6 +13,5 @@ class fastchess_exception : public std::exception {
    private:
     std::string message_;
 };
-
 
 }  // namespace fastchess

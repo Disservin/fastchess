@@ -16,8 +16,8 @@
 #include <core/config/config.hpp>
 #include <matchmaking/scoreboard.hpp>
 #include <types/engine_config.hpp>
-#include <types/tournament.hpp>
 #include <types/exception.hpp>
+#include <types/tournament.hpp>
 
 #define FMT_HEADER_ONLY
 #include <fmt/include/fmt/core.h>
@@ -103,7 +103,7 @@ class OptionsParser {
 
     static void throwMissing(std::string_view name, std::string_view key, std::string_view value) {
         throw fastchess_exception("Unrecognized " + std::string(name) + " option \"" + std::string(key) +
-                                 "\" with value \"" + std::string(value) + "\".");
+                                  "\" with value \"" + std::string(value) + "\".");
     }
 
     static void printHelp() {
@@ -145,8 +145,7 @@ class OptionsParser {
         if (flag.empty() || flag[0] != '-') flag.insert(flag.begin(), '-');
 
         options_.insert(std::make_pair(
-            flag, OptionEntry{wrapHandler<Style>(flag, std::forward<Handler>(handler)),
-                              Mode == Dispatch::Deferred}));
+            flag, OptionEntry{wrapHandler<Style>(flag, std::forward<Handler>(handler)), Mode == Dispatch::Deferred}));
     }
 
     void registerOptions();
@@ -213,8 +212,7 @@ class OptionsParser {
     template <ParamStyle Style, typename Handler>
     parseFunc wrapHandler(const std::string &flag, Handler &&handler) {
         if constexpr (Style == ParamStyle::None) {
-            static_assert(std::is_invocable_r_v<void, Handler, ArgumentData &>,
-                          "Handler must accept (ArgumentData&)");
+            static_assert(std::is_invocable_r_v<void, Handler, ArgumentData &>, "Handler must accept (ArgumentData&)");
             std::function<void(ArgumentData &)> fn = std::forward<Handler>(handler);
             return [flag, fn](const std::vector<std::string> &params, ArgumentData &data) {
                 if (!params.empty()) {
@@ -233,8 +231,7 @@ class OptionsParser {
                 fn(params.front(), data);
             };
         } else if constexpr (Style == ParamStyle::KeyValue) {
-            static_assert(std::is_invocable_r_v<void, Handler,
-                                                const std::vector<std::pair<std::string, std::string>> &,
+            static_assert(std::is_invocable_r_v<void, Handler, const std::vector<std::pair<std::string, std::string>> &,
                                                 ArgumentData &>,
                           "Handler must accept (key/value list, ArgumentData&)");
             std::function<void(const std::vector<std::pair<std::string, std::string>> &, ArgumentData &)> fn =
@@ -250,7 +247,7 @@ class OptionsParser {
                     const auto pos = param.find('=');
                     if (pos == std::string::npos || pos == 0 || pos + 1 == param.size()) {
                         throw fastchess_exception("Option \"" + flag + "\" expects key=value pairs, got \"" + param +
-                                                 "\".");
+                                                  "\".");
                     }
                     kv.emplace_back(param.substr(0, pos), param.substr(pos + 1));
                 }

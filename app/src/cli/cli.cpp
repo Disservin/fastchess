@@ -13,9 +13,8 @@
 #include <matchmaking/output/output_factory.hpp>
 #include <matchmaking/scoreboard.hpp>
 #include <types/engine_config.hpp>
-#include <types/tournament.hpp>
 #include <types/exception.hpp>
-
+#include <types/tournament.hpp>
 
 namespace {
 template <typename T>
@@ -90,7 +89,7 @@ bool is_bool(const std::string &s) { return s == "true" || s == "false"; }
 }  // namespace
 
 namespace fastchess::cli {
-using json = nlohmann::json;
+using json          = nlohmann::json;
 using KeyValuePairs = std::vector<std::pair<std::string, std::string>>;
 
 namespace engine {
@@ -357,12 +356,12 @@ void parseResign(const KeyValuePairs &params, ArgumentData &argument_data) {
 
 void parseMaxMoves(std::string_view value, ArgumentData &argument_data) {
     argument_data.tournament_config.maxmoves.move_count = parseScalar<int>(value);
-    argument_data.tournament_config.maxmoves.enabled = true;
+    argument_data.tournament_config.maxmoves.enabled    = true;
 }
 
 void parseTbAdjudication(std::string_view value, ArgumentData &argument_data) {
     argument_data.tournament_config.tb_adjudication.syzygy_dirs = std::string(value);
-    argument_data.tournament_config.tb_adjudication.enabled = true;
+    argument_data.tournament_config.tb_adjudication.enabled     = true;
 }
 
 void parseTbMaxPieces(std::string_view value, ArgumentData &argument_data) {
@@ -516,9 +515,7 @@ void parseCrc(const KeyValuePairs &params, ArgumentData &argument_data) {
     }
 }
 
-void parseForceConcurrency(ArgumentData &argument_data) {
-    argument_data.tournament_config.force_concurrency = true;
-}
+void parseForceConcurrency(ArgumentData &argument_data) { argument_data.tournament_config.force_concurrency = true; }
 
 void parseEvent(const std::vector<std::string> &params, ArgumentData &argument_data) {
     argument_data.tournament_config.pgn.event_name = concat(params);
@@ -540,13 +537,9 @@ void parseWait(std::string_view value, ArgumentData &argument_data) {
     argument_data.tournament_config.wait = parseScalar<int>(value);
 }
 
-void parseNoswap(ArgumentData &argument_data) {
-    argument_data.tournament_config.noswap = true;
-}
+void parseNoswap(ArgumentData &argument_data) { argument_data.tournament_config.noswap = true; }
 
-void parseReverse(ArgumentData &argument_data) {
-    argument_data.tournament_config.reverse = true;
-}
+void parseReverse(ArgumentData &argument_data) { argument_data.tournament_config.reverse = true; }
 
 void parseRatinginterval(std::string_view value, ArgumentData &argument_data) {
     argument_data.tournament_config.ratinginterval = parseScalar<int>(value);
@@ -571,9 +564,7 @@ void parseVersion(ArgumentData &) {
 
 void parseHelp(ArgumentData &) { OptionsParser::printHelp(); }
 
-void parseRecover(ArgumentData &argument_data) {
-    argument_data.tournament_config.recover = true;
-}
+void parseRecover(ArgumentData &argument_data) { argument_data.tournament_config.recover = true; }
 
 void parseRepeat(const std::vector<std::string> &params, ArgumentData &argument_data) {
     if (params.size() == 1 && is_number(params[0])) {
@@ -669,13 +660,12 @@ void parseAffinity(const std::vector<std::string> &params, ArgumentData &argumen
     argument_data.tournament_config.affinity = true;
     if (params.size() > 0) {
         auto iss = std::istringstream(params[0]);
-        if (parseIntList(iss, argument_data.tournament_config.affinity_cpus)) throw fastchess_exception("Bad cpu list.");
+        if (parseIntList(iss, argument_data.tournament_config.affinity_cpus))
+            throw fastchess_exception("Bad cpu list.");
     }
 }
 
-void parseLatency(ArgumentData &argument_data) {
-    argument_data.tournament_config.show_latency = true;
-}
+void parseLatency(ArgumentData &argument_data) { argument_data.tournament_config.show_latency = true; }
 
 void parseDebug(ArgumentData &) {
     // throw error
@@ -686,9 +676,7 @@ void parseDebug(ArgumentData &) {
     throw fastchess_exception(error_message);
 }
 
-void parseTestEnv(ArgumentData &argument_data) {
-    argument_data.tournament_config.test_env = true;
-}
+void parseTestEnv(ArgumentData &argument_data) { argument_data.tournament_config.test_env = true; }
 
 OptionsParser::OptionsParser(const cli::Args &args) {
     LOG_TRACE("Reading options...");

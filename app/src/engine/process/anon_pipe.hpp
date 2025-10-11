@@ -10,7 +10,7 @@
 
 #    include <core/logger/logger.hpp>
 
-#include <types/exception.hpp>
+#    include <types/exception.hpp>
 
 namespace fastchess {
 

@@ -1,4 +1,3 @@
-
 #include <string_view>
 #include <unordered_map>
 
@@ -6,6 +5,7 @@
 
 namespace fastchess::pgn {
 
+// clang-format off
 std::unordered_map<std::string_view, Opening> EPD_TO_OPENING = {
     {"rnbqkbnr/pppppppp/8/8/8/7N/PPPPPPPP/RNBQKB1R b KQkq -", {"A00", "Amar Opening"}},
     {"rnbqkbnr/ppp2ppp/8/3pp3/5P2/6PN/PPPPP2P/RNBQKB1R b KQkq -", {"A00", "Amar Opening: Paris Gambit"}},

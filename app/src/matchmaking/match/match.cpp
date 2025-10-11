@@ -10,8 +10,8 @@
 #include <core/helper.hpp>
 #include <core/logger/logger.hpp>
 #include <core/time/time.hpp>
-#include <types/tournament.hpp>
 #include <types/exception.hpp>
+#include <types/tournament.hpp>
 
 namespace fastchess {
 

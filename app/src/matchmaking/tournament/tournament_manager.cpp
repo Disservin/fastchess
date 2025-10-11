@@ -46,7 +46,7 @@ void TournamentManager::start(const cli::Args& args) {
         const int tbPieces = initSyzygy(config::TournamentConfig->tb_adjudication.syzygy_dirs);
         if (tbPieces == 0) {
             throw fastchess_exception("Error: Failed to load Syzygy tablebases from the following directories: " +
-                                     config::TournamentConfig->tb_adjudication.syzygy_dirs);
+                                      config::TournamentConfig->tb_adjudication.syzygy_dirs);
         }
         LOG_INFO("Loaded {}-piece Syzygy tablebases.", tbPieces);
     }
@@ -63,7 +63,7 @@ void TournamentManager::start(const cli::Args& args) {
             break;
         default:
             throw fastchess_exception("Unsupported tournament type: " +
-                                     std::to_string(static_cast<int>(config::TournamentConfig->type)));
+                                      std::to_string(static_cast<int>(config::TournamentConfig->type)));
     }
 
     LOG_INFO("Starting tournament...");

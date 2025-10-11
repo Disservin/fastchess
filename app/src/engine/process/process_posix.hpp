@@ -35,7 +35,7 @@
 #    include <core/globals/globals.hpp>
 #    include <core/logger/logger.hpp>
 #    include <core/threading/thread_vector.hpp>
-#include <types/exception.hpp>
+#    include <types/exception.hpp>
 
 #    include <argv_split.hpp>
 

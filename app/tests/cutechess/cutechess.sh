@@ -50,19 +50,25 @@ for binary in ./cutechess-cli ./fastchess
 do
 
 (
+    if [[ "$binary" == "./fastchess" ]]; then
+        pgnout_arg="-pgnout file=$binary-out.pgn"
+    else
+        pgnout_arg="-pgnout $binary-out.pgn"
+    fi
 
-$binary         -recover -repeat -games 2 -rounds 100\
-                -pgnout file=$binary-out.pgn\
-                -srand $RANDOM  -resign movecount=3 score=600 -draw movenumber=34 movecount=8 score=20\
-                -variant standard -concurrency 4 -openings file=UHO_4060_v2.epd format=epd order=sequential \
-                -engine name=sf_1 tc=inf depth=6 cmd=./sf_1 dir=.\
-                -engine name=sf_2 tc=inf depth=8 cmd=./sf_2 dir=.\
-                -each proto=uci option.Threads=1\
-                "${tb_args[@]}"
+    $binary -recover -repeat -games 2 -rounds 100 \
+        $pgnout_arg \
+        -srand $RANDOM -resign movecount=3 score=600 -draw movenumber=34 movecount=8 score=20 \
+        -variant standard -concurrency 4 -openings file=UHO_4060_v2.epd format=epd order=sequential \
+        -engine name=sf_1 tc=inf depth=6 cmd=./sf_1 dir=. \
+        -engine name=sf_2 tc=inf depth=8 cmd=./sf_2 dir=. \
+        -each proto=uci option.Threads=1 \
+        "${tb_args[@]}"
 
 ) | grep "Finished game" | sort -n -k 3 > $binary-out.finished
 
 done
+
 
 diff ./cutechess-cli-out.finished ./fastchess-out.finished
 if [[ $? -ne 0 ]]; then

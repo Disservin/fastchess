@@ -52,7 +52,7 @@ do
 (
 
 $binary         -recover -repeat -games 2 -rounds 100\
-                -pgnout $binary-out.pgn\
+                -pgnout file=$binary-out.pgn\
                 -srand $RANDOM  -resign movecount=3 score=600 -draw movenumber=34 movecount=8 score=20\
                 -variant standard -concurrency 4 -openings file=UHO_4060_v2.epd format=epd order=sequential \
                 -engine name=sf_1 tc=inf depth=6 cmd=./sf_1 dir=.\

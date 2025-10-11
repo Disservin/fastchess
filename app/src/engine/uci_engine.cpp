@@ -374,23 +374,29 @@ void UciEngine::writeLog() const {
     }
 }
 
-std::string UciEngine::lastInfoLine(bool exact) const {
+std::string UciEngine::lastInfoLine() const {
+    std::string fallback;
+
     // iterate backwards over the output and save the info line
     for (auto it = output_.rbegin(); it != output_.rend(); ++it) {
-        // skip lowerbound and upperbound
-        if (exact &&
-            (it->line.find("lowerbound") != std::string::npos || it->line.find("upperbound") != std::string::npos)) {
+        const auto &line = it->line;
+
+        // only consider info lines with score and (multipv 1 if present)
+        if (line.find("info") == std::string::npos || line.find(" score ") == std::string::npos ||
+            (line.find(" multipv ") != std::string::npos && line.find(" multipv 1") == std::string::npos)) {
             continue;
         }
 
-        // check that the line contains "info", "score", "cp" | "mate" and "multipv 1" if it contains multipv
-        if (it->line.find("info") != std::string::npos && it->line.find(" score ") != std::string::npos &&
-            (it->line.find(" multipv ") == std::string::npos || it->line.find(" multipv 1") != std::string::npos)) {
-            return it->line;
-        }
+        bool isBound = (line.find("lowerbound") != std::string::npos || line.find("upperbound") != std::string::npos);
+
+        // prefer exact scores
+        if (!isBound) return line;
+
+        // save as fallback if we don’t find an exact one
+        if (fallback.empty()) fallback = line;
     }
 
-    return {};
+    return fallback;
 }
 
 bool UciEngine::writeEngine(const std::string &input) {
@@ -416,8 +422,8 @@ std::optional<std::string> UciEngine::bestmove() const {
     return bm.value();
 }
 
-std::vector<std::string> UciEngine::lastInfo(bool exact) const {
-    const auto last_info = lastInfoLine(exact);
+std::vector<std::string> UciEngine::lastInfo() const {
+    const auto last_info = lastInfoLine();
 
     if (last_info.empty()) {
         Logger::print<Logger::Level::WARN>("Warning; Last info string with score not found from {}", config_.name);
@@ -438,7 +444,20 @@ ScoreType UciEngine::lastScoreType() const {
 }
 
 std::chrono::milliseconds UciEngine::lastTime() const {
-    const auto time = str_utils::findElement<int>(lastInfo(false), "time").value_or(0);
+    std::vector<std::string> last_reported_time_info;
+
+    for (auto it = output_.rbegin(); it != output_.rend(); ++it) {
+        const auto &line = it->line;
+
+        if (line.find("info") == std::string::npos || line.find("time") == std::string::npos) {
+            continue;
+        }
+
+        last_reported_time_info = str_utils::splitString(line, ' ');
+        break;
+    }
+
+    const auto time = str_utils::findElement<int>(last_reported_time_info, "time").value_or(0);
 
     return std::chrono::milliseconds(time);
 }

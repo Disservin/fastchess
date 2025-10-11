@@ -237,7 +237,7 @@ TEST_SUITE("Option Parsing Tests") {
         };
 
         CHECK_THROWS_WITH_AS(cli::OptionsParser{args},
-                             "Error: Must provide a ;-separated list of Syzygy tablebase directories.",
+                             "Error while reading option \"-tb\" with value \"-tb\"\nReason: Option \"-tb\" expects exactly one value.",
                              fastchess_exception);
     }
 

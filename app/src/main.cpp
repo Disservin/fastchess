@@ -38,7 +38,14 @@ int main(int argc, char const* argv[]) {
                 Logger::print("Tournament was interrupted.");
             }
         }
-    } catch (const std::exception& e) {
+    } 
+    catch (const FastChessException& e) {
+        stopProcesses();
+
+        Logger::print("{}", e.what());
+        return EXIT_FAILURE;
+    }
+    catch (const std::exception& e) {
         stopProcesses();
 
         Logger::print(
@@ -47,7 +54,7 @@ int main(int argc, char const* argv[]) {
         Logger::print("{}", e.what());
 
         return EXIT_FAILURE;
-    }
+    } 
 
     stopProcesses();
 

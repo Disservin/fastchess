@@ -17,6 +17,7 @@
 #include <affinity/cpuinfo/cpu_info.hpp>
 #include <core/logger/logger.hpp>
 #include <core/memory/scope_guard.hpp>
+#include <types/exception.hpp>
 
 namespace fastchess {
 
@@ -71,7 +72,7 @@ class AffinityManager {
         if (cores_[HT_1].empty() && cores_[HT_2].empty()) {
             LOG_ERR("No cores available");
 
-            throw std::runtime_error("No cores available");
+            throw FastChessException("No cores available");
         }
 
         // find first available core
@@ -86,7 +87,7 @@ class AffinityManager {
 
         LOG_ERR("No cores available, all are in use");
 
-        throw std::runtime_error("No cores available");
+        throw FastChessException("No cores available");
     }
 
    private:

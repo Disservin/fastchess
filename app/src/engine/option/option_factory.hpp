@@ -7,6 +7,8 @@
 #include <unordered_map>
 #include <vector>
 
+#include <types/exception.hpp>
+
 #include "ucioption.hpp"
 
 #include "button_option.hpp"
@@ -63,7 +65,7 @@ class UCIOptionFactory {
                 return createSpinOption<double>(name, params["min"], params["max"], params["default"]);
             }
 
-            throw std::invalid_argument("The spin values are not numeric.");
+            throw FastChessException("The spin values are not numeric.");
         } else if (type == "combo") {
             std::istringstream varStream(params["var"]);
             std::vector<std::string> options;

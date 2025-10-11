@@ -35,6 +35,7 @@
 #    include <core/globals/globals.hpp>
 #    include <core/logger/logger.hpp>
 #    include <core/threading/thread_vector.hpp>
+#include <types/exception.hpp>
 
 #    include <argv_split.hpp>
 
@@ -416,7 +417,7 @@ class Process : public IProcess {
             auto func = use_spawnp ? posix_spawnp : posix_spawn;
 
             if (func(&process_pid_, command_.c_str(), &file_actions, nullptr, execv_argv, environ) != 0) {
-                throw std::runtime_error("posix_spawn failed");
+                throw FastChessException("posix_spawn failed");
             }
 
             posix_spawn_file_actions_destroy(&file_actions);
@@ -432,7 +433,7 @@ class Process : public IProcess {
 
     void setup_spawn_file_actions(posix_spawn_file_actions_t &file_actions, int fd, int target_fd) {
         if (posix_spawn_file_actions_adddup2(&file_actions, fd, target_fd) != 0) {
-            throw std::runtime_error("posix_spawn_file_actions_add* failed");
+            throw FastChessException("posix_spawn_file_actions_add* failed");
         }
     }
 
@@ -448,7 +449,7 @@ class Process : public IProcess {
             // chdir is broken on macos so lets just ignore the return code,
             // https://github.com/rust-lang/rust/pull/80537
 #    if !(defined(__MAC_OS_X_VERSION_MIN_REQUIRED) && __MAC_OS_X_VERSION_MIN_REQUIRED >= 101500)
-            throw std::runtime_error("posix_spawn_file_actions_addchdir failed");
+            throw FastChessException("posix_spawn_file_actions_addchdir failed");
 #    endif
         }
     }
@@ -507,9 +508,9 @@ class Process : public IProcess {
 
        private:
         void initialize() {
-            if (pipe(fds_.data()) != 0) throw std::runtime_error("pipe() failed");
+            if (pipe(fds_.data()) != 0) throw FastChessException("pipe() failed");
             if (fcntl(fds_[0], F_SETFD, FD_CLOEXEC) == -1 || fcntl(fds_[1], F_SETFD, FD_CLOEXEC) == -1)
-                throw std::runtime_error("fcntl() failed");
+                throw FastChessException("fcntl() failed");
         }
     };
 

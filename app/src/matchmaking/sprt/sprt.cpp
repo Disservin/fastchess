@@ -11,6 +11,7 @@
 
 #include <core/logger/logger.hpp>
 #include <matchmaking/stats.hpp>
+#include <types/exception.hpp>
 
 namespace fastchess {
 
@@ -50,15 +51,15 @@ double SPRT::neloToScorePenta(double nelo, double variance) noexcept {
 
 void SPRT::isValid(double alpha, double beta, double elo0, double elo1, std::string model, bool& report_penta) {
     if (elo0 >= elo1) {
-        throw std::runtime_error("Error; SPRT: elo0 must be less than elo1!");
+        throw FastChessException("Error; SPRT: elo0 must be less than elo1!");
     } else if (alpha <= 0 || alpha >= 1) {
-        throw std::runtime_error("Error; SPRT: alpha must be a decimal number between 0 and 1!");
+        throw FastChessException("Error; SPRT: alpha must be a decimal number between 0 and 1!");
     } else if (beta <= 0 || beta >= 1) {
-        throw std::runtime_error("Error; SPRT: beta must be a decimal number between 0 and 1!");
+        throw FastChessException("Error; SPRT: beta must be a decimal number between 0 and 1!");
     } else if (alpha + beta >= 1) {
-        throw std::runtime_error("Error; SPRT: sum of alpha and beta must be less than 1!");
+        throw FastChessException("Error; SPRT: sum of alpha and beta must be less than 1!");
     } else if (model != "normalized" && model != "bayesian" && model != "logistic") {
-        throw std::runtime_error("Error; SPRT: invalid SPRT model!");
+        throw FastChessException("Error; SPRT: invalid SPRT model!");
     }
 
     if (model == "bayesian" && report_penta) {

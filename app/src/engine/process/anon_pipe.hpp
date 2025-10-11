@@ -10,6 +10,8 @@
 
 #    include <core/logger/logger.hpp>
 
+#include <types/exception.hpp>
+
 namespace fastchess {
 
 namespace engine::process {
@@ -82,7 +84,7 @@ class Pipe {
         sa.bInheritHandle = TRUE;
 
         if (!CreatePipeEx(&handles_[0], &handles_[1], &sa)) {
-            throw std::runtime_error("CreatePipeEx() failed");
+            throw FastChessException("CreatePipeEx() failed");
         }
     }
 

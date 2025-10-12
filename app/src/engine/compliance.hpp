@@ -10,7 +10,7 @@
 
 namespace fastchess::engine {
 
-bool isValidInfoLine(const std::string &infoLine) {
+inline bool isValidInfoLine(const std::string &infoLine) {
     std::istringstream iss(infoLine);
     std::string token;
 
@@ -43,13 +43,21 @@ inline bool compliant(int argc, char const *argv[]) {
     config.cmd  = argv[2];
     config.args = argc > 3 ? std::string(argv[3]) : "";
 
-    auto executeStep = [&step](const std::string &description, const std::function<bool()> &action) {
+    UciEngine uci_engine(config, false);
+
+
+    auto executeStep = [&step, &uci_engine](const std::string &description, const std::function<bool()> &action) {
         step++;
 
         std::cout << "Step " << step << ": " << description << "..." << std::flush;
 
         if (!action()) {
             std::cerr << "\r\033[1;31m Failed\033[0m Step " << step << ": " << description << std::endl;
+
+            std::cerr << "\033[1;33m Your engine's output was:\033[0m" << std::endl;
+            for (const auto &line : uci_engine.lastOutput())
+                std::cerr << " " << line.line << std::endl;
+
             return false;
         }
 
@@ -58,7 +66,6 @@ inline bool compliant(int argc, char const *argv[]) {
         return true;
     };
 
-    UciEngine uci_engine(config, false);
 
     std::vector<std::pair<std::string, std::function<bool()>>> steps = {
         {"Start the engine", [&uci_engine] { return uci_engine.start(/*cpus*/ std::nullopt).has_value(); }},

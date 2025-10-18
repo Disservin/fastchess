@@ -236,7 +236,7 @@ void BaseTournament::playGame(const GamePair<EngineConfiguration, EngineConfigur
     if (black_engine->get()->getConfig().restart) engine_cache_.deleteFromCache(black_engine);
 
     const auto losing_player = match_data.getLosingPlayer();
-    assert(losing_player.has_value());
+    if (!losing_player.has_value()) return;
 
     switch (match_data.termination) {
         case MatchTermination::TIMEOUT:

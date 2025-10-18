@@ -18,6 +18,9 @@ class CachedEntry : public ScopeEntry {
     CachedEntry(const ID &identifier, ARGS &&...arg)
         : ScopeEntry(false), entry_(std::make_unique<T>(std::forward<ARGS>(arg)...)), id(identifier) {}
 
+    T *operator->() noexcept { return entry_.get(); }
+    const T *operator->() const noexcept { return entry_.get(); }
+
     [[nodiscard]] auto &get() noexcept { return entry_; }
 
    private:

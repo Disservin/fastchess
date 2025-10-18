@@ -172,8 +172,8 @@ void BaseTournament::playGame(const GamePair<EngineConfiguration, EngineConfigur
     auto white_engine = engine_cache_.getEntry(white_name, engine_configs.white, rl);
     auto black_engine = engine_cache_.getEntry(black_name, engine_configs.black, rl);
 
-    util::ScopeGuard lock1(white_engine->get()->getConfig().restart ? nullptr : &(*white_engine));
-    util::ScopeGuard lock2(black_engine->get()->getConfig().restart ? nullptr : &(*black_engine));
+    util::ScopeGuard lock1((*white_engine)->getConfig().restart ? nullptr : &(*white_engine));
+    util::ScopeGuard lock2((*black_engine)->getConfig().restart ? nullptr : &(*black_engine));
 
     if (atomic::stop.load()) return;
 
@@ -202,10 +202,10 @@ void BaseTournament::playGame(const GamePair<EngineConfiguration, EngineConfigur
 
         // restart the engine when recover is enabled
 
-        if (white_engine->get()->isready() != engine::process::Status::OK) {
+        if ((*white_engine)->isready() != engine::process::Status::OK) {
             restartEngine(white_engine->get());
         }
-        if (black_engine->get()->isready() != engine::process::Status::OK) {
+        if ((*black_engine)->isready() != engine::process::Status::OK) {
             restartEngine(black_engine->get());
         }
     }

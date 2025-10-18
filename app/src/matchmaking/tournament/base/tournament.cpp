@@ -172,11 +172,8 @@ void BaseTournament::playGame(const GamePair<EngineConfiguration, EngineConfigur
     auto white_engine = engine_cache_.getEntry(white_name, engine_configs.white, rl);
     auto black_engine = engine_cache_.getEntry(black_name, engine_configs.black, rl);
 
-    auto w_engine_ptr = white_engine->get().get();
-    auto b_engine_ptr = black_engine->get().get();
-
-    util::ScopeGuard lock1(w_engine_ptr->getConfig().restart ? nullptr : &(*white_engine));
-    util::ScopeGuard lock2(b_engine_ptr->getConfig().restart ? nullptr : &(*black_engine));
+    util::ScopeGuard lock1((*white_engine)->getConfig().restart ? nullptr : &(*white_engine));
+    util::ScopeGuard lock2((*black_engine)->getConfig().restart ? nullptr : &(*black_engine));
 
     if (atomic::stop.load()) return;
 
@@ -185,7 +182,7 @@ void BaseTournament::playGame(const GamePair<EngineConfiguration, EngineConfigur
     start();
 
     auto match = Match(opening);
-    match.start(*w_engine_ptr, *b_engine_ptr, cpus);
+    match.start(*white_engine->get(), *black_engine->get(), cpus);
 
     LOG_TRACE_THREAD("Game {} between {} and {} finished", game_id, white_name, black_name);
 
@@ -205,13 +202,11 @@ void BaseTournament::playGame(const GamePair<EngineConfiguration, EngineConfigur
 
         // restart the engine when recover is enabled
 
-        if (w_engine_ptr->isready() != engine::process::Status::OK) {
+        if ((*white_engine)->isready() != engine::process::Status::OK) {
             restartEngine(white_engine->get());
-            w_engine_ptr = white_engine->get().get();
         }
-        if (b_engine_ptr->isready() != engine::process::Status::OK) {
+        if ((*black_engine)->isready() != engine::process::Status::OK) {
             restartEngine(black_engine->get());
-            b_engine_ptr = black_engine->get().get();
         }
     }
 
@@ -231,24 +226,25 @@ void BaseTournament::playGame(const GamePair<EngineConfiguration, EngineConfigur
         const auto result = pgn::PgnBuilder::getResultFromMatch(match_data.players.white, match_data.players.black);
         LOG_TRACE_THREAD("Game {} finished with result {}", game_id, result);
 
-        finish({match_data}, match_data.reason, {*w_engine_ptr, *b_engine_ptr});
+        finish({match_data}, match_data.reason, {*white_engine->get(), *black_engine->get()});
 
         startNext();
     }
 
     // remove engines if restart is enabled, frees up memory
-    if (w_engine_ptr->getConfig().restart) engine_cache_.deleteFromCache(white_engine);
-    if (b_engine_ptr->getConfig().restart) engine_cache_.deleteFromCache(black_engine);
+    if (white_engine->get()->getConfig().restart) engine_cache_.deleteFromCache(white_engine);
+    if (black_engine->get()->getConfig().restart) engine_cache_.deleteFromCache(black_engine);
 
-    const auto &loser = match_data.players.white.result == chess::GameResult::LOSE ? white_name : black_name;
+    const auto losing_player = match_data.getLosingPlayer();
+    if (!losing_player.has_value()) return;
 
     switch (match_data.termination) {
         case MatchTermination::TIMEOUT:
-            tracker_.report_timeout(loser);
+            tracker_.report_timeout(losing_player->config.name);
             break;
         case MatchTermination::DISCONNECT:
         case MatchTermination::STALL:
-            tracker_.report_disconnect(loser);
+            tracker_.report_disconnect(losing_player->config.name);
             break;
         default:
             break;

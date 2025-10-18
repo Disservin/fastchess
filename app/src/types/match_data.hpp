@@ -72,6 +72,22 @@ struct MatchData {
 
     GamePair<PlayerInfo, PlayerInfo> players;
 
+    std::optional<PlayerInfo> getLosingPlayer() const {
+        const auto check = [&](const PlayerInfo& player) { return player.result == chess::GameResult::LOSE; };
+
+        if (check(players.white)) return players.white;
+        if (check(players.black)) return players.black;
+        return std::nullopt;
+    }
+
+    std::optional<PlayerInfo> getWinningPlayer() const {
+        const auto check = [&](const PlayerInfo& player) { return player.result == chess::GameResult::WIN; };
+
+        if (check(players.white)) return players.white;
+        if (check(players.black)) return players.black;
+        return std::nullopt;
+    }
+
     std::string start_time;
     std::string end_time;
     std::string duration;

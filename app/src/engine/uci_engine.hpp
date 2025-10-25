@@ -103,19 +103,24 @@ class UciEngine {
     // Get the bestmove from the last output.
     [[nodiscard]] std::optional<std::string> bestmove() const;
 
-    [[nodiscard]] std::string lastInfoLine() const;
+    // Get the last info line from the last output.
+    [[nodiscard]] std::string lastInfoLine(bool logging = false) const;
 
-    // Get the last info from the last output.
-    [[nodiscard]] std::vector<std::string> lastInfo() const;
+    [[nodiscard]] std::vector<std::string> getInfoLines() const;
 
-    // Get the last score type from the last output. cp or mate.
+    // Get the score type from the (last valid) info line. cp or mate.
+    [[nodiscard]] ScoreType getScoreType(const std::string &info) const;
     [[nodiscard]] ScoreType lastScoreType() const;
 
     [[nodiscard]] std::chrono::milliseconds lastTime() const;
 
-    // Get the last score from the last output. Becareful, mate scores are not converted. So
-    // the score might 1, while it's actually mate 1. Always check lastScoreType() first.
+    // Get the score from the (last valid) info line. Be careful, mate scores are not converted. So
+    // the score might be 1, while it's actually mate 1. Always check ScoreType() first.
+    [[nodiscard]] int getScore(const std::string &info) const;
     [[nodiscard]] int lastScore() const;
+
+    // Get the PV from an info line.
+    [[nodiscard]] std::optional<std::vector<std::string>> getPv(const std::string &info) const;
 
     // returns false if the output doesnt include a bestmove
     [[nodiscard]] bool outputIncludesBestmove() const;
@@ -133,8 +138,6 @@ class UciEngine {
 
     [[nodiscard]] bool isRealtimeLogging() const noexcept { return realtime_logging_; }
 
-
-    [[nodiscard]] const std::vector<process::Line> &lastOutput() const noexcept { return output_; }
    private:
     void loadConfig(const EngineConfiguration &config);
     void sendSetoption(const std::string &name, const std::string &value);

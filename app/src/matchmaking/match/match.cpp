@@ -54,20 +54,6 @@ bool isFen(const std::string& line) { return line.find(';') == std::string::npos
     return {GameResultReason::NONE, GameResult::NONE};
 }
 
-[[nodiscard]] std::optional<std::vector<std::string>> extractPvFromInfo(const std::vector<std::string>& info) {
-    if (!str_utils::contains(info, "pv")) return std::nullopt;
-
-    auto it_start = std::find(info.begin(), info.end(), "pv") + 1;
-    auto it_end   = std::find_if(it_start, info.end(), [](const auto& token) { return !uci::isUciMove(token); });
-
-    return std::vector<std::string>(it_start, it_end);
-}
-
-[[nodiscard]] std::optional<std::vector<std::string>> extractPvFromInfo(const std::string& info) {
-    const auto tokens = str_utils::splitString(info, ' ');
-    return extractPvFromInfo(tokens);
-}
-
 }  // namespace
 
 Match::Match(const book::Opening& opening)
@@ -130,15 +116,16 @@ void Match::addMoveData(const Player& player, int64_t measured_time_ms, int64_t 
 
     // extract last info line
     const auto score_type = player.engine.lastScoreType();
-    const auto info       = player.engine.lastInfo();
+    const auto info       = player.engine.lastInfoLine(true);
+    const auto split_info = str_utils::splitString(info, ' ');
 
-    move_data.nps      = str_utils::findElement<uint64_t>(info, "nps").value_or(0);
-    move_data.hashfull = str_utils::findElement<int>(info, "hashfull").value_or(0);
-    move_data.tbhits   = str_utils::findElement<uint64_t>(info, "tbhits").value_or(0);
-    move_data.depth    = str_utils::findElement<int>(info, "depth").value_or(0);
-    move_data.seldepth = str_utils::findElement<int>(info, "seldepth").value_or(0);
-    move_data.nodes    = str_utils::findElement<uint64_t>(info, "nodes").value_or(0);
-    move_data.pv       = str_utils::join(extractPvFromInfo(info).value_or(std::vector<std::string>{}), " ");
+    move_data.nps      = str_utils::findElement<uint64_t>(split_info, "nps").value_or(0);
+    move_data.hashfull = str_utils::findElement<int>(split_info, "hashfull").value_or(0);
+    move_data.tbhits   = str_utils::findElement<uint64_t>(split_info, "tbhits").value_or(0);
+    move_data.depth    = str_utils::findElement<int>(split_info, "depth").value_or(0);
+    move_data.seldepth = str_utils::findElement<int>(split_info, "seldepth").value_or(0);
+    move_data.nodes    = str_utils::findElement<uint64_t>(split_info, "nodes").value_or(0);
+    move_data.pv       = str_utils::join(player.engine.getPv(info).value_or(std::vector<std::string>{}), " ");
     move_data.score    = player.engine.lastScore();
     move_data.timeleft = timeleft;
     move_data.latency  = latency;
@@ -517,11 +504,12 @@ void Match::setEngineIllegalMoveStatus(Player& loser, Player& winner, const std:
 }
 
 void Match::verifyPvLines(const Player& us) {
-    const static auto verifyPv = [](Board board, const std::string& startpos, const std::vector<std::string>& uci_moves,
-                                    const std::string& info, std::string_view name) {
-        // skip lines without pv
-        auto pv = extractPvFromInfo(info);
+    const static auto verifyPv = [&us](Board board, const std::string& startpos,
+                                       const std::vector<std::string>& uci_moves, const std::string& info,
+                                       std::string_view name) {
+        const auto pv = us.engine.getPv(info);
 
+        // skip lines without pv
         if (!pv.has_value() || pv->empty()) {
             return;
         }
@@ -560,22 +548,85 @@ void Match::verifyPvLines(const Player& us) {
                 auto out      = fmt::format(fmt::runtime(warning), move, name);
                 auto uci_info = fmt::format("Info; {}", info);
                 auto position = fmt::format("Position; {}", startpos == "startpos" ? "startpos" : ("fen " + startpos));
-                auto moves    = fmt::format("Moves; {}", str_utils::join(uci_moves, " "));
+                auto ucimoves = fmt::format("Moves; {}", str_utils::join(uci_moves, " "));
 
                 auto separator = config::TournamentConfig->test_env ? " :: " : "\n";
 
-                Logger::print<Logger::Level::WARN>("{1}{0}{2}{0}{3}{0}{4}", separator, out, uci_info, position, moves);
+                Logger::print<Logger::Level::WARN>("{1}{0}{2}{0}{3}{0}{4}", separator, out, uci_info, position, ucimoves);
 
-                break;
+                return;
             }
 
             board.makeMove<true>(uci::uciToMove(board, move));
         }
+
+        // for mate scores check correct length of PV
+        const auto score_type = us.engine.getScoreType(info);
+        const auto score      = us.engine.getScore(info);
+        bool isBound = (info.find("lowerbound") != std::string::npos || info.find("upperbound") != std::string::npos);
+
+        if (score_type == engine::ScoreType::MATE && !isBound) {
+            uint64_t plies = score > 0 ? score * 2 - 1 : score * -2;
+            std::string warning;
+            if (pv->size() < plies) {
+                warning = "Warning; Incomplete mating PV - from {}";
+            } else if (pv->size() > plies) {
+                warning = "Warning; Too long mating PV - from {}";
+            } else {
+                movegen::legalmoves(moves, board);
+                if (!moves.empty() || !board.inCheck()) {
+                    warning = "Warning; Mating PV does not end with checkmate - from {}";
+                }
+            }
+
+            if (warning.empty()) {
+                return;
+            }
+
+            auto out      = fmt::format(fmt::runtime(warning), name);
+            auto uci_info = fmt::format("Info; {}", info);
+            auto position = fmt::format("Position; {}", startpos == "startpos" ? "startpos" : ("fen " + startpos));
+            auto ucimoves = fmt::format("Moves; {}", str_utils::join(uci_moves, " "));
+
+            auto separator = config::TournamentConfig->test_env ? " :: " : "\n";
+
+            Logger::print<Logger::Level::WARN>("{1}{0}{2}{0}{3}{0}{4}", separator, out, uci_info, position, ucimoves);
+        }
     };
 
-    for (const auto& info : us.engine.output()) {
-        verifyPv(board_, start_position_, uci_moves_, info.line, us.engine.getConfig().name);
+    const auto info_lines = us.engine.getInfoLines();
+    for (const auto& info : info_lines) {
+        verifyPv(board_, start_position_, uci_moves_, info, us.engine.getConfig().name);
     }
+
+    // finally check if the final PV matches bestmove
+    const auto best_move = us.engine.bestmove().value_or("<none>");
+
+    // allow for upperbound/lowerbound info lines
+    const auto& info = info_lines.back();
+    const auto pv    = us.engine.getPv(info);
+    if (!pv.has_value() || pv->empty() || best_move == "<none>") {
+        return;
+    }
+    std::string warning;
+
+    if (best_move != (*pv)[0]) {
+        warning = "Warning; Bestmove does not match beginning of last PV - move {} from {}";
+    }
+
+    if (warning.empty()) {
+        return;
+    }
+
+    auto out      = fmt::format(fmt::runtime(warning), best_move, us.engine.getConfig().name);
+    auto uci_info = fmt::format("Info; {}", info);
+    auto position =
+        fmt::format("Position; {}", start_position_ == "startpos" ? "startpos" : ("fen " + start_position_));
+    auto ucimoves = fmt::format("Moves; {}", str_utils::join(uci_moves_, " "));
+
+    auto separator = config::TournamentConfig->test_env ? " :: " : "\n";
+
+    Logger::print<Logger::Level::WARN>("{1}{0}{2}{0}{3}{0}{4}", separator, out, uci_info, position, ucimoves);
 }
 
 bool Match::adjudicate(Player& us, Player& them) noexcept {

@@ -109,18 +109,18 @@ class UciEngine {
     [[nodiscard]] std::vector<std::string> getInfoLines() const;
 
     // Get the score type from the (last valid) info line. cp or mate.
-    [[nodiscard]] ScoreType getScoreType(const std::string &info) const;
+    [[nodiscard]] static ScoreType getScoreType(const std::string &info);
     [[nodiscard]] ScoreType lastScoreType() const;
 
     [[nodiscard]] std::chrono::milliseconds lastTime() const;
 
     // Get the score from the (last valid) info line. Be careful, mate scores are not converted. So
     // the score might be 1, while it's actually mate 1. Always check ScoreType() first.
-    [[nodiscard]] int getScore(const std::string &info) const;
+    [[nodiscard]] static int getScore(const std::string &info);
     [[nodiscard]] int lastScore() const;
 
     // Get the PV from an info line.
-    [[nodiscard]] std::optional<std::vector<std::string>> getPv(const std::string &info) const;
+    [[nodiscard]] static std::optional<std::vector<std::string>> getPv(const std::string &info);
 
     // returns false if the output doesnt include a bestmove
     [[nodiscard]] bool outputIncludesBestmove() const;

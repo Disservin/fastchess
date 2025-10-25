@@ -136,7 +136,7 @@ void BaseTournament::playGame(const GamePair<EngineConfiguration, EngineConfigur
     // ideally this should be also tied to the lifetime of the tournament
     thread_local static std::optional<std::vector<int>> cpus;
 
-    if (cpus == std::nullopt) {
+    if (cpus == std::nullopt && config.affinity) {
         cpus = cores_->consume().cpus;
         /*
         CPU Affinity Implementation Strategy:

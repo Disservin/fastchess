@@ -560,6 +560,10 @@ void Match::verifyPvLines(const Player& us) {
             board.makeMove<true>(uci::uciToMove(board, move));
         }
 
+        if (!config::TournamentConfig->check_mate_pvs) {
+            return;
+        }
+
         // for mate scores check correct length of PV
         const auto score_type = us.engine.getScoreType(info);
         const auto score      = us.engine.getScore(info);

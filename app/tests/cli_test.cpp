@@ -554,6 +554,7 @@ TEST_SUITE("Option Parsing Tests") {
 
         const auto config = parser.getTournamentConfig();
         CHECK(config.rounds == 5);
+        CHECK(config.check_mate_pvs);
         CHECK(config.show_latency);
         CHECK(config.log.realtime);
         CHECK(config.config_name == "custom.json");

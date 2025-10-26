@@ -63,12 +63,13 @@ struct Tournament {
     uint32_t wait          = 0;
     bool force_concurrency = false;
 
-    bool noswap       = false;
-    bool reverse      = false;
-    bool recover      = false;
-    bool affinity     = false;
-    bool show_latency = false;
-    bool test_env     = false;
+    bool noswap         = false;
+    bool reverse        = false;
+    bool recover        = false;
+    bool affinity       = false;
+    bool check_mate_pvs = false;
+    bool show_latency   = false;
+    bool test_env       = false;
 
     std::vector<int> affinity_cpus;
 
@@ -77,6 +78,6 @@ struct Tournament {
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Tournament, resign, draw, maxmoves, tb_adjudication, opening, pgn, epd, sprt,
                                    config_name, output, seed, variant, type, gauntlet_seeds, ratinginterval,
                                    scoreinterval, wait, autosaveinterval, games, rounds, concurrency, force_concurrency,
-                                   recover, noswap, reverse, report_penta, affinity, show_latency, log)
+                                   recover, noswap, reverse, report_penta, affinity, check_mate_pvs, show_latency, log)
 
 }  // namespace fastchess::config

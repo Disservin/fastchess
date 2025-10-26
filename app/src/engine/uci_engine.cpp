@@ -453,7 +453,7 @@ std::optional<std::string> UciEngine::bestmove() const {
     return bm.value();
 }
 
-ScoreType UciEngine::getScoreType(const std::string &info) {
+ScoreType UciEngine::getScoreType(std::string_view info) {
     auto split_info = str_utils::splitString(info, ' ');
     auto score      = str_utils::findElement<std::string>(split_info, "score").value_or("ERR");
 
@@ -490,7 +490,7 @@ std::chrono::milliseconds UciEngine::lastTime() const {
     return std::chrono::milliseconds(time);
 }
 
-int UciEngine::getScore(const std::string &info) {
+int UciEngine::getScore(std::string_view info) {
     const auto score_type = getScoreType(info);
 
     if (score_type == ScoreType::ERR) {
@@ -503,7 +503,7 @@ int UciEngine::getScore(const std::string &info) {
 
 int UciEngine::lastScore() const { return getScore(lastInfoLine(true)); }
 
-std::optional<std::vector<std::string>> UciEngine::getPv(const std::string &info) {
+std::optional<std::vector<std::string>> UciEngine::getPv(std::string_view info) {
     auto split_info = str_utils::splitString(info, ' ');
     if (!str_utils::contains(split_info, "pv")) return std::nullopt;
 

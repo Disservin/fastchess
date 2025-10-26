@@ -612,25 +612,19 @@ void Match::verifyPvLines(const Player& us) {
     if (!pv.has_value() || pv->empty() || best_move == "<none>") {
         return;
     }
-    std::string warning;
 
     if (best_move != (*pv)[0]) {
-        warning = "Warning; Bestmove does not match beginning of last PV - move {} from {}";
+        std::string warning = "Warning; Bestmove does not match beginning of last PV - move {} from {}";
+        auto out      = fmt::format(fmt::runtime(warning), best_move, us.engine.getConfig().name);
+        auto uci_info = fmt::format("Info; {}", info);
+        auto position =
+            fmt::format("Position; {}", start_position_ == "startpos" ? "startpos" : ("fen " + start_position_));
+        auto ucimoves = fmt::format("Moves; {}", str_utils::join(uci_moves_, " "));
+
+        auto separator = config::TournamentConfig->test_env ? " :: " : "\n";
+
+        Logger::print<Logger::Level::WARN>("{1}{0}{2}{0}{3}{0}{4}", separator, out, uci_info, position, ucimoves);
     }
-
-    if (warning.empty()) {
-        return;
-    }
-
-    auto out      = fmt::format(fmt::runtime(warning), best_move, us.engine.getConfig().name);
-    auto uci_info = fmt::format("Info; {}", info);
-    auto position =
-        fmt::format("Position; {}", start_position_ == "startpos" ? "startpos" : ("fen " + start_position_));
-    auto ucimoves = fmt::format("Moves; {}", str_utils::join(uci_moves_, " "));
-
-    auto separator = config::TournamentConfig->test_env ? " :: " : "\n";
-
-    Logger::print<Logger::Level::WARN>("{1}{0}{2}{0}{3}{0}{4}", separator, out, uci_info, position, ucimoves);
 }
 
 bool Match::adjudicate(Player& us, Player& them) noexcept {

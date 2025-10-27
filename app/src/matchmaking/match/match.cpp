@@ -504,9 +504,8 @@ void Match::setEngineIllegalMoveStatus(Player& loser, Player& winner, const std:
 }
 
 void Match::verifyPvLines(const Player& us) {
-    const static auto verifyPv = [](Board board, const std::string& startpos,
-                                    const std::vector<std::string>& uci_moves, const std::string& info,
-                                    std::string_view name) {
+    const static auto verifyPv = [](Board board, const std::string& startpos, const std::vector<std::string>& uci_moves,
+                                    const std::string& info, std::string_view name) {
         const auto pv = engine::UciEngine::getPv(info);
 
         // skip lines without pv
@@ -615,8 +614,8 @@ void Match::verifyPvLines(const Player& us) {
 
     if (best_move != (*pv)[0]) {
         std::string warning = "Warning; Bestmove does not match beginning of last PV - move {} from {}";
-        auto out      = fmt::format(fmt::runtime(warning), best_move, us.engine.getConfig().name);
-        auto uci_info = fmt::format("Info; {}", info);
+        auto out            = fmt::format(fmt::runtime(warning), best_move, us.engine.getConfig().name);
+        auto uci_info       = fmt::format("Info; {}", info);
         auto position =
             fmt::format("Position; {}", start_position_ == "startpos" ? "startpos" : ("fen " + start_position_));
         auto ucimoves = fmt::format("Moves; {}", str_utils::join(uci_moves_, " "));

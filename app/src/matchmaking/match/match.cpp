@@ -125,7 +125,7 @@ void Match::addMoveData(const Player& player, int64_t measured_time_ms, int64_t 
     move_data.depth    = str_utils::findElement<int>(split_info, "depth").value_or(0);
     move_data.seldepth = str_utils::findElement<int>(split_info, "seldepth").value_or(0);
     move_data.nodes    = str_utils::findElement<uint64_t>(split_info, "nodes").value_or(0);
-    move_data.pv       = str_utils::join(player.engine.getPv(info).value_or(std::vector<std::string>{}), " ");
+    move_data.pv       = str_utils::join(engine::UciEngine::getPv(info).value_or(std::vector<std::string>{}), " ");
     move_data.score    = player.engine.lastScore();
     move_data.timeleft = timeleft;
     move_data.latency  = latency;
@@ -504,10 +504,10 @@ void Match::setEngineIllegalMoveStatus(Player& loser, Player& winner, const std:
 }
 
 void Match::verifyPvLines(const Player& us) {
-    const static auto verifyPv = [&us](Board board, const std::string& startpos,
-                                       const std::vector<std::string>& uci_moves, const std::string& info,
-                                       std::string_view name) {
-        const auto pv = us.engine.getPv(info);
+    const static auto verifyPv = [](Board board, const std::string& startpos,
+                                    const std::vector<std::string>& uci_moves, const std::string& info,
+                                    std::string_view name) {
+        const auto pv = engine::UciEngine::getPv(info);
 
         // skip lines without pv
         if (!pv.has_value() || pv->empty()) {
@@ -565,8 +565,8 @@ void Match::verifyPvLines(const Player& us) {
         }
 
         // for mate scores check correct length of PV
-        const auto score_type = us.engine.getScoreType(info);
-        const auto score      = us.engine.getScore(info);
+        const auto score_type = engine::UciEngine::getScoreType(info);
+        const auto score      = engine::UciEngine::getScore(info);
         bool isBound = (info.find("lowerbound") != std::string::npos || info.find("upperbound") != std::string::npos);
 
         if (score_type == engine::ScoreType::MATE && !isBound) {
@@ -608,7 +608,7 @@ void Match::verifyPvLines(const Player& us) {
 
     // allow for upperbound/lowerbound info lines
     const auto& info = info_lines.back();
-    const auto pv    = us.engine.getPv(info);
+    const auto pv    = engine::UciEngine::getPv(info);
     if (!pv.has_value() || pv->empty() || best_move == "<none>") {
         return;
     }

@@ -149,7 +149,7 @@ The default values are the first value in parentheses.
 - `-output format=(fastchess|cutechess)`  
     Choose the output format for game results (`fastchess` or `cutechess`). Default is `fastchess`.
 
-- `-pgnout file=NAME notation=(san|lan|uci) [nodes=(false|true)] [seldepth=(false|true)] [nps=(false|true)] [hashfull=(false|true)] [tbhits=(false|true)] [pv=(false|true)] [timeleft=(false|true)] [latency=(false|true)] [min=(false|true)] [match_line=REGEX]`  
+- `-pgnout file=NAME notation=(san|lan|uci) [append=(true|false)] [nodes=(false|true)] [seldepth=(false|true)] [nps=(false|true)] [hashfull=(false|true)] [tbhits=(false|true)] [pv=(false|true)] [timeleft=(false|true)] [latency=(false|true)] [min=(false|true)] [match_line=REGEX]`
     Export games in PGN format with specified notations and optional tracking of nodes, seldepth, and others.
 
     - notation:
@@ -158,6 +158,7 @@ The default values are the first value in parentheses.
         - `lan` - Long Algebraic Notation
         - `uci` - Universal Chess Interface
 
+    - `append` - Append to file. Default is true.
     - `nodes` - Track node count. Default is false.
     - `seldepth` - Track seldepth. Default is false.
     - `nps` - Track nps. Default is false.
@@ -169,8 +170,10 @@ The default values are the first value in parentheses.
     - `min` - Minimal PGN format. Default is false.
     - `match_line` - Add lines to the PGN that match the given regex.
 
-- `-epdout file=NAME`  
+- `-epdout file=NAME [append=(true|false)]`
     Export the final position of each game in EPD format.
+
+    - `append` - Append to file. Default is true.
 
 - `-event NAME`  
     Set the event name for the PGN header.
@@ -196,7 +199,7 @@ The default values are the first value in parentheses.
     - `discard` - discard the loaded configuration after loading. Defaults to false. This lets you specify a filename to save the
       configuration to, while ignoring it for the current session.
     - `outname` - the auto-generated file name of the config. Default is "config.json".
-    - `stats` - load the stats from the config file. Defaults to true.
+    - `stats` - load the stats from the config file, and ignore `append=false` for `-pgnout` and `-epdout`. Defaults to true.
 
 - `-recover`  
     Enables crash recovery to attempt to recover the engine after a crash and continue the tournament.

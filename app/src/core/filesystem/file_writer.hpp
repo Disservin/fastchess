@@ -13,12 +13,13 @@ namespace fastchess::util {
 // Writes to a file in a thread safe manner.
 class FileWriter {
    public:
-    FileWriter(const std::string &filename, bool crc = false) : filename_(filename), calculate_crc_(crc) {
+    FileWriter(const std::string &filename, bool append = true, bool crc = false)
+        : filename_(filename), calculate_crc_(crc) {
+        file_.open(filename_, append ? std::ios::app | std::ios::binary : std::ios::binary);
+
         if (calculate_crc_) {
             initCrc();
         }
-
-        file_.open(filename_, std::ios::app | std::ios::binary);
     }
 
     void write(const std::string &data) {

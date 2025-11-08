@@ -254,6 +254,7 @@ void UciEngine::loadConfig(const EngineConfiguration &config) { config_ = config
 void UciEngine::quit() {
     if (!initialized_) return;
     LOG_TRACE_THREAD("Sending quit to engine {}", config_.name);
+    writeEngine("stop");
     writeEngine("quit");
 }
 

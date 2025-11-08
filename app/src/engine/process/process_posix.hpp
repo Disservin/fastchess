@@ -95,13 +95,13 @@ class Process : public IProcess {
 
         char *const *execv_argv = (char *const *)parser.argv();
 
-        auto success = start_proces(execv_argv);
+        auto success = start_process(execv_argv);
 
         if (success == Status::ERR) {
             out_pipe_ = {};
             in_pipe_  = {};
             err_pipe_ = {};
-            success   = start_proces(execv_argv, false);
+            success   = start_process(execv_argv, false);
         }
 
         if (success == Status::ERR) {
@@ -403,7 +403,7 @@ class Process : public IProcess {
     }
 
    private:
-    Status start_proces(char *const *execv_argv, bool use_spawnp = true) {
+    Status start_process(char *const *execv_argv, bool use_spawnp = true) {
         posix_spawn_file_actions_t file_actions;
         posix_spawn_file_actions_init(&file_actions);
 

@@ -212,6 +212,9 @@ The default values are the first value in parentheses.
 - `-crc32 pgn=true`  
     Calculate the CRC32 checksum for the PGN file.
 
+- `-check-mate-pvs`
+    Check that PVs for mate scores have the correct length and end in checkmate.
+
 - `-show-latency`  
     Show the "think" latency (difference between measured and reported time) for each engine.
     Note that a lot of engines add 1ms to the time they report, so the latency will be 1ms higher than the actual latency.

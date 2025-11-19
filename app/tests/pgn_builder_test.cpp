@@ -422,6 +422,45 @@ Nf6 {+10.15/18 1.821s, engine2 got checkmated} 1-0
         pgn::PgnBuilder pgn_builder = pgn::PgnBuilder(pgn_config, match_data, 1);
         CHECK(pgn_builder.get() == expected);
     }
+
+    TEST_CASE("PGN Illegal Move First Move") {
+        MatchData match_data;
+        match_data.players.white.config.name = "engine1";
+        match_data.players.white.result      = chess::GameResult::LOSE;
+
+        match_data.players.black.config.name = "engine2";
+        match_data.players.black.result      = chess::GameResult::WIN;
+
+        match_data.moves = {MoveData("a1a1", "+10.15", 1821, 18, 7, 0, 0, false)};
+
+        match_data.fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 17";
+
+        match_data.termination = MatchTermination::NORMAL;
+
+        match_data.reason = "White makes an illegal move";
+
+        config::Pgn pgn_config;
+        pgn_config.site = "localhost";
+
+        std::string expected = R"([Event "Fastchess Tournament"]
+[Site "localhost"]
+[Round "1"]
+[White "engine1"]
+[Black "engine2"]
+[Result "0-1"]
+[SetUp "1"]
+[FEN "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 17"]
+[PlyCount "1"]
+[Termination "normal"]
+[TimeControl "-"]
+
+{White makes an illegal move: a1a1} 0-1
+
+)";
+
+        pgn::PgnBuilder pgn_builder = pgn::PgnBuilder(pgn_config, match_data, 1);
+        CHECK(pgn_builder.get() == expected);
+    }
 }
 
 }  // namespace fastchess

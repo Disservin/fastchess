@@ -47,7 +47,7 @@ class PgnBuilder {
     [[nodiscard]] static std::string addComment(First&& first, Args&&... args) {
         std::stringstream ss;
 
-        ss << " {" << std::forward<First>(first);
+        ss << "{" << std::forward<First>(first);
         ((ss << (std::string(args).empty() ? "" : ", ") << std::forward<Args>(args)), ...);
         ss << "}";
 

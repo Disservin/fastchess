@@ -69,7 +69,17 @@ PgnBuilder::PgnBuilder(const config::Pgn& pgn_config, const MatchData& match, st
     }
 
     pgn_ << "\n";
+
     // add body
+
+    const auto firstIllegal = match_.moves.begin() != match_.moves.end() && !match_.moves.begin()->legal;
+
+    if (firstIllegal) {
+        pgn_ << addComment(match_.reason + ": " + match_.moves.begin()->move);
+        // 8.2.6: Game Termination Markers
+        pgn_ << " " << getResultFromMatch(white_player, black_player);
+        return;
+    }
 
     // create the pgn lines and assert that the line length is below 80 characters
     // otherwise move the move onto the next line
@@ -183,11 +193,11 @@ std::string PgnBuilder::addMove(chess::Board& board, const MoveData& move, const
 
     if (!pgn_config_.min) {
         if (move.book) {
-            ss << addComment("book");
+            ss << " " << addComment("book");
         } else {
             const auto match_str = illegal ? match_.reason + ": " + next_move.move : match_.reason;
 
-            ss << addComment(
+            ss <<  " " <<addComment(
                 (move.score_string + "/" + std::to_string(move.depth)) + " " + formatTime(move.elapsed_millis),
                 pgn_config_.track_timeleft ? "tl=" + formatTime(move.timeleft) : "",            //
                 pgn_config_.track_latency ? "latency=" + formatTime(move.latency) : "",         //

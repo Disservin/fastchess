@@ -133,8 +133,8 @@ class UciEngine {
 
     [[nodiscard]] bool isRealtimeLogging() const noexcept { return realtime_logging_; }
 
-
     [[nodiscard]] const std::vector<process::Line> &lastOutput() const noexcept { return output_; }
+
    private:
     void loadConfig(const EngineConfiguration &config);
     void sendSetoption(const std::string &name, const std::string &value);

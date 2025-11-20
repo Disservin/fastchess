@@ -197,19 +197,20 @@ std::string PgnBuilder::addMove(chess::Board& board, const MoveData& move, const
         } else {
             const auto match_str = illegal ? match_.reason + ": " + next_move.move : match_.reason;
 
-            ss <<  " " <<addComment(
-                (move.score_string + "/" + std::to_string(move.depth)) + " " + formatTime(move.elapsed_millis),
-                pgn_config_.track_timeleft ? "tl=" + formatTime(move.timeleft) : "",            //
-                pgn_config_.track_latency ? "latency=" + formatTime(move.latency) : "",         //
-                pgn_config_.track_nodes ? "n=" + std::to_string(move.nodes) : "",               //
-                pgn_config_.track_seldepth ? "sd=" + std::to_string(move.seldepth) : "",        //
-                pgn_config_.track_nps ? "nps=" + std::to_string(move.nps) : "",                 //
-                pgn_config_.track_hashfull ? "hashfull=" + std::to_string(move.hashfull) : "",  //
-                pgn_config_.track_tbhits ? "tbhits=" + std::to_string(move.tbhits) : "",        //
-                pgn_config_.track_pv ? "pv=\"" + move.pv + "\"" : "",                           //
-                info_lines.empty() ? "" : info_lines,                                           //
-                last ? match_str : ""                                                           //
-            );
+            ss << " "
+               << addComment(
+                      (move.score_string + "/" + std::to_string(move.depth)) + " " + formatTime(move.elapsed_millis),
+                      pgn_config_.track_timeleft ? "tl=" + formatTime(move.timeleft) : "",            //
+                      pgn_config_.track_latency ? "latency=" + formatTime(move.latency) : "",         //
+                      pgn_config_.track_nodes ? "n=" + std::to_string(move.nodes) : "",               //
+                      pgn_config_.track_seldepth ? "sd=" + std::to_string(move.seldepth) : "",        //
+                      pgn_config_.track_nps ? "nps=" + std::to_string(move.nps) : "",                 //
+                      pgn_config_.track_hashfull ? "hashfull=" + std::to_string(move.hashfull) : "",  //
+                      pgn_config_.track_tbhits ? "tbhits=" + std::to_string(move.tbhits) : "",        //
+                      pgn_config_.track_pv ? "pv=\"" + move.pv + "\"" : "",                           //
+                      info_lines.empty() ? "" : info_lines,                                           //
+                      last ? match_str : ""                                                           //
+                  );
         }
     }
 

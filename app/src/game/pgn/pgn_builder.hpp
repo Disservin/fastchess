@@ -12,6 +12,7 @@
 #include <types/tournament.hpp>
 
 #include <game/pgn/openings_data.hpp>
+#include <game/pgn/pgn_gen.hpp>
 
 namespace fastchess::pgn {
 
@@ -20,25 +21,19 @@ class PgnBuilder {
     PgnBuilder(const config::Pgn& pgn_config, const MatchData& match, std::size_t round_id);
 
     // Get the newly created pgn
-    [[nodiscard]] std::string get() const noexcept { return pgn_.str() + "\n\n"; }
+    [[nodiscard]] std::string get() const noexcept { return pgn_generator_.generate() + "\n\n"; }
 
     static constexpr int LINE_LENGTH = 80;
 
     [[nodiscard]] static std::string convertMatchTermination(const MatchTermination& res) noexcept;
 
-    [[nodiscard]] static std::string getResultFromMatch(const MatchData::PlayerInfo& white,
-                                                        const MatchData::PlayerInfo& black) noexcept;
+    [[nodiscard]] static std::string getResultFromWhiteMatch(const MatchData::PlayerInfo& white) noexcept;
 
    private:
     // Converts a UCI move to either SAN, LAN or keeps it as UCI
     [[nodiscard]] std::string moveNotation(chess::Board& board, const std::string& move) const noexcept;
 
-    // Adds a header to the pgn
-    template <typename T>
-    void addHeader(std::string_view name, const T& value) noexcept;
-
-    std::string addMove(chess::Board& board, const MoveData& move, const MoveData& next_move, std::size_t move_number,
-                        int dots, bool illegal, bool last) noexcept;
+    std::string createComment(const MoveData& move, const MoveData& next_move, bool illegal, bool last) noexcept;
 
     std::optional<Opening> getOpeningClassification(bool is_frc_variant) const;
 
@@ -47,9 +42,8 @@ class PgnBuilder {
     [[nodiscard]] static std::string addComment(First&& first, Args&&... args) {
         std::stringstream ss;
 
-        ss << "{" << std::forward<First>(first);
+        ss << std::forward<First>(first);
         ((ss << (std::string(args).empty() ? "" : ", ") << std::forward<Args>(args)), ...);
-        ss << "}";
 
         return ss.str();
     }
@@ -64,7 +58,7 @@ class PgnBuilder {
     const config::Pgn& pgn_config_;
     const MatchData& match_;
 
-    std::stringstream pgn_;
+    PGNGenerator pgn_generator_;
 };
 
 }  // namespace fastchess::pgn

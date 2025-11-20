@@ -117,7 +117,8 @@ Nf6 {+10.15/18 1.821s, engine1 got checkmated} 0-1
 [PlyCount "3"]
 [TimeControl "-"]
 
-1... O-O {+1.00/15 1.321s} 2. O-O {+1.23/15 0.430s} Nc5 {+1.45/16 0.310s, aborted} *
+1... O-O {+1.00/15 1.321s} 2. O-O {+1.23/15 0.430s}
+Nc5 {+1.45/16 0.310s, aborted} *
 
 )";
 
@@ -156,7 +157,8 @@ Nf6 {+10.15/18 1.821s, engine1 got checkmated} 0-1
 [PlyCount "3"]
 [TimeControl "1/move"]
 
-1... O-O {+1.00/15 1.321s} 2. O-O {+1.23/15 0.430s} Nc5 {+1.45/16 0.310s, aborted} *
+1... O-O {+1.00/15 1.321s} 2. O-O {+1.23/15 0.430s}
+Nc5 {+1.45/16 0.310s, aborted} *
 
 )";
 
@@ -242,7 +244,8 @@ Nc5 {+1.45/16 0.310s, n=0, sd=24, aborted} *
 [WhiteTimeControl "1/move"]
 [BlackTimeControl "0.2/move"]
 
-1... O-O {+1.00/15 1.321s} 2. O-O {+1.23/15 0.430s} Nc5 {+1.45/16 0.310s, aborted} *
+1... O-O {+1.00/15 1.321s} 2. O-O {+1.23/15 0.430s}
+Nc5 {+1.45/16 0.310s, aborted} *
 
 )";
 
@@ -282,7 +285,8 @@ Nc5 {+1.45/16 0.310s, n=0, sd=24, aborted} *
 [WhiteTimeControl "1/move"]
 [BlackTimeControl "0.2/move"]
 
-4... O-O {+1.00/15 1.321s} 5. O-O {+1.23/15 0.430s} Nc5 {+1.45/16 0.310s, aborted} *
+4... O-O {+1.00/15 1.321s} 5. O-O {+1.23/15 0.430s}
+Nc5 {+1.45/16 0.310s, aborted} *
 
 )";
 

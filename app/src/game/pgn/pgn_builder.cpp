@@ -11,17 +11,17 @@ namespace fastchess::pgn {
 
 namespace str {
 template <typename T>
-std::string to_string(const T &obj) {
+std::string to_string(const T& obj) {
     std::stringstream ss;
     ss << obj;
     return ss.str();
 }
 }  // namespace str
 
-PgnBuilder::PgnBuilder(const config::Pgn &pgn_config, const MatchData &match, std::size_t round_id)
+PgnBuilder::PgnBuilder(const config::Pgn& pgn_config, const MatchData& match, std::size_t round_id)
     : pgn_config_(pgn_config), match_(match) {
-    const auto &white_player = match.players.white;
-    const auto &black_player = match.players.black;
+    const auto& white_player = match.players.white;
+    const auto& black_player = match.players.black;
 
     const auto is_frc_variant = match.variant == VariantType::FRC;
 
@@ -69,7 +69,17 @@ PgnBuilder::PgnBuilder(const config::Pgn &pgn_config, const MatchData &match, st
     }
 
     pgn_ << "\n";
+
     // add body
+
+    const auto firstIllegal = match_.moves.begin() != match_.moves.end() && !match_.moves.begin()->legal;
+
+    if (firstIllegal) {
+        pgn_ << addComment(match_.reason + ": " + match_.moves.begin()->move);
+        // 8.2.6: Game Termination Markers
+        pgn_ << " " << getResultFromMatch(white_player, black_player);
+        return;
+    }
 
     // create the pgn lines and assert that the line length is below 80 characters
     // otherwise move the move onto the next line
@@ -83,11 +93,12 @@ PgnBuilder::PgnBuilder(const config::Pgn &pgn_config, const MatchData &match, st
     bool first_move         = true;
 
     for (auto it = match_.moves.begin(); it != match_.moves.end(); ++it) {
-        const auto illegal = !it->legal;
+        // check if next move is illegal
+        const auto next_illegal = std::next(it) != match_.moves.end() && !std::next(it)->legal;
 
         const auto n_dots   = first_move && board.sideToMove() == chess::Color::BLACK ? 3 : 1;
-        const auto last     = std::next(it) == match_.moves.end();
-        const auto move_str = addMove(board, *it, move_number, n_dots, illegal, last);
+        const auto last     = std::next(it) == match_.moves.end() || next_illegal;
+        const auto move_str = addMove(board, *it, *std::next(it), move_number, n_dots, next_illegal, last);
 
         board.makeMove<true>(chess::uci::uciToMove(board, it->move));
 
@@ -104,7 +115,7 @@ PgnBuilder::PgnBuilder(const config::Pgn &pgn_config, const MatchData &match, st
 
         first_move = false;
 
-        if (illegal) {
+        if (next_illegal) {
             break;
         }
     }
@@ -114,7 +125,7 @@ PgnBuilder::PgnBuilder(const config::Pgn &pgn_config, const MatchData &match, st
 }
 
 template <typename T>
-void PgnBuilder::addHeader(std::string_view name, const T &value) noexcept {
+void PgnBuilder::addHeader(std::string_view name, const T& value) noexcept {
     if constexpr (std::is_same_v<T, std::string>) {
         // don't add the header if it is an empty string
         if (value.empty()) {
@@ -140,7 +151,7 @@ std::optional<Opening> PgnBuilder::getOpeningClassification(bool is_frc_variant)
 
     auto current_opening = find_opening(opening_board.getFen(false));
 
-    for (const auto &move : match_.moves) {
+    for (const auto& move : match_.moves) {
         if (!move.legal) break;
 
         opening_board.makeMove<true>(chess::uci::uciToMove(opening_board, move.move));
@@ -153,7 +164,7 @@ std::optional<Opening> PgnBuilder::getOpeningClassification(bool is_frc_variant)
     return current_opening;
 }
 
-std::string PgnBuilder::moveNotation(chess::Board &board, const std::string &move) const noexcept {
+std::string PgnBuilder::moveNotation(chess::Board& board, const std::string& move) const noexcept {
     if (pgn_config_.notation == NotationType::SAN) {
         return chess::uci::moveToSan(board, chess::uci::uciToMove(board, move));
     } else if (pgn_config_.notation == NotationType::LAN) {
@@ -163,18 +174,18 @@ std::string PgnBuilder::moveNotation(chess::Board &board, const std::string &mov
     }
 }
 
-std::string PgnBuilder::addMove(chess::Board &board, const MoveData &move, std::size_t move_number, int dots,
-                                bool illegal, bool last) noexcept {
+std::string PgnBuilder::addMove(chess::Board& board, const MoveData& move, const MoveData& next_move,
+                                std::size_t move_number, int dots, bool illegal, bool last) noexcept {
     std::stringstream ss;
 
     ss << (dots == 3 || move_number % 2 == 1 ? std::to_string((move_number + 1) / 2) + std::string(dots, '.') + ' '
                                              : "");
-    ss << (illegal ? move.move : moveNotation(board, move.move));
+    ss << moveNotation(board, move.move);
 
     std::string info_lines;
 
     if (!move.additional_lines.empty()) {
-        for (const auto &line : move.additional_lines) {
+        for (const auto& line : move.additional_lines) {
             info_lines += info_lines.empty() ? "" : ", ";
             info_lines += "line=\"" + line + "\"";
         }
@@ -182,9 +193,11 @@ std::string PgnBuilder::addMove(chess::Board &board, const MoveData &move, std::
 
     if (!pgn_config_.min) {
         if (move.book) {
-            ss << addComment("book");
+            ss << " " << addComment("book");
         } else {
-            ss << addComment(
+            const auto match_str = illegal ? match_.reason + ": " + next_move.move : match_.reason;
+
+            ss <<  " " <<addComment(
                 (move.score_string + "/" + std::to_string(move.depth)) + " " + formatTime(move.elapsed_millis),
                 pgn_config_.track_timeleft ? "tl=" + formatTime(move.timeleft) : "",            //
                 pgn_config_.track_latency ? "latency=" + formatTime(move.latency) : "",         //
@@ -195,7 +208,7 @@ std::string PgnBuilder::addMove(chess::Board &board, const MoveData &move, std::
                 pgn_config_.track_tbhits ? "tbhits=" + std::to_string(move.tbhits) : "",        //
                 pgn_config_.track_pv ? "pv=\"" + move.pv + "\"" : "",                           //
                 info_lines.empty() ? "" : info_lines,                                           //
-                last ? match_.reason : ""                                                       //
+                last ? match_str : ""                                                           //
             );
         }
     }
@@ -203,8 +216,8 @@ std::string PgnBuilder::addMove(chess::Board &board, const MoveData &move, std::
     return ss.str();
 }
 
-std::string PgnBuilder::getResultFromMatch(const MatchData::PlayerInfo &white,
-                                           const MatchData::PlayerInfo &black) noexcept {
+std::string PgnBuilder::getResultFromMatch(const MatchData::PlayerInfo& white,
+                                           const MatchData::PlayerInfo& black) noexcept {
     if (white.result == chess::GameResult::WIN) {
         return "1-0";
     } else if (black.result == chess::GameResult::WIN) {
@@ -216,7 +229,7 @@ std::string PgnBuilder::getResultFromMatch(const MatchData::PlayerInfo &white,
     }
 }
 
-std::string PgnBuilder::convertMatchTermination(const MatchTermination &res) noexcept {
+std::string PgnBuilder::convertMatchTermination(const MatchTermination& res) noexcept {
     switch (res) {
         case MatchTermination::NORMAL:
             return "normal";

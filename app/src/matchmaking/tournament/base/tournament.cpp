@@ -223,7 +223,7 @@ void BaseTournament::playGame(const GamePair<EngineConfiguration, EngineConfigur
             file_writer_epd_->write(epd::EpdBuilder(config.variant, match_data).get());
         }
 
-        const auto result = pgn::PgnBuilder::getResultFromMatch(match_data.players.white, match_data.players.black);
+        const auto result = pgn::PgnBuilder::getResultFromWhiteMatch(match_data.players.white);
         LOG_TRACE_THREAD("Game {} finished with result {}", game_id, result);
 
         finish({match_data}, match_data.reason, {*white_engine->get(), *black_engine->get()});

@@ -26,8 +26,8 @@
 
 namespace fastchess {
 
-BaseTournament::BaseTournament(const stats_map& results) {
-    const auto& config = *config::TournamentConfig;
+BaseTournament::BaseTournament(const stats_map &results) {
+    const auto &config = *config::TournamentConfig;
     const auto total   = setResults(results);
 
     initial_matchcount_ = total;
@@ -59,7 +59,7 @@ BaseTournament::~BaseTournament() {
             Logger::print<Logger::Level::INFO>("");
         }
 
-        for (const auto& [name, tracked] : tracker_) {
+        for (const auto &[name, tracked] : tracker_) {
             Logger::print<Logger::Level::INFO>("Player: {}", name);
             Logger::print<Logger::Level::INFO>("  Timeouts: {}", tracked.timeouts);
             Logger::print<Logger::Level::INFO>("  Crashed: {}", tracked.disconnects);
@@ -79,7 +79,7 @@ void BaseTournament::start() {
     create();
 }
 
-BaseTournament::EngineCache& BaseTournament::getEngineCache() {
+BaseTournament::EngineCache &BaseTournament::getEngineCache() {
     if (config::TournamentConfig->affinity) {
         // Use per-thread cache
         std::thread::id tid = std::this_thread::get_id();
@@ -115,7 +115,7 @@ void BaseTournament::create() {
 void BaseTournament::saveJson() {
     LOG_TRACE("Saving results...");
 
-    const auto& config = *config::TournamentConfig;
+    const auto &config = *config::TournamentConfig;
 
     nlohmann::ordered_json jsonfile = config;
     jsonfile["engines"]             = *config::EngineConfigs;
@@ -127,10 +127,10 @@ void BaseTournament::saveJson() {
     LOG_TRACE("Saved results to.");
 }
 
-void BaseTournament::playGame(const GamePair<EngineConfiguration, EngineConfiguration>& engine_configs,
-                              const start_fn& start, const finish_fn& finish, const book::Opening& opening,
+void BaseTournament::playGame(const GamePair<EngineConfiguration, EngineConfiguration> &engine_configs,
+                              const start_fn &start, const finish_fn &finish, const book::Opening &opening,
                               std::size_t round_id, std::size_t game_id) {
-    const auto& config = *config::TournamentConfig;
+    const auto &config = *config::TournamentConfig;
     const auto rl      = config.log.realtime;
 
     // ideally this should be also tied to the lifetime of the tournament
@@ -167,7 +167,7 @@ void BaseTournament::playGame(const GamePair<EngineConfiguration, EngineConfigur
     const auto white_name = engine_configs.white.name;
     const auto black_name = engine_configs.black.name;
 
-    auto& engine_cache_ = getEngineCache();
+    auto &engine_cache_ = getEngineCache();
 
     auto white_engine = engine_cache_.getEntry(white_name, engine_configs.white, rl);
     auto black_engine = engine_cache_.getEntry(black_name, engine_configs.black, rl);
@@ -251,11 +251,11 @@ void BaseTournament::playGame(const GamePair<EngineConfiguration, EngineConfigur
     }
 }
 
-int BaseTournament::getMaxAffinity(const std::vector<EngineConfiguration>& configs) const noexcept {
-    constexpr auto transform = [](const auto& val) { return std::stoi(val); };
+int BaseTournament::getMaxAffinity(const std::vector<EngineConfiguration> &configs) const noexcept {
+    constexpr auto transform = [](const auto &val) { return std::stoi(val); };
     const auto first_threads = configs[0].getOption<int>("Threads", transform).value_or(1);
 
-    for (const auto& config : configs) {
+    for (const auto &config : configs) {
         const auto threads = config.getOption<int>("Threads", transform).value_or(1);
 
         // thread count in all configs has to be the same for affinity to work,
@@ -273,22 +273,22 @@ int BaseTournament::getMaxAffinity(const std::vector<EngineConfiguration>& confi
     return first_threads;
 }
 
-void BaseTournament::restartEngine(std::unique_ptr<engine::UciEngine>& engine) {
+void BaseTournament::restartEngine(std::unique_ptr<engine::UciEngine> &engine) {
     LOG_TRACE_THREAD("Restarting engine {}", engine->getConfig().name);
     auto config = engine->getConfig();
     auto rl     = engine->isRealtimeLogging();
     engine      = std::make_unique<engine::UciEngine>(config, rl);
 }
 
-std::size_t BaseTournament::setResults(const stats_map& results) {
+std::size_t BaseTournament::setResults(const stats_map &results) {
     LOG_TRACE("Setting results...");
 
     scoreboard_.setResults(results);
 
     std::size_t total = 0;
 
-    for (const auto& pair1 : scoreboard_.getResults()) {
-        const auto& stats = pair1.second;
+    for (const auto &pair1 : scoreboard_.getResults()) {
+        const auto &stats = pair1.second;
 
         total += stats.wins + stats.losses + stats.draws;
     }

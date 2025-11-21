@@ -468,7 +468,7 @@ std::chrono::milliseconds UciEngine::lastTime() const {
         break;
     }
 
-    const auto time = str_utils::findElement<int>(last_reported_time_info, "time").value_or(0);
+    const auto time = str_utils::findElement<int64_t>(last_reported_time_info, "time").value_or(0);
 
     return std::chrono::milliseconds(time);
 }
@@ -476,11 +476,9 @@ std::chrono::milliseconds UciEngine::lastTime() const {
 int UciEngine::lastScore() const {
     const auto score = lastScoreType();
 
-    if (score == ScoreType::ERR) {
-        return 0;
-    }
+    if (score == ScoreType::ERR) return 0;
 
-    return str_utils::findElement<int>(lastInfo(), lastScoreType() == ScoreType::CP ? "cp" : "mate").value_or(0);
+    return str_utils::findElement<int64_t>(lastInfo(), lastScoreType() == ScoreType::CP ? "cp" : "mate").value_or(0);
 }
 
 bool UciEngine::outputIncludesBestmove() const {

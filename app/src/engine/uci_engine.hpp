@@ -85,19 +85,17 @@ class UciEngine {
         return;
 #endif
 
-        auto ret = process_.setAffinity(cpus);
+        if (process_.setAffinity(cpus)) return;
 
-        if (!ret) {
-            // turn cpus vector into a string for logging
-            std::string cpu_str;
-            for (const auto &cpu : cpus) {
-                if (!cpu_str.empty()) cpu_str += ", ";
-                cpu_str += std::to_string(cpu);
-            }
-
-            Logger::print<Logger::Level::WARN>(
-                "Warning; Failed to set CPU affinity for the engine process to {}. Please restart.", cpu_str);
+        // turn cpus vector into a string for error logging
+        std::string cpu_str;
+        for (const auto &cpu : cpus) {
+            if (!cpu_str.empty()) cpu_str += ", ";
+            cpu_str += std::to_string(cpu);
         }
+
+        Logger::print<Logger::Level::WARN>(
+            "Warning; Failed to set CPU affinity for the engine process to {}. Please restart.", cpu_str);
     }
 
     // Get the bestmove from the last output.

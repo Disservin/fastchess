@@ -85,19 +85,17 @@ class UciEngine {
         return;
 #endif
 
-        auto ret = process_.setAffinity(cpus);
+        if (process_.setAffinity(cpus)) return;
 
-        if (!ret) {
-            // turn cpus vector into a string for logging
-            std::string cpu_str;
-            for (const auto &cpu : cpus) {
-                if (!cpu_str.empty()) cpu_str += ", ";
-                cpu_str += std::to_string(cpu);
-            }
-
-            Logger::print<Logger::Level::WARN>(
-                "Warning; Failed to set CPU affinity for the engine process to {}. Please restart.", cpu_str);
+        // turn cpus vector into a string for error logging
+        std::string cpu_str;
+        for (const auto &cpu : cpus) {
+            if (!cpu_str.empty()) cpu_str += ", ";
+            cpu_str += std::to_string(cpu);
         }
+
+        Logger::print<Logger::Level::WARN>(
+            "Warning; Failed to set CPU affinity for the engine process to {}. Please restart.", cpu_str);
     }
 
     // Get the bestmove from the last output.
@@ -115,7 +113,7 @@ class UciEngine {
 
     // Get the last score from the last output. Becareful, mate scores are not converted. So
     // the score might 1, while it's actually mate 1. Always check lastScoreType() first.
-    [[nodiscard]] int lastScore() const;
+    [[nodiscard]] int64_t lastScore() const;
 
     // returns false if the output doesnt include a bestmove
     [[nodiscard]] bool outputIncludesBestmove() const;

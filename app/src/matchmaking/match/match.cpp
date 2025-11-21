@@ -99,7 +99,14 @@ Match::Match(const book::Opening& opening)
         const auto move = uci::moveToUci(opening_move, board_.chess960());
         board_.makeMove<true>(opening_move);
 
-        return MoveData(move, "0.00", 0, 0, 0, 0, 0, true, true);
+        MoveData move_data;
+
+        move_data.move         = move;
+        move_data.score_string = "0.00";
+        move_data.book         = true;
+        move_data.legal        = true;
+
+        return move_data;
     };
 
     std::transform(opening_.moves.begin(), opening_.moves.end(), std::back_inserter(data_.moves), insert_move);
@@ -120,7 +127,12 @@ std::string Match::convertScoreToString(int score, engine::ScoreType score_type)
 void Match::addMoveData(const Player& player, int64_t measured_time_ms, int64_t latency, int64_t timeleft, bool legal) {
     const auto move = player.engine.bestmove().value_or("<none>");
 
-    MoveData move_data = MoveData(move, "0.00", measured_time_ms, 0, 0, 0, 0, legal);
+    MoveData move_data;
+
+    move_data.move           = move;
+    move_data.score_string   = "0.00";
+    move_data.elapsed_millis = measured_time_ms;
+    move_data.legal          = legal;
 
     if (player.engine.output().size() <= 1) {
         data_.moves.push_back(move_data);
@@ -133,10 +145,10 @@ void Match::addMoveData(const Player& player, int64_t measured_time_ms, int64_t 
     const auto info       = player.engine.lastInfo();
 
     move_data.nps      = str_utils::findElement<uint64_t>(info, "nps").value_or(0);
-    move_data.hashfull = str_utils::findElement<int>(info, "hashfull").value_or(0);
+    move_data.hashfull = str_utils::findElement<int64_t>(info, "hashfull").value_or(0);
     move_data.tbhits   = str_utils::findElement<uint64_t>(info, "tbhits").value_or(0);
-    move_data.depth    = str_utils::findElement<int>(info, "depth").value_or(0);
-    move_data.seldepth = str_utils::findElement<int>(info, "seldepth").value_or(0);
+    move_data.depth    = str_utils::findElement<int64_t>(info, "depth").value_or(0);
+    move_data.seldepth = str_utils::findElement<int64_t>(info, "seldepth").value_or(0);
     move_data.nodes    = str_utils::findElement<uint64_t>(info, "nodes").value_or(0);
     move_data.pv       = str_utils::join(extractPvFromInfo(info).value_or(std::vector<std::string>{}), " ");
     move_data.score    = player.engine.lastScore();
@@ -541,35 +553,39 @@ void Match::verifyPvLines(const Player& us) {
 
             const auto illegal_move = std::find(moves.begin(), moves.end(), uci::uciToMove(board, move)) == moves.end();
 
-            if (gameover || illegal_move) {
-                std::string warning;
-                if (illegal_move) {
-                    warning = "Warning; Illegal PV move - move {} from {}";
-                } else if (gameoverResult.first == GameResultReason::THREEFOLD_REPETITION) {
-                    warning = "Warning; PV continues after threefold repetition - move {} from {}";
-                } else if (gameoverResult.first == GameResultReason::FIFTY_MOVE_RULE) {
-                    warning = "Warning; PV continues after fifty-move rule - move {} from {}";
-                } else if (gameoverResult.first == GameResultReason::CHECKMATE) {
-                    warning = "Warning; PV continues after checkmate - move {} from {}";
-                } else if (gameoverResult.first == GameResultReason::STALEMATE) {
-                    warning = "Warning; PV continues after stalemate - move {} from {}";
-                }
-
-                assert(!warning.empty());
-
-                auto out      = fmt::format(fmt::runtime(warning), move, name);
-                auto uci_info = fmt::format("Info; {}", info);
-                auto position = fmt::format("Position; {}", startpos == "startpos" ? "startpos" : ("fen " + startpos));
-                auto moves    = fmt::format("Moves; {}", str_utils::join(uci_moves, " "));
-
-                auto separator = config::TournamentConfig->test_env ? " :: " : "\n";
-
-                Logger::print<Logger::Level::WARN>("{1}{0}{2}{0}{3}{0}{4}", separator, out, uci_info, position, moves);
-
-                break;
+            if (!gameover && !illegal_move) {
+                board.makeMove<true>(uci::uciToMove(board, move));
+                continue;
             }
 
-            board.makeMove<true>(uci::uciToMove(board, move));
+            // illegal move or gameover reached
+
+            std::string warning;
+
+            if (illegal_move) {
+                warning = "Warning; Illegal PV move - move {} from {}";
+            } else if (gameoverResult.first == GameResultReason::THREEFOLD_REPETITION) {
+                warning = "Warning; PV continues after threefold repetition - move {} from {}";
+            } else if (gameoverResult.first == GameResultReason::FIFTY_MOVE_RULE) {
+                warning = "Warning; PV continues after fifty-move rule - move {} from {}";
+            } else if (gameoverResult.first == GameResultReason::CHECKMATE) {
+                warning = "Warning; PV continues after checkmate - move {} from {}";
+            } else if (gameoverResult.first == GameResultReason::STALEMATE) {
+                warning = "Warning; PV continues after stalemate - move {} from {}";
+            }
+
+            assert(!warning.empty());
+
+            auto out      = fmt::format(fmt::runtime(warning), move, name);
+            auto uci_info = fmt::format("Info; {}", info);
+            auto position = fmt::format("Position; {}", startpos == "startpos" ? "startpos" : ("fen " + startpos));
+            auto moves    = fmt::format("Moves; {}", str_utils::join(uci_moves, " "));
+
+            auto separator = config::TournamentConfig->test_env ? " :: " : "\n";
+
+            Logger::print<Logger::Level::WARN>("{1}{0}{2}{0}{3}{0}{4}", separator, out, uci_info, position, moves);
+
+            break;
         }
     };
 
@@ -674,6 +690,7 @@ std::string Match::convertChessReason(const std::string& color, GameResultReason
         return Match::FIFTY_MSG;
     }
 
+    assert(false && "Unhandled GameResultReason in convertChessReason");
     return "";
 }
 

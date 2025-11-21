@@ -15,23 +15,39 @@
 namespace fastchess {
 
 struct MoveData {
+    MoveData() = default;
+    MoveData(std::string _move, std::string _score_string, int64_t _elapsed_millis, int _depth, int _seldepth,
+             int _score, int _nodes, bool _legal = true, bool _book = false, std::string _pv = "")
+        : move(std::move(_move)),
+          score_string(std::move(_score_string)),
+          pv(_pv),
+          nodes(_nodes),
+          elapsed_millis(_elapsed_millis),
+          depth(_depth),
+          seldepth(_seldepth),
+          score(_score),
+          legal(_legal),
+          book(_book) {}
+
+    std::vector<std::string> additional_lines;
     std::string move;
     std::string score_string;
+    std::string pv = "";
+
+    uint64_t nodes  = 0;
+    uint64_t nps    = 0;
+    uint64_t tbhits = 0;
+
     int64_t elapsed_millis = 0;
     int64_t depth          = 0;
     int64_t seldepth       = 0;
     int64_t score          = 0;
-    uint64_t nodes         = 0;
-    bool legal             = true;
-    bool book              = false;
-    std::string pv         = "";
+    int64_t timeleft       = 0;
+    int64_t latency        = 0;
+    int64_t hashfull       = 0;
 
-    std::vector<std::string> additional_lines;
-    int64_t timeleft = 0;
-    int64_t latency  = 0;
-    uint64_t nps     = 0;
-    int64_t hashfull = 0;
-    uint64_t tbhits  = 0;
+    bool legal = true;
+    bool book  = false;
 };
 
 enum class MatchTermination {

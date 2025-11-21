@@ -19,11 +19,11 @@ class DrawTracker {
     DrawTracker(config::DrawAdjudication draw_adjudication)
         : DrawTracker(draw_adjudication.move_number, draw_adjudication.move_count, draw_adjudication.score) {}
 
-    void update(const int score, engine::ScoreType score_type, const int hmvc) noexcept {
+    void update(const engine::Score& score, const int hmvc) noexcept {
         if (hmvc == 0) draw_moves_ = 0;
 
         if (move_count_ > 0) {
-            if (std::abs(score) <= draw_score_ && score_type == engine::ScoreType::CP) {
+            if (std::abs(score.value) <= draw_score_ && score.type == engine::ScoreType::CP) {
                 draw_moves_++;
             } else {
                 draw_moves_ = 0;
@@ -54,18 +54,18 @@ class ResignTracker {
     ResignTracker(config::ResignAdjudication resign_adjudication)
         : ResignTracker(resign_adjudication.score, resign_adjudication.move_count, resign_adjudication.twosided) {}
 
-    void update(const int score, engine::ScoreType score_type, chess::Color color) noexcept {
+    void update(const engine::Score& score, chess::Color color) noexcept {
         if (twosided_) {
-            if ((std::abs(score) >= resign_score && score_type == engine::ScoreType::CP) ||
-                score_type == engine::ScoreType::MATE) {
+            if ((std::abs(score.value) >= resign_score && score.type == engine::ScoreType::CP) ||
+                score.type == engine::ScoreType::MATE) {
                 resign_moves++;
             } else {
                 resign_moves = 0;
             }
         } else {
             int& counter = (color == chess::Color::BLACK) ? resign_moves_black : resign_moves_white;
-            if ((score <= -resign_score && score_type == engine::ScoreType::CP) ||
-                (score < 0 && score_type == engine::ScoreType::MATE)) {
+            if ((score.value <= -resign_score && score.type == engine::ScoreType::CP) ||
+                (score.value < 0 && score.type == engine::ScoreType::MATE)) {
                 counter++;
             } else {
                 counter = 0;

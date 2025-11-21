@@ -113,7 +113,7 @@ class UciEngine {
 
     // Get the last score from the last output. Becareful, mate scores are not converted. So
     // the score might 1, while it's actually mate 1. Always check lastScoreType() first.
-    [[nodiscard]] int lastScore() const;
+    [[nodiscard]] int64_t lastScore() const;
 
     // returns false if the output doesnt include a bestmove
     [[nodiscard]] bool outputIncludesBestmove() const;

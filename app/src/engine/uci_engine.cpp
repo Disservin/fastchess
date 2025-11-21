@@ -473,7 +473,7 @@ std::chrono::milliseconds UciEngine::lastTime() const {
     return std::chrono::milliseconds(time);
 }
 
-int UciEngine::lastScore() const {
+int64_t UciEngine::lastScore() const {
     const auto score = lastScoreType();
 
     if (score == ScoreType::ERR) return 0;

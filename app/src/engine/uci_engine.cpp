@@ -439,16 +439,6 @@ std::vector<std::string> UciEngine::lastInfo() const {
     return str_utils::splitString(last_info, ' ');
 }
 
-ScoreType UciEngine::lastScoreType() const {
-    auto score = str_utils::findElement<std::string>(lastInfo(), "score").value_or("ERR");
-
-    if (score == "ERR") return ScoreType::ERR;
-    if (score == "cp") return ScoreType::CP;
-    if (score == "mate") return ScoreType::MATE;
-
-    return ScoreType::ERR;
-}
-
 std::chrono::milliseconds UciEngine::lastTime() const {
     std::vector<std::string> last_reported_time_info;
 
@@ -473,12 +463,26 @@ std::chrono::milliseconds UciEngine::lastTime() const {
     return std::chrono::milliseconds(time);
 }
 
-int64_t UciEngine::lastScore() const {
-    const auto score = lastScoreType();
+Score UciEngine::lastScore() const {
+    const auto info = lastInfo();
 
-    if (score == ScoreType::ERR) return 0;
+    Score score;
 
-    return str_utils::findElement<int64_t>(lastInfo(), lastScoreType() == ScoreType::CP ? "cp" : "mate").value_or(0);
+    score.value = 0;
+    score.type  = [this, &info]() {
+        auto type_str = str_utils::findElement<std::string>(info, "score").value_or("ERR");
+
+        if (type_str == "cp") return ScoreType::CP;
+        if (type_str == "mate") return ScoreType::MATE;
+
+        return ScoreType::ERR;
+    }();
+
+    if (score.type == ScoreType::ERR) return score;
+
+    score.value = str_utils::findElement<int64_t>(info, score.type == ScoreType::CP ? "cp" : "mate").value_or(0);
+
+    return score;
 }
 
 bool UciEngine::outputIncludesBestmove() const {

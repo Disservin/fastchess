@@ -21,6 +21,11 @@ namespace fastchess::engine {
 
 enum class ScoreType { CP, MATE, ERR };
 
+struct Score {
+    ScoreType type;
+    int64_t value;
+};
+
 class UciEngine {
    public:
     explicit UciEngine(const EngineConfiguration &config, bool realtime_logging);
@@ -106,14 +111,10 @@ class UciEngine {
     // Get the last info from the last output.
     [[nodiscard]] std::vector<std::string> lastInfo() const;
 
-    // Get the last score type from the last output. cp or mate.
-    [[nodiscard]] ScoreType lastScoreType() const;
-
     [[nodiscard]] std::chrono::milliseconds lastTime() const;
 
-    // Get the last score from the last output. Becareful, mate scores are not converted. So
-    // the score might 1, while it's actually mate 1. Always check lastScoreType() first.
-    [[nodiscard]] int64_t lastScore() const;
+    // Get the last score from the last output.
+    [[nodiscard]] Score lastScore() const;
 
     // returns false if the output doesnt include a bestmove
     [[nodiscard]] bool outputIncludesBestmove() const;

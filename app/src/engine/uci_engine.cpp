@@ -464,10 +464,13 @@ std::chrono::milliseconds UciEngine::lastTime() const {
 }
 
 Score UciEngine::lastScore() const {
+    const auto info = lastInfo();
+
     Score score;
 
-    score.type = [this]() {
-        auto type_str = str_utils::findElement<std::string>(lastInfo(), "score").value_or("ERR");
+    score.value = 0;
+    score.type  = [this, &info]() {
+        auto type_str = str_utils::findElement<std::string>(info, "score").value_or("ERR");
 
         if (type_str == "cp") return ScoreType::CP;
         if (type_str == "mate") return ScoreType::MATE;
@@ -475,11 +478,9 @@ Score UciEngine::lastScore() const {
         return ScoreType::ERR;
     }();
 
-    score.value = 0;
-
     if (score.type == ScoreType::ERR) return score;
 
-    score.value = str_utils::findElement<int64_t>(lastInfo(), score.type == ScoreType::CP ? "cp" : "mate").value_or(0);
+    score.value = str_utils::findElement<int64_t>(info, score.type == ScoreType::CP ? "cp" : "mate").value_or(0);
 
     return score;
 }

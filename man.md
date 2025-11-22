@@ -241,7 +241,7 @@ The default values are the first value in parentheses.
 - `-startup-ms N`  
     Set the maximum time to wait for engine UCI initialization in milliseconds. Default is 10000.
 - `-ucinewgame-ms N`  
-    Set the maximum time to wait for engine UCI new game initialization in milliseconds. Default is 16000.
+    Set the maximum time to wait for engine UCI new game initialization in milliseconds. Default is 60000.
 - `-ping-ms N`  
     Set the maximum time to wait for engine ping responses in milliseconds, this is everything else which doesn't fit the above categories. Default is 60000.
 

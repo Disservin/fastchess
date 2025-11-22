@@ -61,7 +61,11 @@ UciEngine::UciEngine(const EngineConfiguration &config, bool realtime_logging) :
     process_.setRealtimeLogging(realtime_logging_);
 }
 
-process::Status UciEngine::isready(std::chrono::milliseconds threshold) {
+process::Status UciEngine::isready(std::optional<std::chrono::milliseconds> threshold) {
+    if (!threshold.has_value()) {
+        threshold = getPingTime();
+    }
+
     const auto is_alive = process_.alive();
     if (is_alive != process::Status::OK) return is_alive;
 
@@ -72,7 +76,7 @@ process::Status UciEngine::isready(std::chrono::milliseconds threshold) {
     setupReadEngine();
 
     std::vector<process::Line> output;
-    const auto res = process_.readOutput(output, "readyok", threshold);
+    const auto res = process_.readOutput(output, "readyok", *threshold);
 
     // print output in case we are using delayed logging
     if (!realtime_logging_) {
@@ -165,7 +169,7 @@ bool UciEngine::ucinewgame() {
         return false;
     }
 
-    return isready(ucinewgame_time_) == process::Status::OK;
+    return isready(getUciNewGameTime()) == process::Status::OK;
 }
 
 std::optional<std::string> UciEngine::idName() {
@@ -227,7 +231,11 @@ bool UciEngine::uci() {
     return res;
 }
 
-bool UciEngine::uciok(std::chrono::milliseconds threshold) {
+bool UciEngine::uciok(std::optional<ms> threshold) {
+    if (!threshold.has_value()) {
+        threshold = getPingTime();
+    }
+
     LOG_TRACE_THREAD("Waiting for uciok from engine {}", config_.name);
 
     const auto res = readEngine("uciok", threshold) == process::Status::OK;
@@ -320,7 +328,7 @@ tl::expected<bool, std::string> UciEngine::start(const std::optional<std::vector
         return tl::make_unexpected("Couldn't write uci to engine");
     }
 
-    if (!uciok(startup_time_)) {
+    if (!uciok(getStartupTime())) {
         return tl::make_unexpected("Engine didn't respond to uciok after startup");
     }
 
@@ -364,9 +372,13 @@ bool UciEngine::refreshUci() {
     return true;
 }
 
-process::Status UciEngine::readEngine(std::string_view last_word, std::chrono::milliseconds threshold) {
+process::Status UciEngine::readEngine(std::string_view last_word, std::optional<ms> threshold) {
+    if (!threshold.has_value()) {
+        threshold = getPingTime();
+    }
+
     setupReadEngine();
-    return process_.readOutput(output_, last_word, threshold);
+    return process_.readOutput(output_, last_word, *threshold);
 }
 
 void UciEngine::writeLog() const {

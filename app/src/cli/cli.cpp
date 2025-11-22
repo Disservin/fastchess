@@ -678,6 +678,18 @@ void parseDebug(ArgumentData &) {
 
 void parseTestEnv(ArgumentData &argument_data) { argument_data.tournament_config.test_env = true; }
 
+void parseStartupTime(std::string_view value, ArgumentData &argument_data) {
+    argument_data.tournament_config.startup_time = std::chrono::milliseconds(parseScalar<uint64_t>(value));
+}
+
+void parseUciNewGameTime(std::string_view value, ArgumentData &argument_data) {
+    argument_data.tournament_config.ucinewgame_time = std::chrono::milliseconds(parseScalar<uint64_t>(value));
+}
+
+void parsePingTime(std::string_view value, ArgumentData &argument_data) {
+    argument_data.tournament_config.ping_time = std::chrono::milliseconds(parseScalar<uint64_t>(value));
+}
+
 OptionsParser::OptionsParser(const cli::Args &args) {
     LOG_TRACE("Reading options...");
 
@@ -746,6 +758,10 @@ void OptionsParser::registerOptions() {
     addOption<ParamStyle::None>("show-latency", parseLatency);
     addOption<ParamStyle::None>("debug", parseDebug);
     addOption<ParamStyle::None>("testEnv", parseTestEnv);
+
+    addOption<ParamStyle::Single>("startup-ms", parseStartupTime);
+    addOption<ParamStyle::Single>("ucinewgame-ms", parseUciNewGameTime);
+    addOption<ParamStyle::Single>("ping-ms", parsePingTime);
 }
 
 }  // namespace fastchess::cli

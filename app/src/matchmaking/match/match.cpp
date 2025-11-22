@@ -410,7 +410,7 @@ bool Match::playMove(Player& us, Player& them) {
 }
 
 bool Match::validConnection(Player& us, Player& them) {
-    const auto is_ready = us.engine.isready();
+    const auto is_ready = us.engine.isready(engine::UciEngine::getPingTime());
 
     if (is_ready == engine::process::Status::TIMEOUT) {
         setEngineStallStatus(us, them);

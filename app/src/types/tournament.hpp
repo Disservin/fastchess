@@ -1,6 +1,8 @@
 #pragma once
 
+#include <chrono>
 #include <string>
+#include <vector>
 
 #include <core/helper.hpp>
 #include <core/rand.hpp>
@@ -69,6 +71,10 @@ struct Tournament {
     bool affinity     = false;
     bool show_latency = false;
     bool test_env     = false;
+
+    std::chrono::milliseconds startup_time    = std::chrono::seconds(10);
+    std::chrono::milliseconds ucinewgame_time = std::chrono::seconds(60);
+    std::chrono::milliseconds ping_time       = std::chrono::seconds(60);
 
     std::vector<int> affinity_cpus;
 

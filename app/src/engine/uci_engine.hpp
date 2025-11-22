@@ -1,6 +1,7 @@
 #pragma once
 
 #include <chrono>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -13,11 +14,14 @@
 #    include <engine/process/process_posix.hpp>
 #endif
 
+#include <core/config/config.hpp>
 #include <engine/option/option_factory.hpp>
 #include <engine/option/options.hpp>
 #include <types/engine_config.hpp>
 
 namespace fastchess::engine {
+
+using ms = std::chrono::milliseconds;
 
 enum class ScoreType { CP, MATE, ERR };
 
@@ -50,12 +54,12 @@ class UciEngine {
     // Returns false in case of failure.
     [[nodiscard]] bool uci();
     // Returns false in case of failure.
-    [[nodiscard]] bool uciok(std::chrono::milliseconds threshold = ping_time_);
+    [[nodiscard]] bool uciok(std::optional<ms> threshold = std::nullopt);
     // Returns false in case of failure.
     [[nodiscard]] bool ucinewgame();
 
     // Sends "isready" to the engine
-    [[nodiscard]] process::Status isready(std::chrono::milliseconds threshold = ping_time_);
+    [[nodiscard]] process::Status isready(std::optional<ms> threshold = std::nullopt);
 
     // Sends "position" to the engine and waits for a response.
     [[nodiscard]] bool position(const std::vector<std::string> &moves, const std::string &fen);
@@ -70,9 +74,9 @@ class UciEngine {
 
     // Waits for the engine to output the last_word or until the threshold_ms is reached.
     // May throw if the read fails.
-    process::Status readEngine(std::string_view last_word, std::chrono::milliseconds threshold = ping_time_);
+    process::Status readEngine(std::string_view last_word, std::optional<ms> threshold = std::nullopt);
 
-    process::Status readEngineLowLat(std::string_view last_word, std::chrono::milliseconds threshold = ping_time_) {
+    process::Status readEngineLowLat(std::string_view last_word, std::optional<ms> threshold = std::nullopt) {
         return readEngine(last_word, threshold);
     }
 
@@ -111,7 +115,7 @@ class UciEngine {
     // Get the last info from the last output.
     [[nodiscard]] std::vector<std::string> lastInfo() const;
 
-    [[nodiscard]] std::chrono::milliseconds lastTime() const;
+    [[nodiscard]] ms lastTime() const;
 
     // Get the last score from the last output.
     [[nodiscard]] Score lastScore() const;
@@ -123,9 +127,6 @@ class UciEngine {
     [[nodiscard]] const EngineConfiguration &getConfig() const noexcept { return config_; }
 
     // @TODO: expose this to the user?
-    static constexpr std::chrono::milliseconds startup_time_    = std::chrono::seconds(10);
-    static constexpr std::chrono::milliseconds ucinewgame_time_ = std::chrono::seconds(60);
-    static constexpr std::chrono::milliseconds ping_time_       = std::chrono::seconds(60);
 
     [[nodiscard]] const UCIOptions &uciOptions() const noexcept { return uci_options_; }
     UCIOptions &uciOptions() noexcept { return uci_options_; }
@@ -133,6 +134,10 @@ class UciEngine {
     [[nodiscard]] bool isRealtimeLogging() const noexcept { return realtime_logging_; }
 
     [[nodiscard]] const std::vector<process::Line> &lastOutput() const noexcept { return output_; }
+
+    [[nodiscard]] static ms getPingTime() { return config::TournamentConfig->ping_time; }
+    [[nodiscard]] static ms getUciNewGameTime() { return config::TournamentConfig->ucinewgame_time; }
+    [[nodiscard]] static ms getStartupTime() { return config::TournamentConfig->startup_time; }
 
    private:
     void loadConfig(const EngineConfiguration &config);

@@ -38,9 +38,22 @@ BaseTournament::BaseTournament(const stats_map &results) {
                                                           getMaxAffinity(*config::EngineConfigs));
     book_   = std::make_unique<book::OpeningBook>(config, initial_matchcount_);
 
-    if (!config.pgn.file.empty())
-        file_writer_pgn_ = std::make_unique<util::FileWriter>(config.pgn.file, config.pgn.crc);
-    if (!config.epd.file.empty()) file_writer_epd_ = std::make_unique<util::FileWriter>(config.epd.file);
+    auto resolveAppendFlag = [total](bool appendFlag, const char *flagName) {
+        if (appendFlag || !total) return appendFlag;
+
+        Logger::print<Logger::Level::INFO>("Resuming from {} games, ignoring {} append=false.", total, flagName);
+        return true;
+    };
+
+    if (!config.pgn.file.empty()) {
+        const bool append = resolveAppendFlag(config.pgn.append_file, "-pgnout");
+        file_writer_pgn_  = std::make_unique<util::FileWriter>(config.pgn.file, append, config.pgn.crc);
+    }
+
+    if (!config.epd.file.empty()) {
+        const bool append = resolveAppendFlag(config.epd.append_file, "-epdout");
+        file_writer_epd_  = std::make_unique<util::FileWriter>(config.epd.file, append);
+    }
 
     pool_.resize(config.concurrency);
 }

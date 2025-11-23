@@ -102,9 +102,11 @@ MKDIR	  := mkdir -p
 
 ifeq ($(OS), Windows_NT)
 	uname_S  := Windows
+	LDFLAGS := -static
 else
 ifeq ($(COMP), MINGW)
 	uname_S  := Windows
+	LDFLAGS := -static
 else
 	SUFFIX  :=
 	LDFLAGS := -pthread -lstdc++fs
@@ -114,9 +116,6 @@ endif
 
 ifeq ($(build), debug)
 	CXXFLAGS := -O0 -std=c++17 -Wall -Wextra -pedantic -Wuninitialized -g3 -D_GLIBCXX_ASSERTIONS
-	ifeq ($(uname_S), Windows)
-		LDFLAGS += -static
-	endif
 endif
 
 ifeq ($(build), release)

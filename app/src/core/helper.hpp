@@ -58,8 +58,10 @@ template <typename T>
         return std::stoull(haystack[index + 1]);
     else if constexpr (std::is_same_v<T, int64_t>)
         return std::stoll(haystack[index + 1]);
-    else
+    else {
+        if (haystack.size() <= size_t(index) + 1) return std::nullopt;
         return haystack[index + 1];
+    }
 }
 
 [[nodiscard]] inline std::string join(const std::vector<std::string> &strings, const std::string &delimiter) {

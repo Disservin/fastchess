@@ -7,6 +7,7 @@
 #include <vector>
 
 #include <engine/uci_engine.hpp>
+#include <core/config/config.hpp>
 
 namespace fastchess::engine {
 
@@ -37,6 +38,8 @@ inline bool isValidInfoLine(const std::string &infoLine) {
 }
 
 inline bool compliant(int argc, char const *argv[]) {
+    config::TournamentConfig = std::make_unique<config::Tournament>(config::Tournament{});
+
     int step = 0;
 
     EngineConfiguration config;

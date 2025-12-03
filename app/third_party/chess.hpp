@@ -25,7 +25,7 @@ THIS FILE IS AUTO GENERATED DO NOT CHANGE MANUALLY.
 
 Source: https://github.com/Disservin/chess-library
 
-VERSION: 0.8.2
+VERSION: 0.8.20
 */
 
 #ifndef CHESS_HPP
@@ -302,7 +302,7 @@ class Square {
     // clang-format on
 
 // when c++20
-#if __cplusplus >= 202002L || (defined(_MSC_VER) && _MSVC_LANG >= 202002L)
+#if (__cplusplus >= 202002L && __GNUC__ >= 12) || (defined(_MSC_VER) && _MSVC_LANG >= 202002L)
     using enum underlying;
 #else
 
@@ -1817,6 +1817,8 @@ class Board {
             return sq > pred ? Side::KING_SIDE : Side::QUEEN_SIDE;
         }
 
+        bool operator==(const CastlingRights &other) const noexcept { return rooks == other.rooks; }
+
        private:
         std::array<std::array<File, 2>, 2> rooks;
     };
@@ -2824,6 +2826,24 @@ class Board {
             }
 
             board.key_ = board.zobrist();
+
+            board.castling_path = {};
+
+            for (Color c : {Color::WHITE, Color::BLACK}) {
+                const auto king_from = board.kingSq(c);
+
+                for (const auto side : {CastlingRights::Side::KING_SIDE, CastlingRights::Side::QUEEN_SIDE}) {
+                    if (!board.cr_.has(c, side)) continue;
+
+                    const auto rook_from = Square(board.cr_.getRookFile(c, side), king_from.rank());
+                    const auto king_to   = Square::castling_king_square(side == CastlingRights::Side::KING_SIDE, c);
+                    const auto rook_to   = Square::castling_rook_square(side == CastlingRights::Side::KING_SIDE, c);
+
+                    board.castling_path[c][side == CastlingRights::Side::KING_SIDE] =
+                        (movegen::between(rook_from, rook_to) | movegen::between(king_from, king_to)) &
+                        ~(Bitboard::fromSquare(king_from) | Bitboard::fromSquare(rook_from));
+                }
+            }
         }
 
         // 1:1 mapping of Piece::internal() to the compressed piece
@@ -2862,6 +2882,20 @@ class Board {
             return convertPiece(piece);
         }
     };
+
+    bool operator==(const Board &other) const noexcept {
+        return pieces_bb_ == other.pieces_bb_   //
+               && occ_bb_ == other.occ_bb_      //
+               && board_ == other.board_        //
+               && key_ == other.key_            //
+               && cr_ == other.cr_              //
+               && plies_ == other.plies_        //
+               && stm_ == other.stm_            //
+               && ep_sq_ == other.ep_sq_        //
+               && hfm_ == other.hfm_            //
+               && chess960_ == other.chess960_  //
+               && castling_path == other.castling_path;
+    }
 
    protected:
     virtual void placePiece(Piece piece, Square sq) { placePieceInternal(piece, sq); }
@@ -3070,6 +3104,8 @@ class Board {
         assert(key_ == zobrist());
 
         // init castling_path
+        castling_path = {};
+
         for (Color c : {Color::WHITE, Color::BLACK}) {
             const auto king_from = kingSq(c);
 
@@ -4641,7 +4677,6 @@ class StreamParser {
 };
 }  // namespace chess::pgn
 
-#include <sstream>
 
 
 namespace chess {
@@ -4664,17 +4699,16 @@ class uci {
             to_sq = Square(to_sq > from_sq ? File::FILE_G : File::FILE_C, from_sq.rank());
         }
 
-        std::stringstream ss;
-
         // Add the from and to squares to the string stream
-        ss << from_sq << to_sq;
+        std::string result = static_cast<std::string>(from_sq);
+        result += static_cast<std::string>(to_sq);
 
         // If the move is a promotion, add the promoted piece to the string stream
         if (move.typeOf() == Move::PROMOTION) {
-            ss << static_cast<std::string>(move.promotionType());
+            result += static_cast<std::string>(move.promotionType());
         }
 
-        return ss.str();
+        return result;
     }
 
     /**
@@ -4683,7 +4717,7 @@ class uci {
      * @param uci
      * @return
      */
-    [[nodiscard]] static Move uciToMove(const Board &board, const std::string &uci) noexcept(false) {
+    [[nodiscard]] static Move uciToMove(const Board &board, std::string_view uci) noexcept(false) {
         if (uci.length() < 4) {
             return Move::NO_MOVE;
         }
@@ -4893,7 +4927,7 @@ class uci {
      * @param move
      * @return
      */
-    static bool isUciMove(const std::string &move) noexcept {
+    static bool isUciMove(std::string_view move) noexcept {
         bool is_uci = false;
 
         static constexpr auto is_digit     = [](char c) { return c >= '1' && c <= '8'; };

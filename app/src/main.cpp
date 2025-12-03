@@ -10,7 +10,7 @@
 #include <matchmaking/tournament/tournament_manager.hpp>
 
 namespace fastchess {
-const char* version = "alpha 1.5.0 ";
+const char* version = "alpha 1.7.0 ";
 }
 
 namespace ch = std::chrono;

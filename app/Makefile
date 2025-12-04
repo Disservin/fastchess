@@ -13,7 +13,7 @@ INCDIR           := src
 
 #Flags, Libraries and Includes
 CXXFLAGS         := -O3 -std=c++17 -Wall -Wextra -DNDEBUG
-CXXFLAGS_TEST    := -O2 -std=c++17 -Wall -Wextra -pedantic -Wuninitialized -g3 -fno-omit-frame-pointer
+CXXFLAGS_TEST    := -O2 -std=c++17 -Wall -Wextra -pedantic -Wuninitialized -fno-omit-frame-pointer
 CXXFLAGS_COV     := -O0 --coverage -g -std=c++17 -Wall -Wextra -pedantic -Wuninitialized -g3 -fno-omit-frame-pointer
 INC              := -I$(INCDIR) -Ithird_party
 

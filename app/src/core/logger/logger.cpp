@@ -22,22 +22,23 @@ std::mutex Logger::log_mutex_;
 Logger::log_file_type Logger::log_;
 bool Logger::engine_coms_ = false;
 
-void Logger::openFile(const std::string &file) {
+void Logger::openFile(const std::string &file, bool append) {
     if (file.empty()) {
         return;
     }
 
+    auto flag = (append && !compress_) ? std::ios::app : std::ios::out;
 #ifdef USE_ZLIB
     if (compress_) {
         auto t   = std::chrono::system_clock::now();
         auto fmt = fmt::format("{}{:%Y-%m-%dT.%H.%M.%S}.gz", file, t);
-        log_.emplace<fcgzstream>(fmt.c_str(), std::ios::out);
+        log_.emplace<fcgzstream>(fmt.c_str(), flag);
     } else {
-        log_.emplace<std::ofstream>(file.c_str(), std::ios::app);
+        log_.emplace<std::ofstream>(file.c_str(), flag);
     }
 #else
     if (!compress_) {
-        log_.emplace<std::ofstream>(file.c_str(), std::ios::app);
+        log_.emplace<std::ofstream>(file.c_str(), flag);
     } else {
         throw fastchess_exception("Compress is enabled but program wasn't compiled with zlib.");
     }

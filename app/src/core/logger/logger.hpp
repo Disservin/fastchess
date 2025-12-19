@@ -43,7 +43,7 @@ class Logger {
 
     static void setLevel(Level level) { Logger::level_ = level; }
     static void setCompress(bool compress) { compress_ = compress; }
-    static void openFile(const std::string &file);
+    static void openFile(const std::string &file, bool append = true);
     static void setEngineComs(bool engine_coms) { engine_coms_ = engine_coms; }
 
     // Direct function calls - no file path

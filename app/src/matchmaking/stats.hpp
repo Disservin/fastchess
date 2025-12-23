@@ -22,7 +22,8 @@ class Stats {
             wins++;
         } else if (match_data.players.white.result == chess::GameResult::LOSE) {
             losses++;
-        } else {
+        } else if (match_data.players.white.result == chess::GameResult::DRAW ||
+                   match_data.players.white.result == chess::GameResult::NONE) {
             draws++;
         }
     }

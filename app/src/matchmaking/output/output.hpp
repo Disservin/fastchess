@@ -65,7 +65,10 @@ class IOutput {
         if (stats.losses) {
             return "0-1";
         }
-        return "1/2-1/2";
+        if (stats.draws) {
+            return "1/2-1/2";
+        }
+        return "*";
     };
 };
 

@@ -260,7 +260,9 @@ void Match::gameLoop(Player& first, Player& second) {
             if (!playMove(second, first)) break;
         }
     } catch (const std::exception& e) {
-        LOG_FATAL_THREAD("Match failed with exception; {}", e.what());
+        Logger::print<Logger::Level::FATAL>("Match failed with exception: {}", e.what());
+        data_.termination = MatchTermination::INTERRUPT;
+        data_.reason      = Match::INTERRUPTED_MSG;
     }
 }
 

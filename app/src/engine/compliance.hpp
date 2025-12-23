@@ -6,8 +6,8 @@
 #include <string>
 #include <vector>
 
-#include <engine/uci_engine.hpp>
 #include <core/config/config.hpp>
+#include <engine/uci_engine.hpp>
 
 namespace fastchess::engine {
 

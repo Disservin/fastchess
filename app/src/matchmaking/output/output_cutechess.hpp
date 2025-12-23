@@ -50,12 +50,11 @@ class Cutechess : public IOutput {
 
         // sort by elo diff
 
-        std::sort(elos.begin(), elos.end(),
-                  [](const auto& a, const auto& b) {
-                      double aElo = std::get<1>(a).diff();
-                      double bElo = std::get<1>(b).diff();
-                      return (!std::isnan(aElo) && std::isnan(bElo)) || aElo > bElo;
-                  });
+        std::sort(elos.begin(), elos.end(), [](const auto& a, const auto& b) {
+            double aElo = std::get<1>(a).diff();
+            double bElo = std::get<1>(b).diff();
+            return (!std::isnan(aElo) && std::isnan(bElo)) || aElo > bElo;
+        });
 
         int rank = 0;
 

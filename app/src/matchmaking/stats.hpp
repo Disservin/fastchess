@@ -17,18 +17,18 @@ class Stats {
         penta_WD = wd;
         penta_WW = ww;
     }
-    Stats(const MatchData &match_data) {
+    Stats(const MatchData& match_data) {
         if (match_data.players.white.result == chess::GameResult::WIN) {
             wins++;
         } else if (match_data.players.white.result == chess::GameResult::LOSE) {
             losses++;
         } else if (match_data.players.white.result == chess::GameResult::DRAW ||
-                   match_data.players.white.result == chess::GameResult::NONE) {
+                   match_data.players.black.result == chess::GameResult::DRAW) {
             draws++;
         }
     }
 
-    Stats &operator+=(const Stats &rhs) {
+    Stats& operator+=(const Stats& rhs) {
         wins += rhs.wins;
         losses += rhs.losses;
         draws += rhs.draws;
@@ -42,7 +42,7 @@ class Stats {
         return *this;
     }
 
-    [[nodiscard]] Stats operator+(const Stats &rhs) const {
+    [[nodiscard]] Stats operator+(const Stats& rhs) const {
         Stats stats = *this;
         stats += rhs;
         return stats;
@@ -57,13 +57,13 @@ class Stats {
         return stats;
     }
 
-    [[nodiscard]] bool operator==(const Stats &rhs) const {
+    [[nodiscard]] bool operator==(const Stats& rhs) const {
         return wins == rhs.wins && losses == rhs.losses && draws == rhs.draws && penta_WW == rhs.penta_WW &&
                penta_WD == rhs.penta_WD && penta_WL == rhs.penta_WL && penta_DD == rhs.penta_DD &&
                penta_LD == rhs.penta_LD && penta_LL == rhs.penta_LL;
     }
 
-    [[nodiscard]] bool operator!=(const Stats &rhs) const { return !(*this == rhs); }
+    [[nodiscard]] bool operator!=(const Stats& rhs) const { return !(*this == rhs); }
 
     [[nodiscard]] int sum() const { return wins + losses + draws; }
 

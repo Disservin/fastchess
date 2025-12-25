@@ -60,7 +60,7 @@ jobs:
           # macOS
           - {
               name: "MacOS Apple Clang x86-64",
-              os: macos-13,
+              os: macos-15-intel,
               compiler: clang++,
               shell: "bash {0}",
               native: "",

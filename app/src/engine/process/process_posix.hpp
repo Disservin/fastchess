@@ -479,7 +479,8 @@ class Process : public IProcess {
 
                 lines.emplace_back(Line{current_line_, time});
 
-                if (realtime_logging_) Logger::readFromEngine(current_line_, time, log_name_, searchword.empty());
+                const bool is_stderr = searchword.empty();
+                if (realtime_logging_) Logger::readFromEngine(current_line_, time, log_name_, is_stderr);
                 if (!searchword.empty() && current_line_.rfind(searchword, 0) == 0) return Status::OK;
 
                 current_line_.clear();

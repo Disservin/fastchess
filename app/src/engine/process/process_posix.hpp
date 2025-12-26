@@ -31,6 +31,8 @@
 #    include <string>
 #    include <vector>
 
+#    include <expected.hpp>
+
 #    include <affinity/affinity.hpp>
 #    include <core/globals/globals.hpp>
 #    include <core/logger/logger.hpp>
@@ -95,18 +97,22 @@ class Process : public IProcess {
 
         char *const *execv_argv = (char *const *)parser.argv();
 
-        auto success = start_process(execv_argv);
+        auto success = start_process(execv_argv)
+                           .or_else([&](const std::string &) {
+                               out_pipe_ = {};
+                               in_pipe_  = {};
+                               err_pipe_ = {};
+                               return start_process(execv_argv, false);
+                           })
+                           .or_else([&](const std::string &err) -> tl::expected<Status, std::string> {
+                               LOG_ERR_THREAD("Failed to start process: {}", err);
+                               startup_error_ = true;
+                               return Status::ERR;
+                           });
 
-        if (success == Status::ERR) {
-            out_pipe_ = {};
-            in_pipe_  = {};
-            err_pipe_ = {};
-            success   = start_process(execv_argv, false);
-        }
-
-        if (success == Status::ERR) {
-            LOG_ERR_THREAD("Failed to start process.");
-            startup_error_ = true;
+        // Since the last or_else always returns a Status (either OK or ERR),
+        // 'success' will almost always have a value.
+        if (!success || *success == Status::ERR) {
             return Status::ERR;
         }
 
@@ -404,7 +410,7 @@ class Process : public IProcess {
     }
 
    private:
-    Status start_process(char *const *execv_argv, bool use_spawnp = true) {
+    tl::expected<Status, std::string> start_process(char *const *execv_argv, bool use_spawnp = true) {
         posix_spawn_file_actions_t file_actions;
         posix_spawn_file_actions_init(&file_actions);
 
@@ -417,14 +423,16 @@ class Process : public IProcess {
 
             auto func = use_spawnp ? posix_spawnp : posix_spawn;
 
-            if (func(&process_pid_, command_.c_str(), &file_actions, nullptr, execv_argv, environ) != 0) {
-                throw fastchess_exception("posix_spawn failed");
+            if (int result = func(&process_pid_, command_.c_str(), &file_actions, nullptr, execv_argv, environ);
+                result != 0) {
+                std::string errorMsg = std::strerror(result);
+                throw fastchess_exception("posix_spawn failed: " + errorMsg);
             }
 
             posix_spawn_file_actions_destroy(&file_actions);
         } catch (const std::exception &e) {
             posix_spawn_file_actions_destroy(&file_actions);
-            return Status::ERR;
+            return tl::unexpected<std::string>(e.what());
         }
 
         return Status::OK;
@@ -473,7 +481,8 @@ class Process : public IProcess {
 
                 lines.emplace_back(Line{current_line_, time});
 
-                if (realtime_logging_) Logger::readFromEngine(current_line_, time, log_name_, searchword.empty());
+                const bool is_stderr = searchword.empty();
+                if (realtime_logging_) Logger::readFromEngine(current_line_, time, log_name_, is_stderr);
                 if (!searchword.empty() && current_line_.rfind(searchword, 0) == 0) return Status::OK;
 
                 current_line_.clear();
@@ -491,19 +500,37 @@ class Process : public IProcess {
         Pipe(const Pipe &) { initialize(); }
 
         Pipe &operator=(const Pipe &) {
-            close(fds_[0]);
-            close(fds_[1]);
+            close_read_end();
+            close_write_end();
             initialize();
             return *this;
         }
 
         ~Pipe() {
-            close(fds_[0]);
-            close(fds_[1]);
+            close_read_end();
+            close_write_end();
         }
 
-        int read_end() const { return fds_[0]; }
-        int write_end() const { return fds_[1]; }
+        int read_end() const {
+            assert(fds_[0] != -1);
+            return fds_[0];
+        }
+        int write_end() const {
+            assert(fds_[1] != -1);
+            return fds_[1];
+        }
+
+        void close_read_end() {
+            if (fds_[0] == -1) return;
+            close(fds_[0]);
+            fds_[0] = -1;
+        }
+
+        void close_write_end() {
+            if (fds_[1] == -1) return;
+            close(fds_[1]);
+            fds_[1] = -1;
+        }
 
        private:
         void initialize() {

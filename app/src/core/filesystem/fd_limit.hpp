@@ -40,8 +40,8 @@ namespace fastchess::fd_limit {
 }
 #endif
 
-[[nodiscard]] inline int minFileDescriptorRequired(int concurrency) noexcept { return 26 + (concurrency - 1) * 12; }
+[[nodiscard]] inline int minFileDescriptorRequired(int concurrency) noexcept { return 14 + (concurrency) * 12; }
 
-[[nodiscard]] inline int maxConcurrency(int availableFDs) noexcept { return (availableFDs - 26) / 12 + 1; }
+[[nodiscard]] inline int maxConcurrency(int availableFDs) noexcept { return (availableFDs - 14) / 12; }
 
 }  // namespace fastchess::fd_limit

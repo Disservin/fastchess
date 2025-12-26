@@ -134,9 +134,9 @@ class Logger {
     }
 
 #ifdef _WIN32
-    constexpr static int ID_WIDTH = 3;
+    static constexpr int ID_WIDTH = 3;
 #else
-    constexpr static int ID_WIDTH = 20;
+    static constexpr int ID_WIDTH = 20;
 #endif
 
     /*

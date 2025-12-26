@@ -419,6 +419,9 @@ class Process : public IProcess {
             setup_spawn_file_actions(file_actions, in_pipe_.write_end(), STDOUT_FILENO);
             setup_spawn_file_actions(file_actions, err_pipe_.write_end(), STDERR_FILENO);
 
+            posix_spawn_file_actions_addclose(&file_actions, out_pipe_.write_end());
+            posix_spawn_file_actions_addclose(&file_actions, err_pipe_.read_end());
+
             setup_wd_file_actions(file_actions, wd_);
 
             auto func = use_spawnp ? posix_spawnp : posix_spawn;
@@ -436,6 +439,7 @@ class Process : public IProcess {
         }
 
         out_pipe_.close_read_end();
+        // this has errors in my tests
         err_pipe_.close_write_end();
 
         return Status::OK;

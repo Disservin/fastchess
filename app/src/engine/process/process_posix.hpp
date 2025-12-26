@@ -97,16 +97,16 @@ class Process : public IProcess {
 
         char *const *execv_argv = (char *const *)parser.argv();
 
-        auto result = start_process(execv_argv).or_else([&](const auto &) {
+        auto success = start_process(execv_argv);
+        if (success == Status::ERR) {
             out_pipe_ = {};
             in_pipe_  = {};
             err_pipe_ = {};
+            success   = start_process(execv_argv, false);
+        }
 
-            return start_process(execv_argv, false);
-        });
-
-        if (!result) {
-            LOG_ERR_THREAD("Failed to start process: {}", result.error().what());
+        if (success == Status::ERR) {
+            LOG_ERR_THREAD("Failed to start process");
             startup_error_ = true;
             return Status::ERR;
         }
@@ -405,7 +405,7 @@ class Process : public IProcess {
     }
 
    private:
-    tl::expected<void, fastchess_exception> start_process(char *const *execv_argv, bool use_spawnp = true) {
+    Status start_process(char *const *execv_argv, bool use_spawnp = true) {
         posix_spawn_file_actions_t file_actions;
         posix_spawn_file_actions_init(&file_actions);
 
@@ -427,13 +427,13 @@ class Process : public IProcess {
             posix_spawn_file_actions_destroy(&file_actions);
         } catch (const std::exception &e) {
             posix_spawn_file_actions_destroy(&file_actions);
-            return tl::unexpected(fastchess_exception(e.what()));
+            return Status::ERR;
         }
 
         out_pipe_.close_read_end();
         err_pipe_.close_write_end();
 
-        return {};
+        return Status::OK;
     }
 
     void setup_spawn_file_actions(posix_spawn_file_actions_t &file_actions, int fd, int target_fd) {

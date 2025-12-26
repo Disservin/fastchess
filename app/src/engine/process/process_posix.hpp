@@ -98,7 +98,7 @@ class Process : public IProcess {
         char *const *execv_argv = (char *const *)parser.argv();
 
         auto success = start_process(execv_argv)
-                           .or_else([&](const std::string &err) {
+                           .or_else([&](const std::string &) {
                                out_pipe_ = {};
                                in_pipe_  = {};
                                err_pipe_ = {};
@@ -110,12 +110,9 @@ class Process : public IProcess {
                                return Status::ERR;
                            });
 
-        if (!success.has_value()) {
-            assert(false);
-            return Status::ERR;
-        }
-
-        if (success == Status::ERR) {
+        // Since the last or_else always returns a Status (either OK or ERR),
+        // 'success' will almost always have a value.
+        if (!success || *success == Status::ERR) {
             return Status::ERR;
         }
 
@@ -527,11 +524,13 @@ class Process : public IProcess {
         }
 
         void close_read_end() {
+            if (fds_[0] == -1) return;
             close(fds_[0]);
             fds_[0] = -1;
         }
 
         void close_write_end() {
+            if (fds_[1] == -1) return;
             close(fds_[1]);
             fds_[1] = -1;
         }

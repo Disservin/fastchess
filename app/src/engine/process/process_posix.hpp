@@ -105,6 +105,7 @@ class Process : public IProcess {
         }
 
         if (success == Status::ERR) {
+            LOG_ERR_THREAD("Failed to start process.");
             startup_error_ = true;
             return Status::ERR;
         }
@@ -422,8 +423,6 @@ class Process : public IProcess {
 
             posix_spawn_file_actions_destroy(&file_actions);
         } catch (const std::exception &e) {
-            LOG_ERR_THREAD("Failed to start process: {}", e.what());
-
             posix_spawn_file_actions_destroy(&file_actions);
             return Status::ERR;
         }

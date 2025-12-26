@@ -80,6 +80,7 @@
   "show_latency": true,
   "log": {
     "file": "",
+    "append_file": false,
     "level": 2,
     "compress": false,
     "realtime": true,

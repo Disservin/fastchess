@@ -530,6 +530,7 @@ TEST_SUITE("Option Parsing Tests") {
         const cli::OptionsParser parser{baseArgs({"-log",
                                                    "file=fast.log",
                                                    "level=trace",
+                                                   "append=false",
                                                    "compress=true",
                                                    "realtime=true",
                                                    "engine=true"})};
@@ -537,6 +538,7 @@ TEST_SUITE("Option Parsing Tests") {
         const auto &log = parser.getTournamentConfig().log;
         CHECK(log.file == "fast.log");
         CHECK(log.level == Logger::Level::TRACE);
+        CHECK(!log.append_file);
         CHECK(log.compress);
         CHECK(log.realtime);
         CHECK(log.engine_coms);

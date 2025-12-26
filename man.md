@@ -221,13 +221,14 @@ The default values are the first value in parentheses.
     It is also possible that the latency is negative, due to different measurement methods or missing synchronization of the clocks
     between different threads.
 
-- `-testEnv`  
+- `-testEnv`
     Specifies that the program is running in a test environment (OpenBench/Fishtest). This will change some outputs/settings.
 
-- `-log file=NAME level=(warn|trace|info|err|fatal) compress=(false|true) realtime=(true|false) engine=(false|true)`  
-    Specify a log file with a specific log level.  
-    Set compress to true to gzip the file. Default is false.  
-    By default engine logs are disabled. Set engine to true to enable them.  
+- `-log file=NAME level=(warn|trace|info|err|fatal) append=(true|false) compress=(false|true) realtime=(true|false) engine=(false|true)`
+    Specify a log file with a specific log level.
+    Set append to false to overwrite existing file. Default is true.
+    Set compress to true to write to gzipped file with timestamp (ignores append). Default is false.
+    By default engine logs are disabled. Set engine to true to enable them.
 
     - LEVEL:
         - `trace`

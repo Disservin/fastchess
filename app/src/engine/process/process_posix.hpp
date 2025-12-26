@@ -435,7 +435,7 @@ class Process : public IProcess {
             return tl::unexpected<std::string>(e.what());
         }
 
-        // out_pipe_.close_read_end();
+        out_pipe_.close_read_end();
         // err_pipe_.close_write_end();
 
         return Status::OK;

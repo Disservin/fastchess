@@ -97,17 +97,25 @@ class Process : public IProcess {
 
         char *const *execv_argv = (char *const *)parser.argv();
 
-        auto success = start_process(execv_argv);
-        if (success == Status::ERR) {
-            out_pipe_ = {};
-            in_pipe_  = {};
-            err_pipe_ = {};
-            success   = start_process(execv_argv, false);
+        auto success = start_process(execv_argv)
+                           .or_else([&](const std::string &err) {
+                               out_pipe_ = {};
+                               in_pipe_  = {};
+                               err_pipe_ = {};
+                               return start_process(execv_argv, false);
+                           })
+                           .or_else([&](const std::string &err) -> tl::expected<Status, std::string> {
+                               LOG_ERR_THREAD("Failed to start process: {}", err);
+                               startup_error_ = true;
+                               return Status::ERR;
+                           });
+
+        if (!success.has_value()) {
+            assert(false);
+            return Status::ERR;
         }
 
         if (success == Status::ERR) {
-            LOG_ERR_THREAD("Failed to start process");
-            startup_error_ = true;
             return Status::ERR;
         }
 
@@ -405,7 +413,7 @@ class Process : public IProcess {
     }
 
    private:
-    Status start_process(char *const *execv_argv, bool use_spawnp = true) {
+    tl::expected<Status, std::string> start_process(char *const *execv_argv, bool use_spawnp = true) {
         posix_spawn_file_actions_t file_actions;
         posix_spawn_file_actions_init(&file_actions);
 
@@ -427,11 +435,11 @@ class Process : public IProcess {
             posix_spawn_file_actions_destroy(&file_actions);
         } catch (const std::exception &e) {
             posix_spawn_file_actions_destroy(&file_actions);
-            return Status::ERR;
+            return tl::unexpected<std::string>(e.what());
         }
 
-        out_pipe_.close_read_end();
-        err_pipe_.close_write_end();
+        // out_pipe_.close_read_end();
+        // err_pipe_.close_write_end();
 
         return Status::OK;
     }

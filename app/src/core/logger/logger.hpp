@@ -20,7 +20,7 @@
 class fcgzstream : public ogzstream {
    public:
     fcgzstream() : ogzstream() {}
-    fcgzstream(const char *name, int mode = std::ios::out) : ogzstream(name, mode) {}
+    fcgzstream(const char* name, int mode = std::ios::out) : ogzstream(name, mode) {}
 
     bool is_open() { return rdbuf()->is_open(); }
 };
@@ -38,42 +38,42 @@ class Logger {
 
     enum class Level { ALL, TRACE, WARN, INFO, ERR, FATAL };
 
-    Logger(Logger const &)         = delete;
-    void operator=(Logger const &) = delete;
+    Logger(Logger const&)         = delete;
+    void operator=(Logger const&) = delete;
 
     static void setLevel(Level level) { Logger::level_ = level; }
     static void setCompress(bool compress) { compress_ = compress; }
-    static void openFile(const std::string &file, bool append = true);
+    static void openFile(const std::string& file, bool append = true);
     static void setEngineComs(bool engine_coms) { engine_coms_ = engine_coms; }
 
     // Direct function calls - no file path
     template <bool thread = false, typename... T>
-    static void trace(fmt::format_string<T...> format, T &&...args) {
+    static void trace(fmt::format_string<T...> format, T&&... args) {
         log<Level::TRACE, thread>(format, std::forward<T>(args)...);
     }
 
     template <bool thread = false, typename... T>
-    static void warn(fmt::format_string<T...> format, T &&...args) {
+    static void warn(fmt::format_string<T...> format, T&&... args) {
         log<Level::WARN, thread>(format, std::forward<T>(args)...);
     }
 
     template <bool thread = false, typename... T>
-    static void info(fmt::format_string<T...> format, T &&...args) {
+    static void info(fmt::format_string<T...> format, T&&... args) {
         log<Level::INFO, thread>(format, std::forward<T>(args)...);
     }
 
     template <bool thread = false, typename... T>
-    static void err(fmt::format_string<T...> format, T &&...args) {
+    static void err(fmt::format_string<T...> format, T&&... args) {
         log<Level::ERR, thread>(format, std::forward<T>(args)...);
     }
 
     template <bool thread = false, typename... T>
-    static void fatal(fmt::format_string<T...> format, T &&...args) {
+    static void fatal(fmt::format_string<T...> format, T&&... args) {
         log<Level::FATAL, thread>(format, std::forward<T>(args)...);
     }
 
     template <Level LEVEL = Level::INFO, bool thread = false, typename... T>
-    static void print(fmt::format_string<T...> format, T &&...args) {
+    static void print(fmt::format_string<T...> format, T&&... args) {
         const auto msg = fmt::format(format, std::forward<T>(args)...) + "\n";
 
         std::cout << msg << std::flush;
@@ -85,15 +85,15 @@ class Logger {
         log<LEVEL, thread>("{}", msg);
     }
 
-    static void writeToEngine(const std::string &msg, const std::string &time, const std::string &name);
-    static void readFromEngine(const std::string &msg, const std::string &time, const std::string &name,
+    static void writeToEngine(const std::string& msg, const std::string& time, const std::string& name);
+    static void readFromEngine(const std::string& msg, const std::string& time, const std::string& name,
                                bool err = false, std::thread::id id = std::this_thread::get_id());
 
     static std::atomic_bool should_log_;
 
    private:
     template <Level level = Level::WARN, bool thread = false, typename... T>
-    static void log(fmt::format_string<T...> format, T &&...args) {
+    static void log(fmt::format_string<T...> format, T&&... args) {
         if (level < level_) {
             return;
         }
@@ -125,21 +125,26 @@ class Logger {
                 break;
         }
 
-/*
-label, time, thread_id, message
-*/
-#ifdef _WIN32
-        constexpr auto fmt = "[{:<6}] [{:>15}] <{:>3}> fastchess --- {}";
-#else
-        constexpr auto fmt = "[{:<6}] [{:>15}] <{:>20}> fastchess --- {}";
-#endif
-
         auto thread_id_str = thread ? fmt::format("{}", std::this_thread::get_id()) : "";
-
-        std::string fmt_message = fmt::format(fmt, label, time::datetime_precise(), thread_id_str, message);
+        auto prefix        = make_prefix(label, time::datetime_precise(), thread_id_str);
+        auto fmt_message   = fmt::format("{}fastchess --- {}", prefix, message);
 
         const std::lock_guard<std::mutex> lock(log_mutex_);
-        std::visit([&](auto &&arg) { arg << fmt_message << std::flush; }, log_);
+        std::visit([&](auto&& arg) { arg << fmt_message << std::flush; }, log_);
+    }
+
+#ifdef _WIN32
+    constexpr static int ID_WIDTH = 20;
+#else
+    constexpr static int ID_WIDTH = 3;
+#endif
+
+    /*
+    label, time, thread_id, message
+    */
+    template <typename T1, typename T2, typename T3>
+    static std::string make_prefix(T1 a, T2 b, T3 c) {
+        return fmt::format("[{:<6}] [{:>15}] <{:>{}> ", a, b, ID_WIDTH, c);
     }
 
     Logger() {}

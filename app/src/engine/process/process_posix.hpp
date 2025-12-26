@@ -436,7 +436,7 @@ class Process : public IProcess {
         }
 
         out_pipe_.close_read_end();
-        // err_pipe_.close_write_end();
+        err_pipe_.close_write_end();
 
         return Status::OK;
     }

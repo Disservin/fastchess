@@ -144,7 +144,7 @@ class Logger {
     */
     template <typename T1, typename T2, typename T3>
     static std::string make_prefix(T1 a, T2 b, T3 c) {
-        return fmt::format("[{:<6}] [{:>15}] <{:>{}> ", a, b, ID_WIDTH, c);
+        return fmt::format("[{:<6}] [{:>15}] <{:>{}}> ", a, b, c, ID_WIDTH);
     }
 
     Logger() {}

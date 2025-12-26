@@ -134,17 +134,17 @@ class Logger {
     }
 
 #ifdef _WIN32
-    constexpr static int ID_WIDTH = 20;
-#else
     constexpr static int ID_WIDTH = 3;
+#else
+    constexpr static int ID_WIDTH = 20;
 #endif
 
     /*
     label, time, thread_id, message
     */
     template <typename T1, typename T2, typename T3>
-    static std::string make_prefix(T1 a, T2 b, T3 c) {
-        return fmt::format("[{:<6}] [{:>15}] <{:>{}}> ", a, b, c, ID_WIDTH);
+    static std::string make_prefix(T1 label, T2 timestamp, T3 thread_id) {
+        return fmt::format("[{:<6}] [{:>15}] <{:>{}}> ", label, timestamp, thread_id, ID_WIDTH);
     }
 
     Logger() {}

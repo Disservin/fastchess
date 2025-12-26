@@ -65,7 +65,7 @@ void Logger::writeToEngine(const std::string &msg, const std::string &time, cons
 
     const auto timestamp   = time.empty() ? time::datetime_precise() : time;
     const auto id          = std::this_thread::get_id();
-    const auto fmt_message = fmt::format("{} {} <--- {}\n,", make_prefix("Engine", timestamp, id), name, msg);
+    const auto fmt_message = fmt::format("{} {} <--- {}\n", make_prefix("Engine", timestamp, id), name, msg);
 
     const std::lock_guard<std::mutex> lock(log_mutex_);
     std::visit([&](auto &&arg) { arg << fmt_message << std::flush; }, log_);

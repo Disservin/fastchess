@@ -508,8 +508,14 @@ class Process : public IProcess {
             close_write_end();
         }
 
-        int read_end() const { return fds_[0]; }
-        int write_end() const { return fds_[1]; }
+        int read_end() const {
+            assert(fds_[0] != -1);
+            return fds_[0];
+        }
+        int write_end() const {
+            assert(fds_[1] != -1);
+            return fds_[1];
+        }
 
         void close_read_end() {
             close(fds_[0]);

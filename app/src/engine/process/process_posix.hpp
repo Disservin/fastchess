@@ -8,7 +8,6 @@
 #    include <cassert>
 #    include <chrono>
 #    include <iostream>
-#    include <memory>
 #    include <optional>
 #    include <string>
 #    include <thread>
@@ -23,21 +22,20 @@
 #    include <sys/types.h>  // pid_t
 #    include <sys/wait.h>
 #    include <unistd.h>  // _exit, fork
-#    include <unistd.h>
 #    include <csignal>
-#    include <stdexcept>
 #    include <string>
 #    include <vector>
 
 #    include <expected.hpp>
 
 #    include <affinity/affinity.hpp>
+#    include <argv_split.hpp>
 #    include <core/globals/globals.hpp>
 #    include <core/logger/logger.hpp>
 #    include <core/threading/thread_vector.hpp>
+#    include <engine/process/pipe.hpp>
+#    include <engine/process/signal.hpp>
 #    include <types/exception.hpp>
-
-#    include <argv_split.hpp>
 
 extern char **environ;
 
@@ -125,144 +123,6 @@ class Process : public IProcess {
         }
 
         return r == 0 ? Result::OK() : Result::Error("process terminated");
-    }
-
-    std::string signalToString(int status) {
-        std::stringstream result;
-
-        if (WIFEXITED(status)) {
-            result << "Process exited normally with status " << WEXITSTATUS(status);
-        } else if (WIFSIGNALED(status)) {
-            result << "Process terminated by signal " << WTERMSIG(status) << " (";
-
-            switch (WTERMSIG(status)) {
-                case SIGABRT:
-                    result << "SIGABRT - Abort";
-                    break;
-                case SIGALRM:
-                    result << "SIGALRM - Alarm clock";
-                    break;
-                case SIGBUS:
-                    result << "SIGBUS - Bus error";
-                    break;
-                case SIGCHLD:
-                    result << "SIGCHLD - Child stopped or terminated";
-                    break;
-                case SIGCONT:
-                    result << "SIGCONT - Continue executing";
-                    break;
-                case SIGFPE:
-                    result << "SIGFPE - Floating point exception";
-                    break;
-                case SIGHUP:
-                    result << "SIGHUP - Hangup";
-                    break;
-                case SIGILL:
-                    result << "SIGILL - Illegal instruction";
-                    break;
-                case SIGINT:
-                    result << "SIGINT - Interrupt";
-                    break;
-                case SIGKILL:
-                    result << "SIGKILL - Kill";
-                    break;
-                case SIGPIPE:
-                    result << "SIGPIPE - Broken pipe";
-                    break;
-                case SIGQUIT:
-                    result << "SIGQUIT - Quit program";
-                    break;
-                case SIGSEGV:
-                    result << "SIGSEGV - Segmentation fault";
-                    break;
-                case SIGSTOP:
-                    result << "SIGSTOP - Stop executing";
-                    break;
-                case SIGTERM:
-                    result << "SIGTERM - Termination";
-                    break;
-                case SIGTRAP:
-                    result << "SIGTRAP - Trace/breakpoint trap";
-                    break;
-                case SIGTSTP:
-                    result << "SIGTSTP - Terminal stop signal";
-                    break;
-                case SIGTTIN:
-                    result << "SIGTTIN - Background process attempting read";
-                    break;
-                case SIGTTOU:
-                    result << "SIGTTOU - Background process attempting write";
-                    break;
-                case SIGUSR1:
-                    result << "SIGUSR1 - User-defined signal 1";
-                    break;
-                case SIGUSR2:
-                    result << "SIGUSR2 - User-defined signal 2";
-                    break;
-#    ifdef SIGPOLL
-                case SIGPOLL:
-                    result << "SIGPOLL - Pollable event";
-                    break;
-#    endif
-                case SIGPROF:
-                    result << "SIGPROF - Profiling timer expired";
-                    break;
-                case SIGSYS:
-                    result << "SIGSYS - Bad system call";
-                    break;
-                case SIGURG:
-                    result << "SIGURG - Urgent condition on socket";
-                    break;
-                case SIGVTALRM:
-                    result << "SIGVTALRM - Virtual timer expired";
-                    break;
-                case SIGXCPU:
-                    result << "SIGXCPU - CPU time limit exceeded";
-                    break;
-                case SIGXFSZ:
-                    result << "SIGXFSZ - File size limit exceeded";
-                    break;
-                default:
-                    result << "Unknown signal";
-            }
-            result << ")";
-
-#    ifdef WCOREDUMP
-            if (WCOREDUMP(status)) {
-                result << " - Core dumped";
-            }
-#    endif
-        } else if (WIFSTOPPED(status)) {
-            result << "Process stopped by signal " << WSTOPSIG(status);
-
-            switch (WSTOPSIG(status)) {
-                case SIGSTOP:
-                    result << " (SIGSTOP - Stop executing)";
-                    break;
-                case SIGTSTP:
-                    result << " (SIGTSTP - Terminal stop signal)";
-                    break;
-                case SIGTTIN:
-                    result << " (SIGTTIN - Background process attempting read)";
-                    break;
-                case SIGTTOU:
-                    result << " (SIGTTOU - Background process attempting write)";
-                    break;
-                default:
-                    result << " (Unknown stop signal)";
-            }
-        }
-        // Not all systems define this
-#    ifdef WIFCONTINUED
-        else if (WIFCONTINUED(status)) {
-            result << "Process continued";
-        }
-#    endif
-        else {
-            result << "Unknown status " << status;
-        }
-
-        return result.str();
     }
 
     bool setAffinity(const std::vector<int> &cpus) noexcept override {
@@ -486,54 +346,6 @@ class Process : public IProcess {
 
         return Result{Status::NONE, ""};
     }
-
-    struct Pipe {
-        std::array<int, 2> fds_;
-
-        Pipe() { initialize(); }
-
-        Pipe(const Pipe &) { initialize(); }
-
-        Pipe &operator=(const Pipe &) {
-            close_read_end();
-            close_write_end();
-            initialize();
-            return *this;
-        }
-
-        ~Pipe() {
-            close_read_end();
-            close_write_end();
-        }
-
-        int read_end() const {
-            assert(fds_[0] != -1);
-            return fds_[0];
-        }
-        int write_end() const {
-            assert(fds_[1] != -1);
-            return fds_[1];
-        }
-
-        void close_read_end() {
-            if (fds_[0] == -1) return;
-            close(fds_[0]);
-            fds_[0] = -1;
-        }
-
-        void close_write_end() {
-            if (fds_[1] == -1) return;
-            close(fds_[1]);
-            fds_[1] = -1;
-        }
-
-       private:
-        void initialize() {
-            if (pipe(fds_.data()) != 0) throw fastchess_exception("pipe() failed");
-            if (fcntl(fds_[0], F_SETFD, FD_CLOEXEC) == -1 || fcntl(fds_[1], F_SETFD, FD_CLOEXEC) == -1)
-                throw fastchess_exception("fcntl() failed");
-        }
-    };
 
     // buffer to read into
     std::array<char, 4096> buffer;

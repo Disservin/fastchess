@@ -12,6 +12,23 @@ namespace fastchess::engine::process {
 enum class Standard { INPUT, OUTPUT, ERR };
 enum class Status { OK, ERR, TIMEOUT, NONE };
 
+struct Result {
+    const Status code;
+    const std::string message;
+
+    Result(const Status code, std::string message) : code(code), message(std::move(message)) {}
+    Result(const Result &other) : code(other.code), message(other.message) {}
+    Result(Result &&other) noexcept : code(other.code), message(std::move(other.message)) {}
+
+    static Result OK() { return {Status::OK, ""}; }
+    static Result Error(std::string msg) { return {Status::ERR, std::move(msg)}; }
+
+    Result operator=(const Result &other) const { return {other.code, other.message}; }
+    Result operator=(Result &&other) const { return {other.code, std::move(other.message)}; }
+
+    explicit operator bool() const { return code == Status::OK; }
+};
+
 struct Line {
     std::string line;
     std::string time;
@@ -33,21 +50,21 @@ class IProcess {
     virtual void setupRead() = 0;
 
     // Initialize the process
-    virtual Status init(const std::string &wd, const std::string &command, const std::string &args,
+    virtual Result init(const std::string &wd, const std::string &command, const std::string &args,
                         const std::string &log_name) = 0;
 
-    // Returns true if the process is alive
-    [[nodiscard]] virtual Status alive() noexcept = 0;
+    // Returns OK if the process is alive, Error otherwise
+    [[nodiscard]] virtual Result alive() noexcept = 0;
 
     virtual bool setAffinity(const std::vector<int> &cpus) noexcept = 0;
 
     // Read stdout until the line matches last_word or timeout is reached
     // 0 threshold means no timeout
-    virtual Status readOutput(std::vector<Line> &lines, std::string_view last_word,
+    virtual Result readOutput(std::vector<Line> &lines, std::string_view last_word,
                               std::chrono::milliseconds threshold) = 0;
 
     // Write input to the engine's stdin
-    virtual Status writeInput(const std::string &input) noexcept = 0;
+    virtual Result writeInput(const std::string &input) noexcept = 0;
 
     constexpr static std::chrono::seconds kill_timeout{60};
 

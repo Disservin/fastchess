@@ -333,7 +333,7 @@ bool Match::playMove(Player& us, Player& them) {
 
     LOG_TRACE_THREAD("Check if engine {} is in a ready state", name);
 
-    if (status == engine::process::Status::ERR) {
+    if (status.code == engine::process::Status::ERR) {
         setEngineCrashStatus(us, them);
         return false;
     }
@@ -414,12 +414,12 @@ bool Match::playMove(Player& us, Player& them) {
 bool Match::validConnection(Player& us, Player& them) {
     const auto is_ready = us.engine.isready(engine::UciEngine::getPingTime());
 
-    if (is_ready == engine::process::Status::TIMEOUT) {
+    if (is_ready.code == engine::process::Status::TIMEOUT) {
         setEngineStallStatus(us, them);
         return false;
     }
 
-    if (is_ready != engine::process::Status::OK) {
+    if (is_ready.code != engine::process::Status::OK) {
         setEngineCrashStatus(us, them);
         return false;
     }

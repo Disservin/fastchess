@@ -110,15 +110,15 @@ TEST_SUITE("Uci Engine Communication Tests") {
         CHECK(uciOutput[6].line == "line0");
         CHECK(uciOutput[7].line == "line1");
         CHECK(uciOutput[8].line == "uciok");
-        CHECK(uci_engine.isready() == engine::process::Status::OK);
+        CHECK(uci_engine.isready().code == engine::process::Status::OK);
 
         CHECK(uci_engine.writeEngine("sleep"));
         const auto res = uci_engine.readEngine("done", std::chrono::milliseconds(100));
-        CHECK(res == engine::process::Status::TIMEOUT);
+        CHECK(res.code == engine::process::Status::TIMEOUT);
 
         CHECK(uci_engine.writeEngine("sleep"));
         const auto res2 = uci_engine.readEngine("done", std::chrono::milliseconds(5000));
-        CHECK(res2 == engine::process::Status::OK);
+        CHECK(res2.code == engine::process::Status::OK);
         CHECK(uci_engine.output().size() == 1);
         CHECK(uci_engine.output()[0].line == "done");
     }
@@ -134,7 +134,7 @@ TEST_SUITE("Uci Engine Communication Tests") {
         CHECK(uci_engine.writeEngine("uci"));
         const auto res = uci_engine.readEngine("uciok");
 
-        CHECK(res == engine::process::Status::OK);
+        CHECK(res.code == engine::process::Status::OK);
         CHECK(uci_engine.output().size() == 9);
         CHECK(uci_engine.output()[0].line == "id name Dummy Engine");
         CHECK(uci_engine.output()[1].line == "id author Fastchess");
@@ -148,19 +148,19 @@ TEST_SUITE("Uci Engine Communication Tests") {
 
         CHECK(uci_engine.writeEngine("isready"));
         const auto res2 = uci_engine.readEngine("readyok");
-        CHECK(res2 == engine::process::Status::OK);
+        CHECK(res2.code == engine::process::Status::OK);
         CHECK(uci_engine.output().size() == 1);
         CHECK(uci_engine.output()[0].line == "readyok");
 
         CHECK(uci_engine.writeEngine("sleep"));
         const auto res3 = uci_engine.readEngine("done", std::chrono::milliseconds(100));
-        CHECK(res3 == engine::process::Status::TIMEOUT);
+        CHECK(res3.code == engine::process::Status::TIMEOUT);
 
         std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
         CHECK(uci_engine.writeEngine("sleep"));
         const auto res4 = uci_engine.readEngine("done", std::chrono::milliseconds(5000));
-        CHECK(res4 == engine::process::Status::OK);
+        CHECK(res4.code == engine::process::Status::OK);
         CHECK(uci_engine.output().size() == 1);
         CHECK(uci_engine.output()[0].line == "done");
     }
@@ -176,7 +176,7 @@ TEST_SUITE("Uci Engine Communication Tests") {
         CHECK(uci_engine->writeEngine("uci"));
         const auto res = uci_engine->readEngine("uciok");
 
-        CHECK(res == engine::process::Status::OK);
+        CHECK(res.code == engine::process::Status::OK);
         CHECK(uci_engine->output().size() == 9);
         CHECK(uci_engine->output()[0].line == "id name Dummy Engine");
         CHECK(uci_engine->output()[1].line == "id author Fastchess");
@@ -195,7 +195,7 @@ TEST_SUITE("Uci Engine Communication Tests") {
         CHECK(uci_engine->writeEngine("uci"));
         const auto res2 = uci_engine->readEngine("uciok");
 
-        CHECK(res2 == engine::process::Status::OK);
+        CHECK(res2.code == engine::process::Status::OK);
         CHECK(uci_engine->output().size() == 9);
         CHECK(uci_engine->output()[0].line == "id name Dummy Engine");
         CHECK(uci_engine->output()[1].line == "id author Fastchess");
@@ -219,7 +219,7 @@ TEST_SUITE("Uci Engine Communication Tests") {
         CHECK(uci_engine->writeEngine("uci"));
         const auto res = uci_engine->readEngine("uciok");
 
-        CHECK(res == engine::process::Status::OK);
+        CHECK(res.code == engine::process::Status::OK);
         CHECK(uci_engine->output().size() == 9);
         CHECK(uci_engine->output()[0].line == "id name Dummy Engine");
         CHECK(uci_engine->output()[1].line == "id author Fastchess");
@@ -238,7 +238,7 @@ TEST_SUITE("Uci Engine Communication Tests") {
         CHECK(uci_engine->writeEngine("uci"));
         const auto res2 = uci_engine->readEngine("uciok");
 
-        CHECK(res2 == engine::process::Status::OK);
+        CHECK(res2.code == engine::process::Status::OK);
         CHECK(uci_engine->output().size() == 9);
         CHECK(uci_engine->output()[0].line == "id name Dummy Engine");
         CHECK(uci_engine->output()[1].line == "id author Fastchess");
@@ -268,7 +268,7 @@ TEST_SUITE("Uci Engine Communication Tests") {
         CHECK(uci_engine->refreshUci());
         const auto res = uci_engine->readEngine("option set: setoption name UCI_Chess960");
 
-        CHECK(res == engine::process::Status::OK);
+        CHECK(res.code == engine::process::Status::OK);
         CHECK(uci_engine->output().size() == 4);
         CHECK(uci_engine->output()[0].line == "option set: setoption name Threads value 4");
         CHECK(uci_engine->output()[1].line == "option set: setoption name Hash value 1600");

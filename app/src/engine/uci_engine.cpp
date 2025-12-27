@@ -61,9 +61,9 @@ UciEngine::UciEngine(const EngineConfiguration &config, bool realtime_logging) :
     process_.setRealtimeLogging(realtime_logging_);
 }
 
-process::Status UciEngine::isready(std::optional<std::chrono::milliseconds> threshold) {
+process::Result UciEngine::isready(std::optional<std::chrono::milliseconds> threshold) {
     const auto is_alive = process_.alive();
-    if (is_alive != process::Status::OK) return is_alive;
+    if (!is_alive) return is_alive;
 
     LOG_TRACE_THREAD("Pinging engine {}", config_.name);
 
@@ -81,7 +81,7 @@ process::Status UciEngine::isready(std::optional<std::chrono::milliseconds> thre
         }
     }
 
-    if (res != process::Status::OK) {
+    if (!res) {
         if (!atomic::stop) {
             LOG_TRACE_THREAD("Engine {} didn't respond to isready", config_.name);
             Logger::print<Logger::Level::WARN>("Warning; Engine {} is not responsive", config_.name);
@@ -165,7 +165,7 @@ bool UciEngine::ucinewgame() {
         return false;
     }
 
-    return isready(getUciNewGameTime()) == process::Status::OK;
+    return isready(getUciNewGameTime()).code == process::Status::OK;
 }
 
 std::optional<std::string> UciEngine::idName() {
@@ -230,7 +230,8 @@ bool UciEngine::uci() {
 bool UciEngine::uciok(std::optional<ms> threshold) {
     LOG_TRACE_THREAD("Waiting for uciok from engine {}", config_.name);
 
-    const auto res = readEngine("uciok", threshold.value_or(getPingTime())) == process::Status::OK;
+    const auto res = readEngine("uciok", threshold.value_or(getPingTime()));
+    const auto ok  = res.code == process::Status::OK;
 
     for (const auto &line : output_) {
         if (!realtime_logging_) {
@@ -244,9 +245,9 @@ bool UciEngine::uciok(std::optional<ms> threshold) {
         }
     }
 
-    if (!res) LOG_WARN_THREAD("Engine {} did not respond to uciok in time.", config_.name);
+    if (!ok) LOG_WARN_THREAD("Engine {} did not respond to uciok in time.", config_.name);
 
-    return res;
+    return ok;
 }
 
 void UciEngine::loadConfig(const EngineConfiguration &config) { config_ = config; }
@@ -305,7 +306,7 @@ tl::expected<bool, std::string> UciEngine::start(const std::optional<std::vector
     LOG_TRACE_THREAD("Starting engine {} at {}", config_.name, path);
 
     // Creates the engine process and sets the pipes
-    if (process_.init(config_.dir, path, config_.args, config_.name) != process::Status::OK) {
+    if (!process_.init(config_.dir, path, config_.args, config_.name)) {
         return tl::make_unexpected("Couldn't start engine process");
     }
 
@@ -364,7 +365,7 @@ bool UciEngine::refreshUci() {
     return true;
 }
 
-process::Status UciEngine::readEngine(std::string_view last_word, std::optional<ms> threshold) {
+process::Result UciEngine::readEngine(std::string_view last_word, std::optional<ms> threshold) {
     setupReadEngine();
     return process_.readOutput(output_, last_word, threshold.value_or(getPingTime()));
 }
@@ -407,7 +408,7 @@ std::string UciEngine::lastInfoLine() const {
 
 bool UciEngine::writeEngine(const std::string &input) {
     Logger::writeToEngine(input, "", config_.name);
-    return process_.writeInput(input + "\n") == process::Status::OK;
+    return process_.writeInput(input + "\n").code == process::Status::OK;
 }
 
 std::optional<std::string> UciEngine::bestmove() const {

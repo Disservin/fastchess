@@ -59,7 +59,7 @@ class UciEngine {
     [[nodiscard]] bool ucinewgame();
 
     // Sends "isready" to the engine
-    [[nodiscard]] process::Status isready(std::optional<ms> threshold = std::nullopt);
+    [[nodiscard]] process::Result isready(std::optional<ms> threshold = std::nullopt);
 
     // Sends "position" to the engine and waits for a response.
     [[nodiscard]] bool position(const std::vector<std::string> &moves, const std::string &fen);
@@ -74,9 +74,9 @@ class UciEngine {
 
     // Waits for the engine to output the last_word or until the threshold_ms is reached.
     // May throw if the read fails.
-    process::Status readEngine(std::string_view last_word, std::optional<ms> threshold = std::nullopt);
+    process::Result readEngine(std::string_view last_word, std::optional<ms> threshold = std::nullopt);
 
-    process::Status readEngineLowLat(std::string_view last_word, std::optional<ms> threshold = std::nullopt) {
+    process::Result readEngineLowLat(std::string_view last_word, std::optional<ms> threshold = std::nullopt) {
         return readEngine(last_word, threshold);
     }
 

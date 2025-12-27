@@ -215,10 +215,10 @@ void BaseTournament::playGame(const GamePair<EngineConfiguration, EngineConfigur
 
         // restart the engine when recover is enabled
 
-        if ((*white_engine)->isready() != engine::process::Status::OK) {
+        if ((*white_engine)->isready().code != engine::process::Status::OK) {
             restartEngine(white_engine->get());
         }
-        if ((*black_engine)->isready() != engine::process::Status::OK) {
+        if ((*black_engine)->isready().code != engine::process::Status::OK) {
             restartEngine(black_engine->get());
         }
     }

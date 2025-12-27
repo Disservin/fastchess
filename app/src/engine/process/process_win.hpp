@@ -39,7 +39,7 @@ class Process : public IProcess {
         terminate();
     }
 
-    Status init(const std::string &dir, const std::string &path, const std::string &args,
+    Result init(const std::string &dir, const std::string &path, const std::string &args,
                 const std::string &log_name) override {
         wd_       = dir;
         command_  = getPath(dir, path);
@@ -56,26 +56,26 @@ class Process : public IProcess {
 
         if (!CreatePipeEx(&hChildStdoutRead, &hChildStdoutWrite, &saAttr)) {
             LOG_FATAL_THREAD("Failed to create stdout pipe");
-            return Status::ERR;
+            return Result::Error("failed to create stdout pipe");
         }
 
         if (!CreatePipeEx(&hChildStdinRead, &hChildStdinWrite, &saAttr)) {
             CloseHandle(hChildStdoutRead);
             CloseHandle(hChildStdoutWrite);
             LOG_FATAL_THREAD("Failed to create stdout pipe");
-            return Status::ERR;
+            return Result::Error("failed to create stdin pipe");
         }
 
         if (!SetHandleInformation(hChildStdoutRead, HANDLE_FLAG_INHERIT, 0)) {
             closesHandles();
             LOG_FATAL_THREAD("Failed to set stdout handle information");
-            return Status::ERR;
+            return Result::Error("failed to set stdout handle information");
         }
 
         if (!SetHandleInformation(hChildStdinWrite, HANDLE_FLAG_INHERIT, 0)) {
             closesHandles();
             LOG_FATAL_THREAD("Failed to set stdin handle information");
-            return Status::ERR;
+            return Result::Error("failed to set stdin handle information");
         }
 
         try {
@@ -88,14 +88,14 @@ class Process : public IProcess {
 
             if (createProcess(si)) {
                 process_list.push(ProcessInformation{pi_.hProcess, hChildStdoutWrite});
-                return Status::OK;
+                return Result::OK();
             }
 
         } catch (const std::exception &e) {
             LOG_FATAL_THREAD("Process creation failed: {}", e.what());
         }
 
-        return Status::ERR;
+        return Result::Error("process creation failed");
     }
 
     void closesHandles() {
@@ -106,12 +106,14 @@ class Process : public IProcess {
         hChildStdoutRead = hChildStdoutWrite = hChildStdinRead = hChildStdinWrite = NULL;
     }
 
-    [[nodiscard]] Status alive() noexcept override {
+    [[nodiscard]] Result alive() noexcept override {
         assert(is_initialized_);
 
         DWORD exitCode = 0;
 
-        return GetExitCodeProcess(pi_.hProcess, &exitCode) && exitCode == STILL_ACTIVE ? Status::OK : Status::ERR;
+        return GetExitCodeProcess(pi_.hProcess, &exitCode) && exitCode == STILL_ACTIVE
+                   ? Result::OK()
+                   : Result::Error("process terminated");
     }
 
     bool setAffinity(const std::vector<int> &cpus) noexcept override {
@@ -159,7 +161,7 @@ class Process : public IProcess {
 
     // Read stdout until the line matches last_word or timeout is reached
     // 0 means no timeout
-    Status readOutput(std::vector<Line> &lines, std::string_view last_word,
+    Result readOutput(std::vector<Line> &lines, std::string_view last_word,
                       std::chrono::milliseconds threshold) override {
         assert(is_initialized_);
 
@@ -173,11 +175,11 @@ class Process : public IProcess {
             auto elapsedMs   = std::chrono::duration_cast<std::chrono::milliseconds>(currentTime - startTime).count();
 
             if (elapsedMs >= timeout) {
-                return Status::TIMEOUT;
+                return Result{Status::TIMEOUT, "timeout"};
             }
 
             if (atomic::stop) {
-                return Status::ERR;
+                return Result::Error("stop requested");
             }
 
             DWORD bytesRead;
@@ -186,32 +188,32 @@ class Process : public IProcess {
 
             if (!overlapped.hEvent) {
                 LOG_FATAL_THREAD("Failed to create event for overlapped I/O");
-                return Status::ERR;
+                return Result::Error("failed to create event for overlapped I/O");
             }
 
             if (!ReadFile(hChildStdoutRead, buffer.data(), buffer.size(), &bytesRead, &overlapped)) {
                 if (GetLastError() != ERROR_IO_PENDING) {
                     CloseHandle(overlapped.hEvent);
                     LOG_FATAL_THREAD("Failed to read from pipe");
-                    return Status::ERR;
+                    return Result::Error("failed to read from pipe");
                 }
 
                 DWORD waitResult = WaitForSingleObject(overlapped.hEvent, timeout);
                 if (waitResult == WAIT_TIMEOUT) {
                     CancelIo(hChildStdoutRead);
                     CloseHandle(overlapped.hEvent);
-                    return Status::TIMEOUT;
+                    return Result{Status::TIMEOUT, "timeout"};
                 }
                 if (waitResult != WAIT_OBJECT_0) {
                     CloseHandle(overlapped.hEvent);
                     LOG_FATAL_THREAD("Wait failed");
-                    return Status::ERR;
+                    return Result::Error("wait failed");
                 }
 
                 if (!GetOverlappedResult(hChildStdoutRead, &overlapped, &bytesRead, FALSE)) {
                     CloseHandle(overlapped.hEvent);
                     LOG_FATAL_THREAD("Failed to get overlapped result");
-                    return Status::ERR;
+                    return Result::Error("failed to get overlapped result");
                 }
             }
 
@@ -222,20 +224,23 @@ class Process : public IProcess {
             }
 
             if (readBytes(buffer, bytesRead, lines, last_word)) {
-                return Status::OK;
+                return Result::OK();
             }
         }
     }
 
-    Status writeInput(const std::string &input) noexcept override {
+    Result writeInput(const std::string &input) noexcept override {
         assert(is_initialized_);
 
-        if (alive() != Status::OK) terminate();
+        if (!alive()) {
+            terminate();
+            return Result::Error("process not alive");
+        }
 
         DWORD bytes_written;
         auto res = WriteFile(hChildStdinWrite, input.c_str(), input.length(), &bytes_written, nullptr);
 
-        return res ? Status::OK : Status::ERR;
+        return res ? Result::OK() : Result::Error("failed to write to stdin");
     }
 
    private:

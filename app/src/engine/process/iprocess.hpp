@@ -1,6 +1,7 @@
 #pragma once
 
 #include <chrono>
+#include <functional>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -20,6 +21,11 @@ struct Result {
 
     static Result OK() { return {Status::OK, ""}; }
     static Result Error(std::string msg) { return {Status::ERR, std::move(msg)}; }
+
+    Result on_error(std::function<Result()> next) const {
+        if (code == Status::OK) return *this;
+        return next();
+    }
 
     explicit operator bool() const { return code == Status::OK; }
 };

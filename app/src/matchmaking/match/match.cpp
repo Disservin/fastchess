@@ -190,7 +190,7 @@ void Match::start(engine::UciEngine& white, engine::UciEngine& black, std::optio
         atomic::stop                 = true;
         atomic::abnormal_termination = true;
 
-        Logger::print<Logger::Level::FATAL>("Fatal; {} engine startup failure: {}",
+        Logger::print<Logger::Level::FATAL>("Fatal; {} engine startup failure: \"{}\"",
                                             white_player.engine.getConfig().name, ret.error());
 
         return;
@@ -201,7 +201,7 @@ void Match::start(engine::UciEngine& white, engine::UciEngine& black, std::optio
         atomic::stop                 = true;
         atomic::abnormal_termination = true;
 
-        Logger::print<Logger::Level::FATAL>("Fatal; {} engine startup failure: {}",
+        Logger::print<Logger::Level::FATAL>("Fatal; {} engine startup failure: \"{}\"",
                                             black_player.engine.getConfig().name, ret.error());
 
         return;

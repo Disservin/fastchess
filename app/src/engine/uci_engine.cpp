@@ -306,8 +306,8 @@ tl::expected<bool, std::string> UciEngine::start(const std::optional<std::vector
     LOG_TRACE_THREAD("Starting engine {} at {}", config_.name, path);
 
     // Creates the engine process and sets the pipes
-    if (!process_.init(config_.dir, path, config_.args, config_.name)) {
-        return tl::make_unexpected("Couldn't start engine process");
+    if (auto res = process_.init(config_.dir, path, config_.args, config_.name); !res) {
+        return tl::make_unexpected(res.message);
     }
 
     if (cpus) {

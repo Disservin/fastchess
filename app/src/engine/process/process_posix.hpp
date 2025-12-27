@@ -103,9 +103,8 @@ class Process : public IProcess {
             success   = start_process(execv_argv, false);
         }
         if (!success) {
-            LOG_ERR_THREAD("Failed to start process: {}", success.message);
             startup_error_ = true;
-            return Result::Error("failed to start process");
+            return Result::Error(success.message);
         }
 
         // Append the process to the list of running processes

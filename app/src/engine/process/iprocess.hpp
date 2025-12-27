@@ -13,18 +13,13 @@ enum class Standard { INPUT, OUTPUT, ERR };
 enum class Status { OK, ERR, TIMEOUT, NONE };
 
 struct Result {
-    const Status code;
-    const std::string message;
+    Status code;
+    std::string message;
 
-    Result(const Status code, std::string message) : code(code), message(std::move(message)) {}
-    Result(const Result &other) : code(other.code), message(other.message) {}
-    Result(Result &&other) noexcept : code(other.code), message(std::move(other.message)) {}
+    Result(Status code, std::string message) : code(code), message(std::move(message)) {}
 
     static Result OK() { return {Status::OK, ""}; }
     static Result Error(std::string msg) { return {Status::ERR, std::move(msg)}; }
-
-    Result operator=(const Result &other) const { return {other.code, other.message}; }
-    Result operator=(Result &&other) const { return {other.code, std::move(other.message)}; }
 
     explicit operator bool() const { return code == Status::OK; }
 };

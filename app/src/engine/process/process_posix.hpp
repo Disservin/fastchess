@@ -93,14 +93,15 @@ class Process : public IProcess {
 
         char *const *execv_argv = (char *const *)parser.argv();
 
-        auto success = start_process(execv_argv);
-        if (!success) {
+        auto success = start_process(execv_argv, posix_spawnp);
+        if (success.code != Status::OK) {
             out_pipe_ = {};
             in_pipe_  = {};
             err_pipe_ = {};
-            success   = start_process(execv_argv, false);
+            success   = start_process(execv_argv, posix_spawn);
         }
-        if (!success) {
+
+        if (success.code != Status::OK) {
             startup_error_ = true;
             return Result::Error(success.message);
         }
@@ -265,7 +266,8 @@ class Process : public IProcess {
     }
 
    private:
-    Result start_process(char *const *execv_argv, bool use_spawnp = true) {
+    template <typename Func>
+    Result start_process(char *const *execv_argv, Func func) {
         posix_spawn_file_actions_t file_actions;
         posix_spawn_file_actions_init(&file_actions);
 
@@ -276,10 +278,9 @@ class Process : public IProcess {
 
             setup_wd_file_actions(file_actions, wd_);
 
-            auto func = use_spawnp ? posix_spawnp : posix_spawn;
+            int result = func(&process_pid_, command_.c_str(), &file_actions, nullptr, execv_argv, environ);
 
-            if (int result = func(&process_pid_, command_.c_str(), &file_actions, nullptr, execv_argv, environ);
-                result != 0) {
+            if (result != 0) {
                 std::string errorMsg = std::strerror(result);
                 throw fastchess_exception("posix_spawn failed: " + errorMsg);
             }

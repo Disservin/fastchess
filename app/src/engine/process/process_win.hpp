@@ -55,26 +55,22 @@ class Process : public IProcess {
         saAttr.lpSecurityDescriptor = NULL;
 
         if (!CreatePipeEx(&hChildStdoutRead, &hChildStdoutWrite, &saAttr)) {
-            LOG_FATAL_THREAD("Failed to create stdout pipe");
             return Result::Error("failed to create stdout pipe");
         }
 
         if (!CreatePipeEx(&hChildStdinRead, &hChildStdinWrite, &saAttr)) {
             CloseHandle(hChildStdoutRead);
             CloseHandle(hChildStdoutWrite);
-            LOG_FATAL_THREAD("Failed to create stdout pipe");
             return Result::Error("failed to create stdin pipe");
         }
 
         if (!SetHandleInformation(hChildStdoutRead, HANDLE_FLAG_INHERIT, 0)) {
             closesHandles();
-            LOG_FATAL_THREAD("Failed to set stdout handle information");
             return Result::Error("failed to set stdout handle information");
         }
 
         if (!SetHandleInformation(hChildStdinWrite, HANDLE_FLAG_INHERIT, 0)) {
             closesHandles();
-            LOG_FATAL_THREAD("Failed to set stdin handle information");
             return Result::Error("failed to set stdin handle information");
         }
 
@@ -90,9 +86,8 @@ class Process : public IProcess {
                 process_list.push(ProcessInformation{pi_.hProcess, hChildStdoutWrite});
                 return Result::OK();
             }
-
         } catch (const std::exception &e) {
-            LOG_FATAL_THREAD("Process creation failed: {}", e.what());
+            return Result::Error(e.what());
         }
 
         return Result::Error("process creation failed");

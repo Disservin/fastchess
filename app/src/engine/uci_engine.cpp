@@ -470,7 +470,7 @@ Score UciEngine::lastScore() const {
     Score score;
 
     score.value = 0;
-    score.type  = [this, &info]() {
+    score.type  = [&info]() {
         auto type_str = str_utils::findElement<std::string>(info, "score").value_or("ERR");
 
         if (type_str == "cp") return ScoreType::CP;

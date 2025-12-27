@@ -93,13 +93,8 @@ class Process : public IProcess {
 
         char *const *execv_argv = (char *const *)parser.argv();
 
-        auto success = start_process(execv_argv, posix_spawnp);
-        if (success.code != Status::OK) {
-            out_pipe_ = {};
-            in_pipe_  = {};
-            err_pipe_ = {};
-            success   = start_process(execv_argv, posix_spawn);
-        }
+        const auto success = start_process(execv_argv, posix_spawnp)  //
+                                 .on_error([&]() { return start_process(execv_argv, posix_spawn); });
 
         if (success.code != Status::OK) {
             startup_error_ = true;
@@ -268,6 +263,10 @@ class Process : public IProcess {
    private:
     template <typename Func>
     Result start_process(char *const *execv_argv, Func func) {
+        out_pipe_ = {};
+        in_pipe_  = {};
+        err_pipe_ = {};
+
         posix_spawn_file_actions_t file_actions;
         posix_spawn_file_actions_init(&file_actions);
 
@@ -369,7 +368,7 @@ class Process : public IProcess {
     // The process id of the engine
     pid_t process_pid_;
 
-    Pipe in_pipe_ = {}, out_pipe_ = {}, err_pipe_ = {};
+    Pipe in_pipe_, out_pipe_, err_pipe_;
 
     std::optional<int> exit_code_;
 };

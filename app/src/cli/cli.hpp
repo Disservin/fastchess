@@ -142,7 +142,7 @@ class OptionsParser {
     template <ParamStyle Style, Dispatch Mode, typename Handler>
     void addOption(const std::string &optionName, Handler &&handler) {
         std::string flag = optionName;
-        if (flag.empty() || flag[0] != '-') flag.insert(flag.begin(), '-');
+        flag.insert(flag.begin(), '-');
 
         options_.insert(std::make_pair(
             flag, OptionEntry{wrapHandler<Style>(flag, std::forward<Handler>(handler)), Mode == Dispatch::Deferred}));

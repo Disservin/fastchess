@@ -130,9 +130,40 @@ void BaseTournament::saveJson() {
 
     const auto &config = *config::TournamentConfig;
 
+    const auto merged_results = [this]() {
+        stats_map map;
+
+        std::vector<PlayerPairKey> engine_names;
+
+        for (const auto &engine : *config::EngineConfigs) {
+            const auto engine_name = engine.name;
+
+            for (const auto &opponent : *config::EngineConfigs) {
+                const auto opponent_name = opponent.name;
+
+                if (engine_name == opponent_name) continue;
+
+                const auto check = [&engine_name, &opponent_name](const auto &pair) {
+                    return PlayerPairKey(engine_name, opponent_name) == pair ||
+                           PlayerPairKey(opponent_name, engine_name) == pair;
+                };
+
+                if (std::find_if(engine_names.begin(), engine_names.end(), check) != engine_names.end()) {
+                    continue;
+                }
+
+                const auto stats                  = scoreboard_.getStats(engine_name, opponent_name);
+                map[{engine_name, opponent_name}] = stats;
+                engine_names.emplace_back(engine_name, opponent_name);
+            }
+        }
+
+        return map;
+    };
+
     nlohmann::ordered_json jsonfile = config;
     jsonfile["engines"]             = *config::EngineConfigs;
-    jsonfile["stats"]               = getResults();
+    jsonfile["stats"]               = merged_results();
 
     std::ofstream file(config.config_name);
     file << std::setw(4) << jsonfile << std::endl;

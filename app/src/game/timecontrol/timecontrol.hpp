@@ -26,7 +26,7 @@ class TimeControl {
 
         int64_t timemargin = 0;
 
-        bool operator==(const Limits &rhs) const {
+        bool operator==(const Limits& rhs) const {
             return std::tie(increment, fixed_time, time, moves, timemargin) ==
                    std::tie(rhs.increment, rhs.fixed_time, rhs.time, rhs.moves, rhs.timemargin);
         }
@@ -36,7 +36,7 @@ class TimeControl {
 
     TimeControl() = default;
 
-    TimeControl(const Limits &limits);
+    TimeControl(const Limits& limits);
 
     [[nodiscard]] std::chrono::milliseconds getTimeoutThreshold() const noexcept;
     [[nodiscard]] bool updateTime(const int64_t elapsed_millis) noexcept;
@@ -57,9 +57,9 @@ class TimeControl {
     [[nodiscard]] bool isMoves() const noexcept { return limits_.moves != 0; }
     [[nodiscard]] bool isIncrement() const noexcept { return limits_.increment != 0; }
 
-    friend std::ostream &operator<<(std::ostream &os, const TimeControl &tc);
+    friend std::ostream& operator<<(std::ostream& os, const TimeControl& tc);
 
-    bool operator==(const TimeControl &rhs) const {
+    bool operator==(const TimeControl& rhs) const {
         return limits_ == rhs.limits_ && time_left_ == rhs.time_left_ && moves_left_ == rhs.moves_left_;
     }
 

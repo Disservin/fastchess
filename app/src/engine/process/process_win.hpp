@@ -39,8 +39,8 @@ class Process : public IProcess {
         terminate();
     }
 
-    Result init(const std::string &dir, const std::string &path, const std::string &args,
-                const std::string &log_name) override {
+    Result init(const std::string& dir, const std::string& path, const std::string& args,
+                const std::string& log_name) override {
         wd_       = dir;
         command_  = getPath(dir, path);
         args_     = args;
@@ -86,7 +86,7 @@ class Process : public IProcess {
                 process_list.push(ProcessInformation{pi_.hProcess, hChildStdoutWrite});
                 return Result::OK();
             }
-        } catch (const std::exception &e) {
+        } catch (const std::exception& e) {
             return Result::Error(e.what());
         }
 
@@ -111,7 +111,7 @@ class Process : public IProcess {
                    : Result::Error("process terminated");
     }
 
-    bool setAffinity(const std::vector<int> &cpus) noexcept override {
+    bool setAffinity(const std::vector<int>& cpus) noexcept override {
         assert(is_initialized_);
         return affinity::setProcessAffinity(cpus, pi_.hProcess);
     }
@@ -123,7 +123,7 @@ class Process : public IProcess {
             return;
         }
 
-        process_list.remove_if([this](const auto &pi) { return pi.identifier == pi_.hProcess; });
+        process_list.remove_if([this](const auto& pi) { return pi.identifier == pi_.hProcess; });
 
         DWORD exitCode        = 0;
         const auto start_time = std::chrono::steady_clock::now();
@@ -156,7 +156,7 @@ class Process : public IProcess {
 
     // Read stdout until the line matches last_word or timeout is reached
     // 0 means no timeout
-    Result readOutput(std::vector<Line> &lines, std::string_view last_word,
+    Result readOutput(std::vector<Line>& lines, std::string_view last_word,
                       std::chrono::milliseconds threshold) override {
         assert(is_initialized_);
 
@@ -224,7 +224,7 @@ class Process : public IProcess {
         }
     }
 
-    Result writeInput(const std::string &input) noexcept override {
+    Result writeInput(const std::string& input) noexcept override {
         assert(is_initialized_);
 
         if (!alive()) {
@@ -239,8 +239,8 @@ class Process : public IProcess {
     }
 
    private:
-    [[nodiscard]] bool readBytes(const std::array<char, buffer_size> &buffer, DWORD bytes_read,
-                                 std::vector<Line> &lines, std::string_view searchword) {
+    [[nodiscard]] bool readBytes(const std::array<char, buffer_size>& buffer, DWORD bytes_read,
+                                 std::vector<Line>& lines, std::string_view searchword) {
         for (DWORD i = 0; i < bytes_read; ++i) {
             // Check for newline characters; Windows uses \r\n as a line delimiter
             if (buffer[i] != '\n' && buffer[i] != '\r') {
@@ -265,12 +265,12 @@ class Process : public IProcess {
         return false;
     }
 
-    [[nodiscard]] bool createProcess(STARTUPINFOA &si) {
+    [[nodiscard]] bool createProcess(STARTUPINFOA& si) {
         const auto cmd = command_ + " " + args_;
 
         const auto success = CreateProcessA(      //
             nullptr,                              //
-            const_cast<char *>(cmd.c_str()),      //
+            const_cast<char*>(cmd.c_str()),       //
             nullptr,                              //
             nullptr,                              //
             TRUE,                                 //
@@ -286,7 +286,7 @@ class Process : public IProcess {
         return success;
     }
 
-    void addLine(std::vector<Line> &lines) const {
+    void addLine(std::vector<Line>& lines) const {
         const auto timestamp = Logger::should_log_ ? time::datetime_precise() : "";
 
         lines.emplace_back(Line{current_line_, timestamp});

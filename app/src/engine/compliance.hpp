@@ -11,7 +11,7 @@
 
 namespace fastchess::engine {
 
-inline bool isValidInfoLine(const std::string &infoLine) {
+inline bool isValidInfoLine(const std::string& infoLine) {
     std::istringstream iss(infoLine);
     std::string token;
 
@@ -37,7 +37,7 @@ inline bool isValidInfoLine(const std::string &infoLine) {
     return true;
 }
 
-inline bool compliant(int argc, char const *argv[]) {
+inline bool compliant(int argc, char const* argv[]) {
     config::TournamentConfig = std::make_unique<config::Tournament>(config::Tournament{});
 
     int step = 0;
@@ -48,7 +48,7 @@ inline bool compliant(int argc, char const *argv[]) {
 
     UciEngine uci_engine(config, false);
 
-    auto executeStep = [&step, &uci_engine](const std::string &description, const std::function<bool()> &action) {
+    auto executeStep = [&step, &uci_engine](const std::string& description, const std::function<bool()>& action) {
         step++;
 
         std::cout << "Step " << step << ": " << description << "..." << std::flush;
@@ -57,7 +57,7 @@ inline bool compliant(int argc, char const *argv[]) {
             std::cerr << "\r\033[1;31m Failed\033[0m Step " << step << ": " << description << std::endl;
 
             std::cerr << "\033[1;33m Your engine's output was:\033[0m" << std::endl;
-            for (const auto &line : uci_engine.lastOutput()) std::cerr << " " << line.line << std::endl;
+            for (const auto& line : uci_engine.lastOutput()) std::cerr << " " << line.line << std::endl;
 
             return false;
         }
@@ -69,8 +69,7 @@ inline bool compliant(int argc, char const *argv[]) {
 
     std::vector<std::pair<std::string, std::function<bool()>>> steps = {
         {"Start the engine", [&uci_engine] { return uci_engine.start(/*cpus*/ std::nullopt).has_value(); }},
-        {"Check if engine is ready",
-         [&uci_engine] { return uci_engine.isready().code == process::Status::OK; }},
+        {"Check if engine is ready", [&uci_engine] { return uci_engine.isready().code == process::Status::OK; }},
         {"Check id name", [&uci_engine] { return uci_engine.idName().has_value(); }},
         {"Check id author", [&uci_engine] { return uci_engine.idAuthor().has_value(); }},
         {"Send ucinewgame", [&uci_engine] { return uci_engine.ucinewgame(); }},
@@ -86,8 +85,7 @@ inline bool compliant(int argc, char const *argv[]) {
         {"Check if engine is ready after fen",
          [&uci_engine] { return uci_engine.isready().code == process::Status::OK; }},
         {"Send go wtime 100", [&uci_engine] { return uci_engine.writeEngine("go wtime 100"); }},
-        {"Read bestmove",
-         [&uci_engine] { return uci_engine.readEngine("bestmove").code == process::Status::OK; }},
+        {"Read bestmove", [&uci_engine] { return uci_engine.readEngine("bestmove").code == process::Status::OK; }},
         {"Check if engine prints an info line", [&uci_engine] { return !uci_engine.lastInfoLine().empty(); }},
         {"Verify info line format is valid", [&uci_engine] { return isValidInfoLine(uci_engine.lastInfoLine()); }},
         {"Verify info line contains score",
@@ -149,7 +147,7 @@ inline bool compliant(int argc, char const *argv[]) {
         {"Verify info line format is valid after position startpos moves e2e4 e7e5",
          [&uci_engine] { return isValidInfoLine(uci_engine.lastInfoLine()); }}};
 
-    for (const auto &[description, action] : steps) {
+    for (const auto& [description, action] : steps) {
         if (!executeStep(description, action)) {
             return false;
         }

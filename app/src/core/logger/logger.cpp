@@ -22,7 +22,7 @@ std::mutex Logger::log_mutex_;
 Logger::log_file_type Logger::log_;
 bool Logger::engine_coms_ = false;
 
-void Logger::openFile(const std::string &file, bool append) {
+void Logger::openFile(const std::string& file, bool append) {
     if (file.empty()) {
         return;
     }
@@ -49,7 +49,7 @@ void Logger::openFile(const std::string &file, bool append) {
     // verify that the file was opened
 
     std::visit(
-        [&](auto &&arg) {
+        [&](auto&& arg) {
             if (!arg.is_open()) {
                 std::cerr << "Failed to open log file." << std::endl;
                 Logger::should_log_ = false;
@@ -58,7 +58,7 @@ void Logger::openFile(const std::string &file, bool append) {
         log_);
 }
 
-void Logger::writeToEngine(const std::string &msg, const std::string &time, const std::string &name) {
+void Logger::writeToEngine(const std::string& msg, const std::string& time, const std::string& name) {
     if (!should_log_ || !engine_coms_) {
         return;
     }
@@ -68,10 +68,10 @@ void Logger::writeToEngine(const std::string &msg, const std::string &time, cons
     const auto fmt_message = fmt::format("{} {} <--- {}\n", make_prefix("Engine", timestamp, id), name, msg);
 
     const std::lock_guard<std::mutex> lock(log_mutex_);
-    std::visit([&](auto &&arg) { arg << fmt_message << std::flush; }, log_);
+    std::visit([&](auto&& arg) { arg << fmt_message << std::flush; }, log_);
 }
 
-void Logger::readFromEngine(const std::string &msg, const std::string &time, const std::string &name, bool err,
+void Logger::readFromEngine(const std::string& msg, const std::string& time, const std::string& name, bool err,
                             std::thread::id id) {
     if (!should_log_ || !engine_coms_) {
         return;
@@ -81,7 +81,7 @@ void Logger::readFromEngine(const std::string &msg, const std::string &time, con
         fmt::format("{} {}{} ---> {}\n", make_prefix("Engine", time, id), (err ? "<stderr> " : ""), name, msg);
 
     const std::lock_guard<std::mutex> lock(log_mutex_);
-    std::visit([&](auto &&arg) { arg << fmt_message << std::flush; }, log_);
+    std::visit([&](auto&& arg) { arg << fmt_message << std::flush; }, log_);
 }
 
 }  // namespace fastchess

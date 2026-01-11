@@ -14,12 +14,12 @@ struct Tracker {
 
 class PlayerTracker {
    public:
-    void report_timeout(const std::string &player) {
+    void report_timeout(const std::string& player) {
         std::lock_guard<std::mutex> lock(mutex_);
         count_[player].timeouts++;
     }
 
-    void report_disconnect(const std::string &player) {
+    void report_disconnect(const std::string& player) {
         std::lock_guard<std::mutex> lock(mutex_);
         count_[player].disconnects++;
     }

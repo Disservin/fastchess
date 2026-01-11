@@ -8,7 +8,7 @@ namespace fastchess {
 
 class Player {
    public:
-    explicit Player(engine::UciEngine &uci_enigne)
+    explicit Player(engine::UciEngine& uci_enigne)
         : engine(uci_enigne), time_control_(uci_enigne.getConfig().limit.tc) {}
 
     // The timeout threshold for the read engine command.
@@ -28,7 +28,7 @@ class Player {
         return time_control_.updateTime(elapsed_millis);
     }
 
-    [[nodiscard]] const TimeControl &getTimeControl() const noexcept { return time_control_; }
+    [[nodiscard]] const TimeControl& getTimeControl() const noexcept { return time_control_; }
 
     void setLost() noexcept { result = chess::GameResult::LOSE; }
     void setDraw() noexcept { result = chess::GameResult::DRAW; }
@@ -36,7 +36,7 @@ class Player {
 
     [[nodiscard]] chess::GameResult getResult() const noexcept { return result; }
 
-    engine::UciEngine &engine;
+    engine::UciEngine& engine;
 
    private:
     chess::GameResult result = chess::GameResult::NONE;

@@ -43,7 +43,7 @@ T parseScalar(std::string_view value) {
 }
 
 // Parse a list of integers on the form 5,10,13-17,23 -> 5,10,13,14,15,16,17,23
-bool parseIntList(std::istringstream &iss, std::vector<int> &list) {
+bool parseIntList(std::istringstream& iss, std::vector<int>& list) {
     int int1, int2;
     char c;
 
@@ -69,22 +69,22 @@ bool parseIntList(std::istringstream &iss, std::vector<int> &list) {
     return false;
 }
 
-std::string concat(const std::vector<std::string> &params) {
+std::string concat(const std::vector<std::string>& params) {
     std::string str;
 
-    for (const auto &param : params) {
+    for (const auto& param : params) {
         str += param;
     }
 
     return str;
 }
 
-bool is_number(const std::string &s) {
+bool is_number(const std::string& s) {
     static const auto is_digit = [](unsigned char c) { return !std::isdigit(c); };
     return !s.empty() && std::find_if(s.begin(), s.end(), is_digit) == s.end();
 }
 
-bool is_bool(const std::string &s) { return s == "true" || s == "false"; }
+bool is_bool(const std::string& s) { return s == "true" || s == "false"; }
 
 }  // namespace
 
@@ -93,7 +93,7 @@ using json          = nlohmann::json;
 using KeyValuePairs = std::vector<std::pair<std::string, std::string>>;
 
 namespace engine {
-TimeControl::Limits parseTc(const std::string &tcString) {
+TimeControl::Limits parseTc(const std::string& tcString) {
     if (str_utils::contains(tcString, "hg")) throw fastchess_exception("Hourglass time control not supported.");
     if (tcString == "infinite" || tcString == "inf") return {};
 
@@ -133,7 +133,7 @@ TimeControl::Limits parseTc(const std::string &tcString) {
 
 bool isEngineSettableOption(std::string_view stringFormat) { return str_utils::startsWith(stringFormat, "option."); }
 
-void parseEngineKeyValues(EngineConfiguration &engineConfig, const std::string &key, const std::string &value) {
+void parseEngineKeyValues(EngineConfiguration& engineConfig, const std::string& key, const std::string& value) {
     if (key == "cmd") {
         engineConfig.cmd = value;
     } else if (key == "name")
@@ -173,26 +173,26 @@ void parseEngineKeyValues(EngineConfiguration &engineConfig, const std::string &
         OptionsParser::throwMissing("engine", key, value);
 }
 
-void parseEngine(const KeyValuePairs &params, ArgumentData &argument_data) {
+void parseEngine(const KeyValuePairs& params, ArgumentData& argument_data) {
     argument_data.configs.emplace_back();
 
-    for (const auto &[key, value] : params) {
+    for (const auto& [key, value] : params) {
         engine::parseEngineKeyValues(argument_data.configs.back(), key, value);
     }
 }
 
 }  // namespace engine
 
-void parseEach(const KeyValuePairs &params, ArgumentData &argument_data) {
-    for (const auto &[key, value] : params) {
-        for (auto &config : argument_data.configs) {
+void parseEach(const KeyValuePairs& params, ArgumentData& argument_data) {
+    for (const auto& [key, value] : params) {
+        for (auto& config : argument_data.configs) {
             engine::parseEngineKeyValues(config, key, value);
         }
     }
 }
 
-void parsePgnOut(const KeyValuePairs &params, ArgumentData &argument_data) {
-    for (const auto &[key, value] : params) {
+void parsePgnOut(const KeyValuePairs& params, ArgumentData& argument_data) {
+    for (const auto& [key, value] : params) {
         if (key == "file") {
             argument_data.tournament_config.pgn.file = value;
         } else if (key == "append" && is_bool(value)) {
@@ -235,8 +235,8 @@ void parsePgnOut(const KeyValuePairs &params, ArgumentData &argument_data) {
         throw fastchess_exception("Please specify filename for pgn output.");
 }
 
-void parseEpdOut(const KeyValuePairs &params, ArgumentData &argument_data) {
-    for (const auto &[key, value] : params) {
+void parseEpdOut(const KeyValuePairs& params, ArgumentData& argument_data) {
+    for (const auto& [key, value] : params) {
         if (key == "file") {
             argument_data.tournament_config.epd.file = value;
         } else if (key == "append" && is_bool(value)) {
@@ -249,8 +249,8 @@ void parseEpdOut(const KeyValuePairs &params, ArgumentData &argument_data) {
         throw fastchess_exception("Please specify filename for epd output.");
 }
 
-void parseOpening(const KeyValuePairs &params, ArgumentData &argument_data) {
-    for (const auto &[key, value] : params) {
+void parseOpening(const KeyValuePairs& params, ArgumentData& argument_data) {
+    for (const auto& [key, value] : params) {
         if (key == "file") {
             argument_data.tournament_config.opening.file = value;
             if (str_utils::endsWith(value, ".epd")) {
@@ -294,14 +294,14 @@ void parseOpening(const KeyValuePairs &params, ArgumentData &argument_data) {
     }
 }
 
-void parseSprt(const KeyValuePairs &params, ArgumentData &argument_data) {
+void parseSprt(const KeyValuePairs& params, ArgumentData& argument_data) {
     argument_data.tournament_config.sprt.enabled = true;
 
     if (argument_data.tournament_config.rounds == 0) {
         argument_data.tournament_config.rounds = 500000;
     }
 
-    for (const auto &[key, value] : params) {
+    for (const auto& [key, value] : params) {
         if (key == "elo0") {
             argument_data.tournament_config.sprt.elo0 = std::stod(value);
         } else if (key == "elo1") {
@@ -318,10 +318,10 @@ void parseSprt(const KeyValuePairs &params, ArgumentData &argument_data) {
     }
 }
 
-void parseDraw(const KeyValuePairs &params, ArgumentData &argument_data) {
+void parseDraw(const KeyValuePairs& params, ArgumentData& argument_data) {
     argument_data.tournament_config.draw.enabled = true;
 
-    for (const auto &[key, value] : params) {
+    for (const auto& [key, value] : params) {
         if (key == "movenumber") {
             argument_data.tournament_config.draw.move_number = std::stoi(value);
         } else if (key == "movecount") {
@@ -338,10 +338,10 @@ void parseDraw(const KeyValuePairs &params, ArgumentData &argument_data) {
     }
 }
 
-void parseResign(const KeyValuePairs &params, ArgumentData &argument_data) {
+void parseResign(const KeyValuePairs& params, ArgumentData& argument_data) {
     argument_data.tournament_config.resign.enabled = true;
 
-    for (const auto &[key, value] : params) {
+    for (const auto& [key, value] : params) {
         if (key == "movecount") {
             argument_data.tournament_config.resign.move_count = std::stoi(value);
         } else if (key == "twosided" && is_bool(value)) {
@@ -358,25 +358,25 @@ void parseResign(const KeyValuePairs &params, ArgumentData &argument_data) {
     }
 }
 
-void parseMaxMoves(std::string_view value, ArgumentData &argument_data) {
+void parseMaxMoves(std::string_view value, ArgumentData& argument_data) {
     argument_data.tournament_config.maxmoves.move_count = parseScalar<int>(value);
     argument_data.tournament_config.maxmoves.enabled    = true;
 }
 
-void parseTbAdjudication(std::string_view value, ArgumentData &argument_data) {
+void parseTbAdjudication(std::string_view value, ArgumentData& argument_data) {
     argument_data.tournament_config.tb_adjudication.syzygy_dirs = std::string(value);
     argument_data.tournament_config.tb_adjudication.enabled     = true;
 }
 
-void parseTbMaxPieces(std::string_view value, ArgumentData &argument_data) {
+void parseTbMaxPieces(std::string_view value, ArgumentData& argument_data) {
     argument_data.tournament_config.tb_adjudication.max_pieces = parseScalar<int>(value);
 }
 
-void parseTbIgnore50(ArgumentData &argument_data) {
+void parseTbIgnore50(ArgumentData& argument_data) {
     argument_data.tournament_config.tb_adjudication.ignore_50_move_rule = true;
 }
 
-void parseTbAdjudicate(std::string_view value, ArgumentData &argument_data) {
+void parseTbAdjudicate(std::string_view value, ArgumentData& argument_data) {
     std::string type(value);
     if (type == "WIN_LOSS") {
         argument_data.tournament_config.tb_adjudication.result_type = config::TbAdjudication::ResultType::WIN_LOSS;
@@ -389,12 +389,12 @@ void parseTbAdjudicate(std::string_view value, ArgumentData &argument_data) {
     }
 }
 
-void parseAutoSaveInterval(std::string_view value, ArgumentData &argument_data) {
+void parseAutoSaveInterval(std::string_view value, ArgumentData& argument_data) {
     argument_data.tournament_config.autosaveinterval = parseScalar<int>(value);
 }
 
-void parseLog(const KeyValuePairs &params, ArgumentData &argument_data) {
-    for (const auto &[key, value] : params) {
+void parseLog(const KeyValuePairs& params, ArgumentData& argument_data) {
+    for (const auto& [key, value] : params) {
         if (key == "file") {
             argument_data.tournament_config.log.file = value;
         } else if (key == "level") {
@@ -430,7 +430,7 @@ void parseLog(const KeyValuePairs &params, ArgumentData &argument_data) {
 }
 
 namespace json_config {
-void loadJson(ArgumentData &argument_data, const std::string &filename) {
+void loadJson(ArgumentData& argument_data, const std::string& filename) {
     Logger::print<Logger::Level::INFO>("Loading config file: {}", filename);
 
     std::ifstream f(filename);
@@ -448,17 +448,17 @@ void loadJson(ArgumentData &argument_data, const std::string &filename) {
 
     argument_data.configs.clear();
 
-    for (const auto &engine : jsonfile["engines"]) {
+    for (const auto& engine : jsonfile["engines"]) {
         argument_data.configs.push_back(engine.get<EngineConfiguration>());
     }
 
     argument_data.stats = jsonfile["stats"].get<stats_map>();
 }
 
-void parseConfig(const KeyValuePairs &params, ArgumentData &argument_data) {
+void parseConfig(const KeyValuePairs& params, ArgumentData& argument_data) {
     bool drop_stats = false;
 
-    for (const auto &[key, value] : params) {
+    for (const auto& [key, value] : params) {
         if (key == "file") {
             loadJson(argument_data, value);
         } else if (key == "outname") {
@@ -487,8 +487,8 @@ void parseConfig(const KeyValuePairs &params, ArgumentData &argument_data) {
 
 }  // namespace json_config
 
-void parseReport(const KeyValuePairs &params, ArgumentData &argument_data) {
-    for (const auto &[key, value] : params) {
+void parseReport(const KeyValuePairs& params, ArgumentData& argument_data) {
+    for (const auto& [key, value] : params) {
         if (key == "penta" && is_bool(value)) {
             argument_data.tournament_config.report_penta = value == "true";
         } else {
@@ -497,8 +497,8 @@ void parseReport(const KeyValuePairs &params, ArgumentData &argument_data) {
     }
 }
 
-void parseOutput(const KeyValuePairs &params, ArgumentData &argument_data) {
-    for (const auto &[key, value] : params) {
+void parseOutput(const KeyValuePairs& params, ArgumentData& argument_data) {
+    for (const auto& [key, value] : params) {
         if (key == "format" && (value == "cutechess" || value == "fastchess")) {
             argument_data.tournament_config.output = OutputFactory::getType(value);
         } else {
@@ -507,12 +507,12 @@ void parseOutput(const KeyValuePairs &params, ArgumentData &argument_data) {
     }
 }
 
-void parseConcurrency(std::string_view value, ArgumentData &argument_data) {
+void parseConcurrency(std::string_view value, ArgumentData& argument_data) {
     argument_data.tournament_config.concurrency = parseScalar<int>(value);
 }
 
-void parseCrc(const KeyValuePairs &params, ArgumentData &argument_data) {
-    for (const auto &[key, value] : params) {
+void parseCrc(const KeyValuePairs& params, ArgumentData& argument_data) {
+    for (const auto& [key, value] : params) {
         if (key == "pgn" && is_bool(value)) {
             argument_data.tournament_config.pgn.crc = value == "true";
         } else {
@@ -521,58 +521,58 @@ void parseCrc(const KeyValuePairs &params, ArgumentData &argument_data) {
     }
 }
 
-void parseForceConcurrency(ArgumentData &argument_data) { argument_data.tournament_config.force_concurrency = true; }
+void parseForceConcurrency(ArgumentData& argument_data) { argument_data.tournament_config.force_concurrency = true; }
 
-void parseEvent(const std::vector<std::string> &params, ArgumentData &argument_data) {
+void parseEvent(const std::vector<std::string>& params, ArgumentData& argument_data) {
     argument_data.tournament_config.pgn.event_name = concat(params);
 }
 
-void parseSite(const std::vector<std::string> &params, ArgumentData &argument_data) {
+void parseSite(const std::vector<std::string>& params, ArgumentData& argument_data) {
     argument_data.tournament_config.pgn.site = concat(params);
 }
 
-void parseGames(std::string_view value, ArgumentData &argument_data) {
+void parseGames(std::string_view value, ArgumentData& argument_data) {
     argument_data.tournament_config.games = parseScalar<int>(value);
 }
 
-void parseRounds(std::string_view value, ArgumentData &argument_data) {
+void parseRounds(std::string_view value, ArgumentData& argument_data) {
     argument_data.tournament_config.rounds = parseScalar<int>(value);
 }
 
-void parseWait(std::string_view value, ArgumentData &argument_data) {
+void parseWait(std::string_view value, ArgumentData& argument_data) {
     argument_data.tournament_config.wait = parseScalar<int>(value);
 }
 
-void parseNoswap(ArgumentData &argument_data) { argument_data.tournament_config.noswap = true; }
+void parseNoswap(ArgumentData& argument_data) { argument_data.tournament_config.noswap = true; }
 
-void parseReverse(ArgumentData &argument_data) { argument_data.tournament_config.reverse = true; }
+void parseReverse(ArgumentData& argument_data) { argument_data.tournament_config.reverse = true; }
 
-void parseRatinginterval(std::string_view value, ArgumentData &argument_data) {
+void parseRatinginterval(std::string_view value, ArgumentData& argument_data) {
     argument_data.tournament_config.ratinginterval = parseScalar<int>(value);
 }
 
-void parseScoreinterval(std::string_view value, ArgumentData &argument_data) {
+void parseScoreinterval(std::string_view value, ArgumentData& argument_data) {
     argument_data.tournament_config.scoreinterval = parseScalar<int>(value);
 }
 
-void parseSRand(std::string_view value, ArgumentData &argument_data) {
+void parseSRand(std::string_view value, ArgumentData& argument_data) {
     argument_data.tournament_config.seed = parseScalar<uint64_t>(value);
 }
 
-void parseSeeds(std::string_view value, ArgumentData &argument_data) {
+void parseSeeds(std::string_view value, ArgumentData& argument_data) {
     argument_data.tournament_config.gauntlet_seeds = parseScalar<int>(value);
 }
 
-void parseVersion(ArgumentData &) {
+void parseVersion(ArgumentData&) {
     std::cout << OptionsParser::Version << std::endl;
     std::exit(0);
 }
 
-void parseHelp(ArgumentData &) { OptionsParser::printHelp(); }
+void parseHelp(ArgumentData&) { OptionsParser::printHelp(); }
 
-void parseRecover(ArgumentData &argument_data) { argument_data.tournament_config.recover = true; }
+void parseRecover(ArgumentData& argument_data) { argument_data.tournament_config.recover = true; }
 
-void parseRepeat(const std::vector<std::string> &params, ArgumentData &argument_data) {
+void parseRepeat(const std::vector<std::string>& params, ArgumentData& argument_data) {
     if (params.size() == 1 && is_number(params[0])) {
         argument_data.tournament_config.games = parseScalar<int>(params[0]);
     } else {
@@ -580,13 +580,13 @@ void parseRepeat(const std::vector<std::string> &params, ArgumentData &argument_
     }
 }
 
-void parseVariant(std::string_view value, ArgumentData &argument_data) {
+void parseVariant(std::string_view value, ArgumentData& argument_data) {
     std::string val(value);
     if (val == "fischerandom") argument_data.tournament_config.variant = VariantType::FRC;
     if (val != "fischerandom" && val != "standard") throw fastchess_exception("Unknown variant.");
 }
 
-void parseTournament(std::string_view value, ArgumentData &argument_data) {
+void parseTournament(std::string_view value, ArgumentData& argument_data) {
     std::string val(value);
     if (val == "gauntlet") {
         argument_data.tournament_config.type = TournamentType::GAUNTLET;
@@ -601,11 +601,11 @@ void parseTournament(std::string_view value, ArgumentData &argument_data) {
     throw fastchess_exception("Unsupported tournament format. Only supports roundrobin and gauntlet.");
 }
 
-void parseQuick(const KeyValuePairs &params, ArgumentData &argument_data) {
+void parseQuick(const KeyValuePairs& params, ArgumentData& argument_data) {
     const auto initial_index = argument_data.configs.size();
     int engine_count         = 0;
 
-    for (const auto &[key, value] : params) {
+    for (const auto& [key, value] : params) {
         if (key == "cmd") {
             argument_data.configs.emplace_back();
             argument_data.configs.back().cmd  = value;
@@ -638,8 +638,8 @@ void parseQuick(const KeyValuePairs &params, ArgumentData &argument_data) {
         throw std::runtime_error("Option \"-quick\" requires a book=FILE entry.");
     }
 
-    auto &first  = argument_data.configs[initial_index];
-    auto &second = argument_data.configs[initial_index + 1];
+    auto& first  = argument_data.configs[initial_index];
+    auto& second = argument_data.configs[initial_index + 1];
 
     if (first.name == second.name) {
         first.name += "1";
@@ -662,7 +662,7 @@ void parseQuick(const KeyValuePairs &params, ArgumentData &argument_data) {
     argument_data.tournament_config.output = OutputType::CUTECHESS;
 }
 
-void parseAffinity(const std::vector<std::string> &params, ArgumentData &argument_data) {
+void parseAffinity(const std::vector<std::string>& params, ArgumentData& argument_data) {
     argument_data.tournament_config.affinity = true;
     if (params.size() > 0) {
         auto iss = std::istringstream(params[0]);
@@ -671,9 +671,9 @@ void parseAffinity(const std::vector<std::string> &params, ArgumentData &argumen
     }
 }
 
-void parseLatency(ArgumentData &argument_data) { argument_data.tournament_config.show_latency = true; }
+void parseLatency(ArgumentData& argument_data) { argument_data.tournament_config.show_latency = true; }
 
-void parseDebug(ArgumentData &) {
+void parseDebug(ArgumentData&) {
     // throw error
     std::string error_message =
         "The 'debug' option does not exist in fastchess."
@@ -682,21 +682,21 @@ void parseDebug(ArgumentData &) {
     throw fastchess_exception(error_message);
 }
 
-void parseTestEnv(ArgumentData &argument_data) { argument_data.tournament_config.test_env = true; }
+void parseTestEnv(ArgumentData& argument_data) { argument_data.tournament_config.test_env = true; }
 
-void parseStartupTime(std::string_view value, ArgumentData &argument_data) {
+void parseStartupTime(std::string_view value, ArgumentData& argument_data) {
     argument_data.tournament_config.startup_time = std::chrono::milliseconds(parseScalar<uint64_t>(value));
 }
 
-void parseUciNewGameTime(std::string_view value, ArgumentData &argument_data) {
+void parseUciNewGameTime(std::string_view value, ArgumentData& argument_data) {
     argument_data.tournament_config.ucinewgame_time = std::chrono::milliseconds(parseScalar<uint64_t>(value));
 }
 
-void parsePingTime(std::string_view value, ArgumentData &argument_data) {
+void parsePingTime(std::string_view value, ArgumentData& argument_data) {
     argument_data.tournament_config.ping_time = std::chrono::milliseconds(parseScalar<uint64_t>(value));
 }
 
-OptionsParser::OptionsParser(const cli::Args &args) {
+OptionsParser::OptionsParser(const cli::Args& args) {
     LOG_TRACE("Reading options...");
 
     if (args.argc() == 1) {
@@ -707,7 +707,7 @@ OptionsParser::OptionsParser(const cli::Args &args) {
     parse(args);
 
     // apply the variant type to all configs
-    for (auto &config : argument_data_.configs) {
+    for (auto& config : argument_data_.configs) {
         config.variant = argument_data_.tournament_config.variant;
     }
 

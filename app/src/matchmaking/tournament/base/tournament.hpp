@@ -27,7 +27,7 @@ class BaseTournament {
     using EngineCache = util::CachePool<engine::UciEngine, std::string>;
 
    public:
-    BaseTournament(const stats_map &results);
+    BaseTournament(const stats_map& results);
     virtual ~BaseTournament();
 
     // Starts the tournament
@@ -37,9 +37,9 @@ class BaseTournament {
 
    protected:
     using start_fn  = std::function<void()>;
-    using finish_fn = std::function<void(const Stats &stats, const std::string &reason, const engines &)>;
+    using finish_fn = std::function<void(const Stats& stats, const std::string& reason, const engines&)>;
 
-    EngineCache &getEngineCache();
+    EngineCache& getEngineCache();
 
     // Gets called after a game has finished
     virtual void startNext() = 0;
@@ -51,8 +51,8 @@ class BaseTournament {
     void saveJson();
 
     // play one game and write it to the pgn file
-    void playGame(const GamePair<EngineConfiguration, EngineConfiguration> &configs, const start_fn &start,
-                  const finish_fn &finish, const book::Opening &opening, std::size_t round_id, std::size_t game_id);
+    void playGame(const GamePair<EngineConfiguration, EngineConfiguration>& configs, const start_fn& start,
+                  const finish_fn& finish, const book::Opening& opening, std::size_t round_id, std::size_t game_id);
 
     // We keep engines alive after they were used to avoid the overhead of starting them again.
     ScoreBoard scoreboard_ = {};
@@ -80,11 +80,11 @@ class BaseTournament {
     std::mutex cache_management_mutex_;
 
    private:
-    [[nodiscard]] std::size_t setResults(const stats_map &results);
+    [[nodiscard]] std::size_t setResults(const stats_map& results);
 
-    [[nodiscard]] int getMaxAffinity(const std::vector<EngineConfiguration> &configs) const noexcept;
+    [[nodiscard]] int getMaxAffinity(const std::vector<EngineConfiguration>& configs) const noexcept;
 
-    void restartEngine(std::unique_ptr<engine::UciEngine> &engine);
+    void restartEngine(std::unique_ptr<engine::UciEngine>& engine);
 };
 
 }  // namespace fastchess

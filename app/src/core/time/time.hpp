@@ -17,7 +17,7 @@ namespace fastchess::time {
 namespace sc = std::chrono;
 
 // Get the current date and time in a given format.
-[[nodiscard]] std::optional<std::string> datetime(const std::string &format);
+[[nodiscard]] std::optional<std::string> datetime(const std::string& format);
 
 [[nodiscard]] std::string datetime_iso();
 

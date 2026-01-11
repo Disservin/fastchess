@@ -37,7 +37,7 @@
 #    include <engine/process/signal.hpp>
 #    include <types/exception.hpp>
 
-extern char **environ;
+extern char** environ;
 
 #    if !defined(HAVE_POSIX_SPAWN_FILE_ACTIONS_ADDCHDIR) && !defined(HAVE_POSIX_SPAWN_FILE_ACTIONS_ADDCHDIR_NP)
 #        define NO_POSIX_SPAWN_FILE_ACTIONS_ADDCHDIR 1
@@ -49,7 +49,7 @@ extern char **environ;
  * - glibc 2.29 and newer
  * - FreeBSD 13.1 and newer
  */
-static inline int portable_spawn_file_actions_addchdir(posix_spawn_file_actions_t *file_actions, const char *path) {
+static inline int portable_spawn_file_actions_addchdir(posix_spawn_file_actions_t* file_actions, const char* path) {
 #    ifdef HAVE_POSIX_SPAWN_FILE_ACTIONS_ADDCHDIR
     return posix_spawn_file_actions_addchdir(file_actions, path);
 #    elif HAVE_POSIX_SPAWN_FILE_ACTIONS_ADDCHDIR_NP
@@ -71,8 +71,8 @@ class Process : public IProcess {
    public:
     virtual ~Process() override { terminate(); }
 
-    Result init(const std::string &wd, const std::string &command, const std::string &args,
-                const std::string &log_name) override {
+    Result init(const std::string& wd, const std::string& command, const std::string& args,
+                const std::string& log_name) override {
         assert(!is_initalized_);
 
         wd_            = wd;
@@ -91,7 +91,7 @@ class Process : public IProcess {
         argv_split parser(command_);
         parser.parse(args);
 
-        char *const *execv_argv = (char *const *)parser.argv();
+        char* const* execv_argv = (char* const*)parser.argv();
 
         const auto success = start_process(execv_argv, posix_spawnp)  //
                                  .on_error([&]() { return start_process(execv_argv, posix_spawn); });
@@ -121,7 +121,7 @@ class Process : public IProcess {
         return r == 0 ? Result::OK() : Result::Error("process terminated");
     }
 
-    bool setAffinity(const std::vector<int> &cpus) noexcept override {
+    bool setAffinity(const std::vector<int>& cpus) noexcept override {
         assert(is_initalized_);
         // Apple does not support setting the affinity of a pid
 #    ifdef __APPLE__
@@ -139,7 +139,7 @@ class Process : public IProcess {
 
         if (!is_initalized_) return;
 
-        process_list.remove_if([this](const ProcessInformation &pi) { return pi.identifier == process_pid_; });
+        process_list.remove_if([this](const ProcessInformation& pi) { return pi.identifier == process_pid_; });
 
         int status = 0;
 
@@ -184,7 +184,7 @@ class Process : public IProcess {
 
     // Read stdout until the line matches searchword or timeout is reached
     // 0 means no timeout clears the lines vector
-    Result readOutput(std::vector<Line> &lines, std::string_view searchword,
+    Result readOutput(std::vector<Line>& lines, std::string_view searchword,
                       std::chrono::milliseconds threshold) override {
         assert(is_initalized_);
 
@@ -248,7 +248,7 @@ class Process : public IProcess {
         return Result::OK();
     }
 
-    Result writeInput(const std::string &input) noexcept override {
+    Result writeInput(const std::string& input) noexcept override {
         assert(is_initalized_);
 
         if (!alive()) return Result::Error("process not alive");
@@ -262,7 +262,7 @@ class Process : public IProcess {
 
    private:
     template <typename Func>
-    Result start_process(char *const *execv_argv, Func func) {
+    Result start_process(char* const* execv_argv, Func func) {
         out_pipe_ = {};
         in_pipe_  = {};
         err_pipe_ = {};
@@ -285,7 +285,7 @@ class Process : public IProcess {
             }
 
             posix_spawn_file_actions_destroy(&file_actions);
-        } catch (const std::exception &e) {
+        } catch (const std::exception& e) {
             posix_spawn_file_actions_destroy(&file_actions);
             return Result::Error(e.what());
         }
@@ -293,13 +293,13 @@ class Process : public IProcess {
         return Result::OK();
     }
 
-    void setup_spawn_file_actions(posix_spawn_file_actions_t &file_actions, int fd, int target_fd) {
+    void setup_spawn_file_actions(posix_spawn_file_actions_t& file_actions, int fd, int target_fd) {
         if (posix_spawn_file_actions_adddup2(&file_actions, fd, target_fd) != 0) {
             throw fastchess_exception("posix_spawn_file_actions_add* failed");
         }
     }
 
-    void setup_wd_file_actions(posix_spawn_file_actions_t &file_actions, const std::string &wd) {
+    void setup_wd_file_actions(posix_spawn_file_actions_t& file_actions, const std::string& wd) {
         if (wd.empty()) return;
 
 #    ifdef NO_POSIX_SPAWN_FILE_ACTIONS_ADDCHDIR
@@ -316,8 +316,8 @@ class Process : public IProcess {
         }
     }
 
-    [[nodiscard]] Result processBuffer(const std::array<char, 4096> &buffer, ssize_t bytes_read,
-                                       std::vector<Line> &lines, std::string_view searchword) {
+    [[nodiscard]] Result processBuffer(const std::array<char, 4096>& buffer, ssize_t bytes_read,
+                                       std::vector<Line>& lines, std::string_view searchword) {
         if (bytes_read == -1) return Result::Error("read failed");
 
         // Iterate over each character in the buffer

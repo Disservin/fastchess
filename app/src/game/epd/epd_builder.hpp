@@ -13,12 +13,12 @@ namespace fastchess::epd {
 
 class EpdBuilder {
    public:
-    EpdBuilder(const VariantType &variant, const MatchData &match) {
+    EpdBuilder(const VariantType& variant, const MatchData& match) {
         chess::Board board = chess::Board();
         board.set960(variant == VariantType::FRC);
         board.setFen(match.fen);
 
-        for (const auto &move : match.moves) {
+        for (const auto& move : match.moves) {
             const auto illegal = !move.legal;
 
             if (illegal) break;

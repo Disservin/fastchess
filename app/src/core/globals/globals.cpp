@@ -27,7 +27,7 @@ void writeToOpenPipes() {
 
     process_list.lock();
 
-    for (const auto &process : process_list) {
+    for (const auto& process : process_list) {
         LOG_TRACE("Writing to process with pid/handle: {}", process.identifier);
 #ifdef _WIN64
         [[maybe_unused]] DWORD bytes_written;
@@ -45,7 +45,7 @@ void writeToOpenPipes() {
 void stopProcesses() {
     process_list.lock();
 
-    for (const auto &process : process_list) {
+    for (const auto& process : process_list) {
         LOG_TRACE("Cleaning up process with pid/handle: {}", process.identifier);
 
 #ifdef _WIN64
@@ -88,7 +88,7 @@ void setCtrlCHandler() {
 }
 
 #else
-void handler(int, siginfo_t *, void *) { consoleHandlerAction(); }
+void handler(int, siginfo_t*, void*) { consoleHandlerAction(); }
 
 void setCtrlCHandler() {
     struct sigaction sa;

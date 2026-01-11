@@ -15,9 +15,9 @@ struct Pipe {
 
     Pipe() { initialize(); }
 
-    Pipe(const Pipe &) { initialize(); }
+    Pipe(const Pipe&) { initialize(); }
 
-    Pipe &operator=(const Pipe &) {
+    Pipe& operator=(const Pipe&) {
         close_read_end();
         close_write_end();
         initialize();

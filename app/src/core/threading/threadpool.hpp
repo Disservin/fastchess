@@ -19,7 +19,7 @@ class ThreadPool {
     }
 
     template <class F, class... Args>
-    void enqueue(F &&func, Args &&...args) {
+    void enqueue(F&& func, Args&&... args) {
         auto task =
             std::make_shared<std::packaged_task<void()>>(std::bind(std::forward<F>(func), std::forward<Args>(args)...));
 
@@ -59,7 +59,7 @@ class ThreadPool {
             condition_.notify_all();
         }
 
-        for (auto &worker : workers_) {
+        for (auto& worker : workers_) {
             if (worker.joinable()) worker.join();
         }
 

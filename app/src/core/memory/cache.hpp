@@ -15,13 +15,13 @@ template <typename T, typename ID>
 class CachedEntry : public ScopeEntry {
    public:
     template <typename... ARGS>
-    CachedEntry(const ID &identifier, ARGS &&...arg)
+    CachedEntry(const ID& identifier, ARGS&&... arg)
         : ScopeEntry(false), entry_(std::make_unique<T>(std::forward<ARGS>(arg)...)), id(identifier) {}
 
-    T *operator->() noexcept { return entry_.get(); }
-    const T *operator->() const noexcept { return entry_.get(); }
+    T* operator->() noexcept { return entry_.get(); }
+    const T* operator->() const noexcept { return entry_.get(); }
 
-    [[nodiscard]] auto &get() noexcept { return entry_; }
+    [[nodiscard]] auto& get() noexcept { return entry_; }
 
    private:
     std::unique_ptr<T> entry_;
@@ -37,7 +37,7 @@ template <typename T, typename ID>
 class CachePool {
    public:
     template <typename... ARGS>
-    [[nodiscard]] auto getEntry(const ID &identifier, ARGS &&...arg) {
+    [[nodiscard]] auto getEntry(const ID& identifier, ARGS&&... arg) {
         std::lock_guard<std::mutex> lock(access_mutex_);
 
         for (auto it = cache_.begin(); it != cache_.end();) {
@@ -53,7 +53,7 @@ class CachePool {
         return std::prev(cache_.end());
     }
 
-    void deleteFromCache(const typename std::list<CachedEntry<T, ID>>::iterator &it) {
+    void deleteFromCache(const typename std::list<CachedEntry<T, ID>>::iterator& it) {
         assert(it != cache_.end());
         assert(!it->available_);
         std::lock_guard<std::mutex> lock(access_mutex_);

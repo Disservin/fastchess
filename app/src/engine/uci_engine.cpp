@@ -181,10 +181,10 @@ std::optional<std::string> UciEngine::idName() {
     }
 
     // get id name
-    for (const auto& line : output_) {
-        if (line.line.find("id name") != std::string::npos) {
+    for (const auto& line : getStdoutLines()) {
+        if (line->line.find("id name") != std::string::npos) {
             // everything after id name
-            return line.line.substr(line.line.find("id name") + 8);
+            return line->line.substr(line->line.find("id name") + 8);
         }
     }
 
@@ -205,10 +205,10 @@ std::optional<std::string> UciEngine::idAuthor() {
     }
 
     // get id author
-    for (const auto& line : output_) {
-        if (line.line.find("id author") != std::string::npos) {
+    for (const auto& line : getStdoutLines()) {
+        if (line->line.find("id author") != std::string::npos) {
             // everything after id author
-            return line.line.substr(line.line.find("id author") + 10);
+            return line->line.substr(line->line.find("id author") + 10);
         }
     }
 
@@ -237,8 +237,10 @@ bool UciEngine::uciok(std::optional<ms> threshold) {
         if (!realtime_logging_) {
             Logger::readFromEngine(line.line, line.time, config_.name, line.std == process::Standard::ERR);
         }
+    }
 
-        auto option = UCIOptionFactory::parseUCIOptionLine(line.line);
+    for (const auto& line : getStdoutLines()) {
+        auto option = UCIOptionFactory::parseUCIOptionLine(line->line);
 
         if (option != nullptr) {
             uci_options_.addOption(std::move(option));
@@ -380,8 +382,9 @@ std::string UciEngine::lastInfoLine() const {
     std::string fallback;
 
     // iterate backwards over the output and save the info line
-    for (auto it = output_.rbegin(); it != output_.rend(); ++it) {
-        const auto& line = it->line;
+    const auto lines = getStdoutLines();
+    for (auto it = lines.rbegin(); it != lines.rend(); ++it) {
+        const auto& line = (*it)->line;
 
         // skip "info string" lines
         if (line.find("info string") != std::string::npos) {
@@ -412,13 +415,14 @@ bool UciEngine::writeEngine(const std::string& input) {
 }
 
 std::optional<std::string> UciEngine::bestmove() const {
-    if (output_.empty()) {
+    const auto lines = getStdoutLines();
+    if (lines.empty()) {
         Logger::print<Logger::Level::WARN>("Warning; No output from {}", config_.name);
 
         return std::nullopt;
     }
 
-    const auto bm = str_utils::findElement<std::string>(str_utils::splitString(output_.back().line, ' '), "bestmove");
+    const auto bm = str_utils::findElement<std::string>(str_utils::splitString(lines.back()->line, ' '), "bestmove");
 
     if (!bm.has_value()) {
         Logger::print<Logger::Level::WARN>("Warning; No bestmove found in the last line from {}", config_.name);
@@ -443,8 +447,10 @@ std::vector<std::string> UciEngine::lastInfo() const {
 std::chrono::milliseconds UciEngine::lastTime() const {
     std::vector<std::string> last_reported_time_info;
 
-    for (auto it = output_.rbegin(); it != output_.rend(); ++it) {
-        const auto& line = it->line;
+    const auto lines = getStdoutLines();
+
+    for (auto it = lines.rbegin(); it != lines.rend(); ++it) {
+        const auto& line = (*it)->line;
 
         // skip "info string" lines
         if (line.find("info string") != std::string::npos) {
@@ -487,8 +493,8 @@ Score UciEngine::lastScore() const {
 }
 
 bool UciEngine::outputIncludesBestmove() const {
-    for (const auto& line : output_) {
-        if (line.line.find("bestmove") != std::string::npos) return true;
+    for (const auto& line : getStdoutLines()) {
+        if (line->line.find("bestmove") != std::string::npos) return true;
     }
 
     return false;

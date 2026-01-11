@@ -143,6 +143,19 @@ class UciEngine {
     void loadConfig(const EngineConfiguration& config);
     void sendSetoption(const std::string& name, const std::string& value);
 
+    std::vector<const process::Line*> getLines(process::Standard type) const {
+        std::vector<const process::Line*> lines;
+        for (const auto& line : output_) {
+            if (line.std == type) {
+                lines.push_back(&line);
+            }
+        }
+        return lines;
+    }
+
+    std::vector<const process::Line*> getStdoutLines() const { return getLines(process::Standard::OUTPUT); }
+    std::vector<const process::Line*> getStderrLines() const { return getLines(process::Standard::ERR); }
+
     process::Process process_ = {};
     UCIOptions uci_options_   = {};
     EngineConfiguration config_;

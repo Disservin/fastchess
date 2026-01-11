@@ -41,12 +41,12 @@ class CountingSemaphore {
 // RAII class to acquire and release the semaphore
 class AcquireSemaphore {
    public:
-    explicit AcquireSemaphore(CountingSemaphore &semaphore) : semaphore_(semaphore) { semaphore_.acquire(); }
+    explicit AcquireSemaphore(CountingSemaphore& semaphore) : semaphore_(semaphore) { semaphore_.acquire(); }
 
     ~AcquireSemaphore() { semaphore_.release(); }
 
    private:
-    CountingSemaphore &semaphore_;
+    CountingSemaphore& semaphore_;
 };
 
 namespace {
@@ -54,7 +54,7 @@ CountingSemaphore semaphore(16);
 
 }  // namespace
 
-UciEngine::UciEngine(const EngineConfiguration &config, bool realtime_logging) : realtime_logging_(realtime_logging) {
+UciEngine::UciEngine(const EngineConfiguration& config, bool realtime_logging) : realtime_logging_(realtime_logging) {
     loadConfig(config);
     output_.reserve(100);
 
@@ -76,7 +76,7 @@ process::Result UciEngine::isready(std::optional<std::chrono::milliseconds> thre
 
     // print output in case we are using delayed logging
     if (!realtime_logging_) {
-        for (const auto &line : output) {
+        for (const auto& line : output) {
             Logger::readFromEngine(line.line, line.time, config_.name, line.std == process::Standard::ERR);
         }
     }
@@ -95,12 +95,12 @@ process::Result UciEngine::isready(std::optional<std::chrono::milliseconds> thre
     return res;
 }
 
-bool UciEngine::position(const std::vector<std::string> &moves, const std::string &fen) {
+bool UciEngine::position(const std::vector<std::string>& moves, const std::string& fen) {
     auto position = fmt::format("position {}", fen == "startpos" ? "startpos" : ("fen " + fen));
 
     if (!moves.empty()) {
         position += " moves";
-        for (const auto &move : moves) {
+        for (const auto& move : moves) {
             position += " " + move;
         }
     }
@@ -108,7 +108,7 @@ bool UciEngine::position(const std::vector<std::string> &moves, const std::strin
     return writeEngine(position);
 }
 
-bool UciEngine::go(const TimeControl &our_tc, const TimeControl &enemy_tc, chess::Color stm) {
+bool UciEngine::go(const TimeControl& our_tc, const TimeControl& enemy_tc, chess::Color stm) {
     std::stringstream input;
     input << "go";
 
@@ -126,8 +126,8 @@ bool UciEngine::go(const TimeControl &our_tc, const TimeControl &enemy_tc, chess
         return writeEngine(input.str());
     }
 
-    const auto &white = stm == chess::Color::WHITE ? our_tc : enemy_tc;
-    const auto &black = stm == chess::Color::WHITE ? enemy_tc : our_tc;
+    const auto& white = stm == chess::Color::WHITE ? our_tc : enemy_tc;
+    const auto& black = stm == chess::Color::WHITE ? enemy_tc : our_tc;
 
     if (our_tc.isTimed() || our_tc.isIncrement()) {
         if (white.isTimed() || white.isIncrement()) {
@@ -181,7 +181,7 @@ std::optional<std::string> UciEngine::idName() {
     }
 
     // get id name
-    for (const auto &line : output_) {
+    for (const auto& line : output_) {
         if (line.line.find("id name") != std::string::npos) {
             // everything after id name
             return line.line.substr(line.line.find("id name") + 8);
@@ -205,7 +205,7 @@ std::optional<std::string> UciEngine::idAuthor() {
     }
 
     // get id author
-    for (const auto &line : output_) {
+    for (const auto& line : output_) {
         if (line.line.find("id author") != std::string::npos) {
             // everything after id author
             return line.line.substr(line.line.find("id author") + 10);
@@ -233,7 +233,7 @@ bool UciEngine::uciok(std::optional<ms> threshold) {
     const auto res = readEngine("uciok", threshold.value_or(getPingTime()));
     const auto ok  = res.code == process::Status::OK;
 
-    for (const auto &line : output_) {
+    for (const auto& line : output_) {
         if (!realtime_logging_) {
             Logger::readFromEngine(line.line, line.time, config_.name, line.std == process::Standard::ERR);
         }
@@ -250,7 +250,7 @@ bool UciEngine::uciok(std::optional<ms> threshold) {
     return ok;
 }
 
-void UciEngine::loadConfig(const EngineConfiguration &config) { config_ = config; }
+void UciEngine::loadConfig(const EngineConfiguration& config) { config_ = config; }
 
 void UciEngine::quit() {
     if (!initialized_) return;
@@ -259,7 +259,7 @@ void UciEngine::quit() {
     writeEngine("quit");
 }
 
-void UciEngine::sendSetoption(const std::string &name, const std::string &value) {
+void UciEngine::sendSetoption(const std::string& name, const std::string& value) {
     auto option = uci_options_.getOption(name);
 
     if (!option.has_value()) {
@@ -297,7 +297,7 @@ void UciEngine::sendSetoption(const std::string &name, const std::string &value)
     option.value()->setValue(value);
 }
 
-tl::expected<bool, std::string> UciEngine::start(const std::optional<std::vector<int>> &cpus) {
+tl::expected<bool, std::string> UciEngine::start(const std::optional<std::vector<int>>& cpus) {
     if (initialized_) return true;
 
     AcquireSemaphore semaphore_acquire(semaphore);
@@ -339,13 +339,13 @@ bool UciEngine::refreshUci() {
     // Reorder to send Threads option first, to help multi-threaded configurations
 
     auto options = config_.options;
-    std::stable_partition(options.begin(), options.end(), [](const auto &p) { return p.first == "Threads"; });
+    std::stable_partition(options.begin(), options.end(), [](const auto& p) { return p.first == "Threads"; });
 
-    for (const auto &option : options) {
+    for (const auto& option : options) {
         try {
             sendSetoption(option.first, option.second);
 
-        } catch (const std::exception &e) {
+        } catch (const std::exception& e) {
             Logger::print<Logger::Level::WARN>("Warning; Failed to set option {} with value {} for engine {}: {}",
                                                option.first, option.second, config_.name, e.what());
         }
@@ -354,7 +354,7 @@ bool UciEngine::refreshUci() {
     if (config_.variant == VariantType::FRC) {
         try {
             sendSetoption("UCI_Chess960", "true");
-        } catch (const std::exception &e) {
+        } catch (const std::exception& e) {
             Logger::print<Logger::Level::WARN>("Warning; Failed to set UCI_Chess960 option for engine {}: {}",
                                                config_.name, e.what());
         }
@@ -371,7 +371,7 @@ process::Result UciEngine::readEngine(std::string_view last_word, std::optional<
 }
 
 void UciEngine::writeLog() const {
-    for (const auto &line : output_) {
+    for (const auto& line : output_) {
         Logger::readFromEngine(line.line, line.time, config_.name, line.std == process::Standard::ERR);
     }
 }
@@ -381,7 +381,7 @@ std::string UciEngine::lastInfoLine() const {
 
     // iterate backwards over the output and save the info line
     for (auto it = output_.rbegin(); it != output_.rend(); ++it) {
-        const auto &line = it->line;
+        const auto& line = it->line;
 
         // skip "info string" lines
         if (line.find("info string") != std::string::npos) {
@@ -406,7 +406,7 @@ std::string UciEngine::lastInfoLine() const {
     return fallback;
 }
 
-bool UciEngine::writeEngine(const std::string &input) {
+bool UciEngine::writeEngine(const std::string& input) {
     Logger::writeToEngine(input, "", config_.name);
     return process_.writeInput(input + "\n").code == process::Status::OK;
 }
@@ -444,7 +444,7 @@ std::chrono::milliseconds UciEngine::lastTime() const {
     std::vector<std::string> last_reported_time_info;
 
     for (auto it = output_.rbegin(); it != output_.rend(); ++it) {
-        const auto &line = it->line;
+        const auto& line = it->line;
 
         // skip "info string" lines
         if (line.find("info string") != std::string::npos) {
@@ -487,7 +487,7 @@ Score UciEngine::lastScore() const {
 }
 
 bool UciEngine::outputIncludesBestmove() const {
-    for (const auto &line : output_) {
+    for (const auto& line : output_) {
         if (line.line.find("bestmove") != std::string::npos) return true;
     }
 

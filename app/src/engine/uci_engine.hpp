@@ -32,18 +32,18 @@ struct Score {
 
 class UciEngine {
    public:
-    explicit UciEngine(const EngineConfiguration &config, bool realtime_logging);
+    explicit UciEngine(const EngineConfiguration& config, bool realtime_logging);
 
-    UciEngine(const UciEngine &)            = delete;
-    UciEngine(UciEngine &&)                 = delete;
-    UciEngine &operator=(const UciEngine &) = delete;
-    UciEngine &operator=(UciEngine &&)      = delete;
+    UciEngine(const UciEngine&)            = delete;
+    UciEngine(UciEngine&&)                 = delete;
+    UciEngine& operator=(const UciEngine&) = delete;
+    UciEngine& operator=(UciEngine&&)      = delete;
 
     ~UciEngine() { quit(); }
 
     // Starts the engine, does nothing after the first call.
     // Returns false if the engine is not alive.
-    [[nodiscard]] tl::expected<bool, std::string> start(const std::optional<std::vector<int>> &cpus);
+    [[nodiscard]] tl::expected<bool, std::string> start(const std::optional<std::vector<int>>& cpus);
 
     // Restarts the engine, if necessary and reapplies the options.
     bool refreshUci();
@@ -62,15 +62,15 @@ class UciEngine {
     [[nodiscard]] process::Result isready(std::optional<ms> threshold = std::nullopt);
 
     // Sends "position" to the engine and waits for a response.
-    [[nodiscard]] bool position(const std::vector<std::string> &moves, const std::string &fen);
+    [[nodiscard]] bool position(const std::vector<std::string>& moves, const std::string& fen);
 
-    [[nodiscard]] bool go(const TimeControl &our_tc, const TimeControl &enemy_tc, chess::Color stm);
+    [[nodiscard]] bool go(const TimeControl& our_tc, const TimeControl& enemy_tc, chess::Color stm);
 
     void quit();
 
     // Writes the input to the engine. Appends a newline to the input.
     // Returns false in case of failure.
-    bool writeEngine(const std::string &input);
+    bool writeEngine(const std::string& input);
 
     // Waits for the engine to output the last_word or until the threshold_ms is reached.
     // May throw if the read fails.
@@ -86,7 +86,7 @@ class UciEngine {
     // This function writes the logs to the logger.
     void writeLog() const;
 
-    void setCpus(const std::vector<int> &cpus) {
+    void setCpus(const std::vector<int>& cpus) {
         if (cpus.empty()) return;
 
 // Apple does not support setting the affinity of a pid
@@ -98,7 +98,7 @@ class UciEngine {
 
         // turn cpus vector into a string for error logging
         std::string cpu_str;
-        for (const auto &cpu : cpus) {
+        for (const auto& cpu : cpus) {
             if (!cpu_str.empty()) cpu_str += ", ";
             cpu_str += std::to_string(cpu);
         }
@@ -123,25 +123,25 @@ class UciEngine {
     // returns false if the output doesnt include a bestmove
     [[nodiscard]] bool outputIncludesBestmove() const;
 
-    [[nodiscard]] const std::vector<process::Line> &output() const noexcept { return output_; }
-    [[nodiscard]] const EngineConfiguration &getConfig() const noexcept { return config_; }
+    [[nodiscard]] const std::vector<process::Line>& output() const noexcept { return output_; }
+    [[nodiscard]] const EngineConfiguration& getConfig() const noexcept { return config_; }
 
     // @TODO: expose this to the user?
 
-    [[nodiscard]] const UCIOptions &uciOptions() const noexcept { return uci_options_; }
-    UCIOptions &uciOptions() noexcept { return uci_options_; }
+    [[nodiscard]] const UCIOptions& uciOptions() const noexcept { return uci_options_; }
+    UCIOptions& uciOptions() noexcept { return uci_options_; }
 
     [[nodiscard]] bool isRealtimeLogging() const noexcept { return realtime_logging_; }
 
-    [[nodiscard]] const std::vector<process::Line> &lastOutput() const noexcept { return output_; }
+    [[nodiscard]] const std::vector<process::Line>& lastOutput() const noexcept { return output_; }
 
     [[nodiscard]] static ms getPingTime() { return config::TournamentConfig->ping_time; }
     [[nodiscard]] static ms getUciNewGameTime() { return config::TournamentConfig->ucinewgame_time; }
     [[nodiscard]] static ms getStartupTime() { return config::TournamentConfig->startup_time; }
 
    private:
-    void loadConfig(const EngineConfiguration &config);
-    void sendSetoption(const std::string &name, const std::string &value);
+    void loadConfig(const EngineConfiguration& config);
+    void sendSetoption(const std::string& name, const std::string& value);
 
     process::Process process_ = {};
     UCIOptions uci_options_   = {};

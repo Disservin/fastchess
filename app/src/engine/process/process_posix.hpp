@@ -270,6 +270,11 @@ class Process : public IProcess {
         posix_spawn_file_actions_t file_actions;
         posix_spawn_file_actions_init(&file_actions);
 
+        posix_spawnattr_t attr;
+        posix_spawnattr_init(&attr);
+        posix_spawnattr_setflags(&attr, POSIX_SPAWN_SETPGROUP);
+        posix_spawnattr_setpgroup(&attr, 0);
+
         try {
             setup_spawn_file_actions(file_actions, out_pipe_.read_end(), STDIN_FILENO);
             setup_spawn_file_actions(file_actions, in_pipe_.write_end(), STDOUT_FILENO);
@@ -277,7 +282,7 @@ class Process : public IProcess {
 
             setup_wd_file_actions(file_actions, wd_);
 
-            int result = func(&process_pid_, command_.c_str(), &file_actions, nullptr, execv_argv, environ);
+            int result = func(&process_pid_, command_.c_str(), &file_actions, &attr, execv_argv, environ);
 
             if (result != 0) {
                 std::string errorMsg = std::strerror(result);
@@ -285,8 +290,10 @@ class Process : public IProcess {
             }
 
             posix_spawn_file_actions_destroy(&file_actions);
+            posix_spawnattr_destroy(&attr);
         } catch (const std::exception& e) {
             posix_spawn_file_actions_destroy(&file_actions);
+            posix_spawnattr_destroy(&attr);
             return Result::Error(e.what());
         }
 

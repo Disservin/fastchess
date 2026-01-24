@@ -63,6 +63,8 @@ namespace engine::process {
 
 class Stream {
    public:
+    Stream() = default;
+
     Stream(int fd, bool realtime_logging, Standard type, const std::string& log_name)
         : fd_(fd), realtime_logging_(realtime_logging), log_name_(log_name), type_(type) {
         line_buffer_.clear();

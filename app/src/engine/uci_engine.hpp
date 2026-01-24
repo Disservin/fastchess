@@ -110,15 +110,19 @@ class UciEngine {
     // Get the bestmove from the last output.
     [[nodiscard]] std::optional<std::string> bestmove() const;
 
-    [[nodiscard]] std::string lastInfoLine() const;
+    // Get the last info line from the last output.
+    [[nodiscard]] std::string lastInfoLine(bool logging = false) const;
 
-    // Get the last info from the last output.
-    [[nodiscard]] std::vector<std::string> lastInfo() const;
+    [[nodiscard]] std::vector<std::string> getInfoLines() const;
 
     [[nodiscard]] ms lastTime() const;
 
-    // Get the last score from the last output.
+    // Get the score from the (last valid) info line.
+    [[nodiscard]] static Score getScore(std::string_view info);
     [[nodiscard]] Score lastScore() const;
+
+    // Get the PV from an info line.
+    [[nodiscard]] static std::optional<std::vector<std::string>> getPv(std::string_view info);
 
     // returns false if the output doesnt include a bestmove
     [[nodiscard]] bool outputIncludesBestmove() const;

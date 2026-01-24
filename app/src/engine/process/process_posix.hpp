@@ -7,26 +7,20 @@
 #    include <array>
 #    include <cassert>
 #    include <chrono>
-#    include <iostream>
 #    include <optional>
 #    include <string>
+#    include <string_view>
 #    include <thread>
 #    include <vector>
 
 #    include <errno.h>
-#    include <fcntl.h>  // fcntl
-#    include <poll.h>   // poll
+#    include <poll.h>
 #    include <signal.h>
 #    include <spawn.h>
 #    include <string.h>
-#    include <sys/types.h>  // pid_t
+#    include <sys/types.h>
 #    include <sys/wait.h>
-#    include <unistd.h>  // _exit, fork
-#    include <csignal>
-#    include <string>
-#    include <vector>
-
-#    include <expected.hpp>
+#    include <unistd.h>
 
 #    include <affinity/affinity.hpp>
 #    include <argv_split.hpp>
@@ -67,6 +61,75 @@ extern util::ThreadVector<ProcessInformation> process_list;
 
 namespace engine::process {
 
+class Stream {
+   public:
+    Stream(int fd, bool realtime_logging, Standard type, const std::string& log_name)
+        : fd_(fd), realtime_logging_(realtime_logging), log_name_(log_name), type_(type) {
+        line_buffer_.clear();
+        line_buffer_.reserve(300);
+    }
+
+    Result readLine(std::vector<Line>& lines, std::string_view searchword) {
+        const ssize_t bytes_read = read(fd_, buffer_.data(), buffer_.size());
+
+        if (bytes_read == -1) return Result::Error("read failed");
+
+        for (ssize_t i = 0; i < bytes_read; ++i) {
+            const char c = buffer_[(size_t)i];
+
+            if (c != '\n') {
+                line_buffer_ += c;
+                continue;
+            }
+
+            if (line_buffer_.empty()) continue;
+
+            const auto ts = Logger::should_log_ ? time::datetime_precise() : "";
+            lines.emplace_back(Line{line_buffer_, ts, type_});
+
+            if (realtime_logging_) {
+                Logger::readFromEngine(line_buffer_, ts, log_name_, type_ == Standard::ERR);
+            }
+
+            if (!searchword.empty() && line_buffer_.rfind(searchword, 0) == 0) {
+                line_buffer_.clear();
+                return Result::OK();
+            }
+
+            line_buffer_.clear();
+        }
+
+        return Result{Status::NONE, ""};
+    }
+
+    void setup() { line_buffer_.clear(); }
+
+    bool hasPartial() const { return !line_buffer_.empty(); }
+
+    void flushPartial(std::vector<Line>& lines) {
+        if (line_buffer_.empty()) return;
+
+        auto ts = time::datetime_precise();
+        lines.emplace_back(Line{line_buffer_, ts, type_});
+
+        if (realtime_logging_) {
+            Logger::readFromEngine(line_buffer_, ts, log_name_, type_ == Standard::ERR);
+        }
+
+        line_buffer_.clear();
+    }
+
+   private:
+    int fd_;
+    bool realtime_logging_;
+
+    std::string line_buffer_;
+    std::string log_name_;
+    Standard type_;
+
+    std::array<char, 4096> buffer_{};
+};
+
 class Process : public IProcess {
    public:
     virtual ~Process() override { terminate(); }
@@ -75,32 +138,33 @@ class Process : public IProcess {
                 const std::string& log_name) override {
         assert(!is_initalized_);
 
-        wd_            = wd;
-        command_       = command;
-        args_          = args;
-        log_name_      = log_name;
+        wd_       = wd;
+        command_  = command;
+        args_     = args;
+        log_name_ = log_name;
+
         is_initalized_ = true;
         startup_error_ = false;
+        exit_code_.reset();
 
 #    ifdef NO_POSIX_SPAWN_FILE_ACTIONS_ADDCHDIR
         command_ = getPath(wd_, command_);
 #    endif
 
-        current_line_out_.reserve(300);
-        current_line_err_.reserve(300);
-
         argv_split parser(command_);
-        parser.parse(args);
-
+        parser.parse(args_);
         char* const* execv_argv = (char* const*)parser.argv();
 
-        const auto success = start_process(execv_argv, posix_spawnp)  //
-                                 .on_error([&]() { return start_process(execv_argv, posix_spawn); });
+        const auto success = spawn_with(execv_argv, posix_spawnp)  //
+                                 .on_error([&]() { return spawn_with(execv_argv, posix_spawn); });
 
         if (success.code != Status::OK) {
             startup_error_ = true;
             return Result::Error(success.message);
         }
+
+        sg_out_ = Stream(in_pipe_.read_end(), realtime_logging_, Standard::OUTPUT, log_name_);
+        sg_err_ = Stream(err_pipe_.read_end(), realtime_logging_, Standard::ERR, log_name_);
 
         // Append the process to the list of running processes
         // which are killed when the program exits, as a last resort
@@ -112,14 +176,11 @@ class Process : public IProcess {
     Result alive() noexcept override {
         assert(is_initalized_);
 
-        int status;
+        int status    = 0;
         const pid_t r = waitpid(process_pid_, &status, WNOHANG);
+        if (r != 0) exit_code_ = status;
 
-        if (r != 0) {
-            exit_code_ = status;
-        }
-
-        return r == 0 ? Result::OK() : Result::Error("process terminated");
+        return (r == 0) ? Result::OK() : Result::Error("process terminated");
     }
 
     bool setAffinity(const std::vector<int>& cpus) noexcept override {
@@ -143,47 +204,21 @@ class Process : public IProcess {
         process_list.remove_if([this](const ProcessInformation& pi) { return pi.identifier == process_pid_; });
 
         int status = 0;
-
-        if (!exit_code_.has_value()) {
-            const auto start_time = std::chrono::steady_clock::now();
-
-            pid_t pid = 0;
-
-            // give the process time to die gracefully
-            while (std::chrono::steady_clock::now() - start_time < IProcess::kill_timeout) {
-                pid = waitpid(process_pid_, &status, WNOHANG);
-
-                if (pid > 0) {
-                    break;
-                } else if (pid < 0) {
-                    break;
-                }
-
-                std::this_thread::sleep_for(std::chrono::milliseconds(100));
-            }
-
-            // If process is still running after timeout, force kill it
-            if (pid == 0) {
-                LOG_TRACE_THREAD("Force terminating process with pid: {} {}", process_pid_, status);
-
-                kill(process_pid_, SIGKILL);
-                waitpid(process_pid_, &status, 0);
-            } else {
-                LOG_TRACE_THREAD("Process with pid: {} terminated with status: {}", process_pid_, status);
-            }
+        if (exit_code_.has_value()) {
+            status = *exit_code_;
         } else {
-            status = exit_code_.value();
+            status     = wait_with_timeout_or_kill();
+            exit_code_ = status;
         }
 
         // log the status of the process
         Logger::readFromEngine(signalToString(status), time::datetime_precise(), log_name_, true);
-
         is_initalized_ = false;
     }
 
     void setupRead() override {
-        current_line_out_.clear();
-        current_line_err_.clear();
+        sg_out_.setup();
+        sg_err_.setup();
     }
 
     // Read stdout until the line matches searchword or timeout is reached
@@ -191,80 +226,47 @@ class Process : public IProcess {
     Result readOutput(std::vector<Line>& lines, std::string_view searchword,
                       std::chrono::milliseconds threshold) override {
         assert(is_initalized_);
-
         lines.clear();
 
-        // Set up the timeout for poll
-        if (threshold.count() <= 0) {
-            // wait indefinitely
-            threshold = std::chrono::milliseconds(-1);
-        }
+        const int poll_timeout_ms = normalize_poll_timeout_ms(threshold);
 
         // We prefer to use poll instead of select because
         // poll is more efficient and select has a filedescriptor limit of 1024
         // which can be a problem when running with a high concurrency
-        std::array<pollfd, 2> pollfds;
-        pollfds[0].fd     = in_pipe_.read_end();
-        pollfds[0].events = POLLIN;
 
-        pollfds[1].fd     = err_pipe_.read_end();
-        pollfds[1].events = POLLIN;
+        std::array<pollfd, 2> fds{};
+        fds[0].fd     = in_pipe_.read_end();
+        fds[0].events = POLLIN;
+        fds[1].fd     = err_pipe_.read_end();
+        fds[1].events = POLLIN;
 
-        assert(pollfds[0].fd != pollfds[1].fd);
+        assert(fds[0].fd != fds[1].fd);
 
         // Continue reading output lines until the line
         // matches the specified searchword or a timeout occurs
         while (true) {
-            const int ready = poll(pollfds.data(), pollfds.size(), threshold.count());
+            const int ready = poll(fds.data(), (nfds_t)fds.size(), poll_timeout_ms);
 
-            if (atomic::stop) {
-                return Result::Error("stop requested");
-            }
+            if (atomic::stop) return Result::Error("stop requested");
+            if (ready == -1) return Result::Error("poll failed");
 
-            // error
-            if (ready == -1) {
-                return Result::Error("poll failed");
-            }
-
-            // timeout
             if (ready == 0) {
-                const auto timestamp = time::datetime_precise();
-
-                if (!current_line_out_.empty()) {
-                    lines.emplace_back(Line{current_line_out_, timestamp, Standard::OUTPUT});
-                }
-
-                if (realtime_logging_ && !current_line_out_.empty()) {
-                    Logger::readFromEngine(current_line_out_, timestamp, log_name_, false);
-                }
-
-                if (!current_line_err_.empty()) {
-                    lines.emplace_back(Line{current_line_err_, timestamp, Standard::ERR});
-                }
-
-                if (realtime_logging_ && !current_line_err_.empty()) {
-                    Logger::readFromEngine(current_line_err_, timestamp, log_name_, true);
-                }
-
+                flush_partials_on_timeout(lines);
                 return Result{Status::TIMEOUT, "timeout"};
             }
 
-            // data on stdin
-            if (pollfds[0].revents & POLLIN) {
-                const auto bytes_read = read(in_pipe_.read_end(), buffer.data(), sizeof(buffer));
-
-                if (auto status = processBuffer(buffer, bytes_read, lines, current_line_out_, false, searchword);
-                    status.code != Status::NONE)
-                    return status;
+            // stdout
+            if (fds[0].revents & POLLIN) {
+                if (auto r = sg_out_.readLine(lines, searchword); r.code != Status::NONE) {
+                    return r;
+                }
             }
 
-            // data on stderr, we dont search for searchword here
-            if (pollfds[1].revents & POLLIN) {
-                const auto bytes_read = read(err_pipe_.read_end(), buffer.data(), sizeof(buffer));
-
-                if (auto status = processBuffer(buffer, bytes_read, lines, current_line_err_, true, "");
-                    status.code != Status::NONE)
-                    return status;
+            // stderr (no searchword match)
+            if (fds[1].revents & POLLIN) {
+                if (auto r = sg_err_.readLine(lines, ""); r.code != Status::NONE) {
+                    return r;
+                }
             }
         }
 
@@ -273,7 +275,6 @@ class Process : public IProcess {
 
     Result writeInput(const std::string& input) noexcept override {
         assert(is_initalized_);
-
         if (!alive()) return Result::Error("process not alive");
 
         if (write(out_pipe_.write_end(), input.c_str(), input.size()) == -1) {
@@ -284,118 +285,122 @@ class Process : public IProcess {
     }
 
    private:
-    template <typename Func>
-    Result start_process(char* const* execv_argv, Func func) {
+    struct SpawnFileActions {
+        posix_spawn_file_actions_t actions{};
+        SpawnFileActions() {
+            const int rc = posix_spawn_file_actions_init(&actions);
+            if (rc != 0)
+                throw fastchess_exception(std::string("posix_spawn_file_actions_init failed: ") + strerror(rc));
+        }
+
+        ~SpawnFileActions() { posix_spawn_file_actions_destroy(&actions); }
+
+        SpawnFileActions(const SpawnFileActions&)            = delete;
+        SpawnFileActions& operator=(const SpawnFileActions&) = delete;
+
+        void add_dup2(int from_fd, int to_fd) {
+            const int rc = posix_spawn_file_actions_adddup2(&actions, from_fd, to_fd);
+            if (rc != 0) throw fastchess_exception("posix_spawn_file_actions_adddup2 failed");
+        }
+
+        void add_workdir(const std::string& wd) {
+            if (wd.empty()) return;
+
+#    ifdef NO_POSIX_SPAWN_FILE_ACTIONS_ADDCHDIR
+            // wd already baked into command path
+            return;
+#    endif
+
+            const int rc = portable_spawn_file_actions_addchdir(&actions, wd.c_str());
+            if (rc != 0) {
+                // chdir is broken on some macOS setups, ignore in that case
+#    if !(defined(__MAC_OS_X_VERSION_MIN_REQUIRED) && __MAC_OS_X_VERSION_MIN_REQUIRED >= 101500)
+                throw fastchess_exception("posix_spawn_file_actions_addchdir failed");
+#    endif
+            }
+        }
+    };
+
+    template <typename SpawnFunc>
+    Result spawn_with(char* const* execv_argv, SpawnFunc spawn_func) {
+        // reset pipes each attempt
         out_pipe_ = {};
         in_pipe_  = {};
         err_pipe_ = {};
 
-        posix_spawn_file_actions_t file_actions;
-        posix_spawn_file_actions_init(&file_actions);
-
         try {
-            setup_spawn_file_actions(file_actions, out_pipe_.read_end(), STDIN_FILENO);
-            setup_spawn_file_actions(file_actions, in_pipe_.write_end(), STDOUT_FILENO);
-            setup_spawn_file_actions(file_actions, err_pipe_.write_end(), STDERR_FILENO);
+            SpawnFileActions fa;
 
-            setup_wd_file_actions(file_actions, wd_);
+            fa.add_dup2(out_pipe_.read_end(), STDIN_FILENO);
+            fa.add_dup2(in_pipe_.write_end(), STDOUT_FILENO);
+            fa.add_dup2(err_pipe_.write_end(), STDERR_FILENO);
 
-            int result = func(&process_pid_, command_.c_str(), &file_actions, nullptr, execv_argv, environ);
+            fa.add_workdir(wd_);
 
-            if (result != 0) {
-                std::string errorMsg = std::strerror(result);
-                throw fastchess_exception("posix_spawn failed: " + errorMsg);
+            const int rc = spawn_func(&process_pid_, command_.c_str(), &fa.actions, nullptr, execv_argv, environ);
+            if (rc != 0) {
+                throw fastchess_exception(std::string("posix_spawn failed: ") + std::strerror(rc));
             }
-
-            posix_spawn_file_actions_destroy(&file_actions);
         } catch (const std::exception& e) {
-            posix_spawn_file_actions_destroy(&file_actions);
             return Result::Error(e.what());
         }
 
         return Result::OK();
     }
 
-    void setup_spawn_file_actions(posix_spawn_file_actions_t& file_actions, int fd, int target_fd) {
-        if (posix_spawn_file_actions_adddup2(&file_actions, fd, target_fd) != 0) {
-            throw fastchess_exception("posix_spawn_file_actions_add* failed");
-        }
-    }
+    int wait_with_timeout_or_kill() {
+        int status = 0;
 
-    void setup_wd_file_actions(posix_spawn_file_actions_t& file_actions, const std::string& wd) {
-        if (wd.empty()) return;
+        const auto start = std::chrono::steady_clock::now();
+        pid_t pid        = 0;
 
-#    ifdef NO_POSIX_SPAWN_FILE_ACTIONS_ADDCHDIR
-        // dir added to the command directly
-        return;
-#    endif
-
-        if (portable_spawn_file_actions_addchdir(&file_actions, wd.c_str()) != 0) {
-            // chdir is broken on macos so lets just ignore the return code,
-            // https://github.com/rust-lang/rust/pull/80537
-#    if !(defined(__MAC_OS_X_VERSION_MIN_REQUIRED) && __MAC_OS_X_VERSION_MIN_REQUIRED >= 101500)
-            throw fastchess_exception("posix_spawn_file_actions_addchdir failed");
-#    endif
-        }
-    }
-
-    [[nodiscard]] Result processBuffer(const std::array<char, 4096>& buffer, ssize_t bytes_read,
-                                       std::vector<Line>& lines, std::string& current_line, bool is_stderr,
-                                       std::string_view searchword) {
-        if (bytes_read == -1) return Result::Error("read failed");
-
-        // Iterate over each character in the buffer
-        for (ssize_t i = 0; i < bytes_read; i++) {
-            // append the character to the current line
-            if (buffer[i] != '\n') {
-                current_line += buffer[i];
-                continue;
-            }
-
-            // If we encounter a newline, add the current line
-            // to the vector and reset the current_line_.
-            // Dont add empty lines
-            if (!current_line.empty()) {
-                const auto time = Logger::should_log_ ? time::datetime_precise() : "";
-
-                lines.emplace_back(Line{current_line, time, is_stderr ? Standard::ERR : Standard::OUTPUT});
-
-                if (realtime_logging_) Logger::readFromEngine(current_line, time, log_name_, is_stderr);
-                if (!searchword.empty() && current_line.rfind(searchword, 0) == 0) return Result::OK();
-
-                current_line.clear();
-            }
+        while (std::chrono::steady_clock::now() - start < IProcess::kill_timeout) {
+            pid = waitpid(process_pid_, &status, WNOHANG);
+            if (pid != 0) break;  // >0 exited, <0 error
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }
 
-        return Result{Status::NONE, ""};
+        if (pid == 0) {
+            LOG_TRACE_THREAD("Force terminating process with pid: {} {}", process_pid_, status);
+            kill(process_pid_, SIGKILL);
+            waitpid(process_pid_, &status, 0);
+        } else {
+            LOG_TRACE_THREAD("Process with pid: {} terminated with status: {}", process_pid_, status);
+        }
+
+        return status;
     }
 
-    // buffer to read into
-    std::array<char, 4096> buffer;
+    static int normalize_poll_timeout_ms(std::chrono::milliseconds threshold) {
+        // wait indefinitely
+        if (threshold.count() <= 0) return -1;
+        if (threshold.count() > (std::chrono::milliseconds::max)().count()) return -1;
+        return static_cast<int>(threshold.count());
+    }
 
+    void flush_partials_on_timeout(std::vector<Line>& lines) {
+        sg_out_.flushPartial(lines);
+        sg_err_.flushPartial(lines);
+    }
+
+   private:
     std::string wd_;
-
-    // The command to execute
     std::string command_;
-    // The arguments for the engine
     std::string args_;
-    // The name in the log file
     std::string log_name_;
 
-    std::string current_line_out_;
-    std::string current_line_err_;
+    Stream sg_out_;
+    Stream sg_err_;
 
-    // True if the process has been initialized
     bool is_initalized_ = false;
     bool startup_error_ = false;
 
-    // The process id of the engine
-    pid_t process_pid_;
-
+    pid_t process_pid_{0};
     Pipe in_pipe_, out_pipe_, err_pipe_;
 
     std::optional<int> exit_code_;
 };
+
 }  // namespace engine::process
 }  // namespace fastchess
 

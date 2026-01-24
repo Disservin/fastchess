@@ -378,7 +378,7 @@ void UciEngine::writeLog() const {
     }
 }
 
-std::string UciEngine::lastInfoLine() const {
+std::string UciEngine::lastInfoLine(bool logging) const {
     std::string fallback;
 
     // iterate backwards over the output and save the info line
@@ -406,7 +406,33 @@ std::string UciEngine::lastInfoLine() const {
         if (fallback.empty()) fallback = line;
     }
 
+    if (logging && fallback.empty()) {
+        Logger::print<Logger::Level::WARN>("Warning; Last info string with score not found from {}", config_.name);
+    }
+
     return fallback;
+}
+
+std::vector<std::string> UciEngine::getInfoLines() const {
+    std::vector<std::string> info_lines;
+
+    for (const auto& it : getStdoutLines()) {
+        const auto &line = it->line;
+
+        // skip "info string" lines
+        if (line.find("info string") != std::string::npos) {
+            continue;
+        }
+
+        // only consider info lines with score
+        if (line.find("info") == std::string::npos || line.find(" score ") == std::string::npos) {
+            continue;
+        }
+
+        info_lines.push_back(line);
+    }
+
+    return info_lines;
 }
 
 bool UciEngine::writeEngine(const std::string& input) {
@@ -431,17 +457,6 @@ std::optional<std::string> UciEngine::bestmove() const {
     }
 
     return bm.value();
-}
-
-std::vector<std::string> UciEngine::lastInfo() const {
-    const auto last_info = lastInfoLine();
-
-    if (last_info.empty()) {
-        Logger::print<Logger::Level::WARN>("Warning; Last info string with score not found from {}", config_.name);
-        return {};
-    }
-
-    return str_utils::splitString(last_info, ' ');
 }
 
 std::chrono::milliseconds UciEngine::lastTime() const {
@@ -470,14 +485,13 @@ std::chrono::milliseconds UciEngine::lastTime() const {
     return std::chrono::milliseconds(time);
 }
 
-Score UciEngine::lastScore() const {
-    const auto info = lastInfo();
-
+Score UciEngine::getScore(std::string_view info) {
+    auto split_info = str_utils::splitString(info, ' ');
     Score score;
 
     score.value = 0;
-    score.type  = [&info]() {
-        auto type_str = str_utils::findElement<std::string>(info, "score").value_or("ERR");
+    score.type  = [&split_info]() {
+        auto type_str = str_utils::findElement<std::string>(split_info, "score").value_or("ERR");
 
         if (type_str == "cp") return ScoreType::CP;
         if (type_str == "mate") return ScoreType::MATE;
@@ -487,9 +501,22 @@ Score UciEngine::lastScore() const {
 
     if (score.type == ScoreType::ERR) return score;
 
-    score.value = str_utils::findElement<int64_t>(info, score.type == ScoreType::CP ? "cp" : "mate").value_or(0);
+    score.value = str_utils::findElement<int64_t>(split_info, score.type == ScoreType::CP ? "cp" : "mate").value_or(0);
 
     return score;
+}
+
+Score UciEngine::lastScore() const { return getScore(lastInfoLine(true)); }
+
+std::optional<std::vector<std::string>> UciEngine::getPv(std::string_view info) {
+    auto split_info = str_utils::splitString(info, ' ');
+    if (!str_utils::contains(split_info, "pv")) return std::nullopt;
+
+    auto it_start = std::find(split_info.begin(), split_info.end(), "pv") + 1;
+    auto it_end =
+        std::find_if(it_start, split_info.end(), [](const auto &token) { return !chess::uci::isUciMove(token); });
+
+    return std::vector<std::string>(it_start, it_end);
 }
 
 bool UciEngine::outputIncludesBestmove() const {

@@ -86,7 +86,8 @@ class Process : public IProcess {
         command_ = getPath(wd_, command_);
 #    endif
 
-        current_line_.reserve(300);
+        current_line_out_.reserve(300);
+        current_line_err_.reserve(300);
 
         argv_split parser(command_);
         parser.parse(args);
@@ -180,7 +181,10 @@ class Process : public IProcess {
         is_initalized_ = false;
     }
 
-    void setupRead() override { current_line_.clear(); }
+    void setupRead() override {
+        current_line_out_.clear();
+        current_line_err_.clear();
+    }
 
     // Read stdout until the line matches searchword or timeout is reached
     // 0 means no timeout clears the lines vector
@@ -206,6 +210,8 @@ class Process : public IProcess {
         pollfds[1].fd     = err_pipe_.read_end();
         pollfds[1].events = POLLIN;
 
+        assert(pollfds[0].fd != pollfds[1].fd);
+
         // Continue reading output lines until the line
         // matches the specified searchword or a timeout occurs
         while (true) {
@@ -222,8 +228,23 @@ class Process : public IProcess {
 
             // timeout
             if (ready == 0) {
-                if (!current_line_.empty()) lines.emplace_back(Line{current_line_, time::datetime_precise()});
-                if (realtime_logging_) Logger::readFromEngine(current_line_, time::datetime_precise(), log_name_);
+                const auto timestamp = time::datetime_precise();
+
+                if (!current_line_out_.empty()) {
+                    lines.emplace_back(Line{current_line_out_, timestamp, Standard::OUTPUT});
+                }
+
+                if (realtime_logging_ && !current_line_out_.empty()) {
+                    Logger::readFromEngine(current_line_out_, timestamp, log_name_, false);
+                }
+
+                if (!current_line_err_.empty()) {
+                    lines.emplace_back(Line{current_line_err_, timestamp, Standard::ERR});
+                }
+
+                if (realtime_logging_ && !current_line_err_.empty()) {
+                    Logger::readFromEngine(current_line_err_, timestamp, log_name_, true);
+                }
 
                 return Result{Status::TIMEOUT, "timeout"};
             }
@@ -232,7 +253,8 @@ class Process : public IProcess {
             if (pollfds[0].revents & POLLIN) {
                 const auto bytes_read = read(in_pipe_.read_end(), buffer.data(), sizeof(buffer));
 
-                if (auto status = processBuffer(buffer, bytes_read, lines, searchword); status.code != Status::NONE)
+                if (auto status = processBuffer(buffer, bytes_read, lines, current_line_out_, false, searchword);
+                    status.code != Status::NONE)
                     return status;
             }
 
@@ -240,7 +262,8 @@ class Process : public IProcess {
             if (pollfds[1].revents & POLLIN) {
                 const auto bytes_read = read(err_pipe_.read_end(), buffer.data(), sizeof(buffer));
 
-                if (auto status = processBuffer(buffer, bytes_read, lines, ""); status.code != Status::NONE)
+                if (auto status = processBuffer(buffer, bytes_read, lines, current_line_err_, true, "");
+                    status.code != Status::NONE)
                     return status;
             }
         }
@@ -317,30 +340,30 @@ class Process : public IProcess {
     }
 
     [[nodiscard]] Result processBuffer(const std::array<char, 4096>& buffer, ssize_t bytes_read,
-                                       std::vector<Line>& lines, std::string_view searchword) {
+                                       std::vector<Line>& lines, std::string& current_line, bool is_stderr,
+                                       std::string_view searchword) {
         if (bytes_read == -1) return Result::Error("read failed");
 
         // Iterate over each character in the buffer
         for (ssize_t i = 0; i < bytes_read; i++) {
             // append the character to the current line
             if (buffer[i] != '\n') {
-                current_line_ += buffer[i];
+                current_line += buffer[i];
                 continue;
             }
 
             // If we encounter a newline, add the current line
             // to the vector and reset the current_line_.
             // Dont add empty lines
-            if (!current_line_.empty()) {
+            if (!current_line.empty()) {
                 const auto time = Logger::should_log_ ? time::datetime_precise() : "";
 
-                lines.emplace_back(Line{current_line_, time});
+                lines.emplace_back(Line{current_line, time, is_stderr ? Standard::ERR : Standard::OUTPUT});
 
-                const bool is_stderr = searchword.empty();
-                if (realtime_logging_) Logger::readFromEngine(current_line_, time, log_name_, is_stderr);
-                if (!searchword.empty() && current_line_.rfind(searchword, 0) == 0) return Result::OK();
+                if (realtime_logging_) Logger::readFromEngine(current_line, time, log_name_, is_stderr);
+                if (!searchword.empty() && current_line.rfind(searchword, 0) == 0) return Result::OK();
 
-                current_line_.clear();
+                current_line.clear();
             }
         }
 
@@ -359,7 +382,8 @@ class Process : public IProcess {
     // The name in the log file
     std::string log_name_;
 
-    std::string current_line_;
+    std::string current_line_out_;
+    std::string current_line_err_;
 
     // True if the process has been initialized
     bool is_initalized_ = false;

@@ -23,4 +23,10 @@ TEST_SUITE("Standalone Function Tests") {
 
         CHECK(!str_utils::findElement<std::string>(str_utils::splitString(str, ' '), "bestmove").has_value());
     }
+
+    TEST_CASE("Dont Throw Exception on Missing Element") {
+        const auto str = "info depth 1 seldepth  score cp  nodes  nps 0 hashfull 0 time 0 pv e4d5";
+
+        CHECK(!str_utils::findElement<int64_t>(str_utils::splitString(str, ' '), "score").has_value());
+    }
 }

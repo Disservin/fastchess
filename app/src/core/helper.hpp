@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 
+#include <expected.hpp>
 #include <json.hpp>
 
 namespace fastchess::str_utils {
@@ -46,21 +47,33 @@ namespace fastchess::str_utils {
 
 // Find an element in a vector of strings and return the next element as a specified type.
 template <typename T>
-[[nodiscard]] std::optional<T> findElement(const std::vector<std::string>& haystack, std::string_view needle) {
-    auto position = std::find(haystack.begin(), haystack.end(), needle);
-    auto index    = position - haystack.begin();
-    if (position == haystack.end()) return std::nullopt;
-    if constexpr (std::is_same_v<T, int>)
-        return std::stoi(haystack[index + 1]);
-    else if constexpr (std::is_same_v<T, float>)
-        return std::stof(haystack[index + 1]);
-    else if constexpr (std::is_same_v<T, uint64_t>)
-        return std::stoull(haystack[index + 1]);
-    else if constexpr (std::is_same_v<T, int64_t>)
-        return std::stoll(haystack[index + 1]);
-    else {
-        if (haystack.size() <= size_t(index) + 1) return std::nullopt;
-        return haystack[index + 1];
+[[nodiscard]] tl::expected<T, std::string> findElement(const std::vector<std::string>& haystack,
+                                                       std::string_view needle) {
+    auto it = std::find(haystack.begin(), haystack.end(), needle);
+
+    if (it == haystack.end() || std::next(it) == haystack.end()) {
+        return tl::make_unexpected(std::string("Element '") + std::string(needle) + "' not found");
+    }
+
+    const std::string& target = *std::next(it);
+
+    try {
+        if constexpr (std::is_same_v<T, int>) {
+            return std::stoi(target);
+        } else if constexpr (std::is_same_v<T, float>) {
+            return std::stof(target);
+        } else if constexpr (std::is_same_v<T, uint64_t>) {
+            return std::stoull(target);
+        } else if constexpr (std::is_same_v<T, int64_t>) {
+            return std::stoll(target);
+        } else if constexpr (std::is_same_v<T, std::string>) {
+            return target;
+        } else {
+            return tl::make_unexpected(std::string("Unsupported target type for element '") + target + "'");
+        }
+    } catch (const std::exception& e) {
+        return tl::make_unexpected(std::string("Error converting element '") + target +
+                                   "' to target type: " + e.what());
     }
 }
 

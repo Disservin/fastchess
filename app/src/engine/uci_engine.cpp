@@ -425,7 +425,8 @@ std::optional<std::string> UciEngine::bestmove() const {
     const auto bm = str_utils::findElement<std::string>(str_utils::splitString(lines.back()->line, ' '), "bestmove");
 
     if (!bm.has_value()) {
-        Logger::print<Logger::Level::WARN>("Warning; No bestmove found in the last line from {}", config_.name);
+        Logger::print<Logger::Level::WARN>("Warning; No bestmove found in the last line from {} because: {}",
+                                           config_.name, bm.error());
 
         return std::nullopt;
     }

@@ -149,6 +149,8 @@ void Match::addMoveData(const Player& player, int64_t measured_time_ms, int64_t 
                                            player.engine.getConfig().name, score.error());
     }
 
+    const default_score = engine::Score{engine::ScoreType::ERR, 0};
+
     move_data.nps      = str_utils::findElement<uint64_t>(info, "nps").value_or(0);
     move_data.hashfull = str_utils::findElement<int64_t>(info, "hashfull").value_or(0);
     move_data.tbhits   = str_utils::findElement<uint64_t>(info, "tbhits").value_or(0);
@@ -156,12 +158,11 @@ void Match::addMoveData(const Player& player, int64_t measured_time_ms, int64_t 
     move_data.seldepth = str_utils::findElement<int64_t>(info, "seldepth").value_or(0);
     move_data.nodes    = str_utils::findElement<uint64_t>(info, "nodes").value_or(0);
     move_data.pv       = str_utils::join(extractPvFromInfo(info).value_or(std::vector<std::string>{}), " ");
-    move_data.score    = score.value_or(engine::Score{engine::ScoreType::ERR, 0}).value;
+    move_data.score    = score.value_or(default_score).value;
     move_data.timeleft = timeleft;
     move_data.latency  = latency;
 
-    move_data.score_string = Match::convertScoreToString(move_data.score, score.type);
-
+    move_data.score_string = Match::convertScoreToString(move_data.score, score.value_or(default_score).type);
     if (!config::TournamentConfig->pgn.additional_lines_rgx.empty()) {
         for (const auto& rgx : config::TournamentConfig->pgn.additional_lines_rgx) {
             const auto lines = player.engine.output();
@@ -425,9 +426,9 @@ bool Match::playMove(Player& us, Player& them) {
     // object directly
     auto score = us.engine.lastScore();
 
-    if (score.type != engine::ScoreType::ERR) {
-        draw_tracker_.update(score, board_.halfMoveClock());
-        resign_tracker_.update(score, ~board_.sideToMove());
+    if (score.has_value()) {
+        draw_tracker_.update(score.value(), board_.halfMoveClock());
+        resign_tracker_.update(score.value(), ~board_.sideToMove());
     }
 
     maxmoves_tracker_.update();
@@ -659,7 +660,9 @@ bool Match::adjudicate(Player& us, Player& them) noexcept {
         }
     }
 
-    if (config::TournamentConfig->resign.enabled && resign_tracker_.resignable() && us.engine.lastScore().value < 0) {
+    const auto score = us.engine.lastScore();
+    if (config::TournamentConfig->resign.enabled && resign_tracker_.resignable() && score.has_value() &&
+        score.value().value < 0) {
         us.setLost();
         them.setWon();
 

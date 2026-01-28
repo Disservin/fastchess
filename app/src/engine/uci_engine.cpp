@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <condition_variable>
 #include <mutex>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -11,6 +12,7 @@
 #include <core/config/config.hpp>
 #include <core/helper.hpp>
 #include <core/logger/logger.hpp>
+#include "expected.hpp"
 
 namespace fastchess::engine {
 
@@ -471,24 +473,28 @@ std::chrono::milliseconds UciEngine::lastTime() const {
     return std::chrono::milliseconds(time);
 }
 
-Score UciEngine::lastScore() const {
+tl::expected<Score, std::string> UciEngine::lastScore() const {
     const auto info = lastInfo();
 
     Score score;
 
+    const auto type_str = str_utils::findElement<std::string>(info, "score");
+
     score.value = 0;
-    score.type  = [&info]() {
-        auto type_str = str_utils::findElement<std::string>(info, "score").value_or("ERR");
 
-        if (type_str == "cp") return ScoreType::CP;
-        if (type_str == "mate") return ScoreType::MATE;
+    if (!type_str.has_value()) return tl::make_unexpected(type_str.error());
 
-        return ScoreType::ERR;
-    }();
+    score.type = type_str.value() == "cp"     ? ScoreType::CP
+                 : type_str.value() == "mate" ? ScoreType::MATE
+                                              : ScoreType::ERR;
 
-    if (score.type == ScoreType::ERR) return score;
+    if (score.type == ScoreType::ERR) return tl::make_unexpected("Unexpected score type: " + lastInfoLine());
 
-    score.value = str_utils::findElement<int64_t>(info, score.type == ScoreType::CP ? "cp" : "mate").value_or(0);
+    auto value = str_utils::findElement<int64_t>(info, score.type == ScoreType::CP ? "cp" : "mate");
+
+    if (!value.has_value()) return tl::make_unexpected(value.error());
+
+    score.value = value.value();
 
     return score;
 }

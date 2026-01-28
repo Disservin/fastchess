@@ -118,7 +118,7 @@ class UciEngine {
     [[nodiscard]] ms lastTime() const;
 
     // Get the last score from the last output.
-    [[nodiscard]] Score lastScore() const;
+    [[nodiscard]] tl::expected<Score, std::string> lastScore() const;
 
     // returns false if the output doesnt include a bestmove
     [[nodiscard]] bool outputIncludesBestmove() const;

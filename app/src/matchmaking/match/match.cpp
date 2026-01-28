@@ -144,6 +144,11 @@ void Match::addMoveData(const Player& player, int64_t measured_time_ms, int64_t 
     const auto score = player.engine.lastScore();
     const auto info  = player.engine.lastInfo();
 
+    if (!score) {
+        Logger::print<Logger::Level::WARN>("Warning; Could not extract score from engine {}: {}",
+                                           player.engine.getConfig().name, score.error());
+    }
+
     move_data.nps      = str_utils::findElement<uint64_t>(info, "nps").value_or(0);
     move_data.hashfull = str_utils::findElement<int64_t>(info, "hashfull").value_or(0);
     move_data.tbhits   = str_utils::findElement<uint64_t>(info, "tbhits").value_or(0);
@@ -151,7 +156,7 @@ void Match::addMoveData(const Player& player, int64_t measured_time_ms, int64_t 
     move_data.seldepth = str_utils::findElement<int64_t>(info, "seldepth").value_or(0);
     move_data.nodes    = str_utils::findElement<uint64_t>(info, "nodes").value_or(0);
     move_data.pv       = str_utils::join(extractPvFromInfo(info).value_or(std::vector<std::string>{}), " ");
-    move_data.score    = score.value;
+    move_data.score    = score.value_or(engine::Score{engine::ScoreType::ERR, 0}).value;
     move_data.timeleft = timeleft;
     move_data.latency  = latency;
 
@@ -420,8 +425,11 @@ bool Match::playMove(Player& us, Player& them) {
     // object directly
     auto score = us.engine.lastScore();
 
-    draw_tracker_.update(score, board_.halfMoveClock());
-    resign_tracker_.update(score, ~board_.sideToMove());
+    if (score.type != engine::ScoreType::ERR) {
+        draw_tracker_.update(score, board_.halfMoveClock());
+        resign_tracker_.update(score, ~board_.sideToMove());
+    }
+
     maxmoves_tracker_.update();
 
     return true;

@@ -149,7 +149,7 @@ void Match::addMoveData(const Player& player, int64_t measured_time_ms, int64_t 
                                            player.engine.getConfig().name, score.error());
     }
 
-    const default_score = engine::Score{engine::ScoreType::ERR, 0};
+    const auto default_score = engine::Score{engine::ScoreType::ERR, 0};
 
     move_data.nps      = str_utils::findElement<uint64_t>(info, "nps").value_or(0);
     move_data.hashfull = str_utils::findElement<int64_t>(info, "hashfull").value_or(0);

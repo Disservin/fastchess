@@ -141,23 +141,29 @@ void Match::addMoveData(const Player& player, int64_t measured_time_ms, int64_t 
     }
 
     // extract last info line
-    const auto score = player.engine.lastScore();
-    const auto info  = player.engine.lastInfo();
+    const auto info = player.engine.lastInfo();
 
-    if (!score) {
+    if (!info.has_value()) {
+        Logger::print<Logger::Level::WARN>("Warning; No info line available to extract score from engine {}",
+                                           player.engine.getConfig().name);
+    }
+
+    const auto score = player.engine.lastScore();
+
+    if (info.has_value() && !score.has_value()) {
         Logger::print<Logger::Level::WARN>("Warning; Could not extract score from engine {}: {}",
                                            player.engine.getConfig().name, score.error());
     }
 
     const auto default_score = engine::Score{engine::ScoreType::ERR, 0};
 
-    move_data.nps      = str_utils::findElement<uint64_t>(info, "nps").value_or(0);
-    move_data.hashfull = str_utils::findElement<int64_t>(info, "hashfull").value_or(0);
-    move_data.tbhits   = str_utils::findElement<uint64_t>(info, "tbhits").value_or(0);
-    move_data.depth    = str_utils::findElement<int64_t>(info, "depth").value_or(0);
-    move_data.seldepth = str_utils::findElement<int64_t>(info, "seldepth").value_or(0);
-    move_data.nodes    = str_utils::findElement<uint64_t>(info, "nodes").value_or(0);
-    move_data.pv       = str_utils::join(extractPvFromInfo(info).value_or(std::vector<std::string>{}), " ");
+    move_data.nps      = str_utils::findElement<uint64_t>(info.value(), "nps").value_or(0);
+    move_data.hashfull = str_utils::findElement<int64_t>(info.value(), "hashfull").value_or(0);
+    move_data.tbhits   = str_utils::findElement<uint64_t>(info.value(), "tbhits").value_or(0);
+    move_data.depth    = str_utils::findElement<int64_t>(info.value(), "depth").value_or(0);
+    move_data.seldepth = str_utils::findElement<int64_t>(info.value(), "seldepth").value_or(0);
+    move_data.nodes    = str_utils::findElement<uint64_t>(info.value(), "nodes").value_or(0);
+    move_data.pv       = str_utils::join(extractPvFromInfo(info.value()).value_or(std::vector<std::string>{}), " ");
     move_data.score    = score.value_or(default_score).value;
     move_data.timeleft = timeleft;
     move_data.latency  = latency;

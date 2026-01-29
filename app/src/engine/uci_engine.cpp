@@ -436,12 +436,11 @@ std::optional<std::string> UciEngine::bestmove() const {
     return bm.value();
 }
 
-std::vector<std::string> UciEngine::lastInfo() const {
+std::optional<std::vector<std::string>> UciEngine::lastInfo() const {
     const auto last_info = lastInfoLine();
 
     if (last_info.empty()) {
-        Logger::print<Logger::Level::WARN>("Warning; Last info string with score not found from {}", config_.name);
-        return {};
+        return std::nullopt;
     }
 
     return str_utils::splitString(last_info, ' ');
@@ -476,9 +475,13 @@ std::chrono::milliseconds UciEngine::lastTime() const {
 tl::expected<Score, std::string> UciEngine::lastScore() const {
     const auto info = lastInfo();
 
+    if (!info.has_value()) {
+        return tl::make_unexpected("No info line available to extract score from: " + lastInfoLine());
+    }
+
     Score score;
 
-    const auto type_str = str_utils::findElement<std::string>(info, "score");
+    const auto type_str = str_utils::findElement<std::string>(info.value(), "score");
 
     score.value = 0;
 
@@ -490,7 +493,7 @@ tl::expected<Score, std::string> UciEngine::lastScore() const {
 
     if (score.type == ScoreType::ERR) return tl::make_unexpected("Unexpected score type: " + lastInfoLine());
 
-    auto value = str_utils::findElement<int64_t>(info, score.type == ScoreType::CP ? "cp" : "mate");
+    auto value = str_utils::findElement<int64_t>(info.value(), score.type == ScoreType::CP ? "cp" : "mate");
 
     if (!value.has_value()) return tl::make_unexpected(value.error());
 

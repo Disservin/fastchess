@@ -35,6 +35,8 @@ class DrawTracker {
         return plies >= move_number_ && draw_moves_ >= move_count_ * 2;
     }
 
+    void invalidate() { draw_moves_ = 0; }
+
    private:
     // number of moves below the draw threshold
     int draw_moves_ = 0;
@@ -76,6 +78,19 @@ class ResignTracker {
     [[nodiscard]] bool resignable() const noexcept {
         if (twosided_) return resign_moves >= move_count_ * 2;
         return resign_moves_black >= move_count_ || resign_moves_white >= move_count_;
+    }
+
+    void invalidate(chess::Color color) noexcept {
+        if (twosided_) {
+            resign_moves = 0;
+            return;
+        }
+
+        if (color == chess::Color::BLACK) {
+            resign_moves_black = 0;
+        } else {
+            resign_moves_white = 0;
+        }
     }
 
    private:

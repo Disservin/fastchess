@@ -429,6 +429,9 @@ bool Match::playMove(Player& us, Player& them) {
     if (score.has_value()) {
         draw_tracker_.update(score.value(), board_.halfMoveClock());
         resign_tracker_.update(score.value(), ~board_.sideToMove());
+    } else {
+        draw_tracker_.invalidate();
+        resign_tracker_.invalidate(~board_.sideToMove());
     }
 
     maxmoves_tracker_.update();

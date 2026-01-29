@@ -113,12 +113,12 @@ class UciEngine {
     [[nodiscard]] std::string lastInfoLine() const;
 
     // Get the last info from the last output.
-    [[nodiscard]] std::vector<std::string> lastInfo() const;
+    [[nodiscard]] std::optional<std::vector<std::string>> lastInfo() const;
 
     [[nodiscard]] ms lastTime() const;
 
     // Get the last score from the last output.
-    [[nodiscard]] Score lastScore() const;
+    [[nodiscard]] tl::expected<Score, std::string> lastScore() const;
 
     // returns false if the output doesnt include a bestmove
     [[nodiscard]] bool outputIncludesBestmove() const;

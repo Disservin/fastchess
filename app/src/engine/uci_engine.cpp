@@ -411,6 +411,28 @@ std::string UciEngine::lastInfoLine() const {
     return fallback;
 }
 
+std::vector<std::string> UciEngine::getInfoLines() const {
+    std::vector<std::string> info_lines;
+
+    for (const auto& it : getStdoutLines()) {
+        const auto &line = it->line;
+
+        // skip "info string" lines
+        if (line.find("info string") != std::string::npos) {
+            continue;
+        }
+
+        // only consider info lines with score
+        if (line.find("info") == std::string::npos || line.find(" score ") == std::string::npos) {
+            continue;
+        }
+
+        info_lines.push_back(line);
+    }
+
+    return info_lines;
+}
+
 bool UciEngine::writeEngine(const std::string& input) {
     Logger::writeToEngine(input, "", config_.name);
     return process_.writeInput(input + "\n").code == process::Status::OK;
@@ -434,16 +456,6 @@ std::optional<std::string> UciEngine::bestmove() const {
     }
 
     return bm.value();
-}
-
-std::optional<std::vector<std::string>> UciEngine::lastInfo() const {
-    const auto last_info = lastInfoLine();
-
-    if (last_info.empty()) {
-        return std::nullopt;
-    }
-
-    return str_utils::splitString(last_info, ' ');
 }
 
 std::chrono::milliseconds UciEngine::lastTime() const {
@@ -472,16 +484,16 @@ std::chrono::milliseconds UciEngine::lastTime() const {
     return std::chrono::milliseconds(time);
 }
 
-tl::expected<Score, std::string> UciEngine::lastScore() const {
-    const auto info = lastInfo();
-
-    if (!info.has_value()) {
-        return tl::make_unexpected("No info line available to extract score from: " + lastInfoLine());
+tl::expected<Score, std::string> UciEngine::getScore(std::string_view info_line) {
+    if (info_line.empty()) {
+        return tl::make_unexpected("No info line available to extract score from: " + std::string(info_line));
     }
+  
+    auto info = str_utils::splitString(info_line, ' ');
 
     Score score;
 
-    const auto type_str = str_utils::findElement<std::string>(info.value(), "score");
+    const auto type_str = str_utils::findElement<std::string>(info, "score");
 
     score.value = 0;
 
@@ -491,15 +503,31 @@ tl::expected<Score, std::string> UciEngine::lastScore() const {
                  : type_str.value() == "mate" ? ScoreType::MATE
                                               : ScoreType::ERR;
 
-    if (score.type == ScoreType::ERR) return tl::make_unexpected("Unexpected score type: " + lastInfoLine());
+    if (score.type == ScoreType::ERR) return tl::make_unexpected("Unexpected score type: " + std::string(info_line));
 
-    auto value = str_utils::findElement<int64_t>(info.value(), score.type == ScoreType::CP ? "cp" : "mate");
+    auto value = str_utils::findElement<int64_t>(info, score.type == ScoreType::CP ? "cp" : "mate");
 
     if (!value.has_value()) return tl::make_unexpected(value.error());
 
     score.value = value.value();
 
     return score;
+}
+
+tl::expected<Score, std::string> UciEngine::lastScore() const { return getScore(lastInfoLine()); }
+
+std::optional<std::vector<std::string>> UciEngine::getPv(std::string_view info_line) {
+    if (info_line.empty()) return std::nullopt;
+
+    auto info = str_utils::splitString(info_line, ' ');
+
+    if (!str_utils::contains(info, "pv")) return std::nullopt;
+
+    auto it_start = std::find(info.begin(), info.end(), "pv") + 1;
+    auto it_end =
+        std::find_if(it_start, info.end(), [](const auto &token) { return !chess::uci::isUciMove(token); });
+
+    return std::vector<std::string>(it_start, it_end);
 }
 
 bool UciEngine::outputIncludesBestmove() const {

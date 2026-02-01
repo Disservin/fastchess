@@ -23,7 +23,7 @@ std::atomic_bool abnormal_termination = false;
 util::ThreadVector<ProcessInformation> process_list;
 
 void writeToOpenPipes() {
-    const auto nullbyte = '\0';
+    const uint64_t dummy_data = 1;
 
     process_list.lock();
 
@@ -31,12 +31,12 @@ void writeToOpenPipes() {
         LOG_TRACE("Writing to process with pid/handle: {}", process.identifier);
 #ifdef _WIN64
         [[maybe_unused]] DWORD bytes_written;
-        WriteFile(process.fd_write, &nullbyte, 1, &bytes_written, nullptr);
+        WriteFile(process.fd_write, &dummy_data, sizeof(dummy_data), &bytes_written, nullptr);
 #else
         [[maybe_unused]] ssize_t bytes_written;
-        bytes_written = write(process.fd_write, &nullbyte, 1);
+        bytes_written = write(process.fd_write, &dummy_data, sizeof(dummy_data));
 #endif
-        assert(bytes_written == 1);
+        assert(bytes_written == sizeof(dummy_data));
     }
 
     process_list.unlock();

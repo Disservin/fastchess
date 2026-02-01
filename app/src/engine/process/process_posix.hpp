@@ -22,11 +22,14 @@
 #    include <sys/wait.h>
 #    include <unistd.h>
 
+#    include <sys/eventfd.h>
+
 #    include <affinity/affinity.hpp>
 #    include <argv_split.hpp>
 #    include <core/globals/globals.hpp>
 #    include <core/logger/logger.hpp>
 #    include <core/threading/thread_vector.hpp>
+#    include <engine/process/interrupt.hpp>
 #    include <engine/process/pipe.hpp>
 #    include <engine/process/signal.hpp>
 #    include <types/exception.hpp>
@@ -169,7 +172,9 @@ class Process : public IProcess {
         sg_err_ = Stream(err_pipe_.read_end(), realtime_logging_, Standard::ERR, log_name_);
 
         // create a control pipe to interrupt polling when terminating
-        pipe(control_pipe_);
+        // pipe(control_pipe_);
+
+        control_pipe_[1] = eventfd(0, EFD_CLOEXEC);
 
         // Append the process to the list of running processes
         // which are killed when the program exits, as a last resort
@@ -252,7 +257,7 @@ class Process : public IProcess {
         fds[1].fd     = err_pipe_.read_end();
         fds[1].events = POLLIN | POLLERR | POLLHUP;
 
-        fds[2].fd     = control_pipe_[0];
+        fds[2].fd     = control_pipe_[1];
         fds[2].events = POLLIN | POLLERR | POLLHUP;
 
         assert(fds[0].fd != fds[1].fd);
@@ -262,7 +267,6 @@ class Process : public IProcess {
         while (true) {
             const int ready = poll(fds.data(), (nfds_t)fds.size(), poll_timeout_ms);
 
-            if (atomic::stop) return Result::Error("stop requested");
             if (ready == -1) {
                 return Result::Error("poll failed");
             }
@@ -273,30 +277,32 @@ class Process : public IProcess {
             }
 
             // stdout
-            if (fds[0].revents & POLLIN) {
+            if (fds[0].revents & (POLLIN | POLLHUP | POLLERR)) {
+                if (fds[0].revents & (POLLHUP | POLLERR)) {
+                    return Result::Error("Engine crashed or closed pipe (stdout)");
+                }
+
                 if (auto r = sg_out_.readLine(lines, searchword); r.code != Status::NONE) {
                     return r;
                 }
             }
 
             // stderr (no searchword match)
-            if (fds[1].revents & POLLIN) {
+            if (fds[1].revents & (POLLIN | POLLHUP | POLLERR)) {
+                if (fds[1].revents & (POLLHUP | POLLERR)) {
+                    return Result::Error("Engine crashed or closed pipe (stderr)");
+                }
+
                 if (auto r = sg_err_.readLine(lines, ""); r.code != Status::NONE) {
                     return r;
                 }
             }
 
-            // stdout
-            if (fds[0].revents & (POLLHUP | POLLERR)) {
-                return Result::Error("Engine crashed or closed pipe (stdout)");
-            }
-
-            // stderr
-            if (fds[1].revents & (POLLHUP | POLLERR)) {
-                return Result::Error("Engine crashed or closed pipe (stderr)");
-            }
-
             if (fds[2].revents & POLLIN) {
+                [[maybe_unused]] uint64_t junk;
+                read(fds[2].fd, &junk, sizeof(junk));
+                assert(junk > 0);
+
                 return Result::Error("Interrupted by control pipe");
             }
         }

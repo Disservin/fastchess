@@ -22,8 +22,6 @@
 #    include <sys/wait.h>
 #    include <unistd.h>
 
-#    include <sys/eventfd.h>
-
 #    include <affinity/affinity.hpp>
 #    include <argv_split.hpp>
 #    include <core/globals/globals.hpp>

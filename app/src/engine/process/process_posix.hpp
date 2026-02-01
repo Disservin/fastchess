@@ -423,7 +423,9 @@ class Process : public IProcess {
 
     void flush_partials_on_timeout(std::vector<Line>& lines) {
         sg_out_.flushPartial(lines);
-        sg_err_.flushPartial(lines);
+        if (Logger::should_log_) {
+            sg_err_.flushPartial(lines);
+        }
     }
 
     [[nodiscard]] pollfd create_pollfd(int fd, short events) const {

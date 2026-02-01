@@ -3,6 +3,7 @@
 #ifndef _WIN64
 #    include <stdio.h>
 #    include <sys/resource.h>
+#    include <engine/process/interrupt.hpp>
 #else
 #    include <windows.h>
 #endif
@@ -40,8 +41,16 @@ namespace fastchess::fd_limit {
 }
 #endif
 
+#ifdef CAN_USE_EVENTFD_FLAGS
 [[nodiscard]] inline int minFileDescriptorRequired(int concurrency) noexcept { return 12 + concurrency * 10; }
 
 [[nodiscard]] inline int maxConcurrency(int availableFDs) noexcept { return (availableFDs - 12) / 10; }
+
+#else
+
+[[nodiscard]] inline int minFileDescriptorRequired(int concurrency) noexcept { return 12 + (concurrency) * 10; }
+
+[[nodiscard]] inline int maxConcurrency(int availableFDs) noexcept { return (availableFDs - 12) / 10; }
+#endif
 
 }  // namespace fastchess::fd_limit

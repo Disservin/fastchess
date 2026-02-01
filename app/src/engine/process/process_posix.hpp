@@ -177,8 +177,12 @@ class Process : public IProcess {
         // which are killed when the program exits, as a last resort
         process_list.push(ProcessInformation{process_pid_, interrupt_.get_write_fd()});
 
-        in_pipe_.close_write_end();
-        err_pipe_.close_write_end();
+        if (interrupt_.has_eventfd()) {
+            LOG_TRACE("Using eventfd for process interrupt signaling");
+            in_pipe_.close_write_end();
+            err_pipe_.close_write_end();
+            out_pipe_.close_read_end();
+        }
 
         // reap zombie processes automatically
         signal(SIGCHLD, SIG_IGN);

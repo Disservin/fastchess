@@ -42,9 +42,9 @@ namespace fastchess::fd_limit {
 #endif
 
 #if CAN_USE_EVENTFD_FLAGS
-[[nodiscard]] inline int minFileDescriptorRequired(int concurrency) noexcept { return 12 + concurrency * 10; }
+[[nodiscard]] inline int minFileDescriptorRequired(int concurrency) noexcept { return 12 + concurrency * 8; }
 
-[[nodiscard]] inline int maxConcurrency(int availableFDs) noexcept { return (availableFDs - 12) / 10; }
+[[nodiscard]] inline int maxConcurrency(int availableFDs) noexcept { return (availableFDs - 12) / 8; }
 
 #else
 

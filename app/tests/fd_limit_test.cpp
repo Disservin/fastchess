@@ -8,7 +8,7 @@ TEST_SUITE("File Descriptor Limit") {
     TEST_CASE("Static FD limit") {
 #ifndef _WIN64
 
-#    ifdef CAN_USE_EVENTFD_FLAGS
+#    if CAN_USE_EVENTFD_FLAGS
 
         CHECK(fd_limit::maxSystemFileDescriptorCount() > 0);
         CHECK(fd_limit::minFileDescriptorRequired(1) == 22);  // 25 or 22

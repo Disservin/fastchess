@@ -18,7 +18,7 @@ namespace fastchess::engine::process {
 class InterruptSignaler {
    public:
     void setup() {
-#ifdef CAN_USE_EVENTFD_FLAGS
+#if CAN_USE_EVENTFD_FLAGS
         fd_read_ = eventfd(0, EFD_CLOEXEC);
         if (fd_read_ != -1) {
             // eventfd uses same FD for both
@@ -43,7 +43,7 @@ class InterruptSignaler {
     int get_write_fd() const { return fd_write_; }
 
     static bool has_eventfd() {
-#ifdef CAN_USE_EVENTFD_FLAGS
+#if CAN_USE_EVENTFD_FLAGS
         return true;
 #else
         return false;

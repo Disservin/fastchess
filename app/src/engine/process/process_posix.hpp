@@ -296,10 +296,12 @@ class Process : public IProcess {
             }
 
             // 3. Check Stderr
-            if (STDERR_IDX && (fds[*STDERR_IDX].revents & (POLLIN | POLLHUP | POLLERR))) {
+            if (STDERR_IDX) {
                 auto& err_fd = fds[*STDERR_IDX];
+                if (err_fd.revents & POLLIN) {
+                    if (auto r = sg_err_.readLine(lines, ""); r.code != Status::NONE) return r;
+                }
                 if (err_fd.revents & (POLLHUP | POLLERR)) return Result::Error("Engine crashed (stderr)");
-                if (auto r = sg_err_.readLine(lines, ""); r.code != Status::NONE) return r;
             }
         }
 

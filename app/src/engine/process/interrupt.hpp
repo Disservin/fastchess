@@ -3,7 +3,9 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-#include <features.h>  // Required for __GLIBC__
+#ifdef __linux
+#    include <features.h>  // Required for __GLIBC__
+#endif
 
 #if defined(__linux__) && defined(__GLIBC__) && (__GLIBC__ > 2 || (__GLIBC__ == 2 && __GLIBC_MINOR__ >= 9))
 #    define CAN_USE_EVENTFD_FLAGS 1

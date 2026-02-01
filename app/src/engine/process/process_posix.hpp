@@ -168,9 +168,12 @@ class Process : public IProcess {
         sg_out_ = Stream(in_pipe_.read_end(), realtime_logging_, Standard::OUTPUT, log_name_);
         sg_err_ = Stream(err_pipe_.read_end(), realtime_logging_, Standard::ERR, log_name_);
 
+        // create a control pipe to interrupt polling when terminating
+        pipe(control_pipe_);
+
         // Append the process to the list of running processes
         // which are killed when the program exits, as a last resort
-        process_list.push(ProcessInformation{process_pid_, in_pipe_.write_end()});
+        process_list.push(ProcessInformation{process_pid_, control_pipe_[1]});
 
         in_pipe_.close_write_end();
         err_pipe_.close_write_end();
@@ -242,11 +245,15 @@ class Process : public IProcess {
         // poll is more efficient and select has a filedescriptor limit of 1024
         // which can be a problem when running with a high concurrency
 
-        std::array<pollfd, 2> fds{};
+        std::array<pollfd, 3> fds{};
         fds[0].fd     = in_pipe_.read_end();
         fds[0].events = POLLIN | POLLERR | POLLHUP;
+
         fds[1].fd     = err_pipe_.read_end();
         fds[1].events = POLLIN | POLLERR | POLLHUP;
+
+        fds[2].fd     = control_pipe_[0];
+        fds[2].events = POLLIN | POLLERR | POLLHUP;
 
         assert(fds[0].fd != fds[1].fd);
 
@@ -287,6 +294,10 @@ class Process : public IProcess {
             // stderr
             if (fds[1].revents & (POLLHUP | POLLERR)) {
                 return Result::Error("Engine crashed or closed pipe (stderr)");
+            }
+
+            if (fds[2].revents & POLLIN) {
+                return Result::Error("Interrupted by control pipe");
             }
         }
 
@@ -417,6 +428,8 @@ class Process : public IProcess {
 
     pid_t process_pid_{0};
     Pipe in_pipe_, out_pipe_, err_pipe_;
+
+    int control_pipe_[2];
 
     std::optional<int> exit_code_;
 };

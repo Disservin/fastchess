@@ -172,13 +172,12 @@ class Process : public IProcess {
         sg_err_ = Stream(err_pipe_.read_end(), realtime_logging_, Standard::ERR, log_name_);
 
         // create a control pipe to interrupt polling when terminating
-        // pipe(control_pipe_);
-
-        control_pipe_[1] = eventfd(0, EFD_CLOEXEC);
+        interrupt_ = InterruptSignaler();
+        interrupt_.setup();
 
         // Append the process to the list of running processes
         // which are killed when the program exits, as a last resort
-        process_list.push(ProcessInformation{process_pid_, control_pipe_[1]});
+        process_list.push(ProcessInformation{process_pid_, interrupt_.get_write_fd()});
 
         in_pipe_.close_write_end();
         err_pipe_.close_write_end();
@@ -257,7 +256,7 @@ class Process : public IProcess {
         fds[1].fd     = err_pipe_.read_end();
         fds[1].events = POLLIN | POLLERR | POLLHUP;
 
-        fds[2].fd     = control_pipe_[1];
+        fds[2].fd     = interrupt_.get_read_fd();
         fds[2].events = POLLIN | POLLERR | POLLHUP;
 
         assert(fds[0].fd != fds[1].fd);
@@ -435,7 +434,7 @@ class Process : public IProcess {
     pid_t process_pid_{0};
     Pipe in_pipe_, out_pipe_, err_pipe_;
 
-    int control_pipe_[2];
+    InterruptSignaler interrupt_;
 
     std::optional<int> exit_code_;
 };

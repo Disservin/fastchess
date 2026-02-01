@@ -188,9 +188,6 @@ class Process : public IProcess {
             out_pipe_.close_read_end();
         }
 
-        // reap zombie processes automatically
-        signal(SIGCHLD, SIG_IGN);
-
         return Result::OK();
     }
 

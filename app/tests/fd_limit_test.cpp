@@ -11,18 +11,18 @@ TEST_SUITE("File Descriptor Limit") {
 #    if CAN_USE_EVENTFD_FLAGS
 
         CHECK(fd_limit::maxSystemFileDescriptorCount() > 0);
-        CHECK(fd_limit::minFileDescriptorRequired(1) == 20);
-        CHECK(fd_limit::minFileDescriptorRequired(2) == 28);
-        CHECK(fd_limit::minFileDescriptorRequired(4) == 44);
-        CHECK(fd_limit::minFileDescriptorRequired(8) == 76);
-        CHECK(fd_limit::minFileDescriptorRequired(16) == 140);
-        CHECK(fd_limit::minFileDescriptorRequired(32) == 268);
-        CHECK(fd_limit::maxConcurrency(20) == 1);
-        CHECK(fd_limit::maxConcurrency(28) == 2);
-        CHECK(fd_limit::maxConcurrency(44) == 4);
-        CHECK(fd_limit::maxConcurrency(76) == 8);
-        CHECK(fd_limit::maxConcurrency(140) == 16);
-        CHECK(fd_limit::maxConcurrency(268) == 32);
+        CHECK(fd_limit::minFileDescriptorRequired(1) == 18);
+        CHECK(fd_limit::minFileDescriptorRequired(2) == 24);
+        CHECK(fd_limit::minFileDescriptorRequired(4) == 36);
+        CHECK(fd_limit::minFileDescriptorRequired(8) == 60);
+        CHECK(fd_limit::minFileDescriptorRequired(16) == 108);
+        CHECK(fd_limit::minFileDescriptorRequired(32) == 204);
+        CHECK(fd_limit::maxConcurrency(18) == 1);
+        CHECK(fd_limit::maxConcurrency(24) == 2);
+        CHECK(fd_limit::maxConcurrency(36) == 4);
+        CHECK(fd_limit::maxConcurrency(60) == 8);
+        CHECK(fd_limit::maxConcurrency(108) == 16);
+        CHECK(fd_limit::maxConcurrency(204) == 32);
 #    else
         CHECK(fd_limit::maxSystemFileDescriptorCount() > 0);
         CHECK(fd_limit::minFileDescriptorRequired(1) == 26);

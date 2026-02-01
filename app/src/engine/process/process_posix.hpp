@@ -14,6 +14,7 @@
 #    include <vector>
 
 #    include <errno.h>
+#    include <fcntl.h>
 #    include <poll.h>
 #    include <signal.h>
 #    include <spawn.h>
@@ -167,7 +168,10 @@ class Process : public IProcess {
         }
 
         sg_out_ = Stream(in_pipe_.read_end(), realtime_logging_, Standard::OUTPUT, log_name_);
-        sg_err_ = Stream(err_pipe_.read_end(), realtime_logging_, Standard::ERR, log_name_);
+
+        if (Logger::should_log_) {
+            sg_err_ = Stream(err_pipe_.read_end(), realtime_logging_, Standard::ERR, log_name_);
+        }
 
         // create a control pipe to interrupt polling when terminating
         interrupt_ = InterruptSignaler();
@@ -247,64 +251,55 @@ class Process : public IProcess {
 
         const int poll_timeout_ms = normalize_poll_timeout_ms(threshold);
 
-        // We prefer to use poll instead of select because
-        // poll is more efficient and select has a filedescriptor limit of 1024
-        // which can be a problem when running with a high concurrency
+        std::array<pollfd, 3> fds;
+        size_t fds_count = 0;
 
-        std::array<pollfd, 3> fds{};
-        fds[0].fd     = in_pipe_.read_end();
-        fds[0].events = POLLIN | POLLERR | POLLHUP;
+        const size_t STDOUT_IDX = fds_count++;
+        fds[STDOUT_IDX]         = create_pollfd(in_pipe_.read_end(), POLLIN | POLLERR | POLLHUP);
 
-        fds[1].fd     = err_pipe_.read_end();
-        fds[1].events = POLLIN | POLLERR | POLLHUP;
+        const size_t INT_IDX = fds_count++;
+        fds[INT_IDX]         = create_pollfd(interrupt_.get_read_fd(), POLLIN);
 
-        fds[2].fd     = interrupt_.get_read_fd();
-        fds[2].events = POLLIN | POLLERR | POLLHUP;
-
-        assert(fds[0].fd != fds[1].fd);
+        std::optional<size_t> STDERR_IDX;
+        if (Logger::should_log_) {
+            STDERR_IDX       = fds_count++;
+            fds[*STDERR_IDX] = create_pollfd(err_pipe_.read_end(), POLLIN | POLLERR | POLLHUP);
+        }
 
         // Continue reading output lines until the line
         // matches the specified searchword or a timeout occurs
         while (true) {
-            const int ready = poll(fds.data(), (nfds_t)fds.size(), poll_timeout_ms);
+            // We prefer to use poll instead of select because
+            // poll is more efficient and select has a filedescriptor limit of 1024
+            // which can be a problem when running with a high concurrency
+            const int ready = poll(fds.data(), static_cast<nfds_t>(fds_count), poll_timeout_ms);
 
-            if (ready == -1) {
-                return Result::Error("poll failed");
-            }
-
+            if (ready == -1) return Result::Error("poll failed");
             if (ready == 0) {
                 flush_partials_on_timeout(lines);
                 return Result{Status::TIMEOUT, "timeout"};
             }
 
-            // stdout
-            if (fds[0].revents & (POLLIN | POLLHUP | POLLERR)) {
-                if (fds[0].revents & (POLLHUP | POLLERR)) {
-                    return Result::Error("Engine crashed or closed pipe (stdout)");
-                }
-
-                if (auto r = sg_out_.readLine(lines, searchword); r.code != Status::NONE) {
-                    return r;
-                }
-            }
-
-            // stderr (no searchword match)
-            if (fds[1].revents & (POLLIN | POLLHUP | POLLERR)) {
-                if (fds[1].revents & (POLLHUP | POLLERR)) {
-                    return Result::Error("Engine crashed or closed pipe (stderr)");
-                }
-
-                if (auto r = sg_err_.readLine(lines, ""); r.code != Status::NONE) {
-                    return r;
-                }
-            }
-
-            if (fds[2].revents & POLLIN) {
+            // 1. Check Interrupt
+            if (fds[INT_IDX].revents & POLLIN) {
                 [[maybe_unused]] uint64_t junk;
-                read(fds[2].fd, &junk, sizeof(junk));
+                read(fds[INT_IDX].fd, &junk, sizeof(junk));
                 assert(junk > 0);
-
                 return Result::Error("Interrupted by control pipe");
+            }
+
+            // 2. Check Stdout
+            auto& out_fd = fds[STDOUT_IDX];
+            if (out_fd.revents & (POLLIN | POLLHUP | POLLERR)) {
+                if (out_fd.revents & (POLLHUP | POLLERR)) return Result::Error("Engine crashed (stdout)");
+                if (auto r = sg_out_.readLine(lines, searchword); r.code != Status::NONE) return r;
+            }
+
+            // 3. Check Stderr
+            if (STDERR_IDX && (fds[*STDERR_IDX].revents & (POLLIN | POLLHUP | POLLERR))) {
+                auto& err_fd = fds[*STDERR_IDX];
+                if (err_fd.revents & (POLLHUP | POLLERR)) return Result::Error("Engine crashed (stderr)");
+                if (auto r = sg_err_.readLine(lines, ""); r.code != Status::NONE) return r;
             }
         }
 
@@ -364,14 +359,22 @@ class Process : public IProcess {
         // reset pipes each attempt
         out_pipe_ = {};
         in_pipe_  = {};
-        err_pipe_ = {};
+
+        if (Logger::should_log_) {
+            err_pipe_ = {};
+        } else {
+            err_pipe_.close_fds();
+        }
 
         try {
             SpawnFileActions fa;
 
             fa.add_dup2(out_pipe_.read_end(), STDIN_FILENO);
             fa.add_dup2(in_pipe_.write_end(), STDOUT_FILENO);
-            fa.add_dup2(err_pipe_.write_end(), STDERR_FILENO);
+
+            if (Logger::should_log_) {
+                fa.add_dup2(err_pipe_.write_end(), STDERR_FILENO);
+            }
 
             fa.add_workdir(wd_);
 
@@ -419,6 +422,14 @@ class Process : public IProcess {
     void flush_partials_on_timeout(std::vector<Line>& lines) {
         sg_out_.flushPartial(lines);
         sg_err_.flushPartial(lines);
+    }
+
+    [[nodiscard]] pollfd create_pollfd(int fd, short events) const {
+        pollfd pfd;
+        pfd.fd      = fd;
+        pfd.events  = events;
+        pfd.revents = 0;
+        return pfd;
     }
 
    private:

@@ -172,6 +172,12 @@ class Process : public IProcess {
         // which are killed when the program exits, as a last resort
         process_list.push(ProcessInformation{process_pid_, in_pipe_.write_end()});
 
+        in_pipe_.close_write_end();
+        err_pipe_.close_write_end();
+
+        // reap zombie processes automatically
+        signal(SIGCHLD, SIG_IGN);
+
         return Result::OK();
     }
 
@@ -238,9 +244,9 @@ class Process : public IProcess {
 
         std::array<pollfd, 2> fds{};
         fds[0].fd     = in_pipe_.read_end();
-        fds[0].events = POLLIN;
+        fds[0].events = POLLIN | POLLERR | POLLHUP;
         fds[1].fd     = err_pipe_.read_end();
-        fds[1].events = POLLIN;
+        fds[1].events = POLLIN | POLLERR | POLLHUP;
 
         assert(fds[0].fd != fds[1].fd);
 
@@ -250,7 +256,9 @@ class Process : public IProcess {
             const int ready = poll(fds.data(), (nfds_t)fds.size(), poll_timeout_ms);
 
             if (atomic::stop) return Result::Error("stop requested");
-            if (ready == -1) return Result::Error("poll failed");
+            if (ready == -1) {
+                return Result::Error("poll failed");
+            }
 
             if (ready == 0) {
                 flush_partials_on_timeout(lines);
@@ -269,6 +277,16 @@ class Process : public IProcess {
                 if (auto r = sg_err_.readLine(lines, ""); r.code != Status::NONE) {
                     return r;
                 }
+            }
+
+            // stdout
+            if (fds[0].revents & (POLLHUP | POLLERR)) {
+                return Result::Error("Engine crashed or closed pipe (stdout)");
+            }
+
+            // stderr
+            if (fds[1].revents & (POLLHUP | POLLERR)) {
+                return Result::Error("Engine crashed or closed pipe (stderr)");
             }
         }
 

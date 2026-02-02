@@ -15,7 +15,7 @@ struct Pipe {
 
     Pipe() { initialize(); }
 
-    Pipe(const Pipe&) { initialize(); }
+    Pipe(const Pipe&) = delete;
 
     Pipe& operator=(const Pipe&) {
         close_read_end();
@@ -24,7 +24,9 @@ struct Pipe {
         return *this;
     }
 
-    ~Pipe() {
+    ~Pipe() { close_fds(); }
+
+    void close_fds() {
         close_read_end();
         close_write_end();
     }

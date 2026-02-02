@@ -43,12 +43,11 @@ class InterruptSignaler {
     int get_read_fd() const { return fd_read_; }
     int get_write_fd() const { return fd_write_; }
 
-    static bool has_eventfd() {
-#if CAN_USE_EVENTFD_FLAGS
-        return true;
-#else
-        return false;
-#endif
+    bool has_eventfd() const {
+        // eventfd uses the same file descriptor for both read and write.
+        // When eventfd() fails or is unavailable, setup() falls back to pipe(),
+        // which uses two distinct file descriptors.
+        return fd_read_ != -1 && fd_read_ == fd_write_;
     }
 
    private:

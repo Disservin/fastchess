@@ -239,6 +239,7 @@ void BaseTournament::playGame(const GamePair<EngineConfiguration, EngineConfigur
                     "Game {} stalled / disconnected and no recover option set for engine, stopping tournament.",
                     game_id);
 
+                atomic::stop                 = true;
                 atomic::abnormal_termination = true;
             }
             return;

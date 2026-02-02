@@ -174,7 +174,7 @@ class Process : public IProcess {
         }
 
         // create a control pipe to interrupt polling when terminating
-        interrupt_ = InterruptSignaler();
+        interrupt_.cleanup();
         interrupt_.setup();
 
         // Append the process to the list of running processes
@@ -448,7 +448,7 @@ class Process : public IProcess {
     pid_t process_pid_{0};
     Pipe in_pipe_, out_pipe_, err_pipe_;
 
-    InterruptSignaler interrupt_;
+    InterruptSignaler interrupt_{};
 
     std::optional<int> exit_code_;
 };

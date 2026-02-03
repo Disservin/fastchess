@@ -83,6 +83,51 @@ BaseTournament::~BaseTournament() {
         }
     }
 
+    std::lock_guard<std::mutex> lock(cache_management_mutex_);
+
+    // loop over the individual engine caches and enqueue a terminate to the pool
+    // to ensure all engines are properly shutdown, without having to wait sequentially
+
+    std::vector<engine::UciEngine*> engines_to_terminate;
+
+    if (config::TournamentConfig->affinity) {
+        for (const auto& [tid, cache] : thread_caches_) {
+            cache->loopEntries([&engines_to_terminate](auto& it) {
+                if (it->isAvailable() == false) {
+                    Logger::print<Logger::Level::WARN>(
+                        "Unexpected; Engine still in use during tournament shutdown, please raise an issue.");
+                    return;
+                }
+
+                engines_to_terminate.push_back(it->get().get());
+            });
+        }
+    } else if (global_cache_) {
+        global_cache_->loopEntries([&engines_to_terminate](auto& it) {
+            if (it->isAvailable() == false) {
+                Logger::print<Logger::Level::WARN>(
+                    "Unexpected; Engine still in use during tournament shutdown, please raise an issue.");
+                return;
+            }
+
+            engines_to_terminate.push_back(it->get().get());
+        });
+    }
+
+    // parallel terminate engines
+    std::vector<std::thread> threads;
+    for (auto* engine : engines_to_terminate) {
+        threads.emplace_back([engine]() {
+            engine->quit();
+            LOG_TRACE_THREAD("Terminating engine {}", engine->getConfig().name);
+            engine->terminate();  // uses a timeout
+        });
+    }
+
+    for (auto& t : threads) {
+        if (t.joinable()) t.join();
+    }
+
     saveJson();
 }
 

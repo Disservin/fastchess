@@ -22,13 +22,12 @@ class Player {
         return time_control_.getTimeoutThreshold();
     }
 
-    // remove the elapsed time from the participant's time control.
-    // Returns false if the time control has been exceeded.
-    [[nodiscard]] bool updateTime(const int64_t elapsed_millis) noexcept {
-        return time_control_.updateTime(elapsed_millis);
-    }
-
     [[nodiscard]] const TimeControl& getTimeControl() const noexcept { return time_control_; }
+    [[nodiscard]] TimeControl& getTimeControl() noexcept { return time_control_; }
+
+    bool hasTimeControl() const noexcept {
+        return time_control_.isTimed() || time_control_.isFixedTime();
+    }
 
     void setLost() noexcept { result = chess::GameResult::LOSE; }
     void setDraw() noexcept { result = chess::GameResult::DRAW; }

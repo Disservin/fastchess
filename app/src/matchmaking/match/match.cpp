@@ -385,8 +385,8 @@ bool Match::playMove(Player& us, Player& them) {
     const auto move      = best_move ? uci::uciToMove(board_, *best_move) : Move::NO_MOVE;
     const auto legal     = isLegal(move);
 
-    const auto timeout  = !us.updateTime(elapsed_ms);
-    const auto timeleft = us.getTimeControl().getTimeLeft();
+    const auto timeout  = us.hasTimeControl() ? !us.getTimeControl().updateTime(elapsed_ms) : false;
+    const auto timeleft = us.hasTimeControl() ? us.getTimeControl().getTimeLeft() : 0;
 
     if (best_move) {
         addMoveData(us, elapsed_ms, latency, timeleft, legal && uci::isUciMove(best_move.value()));

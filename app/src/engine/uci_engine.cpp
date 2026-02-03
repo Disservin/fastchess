@@ -258,9 +258,14 @@ void UciEngine::loadConfig(const EngineConfiguration& config) { config_ = config
 
 void UciEngine::quit() {
     if (!initialized_) return;
-    LOG_TRACE_THREAD("Sending quit to engine {}", config_.name);
-    writeEngine("stop");
-    writeEngine("quit");
+
+    if (!writeEngine("stop")) {
+        LOG_WARN_THREAD("Failed to send stop to engine {}", config_.name);
+    }
+
+    if (!writeEngine("quit")) {
+        LOG_WARN_THREAD("Failed to send quit to engine {}", config_.name);
+    }
 }
 
 void UciEngine::sendSetoption(const std::string& name, const std::string& value) {

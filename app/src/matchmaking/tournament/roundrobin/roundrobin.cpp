@@ -71,6 +71,7 @@ void RoundRobin::startNext() {
             atomic::stop                 = true;
             atomic::abnormal_termination = true;
         }
+        LOG_TRACE_THREAD("Thread {} finished match {}", std::this_thread::get_id(), match->game_id);
     });
 }
 

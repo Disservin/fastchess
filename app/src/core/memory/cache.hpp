@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cassert>
+#include <functional>
 #include <list>
 #include <memory>
 #include <mutex>
@@ -58,6 +59,18 @@ class CachePool {
         assert(!it->available_);
         std::lock_guard<std::mutex> lock(access_mutex_);
         cache_.erase(it);
+    }
+
+    auto size() {
+        std::lock_guard<std::mutex> lock(access_mutex_);
+        return cache_.size();
+    }
+
+    void loopEntries(const std::function<void(typename std::list<CachedEntry<T, ID>>::iterator&)>& func) {
+        std::lock_guard<std::mutex> lock(access_mutex_);
+        for (auto it = cache_.begin(); it != cache_.end(); ++it) {  // Added ++it
+            func(it);
+        }
     }
 
    private:

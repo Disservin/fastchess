@@ -243,7 +243,6 @@ void BaseTournament::playGame(const GamePair<EngineConfiguration, EngineConfigur
 
                 finish({match_data}, match_data.reason, {*white_engine->get(), *black_engine->get()});
 
-                atomic::stop                 = true;
                 atomic::abnormal_termination = true;
             }
             return;

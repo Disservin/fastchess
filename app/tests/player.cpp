@@ -47,10 +47,10 @@ TEST_SUITE("Player Test") {
         CHECK(player.getTimeControl().isFixedTime() == true);
         CHECK(player.getTimeControl().getTimeoutThreshold() == std::chrono::milliseconds(1000 + TimeControl::MARGIN));
 
-        CHECK(player.updateTime(1000) == true);
+        CHECK(player.getTimeControl().updateTime(1000) == true);
         CHECK(player.getTimeControl().getTimeLeft() == 1000);
 
-        CHECK(player.updateTime(1000) == true);
+        CHECK(player.getTimeControl().updateTime(1000) == true);
         CHECK(player.getTimeControl().getTimeLeft() == 1000);
     }
 
@@ -78,10 +78,10 @@ TEST_SUITE("Player Test") {
         CHECK(player.getTimeControl().isFixedTime() == false);
         CHECK(player.getTimeControl().getTimeoutThreshold() == std::chrono::milliseconds(1000 + TimeControl::MARGIN));
 
-        CHECK(player.updateTime(1000) == true);
+        CHECK(player.getTimeControl().updateTime(1000) == true);
         CHECK(player.getTimeControl().getTimeLeft() == 0);
 
-        CHECK(player.updateTime(1000) == false);
+        CHECK(player.getTimeControl().updateTime(1000) == false);
         CHECK(player.getTimeControl().getTimeLeft() == -1000);
     }
 }

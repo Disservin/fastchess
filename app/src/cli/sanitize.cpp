@@ -14,7 +14,9 @@
 
 namespace fastchess::cli {
 
-void sanitize(config::Tournament& config) {
+namespace {
+
+void fixConfig(config::Tournament& config) {
     if (config.games > 2) {
         // wrong config, lets try to fix it
         std::swap(config.games, config.rounds);
@@ -28,13 +30,14 @@ void sanitize(config::Tournament& config) {
     if (config.report_penta && config.output == OutputType::CUTECHESS) config.report_penta = false;
 
     if (config.report_penta && config.games != 2) config.report_penta = false;
+}
 
-    // throw error for invalid sprt config
-    if (config.sprt.enabled) {
-        SPRT::isValid(config.sprt.alpha, config.sprt.beta, config.sprt.elo0, config.sprt.elo1, config.sprt.model,
-                      config.report_penta);
-    }
+void setDefaults(config::Tournament& config) {
+    if (config.ratinginterval == 0) config.ratinginterval = std::numeric_limits<int>::max();
+    if (config.scoreinterval == 0) config.scoreinterval = std::numeric_limits<int>::max();
+}
 
+void adjustConcurrency(config::Tournament& config) {
     if (config.concurrency <= 0) {
         config.concurrency = static_cast<int>(std::thread::hardware_concurrency()) - std::abs(config.concurrency);
         Logger::print<Logger::Level::INFO>(
@@ -72,6 +75,14 @@ void sanitize(config::Tournament& config) {
         config.concurrency = max_supported_concurrency;
     }
 #endif
+}
+
+void validateConfig(config::Tournament& config) {
+    // throw error for invalid sprt config
+    if (config.sprt.enabled) {
+        SPRT::isValid(config.sprt.alpha, config.sprt.beta, config.sprt.elo0, config.sprt.elo1, config.sprt.model,
+                      config.report_penta);
+    }
 
     if (config.variant == VariantType::FRC && config.opening.file.empty()) {
         throw fastchess_exception("Error: Please specify a Chess960 opening book");
@@ -89,15 +100,55 @@ void sanitize(config::Tournament& config) {
             int(config.opening.format));
     }
 
-    if (config.ratinginterval == 0) config.ratinginterval = std::numeric_limits<int>::max();
-
-    if (config.scoreinterval == 0) config.scoreinterval = std::numeric_limits<int>::max();
-
     if (config.tb_adjudication.enabled) {
         if (config.tb_adjudication.syzygy_dirs.empty()) {
             throw fastchess_exception("Error: Must provide a ;-separated list of Syzygy tablebase directories.");
         }
     }
+}
+
+void validateEngine(EngineConfiguration& config) {
+#ifdef _WIN64
+    // add .exe if . is not present
+    if (config.cmd.find('.') == std::string::npos) {
+        config.cmd += ".exe";
+    }
+#endif
+
+    if (config.name.empty()) {
+        throw fastchess_exception("Error; please specify a name for each engine!");
+    }
+
+    if ((config.limit.tc.time + config.limit.tc.increment) == 0 && config.limit.tc.fixed_time == 0 &&
+        config.limit.nodes == 0 && config.limit.plies == 0) {
+        throw fastchess_exception("Error; no TimeControl specified!");
+    }
+
+    if ((((config.limit.tc.time + config.limit.tc.increment) != 0) + (config.limit.tc.fixed_time != 0)) > 1) {
+        throw fastchess_exception("Error; cannot use tc and st together!");
+    }
+
+#ifndef NO_STD_FILESYSTEM
+    std::filesystem::path enginePath = config.cmd;
+    if (!config.dir.empty()) {
+        enginePath = (std::filesystem::path(config.dir) / config.cmd);
+    }
+
+    if (!config.dir.empty() || enginePath.is_absolute()) {
+        if (!std::filesystem::is_regular_file(enginePath)) {
+            throw fastchess_exception("Engine binary does not exist: " + enginePath.string());
+        }
+    }
+#endif
+}
+
+}  // namespace
+
+void sanitize(config::Tournament& config) {
+    fixConfig(config);
+    setDefaults(config);
+    adjustConcurrency(config);
+    validateConfig(config);
 }
 
 void sanitize(std::vector<EngineConfiguration>& configs) {
@@ -106,45 +157,13 @@ void sanitize(std::vector<EngineConfiguration>& configs) {
     }
 
     for (std::size_t i = 0; i < configs.size(); i++) {
-#ifdef _WIN64
-        // add .exe if . is not present
-        if (configs[i].cmd.find('.') == std::string::npos) {
-            configs[i].cmd += ".exe";
-        }
-#endif
-
-        if (configs[i].name.empty()) {
-            throw fastchess_exception("Error; please specify a name for each engine!");
-        }
-
-        if ((configs[i].limit.tc.time + configs[i].limit.tc.increment) == 0 && configs[i].limit.tc.fixed_time == 0 &&
-            configs[i].limit.nodes == 0 && configs[i].limit.plies == 0) {
-            throw fastchess_exception("Error; no TimeControl specified!");
-        }
-
-        if ((((configs[i].limit.tc.time + configs[i].limit.tc.increment) != 0) +
-             (configs[i].limit.tc.fixed_time != 0)) > 1) {
-            throw fastchess_exception("Error; cannot use tc and st together!");
-        }
+        validateEngine(configs[i]);
 
         for (std::size_t j = 0; j < i; j++) {
             if (configs[i].name == configs[j].name) {
                 throw fastchess_exception("Error: Engine with the same name are not allowed!: " + configs[i].name);
             }
         }
-
-#ifndef NO_STD_FILESYSTEM
-        std::filesystem::path enginePath = configs[i].cmd;
-        if (!configs[i].dir.empty()) {
-            enginePath = (std::filesystem::path(configs[i].dir) / configs[i].cmd);
-        }
-
-        if (!configs[i].dir.empty() || enginePath.is_absolute()) {
-            if (!std::filesystem::is_regular_file(enginePath)) {
-                throw fastchess_exception("Engine binary does not exist: " + enginePath.string());
-            }
-        }
-#endif
     }
 }
 

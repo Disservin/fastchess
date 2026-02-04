@@ -133,12 +133,7 @@ class Process : public IProcess {
         // give the process time to die gracefully
         while (std::chrono::steady_clock::now() - start_time < IProcess::kill_timeout) {
             GetExitCodeProcess(pi_.hProcess, &exitCode);
-
-            if (exitCode != STILL_ACTIVE) {
-                // Process has terminated
-                break;
-            }
-
+            if (exitCode != STILL_ACTIVE) break;
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }
 

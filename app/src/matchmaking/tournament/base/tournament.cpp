@@ -83,39 +83,32 @@ BaseTournament::~BaseTournament() {
         }
     }
 
-    std::lock_guard<std::mutex> lock(cache_management_mutex_);
-
     // loop over the individual engine caches and enqueue a terminate to the pool
     // to ensure all engines are properly shutdown, without having to wait sequentially
-
+    std::lock_guard<std::mutex> lock(cache_management_mutex_);
     std::vector<engine::UciEngine*> engines_to_terminate;
 
-    if (config::TournamentConfig->affinity) {
-        for (const auto& [tid, cache] : thread_caches_) {
-            cache->loopEntries([&engines_to_terminate](auto& it) {
-                if (it->isAvailable() == false) {
-                    Logger::print<Logger::Level::WARN>(
-                        "Unexpected; Engine still in use during tournament shutdown, please raise an issue.");
-                    return;
-                }
+    static constexpr auto error = "Unexpected; Engine still in use during tournament shutdown, please raise an issue.";
 
-                engines_to_terminate.push_back(it->get().get());
-            });
+    const auto appendToList = [&engines_to_terminate](auto& it) {
+        if (it->isAvailable() == false) {
+            Logger::print<Logger::Level::WARN>(error);
+            return;
         }
-    } else if (global_cache_) {
-        global_cache_->loopEntries([&engines_to_terminate](auto& it) {
-            if (it->isAvailable() == false) {
-                Logger::print<Logger::Level::WARN>(
-                    "Unexpected; Engine still in use during tournament shutdown, please raise an issue.");
-                return;
-            }
 
-            engines_to_terminate.push_back(it->get().get());
-        });
-    }
+        engines_to_terminate.push_back(it->get().get());
+    };
 
-    // parallel terminate engines
+    if (config::TournamentConfig->affinity)
+        for (const auto& [_, cache] : thread_caches_)  //
+            cache->loopEntries(appendToList);
+    else if (global_cache_)
+        global_cache_->loopEntries(appendToList);
+
+    // parallel terminate engines. might be more than concurrency but doesn't matter
+    // since they arent doing much
     std::vector<std::thread> threads;
+
     for (auto* engine : engines_to_terminate) {
         threads.emplace_back([engine]() {
             engine->quit();
@@ -124,9 +117,8 @@ BaseTournament::~BaseTournament() {
         });
     }
 
-    for (auto& t : threads) {
+    for (auto& t : threads)
         if (t.joinable()) t.join();
-    }
 
     saveJson();
 }

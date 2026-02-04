@@ -35,6 +35,12 @@ void sanitize(config::Tournament& config) {
                       config.report_penta);
     }
 
+    if (config.concurrency <= 0) {
+        config.concurrency = static_cast<int>(std::thread::hardware_concurrency()) - std::abs(config.concurrency);
+        Logger::print<Logger::Level::INFO>(
+            "Info: Adjusted concurrency to {} based on number of available hardware threads.", config.concurrency);
+    }
+
     if (config.concurrency > static_cast<int>(std::thread::hardware_concurrency()) && !config.force_concurrency) {
         throw fastchess_exception("Error: Concurrency exceeds number of CPUs. Use -force-concurrency to override.");
     }

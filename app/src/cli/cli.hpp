@@ -174,7 +174,17 @@ class OptionsParser {
             try {
                 std::vector<std::string> params;
 
-                while (i + 1 < args.argc() && args[i + 1][0] != '-') {
+                while (i + 1 < args.argc()) {
+                    const std::string& val = args[i + 1];
+                    if (val[0] == '-') {
+                        // Allow negative numbers as values
+                        if (val.size() > 1 && val[1] >= '0' && val[1] <= '9') {
+                            // It is a negative number, consume it
+                        } else {
+                            // It is likely a new option, stop consuming
+                            break;
+                        }
+                    }
                     params.push_back(args[++i]);
                 }
 

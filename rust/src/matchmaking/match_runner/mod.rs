@@ -32,9 +32,7 @@ const INSUFFICIENT_MSG: &str = "Draw by insufficient mating material";
 const REPETITION_MSG: &str = "Draw by 3-fold repetition";
 const ILLEGAL_MSG: &str = " makes an illegal move";
 const ADJUDICATION_WIN_MSG: &str = " wins by adjudication";
-#[allow(dead_code)]
 const ADJUDICATION_TB_WIN_MSG: &str = " wins by adjudication: SyzygyTB";
-#[allow(dead_code)]
 const ADJUDICATION_TB_DRAW_MSG: &str = "Draw by adjudication: SyzygyTB";
 const ADJUDICATION_MSG: &str = "Draw by adjudication";
 const FIFTY_MSG: &str = "Draw by fifty moves rule";
@@ -91,7 +89,6 @@ pub struct Match {
     draw_tracker: DrawTracker,
     resign_tracker: ResignTracker,
     maxmoves_tracker: MaxMovesTracker,
-    #[allow(dead_code)]
     tb_tracker: TbAdjudicationTracker,
     uci_moves: Vec<String>,
     start_position: String,
@@ -542,8 +539,39 @@ impl Match {
 
     /// Check adjudication conditions. Returns true if the game is adjudicated.
     fn adjudicate(&mut self, us: &mut Player, them: &mut Player) -> bool {
-        // TB adjudication (stubbed — requires Syzygy probing)
-        // ...
+        // TB adjudication (Syzygy tablebase probing)
+        match self.tb_tracker.adjudicate(&self.board) {
+            TbAdjudicationResult::Win => {
+                // Side to move wins
+                us.set_won();
+                them.set_lost();
+                let stm = self.side_to_move();
+                let name = color_name(stm);
+                self.data.termination = MatchTermination::Adjudication;
+                self.data.reason = format!("{}{}", name, ADJUDICATION_TB_WIN_MSG);
+                return true;
+            }
+            TbAdjudicationResult::Loss => {
+                // Side to move loses
+                us.set_lost();
+                them.set_won();
+                let stm = self.side_to_move();
+                let name = color_name(opposite(stm));
+                self.data.termination = MatchTermination::Adjudication;
+                self.data.reason = format!("{}{}", name, ADJUDICATION_TB_WIN_MSG);
+                return true;
+            }
+            TbAdjudicationResult::Draw => {
+                us.set_draw();
+                them.set_draw();
+                self.data.termination = MatchTermination::Adjudication;
+                self.data.reason = ADJUDICATION_TB_DRAW_MSG.to_string();
+                return true;
+            }
+            TbAdjudicationResult::None => {
+                // No TB adjudication, continue with other checks
+            }
+        }
 
         // Resign adjudication
         let resign_enabled = self.resign_tracker.resignable();

@@ -7,6 +7,7 @@ description = "A high-performance chess engine tournament manager"
 [dependencies]
 # Chess library for board representation, move generation, and SAN/UCI parsing
 shakmaty = "0.27"
+shakmaty-syzygy = "0.25"
 pgn-reader = "0.26"
 
 # JSON serialization/deserialization (replaces nlohmann/json)

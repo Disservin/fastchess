@@ -4,6 +4,7 @@ use std::time::Instant;
 use fastchess::cli::OptionsParser;
 use fastchess::core::config;
 use fastchess::core::logger::LOGGER;
+use fastchess::game::syzygy;
 use fastchess::matchmaking::tournament::runner::Tournament;
 use fastchess::matchmaking::tournament::schedule::SchedulerVariant;
 use fastchess::types::enums::TournamentType;
@@ -55,6 +56,18 @@ fn run() -> Result<(), String> {
     // 5. Set global configs (must happen before Tournament::new reads them)
     config::set_tournament_config(tournament_config);
     config::set_engine_configs(engine_configs);
+
+    // 5.5 Initialize Syzygy tablebases if configured
+    let tb_config = &config::tournament_config().tb_adjudication;
+    if tb_config.enabled && !tb_config.syzygy_dirs.is_empty() {
+        syzygy::init_tablebase(&tb_config.syzygy_dirs);
+        if syzygy::is_available() {
+            log::info!(
+                "Syzygy tablebases initialized (up to {} pieces)",
+                syzygy::max_pieces()
+            );
+        }
+    }
 
     // 6. Set up Ctrl+C handler
     ctrlc::set_handler(move || {

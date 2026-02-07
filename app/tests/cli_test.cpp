@@ -326,7 +326,7 @@ TEST_SUITE("Option Parsing Tests") {
                                     "tc=10/9.64",
                                     "-recover",
                                     "-concurrency",
-                                    "2",
+                                    "1",
                                     "-ratinginterval",
                                     "2",
                                     "-scoreinterval",
@@ -386,7 +386,7 @@ TEST_SUITE("Option Parsing Tests") {
 
         // Test proper cli settings
         CHECK(gameOptions.recover);
-        CHECK(gameOptions.concurrency == 2);
+        CHECK(gameOptions.concurrency == 1);
         CHECK(gameOptions.ratinginterval == 2);
         CHECK(gameOptions.scoreinterval == 3);
         CHECK(gameOptions.autosaveinterval == 4);

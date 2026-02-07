@@ -3,7 +3,10 @@
 //! Ports the `DrawTracker`, `ResignTracker`, `MaxMovesTracker`, and
 //! `TbAdjudicationTracker` classes from `matchmaking/match/match.hpp`.
 
+use shakmaty::Chess;
+
 use crate::engine::uci_engine::{Color, Score, ScoreType};
+use crate::game::syzygy::{self, TbProbeResult};
 use crate::types::adjudication::*;
 
 // ── Draw Tracker ─────────────────────────────────────────────────────────────
@@ -164,40 +167,79 @@ impl MaxMovesTracker {
 
 // ── TB Adjudication Tracker ──────────────────────────────────────────────────
 
-/// Placeholder for Syzygy tablebase adjudication.
+/// Syzygy tablebase adjudication tracker.
 ///
-/// The full implementation requires a Syzygy probing library. For now this
-/// tracks the configuration but the actual probing methods are stubbed.
+/// Probes Syzygy tablebases to determine if a position should be adjudicated.
 #[derive(Debug, Clone)]
 pub struct TbAdjudicationTracker {
-    #[allow(dead_code)]
-    max_pieces: i32,
-    #[allow(dead_code)]
-    ignore_50_move_rule: bool,
+    config: TbAdjudication,
+}
+
+/// Result of tablebase adjudication.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum TbAdjudicationResult {
+    /// No adjudication (position not probeable or not decisive enough).
+    None,
+    /// Side to move wins.
+    Win,
+    /// Side to move loses.
+    Loss,
+    /// Position is drawn.
+    Draw,
 }
 
 impl TbAdjudicationTracker {
     pub fn new(adj: &TbAdjudication) -> Self {
         Self {
-            max_pieces: adj.max_pieces,
-            ignore_50_move_rule: adj.ignore_50_move_rule,
+            config: adj.clone(),
         }
     }
 
     /// Check if the position can be probed in tablebases.
-    ///
-    /// TODO: Implement with actual Syzygy probing. Currently always returns false.
-    pub fn adjudicatable(&self, _piece_count: u32) -> bool {
-        // Would check: max_pieces != 0 && piece_count > max_pieces => false
-        // Then call canProbeSyzygyWdl(board)
-        false
+    pub fn can_probe(&self, pos: &Chess) -> bool {
+        if !self.config.enabled {
+            return false;
+        }
+        syzygy::can_probe(pos, self.config.max_pieces as u32)
     }
 
-    /// Probe the tablebase for the game result.
+    /// Probe the tablebase and return the adjudication result.
     ///
-    /// TODO: Implement with actual Syzygy probing.
-    pub fn adjudicate(&self) -> crate::types::match_data::GameResult {
-        crate::types::match_data::GameResult::None
+    /// Returns `TbAdjudicationResult::None` if:
+    /// - Tablebase adjudication is disabled
+    /// - Position cannot be probed (too many pieces, missing tables)
+    /// - Result type doesn't match configuration
+    pub fn adjudicate(&self, pos: &Chess) -> TbAdjudicationResult {
+        if !self.config.enabled {
+            return TbAdjudicationResult::None;
+        }
+
+        let result = syzygy::should_adjudicate(pos, &self.config, self.config.ignore_50_move_rule);
+
+        match result {
+            TbProbeResult::Win => TbAdjudicationResult::Win,
+            TbProbeResult::Loss => TbAdjudicationResult::Loss,
+            TbProbeResult::Draw => TbAdjudicationResult::Draw,
+            TbProbeResult::CursedWin | TbProbeResult::BlessedLoss => {
+                // Under 50-move rule consideration, these are effectively draws
+                if self.config.ignore_50_move_rule {
+                    // When ignoring 50-move rule, cursed win is win, blessed loss is loss
+                    match result {
+                        TbProbeResult::CursedWin => TbAdjudicationResult::Win,
+                        TbProbeResult::BlessedLoss => TbAdjudicationResult::Loss,
+                        _ => TbAdjudicationResult::None,
+                    }
+                } else {
+                    TbAdjudicationResult::Draw
+                }
+            }
+            TbProbeResult::NotAvailable => TbAdjudicationResult::None,
+        }
+    }
+
+    /// Check if tablebase adjudication is enabled.
+    pub fn is_enabled(&self) -> bool {
+        self.config.enabled
     }
 }
 

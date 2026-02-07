@@ -243,8 +243,8 @@ impl AffinityManager {
 
 // AffinityManager is Send+Sync because all interior mutation goes through
 // the mutex or atomics.
-unsafe impl Send for AffinityManager {}
-unsafe impl Sync for AffinityManager {}
+// unsafe impl Send for AffinityManager {}
+// unsafe impl Sync for AffinityManager {}
 
 #[cfg(test)]
 mod tests {

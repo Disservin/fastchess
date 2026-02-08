@@ -37,12 +37,10 @@ pub fn sanitize_engines(configs: &mut [EngineConfiguration]) -> Result<(), Strin
         }
     }
 
+    #[cfg(target_os = "windows")]
     for config in configs.iter_mut() {
         // Ensure .exe extension on Windows if not already present
-        #[cfg(target_os = "windows")]
-        {
-            config.cmd = ensure_exe_extension(&config.cmd);
-        }
+        config.cmd = ensure_exe_extension(&config.cmd);
     }
 
     Ok(())
@@ -183,6 +181,7 @@ fn validate_config(config: &mut TournamentConfig) -> Result<(), String> {
     Ok(())
 }
 
+#[cfg(target_os = "windows")]
 fn ensure_exe_extension(input: &str) -> String {
     let mut path = PathBuf::from(input);
 

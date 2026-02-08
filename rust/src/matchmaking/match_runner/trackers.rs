@@ -22,6 +22,7 @@ pub struct DrawTracker {
     draw_score: i32,
     move_number: u32,
     move_count: i32,
+    enabled: bool,
 }
 
 impl DrawTracker {
@@ -31,11 +32,16 @@ impl DrawTracker {
             draw_score: adj.score,
             move_number: adj.move_number,
             move_count: adj.move_count,
+            enabled: adj.enabled,
         }
     }
 
     /// Update tracker with the engine's reported score and the half-move clock.
     pub fn update(&mut self, score: &Score, hmvc: i32) {
+        if !self.enabled {
+            return;
+        }
+
         if hmvc == 0 {
             self.draw_moves = 0;
         }
@@ -53,6 +59,10 @@ impl DrawTracker {
 
     /// Check if a draw can be adjudicated at the given ply count.
     pub fn adjudicatable(&self, plies: u32) -> bool {
+        if !self.enabled {
+            return false;
+        }
+
         plies >= self.move_number && self.draw_moves >= self.move_count * 2
     }
 
@@ -76,6 +86,7 @@ pub struct ResignTracker {
     resign_score: i32,
     move_count: i32,
     twosided: bool,
+    enabled: bool,
 }
 
 impl ResignTracker {
@@ -87,11 +98,16 @@ impl ResignTracker {
             resign_score: adj.score,
             move_count: adj.move_count,
             twosided: adj.twosided,
+            enabled: adj.enabled,
         }
     }
 
     /// Update tracker with the engine's score and the side that just moved.
     pub fn update(&mut self, score: &Score, color: Color) {
+        if !self.enabled {
+            return;
+        }
+
         if self.twosided {
             if (score.value.unsigned_abs() >= self.resign_score as u64
                 && score.score_type == ScoreType::Cp)
@@ -118,6 +134,10 @@ impl ResignTracker {
 
     /// Returns true if resignation criteria are met.
     pub fn resignable(&self) -> bool {
+        if !self.enabled {
+            return false;
+        }
+
         if self.twosided {
             self.resign_moves >= self.move_count * 2
         } else {
@@ -146,6 +166,7 @@ impl ResignTracker {
 pub struct MaxMovesTracker {
     max_moves: i32,
     move_count: i32,
+    enabled: bool,
 }
 
 impl MaxMovesTracker {
@@ -153,14 +174,23 @@ impl MaxMovesTracker {
         Self {
             max_moves: 0,
             move_count: adj.move_count,
+            enabled: adj.enabled,
         }
     }
 
     pub fn update(&mut self) {
+        if !self.enabled {
+            return;
+        }
+
         self.max_moves += 1;
     }
 
     pub fn max_moves_reached(&self) -> bool {
+        if !self.enabled {
+            return false;
+        }
+
         self.max_moves >= self.move_count * 2
     }
 }

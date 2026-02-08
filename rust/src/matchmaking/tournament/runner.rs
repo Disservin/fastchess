@@ -494,10 +494,10 @@ fn run_game(pairing: Pairing, state: SharedState) {
     // Check out engines from the cache
     let white_guard = state
         .engine_cache
-        .get_engine(&configs.white.name, &configs.white, rl);
+        .get_engine(&configs.white.name, configs.white, rl);
     let black_guard = state
         .engine_cache
-        .get_engine(&configs.black.name, &configs.black, rl);
+        .get_engine(&configs.black.name, configs.black, rl);
 
     // Run the match — lock both engines for the duration of the game
     let mut game = Match::new(opening, tournament_config);
@@ -672,7 +672,7 @@ fn run_game(pairing: Pairing, state: SharedState) {
 
         // Write PGN file
         if let Some(ref writer) = state.file_writer_pgn {
-            let pgn_str = PgnBuilder::build(&tournament_config.pgn, &match_data, pairing.round_id);
+            let pgn_str = PgnBuilder::build(&tournament_config.pgn, match_data, pairing.round_id);
             if let Ok(w) = writer.lock() {
                 w.write(&pgn_str);
             }

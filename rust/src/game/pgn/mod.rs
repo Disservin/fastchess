@@ -135,13 +135,6 @@ impl PgnBuilder {
             *current_line_length += text.len();
         };
 
-        // @todo fix?
-        let notation = if config.min {
-            config.notation
-        } else {
-            config.notation
-        };
-
         let mut move_counter = start_move_counter;
         let move_count = data.moves.len();
 
@@ -161,7 +154,7 @@ impl PgnBuilder {
             let mut pair = String::new();
 
             // Move notation
-            let move_str = Self::convert_move(&mv.r#move, &mut board, notation);
+            let move_str = Self::convert_move(&mv.r#move, &mut board, config.notation);
             if !move_str.is_empty() {
                 let curr = move_counter.div_ceil(2);
                 if is_white {

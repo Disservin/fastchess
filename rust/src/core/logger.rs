@@ -256,7 +256,7 @@ impl Logger {
         let prefix = self.make_prefix(label, &timestamp, &thread_id_str);
         let formatted_msg = format!("{} fastchess --- {}\n", prefix, msg);
 
-        if let Some(ref _writer) = inner.writer.as_ref() {
+        if let Some(_writer) = inner.writer.as_ref() {
             // Need to get mutable access, so we drop the inner guard and re-acquire
             drop(inner);
             self.write_raw(&formatted_msg);

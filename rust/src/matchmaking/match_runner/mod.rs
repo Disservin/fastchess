@@ -728,7 +728,15 @@ impl Match {
         move_data.latency = latency;
         move_data.timeleft = timeleft;
 
-        // TODO: extract nps, depth, seldepth, nodes, hashfull, tbhits, pv from info line
+        // Extract additional info data (depth, seldepth, nodes, nps, hashfull, tbhits, pv)
+        let info_data = player.engine.last_info_data();
+        move_data.depth = info_data.depth;
+        move_data.seldepth = info_data.seldepth;
+        move_data.nodes = info_data.nodes;
+        move_data.nps = info_data.nps;
+        move_data.hashfull = info_data.hashfull;
+        move_data.tbhits = info_data.tbhits;
+        move_data.pv = info_data.pv;
 
         self.data.moves.push(move_data);
     }

@@ -33,7 +33,6 @@ pub struct ArgumentData {
     pub old_configs: Vec<EngineConfiguration>,
 }
 
-
 // ---------------------------------------------------------------------------
 // ParamStyle — how an option consumes its following arguments
 // ---------------------------------------------------------------------------
@@ -1109,9 +1108,11 @@ impl OptionsParser {
                 for (key, value) in kv {
                     match key.as_str() {
                         "cmd" => {
-                            let mut config = EngineConfiguration::default();
-                            config.cmd = value.clone();
-                            config.name = value.clone();
+                            let mut config = EngineConfiguration {
+                                cmd: value.clone(),
+                                name: value.clone(),
+                                ..Default::default()
+                            };
                             config.limit.tc.time = 10 * 1000;
                             config.limit.tc.increment = 100;
                             data.configs.push(config);

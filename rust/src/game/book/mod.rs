@@ -307,7 +307,7 @@ impl OpeningBook {
 }
 
 /// Fisher-Yates shuffle.
-fn shuffle<T>(vec: &mut Vec<T>) {
+fn shuffle<T>(vec: &mut [T]) {
     use rand::Rng;
     let mut rng = rand::thread_rng();
     let len = vec.len();
@@ -318,7 +318,7 @@ fn shuffle<T>(vec: &mut Vec<T>) {
 }
 
 /// Rotate a vector by `offset` positions.
-fn rotate<T>(vec: &mut Vec<T>, offset: usize) {
+fn rotate<T>(vec: &mut [T], offset: usize) {
     if vec.is_empty() {
         return;
     }

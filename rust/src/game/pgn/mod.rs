@@ -135,6 +135,7 @@ impl PgnBuilder {
             *current_line_length += text.len();
         };
 
+        // @todo fix?
         let notation = if config.min {
             config.notation
         } else {

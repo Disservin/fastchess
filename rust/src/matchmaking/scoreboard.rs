@@ -65,7 +65,7 @@ pub struct StatsMapWrapper {
 impl StatsMapWrapper {
     pub fn get_or_insert(
         &mut self,
-        configs: &GamePair<EngineConfiguration, EngineConfiguration>,
+        configs: &GamePair<&EngineConfiguration, &EngineConfiguration>,
     ) -> &mut Stats {
         let key = PlayerPairKey::new(&configs.white.name, &configs.black.name);
         self.results.entry(key).or_default()
@@ -73,7 +73,7 @@ impl StatsMapWrapper {
 
     pub fn get(
         &self,
-        configs: &GamePair<EngineConfiguration, EngineConfiguration>,
+        configs: &GamePair<&EngineConfiguration, &EngineConfiguration>,
     ) -> Option<&Stats> {
         let key = PlayerPairKey::new(&configs.white.name, &configs.black.name);
         self.results.get(&key)
@@ -126,7 +126,7 @@ impl ScoreBoard {
     /// Update stats directly (no pair tracking). Always returns true.
     pub fn update_non_pair(
         &self,
-        configs: &GamePair<EngineConfiguration, EngineConfiguration>,
+        configs: &GamePair<&EngineConfiguration, &EngineConfiguration>,
         stats: &Stats,
     ) -> bool {
         let mut results = self.results.lock().unwrap();
@@ -141,7 +141,7 @@ impl ScoreBoard {
     /// false if this was the first game.
     pub fn update_pair(
         &self,
-        configs: &GamePair<EngineConfiguration, EngineConfiguration>,
+        configs: &GamePair<&EngineConfiguration, &EngineConfiguration>,
         stats: &Stats,
         round_id: u64,
     ) -> bool {
@@ -239,24 +239,28 @@ impl Default for ScoreBoard {
 mod tests {
     use super::*;
 
-    fn make_configs(
-        white: &str,
-        black: &str,
-    ) -> GamePair<EngineConfiguration, EngineConfiguration> {
-        let mut w = EngineConfiguration::default();
-        w.name = white.to_string();
-        let mut b = EngineConfiguration::default();
-        b.name = black.to_string();
-        GamePair { white: w, black: b }
+    fn create_config(name: &str) -> EngineConfiguration {
+        let mut cfg = EngineConfiguration::default();
+        cfg.name = name.to_string();
+        cfg
     }
 
     #[test]
     fn test_update_non_pair() {
         let board = ScoreBoard::new();
-        let configs = make_configs("engine1", "engine2");
+
+        let w_cfg = create_config("engine1");
+        let b_cfg = create_config("engine2");
+
+        let configs = GamePair {
+            white: &w_cfg,
+            black: &b_cfg,
+        };
+
         let stats = Stats::new(1, 0, 0); // engine1 wins
 
         board.update_non_pair(&configs, &stats);
+
         let result = board.get_stats("engine1", "engine2");
         assert_eq!(result.wins, 1);
         assert_eq!(result.losses, 0);
@@ -265,7 +269,13 @@ mod tests {
     #[test]
     fn test_update_pair() {
         let board = ScoreBoard::new();
-        let configs = make_configs("engine1", "engine2");
+        let w_cfg = create_config("engine1");
+        let b_cfg = create_config("engine2");
+
+        let configs = GamePair {
+            white: &w_cfg,
+            black: &b_cfg,
+        };
 
         // First game: engine1 wins as white
         let stats1 = Stats::new(1, 0, 0);
@@ -284,8 +294,19 @@ mod tests {
     #[test]
     fn test_get_all_stats() {
         let board = ScoreBoard::new();
-        let configs1 = make_configs("engine1", "engine2");
-        let configs2 = make_configs("engine1", "engine3");
+        let w_cfg1 = create_config("engine1");
+        let b_cfg1 = create_config("engine2");
+        let configs1 = GamePair {
+            white: &w_cfg1,
+            black: &b_cfg1,
+        };
+
+        let w_cfg2 = create_config("engine1");
+        let b_cfg2 = create_config("engine3");
+        let configs2 = GamePair {
+            white: &w_cfg2,
+            black: &b_cfg2,
+        };
 
         board.update_non_pair(&configs1, &Stats::new(3, 1, 2));
         board.update_non_pair(&configs2, &Stats::new(2, 2, 1));
@@ -316,7 +337,13 @@ mod tests {
     #[test]
     fn test_pentanomial_pair_tracking() {
         let board = ScoreBoard::new();
-        let configs = make_configs("engine1", "engine2");
+        let w_cfg = create_config("engine1");
+        let b_cfg = create_config("engine2");
+
+        let configs = GamePair {
+            white: &w_cfg,
+            black: &b_cfg,
+        };
 
         // Game pair where engine1 wins both games
         let win_stats = Stats::new(1, 0, 0);

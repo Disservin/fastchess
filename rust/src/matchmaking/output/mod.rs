@@ -69,7 +69,7 @@ pub trait Output: Send {
     /// Print game start notification.
     fn start_game(
         &self,
-        configs: &GamePair<EngineConfiguration, EngineConfiguration>,
+        configs: &GamePair<&EngineConfiguration, &EngineConfiguration>,
         current_game_count: usize,
         max_game_count: usize,
     );
@@ -77,7 +77,7 @@ pub trait Output: Send {
     /// Print game end notification.
     fn end_game(
         &self,
-        configs: &GamePair<EngineConfiguration, EngineConfiguration>,
+        configs: &GamePair<&EngineConfiguration, &EngineConfiguration>,
         stats: &Stats,
         annotation: &str,
         id: usize,
@@ -422,7 +422,7 @@ impl Output for FastchessOutput {
 
     fn start_game(
         &self,
-        configs: &GamePair<EngineConfiguration, EngineConfiguration>,
+        configs: &GamePair<&EngineConfiguration, &EngineConfiguration>,
         current_game_count: usize,
         max_game_count: usize,
     ) {
@@ -434,7 +434,7 @@ impl Output for FastchessOutput {
 
     fn end_game(
         &self,
-        configs: &GamePair<EngineConfiguration, EngineConfiguration>,
+        configs: &GamePair<&EngineConfiguration, &EngineConfiguration>,
         stats: &Stats,
         annotation: &str,
         id: usize,
@@ -621,7 +621,7 @@ impl Output for CutechessOutput {
 
     fn start_game(
         &self,
-        configs: &GamePair<EngineConfiguration, EngineConfiguration>,
+        configs: &GamePair<&EngineConfiguration, &EngineConfiguration>,
         current_game_count: usize,
         max_game_count: usize,
     ) {
@@ -633,7 +633,7 @@ impl Output for CutechessOutput {
 
     fn end_game(
         &self,
-        configs: &GamePair<EngineConfiguration, EngineConfiguration>,
+        configs: &GamePair<&EngineConfiguration, &EngineConfiguration>,
         stats: &Stats,
         annotation: &str,
         id: usize,

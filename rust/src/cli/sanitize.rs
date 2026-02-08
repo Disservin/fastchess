@@ -2,9 +2,6 @@
 //!
 //! Ports `cli/sanitize.cpp` from C++.
 
-use std::ffi::OsStr;
-use std::path::PathBuf;
-
 use crate::types::engine_config::EngineConfiguration;
 use crate::types::enums::*;
 use crate::types::tournament::TournamentConfig;

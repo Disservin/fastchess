@@ -316,6 +316,7 @@ impl Process {
                                         &ts,
                                         &self.log_name,
                                         false,
+                                        None,
                                     );
                                 }
 
@@ -362,6 +363,7 @@ impl Process {
                                         &ts,
                                         &self.log_name,
                                         true,
+                                        None,
                                     );
                                 }
 

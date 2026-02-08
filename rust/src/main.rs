@@ -25,6 +25,7 @@ fn run() -> Result<(), String> {
         tournament_config.log.level,
         tournament_config.log.append_file,
         tournament_config.log.compress,
+        tournament_config.log.engine_coms,
     );
 
     //    Set up env_logger for the `log` crate macros (log::trace!, log::info!, etc.)

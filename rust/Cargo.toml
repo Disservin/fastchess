@@ -46,6 +46,9 @@ libm = "0.2"
 # libc — for syscall(SYS_gettid) on Linux
 libc = "0.2"
 
+# GZIP compression for log files
+flate2 = "1"
+
 [profile.release]
 opt-level = 3
 lto = true

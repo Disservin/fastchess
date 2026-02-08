@@ -24,6 +24,7 @@ fn run() -> Result<(), String> {
         &tournament_config.log.file,
         tournament_config.log.level,
         tournament_config.log.append_file,
+        tournament_config.log.compress,
     );
 
     //    Set up env_logger for the `log` crate macros (log::trace!, log::info!, etc.)
@@ -100,8 +101,13 @@ fn run() -> Result<(), String> {
              To resume, use: -config file={}",
             config_name
         );
+        // Finalize the logger before returning error
+        LOGGER.finish();
         return Err("Abnormal termination".to_string());
     }
+
+    // Finalize the logger to ensure gzip trailer is written
+    LOGGER.finish();
 
     Ok(())
 }
@@ -114,5 +120,12 @@ fn main() {
             1
         }
     };
+
+    // Ensure logger is finalized before exit.
+    // This is critical for gzip compression to write the trailer.
+    // We call finish() here again (even though run() calls it) because
+    // std::process::exit() bypasses normal cleanup and Drop implementations.
+    LOGGER.finish();
+
     std::process::exit(exit_code);
 }

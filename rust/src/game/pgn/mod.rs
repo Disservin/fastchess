@@ -162,7 +162,7 @@ impl PgnBuilder {
             // Move notation
             let move_str = Self::convert_move(&mv.r#move, &mut board, notation);
             if !move_str.is_empty() {
-                let curr = (move_counter + 1) / 2;
+                let curr = move_counter.div_ceil(2);
                 if is_white {
                     pair = format!("{}. {}", curr, move_str);
                 } else if i == 0 {

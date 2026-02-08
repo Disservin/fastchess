@@ -22,6 +22,12 @@ struct LoggerInner {
     file: Option<std::fs::File>,
 }
 
+impl Default for Logger {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Logger {
     pub fn new() -> Self {
         Self {

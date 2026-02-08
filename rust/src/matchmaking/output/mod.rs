@@ -468,6 +468,12 @@ impl Output for FastchessOutput {
 
 pub struct CutechessOutput;
 
+impl Default for CutechessOutput {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl CutechessOutput {
     pub fn new() -> Self {
         Self

@@ -412,7 +412,7 @@ fn run_game(pairing: Pairing, state: SharedState) {
 
     // Thread-local CPU affinity (consume once per thread, reuse for all games on this thread)
     thread_local! {
-        static THREAD_CPUS: std::cell::OnceCell<Vec<i32>> = std::cell::OnceCell::new();
+        static THREAD_CPUS: std::cell::OnceCell<Vec<i32>> = const { std::cell::OnceCell::new() };
     }
 
     // Consume CPUs for this thread if affinity is enabled
@@ -461,7 +461,7 @@ fn run_game(pairing: Pairing, state: SharedState) {
     let mut configs = GamePair::new(first, second);
 
     // Swap colors for even games (unless noswap is set)
-    if pairing.game_id % 2 == 0 && !tournament_config.noswap {
+    if pairing.game_id.is_multiple_of(2) && !tournament_config.noswap {
         std::mem::swap(&mut configs.white, &mut configs.black);
     }
 

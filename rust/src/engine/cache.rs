@@ -56,6 +56,12 @@ pub struct CachePool {
     entries: Mutex<Vec<Entry>>,
 }
 
+impl Default for CachePool {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl CachePool {
     pub fn new() -> Self {
         Self {

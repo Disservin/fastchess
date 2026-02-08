@@ -99,6 +99,8 @@ pub struct Match {
     hash_history: Vec<u64>,
     /// Ply counter (incremented after each half-move).
     ply_count: u32,
+    /// The variant type (Standard or Chess960).
+    variant: crate::types::VariantType,
 }
 
 impl Match {
@@ -182,6 +184,7 @@ impl Match {
             board,
             hash_history,
             ply_count,
+            variant: tournament_config.variant,
         }
     }
 
@@ -257,7 +260,7 @@ impl Match {
 
         let elapsed = start_time.elapsed();
 
-        self.data.variant = crate::types::VariantType::Standard; // TODO: from config
+        self.data.variant = self.variant;
         self.data.end_time = crate::core::datetime_iso();
         self.data.duration = crate::core::duration_string(elapsed);
 

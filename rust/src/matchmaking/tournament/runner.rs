@@ -449,8 +449,8 @@ fn run_game(pairing: Pairing, state: SharedState) {
         None
     };
 
-    let first = engine_configs[pairing.player1].clone();
-    let second = engine_configs[pairing.player2].clone();
+    let first = &engine_configs[pairing.player1];
+    let second = &engine_configs[pairing.player2];
 
     // Store names before moving configs - these are used later for stats lookup
     // regardless of which color each player ends up playing

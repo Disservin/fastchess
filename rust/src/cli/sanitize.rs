@@ -75,11 +75,8 @@ fn adjust_concurrency(config: &mut TournamentConfig) -> Result<(), String> {
         .map(|n| n.get())
         .unwrap_or(1);
 
-    // Negative concurrency means "hardware_threads - abs(concurrency)"
-    // Note: concurrency is usize so it can't be negative directly.
-    // The C++ code uses int; we handle this by checking if it was parsed as 0.
-    // For now, usize can't be negative, so this branch only activates
-    // if concurrency is 0.
+    // Handle the special case of concurrency == 0 (e.g., from config files).
+    // Negative values are handled during CLI parsing in mod.rs.
     if config.concurrency == 0 {
         config.concurrency = hw_threads;
         log::info!(

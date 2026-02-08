@@ -606,13 +606,11 @@ impl UciEngine {
     // ── Private helpers ──────────────────────────────────────────────────────
 
     fn send_setoption(&mut self, name: &str, value: &str) {
-        let option = self.uci_options.get_option(name);
-        if option.is_none() {
+        let Some(option) = self.uci_options.get_option(name) else {
             log_warn!("Warning; {} doesn't have option {}", self.config.name, name);
             return;
-        }
+        };
 
-        let option = option.unwrap();
         if !option.is_valid(value) {
             log_warn!("Warning; Invalid value for option {}; {}", name, value);
             return;

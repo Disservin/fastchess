@@ -407,31 +407,26 @@ impl Match {
         };
 
         // Handle missing bestmove
-        if best_move.is_none() {
+        let Some(mv_str) = best_move else {
             if timeout {
                 self.set_engine_timeout_status(us, them);
             } else {
                 self.set_engine_illegal_move_status(us, them, &best_move);
             }
             return false;
-        }
-
-        let mv_str = best_move.unwrap();
+        };
 
         // Validate the move is legal using the chess board
         let parsed_uci = mv_str.parse::<UciMove>();
-        let legal_move = parsed_uci
+        let Some(chess_move) = parsed_uci
             .ok()
-            .and_then(|uci| uci.to_move(&self.board).ok());
-
-        if legal_move.is_none() {
+            .and_then(|uci| uci.to_move(&self.board).ok())
+        else {
             // Illegal move
             self.add_move_data(us, elapsed_ms, latency, timeleft, false);
             self.set_engine_illegal_move_status(us, them, &Some(mv_str));
             return false;
-        }
-
-        let chess_move = legal_move.unwrap();
+        };
 
         // Check legality: the move must be in the legal moves list
         let legal_moves = self.board.legal_moves();
@@ -525,10 +520,13 @@ impl Match {
 
     /// Check for threefold repetition using Zobrist hash history.
     fn is_threefold_repetition(&self) -> bool {
+        // Need at least 5 positions for threefold repetition to be possible
+        let Some(&current_hash) = self.hash_history.last() else {
+            return false;
+        };
         if self.hash_history.len() < 5 {
             return false;
         }
-        let current_hash = *self.hash_history.last().unwrap();
         let count = self
             .hash_history
             .iter()

@@ -26,7 +26,7 @@ pub struct MoveData {
 }
 
 /// Reason a match terminated.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum MatchTermination {
     Normal,
     Adjudication,
@@ -35,13 +35,8 @@ pub enum MatchTermination {
     Stall,
     IllegalMove,
     Interrupt,
+    #[default]
     None,
-}
-
-impl Default for MatchTermination {
-    fn default() -> Self {
-        Self::None
-    }
 }
 
 /// Game result from a player's perspective.

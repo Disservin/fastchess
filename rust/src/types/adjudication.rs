@@ -67,17 +67,12 @@ impl Default for MaxMovesAdjudication {
 }
 
 /// Syzygy tablebase adjudication result type.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub enum TbResultType {
     WinLoss = 1,
     Draw = 2,
+    #[default]
     Both = 3,
-}
-
-impl Default for TbResultType {
-    fn default() -> Self {
-        Self::Both
-    }
 }
 
 /// Tablebase adjudication settings.

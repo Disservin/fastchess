@@ -301,16 +301,16 @@ impl UciEngine {
         let mut input = String::from("go");
 
         if self.config.limit.nodes > 0 {
-            write!(input, " nodes {}", self.config.limit.nodes);
+            let _ = write!(input, " nodes {}", self.config.limit.nodes);
         }
 
         if self.config.limit.plies > 0 {
-            write!(input, " depth {}", self.config.limit.plies);
+            let _ = write!(input, " depth {}", self.config.limit.plies);
         }
 
         // Fixed time per move (movetime) — cannot combine with tc
         if our_tc.is_fixed_time() {
-            write!(input, " movetime {}", our_tc.get_fixed_time());
+            let _ = write!(input, " movetime {}", our_tc.get_fixed_time());
             return self.write_engine(&input);
         }
 
@@ -321,24 +321,24 @@ impl UciEngine {
 
         if our_tc.is_timed() || our_tc.is_increment() {
             if white.is_timed() || white.is_increment() {
-                write!(input, " wtime {}", white.get_time_left());
+                let _ = write!(input, " wtime {}", white.get_time_left());
             }
             if black.is_timed() || black.is_increment() {
-                write!(input, " btime {}", black.get_time_left());
+                let _ = write!(input, " btime {}", black.get_time_left());
             }
         }
 
         if our_tc.is_increment() {
             if white.is_increment() {
-                write!(input, " winc {}", white.get_increment());
+                let _ = write!(input, " winc {}", white.get_increment());
             }
             if black.is_increment() {
-                write!(input, " binc {}", black.get_increment());
+                let _ = write!(input, " binc {}", black.get_increment());
             }
         }
 
         if our_tc.is_moves() {
-            write!(input, " movestogo {}", our_tc.get_moves_left());
+            let _ = write!(input, " movestogo {}", our_tc.get_moves_left());
         }
 
         self.write_engine(&input)

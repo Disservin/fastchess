@@ -6,6 +6,7 @@
 //! [`Process`] and provides high-level methods such as [`UciEngine::start`],
 //! [`UciEngine::go`], [`UciEngine::ucinewgame`], etc.
 
+use std::fmt::Write;
 use std::time::Duration;
 
 use crate::core::logger::LOGGER;
@@ -300,16 +301,16 @@ impl UciEngine {
         let mut input = String::from("go");
 
         if self.config.limit.nodes > 0 {
-            input.push_str(&format!(" nodes {}", self.config.limit.nodes));
+            write!(input, " nodes {}", self.config.limit.nodes);
         }
 
         if self.config.limit.plies > 0 {
-            input.push_str(&format!(" depth {}", self.config.limit.plies));
+            write!(input, " depth {}", self.config.limit.plies);
         }
 
         // Fixed time per move (movetime) — cannot combine with tc
         if our_tc.is_fixed_time() {
-            input.push_str(&format!(" movetime {}", our_tc.get_fixed_time()));
+            write!(input, " movetime {}", our_tc.get_fixed_time());
             return self.write_engine(&input);
         }
 
@@ -320,24 +321,24 @@ impl UciEngine {
 
         if our_tc.is_timed() || our_tc.is_increment() {
             if white.is_timed() || white.is_increment() {
-                input.push_str(&format!(" wtime {}", white.get_time_left()));
+                write!(input, " wtime {}", white.get_time_left());
             }
             if black.is_timed() || black.is_increment() {
-                input.push_str(&format!(" btime {}", black.get_time_left()));
+                write!(input, " btime {}", black.get_time_left());
             }
         }
 
         if our_tc.is_increment() {
             if white.is_increment() {
-                input.push_str(&format!(" winc {}", white.get_increment()));
+                write!(input, " winc {}", white.get_increment());
             }
             if black.is_increment() {
-                input.push_str(&format!(" binc {}", black.get_increment()));
+                write!(input, " binc {}", black.get_increment());
             }
         }
 
         if our_tc.is_moves() {
-            input.push_str(&format!(" movestogo {}", our_tc.get_moves_left()));
+            write!(input, " movestogo {}", our_tc.get_moves_left());
         }
 
         self.write_engine(&input)

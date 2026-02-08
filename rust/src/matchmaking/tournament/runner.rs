@@ -254,10 +254,7 @@ impl Tournament {
         for _ in 0..num_threads {
             let pairing = {
                 let mut sched = state.scheduler.lock().unwrap();
-                match sched.as_mut() {
-                    Some(s) => s.next(),
-                    None => None,
-                }
+                sched.as_mut().and_then(|s| s.next())
             };
 
             if let Some(pairing) = pairing {

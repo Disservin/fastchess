@@ -2,6 +2,7 @@
 //!
 //! Ports `core/threading/threadpool.hpp` from C++.
 
+use std::collections::VecDeque;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Condvar, Mutex};
 use std::thread;
@@ -31,7 +32,7 @@ impl TaskSender {
 
         {
             let mut queue = self.shared.queue.lock().unwrap();
-            queue.push(Box::new(task));
+            queue.push_back(Box::new(task));
         }
         self.shared.condvar.notify_one();
     }
@@ -47,7 +48,7 @@ pub struct ThreadPool {
 }
 
 struct Shared {
-    queue: Mutex<Vec<Task>>,
+    queue: Mutex<VecDeque<Task>>,
     condvar: Condvar,
     stop: AtomicBool,
 }
@@ -58,7 +59,7 @@ impl ThreadPool {
         assert!(num_threads > 0, "ThreadPool requires at least 1 thread");
 
         let shared = Arc::new(Shared {
-            queue: Mutex::new(Vec::new()),
+            queue: Mutex::new(VecDeque::new()),
             condvar: Condvar::new(),
             stop: AtomicBool::new(false),
         });
@@ -85,7 +86,7 @@ impl ThreadPool {
 
         {
             let mut queue = self.shared.queue.lock().unwrap();
-            queue.push(Box::new(task));
+            queue.push_back(Box::new(task));
         }
         self.shared.condvar.notify_one();
     }
@@ -174,7 +175,8 @@ fn work_loop(shared: &Shared) {
             if shared.stop.load(Ordering::Relaxed) && queue.is_empty() {
                 return;
             }
-            task = queue.remove(0);
+            // pop_front is O(1) for VecDeque, unlike Vec::remove(0) which is O(n)
+            task = queue.pop_front().expect("queue should not be empty here");
         }
 
         task();

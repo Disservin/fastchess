@@ -1,5 +1,5 @@
 use std::io::Write;
-use std::os::unix::io::{AsRawFd, RawFd};
+use std::os::fd::{AsFd, AsRawFd, BorrowedFd, OwnedFd};
 use std::process::{Child, Command, Stdio};
 use std::time::Duration;
 
@@ -78,11 +78,9 @@ pub struct Line {
 /// the file descriptor count low.
 pub struct Process {
     child: Option<Child>,
-    stdin_fd: Option<RawFd>,
-    stdout_fd: Option<RawFd>,
-    stderr_fd: Option<RawFd>,
-    interrupt_read: RawFd,
-    interrupt_write: RawFd,
+    // We no longer store raw i32 FDs to avoid safety issues.
+    // The pipes are owned by the `child` field.
+    interrupt_fds: Option<InterruptFds>,
     realtime_logging: bool,
     log_name: String,
     line_buffer_out: String,
@@ -90,15 +88,38 @@ pub struct Process {
     initialized: bool,
 }
 
+/// Owned file descriptors for the interrupt mechanism.
+/// Automatically closed on drop.
+enum InterruptFds {
+    /// Linux eventfd - single fd for both read and write
+    EventFd(OwnedFd),
+    /// Fallback pipe - separate read and write fds
+    Pipe { read: OwnedFd, write: OwnedFd },
+}
+
+impl InterruptFds {
+    /// Get a borrowed fd for reading (used in poll).
+    fn read_fd(&self) -> BorrowedFd<'_> {
+        match self {
+            InterruptFds::EventFd(fd) => fd.as_fd(),
+            InterruptFds::Pipe { read, .. } => read.as_fd(),
+        }
+    }
+
+    /// Get a borrowed fd for writing (used in interrupt).
+    fn write_fd(&self) -> BorrowedFd<'_> {
+        match self {
+            InterruptFds::EventFd(fd) => fd.as_fd(),
+            InterruptFds::Pipe { write, .. } => write.as_fd(),
+        }
+    }
+}
+
 impl Process {
     pub fn new() -> Self {
         Self {
             child: None,
-            stdin_fd: None,
-            stdout_fd: None,
-            stderr_fd: None,
-            interrupt_read: -1,
-            interrupt_write: -1,
+            interrupt_fds: None,
             realtime_logging: true,
             log_name: String::new(),
             line_buffer_out: String::with_capacity(300),
@@ -140,16 +161,7 @@ impl Process {
 
         match cmd.spawn() {
             Ok(child) => {
-                // Extract raw file descriptors for poll()-based I/O
-                self.stdin_fd = child.stdin.as_ref().map(|s| s.as_raw_fd());
-                self.stdout_fd = child.stdout.as_ref().map(|s| s.as_raw_fd());
-                self.stderr_fd = child.stderr.as_ref().map(|s| s.as_raw_fd());
-
-                // Set stdout/stderr to non-blocking? No - poll handles blocking fine.
-
-                // Create interrupt pipe for clean shutdown
                 self.setup_interrupt();
-
                 self.child = Some(child);
                 self.initialized = true;
 
@@ -193,13 +205,17 @@ impl Process {
     ) -> ProcessResult {
         lines.clear();
 
-        let stdout_fd = match self.stdout_fd {
-            Some(fd) => fd,
-            None => return ProcessResult::error("No stdout fd"),
+        // Ensure the child and its stdout are available
+        let child = match self.child.as_mut() {
+            Some(c) => c,
+            None => return ProcessResult::error("Process not initialized"),
         };
 
-        let poll_timeout: PollTimeout = if timeout.as_millis() == 0 {
-            PollTimeout::NONE // wait indefinitely
+        let stdout = child.stdout.as_mut().expect("Stdout not piped");
+        let stderr = child.stderr.as_mut().expect("Stderr not piped");
+
+        let poll_timeout = if timeout.is_zero() {
+            PollTimeout::NONE
         } else {
             PollTimeout::try_from(timeout).unwrap_or(PollTimeout::MAX)
         };
@@ -209,28 +225,28 @@ impl Process {
         loop {
             // Build pollfd array
             let mut poll_fds = vec![PollFd::new(
-                unsafe { std::os::fd::BorrowedFd::borrow_raw(stdout_fd) },
+                stdout.as_fd(),
                 PollFlags::POLLIN | PollFlags::POLLERR | PollFlags::POLLHUP,
             )];
 
             // Interrupt fd
-            if self.interrupt_read >= 0 {
-                poll_fds.push(PollFd::new(
-                    unsafe { std::os::fd::BorrowedFd::borrow_raw(self.interrupt_read) },
-                    PollFlags::POLLIN,
-                ));
+            if let Some(ref interrupt) = self.interrupt_fds {
+                poll_fds.push(PollFd::new(interrupt.read_fd(), PollFlags::POLLIN));
             }
 
             // Stderr fd
-            let stderr_idx = if let Some(err_fd) = self.stderr_fd {
-                poll_fds.push(PollFd::new(
-                    unsafe { std::os::fd::BorrowedFd::borrow_raw(err_fd) },
-                    PollFlags::POLLIN | PollFlags::POLLERR | PollFlags::POLLHUP,
-                ));
-                Some(poll_fds.len() - 1)
+            poll_fds.push(PollFd::new(
+                stderr.as_fd(),
+                PollFlags::POLLIN | PollFlags::POLLERR | PollFlags::POLLHUP,
+            ));
+
+            let stdout_idx = 0;
+            let interrupt_idx = if self.interrupt_fds.is_some() {
+                Some(1)
             } else {
                 None
             };
+            let stderr_idx = poll_fds.len() - 1;
 
             let ready = match poll(&mut poll_fds, poll_timeout) {
                 Ok(n) => n,
@@ -251,23 +267,26 @@ impl Process {
             }
 
             // Check interrupt
-            if self.interrupt_read >= 0 && poll_fds.len() > 1 {
-                if let Some(revents) = poll_fds[1].revents() {
+            if self.interrupt_fds.is_some() && poll_fds.len() > 1 {
+                if let Some(revents) = poll_fds[interrupt_idx.unwrap()].revents() {
                     if revents.contains(PollFlags::POLLIN) {
-                        let mut junk = [0u8; 8];
-                        let _ = unistd::read(self.interrupt_read, &mut junk);
+                        // Drain the interrupt fd
+                        if let Some(ref interrupt) = self.interrupt_fds {
+                            let mut junk = [0u8; 8];
+                            let _ = unistd::read(interrupt.read_fd().as_raw_fd(), &mut junk);
+                        }
                         return ProcessResult::error("Interrupted by control pipe");
                     }
                 }
             }
 
             // Check stdout
-            if let Some(revents) = poll_fds[0].revents() {
+            if let Some(revents) = poll_fds[stdout_idx].revents() {
                 if revents.contains(PollFlags::POLLHUP) || revents.contains(PollFlags::POLLERR) {
                     return ProcessResult::error("Engine crashed (stdout)");
                 }
                 if revents.contains(PollFlags::POLLIN) {
-                    let bytes_read = match unistd::read(stdout_fd, &mut read_buf) {
+                    let bytes_read = match unistd::read(stdout.as_fd().as_raw_fd(), &mut read_buf) {
                         Ok(n) => n,
                         Err(_) => return ProcessResult::error("read failed on stdout"),
                     };
@@ -316,49 +335,45 @@ impl Process {
             }
 
             // Check stderr
-            if let Some(stderr_i) = stderr_idx {
-                if let Some(revents) = poll_fds[stderr_i].revents() {
-                    if revents.contains(PollFlags::POLLIN) {
-                        let err_fd = self.stderr_fd.unwrap();
-                        let bytes_read = match unistd::read(err_fd, &mut read_buf) {
-                            Ok(n) => n,
-                            Err(_) => continue,
-                        };
+            if let Some(revents) = poll_fds[stderr_idx].revents() {
+                if revents.contains(PollFlags::POLLIN) {
+                    let err_fd = stderr.as_fd().as_raw_fd();
+                    let bytes_read = match unistd::read(err_fd, &mut read_buf) {
+                        Ok(n) => n,
+                        Err(_) => continue,
+                    };
 
-                        for &byte in &read_buf[..bytes_read] {
-                            let c = byte as char;
-                            if c == '\n' {
-                                if !self.line_buffer_err.is_empty() {
-                                    let line =
-                                        self.line_buffer_err.trim_end_matches('\r').to_string();
-                                    let ts = crate::core::datetime_precise();
+                    for &byte in &read_buf[..bytes_read] {
+                        let c = byte as char;
+                        if c == '\n' {
+                            if !self.line_buffer_err.is_empty() {
+                                let line = self.line_buffer_err.trim_end_matches('\r').to_string();
+                                let ts = crate::core::datetime_precise();
 
-                                    if self.realtime_logging {
-                                        crate::core::logger::LOGGER.read_from_engine(
-                                            &line,
-                                            &ts,
-                                            &self.log_name,
-                                            true,
-                                        );
-                                    }
-
-                                    lines.push(Line {
-                                        line,
-                                        time: ts,
-                                        std: Standard::Err,
-                                    });
-
-                                    self.line_buffer_err.clear();
+                                if self.realtime_logging {
+                                    crate::core::logger::LOGGER.read_from_engine(
+                                        &line,
+                                        &ts,
+                                        &self.log_name,
+                                        true,
+                                    );
                                 }
-                            } else {
-                                self.line_buffer_err.push(c);
+
+                                lines.push(Line {
+                                    line,
+                                    time: ts,
+                                    std: Standard::Err,
+                                });
+
+                                self.line_buffer_err.clear();
                             }
+                        } else {
+                            self.line_buffer_err.push(c);
                         }
                     }
-                    if revents.contains(PollFlags::POLLHUP) || revents.contains(PollFlags::POLLERR)
-                    {
-                        return ProcessResult::error("Engine crashed (stderr)");
-                    }
+                }
+                if revents.contains(PollFlags::POLLHUP) || revents.contains(PollFlags::POLLERR) {
+                    return ProcessResult::error("Engine crashed (stderr)");
                 }
             }
         }
@@ -413,38 +428,28 @@ impl Process {
         #[cfg(target_os = "linux")]
         {
             use nix::sys::eventfd::{EfdFlags, EventFd};
-            if let Ok(fd) = EventFd::from_value_and_flags(0, EfdFlags::EFD_CLOEXEC) {
-                let raw_fd = fd.as_raw_fd();
-                self.interrupt_read = raw_fd;
-                self.interrupt_write = raw_fd;
-                std::mem::forget(fd); // We manage the fd manually
+            if let Ok(efd) = EventFd::from_value_and_flags(0, EfdFlags::EFD_CLOEXEC) {
+                // Convert EventFd to OwnedFd
+                let owned_fd: OwnedFd = efd.into();
+                self.interrupt_fds = Some(InterruptFds::EventFd(owned_fd));
                 return;
             }
         }
 
         // Fallback: pipe
-        match unistd::pipe() {
-            Ok((read_fd, write_fd)) => {
-                self.interrupt_read = read_fd.as_raw_fd();
-                self.interrupt_write = write_fd.as_raw_fd();
-                std::mem::forget(read_fd);
-                std::mem::forget(write_fd);
-            }
-            Err(_) => {
-                self.interrupt_read = -1;
-                self.interrupt_write = -1;
-            }
+        if let Ok((read_fd, write_fd)) = unistd::pipe() {
+            self.interrupt_fds = Some(InterruptFds::Pipe {
+                read: read_fd,
+                write: write_fd,
+            });
         }
     }
 
     /// Signal the interrupt pipe to wake up any blocking poll().
     pub fn interrupt(&self) {
-        if self.interrupt_write >= 0 {
+        if let Some(ref fds) = self.interrupt_fds {
             let val: u64 = 1;
-            let _ = unistd::write(
-                unsafe { std::os::fd::BorrowedFd::borrow_raw(self.interrupt_write) },
-                &val.to_ne_bytes(),
-            );
+            let _ = unistd::write(fds.write_fd(), &val.to_ne_bytes());
         }
     }
 
@@ -483,12 +488,6 @@ impl Drop for Process {
             }
         }
 
-        // Close interrupt fds
-        if self.interrupt_read >= 0 {
-            let _ = unistd::close(self.interrupt_read);
-        }
-        if self.interrupt_write >= 0 && self.interrupt_write != self.interrupt_read {
-            let _ = unistd::close(self.interrupt_write);
-        }
+        // interrupt_fds are automatically closed when dropped (OwnedFd)
     }
 }

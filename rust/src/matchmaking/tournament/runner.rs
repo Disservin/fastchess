@@ -509,7 +509,7 @@ fn run_game(pairing: Pairing, state: SharedState) {
         game.start(&mut white_ref, &mut black_ref, cpus_slice);
     }
 
-    let match_data = game.get().clone();
+    let match_data = game.get();
 
     log::trace!(
         "Game {} between {} and {} finished",

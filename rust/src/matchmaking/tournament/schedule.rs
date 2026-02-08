@@ -26,8 +26,12 @@ pub enum SchedulerVariant {
 ///
 /// Replaces the C++ `Scheduler` → `TournamentSchedulerBase` → `RoundRobinScheduler` / `GauntletScheduler`
 /// virtual class hierarchy with a single struct + enum variant.
-pub struct Scheduler<'a> {
-    opening_book: &'a mut OpeningBook,
+///
+/// The scheduler **owns** the opening book to avoid lifetime issues with
+/// `Arc<Mutex<Scheduler>>`. Since opening books can be very large (up to 1GB),
+/// ownership ensures there's only one copy in memory.
+pub struct Scheduler {
+    opening_book: OpeningBook,
     variant: SchedulerVariant,
     opening: Option<usize>,
     n_players: usize,
@@ -41,11 +45,11 @@ pub struct Scheduler<'a> {
     pair_counter: usize,
 }
 
-impl<'a> Scheduler<'a> {
+impl Scheduler {
     /// Create a new scheduler.
     ///
     /// # Arguments
-    /// * `opening_book` - Mutable reference to the opening book for fetching opening IDs
+    /// * `opening_book` - The opening book (ownership is transferred to the scheduler)
     /// * `variant` - The scheduling variant (RoundRobin or Gauntlet)
     /// * `players` - Number of players/engines
     /// * `rounds` - Number of rounds
@@ -55,7 +59,7 @@ impl<'a> Scheduler<'a> {
     /// # Panics
     /// Panics if `players < 2`, `rounds < 1`, or `games < 1`.
     pub fn new(
-        opening_book: &'a mut OpeningBook,
+        opening_book: OpeningBook,
         variant: SchedulerVariant,
         players: usize,
         rounds: usize,
@@ -191,9 +195,9 @@ mod tests {
 
     #[test]
     fn test_round_robin_total_3_players() {
-        let mut book = make_empty_book();
+        let book = make_empty_book();
         let sched = Scheduler::new(
-            &mut book,
+            book,
             SchedulerVariant::RoundRobin,
             3, // players
             1, // rounds
@@ -206,9 +210,9 @@ mod tests {
 
     #[test]
     fn test_round_robin_total_4_players_2_rounds() {
-        let mut book = make_empty_book();
+        let book = make_empty_book();
         let sched = Scheduler::new(
-            &mut book,
+            book,
             SchedulerVariant::RoundRobin,
             4, // players
             2, // rounds
@@ -221,8 +225,8 @@ mod tests {
 
     #[test]
     fn test_round_robin_generates_all_pairings() {
-        let mut book = make_empty_book();
-        let mut sched = Scheduler::new(&mut book, SchedulerVariant::RoundRobin, 3, 1, 1, 0);
+        let book = make_empty_book();
+        let mut sched = Scheduler::new(book, SchedulerVariant::RoundRobin, 3, 1, 1, 0);
         // Should produce exactly 3 pairings: (0,1), (0,2), (1,2)
         let total = sched.total();
         assert_eq!(total, 3);
@@ -246,9 +250,9 @@ mod tests {
 
     #[test]
     fn test_round_robin_multi_games_per_pair() {
-        let mut book = make_empty_book();
+        let book = make_empty_book();
         let mut sched = Scheduler::new(
-            &mut book,
+            book,
             SchedulerVariant::RoundRobin,
             2, // 2 players
             1, // 1 round
@@ -268,9 +272,9 @@ mod tests {
 
     #[test]
     fn test_gauntlet_total() {
-        let mut book = make_empty_book();
+        let book = make_empty_book();
         let sched = Scheduler::new(
-            &mut book,
+            book,
             SchedulerVariant::Gauntlet { n_seeds: 1 },
             4, // players
             1, // rounds
@@ -283,9 +287,9 @@ mod tests {
 
     #[test]
     fn test_gauntlet_generates_pairings() {
-        let mut book = make_empty_book();
+        let book = make_empty_book();
         let mut sched = Scheduler::new(
-            &mut book,
+            book,
             SchedulerVariant::Gauntlet { n_seeds: 1 },
             3, // players
             1, // round
@@ -306,9 +310,9 @@ mod tests {
 
     #[test]
     fn test_gauntlet_2_seeds() {
-        let mut book = make_empty_book();
+        let book = make_empty_book();
         let mut sched = Scheduler::new(
-            &mut book,
+            book,
             SchedulerVariant::Gauntlet { n_seeds: 2 },
             4, // players
             1,
@@ -327,26 +331,19 @@ mod tests {
 
     #[test]
     fn test_gauntlet_seeds_clamped() {
-        let mut book = make_empty_book();
+        let book = make_empty_book();
         // n_seeds=10 but only 3 players, should clamp to 2
-        let sched = Scheduler::new(
-            &mut book,
-            SchedulerVariant::Gauntlet { n_seeds: 10 },
-            3,
-            1,
-            1,
-            0,
-        );
+        let sched = Scheduler::new(book, SchedulerVariant::Gauntlet { n_seeds: 10 }, 3, 1, 1, 0);
         // Clamped to 2 seeds => same as round robin with 3 players = 3 pairings
         assert_eq!(sched.total(), 3);
     }
 
     #[test]
     fn test_resumption() {
-        let mut book = make_empty_book();
+        let book = make_empty_book();
         // 2 players, 1 round, 4 games per pair. Resume after 2 played.
         let mut sched = Scheduler::new(
-            &mut book,
+            book,
             SchedulerVariant::RoundRobin,
             2,
             1,
@@ -369,9 +366,9 @@ mod tests {
 
     #[test]
     fn test_multi_round() {
-        let mut book = make_empty_book();
+        let book = make_empty_book();
         let mut sched = Scheduler::new(
-            &mut book,
+            book,
             SchedulerVariant::RoundRobin,
             2, // 2 players
             3, // 3 rounds

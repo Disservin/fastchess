@@ -131,7 +131,7 @@ impl ScoreBoard {
     ) -> bool {
         let mut results = self.results.lock().unwrap();
         let entry = results.get_or_insert(configs);
-        *entry += stats.clone();
+        *entry += stats;
         true
     }
 
@@ -156,7 +156,7 @@ impl ScoreBoard {
         }
 
         let lookup = cache.get_mut(&round_id).unwrap();
-        *lookup += stats.clone();
+        *lookup += stats;
 
         // Compute pentanomial category
         let wins = lookup.wins;
@@ -207,7 +207,7 @@ impl ScoreBoard {
 
         for (key, value) in results.iter() {
             if key.first == engine {
-                stats += value.clone();
+                stats += value;
             } else if key.second == engine {
                 stats += value.inverted();
             }

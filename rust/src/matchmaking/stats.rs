@@ -162,6 +162,20 @@ impl ops::AddAssign for Stats {
     }
 }
 
+impl ops::AddAssign<&Stats> for Stats {
+    fn add_assign(&mut self, rhs: &Stats) {
+        self.wins += rhs.wins;
+        self.losses += rhs.losses;
+        self.draws += rhs.draws;
+        self.penta_ww += rhs.penta_ww;
+        self.penta_wd += rhs.penta_wd;
+        self.penta_wl += rhs.penta_wl;
+        self.penta_dd += rhs.penta_dd;
+        self.penta_ld += rhs.penta_ld;
+        self.penta_ll += rhs.penta_ll;
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

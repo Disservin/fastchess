@@ -36,8 +36,8 @@ use crate::types::match_data::*;
 /// `Tournament`.
 #[derive(Clone)]
 struct SharedState {
-    scheduler: Arc<Mutex<Option<Scheduler<'static>>>>,
-    scoreboard: Arc<Mutex<ScoreBoard>>,
+    scheduler: Arc<Mutex<Option<Scheduler>>>,
+    scoreboard: Arc<ScoreBoard>,
     tracker: Arc<Mutex<PlayerTracker>>,
     output: Arc<Mutex<Box<dyn crate::matchmaking::output::Output + Send>>>,
     /// Mutex that serializes the end-game output block (endGame + scoreboard
@@ -60,7 +60,7 @@ struct SharedState {
 /// Handles scheduling, engine management, game execution, result tracking,
 /// SPRT monitoring, and file output (PGN/EPD).
 pub struct Tournament {
-    scoreboard: Arc<Mutex<ScoreBoard>>,
+    scoreboard: Arc<ScoreBoard>,
     tracker: Arc<Mutex<PlayerTracker>>,
     pool: ThreadPool,
     output: Arc<Mutex<Box<dyn crate::matchmaking::output::Output + Send>>>,
@@ -75,7 +75,7 @@ pub struct Tournament {
     file_writer_epd: Option<Arc<Mutex<FileWriter>>>,
 
     // The scheduler is behind a mutex because `startNext()` is called from threads
-    scheduler: Arc<Mutex<Option<Scheduler<'static>>>>,
+    scheduler: Arc<Mutex<Option<Scheduler>>>,
 
     // Engine cache — reuses engine processes across games
     engine_cache: Arc<EngineCache>,
@@ -121,10 +121,7 @@ impl Tournament {
             tournament_config.variant,
         )?;
 
-        // SAFETY: We leak the book to give it a 'static lifetime.
-        // This is acceptable because the book lives for the entire tournament.
-        let book: &'static mut OpeningBook = Box::leak(Box::new(book));
-
+        // Scheduler now owns the opening book - no need for Box::leak
         let scheduler = Scheduler::new(
             book,
             variant,
@@ -185,7 +182,7 @@ impl Tournament {
         ));
 
         Ok(Self {
-            scoreboard: Arc::new(Mutex::new(scoreboard)),
+            scoreboard: Arc::new(scoreboard),
             tracker: Arc::new(Mutex::new(PlayerTracker::new())),
             pool,
             output: Arc::new(Mutex::new(output)),
@@ -337,7 +334,6 @@ impl Tournament {
     /// engine pairs and collects their stats.
     fn merge_results(&self) -> StatsMap {
         let engine_configs = config::engine_configs();
-        let scoreboard = self.scoreboard.lock().unwrap();
         let mut map = StatsMap::new();
         let mut seen = Vec::new();
 
@@ -354,7 +350,7 @@ impl Tournament {
                     continue;
                 }
 
-                let stats = scoreboard.get_stats(&engine.name, &opponent.name);
+                let stats = self.scoreboard.get_stats(&engine.name, &opponent.name);
                 map.insert(pair.clone(), stats);
                 seen.push(pair);
             }
@@ -459,7 +455,13 @@ fn run_game(pairing: Pairing, state: SharedState) {
     let first = engine_configs[pairing.player1].clone();
     let second = engine_configs[pairing.player2].clone();
 
-    let mut configs = GamePair::new(first.clone(), second.clone());
+    // Store names before moving configs - these are used later for stats lookup
+    // regardless of which color each player ends up playing
+    let first_name = first.name.clone();
+    let second_name = second.name.clone();
+
+    // Move the cloned configs into GamePair instead of cloning again
+    let mut configs = GamePair::new(first, second);
 
     // Swap colors for even games (unless noswap is set)
     if pairing.game_id % 2 == 0 && !tournament_config.noswap {
@@ -573,28 +575,25 @@ fn run_game(pairing: Pairing, state: SharedState) {
             out.end_game(&configs, &stats, &match_data.reason, pairing.game_id);
         }
 
-        {
-            let sb = state.scoreboard.lock().unwrap();
-            if tournament_config.report_penta {
-                sb.update_pair(&configs, &stats, pairing.pairing_id as u64);
-            } else {
-                sb.update_non_pair(&configs, &stats);
-            }
+        // ScoreBoard has interior mutability, no need for outer lock
+        if tournament_config.report_penta {
+            state
+                .scoreboard
+                .update_pair(&configs, &stats, pairing.pairing_id as u64);
+        } else {
+            state.scoreboard.update_non_pair(&configs, &stats);
         }
 
         let current_count = state.match_count.load(Ordering::Relaxed);
         let is_last = all_matches_played(current_count, state.final_matchcount);
 
         // Get updated stats for the pair
-        let updated_stats = {
-            let sb = state.scoreboard.lock().unwrap();
-            sb.get_stats(&first.name, &second.name)
-        };
+        let updated_stats = state.scoreboard.get_stats(&first_name, &second_name);
 
         // Print score interval (e.g., "Score of X vs Y: W - L - D [ratio] N")
         if should_print_score_interval(current_count, tournament_config.scoreinterval) || is_last {
             let out = state.output.lock().unwrap();
-            out.print_result(&updated_stats, &first.name, &second.name);
+            out.print_result(&updated_stats, &first_name, &second_name);
         }
 
         // Print rating interval (Elo, SPRT, etc.)
@@ -606,8 +605,9 @@ fn run_game(pairing: Pairing, state: SharedState) {
         );
 
         let pair_completed = if tournament_config.report_penta {
-            let sb = state.scoreboard.lock().unwrap();
-            sb.is_pair_completed(pairing.pairing_id as u64)
+            state
+                .scoreboard
+                .is_pair_completed(pairing.pairing_id as u64)
         } else {
             true
         };
@@ -619,11 +619,11 @@ fn run_game(pairing: Pairing, state: SharedState) {
             out.print_interval(
                 &state.sprt,
                 &updated_stats,
-                &first.name,
-                &second.name,
+                &first_name,
+                &second_name,
                 (&*white_ref, &*black_ref),
                 &state.opening_file,
-                &*state.scoreboard.lock().unwrap(),
+                &*state.scoreboard,
             );
         }
 
@@ -653,17 +653,17 @@ fn run_game(pairing: Pairing, state: SharedState) {
                 let out = state.output.lock().unwrap();
                 // Only print these if we haven't already printed them above
                 if !((should_print_rating && pair_completed) || is_last) {
-                    out.print_result(&updated_stats, &first.name, &second.name);
+                    out.print_result(&updated_stats, &first_name, &second_name);
                     let white_ref = white_guard.lock();
                     let black_ref = black_guard.lock();
                     out.print_interval(
                         &state.sprt,
                         &updated_stats,
-                        &first.name,
-                        &second.name,
+                        &first_name,
+                        &second_name,
                         (&*white_ref, &*black_ref),
                         &state.opening_file,
-                        &*state.scoreboard.lock().unwrap(),
+                        &*state.scoreboard,
                     );
                 }
                 out.end_tournament(&termination_message);

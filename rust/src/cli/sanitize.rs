@@ -21,14 +21,14 @@ pub fn sanitize_engines(configs: &mut [EngineConfiguration]) -> Result<(), Strin
         return Err("Error: Need at least two engines to start!".to_string());
     }
 
-    for i in 0..configs.len() {
-        validate_engine(&configs[i])?;
+    for (i, config) in configs.iter().enumerate() {
+        validate_engine(config)?;
 
-        for j in 0..i {
-            if configs[i].name == configs[j].name {
+        for previous_config in &configs[..i] {
+            if config.name == previous_config.name {
                 return Err(format!(
                     "Error: Engines with the same name are not allowed!: {}",
-                    configs[i].name
+                    config.name
                 ));
             }
         }
@@ -203,13 +203,12 @@ fn validate_engine(config: &EngineConfiguration) -> Result<(), String> {
         std::path::Path::new(&config.dir).join(&config.cmd)
     };
 
-    if (!config.dir.is_empty() || engine_path.is_absolute())
-        && !engine_path.is_file() {
-            return Err(format!(
-                "Engine binary does not exist: {}",
-                engine_path.display()
-            ));
-        }
+    if (!config.dir.is_empty() || engine_path.is_absolute()) && !engine_path.is_file() {
+        return Err(format!(
+            "Engine binary does not exist: {}",
+            engine_path.display()
+        ));
+    }
 
     Ok(())
 }

@@ -832,9 +832,36 @@ impl OptionsParser {
             &mut opts,
             "concurrency",
             Self::wrap_single("-concurrency", |value, data| {
-                data.tournament_config.concurrency = value
+                // Parse as i32 to support negative values (e.g., -concurrency -2)
+                let concurrency_raw: i32 = value
                     .parse()
                     .map_err(|_| format!("Invalid concurrency value: {}", value))?;
+
+                // Negative or zero means "hardware_threads - abs(value)"
+                // This matches the C++ behavior: -concurrency -2 means "use all threads except 2"
+                if concurrency_raw <= 0 {
+                    let hw_threads = std::thread::available_parallelism()
+                        .map(|n| n.get())
+                        .unwrap_or(1);
+
+                    let mut adjusted = hw_threads as i32 - concurrency_raw.abs();
+
+                    if adjusted < 0 {
+                        log::warn!(
+                            "Warning: Adjusted concurrency value {} is less than 0, setting to 1.",
+                            adjusted
+                        );
+                        adjusted = 1;
+                    }
+
+                    data.tournament_config.concurrency = adjusted as usize;
+                    println!(
+                        "Info: Adjusted concurrency to {} based on number of available hardware threads.",
+                        data.tournament_config.concurrency
+                    );
+                } else {
+                    data.tournament_config.concurrency = concurrency_raw as usize;
+                }
                 Ok(())
             }),
             false,
@@ -1747,5 +1774,66 @@ mod tests {
             .collect();
 
         assert!(OptionsParser::new(&args).is_err());
+    }
+
+    #[test]
+    fn test_negative_concurrency() {
+        let args: Vec<String> = vec![
+            "fastchess",
+            "-engine",
+            "cmd=eng1",
+            "name=E1",
+            "tc=1+0",
+            "-engine",
+            "cmd=eng2",
+            "name=E2",
+            "tc=1+0",
+            "-concurrency",
+            "-2",
+            "-rounds",
+            "1",
+        ]
+        .into_iter()
+        .map(|s| s.to_string())
+        .collect();
+
+        let parser = OptionsParser::new(&args).unwrap();
+        let hw_threads = std::thread::available_parallelism()
+            .map(|n| n.get())
+            .unwrap_or(1);
+
+        // -2 should become "hw_threads - 2", with a minimum of 1
+        let expected = (hw_threads as i32 - 2).max(1) as usize;
+        assert_eq!(parser.tournament_config().concurrency, expected);
+    }
+
+    #[test]
+    fn test_zero_concurrency() {
+        let args: Vec<String> = vec![
+            "fastchess",
+            "-engine",
+            "cmd=eng1",
+            "name=E1",
+            "tc=1+0",
+            "-engine",
+            "cmd=eng2",
+            "name=E2",
+            "tc=1+0",
+            "-concurrency",
+            "0",
+            "-rounds",
+            "1",
+        ]
+        .into_iter()
+        .map(|s| s.to_string())
+        .collect();
+
+        let parser = OptionsParser::new(&args).unwrap();
+        let hw_threads = std::thread::available_parallelism()
+            .map(|n| n.get())
+            .unwrap_or(1);
+
+        // 0 should become "hw_threads - 0" = hw_threads
+        assert_eq!(parser.tournament_config().concurrency, hw_threads);
     }
 }

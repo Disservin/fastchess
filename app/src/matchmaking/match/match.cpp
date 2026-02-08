@@ -70,12 +70,7 @@ bool isFen(const std::string& line) { return line.find(';') == std::string::npos
 
 }  // namespace
 
-Match::Match(const book::Opening& opening)
-    : opening_(opening),
-      draw_tracker_(config::TournamentConfig->draw),
-      resign_tracker_(config::TournamentConfig->resign),
-      maxmoves_tracker_(config::TournamentConfig->maxmoves),
-      tb_adjudication_tracker_(config::TournamentConfig->tb_adjudication) {
+Match::Match(const book::Opening& opening) : opening_(opening), adjudicator_(*config::TournamentConfig) {
     board_.set960(config::TournamentConfig->variant == VariantType::FRC);
 
     const auto success = isFen(opening_.fen_epd) ? board_.setFen(opening_.fen_epd) : board_.setEpd(opening_.fen_epd);
@@ -431,16 +426,10 @@ bool Match::playMove(Player& us, Player& them) {
     // pgn and epd adjudication. fastchess fixes this by using the fullmove counter from the board
     // object directly
     auto score = us.engine.lastScore();
+    std::optional<engine::Score> opt_score;
+    if (score.has_value()) opt_score = score.value();
 
-    if (score.has_value()) {
-        draw_tracker_.update(score.value(), board_.halfMoveClock());
-        resign_tracker_.update(score.value(), ~board_.sideToMove());
-    } else {
-        draw_tracker_.invalidate();
-        resign_tracker_.invalidate(~board_.sideToMove());
-    }
-
-    maxmoves_tracker_.update();
+    adjudicator_.update(opt_score, board_, board_.sideToMove());
 
     return true;
 }
@@ -630,75 +619,35 @@ void Match::verifyPvLines(const Player& us) {
 }
 
 bool Match::adjudicate(Player& us, Player& them) noexcept {
-    // Start with TB adjudication, if applicable, since this provides a sort of 'exact' result, whereas the other
-    // adjudication methods are more heuristic.
-    if (config::TournamentConfig->tb_adjudication.enabled && tb_adjudication_tracker_.adjudicatable(board_)) {
-        const GameResult result = tb_adjudication_tracker_.adjudicate(board_);
-        const auto desired_adju = config::TournamentConfig->tb_adjudication.result_type;
+    auto score = us.engine.lastScore();
+    std::optional<engine::Score> opt_score;
+    if (score.has_value()) opt_score = score.value();
 
-        if ((result == GameResult::WIN || result == GameResult::LOSE) &&
-            desired_adju & config::TbAdjudication::ResultType::WIN_LOSS) {
-            Color c = Color::NONE;
+    // us is the player who just moved (previous turn) or we are checking against them.
+    // In playMove(p1, p2), we call adjudicate(p2, p1).
+    // so us = p2 (opponent of current mover).
 
-            if (result == GameResult::WIN) {
-                us.setLost();
-                them.setWon();
+    // logic in Match used:
+    // us.engine.lastScore().
+    // resign_tracker_.resignable(). (updates were done with ~board_.sideToMove(), which is us).
 
-                c = board_.sideToMove();
-            } else {
-                us.setWon();
-                them.setLost();
+    auto result = adjudicator_.adjudicate(board_, opt_score);
 
-                c = (~board_.sideToMove());
-            }
+    if (result) {
+        data_.termination = result->termination;
+        data_.reason      = result->reason;
 
-            data_.reason      = c.longStr() + Match::ADJUDICATION_TB_WIN_MSG;
-            data_.termination = MatchTermination::ADJUDICATION;
-
-            return true;
-        }
-
-        if (result == GameResult::DRAW && desired_adju & config::TbAdjudication::ResultType::DRAW) {
+        // Apply results
+        if (result->result_us == GameResult::WIN) {
+            us.setWon();
+            them.setLost();
+        } else if (result->result_us == GameResult::LOSE) {
+            us.setLost();
+            them.setWon();
+        } else {
             us.setDraw();
             them.setDraw();
-
-            data_.reason      = Match::ADJUDICATION_TB_DRAW_MSG;
-            data_.termination = MatchTermination::ADJUDICATION;
-
-            return true;
         }
-    }
-
-    const auto score = us.engine.lastScore();
-    if (config::TournamentConfig->resign.enabled && resign_tracker_.resignable() && score.has_value() &&
-        score.value().value < 0) {
-        us.setLost();
-        them.setWon();
-
-        const auto color = board_.sideToMove().longStr();
-
-        data_.termination = MatchTermination::ADJUDICATION;
-        data_.reason      = color + Match::ADJUDICATION_WIN_MSG;
-
-        return true;
-    }
-
-    if (config::TournamentConfig->draw.enabled && draw_tracker_.adjudicatable(board_.fullMoveNumber() - 1)) {
-        us.setDraw();
-        them.setDraw();
-
-        data_.termination = MatchTermination::ADJUDICATION;
-        data_.reason      = Match::ADJUDICATION_MSG;
-
-        return true;
-    }
-
-    if (config::TournamentConfig->maxmoves.enabled && maxmoves_tracker_.maxmovesreached()) {
-        us.setDraw();
-        them.setDraw();
-
-        data_.termination = MatchTermination::ADJUDICATION;
-        data_.reason      = Match::ADJUDICATION_MSG;
 
         return true;
     }

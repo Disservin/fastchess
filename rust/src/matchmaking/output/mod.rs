@@ -307,13 +307,13 @@ impl Output for FastchessOutput {
         book: &str,
         scoreboard: &ScoreBoard,
     ) {
-        print!("--------------------------------------------------\n");
+        println!("--------------------------------------------------");
         print!(
             "{}",
             self.format_elo(stats, first, second, engines, book, scoreboard)
         );
         print!("{}", self.format_sprt(sprt, stats));
-        print!("--------------------------------------------------\n");
+        println!("--------------------------------------------------");
     }
 
     fn print_result(&self, _stats: &Stats, _first: &str, _second: &str) {

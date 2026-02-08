@@ -370,7 +370,7 @@ impl Drop for Tournament {
 /// Called before incrementing match_count, so we add 1.
 fn should_print_score_interval(match_count: u64, scoreinterval: i32) -> bool {
     let idx = match_count + 1;
-    idx % scoreinterval as u64 == 0
+    idx.is_multiple_of(scoreinterval as u64)
 }
 
 /// Check whether the rating interval should trigger.
@@ -506,7 +506,7 @@ fn run_game(pairing: Pairing, state: SharedState) {
         let mut black_ref = black_guard.lock();
         // Pass CPUs to engines (will be set on engine processes)
         let cpus_slice = cpus_for_game.as_deref();
-        game.start(&mut *white_ref, &mut *black_ref, cpus_slice);
+        game.start(&mut white_ref, &mut black_ref, cpus_slice);
     }
 
     let match_data = game.get().clone();
@@ -620,7 +620,7 @@ fn run_game(pairing: Pairing, state: SharedState) {
                 &second_name,
                 (&*white_ref, &*black_ref),
                 &state.opening_file,
-                &*state.scoreboard,
+                &state.scoreboard,
             );
         }
 
@@ -660,7 +660,7 @@ fn run_game(pairing: Pairing, state: SharedState) {
                         &second_name,
                         (&*white_ref, &*black_ref),
                         &state.opening_file,
-                        &*state.scoreboard,
+                        &state.scoreboard,
                     );
                 }
                 out.end_tournament(&termination_message);

@@ -203,14 +203,13 @@ fn validate_engine(config: &EngineConfiguration) -> Result<(), String> {
         std::path::Path::new(&config.dir).join(&config.cmd)
     };
 
-    if !config.dir.is_empty() || engine_path.is_absolute() {
-        if !engine_path.is_file() {
+    if (!config.dir.is_empty() || engine_path.is_absolute())
+        && !engine_path.is_file() {
             return Err(format!(
                 "Engine binary does not exist: {}",
                 engine_path.display()
             ));
         }
-    }
 
     Ok(())
 }

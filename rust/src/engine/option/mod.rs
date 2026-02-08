@@ -265,7 +265,7 @@ pub fn parse_uci_option_line(line: &str) -> Option<UCIOption> {
             }
             "var" => {
                 // Collect all var values
-                let existing = params.entry("var").or_insert_with(String::new);
+                let existing = params.entry("var").or_default();
                 if i + 1 < tokens.len() {
                     if !existing.is_empty() {
                         existing.push(' ');
@@ -284,7 +284,7 @@ pub fn parse_uci_option_line(line: &str) -> Option<UCIOption> {
 
     match *type_str {
         "check" => {
-            let default_val = params.get("default").map_or(false, |v| v == "true");
+            let default_val = params.get("default").is_some_and(|v| v == "true");
             Some(UCIOption::Check {
                 name,
                 value: default_val,

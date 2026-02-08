@@ -115,6 +115,12 @@ impl InterruptFds {
     }
 }
 
+impl Default for Process {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Process {
     pub fn new() -> Self {
         Self {
@@ -408,7 +414,7 @@ impl Process {
             let pid = Pid::from_raw(child.id() as i32);
             let mut cpu_set = CpuSet::new();
             for &cpu in cpus {
-                if let Err(_) = cpu_set.set(cpu as usize) {
+                if cpu_set.set(cpu as usize).is_err() {
                     return false;
                 }
             }

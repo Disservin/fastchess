@@ -24,6 +24,7 @@ use crate::types::tournament::{LogLevel, TournamentConfig};
 // ---------------------------------------------------------------------------
 
 /// Holds all data collected during CLI parsing.
+#[derive(Default)]
 pub struct ArgumentData {
     pub tournament_config: TournamentConfig,
     pub old_tournament_config: TournamentConfig,
@@ -32,17 +33,6 @@ pub struct ArgumentData {
     pub old_configs: Vec<EngineConfiguration>,
 }
 
-impl Default for ArgumentData {
-    fn default() -> Self {
-        Self {
-            tournament_config: TournamentConfig::default(),
-            old_tournament_config: TournamentConfig::default(),
-            stats: StatsMap::new(),
-            configs: Vec::new(),
-            old_configs: Vec::new(),
-        }
-    }
-}
 
 // ---------------------------------------------------------------------------
 // ParamStyle — how an option consumes its following arguments

@@ -204,6 +204,7 @@ impl UciEngine {
                     &line.time,
                     &self.config.name,
                     line.std == Standard::Err,
+                    None,
                 );
             }
         }
@@ -273,6 +274,7 @@ impl UciEngine {
                     &line.time,
                     &self.config.name,
                     line.std == Standard::Err,
+                    None,
                 );
             }
         }
@@ -360,7 +362,7 @@ impl UciEngine {
 
     /// Write a UCI command to the engine (appends `\n`).
     pub fn write_engine(&mut self, input: &str) -> bool {
-        LOGGER.write_to_engine(input, "", &self.config.name);
+        LOGGER.write_to_engine(input, "", &self.config.name, None);
         self.process.write_input(&format!("{}\n", input)).code == Status::Ok
     }
 
@@ -382,6 +384,7 @@ impl UciEngine {
                 &line.time,
                 &self.config.name,
                 line.std == Standard::Err,
+                None,
             );
         }
     }

@@ -15,9 +15,12 @@ pub fn datetime(fmt: &str) -> Option<String> {
     Some(Local::now().format(fmt).to_string())
 }
 
-/// Get high-precision datetime for log timestamps.
+/// Get high-precision datetime for log timestamps (HH:MM:SS.microseconds format).
 pub fn datetime_precise() -> String {
-    Local::now().format("%Y-%m-%d %H:%M:%S%.3f").to_string()
+    let now = Local::now();
+    let time_str = now.format("%H:%M:%S").to_string();
+    let micros = now.timestamp_subsec_micros();
+    format!("{}.{:06}", time_str, micros)
 }
 
 /// Format a duration as "H:MM:SS".

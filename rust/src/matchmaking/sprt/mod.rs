@@ -180,7 +180,7 @@ impl Sprt {
             return Err(format!("SPRT: invalid model '{}'", model));
         }
         if model == "bayesian" && *report_penta {
-            eprintln!("Warning: Bayesian SPRT model not available with pentanomial statistics. Disabling pentanomial reports...");
+            eprintln!("Warning; Bayesian SPRT model not available with pentanomial statistics. Disabling pentanomial reports...");
             *report_penta = false;
         }
         Ok(())

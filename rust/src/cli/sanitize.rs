@@ -2,6 +2,9 @@
 //!
 //! Ports `cli/sanitize.cpp` from C++.
 
+use std::ffi::OsStr;
+use std::path::PathBuf;
+
 use crate::types::engine_config::EngineConfiguration;
 use crate::types::enums::*;
 use crate::types::tournament::TournamentConfig;
@@ -31,6 +34,14 @@ pub fn sanitize_engines(configs: &mut [EngineConfiguration]) -> Result<(), Strin
                     config.name
                 ));
             }
+        }
+    }
+
+    for config in configs.iter_mut() {
+        // Ensure .exe extension on Windows if not already present
+        #[cfg(target_os = "windows")]
+        {
+            config.cmd = ensure_exe_extension(&config.cmd);
         }
     }
 
@@ -170,6 +181,16 @@ fn validate_config(config: &mut TournamentConfig) -> Result<(), String> {
     }
 
     Ok(())
+}
+
+fn ensure_exe_extension(input: &str) -> String {
+    let mut path = PathBuf::from(input);
+
+    if path.extension().and_then(OsStr::to_str) != Some("exe") {
+        path.set_extension("exe");
+    }
+
+    path.to_string_lossy().into_owned()
 }
 
 /// Validate a single engine configuration.

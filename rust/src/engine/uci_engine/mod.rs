@@ -35,6 +35,18 @@ pub struct Score {
     pub value: i64,
 }
 
+/// All data extracted from an engine's `info` line for PGN metadata.
+#[derive(Debug, Clone, Default)]
+pub struct InfoData {
+    pub depth: i64,
+    pub seldepth: i64,
+    pub nodes: u64,
+    pub nps: u64,
+    pub hashfull: i64,
+    pub tbhits: u64,
+    pub pv: String,
+}
+
 // ── Side to move (lightweight, avoids pulling in the full chess crate) ───────
 
 /// Side to move, used to map `wtime`/`btime` correctly.
@@ -556,6 +568,41 @@ impl UciEngine {
         let value: i64 = str_utils::find_element_result(&info, keyword)?;
 
         Ok(Score { score_type, value })
+    }
+
+    /// Extract all info data (depth, seldepth, nodes, nps, hashfull, tbhits, pv) from the last info line.
+    ///
+    /// This is used to populate PGN move comments when tracking is enabled.
+    pub fn last_info_data(&self) -> InfoData {
+        let Some(info) = self.last_info() else {
+            return InfoData::default();
+        };
+
+        // Extract PV: everything after "pv" until end of line or next known keyword
+        let pv = Self::extract_pv(&info);
+
+        InfoData {
+            depth: str_utils::find_element(&info, "depth").unwrap_or(0),
+            seldepth: str_utils::find_element(&info, "seldepth").unwrap_or(0),
+            nodes: str_utils::find_element(&info, "nodes").unwrap_or(0),
+            nps: str_utils::find_element(&info, "nps").unwrap_or(0),
+            hashfull: str_utils::find_element(&info, "hashfull").unwrap_or(0),
+            tbhits: str_utils::find_element(&info, "tbhits").unwrap_or(0),
+            pv,
+        }
+    }
+
+    /// Extract the PV (principal variation) from info tokens.
+    ///
+    /// The PV is a space-separated list of moves that appears after "pv" in the info line.
+    fn extract_pv(tokens: &[String]) -> String {
+        let Some(pv_pos) = tokens.iter().position(|s| s == "pv") else {
+            return String::new();
+        };
+
+        // Collect all tokens after "pv" - these are the PV moves
+        // PV continues to end of line (bestmove is on a separate line)
+        tokens[pv_pos + 1..].join(" ")
     }
 
     /// Check if the engine output includes a `bestmove` line.

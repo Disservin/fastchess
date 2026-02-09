@@ -283,20 +283,24 @@ impl UciEngine {
             return is_alive;
         }
 
-        log_trace!("Pinging engine {}", self.config.name);
-
-        if !self.write_engine("isready") {
-            return ProcessResult::error("Failed to write isready");
-        }
-
-        self.process.setup_read();
-
         let mut output = Vec::new();
-        let res = self.process.read_output(
-            &mut output,
-            "readyok",
-            threshold.unwrap_or(Self::get_ping_time()),
-        );
+        let mut res: ProcessResult = ProcessResult::ok();
+
+        if self.config.variant != VariantType::Shogi {
+            log_trace!("Pinging engine {}", self.config.name);
+
+            if !self.write_engine("isready") {
+                return ProcessResult::error("Failed to write isready");
+            }
+
+            self.process.setup_read();
+
+            res = self.process.read_output(
+                &mut output,
+                "readyok",
+                threshold.unwrap_or(Self::get_ping_time()),
+            );
+        }
 
         // Log deferred output
         if !self.realtime_logging {

@@ -14,6 +14,8 @@ pub enum OptionType {
     Combo,
     Spin,
     String,
+    /// USI-specific: same as String but hints at file picker UI
+    Filename,
 }
 
 /// A single UCI option as reported by the engine.
@@ -48,6 +50,11 @@ pub enum UCIOption {
         name: String,
         value: String,
     },
+    /// USI-specific: same as Str but hints at file picker UI
+    Filename {
+        name: String,
+        value: String,
+    },
 }
 
 impl UCIOption {
@@ -59,6 +66,7 @@ impl UCIOption {
             UCIOption::SpinInt { name, .. } => name,
             UCIOption::SpinFloat { name, .. } => name,
             UCIOption::Str { name, .. } => name,
+            UCIOption::Filename { name, .. } => name,
         }
     }
 
@@ -70,6 +78,7 @@ impl UCIOption {
             UCIOption::SpinInt { .. } => OptionType::Spin,
             UCIOption::SpinFloat { .. } => OptionType::Spin,
             UCIOption::Str { .. } => OptionType::String,
+            UCIOption::Filename { .. } => OptionType::Filename,
         }
     }
 
@@ -82,7 +91,7 @@ impl UCIOption {
             UCIOption::Combo { value, .. } => value.clone(),
             UCIOption::SpinInt { value, .. } => value.to_string(),
             UCIOption::SpinFloat { value, .. } => value.to_string(),
-            UCIOption::Str { value, .. } => {
+            UCIOption::Str { value, .. } | UCIOption::Filename { value, .. } => {
                 if value.is_empty() {
                     "<empty>".to_string()
                 } else {
@@ -112,7 +121,7 @@ impl UCIOption {
                     false
                 }
             }
-            UCIOption::Str { .. } => true,
+            UCIOption::Str { .. } | UCIOption::Filename { .. } => true,
         }
     }
 
@@ -162,7 +171,7 @@ impl UCIOption {
                     }
                 }
             }
-            UCIOption::Str { value: current, .. } => {
+            UCIOption::Str { value: current, .. } | UCIOption::Filename { value: current, .. } => {
                 *current = value.to_string();
             }
         }
@@ -345,6 +354,14 @@ pub fn parse_uci_option_line(line: &str) -> Option<UCIOption> {
                 value: default_val,
             })
         }
+        // USI-specific: filename type (same as string but hints at file picker UI)
+        "filename" => {
+            let default_val = params.get("default").cloned().unwrap_or_default();
+            Some(UCIOption::Filename {
+                name,
+                value: default_val,
+            })
+        }
         _ => None,
     }
 }
@@ -402,6 +419,16 @@ mod tests {
         let opt = parse_uci_option_line(line).unwrap();
         assert_eq!(opt.name(), "SyzygyPath");
         assert_eq!(opt.option_type(), OptionType::String);
+    }
+
+    #[test]
+    fn test_parse_filename() {
+        // USI-specific filename type
+        let line = "option name BookFile type filename default book.db";
+        let opt = parse_uci_option_line(line).unwrap();
+        assert_eq!(opt.name(), "BookFile");
+        assert_eq!(opt.option_type(), OptionType::Filename);
+        assert_eq!(opt.value_string(), "book.db");
     }
 
     #[test]

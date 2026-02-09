@@ -49,6 +49,10 @@ libc = "0.2"
 # GZIP compression for log files
 flate2 = "1"
 
+# For shogi move generation
+itertools = "0.13"
+lazy_static = "1.5"
+
 [profile.release]
 opt-level = 3
 lto = true

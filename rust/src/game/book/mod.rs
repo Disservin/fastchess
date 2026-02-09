@@ -8,22 +8,20 @@ use crate::game::chess::{ChessGame, Variant};
 #[derive(Debug, Clone, Default)]
 pub struct Opening {
     /// FEN or EPD string for the starting position.
-    pub fen_epd: String,
+    pub fen_epd: Option<String>,
     /// Sequence of moves from that position stored as UCI strings.
     pub moves: Vec<String>,
 }
 
 impl Opening {
-    pub fn new(fen_epd: &str, moves: Vec<String>) -> Self {
-        Self {
-            fen_epd: fen_epd.to_string(),
-            moves,
-        }
+    pub fn new(fen_epd: Option<String>, moves: Vec<String>) -> Self {
+        Self { fen_epd, moves }
     }
 
+    /// Create an opening for the standard starting position.
     pub fn startpos() -> Self {
         Self {
-            fen_epd: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1".to_string(),
+            fen_epd: None,
             moves: Vec::new(),
         }
     }
@@ -33,7 +31,8 @@ impl Opening {
     /// Returns true if all moves are valid, false otherwise.
     pub fn validate(&self) -> bool {
         let variant = Variant::Standard;
-        let Some(mut game) = ChessGame::from_fen(&self.fen_epd, variant) else {
+        let Some(mut game) = ChessGame::from_fen(self.fen_epd.as_deref().unwrap_or(""), variant)
+        else {
             return false;
         };
 
@@ -174,7 +173,7 @@ impl Visitor for OpeningVisitor {
         } else {
             self.fen.clone()
         };
-        Opening::new(&fen, self.moves.clone())
+        Opening::new(Some(fen), self.moves.clone())
     }
 }
 
@@ -309,12 +308,12 @@ impl OpeningBook {
     /// Get an opening by index.
     pub fn get(&self, idx: Option<usize>) -> Opening {
         match idx {
-            None => Opening::startpos(),
+            None => Opening::new(None, Vec::new()),
             Some(i) => match &self.openings {
-                OpeningSource::None => Opening::startpos(),
+                OpeningSource::None => Opening::new(None, Vec::new()),
                 OpeningSource::Epd(reader) => {
                     let fen = &reader.get()[i];
-                    Opening::new(fen, Vec::new())
+                    Opening::new(Some(fen.clone()), Vec::new())
                 }
                 OpeningSource::Pgn(reader) => reader.get()[i].clone(),
             },
@@ -520,10 +519,7 @@ mod tests {
     #[test]
     fn test_opening_startpos() {
         let opening = Opening::startpos();
-        assert_eq!(
-            opening.fen_epd,
-            "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
-        );
+        assert_eq!(opening.fen_epd, None); // None means use standard start position
         assert!(opening.moves.is_empty());
     }
 
@@ -531,8 +527,8 @@ mod tests {
     #[test]
     fn test_opening_new() {
         let moves = vec!["e2e4".to_string(), "e7e5".to_string()];
-        let opening = Opening::new("custom_fen", moves.clone());
-        assert_eq!(opening.fen_epd, "custom_fen");
+        let opening = Opening::new(Some("custom_fen".to_string()), moves.clone());
+        assert_eq!(opening.fen_epd, Some("custom_fen".to_string()));
         assert_eq!(opening.moves, moves);
     }
 
@@ -540,7 +536,7 @@ mod tests {
     #[test]
     fn test_opening_validate_valid() {
         let opening = Opening::new(
-            "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+            Some("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1".to_string()),
             vec!["e2e4".to_string(), "e7e5".to_string()],
         );
         assert!(opening.validate());
@@ -550,7 +546,7 @@ mod tests {
     #[test]
     fn test_opening_validate_invalid() {
         let opening = Opening::new(
-            "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+            Some("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1".to_string()),
             vec!["e1e5".to_string()], // Invalid move
         );
         assert!(!opening.validate());

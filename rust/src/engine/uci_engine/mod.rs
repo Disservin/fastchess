@@ -35,6 +35,17 @@ pub struct Score {
     pub value: i64,
 }
 
+/// Result of parsing the `bestmove` line from an engine.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum BestMoveResult {
+    /// A normal move (UCI move string like "e2e4", "7g7f", etc.)
+    Move(String),
+    /// USI: Engine declares a win (e.g., checkmate delivered)
+    Win,
+    /// USI: Engine resigns
+    Resign,
+}
+
 /// All data extracted from an engine's `info` line for PGN metadata.
 #[derive(Debug, Clone, Default)]
 pub struct InfoData {
@@ -152,6 +163,8 @@ impl UciEngine {
             return false;
         }
 
+        let is_shogi = self.config.variant == VariantType::Shogi;
+
         // Send Threads first to help multi-threaded engines
         let mut options = self.config.options.clone();
         options.sort_by(|a, b| {
@@ -161,7 +174,7 @@ impl UciEngine {
         });
 
         for (name, value) in &options {
-            self.send_setoption(name, value);
+            self.send_setoption(&name, value);
         }
 
         if self.config.variant == VariantType::Frc {
@@ -186,14 +199,27 @@ impl UciEngine {
     /// Send the `uci` command.
     pub fn uci(&mut self) -> bool {
         log_trace!("Sending uci to engine {}", self.config.name);
-        self.write_engine("uci")
+
+        let init = match self.config.variant {
+            VariantType::Standard => "uci",
+            VariantType::Frc => "uci",
+            VariantType::Shogi => "usi",
+        };
+
+        self.write_engine(init)
     }
 
     /// Wait for `uciok`, parsing `option` lines along the way.
     pub fn uciok(&mut self, threshold: Option<Duration>) -> bool {
         log_trace!("Waiting for uciok from engine {}", self.config.name);
 
-        let res = self.read_engine("uciok", threshold);
+        let word = match self.config.variant {
+            VariantType::Standard => "uciok",
+            VariantType::Frc => "uciok",
+            VariantType::Shogi => "usiok",
+        };
+
+        let res = self.read_engine(word, threshold);
         let ok = res.code == Status::Ok;
 
         // Log output if using deferred logging
@@ -236,7 +262,13 @@ impl UciEngine {
     pub fn ucinewgame(&mut self) -> bool {
         log_trace!("Sending ucinewgame to engine {}", self.config.name);
 
-        if !self.write_engine("ucinewgame") {
+        let cmd = match self.config.variant {
+            VariantType::Standard => "ucinewgame",
+            VariantType::Frc => "ucinewgame",
+            VariantType::Shogi => "usinewgame",
+        };
+
+        if !self.write_engine(cmd) {
             log_warn!("Failed to send ucinewgame to engine {}", self.config.name);
             return false;
         }
@@ -296,7 +328,12 @@ impl UciEngine {
         let mut pos_cmd = if fen == "startpos" {
             "position startpos".to_string()
         } else {
-            format!("position fen {}", fen)
+            let format = match self.config.variant {
+                VariantType::Standard => "fen",
+                VariantType::Frc => "fen",
+                VariantType::Shogi => "sfen",
+            };
+            format!("position {} {}", format, fen)
         };
 
         if !moves.is_empty() {
@@ -311,6 +348,9 @@ impl UciEngine {
     }
 
     /// Send a `go` command with time controls and engine limits.
+    ///
+    /// In UCI (chess), White moves first, so wtime/btime map to White/Black.
+    /// In USI (shogi), Black (Sente) moves first, so btime/binc is the first player's time.
     pub fn go(&mut self, our_tc: &TimeControl, enemy_tc: &TimeControl, stm: Color) -> bool {
         let mut input = String::from("go");
 
@@ -328,26 +368,39 @@ impl UciEngine {
             return self.write_engine(&input);
         }
 
-        let (white, black) = match stm {
-            Color::White => (our_tc, enemy_tc),
+        // In shogi (USI), Black (Sente) moves first, so we need to swap the mapping.
+        // UCI: White=first player, wtime for white
+        // USI: Black=first player, btime for black (sente)
+        let is_shogi = self.config.variant == VariantType::Shogi;
+
+        let (first_tc, second_tc) = match stm {
+            Color::White => (our_tc, enemy_tc), // In UCI, White = first player
             Color::Black => (enemy_tc, our_tc),
         };
 
+        // For shogi, first player uses btime, second uses wtime
+        // For chess, first player uses wtime, second uses btime
+        let (first_time_key, first_inc_key, second_time_key, second_inc_key) = if is_shogi {
+            ("btime", "binc", "wtime", "winc")
+        } else {
+            ("wtime", "winc", "btime", "binc")
+        };
+
         if our_tc.is_timed() || our_tc.is_increment() {
-            if white.is_timed() || white.is_increment() {
-                let _ = write!(input, " wtime {}", white.get_time_left());
+            if first_tc.is_timed() || first_tc.is_increment() {
+                let _ = write!(input, " {} {}", first_time_key, first_tc.get_time_left());
             }
-            if black.is_timed() || black.is_increment() {
-                let _ = write!(input, " btime {}", black.get_time_left());
+            if second_tc.is_timed() || second_tc.is_increment() {
+                let _ = write!(input, " {} {}", second_time_key, second_tc.get_time_left());
             }
         }
 
         if our_tc.is_increment() {
-            if white.is_increment() {
-                let _ = write!(input, " winc {}", white.get_increment());
+            if first_tc.is_increment() {
+                let _ = write!(input, " {} {}", first_inc_key, first_tc.get_increment());
             }
-            if black.is_increment() {
-                let _ = write!(input, " binc {}", black.get_increment());
+            if second_tc.is_increment() {
+                let _ = write!(input, " {} {}", second_inc_key, second_tc.get_increment());
             }
         }
 
@@ -471,7 +524,10 @@ impl UciEngine {
     }
 
     /// Extract the `bestmove` from the last output.
-    pub fn bestmove(&self) -> Option<String> {
+    ///
+    /// Returns `None` if no bestmove line is found.
+    /// For USI engines, handles special cases `bestmove win` and `bestmove resign`.
+    pub fn bestmove(&self) -> Option<BestMoveResult> {
         let stdout = self.get_stdout_lines();
         if stdout.is_empty() {
             log_warn!("Warning; No output from {}", self.config.name);
@@ -480,7 +536,14 @@ impl UciEngine {
 
         let last_line = &stdout.last()?.line;
         let tokens = str_utils::split_string(last_line, ' ');
-        str_utils::find_element::<String>(&tokens, "bestmove")
+        let move_str: String = str_utils::find_element(&tokens, "bestmove")?;
+
+        // Handle USI special cases
+        match move_str.as_str() {
+            "win" => Some(BestMoveResult::Win),
+            "resign" => Some(BestMoveResult::Resign),
+            _ => Some(BestMoveResult::Move(move_str)),
+        }
     }
 
     /// Get the last `info` line (with score, preferring non-bound lines).

@@ -1,5 +1,8 @@
 use pgn_reader::{BufferedReader, RawHeader, SanPlus, Skip, Visitor};
-use shakmaty::{fen::Fen, uci::UciMove, CastlingMode, Chess, Position};
+use shakmaty::uci::UciMove;
+use shakmaty::{CastlingMode, Chess, Position};
+
+use crate::game::chess::{ChessGame, Variant};
 
 /// A chess opening position, optionally with a sequence of book moves.
 #[derive(Debug, Clone, Default)]
@@ -23,6 +26,24 @@ impl Opening {
             fen_epd: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1".to_string(),
             moves: Vec::new(),
         }
+    }
+
+    /// Validate that all moves in this opening are legal.
+    ///
+    /// Returns true if all moves are valid, false otherwise.
+    pub fn validate(&self) -> bool {
+        let variant = Variant::Standard;
+        let Some(mut game) = ChessGame::from_fen(&self.fen_epd, variant) else {
+            return false;
+        };
+
+        for mv in &self.moves {
+            if !game.make_uci_move(mv) {
+                return false;
+            }
+        }
+
+        true
     }
 }
 
@@ -60,6 +81,9 @@ impl EpdReader {
 }
 
 /// PGN visitor that collects opening moves up to a ply limit.
+///
+/// Note: This uses shakmaty directly because the pgn_reader crate
+/// requires its Visitor to work with shakmaty types for SAN parsing.
 struct OpeningVisitor {
     fen: String,
     moves: Vec<String>,
@@ -108,7 +132,7 @@ impl Visitor for OpeningVisitor {
             } else {
                 CastlingMode::Standard
             };
-            if let Ok(fen) = self.fen.parse::<Fen>() {
+            if let Ok(fen) = self.fen.parse::<shakmaty::fen::Fen>() {
                 if let Ok(pos) = fen.into_position::<Chess>(mode) {
                     self.pos = pos;
                 }
@@ -510,5 +534,25 @@ mod tests {
         let opening = Opening::new("custom_fen", moves.clone());
         assert_eq!(opening.fen_epd, "custom_fen");
         assert_eq!(opening.moves, moves);
+    }
+
+    /// Test Opening::validate for valid openings.
+    #[test]
+    fn test_opening_validate_valid() {
+        let opening = Opening::new(
+            "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+            vec!["e2e4".to_string(), "e7e5".to_string()],
+        );
+        assert!(opening.validate());
+    }
+
+    /// Test Opening::validate for invalid openings.
+    #[test]
+    fn test_opening_validate_invalid() {
+        let opening = Opening::new(
+            "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+            vec!["e1e5".to_string()], // Invalid move
+        );
+        assert!(!opening.validate());
     }
 }

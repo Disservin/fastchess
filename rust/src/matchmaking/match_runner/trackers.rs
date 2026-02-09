@@ -3,9 +3,8 @@
 //! Ports the `DrawTracker`, `ResignTracker`, `MaxMovesTracker`, and
 //! `TbAdjudicationTracker` classes from `matchmaking/match/match.hpp`.
 
-use shakmaty::Chess;
-
 use crate::engine::uci_engine::{Color, Score, ScoreType};
+use crate::game::chess::ChessGame;
 use crate::game::syzygy::{self, TbProbeResult};
 use crate::types::adjudication::*;
 
@@ -226,11 +225,11 @@ impl TbAdjudicationTracker {
     }
 
     /// Check if the position can be probed in tablebases.
-    pub fn can_probe(&self, pos: &Chess) -> bool {
+    pub fn can_probe(&self, pos: &ChessGame) -> bool {
         if !self.config.enabled {
             return false;
         }
-        syzygy::can_probe(pos, self.config.max_pieces as u32)
+        syzygy::can_probe(pos.inner(), self.config.max_pieces as u32)
     }
 
     /// Probe the tablebase and return the adjudication result.
@@ -239,12 +238,13 @@ impl TbAdjudicationTracker {
     /// - Tablebase adjudication is disabled
     /// - Position cannot be probed (too many pieces, missing tables)
     /// - Result type doesn't match configuration
-    pub fn adjudicate(&self, pos: &Chess) -> TbAdjudicationResult {
+    pub fn adjudicate(&self, pos: &ChessGame) -> TbAdjudicationResult {
         if !self.config.enabled {
             return TbAdjudicationResult::None;
         }
 
-        let result = syzygy::should_adjudicate(pos, &self.config, self.config.ignore_50_move_rule);
+        let result =
+            syzygy::should_adjudicate(pos.inner(), &self.config, self.config.ignore_50_move_rule);
 
         match result {
             TbProbeResult::Win => TbAdjudicationResult::Win,

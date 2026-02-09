@@ -1,8 +1,4 @@
-use shakmaty::fen::Fen;
-use shakmaty::san::San;
-use shakmaty::uci::UciMove;
-use shakmaty::{CastlingMode, Chess, Move, Position, Role};
-
+use crate::game::chess::{ChessGame, Variant};
 use crate::game::timecontrol::TimeControlLimits;
 use crate::types::enums::NotationType;
 use crate::types::VariantType;
@@ -78,19 +74,16 @@ impl PgnBuilder {
         }
 
         // Determine board state and move numbering from FEN
-        let mode = if is_frc {
-            CastlingMode::Chess960
+        let variant = if is_frc {
+            Variant::Chess960
         } else {
-            CastlingMode::Standard
+            Variant::Standard
         };
 
-        let mut board: Option<Chess> = if data.fen.is_empty() || data.fen == STARTPOS {
-            Some(Chess::default())
+        let mut game: Option<ChessGame> = if data.fen.is_empty() || data.fen == STARTPOS {
+            Some(ChessGame::new())
         } else {
-            data.fen
-                .parse::<Fen>()
-                .ok()
-                .and_then(|fen| fen.into_position::<Chess>(mode).ok())
+            ChessGame::from_fen(&data.fen, variant)
         };
 
         // Compute starting move counter from FEN (matching C++ logic)
@@ -154,7 +147,7 @@ impl PgnBuilder {
             let mut pair = String::new();
 
             // Move notation
-            let move_str = Self::convert_move(&mv.r#move, &mut board, config.notation);
+            let move_str = Self::convert_move(&mv.r#move, &mut game, config.notation);
             if !move_str.is_empty() {
                 let curr = move_counter.div_ceil(2);
                 if is_white {
@@ -214,107 +207,31 @@ impl PgnBuilder {
         (black_starts, move_counter)
     }
 
-    /// Convert a UCI move string to the requested notation given a board position.
-    fn convert_move(mv_uci: &str, board: &mut Option<Chess>, notation: NotationType) -> String {
-        let Some(pos) = board.as_mut() else {
+    /// Convert a UCI move string to the requested notation given a game position.
+    fn convert_move(mv_uci: &str, game: &mut Option<ChessGame>, notation: NotationType) -> String {
+        let Some(g) = game.as_mut() else {
             return mv_uci.to_string();
         };
 
         match notation {
             NotationType::Uci => {
-                // Still need to advance the board
-                if let Ok(uci) = mv_uci.parse::<UciMove>() {
-                    if let Ok(m) = uci.to_move(pos) {
-                        pos.play_unchecked(&m);
-                    }
-                }
+                // Still need to advance the game
+                g.make_uci_move(mv_uci);
                 mv_uci.to_string()
             }
             NotationType::San => {
-                if let Ok(uci) = mv_uci.parse::<UciMove>() {
-                    if let Ok(m) = uci.to_move(pos) {
-                        let san = San::from_move(pos, &m);
-                        pos.play_unchecked(&m);
-                        return san.to_string();
-                    }
+                if let Some(san) = g.uci_to_san(mv_uci) {
+                    g.make_uci_move(mv_uci);
+                    return san;
                 }
                 mv_uci.to_string()
             }
             NotationType::Lan => {
-                // LAN: Long Algebraic Notation - always includes full origin square
-                // e.g., e2e4, Ng1f3, e7e8Q
-                if let Ok(uci) = mv_uci.parse::<UciMove>() {
-                    if let Ok(m) = uci.to_move(pos) {
-                        let lan = Self::move_to_lan(pos, &m);
-                        pos.play_unchecked(&m);
-                        return lan;
-                    }
+                if let Some(lan) = g.uci_to_lan(mv_uci) {
+                    g.make_uci_move(mv_uci);
+                    return lan;
                 }
                 mv_uci.to_string()
-            }
-        }
-    }
-
-    /// Convert a Move to Long Algebraic Notation (LAN).
-    /// LAN always includes the full origin square, e.g., Ng1f3, e2e4, e7e8Q.
-    fn move_to_lan(_pos: &Chess, m: &Move) -> String {
-        match m {
-            Move::Normal {
-                role,
-                from,
-                to,
-                capture,
-                promotion,
-            } => {
-                let mut lan = String::new();
-
-                // Piece symbol (uppercase), except for pawns
-                if *role != Role::Pawn {
-                    lan.push_str(&role.char().to_uppercase().to_string());
-                }
-
-                // Origin square (always included in LAN)
-                lan.push_str(&from.to_string());
-
-                // Capture symbol
-                if capture.is_some() {
-                    lan.push('x');
-                }
-
-                // Destination square
-                lan.push_str(&to.to_string());
-
-                // Promotion
-                if let Some(promo_role) = promotion {
-                    lan.push('=');
-                    lan.push_str(&promo_role.char().to_uppercase().to_string());
-                }
-
-                lan
-            }
-            Move::EnPassant { from, to, .. } => {
-                let mut lan = String::new();
-                lan.push_str(&from.to_string());
-                lan.push('x');
-                lan.push_str(&to.to_string());
-                lan
-            }
-            Move::Castle { king, rook } => {
-                // Castling in LAN: use standard O-O / O-O-O notation
-                // (C++ chess library does the same)
-                if king.file() < rook.file() {
-                    "O-O".to_string()
-                } else {
-                    "O-O-O".to_string()
-                }
-            }
-            Move::Put { role, to } => {
-                // Drop notation (for variants like Crazyhouse): Q@f7
-                let mut lan = String::new();
-                lan.push_str(&role.char().to_uppercase().to_string());
-                lan.push('@');
-                lan.push_str(&to.to_string());
-                lan
             }
         }
     }

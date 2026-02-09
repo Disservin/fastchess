@@ -13,13 +13,9 @@ pub mod trackers;
 
 use std::time::Instant;
 
-use shakmaty::fen::Fen;
-use shakmaty::uci::UciMove;
-use shakmaty::zobrist::{Zobrist64, ZobristHash};
-use shakmaty::{CastlingMode, Chess, Color as ChessColor, EnPassantMode, Position};
-
 use crate::engine::uci_engine::{Color, ScoreType, UciEngine};
 use crate::game::book::Opening;
+use crate::game::chess::{ChessGame, GameOverReason, GameStatus, Variant};
 use crate::matchmaking::player::Player;
 use crate::types::engine_config::GamePair;
 use crate::types::match_data::*;
@@ -28,33 +24,15 @@ use trackers::*;
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
-const INSUFFICIENT_MSG: &str = "Draw by insufficient mating material";
-const REPETITION_MSG: &str = "Draw by 3-fold repetition";
 const ILLEGAL_MSG: &str = " makes an illegal move";
 const ADJUDICATION_WIN_MSG: &str = " wins by adjudication";
 const ADJUDICATION_TB_WIN_MSG: &str = " wins by adjudication: SyzygyTB";
 const ADJUDICATION_TB_DRAW_MSG: &str = "Draw by adjudication: SyzygyTB";
 const ADJUDICATION_MSG: &str = "Draw by adjudication";
-const FIFTY_MSG: &str = "Draw by fifty moves rule";
-const STALEMATE_MSG: &str = "Draw by stalemate";
-const CHECKMATE_MSG: &str = " mates";
 const TIMEOUT_MSG: &str = " loses on time";
 const DISCONNECT_MSG: &str = " disconnects";
 const STALL_MSG: &str = "'s connection stalls";
 const INTERRUPTED_MSG: &str = "Game interrupted";
-
-// ── Game-over reason ─────────────────────────────────────────────────────────
-
-/// Reason the game ended from the chess rules perspective.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum GameOverReason {
-    None,
-    Checkmate,
-    Stalemate,
-    InsufficientMaterial,
-    ThreefoldRepetition,
-    FiftyMoveRule,
-}
 
 // ── Color helpers ────────────────────────────────────────────────────────────
 
@@ -72,10 +50,11 @@ fn opposite(color: Color) -> Color {
     }
 }
 
-fn chess_color_to_color(c: ChessColor) -> Color {
+/// Convert from game::chess::Color to engine::uci_engine::Color
+fn chess_color_to_uci_color(c: crate::game::chess::Color) -> Color {
     match c {
-        ChessColor::White => Color::White,
-        ChessColor::Black => Color::Black,
+        crate::game::chess::Color::White => Color::White,
+        crate::game::chess::Color::Black => Color::Black,
     }
 }
 
@@ -93,12 +72,8 @@ pub struct Match {
     uci_moves: Vec<String>,
     start_position: String,
     stall_or_disconnect: bool,
-    /// The current board state.
-    board: Chess,
-    /// Zobrist hash history for threefold repetition detection.
-    hash_history: Vec<u64>,
-    /// Ply counter (incremented after each half-move).
-    ply_count: u32,
+    /// The chess game state with built-in threefold repetition detection.
+    game: ChessGame,
     /// The variant type (Standard or Chess960).
     variant: crate::types::VariantType,
 }
@@ -124,52 +99,36 @@ impl Match {
                 fen_str.clone()
             };
 
-        // Parse the FEN into a board position
-        let mode = if tournament_config.variant == crate::types::VariantType::Frc {
-            CastlingMode::Chess960
+        // Determine the chess variant
+        let variant = if tournament_config.variant == crate::types::VariantType::Frc {
+            Variant::Chess960
         } else {
-            CastlingMode::Standard
+            Variant::Standard
         };
 
-        let mut board: Chess = fen_str
-            .parse::<Fen>()
-            .ok()
-            .and_then(|fen| fen.into_position(mode).ok())
-            .unwrap_or_default();
+        // Create the game from FEN
+        let mut game = ChessGame::from_fen(&fen_str, variant).unwrap_or_default();
 
         let data = MatchData::new(&fen_str);
 
         // Apply opening book moves and collect UCI strings
         let mut uci_moves = Vec::new();
         let mut match_data = data;
-        let mut hash_history = Vec::new();
-
-        // Record initial position hash
-        let initial_hash: Zobrist64 = board.zobrist_hash(EnPassantMode::Legal);
-        hash_history.push(initial_hash.0);
 
         for mv_uci in &opening.moves {
-            // Parse UCI move and apply it to the board
-            if let Ok(uci) = mv_uci.parse::<UciMove>() {
-                if let Ok(m) = uci.to_move(&board) {
-                    let move_data = MoveData {
-                        r#move: mv_uci.clone(),
-                        score_string: "0.00".to_string(),
-                        book: true,
-                        legal: true,
-                        ..Default::default()
-                    };
-                    match_data.moves.push(move_data);
-                    uci_moves.push(mv_uci.clone());
-                    board.play_unchecked(&m);
-
-                    let hash: Zobrist64 = board.zobrist_hash(EnPassantMode::Legal);
-                    hash_history.push(hash.0);
-                }
+            // Parse UCI move and apply it to the game
+            if game.make_uci_move(mv_uci) {
+                let move_data = MoveData {
+                    r#move: mv_uci.clone(),
+                    score_string: "0.00".to_string(),
+                    book: true,
+                    legal: true,
+                    ..Default::default()
+                };
+                match_data.moves.push(move_data);
+                uci_moves.push(mv_uci.clone());
             }
         }
-
-        let ply_count = uci_moves.len() as u32;
 
         Self {
             opening,
@@ -181,21 +140,24 @@ impl Match {
             uci_moves,
             start_position,
             stall_or_disconnect: false,
-            board,
-            hash_history,
-            ply_count,
+            game,
             variant: tournament_config.variant,
         }
     }
 
-    /// Current side to move (from the board).
+    /// Current side to move (from the game).
     fn side_to_move(&self) -> Color {
-        chess_color_to_color(self.board.turn())
+        chess_color_to_uci_color(self.game.side_to_move())
     }
 
-    /// Half-move clock (for fifty-move rule) from the board.
+    /// Half-move clock (for fifty-move rule) from the game.
     fn half_move_clock(&self) -> u32 {
-        self.board.halfmoves()
+        self.game.halfmove_clock()
+    }
+
+    /// Ply count from the game.
+    fn ply_count(&self) -> u32 {
+        self.game.ply_count()
     }
 
     /// Start the match between two engines.
@@ -314,22 +276,20 @@ impl Match {
     /// Play a single move. Returns `false` if the game should end.
     fn play_move(&mut self, us: &mut Player, them: &mut Player) -> bool {
         // Check game over from board state
-        let (reason, result) = self.is_game_over();
+        let status = self.game.status();
 
-        if result == GameResult::Draw {
-            us.set_draw();
-            them.set_draw();
-        }
-        if result == GameResult::Lose {
-            us.set_lost();
-            them.set_won();
-        }
+        if status.is_game_over() {
+            if status.is_draw() {
+                us.set_draw();
+                them.set_draw();
+            } else if status.winner.is_some() {
+                // The side to move lost (they got checkmated)
+                us.set_lost();
+                them.set_won();
+            }
 
-        if reason != GameOverReason::None {
             self.data.termination = MatchTermination::Normal;
-            let stm = self.side_to_move();
-            let color_str = color_name(opposite(stm));
-            self.data.reason = Self::convert_chess_reason(color_str, reason);
+            self.data.reason = Self::convert_game_status(&status);
             return false;
         }
 
@@ -373,7 +333,7 @@ impl Match {
                 Some(t)
             }
         };
-        let status = us.engine.read_engine("bestmove", threshold);
+        let engine_status = us.engine.read_engine("bestmove", threshold);
         let t1 = Instant::now();
 
         let elapsed_ms = t1.duration_since(t0).as_millis() as i64;
@@ -383,7 +343,7 @@ impl Match {
             return false;
         }
 
-        if !status.is_ok() {
+        if !engine_status.is_ok() {
             self.set_engine_crash_status(us, them);
             return false;
         }
@@ -419,25 +379,13 @@ impl Match {
             return false;
         };
 
-        // Validate the move is legal using the chess board
-        let parsed_uci = mv_str.parse::<UciMove>();
-        let Some(chess_move) = parsed_uci
-            .ok()
-            .and_then(|uci| uci.to_move(&self.board).ok())
-        else {
+        // Validate the move is legal using the chess game
+        let Some(chess_move) = self.game.parse_uci_move(&mv_str) else {
             // Illegal move
             self.add_move_data(us, elapsed_ms, latency, timeleft, false);
             self.set_engine_illegal_move_status(us, them, &Some(mv_str));
             return false;
         };
-
-        // Check legality: the move must be in the legal moves list
-        let legal_moves = self.board.legal_moves();
-        if !legal_moves.contains(&chess_move) {
-            self.add_move_data(us, elapsed_ms, latency, timeleft, false);
-            self.set_engine_illegal_move_status(us, them, &Some(mv_str));
-            return false;
-        }
 
         if timeout {
             self.add_move_data(us, elapsed_ms, latency, timeleft, true);
@@ -448,14 +396,9 @@ impl Match {
         // Record move data
         self.add_move_data(us, elapsed_ms, latency, timeleft, true);
 
-        // Apply the move to the board
-        self.board.play_unchecked(&chess_move);
+        // Apply the move to the game (this also updates hash history for repetition detection)
+        self.game.make_move(&chess_move);
         self.uci_moves.push(mv_str);
-        self.ply_count += 1;
-
-        // Record position hash for repetition detection
-        let hash: Zobrist64 = self.board.zobrist_hash(EnPassantMode::Legal);
-        self.hash_history.push(hash.0);
 
         // Update adjudication trackers with score
         let stm_after = self.side_to_move();
@@ -473,75 +416,10 @@ impl Match {
         true
     }
 
-    /// Check if the game is over based on chess rules.
-    fn is_game_over(&self) -> (GameOverReason, GameResult) {
-        // Check for checkmate / stalemate via outcome
-        if let Some(outcome) = self.board.outcome() {
-            return match outcome {
-                shakmaty::Outcome::Decisive { winner } => {
-                    // The side that delivered checkmate won. If it's the current
-                    // side-to-move's turn and they're in checkmate, they lost.
-                    let stm = chess_color_to_color(self.board.turn());
-                    let winner_color = chess_color_to_color(winner);
-                    if winner_color == stm {
-                        // This shouldn't normally happen (winner != stm in checkmate)
-                        (GameOverReason::Checkmate, GameResult::Win)
-                    } else {
-                        (GameOverReason::Checkmate, GameResult::Lose)
-                    }
-                }
-                shakmaty::Outcome::Draw => {
-                    // Determine draw reason
-                    if self.board.is_stalemate() {
-                        (GameOverReason::Stalemate, GameResult::Draw)
-                    } else if self.board.is_insufficient_material() {
-                        (GameOverReason::InsufficientMaterial, GameResult::Draw)
-                    } else {
-                        (GameOverReason::Stalemate, GameResult::Draw)
-                    }
-                }
-            };
-        }
-
-        // Check insufficient material (shakmaty's outcome() may not catch all cases)
-        if self.board.is_insufficient_material() {
-            return (GameOverReason::InsufficientMaterial, GameResult::Draw);
-        }
-
-        // Check fifty-move rule (halfmoves >= 100 half-moves = 50 full moves)
-        if self.board.halfmoves() >= 100 {
-            return (GameOverReason::FiftyMoveRule, GameResult::Draw);
-        }
-
-        // Check threefold repetition
-        if self.is_threefold_repetition() {
-            return (GameOverReason::ThreefoldRepetition, GameResult::Draw);
-        }
-
-        (GameOverReason::None, GameResult::None)
-    }
-
-    /// Check for threefold repetition using Zobrist hash history.
-    fn is_threefold_repetition(&self) -> bool {
-        // Need at least 5 positions for threefold repetition to be possible
-        let Some(&current_hash) = self.hash_history.last() else {
-            return false;
-        };
-        if self.hash_history.len() < 5 {
-            return false;
-        }
-        let count = self
-            .hash_history
-            .iter()
-            .filter(|&&h| h == current_hash)
-            .count();
-        count >= 3
-    }
-
     /// Check adjudication conditions. Returns true if the game is adjudicated.
     fn adjudicate(&mut self, us: &mut Player, them: &mut Player) -> bool {
         // TB adjudication (Syzygy tablebase probing)
-        match self.tb_tracker.adjudicate(&self.board) {
+        match self.tb_tracker.adjudicate(&self.game) {
             TbAdjudicationResult::Win => {
                 // Side to move wins
                 us.set_won();
@@ -593,7 +471,7 @@ impl Match {
         }
 
         // Draw adjudication
-        if self.draw_tracker.adjudicatable(self.ply_count) {
+        if self.draw_tracker.adjudicatable(self.ply_count()) {
             us.set_draw();
             them.set_draw();
             self.data.termination = MatchTermination::Adjudication;
@@ -771,15 +649,26 @@ impl Match {
         }
     }
 
-    /// Convert a chess game-over reason to a human-readable string.
-    fn convert_chess_reason(color: &str, reason: GameOverReason) -> String {
-        match reason {
-            GameOverReason::Checkmate => format!("{}{}", color, CHECKMATE_MSG),
-            GameOverReason::Stalemate => STALEMATE_MSG.to_string(),
-            GameOverReason::InsufficientMaterial => INSUFFICIENT_MSG.to_string(),
-            GameOverReason::ThreefoldRepetition => REPETITION_MSG.to_string(),
-            GameOverReason::FiftyMoveRule => FIFTY_MSG.to_string(),
-            GameOverReason::None => unreachable!("convert_chess_reason called with None"),
+    /// Convert a GameStatus to a human-readable reason string.
+    fn convert_game_status(status: &GameStatus) -> String {
+        match status.reason {
+            GameOverReason::Checkmate => {
+                let winner_name = status
+                    .winner
+                    .map(|c| match c {
+                        crate::game::chess::Color::White => "White",
+                        crate::game::chess::Color::Black => "Black",
+                    })
+                    .unwrap_or("Unknown");
+                format!("{} mates", winner_name)
+            }
+            GameOverReason::Stalemate => "Draw by stalemate".to_string(),
+            GameOverReason::InsufficientMaterial => {
+                "Draw by insufficient mating material".to_string()
+            }
+            GameOverReason::ThreefoldRepetition => "Draw by 3-fold repetition".to_string(),
+            GameOverReason::FiftyMoveRule => "Draw by fifty moves rule".to_string(),
+            GameOverReason::None => String::new(),
         }
     }
 
@@ -850,17 +739,25 @@ mod tests {
     }
 
     #[test]
-    fn test_convert_chess_reason() {
+    fn test_game_status_conversion() {
+        let status = GameStatus {
+            reason: GameOverReason::Checkmate,
+            winner: Some(crate::game::chess::Color::White),
+        };
+        assert_eq!(Match::convert_game_status(&status), "White mates");
+
+        let status = GameStatus {
+            reason: GameOverReason::Stalemate,
+            winner: None,
+        };
+        assert_eq!(Match::convert_game_status(&status), "Draw by stalemate");
+
+        let status = GameStatus {
+            reason: GameOverReason::FiftyMoveRule,
+            winner: None,
+        };
         assert_eq!(
-            Match::convert_chess_reason("White", GameOverReason::Checkmate),
-            "White mates"
-        );
-        assert_eq!(
-            Match::convert_chess_reason("Black", GameOverReason::Stalemate),
-            "Draw by stalemate"
-        );
-        assert_eq!(
-            Match::convert_chess_reason("", GameOverReason::FiftyMoveRule),
+            Match::convert_game_status(&status),
             "Draw by fifty moves rule"
         );
     }
@@ -874,26 +771,9 @@ mod tests {
             Vec::new(),
         );
         let m = Match::new(opening, &tc);
-        let (reason, result) = m.is_game_over();
-        assert_eq!(reason, GameOverReason::Checkmate);
-        assert_eq!(result, GameResult::Lose);
-    }
-
-    #[test]
-    fn test_game_over_stalemate() {
-        let tc = crate::types::tournament::TournamentConfig::default();
-        // Classic stalemate: black king on a8, white queen on b6, white king on c8 — actually
-        // let's use a known stalemate position
-        let opening = Opening::new("k7/8/1K6/8/8/8/8/1Q6 b - - 0 1", Vec::new());
-        let m = Match::new(opening, &tc);
-        // King on a8, queen on b1, king on b6 — not stalemate. Let me use the right one.
-        // Stalemate: king on a1, enemy queen on b3, enemy king on c1 (or similar)
-        // k7/8/1K1Q4/8/8/8/8/8 b - - 0 1 — black king a8, white king b6, white queen d6
-        // This is stalemate for black.
-        let (reason, _result) = m.is_game_over();
-        // The position might not be stalemate, let's just test it doesn't crash
-        // and returns something reasonable
-        let _ = reason; // Accept any result for this tricky position
+        let status = m.game.status();
+        assert_eq!(status.reason, GameOverReason::Checkmate);
+        assert_eq!(status.winner, Some(crate::game::chess::Color::Black));
     }
 
     #[test]
@@ -904,11 +784,11 @@ mod tests {
             vec!["e2e4".to_string(), "e7e5".to_string()],
         );
         let m = Match::new(opening, &tc);
-        assert_eq!(m.ply_count, 2);
+        assert_eq!(m.game.ply_count(), 2);
         assert_eq!(m.uci_moves.len(), 2);
         assert_eq!(m.side_to_move(), Color::White);
         // Hash history: initial + 2 moves = 3 entries
-        assert_eq!(m.hash_history.len(), 3);
+        assert_eq!(m.game.hash_history().len(), 3);
     }
 
     #[test]
@@ -932,9 +812,8 @@ mod tests {
         let m = Match::new(opening, &tc);
         // After these moves, the starting position should have occurred 3 times:
         // initial, after move 4, after move 8
-        assert!(m.is_threefold_repetition());
-        let (reason, result) = m.is_game_over();
-        assert_eq!(reason, GameOverReason::ThreefoldRepetition);
-        assert_eq!(result, GameResult::Draw);
+        assert!(m.game.is_threefold_repetition());
+        let status = m.game.status();
+        assert_eq!(status.reason, GameOverReason::ThreefoldRepetition);
     }
 }

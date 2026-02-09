@@ -1,9 +1,9 @@
-//! UCI engine management — the protocol layer between process I/O and game logic.
+//! UCI/USI engine management — the protocol layer between process I/O and game logic.
 //!
 //! Ports `engine/uci_engine.hpp` and `engine/uci_engine.cpp` from C++.
 //!
-//! This module manages a chess engine that speaks the UCI protocol.  It wraps a
-//! [`Process`] and provides high-level methods such as [`UciEngine::start`],
+//! This module manages a chess/shogi engine that speaks the UCI or USI protocol.
+//! It wraps a [`Process`] and provides high-level methods such as [`UciEngine::start`],
 //! [`UciEngine::go`], [`UciEngine::ucinewgame`], etc.
 
 use std::fmt::Write;
@@ -13,6 +13,7 @@ use crate::core::logger::LOGGER;
 use crate::core::str_utils;
 use crate::engine::option::{parse_uci_option_line, OptionType, UCIOptions};
 use crate::engine::process::{Line, Process, ProcessResult, Standard, Status};
+use crate::engine::protocol::Protocol;
 use crate::game::timecontrol::TimeControl;
 use crate::types::engine_config::EngineConfiguration;
 use crate::types::enums::VariantType;
@@ -77,7 +78,7 @@ const DEFAULT_STARTUP_TIME: Duration = Duration::from_millis(10_000);
 
 // ── UciEngine ────────────────────────────────────────────────────────────────
 
-/// Manages a single chess engine process via the UCI protocol.
+/// Manages a single chess/shogi engine process via the UCI or USI protocol.
 pub struct UciEngine {
     process: Process,
     uci_options: UCIOptions,
@@ -85,6 +86,7 @@ pub struct UciEngine {
     output: Vec<Line>,
     initialized: bool,
     realtime_logging: bool,
+    protocol: Protocol,
 }
 
 impl UciEngine {
@@ -94,6 +96,7 @@ impl UciEngine {
     pub fn new(config: &EngineConfiguration, realtime_logging: bool) -> Self {
         let mut process = Process::new();
         process.set_realtime_logging(realtime_logging);
+        let protocol = Protocol::new(config.variant);
 
         Self {
             process,
@@ -102,6 +105,7 @@ impl UciEngine {
             output: Vec::with_capacity(100),
             initialized: false,
             realtime_logging,
+            protocol,
         }
     }
 
@@ -157,13 +161,12 @@ impl UciEngine {
 
         if !self.ucinewgame() {
             log_warn!(
-                "Engine {} failed to start/refresh (ucinewgame).",
-                self.config.name
+                "Engine {} failed to start/refresh ({}).",
+                self.config.name,
+                self.protocol.newgame_cmd()
             );
             return false;
         }
-
-        let is_shogi = self.config.variant == VariantType::Shogi;
 
         // Send Threads first to help multi-threaded engines
         let mut options = self.config.options.clone();
@@ -174,7 +177,9 @@ impl UciEngine {
         });
 
         for (name, value) in &options {
-            self.send_setoption(name, value);
+            // Use protocol wrapper to translate option names (e.g., Hash -> USI_Hash)
+            let option_name = self.protocol.translate_option_name(name);
+            self.send_setoption(&option_name, value);
         }
 
         if self.config.variant == VariantType::Frc {
@@ -196,30 +201,25 @@ impl UciEngine {
 
     // ── UCI commands ─────────────────────────────────────────────────────────
 
-    /// Send the `uci` command.
+    /// Send the `uci` or `usi` initialization command.
     pub fn uci(&mut self) -> bool {
-        log_trace!("Sending uci to engine {}", self.config.name);
-
-        let init = match self.config.variant {
-            VariantType::Standard => "uci",
-            VariantType::Frc => "uci",
-            VariantType::Shogi => "usi",
-        };
-
-        self.write_engine(init)
+        log_trace!(
+            "Sending {} to engine {}",
+            self.protocol.init_cmd(),
+            self.config.name
+        );
+        self.write_engine(self.protocol.init_cmd())
     }
 
-    /// Wait for `uciok`, parsing `option` lines along the way.
+    /// Wait for `uciok` or `usiok`, parsing `option` lines along the way.
     pub fn uciok(&mut self, threshold: Option<Duration>) -> bool {
-        log_trace!("Waiting for uciok from engine {}", self.config.name);
+        log_trace!(
+            "Waiting for {} from engine {}",
+            self.protocol.init_ok(),
+            self.config.name
+        );
 
-        let word = match self.config.variant {
-            VariantType::Standard => "uciok",
-            VariantType::Frc => "uciok",
-            VariantType::Shogi => "usiok",
-        };
-
-        let res = self.read_engine(word, threshold);
+        let res = self.read_engine(self.protocol.init_ok(), threshold);
         let ok = res.code == Status::Ok;
 
         // Log output if using deferred logging
@@ -258,18 +258,20 @@ impl UciEngine {
         ok
     }
 
-    /// Send `ucinewgame` and wait for `readyok`.
+    /// Send `ucinewgame` or `usinewgame` and wait for `readyok`.
     pub fn ucinewgame(&mut self) -> bool {
-        log_trace!("Sending ucinewgame to engine {}", self.config.name);
+        log_trace!(
+            "Sending {} to engine {}",
+            self.protocol.newgame_cmd(),
+            self.config.name
+        );
 
-        let cmd = match self.config.variant {
-            VariantType::Standard => "ucinewgame",
-            VariantType::Frc => "ucinewgame",
-            VariantType::Shogi => "usinewgame",
-        };
-
-        if !self.write_engine(cmd) {
-            log_warn!("Failed to send ucinewgame to engine {}", self.config.name);
+        if !self.write_engine(self.protocol.newgame_cmd()) {
+            log_warn!(
+                "Failed to send {} to engine {}",
+                self.protocol.newgame_cmd(),
+                self.config.name
+            );
             return false;
         }
 
@@ -327,34 +329,16 @@ impl UciEngine {
         res
     }
 
-    /// Send a `position` command with a FEN and optional move list.
+    /// Send a `position` command with a FEN/SFEN and optional move list.
     pub fn position(&mut self, moves: &[String], fen: &str) -> bool {
-        let mut pos_cmd = if fen == "startpos" {
-            "position startpos".to_string()
-        } else {
-            let format = match self.config.variant {
-                VariantType::Standard => "fen",
-                VariantType::Frc => "fen",
-                VariantType::Shogi => "sfen",
-            };
-            format!("position {} {}", format, fen)
-        };
-
-        if !moves.is_empty() {
-            pos_cmd.push_str(" moves");
-            for mv in moves {
-                pos_cmd.push(' ');
-                pos_cmd.push_str(mv);
-            }
-        }
-
+        let pos_cmd = self.protocol.position_cmd(fen, moves);
         self.write_engine(&pos_cmd)
     }
 
     /// Send a `go` command with time controls and engine limits.
     ///
-    /// In UCI (chess), White moves first, so wtime/btime map to White/Black.
-    /// In USI (shogi), Black (Sente) moves first, so btime/binc is the first player's time.
+    /// The protocol wrapper handles the mapping of time parameters correctly
+    /// for UCI (White moves first) and USI (Black/Sente moves first).
     pub fn go(&mut self, our_tc: &TimeControl, enemy_tc: &TimeControl, stm: Color) -> bool {
         let mut input = String::from("go");
 
@@ -372,39 +356,48 @@ impl UciEngine {
             return self.write_engine(&input);
         }
 
-        // In shogi (USI), Black (Sente) moves first, so we need to swap the mapping.
-        // UCI: White=first player, wtime for white
-        // USI: Black=first player, btime for black (sente)
-        let is_shogi = self.config.variant == VariantType::Shogi;
-
+        // Map side-to-move to first/second player time controls
         let (first_tc, second_tc) = match stm {
-            Color::White => (our_tc, enemy_tc), // In UCI, White = first player
+            Color::White => (our_tc, enemy_tc),
             Color::Black => (enemy_tc, our_tc),
         };
 
-        // For shogi, first player uses btime, second uses wtime
-        // For chess, first player uses wtime, second uses btime
-        let (first_time_key, first_inc_key, second_time_key, second_inc_key) = if is_shogi {
-            ("btime", "binc", "wtime", "winc")
-        } else {
-            ("wtime", "winc", "btime", "binc")
-        };
-
+        // Use protocol wrapper to get correct time parameter names
         if our_tc.is_timed() || our_tc.is_increment() {
             if first_tc.is_timed() || first_tc.is_increment() {
-                let _ = write!(input, " {} {}", first_time_key, first_tc.get_time_left());
+                let _ = write!(
+                    input,
+                    " {} {}",
+                    self.protocol.first_player_time(),
+                    first_tc.get_time_left()
+                );
             }
             if second_tc.is_timed() || second_tc.is_increment() {
-                let _ = write!(input, " {} {}", second_time_key, second_tc.get_time_left());
+                let _ = write!(
+                    input,
+                    " {} {}",
+                    self.protocol.second_player_time(),
+                    second_tc.get_time_left()
+                );
             }
         }
 
         if our_tc.is_increment() {
             if first_tc.is_increment() {
-                let _ = write!(input, " {} {}", first_inc_key, first_tc.get_increment());
+                let _ = write!(
+                    input,
+                    " {} {}",
+                    self.protocol.first_player_inc(),
+                    first_tc.get_increment()
+                );
             }
             if second_tc.is_increment() {
-                let _ = write!(input, " {} {}", second_inc_key, second_tc.get_increment());
+                let _ = write!(
+                    input,
+                    " {} {}",
+                    self.protocol.second_player_inc(),
+                    second_tc.get_increment()
+                );
             }
         }
 
@@ -542,11 +535,13 @@ impl UciEngine {
         let tokens = str_utils::split_string(last_line, ' ');
         let move_str: String = str_utils::find_element(&tokens, "bestmove")?;
 
-        // Handle USI special cases
-        match move_str.as_str() {
-            "win" => Some(BestMoveResult::Win),
-            "resign" => Some(BestMoveResult::Resign),
-            _ => Some(BestMoveResult::Move(move_str)),
+        // Handle USI special cases using protocol wrapper
+        if self.protocol.is_bestmove_win(&move_str) {
+            Some(BestMoveResult::Win)
+        } else if self.protocol.is_bestmove_resign(&move_str) {
+            Some(BestMoveResult::Resign)
+        } else {
+            Some(BestMoveResult::Move(move_str))
         }
     }
 
@@ -705,6 +700,11 @@ impl UciEngine {
 
     pub fn is_realtime_logging(&self) -> bool {
         self.realtime_logging
+    }
+
+    /// The protocol wrapper for this engine (UCI or USI).
+    pub fn protocol(&self) -> &Protocol {
+        &self.protocol
     }
 
     // ── Timing defaults ──────────────────────────────────────────────────────

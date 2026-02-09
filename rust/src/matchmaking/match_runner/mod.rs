@@ -13,6 +13,7 @@ pub mod trackers;
 
 use std::time::Instant;
 
+use crate::engine::protocol::Protocol;
 use crate::engine::uci_engine::{BestMoveResult, Color, ScoreType, UciEngine};
 use crate::game::book::Opening;
 use crate::game::{GameInstance, GameStatus};
@@ -40,11 +41,10 @@ const ENGINE_RESIGN_MSG: &str = " resigns";
 // ── Color helpers ────────────────────────────────────────────────────────────
 
 fn color_name(color: Color, variant: VariantType) -> &'static str {
-    match (color, variant) {
-        (Color::White, VariantType::Shogi) => "Sente",
-        (Color::Black, VariantType::Shogi) => "Gote",
-        (Color::White, _) => "White",
-        (Color::Black, _) => "Black",
+    let protocol = Protocol::new(variant);
+    match color {
+        Color::White => protocol.first_player_name(),
+        Color::Black => protocol.second_player_name(),
     }
 }
 

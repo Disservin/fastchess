@@ -3,6 +3,8 @@ use shakmaty::uci::UciMove;
 use shakmaty::{CastlingMode, Chess, Position};
 
 use crate::game::chess::{ChessGame, Variant};
+use crate::game::ShogiGame;
+use crate::types::VariantType;
 
 /// A chess opening position, optionally with a sequence of book moves.
 #[derive(Debug, Clone, Default)]
@@ -26,23 +28,65 @@ impl Opening {
         }
     }
 
-    /// Validate that all moves in this opening are legal.
+    /// Validate that all moves in this opening are legal for standard chess.
     ///
     /// Returns true if all moves are valid, false otherwise.
+    /// For variant-specific validation, use `validate_for_variant()`.
     pub fn validate(&self) -> bool {
-        let variant = Variant::Standard;
-        let Some(mut game) = ChessGame::from_fen(self.fen_epd.as_deref().unwrap_or(""), variant)
-        else {
-            return false;
-        };
+        self.validate_for_variant(VariantType::Standard)
+    }
 
-        for mv in &self.moves {
-            if !game.make_uci_move(mv) {
-                return false;
+    /// Validate that all moves in this opening are legal for the given variant.
+    ///
+    /// Returns true if all moves are valid, false otherwise.
+    pub fn validate_for_variant(&self, variant: VariantType) -> bool {
+        match variant {
+            VariantType::Standard => {
+                let Some(mut game) =
+                    ChessGame::from_fen(self.fen_epd.as_deref().unwrap_or(""), Variant::Standard)
+                else {
+                    return false;
+                };
+
+                for mv in &self.moves {
+                    if !game.make_uci_move(mv) {
+                        return false;
+                    }
+                }
+                true
+            }
+            VariantType::Frc => {
+                let Some(mut game) =
+                    ChessGame::from_fen(self.fen_epd.as_deref().unwrap_or(""), Variant::Chess960)
+                else {
+                    return false;
+                };
+
+                for mv in &self.moves {
+                    if !game.make_uci_move(mv) {
+                        return false;
+                    }
+                }
+                true
+            }
+            VariantType::Shogi => {
+                // For shogi, parse SFEN and validate moves
+                let Some(mut game) = (if let Some(sfen) = &self.fen_epd {
+                    ShogiGame::from_sfen(sfen)
+                } else {
+                    Some(ShogiGame::new())
+                }) else {
+                    return false;
+                };
+
+                for mv in &self.moves {
+                    if !game.make_usi_move(mv) {
+                        return false;
+                    }
+                }
+                true
             }
         }
-
-        true
     }
 }
 
@@ -550,5 +594,97 @@ mod tests {
             vec!["e1e5".to_string()], // Invalid move
         );
         assert!(!opening.validate());
+    }
+
+    /// Test SFEN parsing for shogi starting position.
+    #[test]
+    fn test_sfen_startpos_validation() {
+        use crate::types::VariantType;
+
+        // Standard shogi starting position
+        let opening = Opening::new(
+            Some("lnsgkgsnl/1r5b1/ppppppppp/9/9/9/PPPPPPPPP/1B5R1/LNSGKGSNL b - 1".to_string()),
+            Vec::new(),
+        );
+        assert!(opening.validate_for_variant(VariantType::Shogi));
+    }
+
+    /// Test SFEN parsing with valid moves.
+    #[test]
+    fn test_sfen_with_moves_validation() {
+        use crate::types::VariantType;
+
+        // Shogi position with some moves
+        let opening = Opening::new(
+            Some("lnsgkgsnl/1r5b1/ppppppppp/9/9/9/PPPPPPPPP/1B5R1/LNSGKGSNL b - 1".to_string()),
+            vec!["7g7f".to_string(), "3c3d".to_string()],
+        );
+        assert!(opening.validate_for_variant(VariantType::Shogi));
+    }
+
+    /// Test SFEN parsing with invalid move.
+    #[test]
+    fn test_sfen_invalid_move() {
+        use crate::types::VariantType;
+
+        let opening = Opening::new(
+            Some("lnsgkgsnl/1r5b1/ppppppppp/9/9/9/PPPPPPPPP/1B5R1/LNSGKGSNL b - 1".to_string()),
+            vec!["1a1b".to_string()], // Invalid move - lance can't move sideways
+        );
+        assert!(!opening.validate_for_variant(VariantType::Shogi));
+    }
+
+    /// Test SFEN with hand pieces (pieces in hand for drops).
+    #[test]
+    fn test_sfen_with_hand_pieces() {
+        use crate::types::VariantType;
+
+        // Position with pieces in hand: P2p means sente has 1 pawn, gote has 2 pawns
+        let opening = Opening::new(
+            Some("lnsgkgsnl/1r5b1/ppppppppp/9/9/9/PPPPPPPPP/1B5R1/LNSGKGSNL b P2p 1".to_string()),
+            Vec::new(),
+        );
+        assert!(opening.validate_for_variant(VariantType::Shogi));
+    }
+
+    /// Test SFEN with empty hand.
+    #[test]
+    fn test_sfen_empty_hand() {
+        use crate::types::VariantType;
+
+        // Position from the user's example
+        let opening = Opening::new(
+            Some("lnsgkgsnl/r6b1/ppppppppp/9/9/P8/1PPPPPPPP/1B3G1R1/LNSGK1SNL b - 1".to_string()),
+            Vec::new(),
+        );
+        assert!(opening.validate_for_variant(VariantType::Shogi));
+    }
+
+    /// Test EpdReader works with SFEN file.
+    #[test]
+    fn test_epd_reader_sfen() {
+        use crate::types::VariantType;
+
+        // Create a temp file with SFEN positions
+        let sfen_content = r#"lnsgkgsnl/1r5b1/ppppppppp/9/9/9/PPPPPPPPP/1B5R1/LNSGKGSNL b - 1
+lnsgkgsnl/r6b1/ppppppppp/9/9/P8/1PPPPPPPP/1B3G1R1/LNSGK1SNL b - 1
+"#;
+        let temp_path = std::env::temp_dir().join("test_sfen.epd");
+        std::fs::write(&temp_path, sfen_content).unwrap();
+
+        let reader = EpdReader::new(temp_path.to_str().unwrap()).unwrap();
+        assert_eq!(reader.get().len(), 2);
+
+        // Validate both positions
+        for sfen in reader.get() {
+            let opening = Opening::new(Some(sfen.clone()), Vec::new());
+            assert!(
+                opening.validate_for_variant(VariantType::Shogi),
+                "Failed to validate SFEN: {}",
+                sfen
+            );
+        }
+
+        std::fs::remove_file(&temp_path).ok();
     }
 }

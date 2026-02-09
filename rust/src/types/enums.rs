@@ -26,12 +26,13 @@ pub enum FormatType {
     None,
 }
 
-/// Chess variant type.
+/// Game variant type.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub enum VariantType {
     #[default]
     Standard,
     Frc,
+    Shogi,
 }
 
 /// Tournament pairing format.

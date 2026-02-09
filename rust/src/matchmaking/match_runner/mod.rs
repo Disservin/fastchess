@@ -13,12 +13,13 @@ pub mod trackers;
 
 use std::time::Instant;
 
-use crate::engine::uci_engine::{Color, ScoreType, UciEngine};
+use crate::engine::uci_engine::{BestMoveResult, Color, ScoreType, UciEngine};
 use crate::game::book::Opening;
-use crate::game::chess::{ChessGame, GameOverReason, GameStatus, Variant};
+use crate::game::{GameInstance, GameStatus};
 use crate::matchmaking::player::Player;
 use crate::types::engine_config::GamePair;
 use crate::types::match_data::*;
+use crate::types::VariantType;
 
 use trackers::*;
 
@@ -33,13 +34,17 @@ const TIMEOUT_MSG: &str = " loses on time";
 const DISCONNECT_MSG: &str = " disconnects";
 const STALL_MSG: &str = "'s connection stalls";
 const INTERRUPTED_MSG: &str = "Game interrupted";
+const ENGINE_WIN_MSG: &str = " wins by engine declaration";
+const ENGINE_RESIGN_MSG: &str = " resigns";
 
 // ── Color helpers ────────────────────────────────────────────────────────────
 
-fn color_name(color: Color) -> &'static str {
-    match color {
-        Color::White => "White",
-        Color::Black => "Black",
+fn color_name(color: Color, variant: VariantType) -> &'static str {
+    match (color, variant) {
+        (Color::White, VariantType::Shogi) => "Sente",
+        (Color::Black, VariantType::Shogi) => "Gote",
+        (Color::White, _) => "White",
+        (Color::Black, _) => "Black",
     }
 }
 
@@ -50,11 +55,11 @@ fn opposite(color: Color) -> Color {
     }
 }
 
-/// Convert from game::chess::Color to engine::uci_engine::Color
-fn chess_color_to_uci_color(c: crate::game::chess::Color) -> Color {
+/// Convert from game::Color to engine::uci_engine::Color
+fn game_color_to_uci_color(c: crate::game::Color) -> Color {
     match c {
-        crate::game::chess::Color::White => Color::White,
-        crate::game::chess::Color::Black => Color::Black,
+        crate::game::Color::First => Color::White,
+        crate::game::Color::Second => Color::Black,
     }
 }
 
@@ -72,10 +77,10 @@ pub struct Match {
     uci_moves: Vec<String>,
     start_position: String,
     stall_or_disconnect: bool,
-    /// The chess game state with built-in threefold repetition detection.
-    game: ChessGame,
-    /// The variant type (Standard or Chess960).
-    variant: crate::types::VariantType,
+    /// The game state with built-in repetition detection.
+    game: GameInstance,
+    /// The variant type (Standard, Chess960, or Shogi).
+    variant: VariantType,
 }
 
 impl Match {
@@ -86,28 +91,19 @@ impl Match {
         opening: Opening,
         tournament_config: &crate::types::tournament::TournamentConfig,
     ) -> Self {
-        let fen_str = if opening.fen_epd.is_empty() {
-            "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1".to_string()
+        let variant = tournament_config.variant;
+
+        let fen_str = if opening.fen_epd.is_none() {
+            GameInstance::default_fen(variant).to_string()
         } else {
-            opening.fen_epd.clone()
+            opening.fen_epd.clone().unwrap()
         };
 
-        let start_position =
-            if fen_str == "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1" {
-                "startpos".to_string()
-            } else {
-                fen_str.clone()
-            };
-
-        // Determine the chess variant
-        let variant = if tournament_config.variant == crate::types::VariantType::Frc {
-            Variant::Chess960
-        } else {
-            Variant::Standard
-        };
+        let start_position = fen_str.clone();
 
         // Create the game from FEN
-        let mut game = ChessGame::from_fen(&fen_str, variant).unwrap_or_default();
+        let mut game =
+            GameInstance::from_fen(&fen_str, variant).unwrap_or_else(|| GameInstance::new(variant));
 
         let data = MatchData::new(&fen_str);
 
@@ -141,13 +137,13 @@ impl Match {
             start_position,
             stall_or_disconnect: false,
             game,
-            variant: tournament_config.variant,
+            variant,
         }
     }
 
     /// Current side to move (from the game).
     fn side_to_move(&self) -> Color {
-        chess_color_to_uci_color(self.game.side_to_move())
+        game_color_to_uci_color(self.game.side_to_move())
     }
 
     /// Half-move clock (for fifty-move rule) from the game.
@@ -289,7 +285,7 @@ impl Match {
             }
 
             self.data.termination = MatchTermination::Normal;
-            self.data.reason = Self::convert_game_status(&status);
+            self.data.reason = self.convert_game_status(&status);
             return false;
         }
 
@@ -369,18 +365,46 @@ impl Match {
             0
         };
 
-        // Handle missing bestmove
-        let Some(mv_str) = best_move else {
-            if timeout {
-                self.set_engine_timeout_status(us, them);
-            } else {
-                self.set_engine_illegal_move_status(us, them, &best_move);
+        // Handle bestmove result
+        let mv_str = match best_move {
+            None => {
+                // No bestmove line found
+                if timeout {
+                    self.set_engine_timeout_status(us, them);
+                } else {
+                    self.set_engine_illegal_move_status(us, them, &None);
+                }
+                return false;
             }
-            return false;
+            Some(BestMoveResult::Win) => {
+                // USI: Engine declares a win (e.g., delivered checkmate)
+                // The engine that played the previous move claims to have won
+                // This is typically used when the engine realizes it already won
+                self.add_move_data(us, elapsed_ms, latency, timeleft, true);
+                us.set_won();
+                them.set_lost();
+                let stm = self.side_to_move();
+                let name = color_name(stm, self.variant);
+                self.data.termination = MatchTermination::Normal;
+                self.data.reason = format!("{}{}", name, ENGINE_WIN_MSG);
+                return false;
+            }
+            Some(BestMoveResult::Resign) => {
+                // USI: Engine resigns
+                self.add_move_data(us, elapsed_ms, latency, timeleft, true);
+                us.set_lost();
+                them.set_won();
+                let stm = self.side_to_move();
+                let name = color_name(stm, self.variant);
+                self.data.termination = MatchTermination::Normal;
+                self.data.reason = format!("{}{}", name, ENGINE_RESIGN_MSG);
+                return false;
+            }
+            Some(BestMoveResult::Move(mv)) => mv,
         };
 
-        // Validate the move is legal using the chess game
-        let Some(chess_move) = self.game.parse_uci_move(&mv_str) else {
+        // Validate the move is legal using the game
+        let Some(game_move) = self.game.parse_move(&mv_str) else {
             // Illegal move
             self.add_move_data(us, elapsed_ms, latency, timeleft, false);
             self.set_engine_illegal_move_status(us, them, &Some(mv_str));
@@ -397,7 +421,7 @@ impl Match {
         self.add_move_data(us, elapsed_ms, latency, timeleft, true);
 
         // Apply the move to the game (this also updates hash history for repetition detection)
-        self.game.make_move(&chess_move);
+        self.game.make_move(&game_move);
         self.uci_moves.push(mv_str);
 
         // Update adjudication trackers with score
@@ -425,7 +449,7 @@ impl Match {
                 us.set_won();
                 them.set_lost();
                 let stm = self.side_to_move();
-                let name = color_name(stm);
+                let name = color_name(stm, self.variant);
                 self.data.termination = MatchTermination::Adjudication;
                 self.data.reason = format!("{}{}", name, ADJUDICATION_TB_WIN_MSG);
                 return true;
@@ -435,7 +459,7 @@ impl Match {
                 us.set_lost();
                 them.set_won();
                 let stm = self.side_to_move();
-                let name = color_name(opposite(stm));
+                let name = color_name(opposite(stm), self.variant);
                 self.data.termination = MatchTermination::Adjudication;
                 self.data.reason = format!("{}{}", name, ADJUDICATION_TB_WIN_MSG);
                 return true;
@@ -462,7 +486,7 @@ impl Match {
                     them.set_won();
 
                     let stm = self.side_to_move();
-                    let name = color_name(stm);
+                    let name = color_name(stm, self.variant);
                     self.data.termination = MatchTermination::Adjudication;
                     self.data.reason = format!("{}{}", name, ADJUDICATION_WIN_MSG);
                     return true;
@@ -514,7 +538,7 @@ impl Match {
         self.stall_or_disconnect = true;
 
         let stm = self.side_to_move();
-        let name = color_name(stm);
+        let name = color_name(stm, self.variant);
 
         if crate::STOP.load(std::sync::atomic::Ordering::Relaxed) {
             self.data.termination = MatchTermination::Interrupt;
@@ -533,7 +557,7 @@ impl Match {
         self.stall_or_disconnect = true;
 
         let stm = self.side_to_move();
-        let name = color_name(stm);
+        let name = color_name(stm, self.variant);
         self.data.termination = MatchTermination::Stall;
         self.data.reason = format!("{}{}", name, STALL_MSG);
 
@@ -545,7 +569,7 @@ impl Match {
         winner.set_won();
 
         let stm = self.side_to_move();
-        let name = color_name(stm);
+        let name = color_name(stm, self.variant);
         self.data.termination = MatchTermination::Timeout;
         self.data.reason = format!("{}{}", name, TIMEOUT_MSG);
 
@@ -565,7 +589,7 @@ impl Match {
         winner.set_won();
 
         let stm = self.side_to_move();
-        let name = color_name(stm);
+        let name = color_name(stm, self.variant);
         self.data.termination = MatchTermination::IllegalMove;
         self.data.reason = format!("{}{}", name, ILLEGAL_MSG);
 
@@ -586,10 +610,12 @@ impl Match {
         timeleft: i64,
         legal: bool,
     ) {
-        let mv = player
-            .engine
-            .bestmove()
-            .unwrap_or_else(|| "<none>".to_string());
+        let mv = match player.engine.bestmove() {
+            Some(BestMoveResult::Move(m)) => m,
+            Some(BestMoveResult::Win) => "win".to_string(),
+            Some(BestMoveResult::Resign) => "resign".to_string(),
+            None => "<none>".to_string(),
+        };
 
         let mut move_data = MoveData {
             r#move: mv,
@@ -650,26 +676,8 @@ impl Match {
     }
 
     /// Convert a GameStatus to a human-readable reason string.
-    fn convert_game_status(status: &GameStatus) -> String {
-        match status.reason {
-            GameOverReason::Checkmate => {
-                let winner_name = status
-                    .winner
-                    .map(|c| match c {
-                        crate::game::chess::Color::White => "White",
-                        crate::game::chess::Color::Black => "Black",
-                    })
-                    .unwrap_or("Unknown");
-                format!("{} mates", winner_name)
-            }
-            GameOverReason::Stalemate => "Draw by stalemate".to_string(),
-            GameOverReason::InsufficientMaterial => {
-                "Draw by insufficient mating material".to_string()
-            }
-            GameOverReason::ThreefoldRepetition => "Draw by 3-fold repetition".to_string(),
-            GameOverReason::FiftyMoveRule => "Draw by fifty moves rule".to_string(),
-            GameOverReason::None => String::new(),
-        }
+    fn convert_game_status(&self, status: &GameStatus) -> String {
+        status.reason.message(status.winner, self.variant)
     }
 
     /// Get the match data after the game has finished.
@@ -686,6 +694,7 @@ impl Match {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::game::GameOverReason;
 
     #[test]
     fn test_convert_score_cp_positive() {
@@ -731,7 +740,7 @@ mod tests {
     fn test_side_from_board_black() {
         let tc = crate::types::tournament::TournamentConfig::default();
         let opening = Opening::new(
-            "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1",
+            Some("rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1".to_string()),
             Vec::new(),
         );
         let m = Match::new(opening, &tc);
@@ -740,26 +749,27 @@ mod tests {
 
     #[test]
     fn test_game_status_conversion() {
+        let tc = crate::types::tournament::TournamentConfig::default();
+        let opening = Opening::startpos();
+        let m = Match::new(opening, &tc);
+
         let status = GameStatus {
             reason: GameOverReason::Checkmate,
-            winner: Some(crate::game::chess::Color::White),
+            winner: Some(crate::game::Color::First),
         };
-        assert_eq!(Match::convert_game_status(&status), "White mates");
+        assert_eq!(m.convert_game_status(&status), "White mates");
 
         let status = GameStatus {
             reason: GameOverReason::Stalemate,
             winner: None,
         };
-        assert_eq!(Match::convert_game_status(&status), "Draw by stalemate");
+        assert_eq!(m.convert_game_status(&status), "Draw by stalemate");
 
         let status = GameStatus {
             reason: GameOverReason::FiftyMoveRule,
             winner: None,
         };
-        assert_eq!(
-            Match::convert_game_status(&status),
-            "Draw by fifty moves rule"
-        );
+        assert_eq!(m.convert_game_status(&status), "Draw by fifty moves rule");
     }
 
     #[test]
@@ -767,28 +777,26 @@ mod tests {
         let tc = crate::types::tournament::TournamentConfig::default();
         // Fool's mate — white is in checkmate
         let opening = Opening::new(
-            "rnb1kbnr/pppp1ppp/4p3/8/6Pq/5P2/PPPPP2P/RNBQKBNR w KQkq - 1 3",
+            Some("rnb1kbnr/pppp1ppp/4p3/8/6Pq/5P2/PPPPP2P/RNBQKBNR w KQkq - 1 3".to_string()),
             Vec::new(),
         );
         let m = Match::new(opening, &tc);
         let status = m.game.status();
         assert_eq!(status.reason, GameOverReason::Checkmate);
-        assert_eq!(status.winner, Some(crate::game::chess::Color::Black));
+        assert_eq!(status.winner, Some(crate::game::Color::Second));
     }
 
     #[test]
     fn test_opening_book_moves_applied() {
         let tc = crate::types::tournament::TournamentConfig::default();
         let opening = Opening::new(
-            "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+            Some("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1".to_string()),
             vec!["e2e4".to_string(), "e7e5".to_string()],
         );
         let m = Match::new(opening, &tc);
         assert_eq!(m.game.ply_count(), 2);
         assert_eq!(m.uci_moves.len(), 2);
         assert_eq!(m.side_to_move(), Color::White);
-        // Hash history: initial + 2 moves = 3 entries
-        assert_eq!(m.game.hash_history().len(), 3);
     }
 
     #[test]
@@ -797,7 +805,7 @@ mod tests {
         // Set up a position where we can create threefold repetition
         // Knights bouncing back and forth: Ng1-f3, Ng8-f6, Nf3-g1, Nf6-g8, Ng1-f3, Ng8-f6, Nf3-g1, Nf6-g8
         let opening = Opening::new(
-            "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+            Some("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1".to_string()),
             vec![
                 "g1f3".to_string(),
                 "g8f6".to_string(),
@@ -812,8 +820,7 @@ mod tests {
         let m = Match::new(opening, &tc);
         // After these moves, the starting position should have occurred 3 times:
         // initial, after move 4, after move 8
-        assert!(m.game.is_threefold_repetition());
         let status = m.game.status();
-        assert_eq!(status.reason, GameOverReason::ThreefoldRepetition);
+        assert_eq!(status.reason, GameOverReason::Repetition);
     }
 }

@@ -4,8 +4,8 @@
 //! `TbAdjudicationTracker` classes from `matchmaking/match/match.hpp`.
 
 use crate::engine::uci_engine::{Color, Score, ScoreType};
-use crate::game::chess::ChessGame;
 use crate::game::syzygy::{self, TbProbeResult};
+use crate::game::GameInstance;
 use crate::types::adjudication::*;
 
 // ── Draw Tracker ─────────────────────────────────────────────────────────────
@@ -225,11 +225,17 @@ impl TbAdjudicationTracker {
     }
 
     /// Check if the position can be probed in tablebases.
-    pub fn can_probe(&self, pos: &ChessGame) -> bool {
+    pub fn can_probe(&self, game: &GameInstance) -> bool {
         if !self.config.enabled {
             return false;
         }
-        syzygy::can_probe(pos.inner(), self.config.max_pieces as u32)
+        // TB probing only works for chess variants
+        match game.as_chess() {
+            Some(chess_game) => {
+                syzygy::can_probe(chess_game.inner(), self.config.max_pieces as u32)
+            }
+            None => false, // Shogi doesn't have tablebases
+        }
     }
 
     /// Probe the tablebase and return the adjudication result.
@@ -238,13 +244,22 @@ impl TbAdjudicationTracker {
     /// - Tablebase adjudication is disabled
     /// - Position cannot be probed (too many pieces, missing tables)
     /// - Result type doesn't match configuration
-    pub fn adjudicate(&self, pos: &ChessGame) -> TbAdjudicationResult {
+    /// - Game is not a chess variant
+    pub fn adjudicate(&self, game: &GameInstance) -> TbAdjudicationResult {
         if !self.config.enabled {
             return TbAdjudicationResult::None;
         }
 
-        let result =
-            syzygy::should_adjudicate(pos.inner(), &self.config, self.config.ignore_50_move_rule);
+        // TB probing only works for chess variants
+        let Some(chess_game) = game.as_chess() else {
+            return TbAdjudicationResult::None;
+        };
+
+        let result = syzygy::should_adjudicate(
+            chess_game.inner(),
+            &self.config,
+            self.config.ignore_50_move_rule,
+        );
 
         match result {
             TbProbeResult::Win => TbAdjudicationResult::Win,

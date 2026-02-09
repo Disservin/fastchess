@@ -174,7 +174,7 @@ impl UciEngine {
         });
 
         for (name, value) in &options {
-            self.send_setoption(&name, value);
+            self.send_setoption(name, value);
         }
 
         if self.config.variant == VariantType::Frc {

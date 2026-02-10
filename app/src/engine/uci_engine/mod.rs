@@ -258,7 +258,7 @@ impl UciEngine {
         ok
     }
 
-    /// Send `ucinewgame` or `usinewgame` and wait for `readyok`.
+    /// Send newgame command
     pub fn ucinewgame(&mut self) -> bool {
         log_trace!(
             "Sending {} to engine {}",

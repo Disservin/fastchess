@@ -1,8 +1,8 @@
-use crate::game::chess::{ChessGame, Variant};
 use crate::game::timecontrol::TimeControlLimits;
 use crate::types::enums::NotationType;
 use crate::types::VariantType;
 use crate::types::{GameResult, MatchData, MatchTermination, MoveData, PgnConfig};
+use crate::variants::chess::{ChessGame, Variant};
 
 const STARTPOS: &str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 const LINE_LENGTH: usize = 80;

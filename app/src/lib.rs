@@ -5,6 +5,7 @@ pub mod engine;
 pub mod game;
 pub mod matchmaking;
 pub mod types;
+pub mod variants;
 
 use std::sync::atomic::AtomicBool;
 

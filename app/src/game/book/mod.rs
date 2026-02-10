@@ -2,9 +2,9 @@ use pgn_reader::{BufferedReader, RawHeader, SanPlus, Skip, Visitor};
 use shakmaty::uci::UciMove;
 use shakmaty::{CastlingMode, Chess, Position};
 
-use crate::game::chess::{ChessGame, Variant};
-use crate::game::ShogiGame;
 use crate::types::VariantType;
+use crate::variants::chess::{ChessGame, Variant};
+use crate::variants::shogi::ShogiGame;
 
 /// A chess opening position, optionally with a sequence of book moves.
 #[derive(Debug, Clone, Default)]

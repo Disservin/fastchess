@@ -421,7 +421,7 @@ impl Match {
         self.add_move_data(us, elapsed_ms, latency, timeleft, true);
 
         // Apply the move to the game (this also updates hash history for repetition detection)
-        self.game.make_move(&game_move);
+        self.game.make_move(game_move.as_ref());
         self.uci_moves.push(mv_str);
 
         // Update adjudication trackers with score

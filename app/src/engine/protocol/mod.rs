@@ -83,7 +83,7 @@ impl Protocol {
         }
     }
 
-    /// The new game command ("ucinewgame" or "usinewgame").
+    /// The new game command ("ucinewgame" or "isready").
     pub fn newgame_cmd(&self) -> &'static str {
         match self.protocol_type {
             ProtocolType::Uci => "ucinewgame",
@@ -264,7 +264,7 @@ mod tests {
         let proto = Protocol::usi();
         assert_eq!(proto.init_cmd(), "usi");
         assert_eq!(proto.init_ok(), "usiok");
-        assert_eq!(proto.newgame_cmd(), "usinewgame");
+        assert_eq!(proto.newgame_cmd(), "isready");
     }
 
     #[test]

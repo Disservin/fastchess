@@ -6,7 +6,7 @@ use std::ops;
 // taken from https://github.com/87flowers/shogitest/blob/main/src/shogi.rs
 
 #[derive(Copy, Clone, PartialEq, Eq, Debug)]
-pub enum Color {
+pub(crate) enum Color {
     Sente,
     Gote,
 }
@@ -54,7 +54,7 @@ impl ops::Not for Color {
 
 #[derive(Copy, Clone, PartialEq, Eq, Debug, Default)]
 #[repr(transparent)]
-pub struct Square(u8);
+pub(crate) struct Square(u8);
 
 impl Square {
     pub fn new(file: i8, rank: i8) -> Option<Square> {
@@ -136,7 +136,7 @@ impl fmt::Display for Square {
 }
 
 #[derive(Copy, Clone, PartialEq, Eq, Debug, Default)]
-pub struct Delta {
+pub(crate) struct Delta {
     pub file: i8,
     pub rank: i8,
 }
@@ -191,7 +191,7 @@ impl Delta {
 
 #[derive(Copy, Clone, PartialEq, Eq, Debug, Default)]
 #[repr(u8)]
-pub enum PieceType {
+pub(crate) enum PieceType {
     #[default]
     None = 0o00,
     Pawn = 0o01,
@@ -280,7 +280,7 @@ impl fmt::Display for PieceType {
 }
 
 #[derive(Copy, Clone, PartialEq, Eq, Debug, Default)]
-pub enum Move {
+pub(crate) enum Move {
     #[default]
     None,
     Win,
@@ -377,7 +377,7 @@ lazy_static! {
 }
 
 #[derive(Copy, Clone, PartialEq, Eq, Debug)]
-pub struct Place(Color, PieceType);
+pub(crate) struct Place(Color, PieceType);
 
 impl Place {
     fn is_empty(self) -> bool {
@@ -398,7 +398,7 @@ impl fmt::Display for Place {
 }
 
 #[derive(Copy, Clone, PartialEq, Eq, Debug, Default)]
-pub struct Hand {
+pub(crate) struct Hand {
     rook: u8,
     bishop: u8,
     gold: u8,
@@ -451,14 +451,14 @@ impl Hand {
 }
 
 #[derive(Copy, Clone, PartialEq, Eq, Debug)]
-pub enum CheckState {
+pub(crate) enum CheckState {
     None,
     Check,
     Checkmate,
 }
 
 #[derive(Copy, Clone, PartialEq, Eq, Debug)]
-pub struct Position {
+pub(crate) struct Position {
     board: [Place; 81],
     hand: [Hand; 2],
     stm: Color,
@@ -908,7 +908,7 @@ impl fmt::Display for Position {
 }
 
 #[derive(Copy, Clone, PartialEq, Eq, Debug)]
-pub enum GameOutcome {
+pub(crate) enum GameOutcome {
     Undetermined,
     Checkmated(Color),
     WinInImpasse(Color),
@@ -916,83 +916,10 @@ pub enum GameOutcome {
     LossByPerpetual(Color),
     LossByIllegal(Color),
     Resignation(Color),
-    LossByClock(Color),
-    LossByDisconnection(Color),
-    DrawByMoveLimit,
-    DrawByAdjudication,
-    WinByAdjudication(Color),
-}
-
-impl GameOutcome {
-    pub fn is_determined(self) -> bool {
-        self != GameOutcome::Undetermined
-    }
-
-    pub fn winner(self) -> Option<Color> {
-        match self {
-            GameOutcome::Undetermined => None,
-            GameOutcome::Checkmated(color) => Some(!color),
-            GameOutcome::WinInImpasse(color) => Some(color),
-            GameOutcome::DrawBySennichite => None,
-            GameOutcome::LossByPerpetual(color) => Some(!color),
-            GameOutcome::LossByIllegal(color) => Some(!color),
-            GameOutcome::Resignation(color) => Some(!color),
-            GameOutcome::LossByClock(color) => Some(!color),
-            GameOutcome::LossByDisconnection(color) => Some(!color),
-            GameOutcome::DrawByMoveLimit => None,
-            GameOutcome::DrawByAdjudication => None,
-            GameOutcome::WinByAdjudication(color) => Some(color),
-        }
-    }
-
-    pub fn is_draw(self) -> bool {
-        self.is_determined() && self.winner().is_none()
-    }
-
-    pub fn to_string(self) -> &'static str {
-        match self {
-            GameOutcome::Undetermined => "Undetermined (Game is still in play)",
-            GameOutcome::DrawBySennichite => "Draw by 4-fold repetition",
-            GameOutcome::Checkmated(Color::Sente) => "Gote mates",
-            GameOutcome::Checkmated(Color::Gote) => "Sente mates",
-            GameOutcome::WinInImpasse(Color::Sente) => "Sente wins by impasse",
-            GameOutcome::WinInImpasse(Color::Gote) => "Gote wins by impasse",
-            GameOutcome::LossByPerpetual(Color::Sente) => "Sente makes an illegal perpetual check",
-            GameOutcome::LossByPerpetual(Color::Gote) => "Gote makes an illegal perpetual check",
-            GameOutcome::LossByIllegal(Color::Sente) => "Sente makes an illegal move",
-            GameOutcome::LossByIllegal(Color::Gote) => "Gote makes an illegal move",
-            GameOutcome::Resignation(Color::Sente) => "Sente resigns",
-            GameOutcome::Resignation(Color::Gote) => "Gote resigns",
-            GameOutcome::LossByClock(Color::Sente) => "Sente loses on time",
-            GameOutcome::LossByClock(Color::Gote) => "Gote loses on time",
-            GameOutcome::LossByDisconnection(_) => "abandoned",
-            GameOutcome::DrawByMoveLimit => "Draw by adjudication: Reached move limit",
-            GameOutcome::DrawByAdjudication => "Draw by adjudication",
-            GameOutcome::WinByAdjudication(Color::Sente) => "Sente wins by adjudication",
-            GameOutcome::WinByAdjudication(Color::Gote) => "Gote wins by adjudication",
-        }
-    }
-
-    pub fn to_pgn_termination_string(self) -> &'static str {
-        match self {
-            GameOutcome::Undetermined => "unterminated",
-            GameOutcome::DrawBySennichite => "normal",
-            GameOutcome::Checkmated(_) => "normal",
-            GameOutcome::WinInImpasse(_) => "normal",
-            GameOutcome::LossByPerpetual(_) => "illegal move",
-            GameOutcome::LossByIllegal(_) => "illegal move",
-            GameOutcome::Resignation(_) => "normal",
-            GameOutcome::LossByClock(_) => "time forfeit",
-            GameOutcome::LossByDisconnection(_) => "abandoned",
-            GameOutcome::DrawByMoveLimit => "adjudication",
-            GameOutcome::DrawByAdjudication => "adjudication",
-            GameOutcome::WinByAdjudication(_) => "adjudication",
-        }
-    }
 }
 
 #[derive(Clone, Debug)]
-pub struct Game {
+pub(crate) struct Game {
     current_position: Position,
     moves: Vec<Move>,
     history: Vec<Position>,
@@ -1283,5 +1210,197 @@ mod tests {
             println!("{m}: {:?}", final_outcome);
             assert_eq!(final_outcome, expected_outcome);
         }
+    }
+}
+
+// ── Game Trait Implementation ────────────────────────────────────────────────
+
+use crate::game::{Color as GameColor, GameStatus};
+use crate::types::VariantType;
+use crate::variants::GameMove;
+
+/// A shogi move wrapper that implements GameMove.
+#[derive(Clone)]
+struct ShogiMove {
+    inner: Move,
+}
+
+impl ShogiMove {
+    /// Creates a new shogi move.
+    pub fn new(mv: Move) -> Self {
+        Self { inner: mv }
+    }
+
+    /// Returns the inner move.
+    pub fn inner(&self) -> Move {
+        self.inner
+    }
+}
+
+impl GameMove for ShogiMove {
+    fn to_uci(&self) -> String {
+        self.inner.to_string()
+    }
+
+    fn to_san(&self) -> Option<String> {
+        // Shogi uses USI notation directly
+        Some(self.inner.to_string())
+    }
+
+    fn to_lan(&self) -> Option<String> {
+        Some(self.inner.to_string())
+    }
+
+    fn clone_box(&self) -> Box<dyn GameMove> {
+        Box::new(self.clone())
+    }
+
+    fn as_any(&self) -> &dyn std::any::Any {
+        self
+    }
+}
+
+/// A shogi game wrapper that implements the Game trait.
+#[derive(Clone)]
+pub struct ShogiGame {
+    game: Game,
+    ply_count: u32,
+}
+
+impl ShogiGame {
+    /// Creates a new shogi game from the standard starting position.
+    pub fn new() -> Self {
+        Self {
+            game: Game::new(Position::default()),
+            ply_count: 0,
+        }
+    }
+
+    /// Creates a new shogi game from a SFEN string.
+    pub fn from_sfen(sfen: &str) -> Option<Self> {
+        let position = Position::parse(sfen)?;
+        Some(Self {
+            game: Game::new(position),
+            ply_count: 0,
+        })
+    }
+
+    /// Parses a USI move string.
+    fn parse_usi_move(&self, usi: &str) -> Option<ShogiMove> {
+        Move::parse(usi).map(ShogiMove::new)
+    }
+
+    /// Makes a move and returns true if successful.
+    fn make_shogi_move(&mut self, mv: &ShogiMove) -> bool {
+        let outcome = self.game.do_move(mv.inner());
+        if outcome != GameOutcome::LossByIllegal(self.game.stm()) {
+            self.ply_count += 1;
+            true
+        } else {
+            false
+        }
+    }
+
+    /// Makes a move from a USI string.
+    pub fn make_usi_move(&mut self, usi: &str) -> bool {
+        if let Some(mv) = self.parse_usi_move(usi) {
+            self.make_shogi_move(&mv)
+        } else {
+            false
+        }
+    }
+
+    /// Converts a USI move to string representation.
+    pub fn usi_to_san(&self, usi: &str) -> Option<String> {
+        // Shogi uses USI notation directly
+        Some(usi.to_string())
+    }
+
+    /// Converts a USI move to string representation.
+    pub fn usi_to_lan(&self, usi: &str) -> Option<String> {
+        // Shogi uses USI notation directly
+        Some(usi.to_string())
+    }
+}
+
+impl Default for ShogiGame {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl crate::variants::Game for ShogiGame {
+    fn clone_box(&self) -> Box<dyn crate::variants::Game> {
+        Box::new(self.clone())
+    }
+
+    fn variant(&self) -> VariantType {
+        VariantType::Shogi
+    }
+
+    fn side_to_move(&self) -> GameColor {
+        match self.game.stm() {
+            Color::Sente => GameColor::First,
+            Color::Gote => GameColor::Second,
+        }
+    }
+
+    fn halfmove_clock(&self) -> u32 {
+        0 // Shogi doesn't have a half-move clock
+    }
+
+    fn ply_count(&self) -> u32 {
+        self.ply_count
+    }
+
+    fn status(&self) -> GameStatus {
+        // Check for game over conditions
+        // For now, we return ongoing - the actual outcome is tracked by do_move
+        GameStatus::ONGOING
+    }
+
+    fn parse_move(&self, notation: &str) -> Option<Box<dyn GameMove>> {
+        self.parse_usi_move(notation)
+            .map(|m| Box::new(m) as Box<dyn GameMove>)
+    }
+
+    fn make_move(&mut self, mv: &dyn GameMove) -> bool {
+        if let Some(shogi_move) = mv.as_any().downcast_ref::<ShogiMove>() {
+            self.make_shogi_move(shogi_move)
+        } else {
+            false
+        }
+    }
+
+    fn make_move_notation(&mut self, notation: &str) -> bool {
+        if let Some(mv) = self.parse_usi_move(notation) {
+            self.make_shogi_move(&mv)
+        } else {
+            false
+        }
+    }
+
+    fn fen(&self) -> String {
+        self.game.usi_string()
+    }
+
+    fn move_to_san(&self, notation: &str) -> Option<String> {
+        self.usi_to_san(notation)
+    }
+
+    fn move_to_lan(&self, notation: &str) -> Option<String> {
+        self.usi_to_lan(notation)
+    }
+
+    fn supports_syzygy(&self) -> bool {
+        false
+    }
+
+    fn as_chess(&self) -> Option<&crate::variants::chess::ChessGame> {
+        None
+    }
+
+    fn as_shogi(&self) -> Option<&ShogiGame> {
+        Some(self)
     }
 }

@@ -42,13 +42,14 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Install Rust
+        uses: dtolnay/rust-action@stable
+
       - name: Installing required packages
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
           sudo apt install valgrind
-          clang++ --version
-          g++ --version
           sudo sysctl -w vm.mmap_rnd_bits=28
 
       - name: Install windows make
@@ -58,16 +59,16 @@ jobs:
           msystem: ${{matrix.config.msys_sys}}
           install: mingw-w64-${{matrix.config.msys_env}}-${{matrix.config.msys_comp}} make git expect
 
-      - name: Macos clang version
-        if: runner.os == 'Macos'
+      - name: Install Rust on Windows
+        if: runner.os == 'Windows'
         run: |
-          clang++ --version
+          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+          source $HOME/.cargo/env
 
       - name: Running Basic Tests
         run: |
-          ${{ runner.os == 'Windows' && format('{0} --version', matrix.config.cxx) || 'echo "Non-Windows platform"' }}
           make clean
-          ${{ runner.os == 'Windows' && format('make -j2 tests CXX={0}', matrix.config.cxx) || 'make -j2 tests' }}
+          make -j2 tests
           ./fastchess-tests*
 
   # AddressSanitizer tests (Unix only)
@@ -90,25 +91,21 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Install Rust nightly
+        uses: dtolnay/rust-action@nightly
+
       - name: Installing required packages
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
           sudo apt install valgrind
-          clang++ --version
-          g++ --version
+          rustup component add rust-src --toolchain nightly
           sudo sysctl -w vm.mmap_rnd_bits=28
 
-      - name: Running AddressSanitizer Tests (default compiler)
+      - name: Running AddressSanitizer Tests
         run: |
           make clean
-          make -j2 tests san=asan
-          ./fastchess-tests* -tse="*PERFT*"
-
-      - name: Running AddressSanitizer Tests (clang++)
-        run: |
-          make clean
-          make -j2 tests san=asan CXX=clang++
+          make -j2 tests SAN=asan
           ./fastchess-tests*
 
   # ThreadSanitizer tests (Unix only)
@@ -131,20 +128,22 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Install Rust nightly
+        uses: dtolnay/rust-action@nightly
+
       - name: Installing required packages
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
           sudo apt install valgrind
-          clang++ --version
-          g++ --version
+          rustup component add rust-src --toolchain nightly
           sudo sysctl -w vm.mmap_rnd_bits=28
 
       - name: Running ThreadSanitizer Tests
         run: |
           make clean
-          make -j2 tests san=thread
-          ./fastchess-tests* -tse="*PERFT*"
+          make -j2 tests SAN=thread
+          ./fastchess-tests*
 
   # UndefinedBehaviorSanitizer tests (Unix only)
   ubsan-tests:
@@ -166,20 +165,22 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Install Rust nightly
+        uses: dtolnay/rust-action@nightly
+
       - name: Installing required packages
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
           sudo apt install valgrind
-          clang++ --version
-          g++ --version
+          rustup component add rust-src --toolchain nightly
           sudo sysctl -w vm.mmap_rnd_bits=28
 
       - name: Running UndefinedBehaviorSanitizer Tests
         run: |
           make clean
-          make -j2 tests san=undefined CXX=clang++
-          ./fastchess-tests* -tse="*PERFT*"
+          make -j2 tests SAN=undefined
+          ./fastchess-tests*
 
   # Valgrind tests (Linux only)
   valgrind-tests:
@@ -191,16 +192,17 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Install Rust
+        uses: dtolnay/rust-action@stable
+
       - name: Installing required packages
         run: |
           sudo apt-get update
           sudo apt install valgrind
-          clang++ --version
-          g++ --version
           sudo sysctl -w vm.mmap_rnd_bits=28
 
       - name: Running Valgrind Tests
         run: |
           make clean
-          make -j2 tests CXX=g++
-          valgrind --quiet --track-fds=yes --error-exitcode=1 --errors-for-leak-kinds=all --leak-check=full ./fastchess-tests* -tse="*PERFT*"
+          make -j2 tests
+          valgrind --quiet --track-fds=yes --error-exitcode=1 --errors-for-leak-kinds=all --leak-check=full ./fastchess-tests*

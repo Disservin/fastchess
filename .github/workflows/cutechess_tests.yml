@@ -21,6 +21,9 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Install Rust
+        uses: dtolnay/rust-action@stable
+
       - name: Installing required packages
         if: runner.os == 'Linux'
         run: |

@@ -285,24 +285,27 @@ impl UciEngine {
             return is_alive;
         }
 
-        let mut output = Vec::new();
-        let mut res: ProcessResult = ProcessResult::ok();
+        let cmd = self.protocol.isready_cmd();
 
-        if self.config.variant != VariantType::Shogi {
-            log_trace!("Pinging engine {}", self.config.name);
-
-            if !self.write_engine("isready") {
-                return ProcessResult::error("Failed to write isready");
-            }
-
-            self.process.setup_read();
-
-            res = self.process.read_output(
-                &mut output,
-                "readyok",
-                threshold.unwrap_or(Self::get_ping_time()),
-            );
+        if cmd.is_empty() {
+            return ProcessResult::ok();
         }
+
+        log_trace!("Pinging engine {} with {}", self.config.name, cmd);
+
+        if !self.write_engine(&cmd) {
+            return ProcessResult::error("Failed to write isready");
+        }
+
+        self.process.setup_read();
+
+        let mut output = Vec::new();
+
+        let res = self.process.read_output(
+            &mut output,
+            self.protocol.isready_ok(),
+            threshold.unwrap_or(Self::get_ping_time()),
+        );
 
         // Log deferred output
         if !self.realtime_logging {

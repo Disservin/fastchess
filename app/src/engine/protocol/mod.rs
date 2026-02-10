@@ -91,6 +91,21 @@ impl Protocol {
         }
     }
 
+    /// Usi has no isready command, so returns empty string for USI.
+    pub fn isready_cmd(&self) -> &'static str {
+        match self.protocol_type {
+            ProtocolType::Uci => "isready",
+            ProtocolType::Usi => "",
+        }
+    }
+
+    pub fn isready_ok(&self) -> &'static str {
+        match self.protocol_type {
+            ProtocolType::Uci => "readyok",
+            ProtocolType::Usi => "",
+        }
+    }
+
     // ── Position commands ────────────────────────────────────────────────────
 
     /// The position format keyword ("fen" or "sfen").

@@ -357,13 +357,6 @@ impl Tournament {
     }
 }
 
-impl Drop for Tournament {
-    fn drop(&mut self) {
-        log::trace!("~Tournament()");
-        self.pool.kill();
-    }
-}
-
 /// Check whether the score interval should trigger at the current match count.
 ///
 /// C++: `(match_count_ + 1) % cfg.scoreinterval == 0`

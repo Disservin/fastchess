@@ -519,6 +519,143 @@ where
 mod tests {
     use super::*;
 
+    fn assert_approx_eq(actual: f64, expected: f64, epsilon: f64, msg: &str) {
+        let diff = (actual - expected).abs();
+        assert!(
+            diff < epsilon,
+            "{}: expected {:.2}, got {:.2}, diff {:.2} exceeds epsilon {:.2}",
+            msg,
+            expected,
+            actual,
+            diff,
+            epsilon
+        );
+    }
+
+    // Tests ported from C++ sprt_test.cpp with exact expected LLR values
+
+    #[test]
+    fn test_normalized_trinomial_1() {
+        // C++: Stats(36433, 36027, 68692), SPRT(0.05, 0.05, 0, 2, "normalized", true)
+        let sprt = Sprt::new(0.05, 0.05, 0.0, 2.0, SprtModel::Normalized, true);
+        let stats = Stats::new(36433, 36027, 68692);
+        let llr = sprt.get_llr(&stats, false);
+        // C++: LLR = 0.92
+        assert_approx_eq(llr, 0.92, 0.01, "normalized trinomial 1 LLR");
+    }
+
+    #[test]
+    fn test_normalized_trinomial_2() {
+        // C++: Stats(10871, 10650, 20431), SPRT(0.05, 0.05, -1.75, 0.25, "normalized", true)
+        let sprt = Sprt::new(0.05, 0.05, -1.75, 0.25, SprtModel::Normalized, true);
+        let stats = Stats::new(10871, 10650, 20431);
+        let llr = sprt.get_llr(&stats, false);
+        // C++: LLR = 2.30
+        assert_approx_eq(llr, 2.30, 0.01, "normalized trinomial 2 LLR");
+    }
+
+    #[test]
+    fn test_normalized_trinomial_3() {
+        // C++: Stats(4250, 0, 0), SPRT(0.05, 0.05, 0, 10, "normalized", true)
+        let sprt = Sprt::new(0.05, 0.05, 0.0, 10.0, SprtModel::Normalized, true);
+        let stats = Stats::new(4250, 0, 0);
+        let llr = sprt.get_llr(&stats, false);
+        // C++: LLR = 120.56
+        // Using slightly larger epsilon (0.02) due to floating-point precision differences
+        assert_approx_eq(llr, 120.56, 0.02, "normalized trinomial 3 LLR");
+    }
+
+    #[test]
+    fn test_logistic_trinomial_1() {
+        // C++: Stats(21404, 21184, 40708), SPRT(0.05, 0.05, 0.5, 2.5, "logistic", true)
+        let sprt = Sprt::new(0.05, 0.05, 0.5, 2.5, SprtModel::Logistic, true);
+        let stats = Stats::new(21404, 21184, 40708);
+        let llr = sprt.get_llr(&stats, false);
+        // C++: LLR = -1.57
+        assert_approx_eq(llr, -1.57, 0.01, "logistic trinomial 1 LLR");
+    }
+
+    #[test]
+    fn test_logistic_trinomial_2() {
+        // C++: Stats(57433, 57030, 106593), SPRT(0.05, 0.05, 0, 2, "logistic", true)
+        let sprt = Sprt::new(0.05, 0.05, 0.0, 2.0, SprtModel::Logistic, true);
+        let stats = Stats::new(57433, 57030, 106593);
+        let llr = sprt.get_llr(&stats, false);
+        // C++: LLR = -2.59
+        assert_approx_eq(llr, -2.59, 0.01, "logistic trinomial 2 LLR");
+    }
+
+    #[test]
+    fn test_bayesian_trinomial_1() {
+        // C++: Stats(68965, 68526, 128429), SPRT(0.05, 0.05, 0, 2, "bayesian", true)
+        let sprt = Sprt::new(0.05, 0.05, 0.0, 2.0, SprtModel::Bayesian, true);
+        let stats = Stats::new(68965, 68526, 128429);
+        let llr = sprt.get_llr(&stats, false);
+        // C++: LLR = -1.26
+        assert_approx_eq(llr, -1.26, 0.01, "bayesian trinomial 1 LLR");
+    }
+
+    #[test]
+    fn test_bayesian_trinomial_2() {
+        // C++: Stats(21629, 21484, 41111), SPRT(0.05, 0.05, 0.5, 2.5, "bayesian", true)
+        let sprt = Sprt::new(0.05, 0.05, 0.5, 2.5, SprtModel::Bayesian, true);
+        let stats = Stats::new(21629, 21484, 41111);
+        let llr = sprt.get_llr(&stats, false);
+        // C++: LLR = -1.13
+        assert_approx_eq(llr, -1.13, 0.01, "bayesian trinomial 2 LLR");
+    }
+
+    #[test]
+    fn test_normalized_pentanomial_1() {
+        // C++: Stats(365, 16618, 36029, 200, 16974, 390), SPRT(0.05, 0.05, 0, 2, "normalized", true)
+        let sprt = Sprt::new(0.05, 0.05, 0.0, 2.0, SprtModel::Normalized, true);
+        let stats = Stats::from_pentanomial(365, 16618, 36029, 200, 16974, 390);
+        let llr = sprt.get_llr(&stats, true);
+        // C++: LLR = 2.25
+        assert_approx_eq(llr, 2.25, 0.01, "normalized pentanomial 1 LLR");
+    }
+
+    #[test]
+    fn test_normalized_pentanomial_2() {
+        // C++: Stats(127, 4883, 10311, 401, 5150, 104), SPRT(0.05, 0.05, -1.75, 0.25, "normalized", true)
+        let sprt = Sprt::new(0.05, 0.05, -1.75, 0.25, SprtModel::Normalized, true);
+        let stats = Stats::from_pentanomial(127, 4883, 10311, 401, 5150, 104);
+        let llr = sprt.get_llr(&stats, true);
+        // C++: LLR = 3.01
+        assert_approx_eq(llr, 3.01, 0.01, "normalized pentanomial 2 LLR");
+    }
+
+    #[test]
+    fn test_normalized_pentanomial_3() {
+        // C++: Stats(0, 0, 0, 0, 0, 5550), SPRT(0.05, 0.05, 0, 5, "normalized", true)
+        let sprt = Sprt::new(0.05, 0.05, 0.0, 5.0, SprtModel::Normalized, true);
+        let stats = Stats::from_pentanomial(0, 0, 0, 0, 0, 5550);
+        let llr = sprt.get_llr(&stats, true);
+        // C++: LLR = 111.82
+        // Using larger epsilon (0.03) due to floating-point precision differences between C++ and Rust
+        assert_approx_eq(llr, 111.82, 0.03, "normalized pentanomial 3 LLR");
+    }
+
+    #[test]
+    fn test_logistic_pentanomial_1() {
+        // C++: Stats(223, 9863, 20279, 1000, 10037, 246), SPRT(0.05, 0.05, 0.5, 2.5, "logistic", true)
+        let sprt = Sprt::new(0.05, 0.05, 0.5, 2.5, SprtModel::Logistic, true);
+        let stats = Stats::from_pentanomial(223, 9863, 20279, 1000, 10037, 246);
+        let llr = sprt.get_llr(&stats, true);
+        // C++: LLR = -3.07
+        assert_approx_eq(llr, -3.07, 0.01, "logistic pentanomial 1 LLR");
+    }
+
+    #[test]
+    fn test_logistic_pentanomial_2() {
+        // C++: Stats(871, 26175, 55003, 980, 26678, 821), SPRT(0.05, 0.05, 0, 2, "logistic", true)
+        let sprt = Sprt::new(0.05, 0.05, 0.0, 2.0, SprtModel::Logistic, true);
+        let stats = Stats::from_pentanomial(871, 26175, 55003, 980, 26678, 821);
+        let llr = sprt.get_llr(&stats, true);
+        // C++: LLR = -4.98
+        assert_approx_eq(llr, -4.98, 0.01, "logistic pentanomial 2 LLR");
+    }
+
     #[test]
     fn test_sprt_disabled() {
         let sprt = Sprt::default();

@@ -94,7 +94,7 @@ impl UciEngine {
     ///
     /// Does **not** start the engine process — call [`start`] for that.
     pub fn new(config: &EngineConfiguration, realtime_logging: bool) -> Self {
-        let mut process = Process::new();
+        let mut process = Process::new().unwrap();
         process.set_realtime_logging(realtime_logging);
         let protocol = Protocol::new(config.variant);
 

@@ -512,12 +512,11 @@ impl Process {
 
 impl Drop for Process {
     fn drop(&mut self) {
-        // Send quit commands
-        if self.h_stdin_write != INVALID_HANDLE_VALUE {
-            let _ = self.write_input("stop\nquit\n");
+        // Wait for process to terminate gracefully
+        if self.h_process == INVALID_HANDLE_VALUE {
+            return;
         }
 
-        // Wait for process to terminate gracefully
         let start = std::time::Instant::now();
         loop {
             let mut exit_code: u32 = 0;
@@ -540,9 +539,8 @@ impl Drop for Process {
 
         // Clean up handles
         unsafe {
-            if self.h_process != INVALID_HANDLE_VALUE {
-                CloseHandle(self.h_process);
-            }
+            CloseHandle(self.h_process);
+
             if self.h_thread != INVALID_HANDLE_VALUE {
                 CloseHandle(self.h_thread);
             }

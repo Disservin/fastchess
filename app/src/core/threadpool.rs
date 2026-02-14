@@ -271,7 +271,7 @@ mod tests {
         assert_eq!(counter.load(Ordering::SeqCst), 5);
     }
 
-    #[test]
+    // #[test]
     // fn test_task_sender_after_stop() {
     //     // TaskSender should silently drop tasks after pool is stopped.
     //     let mut pool = ThreadPool::new(1);

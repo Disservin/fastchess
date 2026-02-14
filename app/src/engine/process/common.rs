@@ -1,7 +1,5 @@
 //! Common types and traits for process management.
 
-use std::time::Duration;
-
 /// Which standard stream a line came from.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Standard {

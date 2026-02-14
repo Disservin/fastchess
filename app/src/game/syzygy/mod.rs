@@ -57,6 +57,17 @@ impl From<AmbiguousWdl> for TbProbeResult {
     }
 }
 
+/// Split a syzygy directory string into individual directory paths.
+///
+/// Accepts both `;` (Windows) and `:` (Unix) as separators for flexibility.
+fn split_syzygy_dirs(syzygy_dirs: &str) -> Vec<&str> {
+    syzygy_dirs
+        .split(&[';', ':'][..])
+        .map(|d| d.trim())
+        .filter(|d| !d.is_empty())
+        .collect()
+}
+
 /// Initialize the global tablebase from a semicolon-separated list of directories.
 ///
 /// This should be called once at program startup. Subsequent calls are no-ops.
@@ -69,13 +80,7 @@ pub fn init_tablebase(syzygy_dirs: &str) {
         let mut tb = Tablebase::new();
         let mut any_loaded = false;
 
-        // ; separate on windows or colon separate on unix, but we allow both for flexibility
-        for dir in syzygy_dirs.split(&[';', ':'][..]) {
-            let dir = dir.trim();
-            if dir.is_empty() {
-                continue;
-            }
-
+        for dir in split_syzygy_dirs(syzygy_dirs) {
             let path = Path::new(dir);
             if path.is_dir() {
                 match tb.add_directory(path) {
@@ -243,6 +248,46 @@ mod tests {
             result,
             TbProbeResult::NotAvailable | TbProbeResult::Draw
         ));
+    }
+
+    #[test]
+    fn test_split_syzygy_dirs_semicolon() {
+        assert_eq!(split_syzygy_dirs("/tb1;/tb2"), vec!["/tb1", "/tb2"]);
+    }
+
+    #[test]
+    fn test_split_syzygy_dirs_colon() {
+        assert_eq!(split_syzygy_dirs("/tb1:/tb2"), vec!["/tb1", "/tb2"]);
+    }
+
+    #[test]
+    fn test_split_syzygy_dirs_mixed() {
+        assert_eq!(
+            split_syzygy_dirs("/tb1;/tb2:/tb3"),
+            vec!["/tb1", "/tb2", "/tb3"]
+        );
+    }
+
+    #[test]
+    fn test_split_syzygy_dirs_whitespace_and_empty() {
+        assert_eq!(split_syzygy_dirs(";/tb1; ;/tb2;"), vec!["/tb1", "/tb2"]);
+    }
+
+    #[test]
+    fn test_split_syzygy_dirs_single() {
+        assert_eq!(split_syzygy_dirs("/syzygy"), vec!["/syzygy"]);
+    }
+
+    #[test]
+    fn test_split_syzygy_dirs_empty() {
+        assert!(split_syzygy_dirs("").is_empty());
+    }
+
+    #[test]
+    fn test_init_tablebase_colon_separated() {
+        // Verifies init_tablebase accepts colon-separated paths without panicking.
+        // The directories don't exist, so no tables are loaded, but the splitting works.
+        init_tablebase("/nonexistent1:/nonexistent2:/nonexistent3");
     }
 
     #[test]

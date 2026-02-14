@@ -802,6 +802,41 @@ mod tests {
     }
 
     #[test]
+    fn test_resign_adjudication_names_correct_winner() {
+        // In adjudicate(), `us` is the engine that just moved (opposite of side to move),
+        // because play_move() calls adjudicate(them, us) with swapped args.
+        // When `us` reports a negative score, it means `us` is losing and the side
+        // to move (stm) is winning. The reason string should name stm as the winner.
+        use crate::types::engine_config::EngineConfiguration;
+
+        let mut tc = crate::types::tournament::TournamentConfig::default();
+        tc.resign.enabled = true;
+        tc.resign.move_count = 0; // immediately resignable
+
+        // White to move at startpos
+        let opening = Opening::startpos();
+        let mut m = Match::new(opening, &tc);
+        assert_eq!(m.side_to_move(), Color::White);
+
+        let cfg = EngineConfiguration::default();
+        let mut engine_us = UciEngine::new(&cfg, false);
+        let mut engine_them = UciEngine::new(&cfg, false);
+
+        // `us` in adjudicate is the engine that just moved (Black, since stm is White).
+        // Black reports a losing score → White (stm) is the winner.
+        engine_us.inject_output_line("info depth 10 score cp -500 pv e2e4");
+
+        let mut us = Player::new(&mut engine_us);
+        let mut them = Player::new(&mut engine_them);
+
+        let adjudicated = m.adjudicate(&mut us, &mut them);
+        assert!(adjudicated);
+        assert_eq!(m.data.termination, MatchTermination::Adjudication);
+        // stm is White, and stm is the winner
+        assert_eq!(m.data.reason, "White wins by adjudication");
+    }
+
+    #[test]
     fn test_threefold_repetition_detection() {
         let tc = crate::types::tournament::TournamentConfig::default();
         // Set up a position where we can create threefold repetition

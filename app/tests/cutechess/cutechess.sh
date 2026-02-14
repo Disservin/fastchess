@@ -3,7 +3,6 @@
 set -x
 
 # Compile fastchess
-make clean
 make -j USE_CUTE=true
 
 # Create a directory for testing

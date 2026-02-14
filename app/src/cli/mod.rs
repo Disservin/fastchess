@@ -1386,6 +1386,7 @@ fn parse_engine_key_value(
 /// - `40/60` — 40 moves in 60 seconds
 /// - `0:30+0.1` — 30 seconds + 0.1s increment
 /// - `10+0.1` — 10 seconds + 0.1s increment
+/// - `2+0.02s` — 2 seconds + 0.02s increment (with 's' suffix)
 /// - `infinite` / `inf` — no time limit
 fn parse_tc(tc_string: &str) -> Result<TimeControlLimits, String> {
     if tc_string.contains("hg") {
@@ -1415,12 +1416,20 @@ fn parse_tc(tc_string: &str) -> Result<TimeControlLimits, String> {
     // Check for +increment suffix
     if let Some(plus_pos) = remaining.find('+') {
         let inc_str = &remaining[plus_pos + 1..];
+        // Strip trailing 's' suffix if present (e.g., "0.02s" -> "0.02")
+        let inc_str = inc_str.strip_suffix('s').unwrap_or(inc_str);
         let inc_secs: f64 = inc_str
             .parse()
             .map_err(|_| format!("Invalid increment value in tc: {}", inc_str))?;
         tc.increment = (inc_secs * 1000.0) as i64;
         remaining = remaining[..plus_pos].to_string();
     }
+
+    // Strip trailing 's' suffix from main time if present
+    remaining = remaining
+        .strip_suffix('s')
+        .unwrap_or(&remaining)
+        .to_string();
 
     // Check for minutes:seconds format
     if remaining.contains(':') {

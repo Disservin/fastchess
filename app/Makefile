@@ -9,7 +9,6 @@ DEBUG_DIR := $(TARGET_DIR)/debug
 
 # Binary name
 BINARY_NAME := fastchess
-TEST_BINARY_NAME := fastchess-tests
 
 # Sanitizer support
 SAN ?=
@@ -43,12 +42,8 @@ all: ## Build the release binary
 	@echo "Done."
 
 tests: ## Build and run tests
-	@echo "Building and running tests with cargo..."
+	@echo "Running tests with cargo..."
 	RUSTFLAGS="$(RUSTFLAGS)" $(CARGO_CMD) test --release $(CARGO_FLAGS)
-	@echo "Copying test binary to $(BINARY_PATH)/"
-	@cp $(RELEASE_DIR)/deps/$(BINARY_NAME)* $(BINARY_PATH)/$(TEST_BINARY_NAME) 2>/dev/null || \
-	 cp $(DEBUG_DIR)/deps/$(BINARY_NAME)* $(BINARY_PATH)/$(TEST_BINARY_NAME) 2>/dev/null || \
-	 echo "Note: Test binary location may vary"
 	@echo "Done."
 
 coverage: ## Run tests with coverage
@@ -75,7 +70,7 @@ tidy: ## Check code with clippy (alias for scan)
 clean: ## Clean up build artifacts
 	@echo "Cleaning up..."
 	cargo clean
-	@rm -f $(BINARY_PATH)/$(BINARY_NAME) $(BINARY_PATH)/$(TEST_BINARY_NAME)
+	@rm -f $(BINARY_PATH)/$(BINARY_NAME)
 	@echo "Done."
 
 help: ## Print this help

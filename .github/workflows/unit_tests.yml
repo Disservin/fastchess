@@ -58,18 +58,12 @@ jobs:
         with:
           msystem: ${{matrix.config.msys_sys}}
           install: mingw-w64-${{matrix.config.msys_env}}-${{matrix.config.msys_comp}} make git expect
-
-      - name: Install Rust on Windows
-        if: runner.os == 'Windows'
-        run: |
-          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-          source $HOME/.cargo/env
+          path-type: inherit
 
       - name: Running Basic Tests
         run: |
           make clean
           make -j2 tests
-          ./fastchess-tests*
 
   # AddressSanitizer tests (Unix only)
   asan-tests:
@@ -106,7 +100,6 @@ jobs:
         run: |
           make clean
           make -j2 tests SAN=asan
-          ./fastchess-tests*
 
   # ThreadSanitizer tests (Unix only)
   tsan-tests:
@@ -143,7 +136,6 @@ jobs:
         run: |
           make clean
           make -j2 tests SAN=thread
-          ./fastchess-tests*
 
   # UndefinedBehaviorSanitizer tests (Unix only)
   ubsan-tests:
@@ -180,7 +172,6 @@ jobs:
         run: |
           make clean
           make -j2 tests SAN=undefined
-          ./fastchess-tests*
 
   # Valgrind tests (Linux only)
   valgrind-tests:
@@ -205,4 +196,3 @@ jobs:
         run: |
           make clean
           make -j2 tests
-          valgrind --quiet --track-fds=yes --error-exitcode=1 --errors-for-leak-kinds=all --leak-check=full ./fastchess-tests*

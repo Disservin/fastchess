@@ -46,12 +46,6 @@ jobs:
           msystem: ${{matrix.config.msys_sys}}
           install: mingw-w64-${{matrix.config.msys_env}} make git expect
 
-      - name: Install Rust on Windows
-        if: runner.os == 'Windows'
-        run: |
-          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-          source $HOME/.cargo/env
-
       - name: Sanitize Thread E2E Test
         if: runner.os == 'Linux'
         run: |

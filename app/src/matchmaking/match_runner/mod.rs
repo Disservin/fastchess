@@ -156,7 +156,7 @@ impl Match {
         self.game.ply_count()
     }
 
-    fn fullMoveNumber(&self) -> u32 {
+    fn full_move_number(&self) -> u32 {
         1 + self.ply_count() / 2
     }
 
@@ -499,7 +499,7 @@ impl Match {
         }
 
         // Draw adjudication
-        if self.draw_tracker.adjudicatable(self.fullMoveNumber()) {
+        if self.draw_tracker.adjudicatable(self.full_move_number()) {
             us.set_draw();
             them.set_draw();
             self.data.termination = MatchTermination::Adjudication;

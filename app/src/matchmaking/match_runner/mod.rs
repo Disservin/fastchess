@@ -486,7 +486,7 @@ impl Match {
                     them.set_won();
 
                     let stm = self.side_to_move();
-                    let name = color_name(stm, self.variant);
+                    let name = color_name(opposite(stm), self.variant);
                     self.data.termination = MatchTermination::Adjudication;
                     self.data.reason = format!("{}{}", name, ADJUDICATION_WIN_MSG);
                     return true;

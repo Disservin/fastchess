@@ -837,6 +837,126 @@ mod tests {
     }
 
     #[test]
+    fn test_full_move_number() {
+        let tc = crate::types::tournament::TournamentConfig::default();
+
+        // Startpos: ply 0 → full move 1
+        let opening = Opening::startpos();
+        let m = Match::new(opening, &tc);
+        assert_eq!(m.ply_count(), 0);
+        assert_eq!(m.full_move_number(), 1);
+
+        // After 1 ply (e2e4): ply 1 → full move 1
+        let opening = Opening::new(
+            Some("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1".to_string()),
+            vec!["e2e4".to_string()],
+        );
+        let m = Match::new(opening, &tc);
+        assert_eq!(m.ply_count(), 1);
+        assert_eq!(m.full_move_number(), 1);
+
+        // After 2 plies (e2e4, e7e5): ply 2 → full move 2
+        let opening = Opening::new(
+            Some("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1".to_string()),
+            vec!["e2e4".to_string(), "e7e5".to_string()],
+        );
+        let m = Match::new(opening, &tc);
+        assert_eq!(m.ply_count(), 2);
+        assert_eq!(m.full_move_number(), 2);
+
+        // After 3 plies: ply 3 → full move 2
+        let opening = Opening::new(
+            Some("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1".to_string()),
+            vec!["e2e4".to_string(), "e7e5".to_string(), "g1f3".to_string()],
+        );
+        let m = Match::new(opening, &tc);
+        assert_eq!(m.ply_count(), 3);
+        assert_eq!(m.full_move_number(), 2);
+    }
+
+    #[test]
+    fn test_draw_adjudication_uses_full_move_number() {
+        // Draw adjudication checks full_move_number() against DrawAdjudication::move_number.
+        // With move_number=3, adjudication should only trigger at full move 3+ (ply 4+).
+        use crate::types::engine_config::EngineConfiguration;
+
+        let mut tc = crate::types::tournament::TournamentConfig::default();
+        tc.draw.enabled = true;
+        tc.draw.move_count = 0; // immediately adjudicatable (no score tracking needed)
+        tc.draw.move_number = 3; // only adjudicate at full move 3 or later
+
+        let opening = Opening::startpos();
+        let mut m = Match::new(opening, &tc);
+        let cfg = EngineConfiguration::default();
+
+        let mut engine_us = UciEngine::new(&cfg, false);
+        let mut engine_them = UciEngine::new(&cfg, false);
+        let mut us = Player::new(&mut engine_us);
+        let mut them = Player::new(&mut engine_them);
+
+        // Ply 0 (full move 1): should NOT adjudicate
+        assert_eq!(m.full_move_number(), 1);
+        assert!(!m.adjudicate(&mut us, &mut them));
+
+        // Play e2e4 → ply 1 (full move 1): should NOT adjudicate
+        assert!(m.game.make_uci_move("e2e4"));
+        assert_eq!(m.full_move_number(), 1);
+        assert!(!m.adjudicate(&mut us, &mut them));
+
+        // Play e7e5 → ply 2 (full move 2): should NOT adjudicate
+        assert!(m.game.make_uci_move("e7e5"));
+        assert_eq!(m.full_move_number(), 2);
+        assert!(!m.adjudicate(&mut us, &mut them));
+
+        // Play g1f3 → ply 3 (full move 2): should NOT adjudicate
+        assert!(m.game.make_uci_move("g1f3"));
+        assert_eq!(m.full_move_number(), 2);
+        assert!(!m.adjudicate(&mut us, &mut them));
+
+        // Play b8c6 → ply 4 (full move 3): should adjudicate
+        assert!(m.game.make_uci_move("b8c6"));
+        assert_eq!(m.full_move_number(), 3);
+        assert!(m.adjudicate(&mut us, &mut them));
+        assert_eq!(m.data.termination, MatchTermination::Adjudication);
+        assert_eq!(m.data.reason, "Draw by adjudication");
+    }
+
+    #[test]
+    fn test_adjudicate_swapped_args() {
+        // play_move() calls adjudicate(them, us) — with swapped args.
+        // This means inside adjudicate, `us` is the engine that just moved,
+        // not the side to move. Verify both resign and draw adjudication
+        // produce correct results with this convention.
+        use crate::types::engine_config::EngineConfiguration;
+
+        let mut tc = crate::types::tournament::TournamentConfig::default();
+        tc.resign.enabled = true;
+        tc.resign.move_count = 0;
+
+        // Black to move (after e2e4)
+        let opening = Opening::new(
+            Some("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1".to_string()),
+            vec!["e2e4".to_string()],
+        );
+        let mut m = Match::new(opening, &tc);
+        assert_eq!(m.side_to_move(), Color::Black);
+
+        let cfg = EngineConfiguration::default();
+        // `us` in adjudicate = the engine that just moved = White
+        // White reports losing score → Black (stm) wins
+        let mut engine_us = UciEngine::new(&cfg, false);
+        let mut engine_them = UciEngine::new(&cfg, false);
+        engine_us.inject_output_line("info depth 10 score cp -600 pv e7e5");
+
+        let mut us = Player::new(&mut engine_us);
+        let mut them = Player::new(&mut engine_them);
+
+        let adjudicated = m.adjudicate(&mut us, &mut them);
+        assert!(adjudicated);
+        assert_eq!(m.data.reason, "Black wins by adjudication");
+    }
+
+    #[test]
     fn test_threefold_repetition_detection() {
         let tc = crate::types::tournament::TournamentConfig::default();
         // Set up a position where we can create threefold repetition

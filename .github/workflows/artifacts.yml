@@ -101,7 +101,7 @@ jobs:
 
       - name: Install Rust
         if: matrix.config.docker != true
-        uses: dtolnay/rust-action@stable
+        uses: dtolnay/rust-toolchain@stable@stable
         with:
           targets: ${{ matrix.config.target }}
 

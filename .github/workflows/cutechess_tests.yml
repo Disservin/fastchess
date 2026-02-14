@@ -22,7 +22,7 @@ jobs:
           fetch-depth: 0
 
       - name: Install Rust
-        uses: dtolnay/rust-action@stable
+        uses: dtolnay/rust-toolchain@stable@stable
 
       - name: Installing required packages
         if: runner.os == 'Linux'
@@ -39,10 +39,10 @@ jobs:
         id: cache-syzygy
         uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684
         with:
-           path: |
-              cutechess-testing/3-4-5-wdl/
-              cutechess-testing/3-4-5-dtz/
-           key: key-syzygy
+          path: |
+            cutechess-testing/3-4-5-wdl/
+            cutechess-testing/3-4-5-dtz/
+          key: key-syzygy
 
       # Note: unlike fastchess, cutechess requires both wdl and dtz tables for adjudication to work correctly.
       - name: download syzygy 3-4-5 if needed

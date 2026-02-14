@@ -21,7 +21,7 @@ use windows_sys::Win32::System::Threading::{
 };
 use windows_sys::Win32::System::IO::{CancelIo, GetOverlappedResult, OVERLAPPED};
 
-use super::common::{Line, ProcessResult, Standard};
+use super::common::{Line, ProcessError, ProcessResult, Standard};
 
 const BUFFER_SIZE: usize = 4096;
 const PIPE_ACCESS_INBOUND: u32 = 0x00000001;
@@ -54,8 +54,8 @@ impl Default for Process {
 }
 
 impl Process {
-    pub fn new() -> Self {
-        Self {
+    pub fn new() -> Result<Self, ProcessResult> {
+        Ok(Self {
             h_process: INVALID_HANDLE_VALUE,
             h_thread: INVALID_HANDLE_VALUE,
             process_id: 0,
@@ -67,7 +67,7 @@ impl Process {
             log_name: String::new(),
             line_buffer_out: String::with_capacity(300),
             initialized: false,
-        }
+        })
     }
 
     pub fn set_realtime_logging(&mut self, rt: bool) {

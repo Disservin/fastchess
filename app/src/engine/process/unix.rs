@@ -8,7 +8,7 @@ use std::time::Duration;
 use nix::poll::{poll, PollFd, PollFlags, PollTimeout};
 use nix::unistd;
 
-use super::common::{Line, ProcessResult, Standard};
+use super::common::{Line, ProcessError, ProcessResult, Standard};
 
 /// Manages an engine child process with pipe-based I/O on Unix systems.
 ///
@@ -135,7 +135,7 @@ fn drain_lines(
 }
 
 impl Process {
-    pub fn new() -> io::Result<Self> {
+    pub fn new() -> Result<Self, ProcessError> {
         Ok(Self {
             child: None,
             interrupt_fds: InterruptFds::new()?,

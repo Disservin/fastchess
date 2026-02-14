@@ -1,4 +1,6 @@
-//! Common types and traits for process management.
+use std::io;
+
+use thiserror::Error;
 
 /// Which standard stream a line came from.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -15,6 +17,12 @@ pub enum Status {
     Err,
     Timeout,
     None,
+}
+
+#[derive(Error, Debug)]
+pub enum ProcessError {
+    #[error("failed to initialize interruption descriptors")]
+    Io(#[from] io::Error),
 }
 
 /// Result of a process operation.

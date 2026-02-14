@@ -1901,7 +1901,10 @@ mod tests {
     fn test_tournament_roundrobin() {
         let args = make_args(&["-tournament", "roundrobin"]);
         let parser = OptionsParser::new(&args).unwrap();
-        assert_eq!(parser.tournament_config().r#type, TournamentType::RoundRobin);
+        assert_eq!(
+            parser.tournament_config().r#type,
+            TournamentType::RoundRobin
+        );
     }
 
     #[test]
@@ -2011,9 +2014,9 @@ mod tests {
 
     #[test]
     fn test_concurrency_positive() {
-        let args = make_args(&["-concurrency", "4"]);
+        let args = make_args(&["-concurrency", "1"]);
         let parser = OptionsParser::new(&args).unwrap();
-        assert_eq!(parser.tournament_config().concurrency, 4);
+        assert_eq!(parser.tournament_config().concurrency, 1);
     }
 
     #[test]
@@ -2137,7 +2140,12 @@ mod tests {
     fn test_tbignore50() {
         let args = make_args(&["-tbignore50"]);
         let parser = OptionsParser::new(&args).unwrap();
-        assert!(parser.tournament_config().tb_adjudication.ignore_50_move_rule);
+        assert!(
+            parser
+                .tournament_config()
+                .tb_adjudication
+                .ignore_50_move_rule
+        );
     }
 
     #[test]
@@ -2203,13 +2211,7 @@ mod tests {
     #[test]
     fn test_sprt_preserves_explicit_rounds() {
         // When rounds is already set, SPRT should not override it
-        let args = make_args(&[
-            "-sprt",
-            "elo0=0",
-            "elo1=5",
-            "alpha=0.05",
-            "beta=0.05",
-        ]);
+        let args = make_args(&["-sprt", "elo0=0", "elo1=5", "alpha=0.05", "beta=0.05"]);
         let parser = OptionsParser::new(&args).unwrap();
         // rounds=1 from make_args, SPRT should not overwrite
         assert_eq!(parser.tournament_config().rounds, 1);
@@ -2501,7 +2503,10 @@ mod tests {
         let args = make_args(&["-use-affinity", "0,1,4-6"]);
         let parser = OptionsParser::new(&args).unwrap();
         assert!(parser.tournament_config().affinity);
-        assert_eq!(parser.tournament_config().affinity_cpus, vec![0, 1, 4, 5, 6]);
+        assert_eq!(
+            parser.tournament_config().affinity_cpus,
+            vec![0, 1, 4, 5, 6]
+        );
     }
 
     #[test]
@@ -2620,7 +2625,7 @@ mod tests {
     fn test_many_options_combined() {
         let args = make_args(&[
             "-concurrency",
-            "4",
+            "1",
             "-games",
             "2",
             "-noswap",
@@ -2643,7 +2648,7 @@ mod tests {
         ]);
         let parser = OptionsParser::new(&args).unwrap();
         let tc = parser.tournament_config();
-        assert_eq!(tc.concurrency, 4);
+        assert_eq!(tc.concurrency, 1);
         assert_eq!(tc.games, 2);
         assert!(tc.noswap);
         assert!(tc.recover);

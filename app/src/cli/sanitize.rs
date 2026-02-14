@@ -5,6 +5,10 @@
 use crate::types::engine_config::EngineConfiguration;
 use crate::types::enums::*;
 use crate::types::tournament::TournamentConfig;
+#[cfg(target_os = "windows")]
+use std::ffi::OsStr;
+#[cfg(target_os = "windows")]
+use std::path::PathBuf;
 
 /// Sanitize and validate the tournament configuration.
 pub fn sanitize_tournament(config: &mut TournamentConfig) -> Result<(), String> {

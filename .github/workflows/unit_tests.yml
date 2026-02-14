@@ -43,7 +43,7 @@ jobs:
           fetch-depth: 0
 
       - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable@stable
+        uses: dtolnay/rust-toolchain@stable
 
       - name: Installing required packages
         if: runner.os == 'Linux'
@@ -193,7 +193,7 @@ jobs:
           fetch-depth: 0
 
       - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable@stable
+        uses: dtolnay/rust-toolchain@stable
 
       - name: Installing required packages
         run: |

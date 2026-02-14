@@ -47,12 +47,6 @@ pub struct Process {
 
 unsafe impl Send for Process {}
 
-impl Default for Process {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
 impl Process {
     pub fn new() -> Result<Self, ProcessResult> {
         Ok(Self {

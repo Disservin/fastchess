@@ -69,7 +69,8 @@ pub fn init_tablebase(syzygy_dirs: &str) {
         let mut tb = Tablebase::new();
         let mut any_loaded = false;
 
-        for dir in syzygy_dirs.split(';') {
+        // ; separate on windows or colon separate on unix, but we allow both for flexibility
+        for dir in syzygy_dirs.split(&[';', ':'][..]) {
             let dir = dir.trim();
             if dir.is_empty() {
                 continue;

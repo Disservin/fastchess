@@ -45,6 +45,7 @@ jobs:
         with:
           msystem: ${{matrix.config.msys_sys}}
           install: mingw-w64-${{matrix.config.msys_env}} make git expect
+          path-type: inherit
 
       - name: Sanitize Thread E2E Test
         if: runner.os == 'Linux'

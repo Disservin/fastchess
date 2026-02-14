@@ -1873,4 +1873,833 @@ mod tests {
         // 0 should become "hw_threads - 0" = hw_threads
         assert_eq!(parser.tournament_config().concurrency, hw_threads);
     }
+
+    /// Helper: build args with two engines + extra flags appended.
+    fn make_args(extra: &[&str]) -> Vec<String> {
+        let mut base: Vec<&str> = vec![
+            "fastchess",
+            "-engine",
+            "cmd=eng1",
+            "name=E1",
+            "tc=1+0",
+            "-engine",
+            "cmd=eng2",
+            "name=E2",
+            "tc=1+0",
+            "-rounds",
+            "1",
+        ];
+        base.extend_from_slice(extra);
+        base.into_iter().map(|s| s.to_string()).collect()
+    }
+
+    // -----------------------------------------------------------------------
+    // Tournament options
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn test_tournament_roundrobin() {
+        let args = make_args(&["-tournament", "roundrobin"]);
+        let parser = OptionsParser::new(&args).unwrap();
+        assert_eq!(parser.tournament_config().r#type, TournamentType::RoundRobin);
+    }
+
+    #[test]
+    fn test_tournament_gauntlet() {
+        let args = make_args(&["-tournament", "gauntlet"]);
+        let parser = OptionsParser::new(&args).unwrap();
+        assert_eq!(parser.tournament_config().r#type, TournamentType::Gauntlet);
+    }
+
+    #[test]
+    fn test_tournament_invalid() {
+        let args = make_args(&["-tournament", "swiss"]);
+        assert!(OptionsParser::new(&args).is_err());
+    }
+
+    #[test]
+    fn test_variant_standard() {
+        let args = make_args(&["-variant", "standard"]);
+        let parser = OptionsParser::new(&args).unwrap();
+        assert_eq!(parser.tournament_config().variant, VariantType::Standard);
+    }
+
+    #[test]
+    fn test_variant_fischerandom() {
+        // fischerandom requires an opening book for validation, so verify the error
+        let args = make_args(&["-variant", "fischerandom"]);
+        let result = OptionsParser::new(&args);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_variant_shogi() {
+        let args = make_args(&["-variant", "shogi"]);
+        let parser = OptionsParser::new(&args).unwrap();
+        assert_eq!(parser.tournament_config().variant, VariantType::Shogi);
+    }
+
+    #[test]
+    fn test_variant_invalid() {
+        let args = make_args(&["-variant", "atomic"]);
+        assert!(OptionsParser::new(&args).is_err());
+    }
+
+    #[test]
+    fn test_noswap() {
+        let args = make_args(&["-noswap"]);
+        let parser = OptionsParser::new(&args).unwrap();
+        assert!(parser.tournament_config().noswap);
+    }
+
+    #[test]
+    fn test_reverse() {
+        let args = make_args(&["-reverse"]);
+        let parser = OptionsParser::new(&args).unwrap();
+        assert!(parser.tournament_config().reverse);
+    }
+
+    #[test]
+    fn test_recover() {
+        let args = make_args(&["-recover"]);
+        let parser = OptionsParser::new(&args).unwrap();
+        assert!(parser.tournament_config().recover);
+    }
+
+    #[test]
+    fn test_games() {
+        let args = make_args(&["-games", "1"]);
+        let parser = OptionsParser::new(&args).unwrap();
+        assert_eq!(parser.tournament_config().games, 1);
+    }
+
+    #[test]
+    fn test_repeat_default() {
+        let args = make_args(&["-repeat"]);
+        let parser = OptionsParser::new(&args).unwrap();
+        assert_eq!(parser.tournament_config().games, 2);
+    }
+
+    #[test]
+    fn test_repeat_with_value() {
+        // -repeat 2 sets games to 2 explicitly
+        let args = make_args(&["-repeat", "2"]);
+        let parser = OptionsParser::new(&args).unwrap();
+        assert_eq!(parser.tournament_config().games, 2);
+    }
+
+    #[test]
+    fn test_seeds() {
+        let args = make_args(&["-seeds", "3"]);
+        let parser = OptionsParser::new(&args).unwrap();
+        assert_eq!(parser.tournament_config().gauntlet_seeds, 3);
+    }
+
+    #[test]
+    fn test_wait() {
+        let args = make_args(&["-wait", "5"]);
+        let parser = OptionsParser::new(&args).unwrap();
+        assert_eq!(parser.tournament_config().wait, 5);
+    }
+
+    #[test]
+    fn test_srand() {
+        let args = make_args(&["-srand", "42"]);
+        let parser = OptionsParser::new(&args).unwrap();
+        assert_eq!(parser.tournament_config().seed, 42);
+    }
+
+    #[test]
+    fn test_concurrency_positive() {
+        let args = make_args(&["-concurrency", "4"]);
+        let parser = OptionsParser::new(&args).unwrap();
+        assert_eq!(parser.tournament_config().concurrency, 4);
+    }
+
+    #[test]
+    fn test_force_concurrency() {
+        let args = make_args(&["-force-concurrency"]);
+        let parser = OptionsParser::new(&args).unwrap();
+        assert!(parser.tournament_config().force_concurrency);
+    }
+
+    // -----------------------------------------------------------------------
+    // Time control options
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn test_startup_ms() {
+        let args = make_args(&["-startup-ms", "5000"]);
+        let parser = OptionsParser::new(&args).unwrap();
+        assert_eq!(
+            parser.tournament_config().startup_time,
+            Duration::from_millis(5000)
+        );
+    }
+
+    #[test]
+    fn test_ucinewgame_ms() {
+        let args = make_args(&["-ucinewgame-ms", "30000"]);
+        let parser = OptionsParser::new(&args).unwrap();
+        assert_eq!(
+            parser.tournament_config().ucinewgame_time,
+            Duration::from_millis(30000)
+        );
+    }
+
+    #[test]
+    fn test_ping_ms() {
+        let args = make_args(&["-ping-ms", "120000"]);
+        let parser = OptionsParser::new(&args).unwrap();
+        assert_eq!(
+            parser.tournament_config().ping_time,
+            Duration::from_millis(120000)
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // Adjudication options
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn test_draw_adjudication() {
+        let args = make_args(&["-draw", "movenumber=40", "movecount=8", "score=10"]);
+        let parser = OptionsParser::new(&args).unwrap();
+        let draw = &parser.tournament_config().draw;
+        assert!(draw.enabled);
+        assert_eq!(draw.move_number, 40);
+        assert_eq!(draw.move_count, 8);
+        assert_eq!(draw.score, 10);
+    }
+
+    #[test]
+    fn test_draw_negative_score() {
+        let args = make_args(&["-draw", "score=-5"]);
+        assert!(OptionsParser::new(&args).is_err());
+    }
+
+    #[test]
+    fn test_draw_unrecognized_key() {
+        let args = make_args(&["-draw", "badkey=1"]);
+        assert!(OptionsParser::new(&args).is_err());
+    }
+
+    #[test]
+    fn test_resign_adjudication() {
+        let args = make_args(&["-resign", "movecount=5", "score=600", "twosided=true"]);
+        let parser = OptionsParser::new(&args).unwrap();
+        let resign = &parser.tournament_config().resign;
+        assert!(resign.enabled);
+        assert_eq!(resign.move_count, 5);
+        assert_eq!(resign.score, 600);
+        assert!(resign.twosided);
+    }
+
+    #[test]
+    fn test_resign_twosided_false() {
+        let args = make_args(&["-resign", "movecount=3", "score=400", "twosided=false"]);
+        let parser = OptionsParser::new(&args).unwrap();
+        assert!(!parser.tournament_config().resign.twosided);
+    }
+
+    #[test]
+    fn test_resign_negative_score() {
+        let args = make_args(&["-resign", "score=-100"]);
+        assert!(OptionsParser::new(&args).is_err());
+    }
+
+    #[test]
+    fn test_maxmoves() {
+        let args = make_args(&["-maxmoves", "200"]);
+        let parser = OptionsParser::new(&args).unwrap();
+        let mm = &parser.tournament_config().maxmoves;
+        assert!(mm.enabled);
+        assert_eq!(mm.move_count, 200);
+    }
+
+    #[test]
+    fn test_tb() {
+        let args = make_args(&["-tb", "/path/to/syzygy"]);
+        let parser = OptionsParser::new(&args).unwrap();
+        let tb = &parser.tournament_config().tb_adjudication;
+        assert!(tb.enabled);
+        assert_eq!(tb.syzygy_dirs, "/path/to/syzygy");
+    }
+
+    #[test]
+    fn test_tbpieces() {
+        let args = make_args(&["-tbpieces", "5"]);
+        let parser = OptionsParser::new(&args).unwrap();
+        assert_eq!(parser.tournament_config().tb_adjudication.max_pieces, 5);
+    }
+
+    #[test]
+    fn test_tbignore50() {
+        let args = make_args(&["-tbignore50"]);
+        let parser = OptionsParser::new(&args).unwrap();
+        assert!(parser.tournament_config().tb_adjudication.ignore_50_move_rule);
+    }
+
+    #[test]
+    fn test_tbadjudicate_win_loss() {
+        let args = make_args(&["-tbadjudicate", "WIN_LOSS"]);
+        let parser = OptionsParser::new(&args).unwrap();
+        assert_eq!(
+            parser.tournament_config().tb_adjudication.result_type,
+            TbResultType::WinLoss
+        );
+    }
+
+    #[test]
+    fn test_tbadjudicate_draw() {
+        let args = make_args(&["-tbadjudicate", "DRAW"]);
+        let parser = OptionsParser::new(&args).unwrap();
+        assert_eq!(
+            parser.tournament_config().tb_adjudication.result_type,
+            TbResultType::Draw
+        );
+    }
+
+    #[test]
+    fn test_tbadjudicate_both() {
+        let args = make_args(&["-tbadjudicate", "BOTH"]);
+        let parser = OptionsParser::new(&args).unwrap();
+        assert_eq!(
+            parser.tournament_config().tb_adjudication.result_type,
+            TbResultType::Both
+        );
+    }
+
+    #[test]
+    fn test_tbadjudicate_invalid() {
+        let args = make_args(&["-tbadjudicate", "INVALID"]);
+        assert!(OptionsParser::new(&args).is_err());
+    }
+
+    // -----------------------------------------------------------------------
+    // SPRT options
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn test_sprt() {
+        let args = make_args(&[
+            "-sprt",
+            "elo0=0",
+            "elo1=5",
+            "alpha=0.05",
+            "beta=0.05",
+            "model=logistic",
+        ]);
+        let parser = OptionsParser::new(&args).unwrap();
+        let sprt = &parser.tournament_config().sprt;
+        assert!(sprt.enabled);
+        assert!((sprt.elo0 - 0.0).abs() < f64::EPSILON);
+        assert!((sprt.elo1 - 5.0).abs() < f64::EPSILON);
+        assert!((sprt.alpha - 0.05).abs() < f64::EPSILON);
+        assert!((sprt.beta - 0.05).abs() < f64::EPSILON);
+        assert_eq!(sprt.model, "logistic");
+    }
+
+    #[test]
+    fn test_sprt_preserves_explicit_rounds() {
+        // When rounds is already set, SPRT should not override it
+        let args = make_args(&[
+            "-sprt",
+            "elo0=0",
+            "elo1=5",
+            "alpha=0.05",
+            "beta=0.05",
+        ]);
+        let parser = OptionsParser::new(&args).unwrap();
+        // rounds=1 from make_args, SPRT should not overwrite
+        assert_eq!(parser.tournament_config().rounds, 1);
+    }
+
+    #[test]
+    fn test_sprt_unrecognized_key() {
+        let args = make_args(&["-sprt", "badkey=1"]);
+        assert!(OptionsParser::new(&args).is_err());
+    }
+
+    // -----------------------------------------------------------------------
+    // Output options
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn test_pgnout() {
+        let args = make_args(&[
+            "-pgnout",
+            "file=games.pgn",
+            "append=false",
+            "nodes=true",
+            "seldepth=true",
+            "nps=true",
+            "hashfull=true",
+            "tbhits=true",
+            "timeleft=true",
+            "latency=true",
+            "min=true",
+            "pv=true",
+            "notation=lan",
+        ]);
+        let parser = OptionsParser::new(&args).unwrap();
+        let pgn = &parser.tournament_config().pgn;
+        assert_eq!(pgn.file, "games.pgn");
+        assert!(!pgn.append_file);
+        assert!(pgn.track_nodes);
+        assert!(pgn.track_seldepth);
+        assert!(pgn.track_nps);
+        assert!(pgn.track_hashfull);
+        assert!(pgn.track_tbhits);
+        assert!(pgn.track_timeleft);
+        assert!(pgn.track_latency);
+        assert!(pgn.min);
+        assert!(pgn.track_pv);
+        assert_eq!(pgn.notation, NotationType::Lan);
+    }
+
+    #[test]
+    fn test_pgnout_notation_uci() {
+        let args = make_args(&["-pgnout", "file=out.pgn", "notation=uci"]);
+        let parser = OptionsParser::new(&args).unwrap();
+        assert_eq!(parser.tournament_config().pgn.notation, NotationType::Uci);
+    }
+
+    #[test]
+    fn test_pgnout_notation_san() {
+        let args = make_args(&["-pgnout", "file=out.pgn", "notation=san"]);
+        let parser = OptionsParser::new(&args).unwrap();
+        assert_eq!(parser.tournament_config().pgn.notation, NotationType::San);
+    }
+
+    #[test]
+    fn test_pgnout_notation_invalid() {
+        let args = make_args(&["-pgnout", "file=out.pgn", "notation=invalid"]);
+        assert!(OptionsParser::new(&args).is_err());
+    }
+
+    #[test]
+    fn test_pgnout_missing_file() {
+        let args = make_args(&["-pgnout", "nodes=true"]);
+        assert!(OptionsParser::new(&args).is_err());
+    }
+
+    #[test]
+    fn test_pgnout_match_line() {
+        let args = make_args(&["-pgnout", "file=out.pgn", "match_line=pattern1"]);
+        let parser = OptionsParser::new(&args).unwrap();
+        assert_eq!(
+            parser.tournament_config().pgn.additional_lines_rgx,
+            vec!["pattern1".to_string()]
+        );
+    }
+
+    #[test]
+    fn test_pgnout_unrecognized_key() {
+        let args = make_args(&["-pgnout", "file=out.pgn", "badkey=true"]);
+        assert!(OptionsParser::new(&args).is_err());
+    }
+
+    #[test]
+    fn test_epdout() {
+        let args = make_args(&["-epdout", "file=games.epd", "append=false"]);
+        let parser = OptionsParser::new(&args).unwrap();
+        let epd = &parser.tournament_config().epd;
+        assert_eq!(epd.file, "games.epd");
+        assert!(!epd.append_file);
+    }
+
+    #[test]
+    fn test_epdout_missing_file() {
+        let args = make_args(&["-epdout", "append=true"]);
+        assert!(OptionsParser::new(&args).is_err());
+    }
+
+    #[test]
+    fn test_epdout_unrecognized_key() {
+        let args = make_args(&["-epdout", "file=out.epd", "badkey=1"]);
+        assert!(OptionsParser::new(&args).is_err());
+    }
+
+    #[test]
+    fn test_output_format_cutechess() {
+        let args = make_args(&["-output", "format=cutechess"]);
+        let parser = OptionsParser::new(&args).unwrap();
+        assert_eq!(parser.tournament_config().output, OutputType::Cutechess);
+    }
+
+    #[test]
+    fn test_output_format_fastchess() {
+        let args = make_args(&["-output", "format=fastchess"]);
+        let parser = OptionsParser::new(&args).unwrap();
+        assert_eq!(parser.tournament_config().output, OutputType::Fastchess);
+    }
+
+    #[test]
+    fn test_output_format_invalid() {
+        let args = make_args(&["-output", "format=invalid"]);
+        assert!(OptionsParser::new(&args).is_err());
+    }
+
+    #[test]
+    fn test_output_unrecognized_key() {
+        let args = make_args(&["-output", "badkey=1"]);
+        assert!(OptionsParser::new(&args).is_err());
+    }
+
+    #[test]
+    fn test_report_penta() {
+        let args = make_args(&["-report", "penta=false"]);
+        let parser = OptionsParser::new(&args).unwrap();
+        assert!(!parser.tournament_config().report_penta);
+    }
+
+    #[test]
+    fn test_report_penta_true() {
+        let args = make_args(&["-report", "penta=true"]);
+        let parser = OptionsParser::new(&args).unwrap();
+        assert!(parser.tournament_config().report_penta);
+    }
+
+    #[test]
+    fn test_report_unrecognized_key() {
+        let args = make_args(&["-report", "badkey=true"]);
+        assert!(OptionsParser::new(&args).is_err());
+    }
+
+    #[test]
+    fn test_ratinginterval() {
+        let args = make_args(&["-ratinginterval", "50"]);
+        let parser = OptionsParser::new(&args).unwrap();
+        assert_eq!(parser.tournament_config().ratinginterval, 50);
+    }
+
+    #[test]
+    fn test_scoreinterval() {
+        let args = make_args(&["-scoreinterval", "5"]);
+        let parser = OptionsParser::new(&args).unwrap();
+        assert_eq!(parser.tournament_config().scoreinterval, 5);
+    }
+
+    #[test]
+    fn test_autosaveinterval() {
+        let args = make_args(&["-autosaveinterval", "100"]);
+        let parser = OptionsParser::new(&args).unwrap();
+        assert_eq!(parser.tournament_config().autosaveinterval, 100);
+    }
+
+    // -----------------------------------------------------------------------
+    // Logging options
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn test_log_all_options() {
+        let args = make_args(&[
+            "-log",
+            "file=test.log",
+            "level=trace",
+            "append=false",
+            "compress=true",
+            "realtime=false",
+            "engine=true",
+        ]);
+        let parser = OptionsParser::new(&args).unwrap();
+        let log = &parser.tournament_config().log;
+        assert_eq!(log.file, "test.log");
+        assert_eq!(log.level, LogLevel::Trace);
+        assert!(!log.append_file);
+        assert!(log.compress);
+        assert!(!log.realtime);
+        assert!(log.engine_coms);
+    }
+
+    #[test]
+    fn test_log_level_info() {
+        let args = make_args(&["-log", "file=t.log", "level=info"]);
+        let parser = OptionsParser::new(&args).unwrap();
+        assert_eq!(parser.tournament_config().log.level, LogLevel::Info);
+    }
+
+    #[test]
+    fn test_log_level_warn() {
+        let args = make_args(&["-log", "file=t.log", "level=warn"]);
+        let parser = OptionsParser::new(&args).unwrap();
+        assert_eq!(parser.tournament_config().log.level, LogLevel::Warn);
+    }
+
+    #[test]
+    fn test_log_level_err() {
+        let args = make_args(&["-log", "file=t.log", "level=err"]);
+        let parser = OptionsParser::new(&args).unwrap();
+        assert_eq!(parser.tournament_config().log.level, LogLevel::Error);
+    }
+
+    #[test]
+    fn test_log_level_fatal() {
+        let args = make_args(&["-log", "file=t.log", "level=fatal"]);
+        let parser = OptionsParser::new(&args).unwrap();
+        assert_eq!(parser.tournament_config().log.level, LogLevel::Fatal);
+    }
+
+    #[test]
+    fn test_log_level_invalid() {
+        let args = make_args(&["-log", "file=t.log", "level=debug"]);
+        assert!(OptionsParser::new(&args).is_err());
+    }
+
+    #[test]
+    fn test_log_unrecognized_key() {
+        let args = make_args(&["-log", "file=t.log", "badkey=true"]);
+        assert!(OptionsParser::new(&args).is_err());
+    }
+
+    // -----------------------------------------------------------------------
+    // CRC32 options
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn test_crc32_pgn_true() {
+        let args = make_args(&["-crc32", "pgn=true"]);
+        let parser = OptionsParser::new(&args).unwrap();
+        assert!(parser.tournament_config().pgn.crc);
+    }
+
+    #[test]
+    fn test_crc32_pgn_false() {
+        let args = make_args(&["-crc32", "pgn=false"]);
+        let parser = OptionsParser::new(&args).unwrap();
+        assert!(!parser.tournament_config().pgn.crc);
+    }
+
+    #[test]
+    fn test_crc32_unrecognized_key() {
+        let args = make_args(&["-crc32", "badkey=true"]);
+        assert!(OptionsParser::new(&args).is_err());
+    }
+
+    // -----------------------------------------------------------------------
+    // Misc options
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn test_show_latency() {
+        let args = make_args(&["-show-latency"]);
+        let parser = OptionsParser::new(&args).unwrap();
+        assert!(parser.tournament_config().show_latency);
+    }
+
+    #[test]
+    fn test_use_affinity() {
+        let args = make_args(&["-use-affinity"]);
+        let parser = OptionsParser::new(&args).unwrap();
+        assert!(parser.tournament_config().affinity);
+        assert!(parser.tournament_config().affinity_cpus.is_empty());
+    }
+
+    #[test]
+    fn test_use_affinity_with_cpus() {
+        let args = make_args(&["-use-affinity", "0,1,4-6"]);
+        let parser = OptionsParser::new(&args).unwrap();
+        assert!(parser.tournament_config().affinity);
+        assert_eq!(parser.tournament_config().affinity_cpus, vec![0, 1, 4, 5, 6]);
+    }
+
+    #[test]
+    fn test_event() {
+        let args = make_args(&["-event", "MyTournament"]);
+        let parser = OptionsParser::new(&args).unwrap();
+        assert_eq!(parser.tournament_config().pgn.event_name, "MyTournament");
+    }
+
+    #[test]
+    fn test_site() {
+        let args = make_args(&["-site", "localhost"]);
+        let parser = OptionsParser::new(&args).unwrap();
+        assert_eq!(parser.tournament_config().pgn.site, "localhost");
+    }
+
+    #[test]
+    fn test_testenv() {
+        let args = make_args(&["-testEnv"]);
+        let parser = OptionsParser::new(&args).unwrap();
+        assert!(parser.tournament_config().test_env);
+    }
+
+    #[test]
+    fn test_debug_errors() {
+        let args = make_args(&["-debug"]);
+        assert!(OptionsParser::new(&args).is_err());
+    }
+
+    // -----------------------------------------------------------------------
+    // Engine key=value parsing (additional coverage)
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn test_parse_engine_st() {
+        let mut config = EngineConfiguration::default();
+        parse_engine_key_value(&mut config, "st", "0.5").unwrap();
+        assert_eq!(config.limit.tc.fixed_time, 500);
+    }
+
+    #[test]
+    fn test_parse_engine_timemargin() {
+        let mut config = EngineConfiguration::default();
+        parse_engine_key_value(&mut config, "timemargin", "50").unwrap();
+        assert_eq!(config.limit.tc.timemargin, 50);
+    }
+
+    #[test]
+    fn test_parse_engine_timemargin_negative() {
+        let mut config = EngineConfiguration::default();
+        assert!(parse_engine_key_value(&mut config, "timemargin", "-5").is_err());
+    }
+
+    #[test]
+    fn test_parse_engine_nodes() {
+        let mut config = EngineConfiguration::default();
+        parse_engine_key_value(&mut config, "nodes", "10000").unwrap();
+        assert_eq!(config.limit.nodes, 10000);
+    }
+
+    #[test]
+    fn test_parse_engine_plies() {
+        let mut config = EngineConfiguration::default();
+        parse_engine_key_value(&mut config, "plies", "20").unwrap();
+        assert_eq!(config.limit.plies, 20);
+    }
+
+    #[test]
+    fn test_parse_engine_depth() {
+        let mut config = EngineConfiguration::default();
+        parse_engine_key_value(&mut config, "depth", "15").unwrap();
+        assert_eq!(config.limit.plies, 15);
+    }
+
+    #[test]
+    fn test_parse_engine_dir() {
+        let mut config = EngineConfiguration::default();
+        parse_engine_key_value(&mut config, "dir", "/usr/local/bin").unwrap();
+        assert_eq!(config.dir, "/usr/local/bin");
+    }
+
+    #[test]
+    fn test_parse_engine_args() {
+        let mut config = EngineConfiguration::default();
+        parse_engine_key_value(&mut config, "args", "--uci").unwrap();
+        assert_eq!(config.args, "--uci");
+    }
+
+    #[test]
+    fn test_parse_engine_proto_uci() {
+        let mut config = EngineConfiguration::default();
+        parse_engine_key_value(&mut config, "proto", "uci").unwrap();
+    }
+
+    #[test]
+    fn test_parse_engine_proto_unsupported() {
+        let mut config = EngineConfiguration::default();
+        assert!(parse_engine_key_value(&mut config, "proto", "xboard").is_err());
+    }
+
+    #[test]
+    fn test_parse_engine_multiple_options() {
+        let mut config = EngineConfiguration::default();
+        parse_engine_key_value(&mut config, "option.Hash", "128").unwrap();
+        parse_engine_key_value(&mut config, "option.Threads", "4").unwrap();
+        assert_eq!(config.options.len(), 2);
+        assert_eq!(config.options[0], ("Hash".to_string(), "128".to_string()));
+        assert_eq!(config.options[1], ("Threads".to_string(), "4".to_string()));
+    }
+
+    // -----------------------------------------------------------------------
+    // Combined / integration tests
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn test_many_options_combined() {
+        let args = make_args(&[
+            "-concurrency",
+            "4",
+            "-games",
+            "2",
+            "-noswap",
+            "-recover",
+            "-draw",
+            "movenumber=30",
+            "movecount=8",
+            "score=10",
+            "-resign",
+            "movecount=5",
+            "score=500",
+            "-maxmoves",
+            "150",
+            "-srand",
+            "12345",
+            "-variant",
+            "standard",
+            "-tournament",
+            "roundrobin",
+        ]);
+        let parser = OptionsParser::new(&args).unwrap();
+        let tc = parser.tournament_config();
+        assert_eq!(tc.concurrency, 4);
+        assert_eq!(tc.games, 2);
+        assert!(tc.noswap);
+        assert!(tc.recover);
+        assert!(tc.draw.enabled);
+        assert_eq!(tc.draw.move_number, 30);
+        assert!(tc.resign.enabled);
+        assert_eq!(tc.resign.score, 500);
+        assert!(tc.maxmoves.enabled);
+        assert_eq!(tc.maxmoves.move_count, 150);
+        assert_eq!(tc.seed, 12345);
+    }
+
+    #[test]
+    fn test_each_with_engine_options() {
+        let args: Vec<String> = vec![
+            "fastchess",
+            "-engine",
+            "cmd=eng1",
+            "name=E1",
+            "-engine",
+            "cmd=eng2",
+            "name=E2",
+            "-each",
+            "tc=10+0.1",
+            "option.Hash=128",
+            "-rounds",
+            "1",
+        ]
+        .into_iter()
+        .map(|s| s.to_string())
+        .collect();
+
+        let parser = OptionsParser::new(&args).unwrap();
+        for config in parser.engine_configs() {
+            assert_eq!(config.limit.tc.time, 10000);
+            assert_eq!(config.limit.tc.increment, 100);
+            assert_eq!(
+                config.options,
+                vec![("Hash".to_string(), "128".to_string())]
+            );
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // Time control edge cases
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn test_parse_tc_hourglass_rejected() {
+        assert!(parse_tc("10hg").is_err());
+    }
+
+    #[test]
+    fn test_parse_tc_inf() {
+        let tc = parse_tc("inf").unwrap();
+        assert_eq!(tc.time, 0);
+        assert_eq!(tc.increment, 0);
+    }
 }

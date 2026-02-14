@@ -12,10 +12,6 @@ jobs:
       matrix:
         os: [ubuntu-22.04, macos-latest, windows-latest]
 
-    defaults:
-      run:
-        shell: ${{ runner.os == 'Windows' && 'msys2 {0}' || 'bash' }}
-
     steps:
       - uses: actions/checkout@v4
 
@@ -28,6 +24,18 @@ jobs:
           install: mingw-w64-x86_64-gcc make git expect
           path-type: inherit
 
+      - if: runner.os == 'Linux'
+        run: |
+          make clean
+          bash app/tests/e2e/e2e.sh san=thread
+
+      - if: runner.os == 'Linux'
+        continue-on-error: true
+        run: |
+          make clean
+          bash app/tests/e2e/e2e.sh san=asan
+
       - run: |
           make clean
           bash app/tests/e2e/e2e.sh
+        shell: bash

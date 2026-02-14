@@ -1,6 +1,6 @@
 //! Unix-specific process implementation using poll() and file descriptors.
 
-use std::io::Write;
+use std::io::{self, Write};
 use std::os::fd::{AsFd, AsRawFd, BorrowedFd, FromRawFd, OwnedFd};
 use std::process::{Child, Command, Stdio};
 use std::time::Duration;
@@ -16,7 +16,7 @@ use super::common::{Line, ProcessResult, Standard};
 /// the 1024 file descriptor limit that `select()` has.
 pub struct Process {
     child: Option<Child>,
-    interrupt_fds: Option<InterruptFds>,
+    interrupt_fds: InterruptFds,
     realtime_logging: bool,
     log_name: String,
     line_buffer_out: String,
@@ -35,7 +35,40 @@ enum InterruptFds {
 }
 
 impl InterruptFds {
-    fn read_fd(&self) -> BorrowedFd<'_> {
+    /// Tries to create the interruption mechanism, falling back from eventfd to pipe.
+    pub fn new() -> io::Result<Self> {
+        #[cfg(target_os = "linux")]
+        {
+            use nix::sys::eventfd::{EfdFlags, EventFd};
+            // Using your specific nix EventFd logic
+            if let Ok(efd) = EventFd::from_value_and_flags(0, EfdFlags::EFD_CLOEXEC) {
+                let raw_fd = efd.as_raw_fd();
+                let owned_fd = unsafe { OwnedFd::from_raw_fd(raw_fd) };
+                std::mem::forget(efd);
+                return Ok(Self::EventFd(owned_fd));
+            }
+        }
+
+        // Fallback for non-Linux or if eventfd failed
+        match unistd::pipe() {
+            Ok((read, write)) => {
+                // Converting nix pipe fds to standard OwnedFds
+                let read_owned = unsafe { OwnedFd::from_raw_fd(read.as_raw_fd()) };
+                let write_owned = unsafe { OwnedFd::from_raw_fd(write.as_raw_fd()) };
+                // Ensure nix doesn't close them when these local variables drop
+                std::mem::forget(read);
+                std::mem::forget(write);
+
+                Ok(Self::Pipe {
+                    read: read_owned,
+                    write: write_owned,
+                })
+            }
+            Err(e) => Err(io::Error::new(io::ErrorKind::Other, e)),
+        }
+    }
+
+    pub fn read_fd(&self) -> BorrowedFd<'_> {
         match self {
             #[cfg(target_os = "linux")]
             Self::EventFd(fd) => fd.as_fd(),
@@ -43,18 +76,12 @@ impl InterruptFds {
         }
     }
 
-    fn write_fd(&self) -> BorrowedFd<'_> {
+    pub fn write_fd(&self) -> BorrowedFd<'_> {
         match self {
             #[cfg(target_os = "linux")]
             Self::EventFd(fd) => fd.as_fd(),
             Self::Pipe { write, .. } => write.as_fd(),
         }
-    }
-}
-
-impl Default for Process {
-    fn default() -> Self {
-        Self::new()
     }
 }
 
@@ -108,16 +135,16 @@ fn drain_lines(
 }
 
 impl Process {
-    pub fn new() -> Self {
-        Self {
+    pub fn new() -> io::Result<Self> {
+        Ok(Self {
             child: None,
-            interrupt_fds: None,
+            interrupt_fds: InterruptFds::new()?,
             realtime_logging: true,
             log_name: String::new(),
             line_buffer_out: String::with_capacity(300),
             line_buffer_err: String::with_capacity(300),
             initialized: false,
-        }
+        })
     }
 
     pub fn set_realtime_logging(&mut self, rt: bool) {
@@ -152,7 +179,6 @@ impl Process {
             Err(e) => return ProcessResult::error(format!("Failed to spawn '{command}': {e}")),
         };
 
-        self.setup_interrupt();
         self.child = Some(child);
         self.initialized = true;
         ProcessResult::ok()
@@ -200,35 +226,19 @@ impl Process {
             PollTimeout::try_from(timeout).unwrap_or(PollTimeout::MAX)
         };
 
-        // Capture raw fds up front to avoid borrow conflicts during the loop.
-        let interrupt_raw_fd = self.interrupt_fds.as_ref().map(|f| f.read_fd().as_raw_fd());
-
         let mut read_buf = [0u8; 4096];
 
+        let flags = PollFlags::POLLIN | PollFlags::POLLERR | PollFlags::POLLHUP;
+
+        let mut poll_fds = vec![
+            PollFd::new(stdout.as_fd(), flags),
+            PollFd::new(self.interrupt_fds.read_fd(), PollFlags::POLLIN),
+        ];
+
+        let stderr_idx = poll_fds.len();
+        poll_fds.push(PollFd::new(stderr.as_fd(), flags));
+
         loop {
-            // Build poll_fds from raw fds — no borrows on self/stdout/stderr held.
-            // let mut poll_fds = vec![unsafe {
-            //     PollFd::new(
-            //         BorrowedFd::borrow_raw(stdout_raw_fd),
-            //         PollFlags::POLLIN | PollFlags::POLLERR | PollFlags::POLLHUP,
-            //     )
-            // }];
-            let mut poll_fds = vec![PollFd::new(
-                stdout.as_fd(),
-                PollFlags::POLLIN | PollFlags::POLLERR | PollFlags::POLLHUP,
-            )];
-
-            if let Some(ifd) = interrupt_raw_fd {
-                poll_fds
-                    .push(unsafe { PollFd::new(BorrowedFd::borrow_raw(ifd), PollFlags::POLLIN) });
-            }
-
-            let stderr_idx = poll_fds.len();
-            poll_fds.push(PollFd::new(
-                stderr.as_fd(),
-                PollFlags::POLLIN | PollFlags::POLLERR | PollFlags::POLLHUP,
-            ));
-
             let ready = match poll(&mut poll_fds, poll_timeout) {
                 Ok(n) => n,
                 Err(e) => return ProcessResult::error(format!("poll failed: {e}")),
@@ -248,13 +258,11 @@ impl Process {
             }
 
             // Check interrupt
-            if let Some(ifd) = interrupt_raw_fd {
-                if let Some(revents) = poll_fds[1].revents() {
-                    if revents.contains(PollFlags::POLLIN) {
-                        let mut junk = [0u8; 8];
-                        let _ = unistd::read(ifd, &mut junk);
-                        return ProcessResult::error("Interrupted by control pipe");
-                    }
+            if let Some(revents) = poll_fds[1].revents() {
+                if revents.contains(PollFlags::POLLIN) {
+                    let mut junk = [0u8; 8];
+                    let _ = unistd::read(self.interrupt_fds.read_fd().as_raw_fd(), &mut junk);
+                    return ProcessResult::error("Interrupted by control pipe");
                 }
             }
 
@@ -288,17 +296,21 @@ impl Process {
             // Check stderr
             if let Some(revents) = poll_fds[stderr_idx].revents() {
                 if revents.contains(PollFlags::POLLIN) {
-                    if let Ok(n) = unistd::read(stderr.as_raw_fd(), &mut read_buf) {
-                        drain_lines(
-                            &read_buf[..n],
-                            &mut self.line_buffer_err,
-                            lines,
-                            Standard::Err,
-                            None,
-                            self.realtime_logging,
-                            &self.log_name,
-                        );
-                    }
+                    let n = match unistd::read(stderr.as_raw_fd(), &mut read_buf) {
+                        Ok(0) => return ProcessResult::error("EOF on stderr"),
+                        Ok(n) => n,
+                        Err(_) => return ProcessResult::error("read failed on stderr"),
+                    };
+
+                    drain_lines(
+                        &read_buf[..n],
+                        &mut self.line_buffer_err,
+                        lines,
+                        Standard::Err,
+                        None,
+                        self.realtime_logging,
+                        &self.log_name,
+                    );
                 }
 
                 if revents.intersects(PollFlags::POLLHUP | PollFlags::POLLERR) {
@@ -352,33 +364,9 @@ impl Process {
         false
     }
 
-    fn setup_interrupt(&mut self) {
-        #[cfg(target_os = "linux")]
-        {
-            use nix::sys::eventfd::{EfdFlags, EventFd};
-            if let Ok(efd) = EventFd::from_value_and_flags(0, EfdFlags::EFD_CLOEXEC) {
-                let raw_fd = efd.as_raw_fd();
-                let owned_fd = unsafe { OwnedFd::from_raw_fd(raw_fd) };
-                std::mem::forget(efd);
-                self.interrupt_fds = Some(InterruptFds::EventFd(owned_fd));
-                return;
-            }
-        }
-
-        if let Ok((read_fd, write_fd)) = unistd::pipe() {
-            self.interrupt_fds = Some(InterruptFds::Pipe {
-                read: read_fd,
-                write: write_fd,
-            });
-        }
-    }
-
     pub fn interrupt(&self) {
-        let Some(ref fds) = self.interrupt_fds else {
-            return;
-        };
         let val: u64 = 1;
-        let _ = unistd::write(fds.write_fd(), &val.to_ne_bytes());
+        let _ = unistd::write(self.interrupt_fds.write_fd(), &val.to_ne_bytes());
     }
 
     pub fn pid(&self) -> Option<u32> {

@@ -156,6 +156,10 @@ impl Match {
         self.game.ply_count()
     }
 
+    fn fullMoveNumber(&self) -> u32 {
+        1 + self.ply_count() / 2
+    }
+
     /// Start the match between two engines.
     ///
     /// This is the main entry point. It starts the engines, runs the game loop,
@@ -289,8 +293,8 @@ impl Match {
             return false;
         }
 
-        // Check adjudication (lower priority than normal termination)
-        if self.adjudicate(us, them) {
+        // make sure adjudicate is placed after normal termination as it has lower priority
+        if self.adjudicate(them, us) {
             return false;
         }
 
@@ -486,7 +490,7 @@ impl Match {
                     them.set_won();
 
                     let stm = self.side_to_move();
-                    let name = color_name(opposite(stm), self.variant);
+                    let name = color_name(stm, self.variant);
                     self.data.termination = MatchTermination::Adjudication;
                     self.data.reason = format!("{}{}", name, ADJUDICATION_WIN_MSG);
                     return true;
@@ -495,7 +499,7 @@ impl Match {
         }
 
         // Draw adjudication
-        if self.draw_tracker.adjudicatable(self.ply_count()) {
+        if self.draw_tracker.adjudicatable(self.fullMoveNumber()) {
             us.set_draw();
             them.set_draw();
             self.data.termination = MatchTermination::Adjudication;

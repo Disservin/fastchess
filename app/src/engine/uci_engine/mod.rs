@@ -797,6 +797,18 @@ impl UciEngine {
     }
 }
 
+#[cfg(test)]
+impl UciEngine {
+    /// Inject a fake stdout line for testing (e.g., info lines with scores).
+    pub fn inject_output_line(&mut self, line: &str) {
+        self.output.push(Line {
+            line: line.to_string(),
+            time: String::new(),
+            std: Standard::Output,
+        });
+    }
+}
+
 impl Drop for UciEngine {
     fn drop(&mut self) {
         self.quit();

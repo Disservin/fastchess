@@ -1,6 +1,7 @@
 //! Windows-specific process implementation using named pipes and overlapped I/O.
 
 use std::mem::zeroed;
+use std::path::Path;
 use std::ptr::{addr_of_mut, null, null_mut};
 use std::time::Duration;
 
@@ -8,6 +9,7 @@ use windows_sys::Win32::Foundation::{
     CloseHandle, GetLastError, HANDLE, INVALID_HANDLE_VALUE, WAIT_OBJECT_0, WAIT_TIMEOUT,
 };
 use windows_sys::Win32::Foundation::{SetHandleInformation, HANDLE_FLAG_INHERIT};
+use windows_sys::Win32::Security::SECURITY_ATTRIBUTES;
 use windows_sys::Win32::Storage::FileSystem::{
     CreateFileA, ReadFile, WriteFile, FILE_ATTRIBUTE_NORMAL, FILE_FLAG_OVERLAPPED, FILE_SHARE_MODE,
     OPEN_EXISTING,
@@ -21,24 +23,14 @@ use windows_sys::Win32::System::IO::{CancelIo, GetOverlappedResult, OVERLAPPED};
 
 use super::common::{Line, ProcessResult, Standard};
 
-/// Buffer size for reading from pipes.
 const BUFFER_SIZE: usize = 4096;
-
-/// Pipe access mode constants
 const PIPE_ACCESS_INBOUND: u32 = 0x00000001;
 const PIPE_TYPE_BYTE: u32 = 0x00000000;
 const PIPE_WAIT: u32 = 0x00000000;
-
-/// File access constants
 const GENERIC_WRITE: u32 = 0x40000000;
-
-/// Process exit code indicating still active
 const STILL_ACTIVE: u32 = 259;
+const CREATE_NEW_PROCESS_GROUP: u32 = 0x00000200;
 
-/// Manages an engine child process with pipe-based I/O on Windows.
-///
-/// Uses named pipes with overlapped I/O for asynchronous reading,
-/// similar to the original C++ implementation.
 pub struct Process {
     h_process: HANDLE,
     h_thread: HANDLE,
@@ -53,7 +45,6 @@ pub struct Process {
     initialized: bool,
 }
 
-// Windows HANDLEs are thread-safe and can be used across threads
 unsafe impl Send for Process {}
 
 impl Default for Process {
@@ -83,7 +74,6 @@ impl Process {
         self.realtime_logging = rt;
     }
 
-    /// Initialize the process: spawn the engine binary and set up pipes.
     pub fn init(
         &mut self,
         working_dir: &str,
@@ -93,13 +83,11 @@ impl Process {
     ) -> ProcessResult {
         self.log_name = log_name.to_string();
 
-        // Create pipes for stdout and stdin using named pipes (allows overlapped I/O)
         if !self.create_pipes() {
             self.close_handles();
             return ProcessResult::error("Failed to create pipes");
         }
 
-        // Prevent parent handles from being inherited by child
         unsafe {
             if SetHandleInformation(self.h_stdout_read, HANDLE_FLAG_INHERIT, 0) == 0 {
                 self.close_handles();
@@ -111,46 +99,49 @@ impl Process {
             }
         }
 
-        // Build command line
+        let full_path = Path::new(working_dir).join(command);
         let cmd_line = if args.is_empty() {
-            command.to_string()
+            format!("{}", full_path.to_string_lossy().replace("/", "\\"))
         } else {
-            format!("{} {}", command, args)
+            format!(
+                "{} {}",
+                full_path.to_string_lossy().replace("/", "\\"),
+                args
+            )
         };
-        let cmd_cstring = std::ffi::CString::new(cmd_line).unwrap();
 
-        // Set up STARTUPINFOA
+        let mut cmd_cstring = std::ffi::CString::new(cmd_line).unwrap();
+
         let mut si: STARTUPINFOA = unsafe { zeroed() };
         si.cb = std::mem::size_of::<STARTUPINFOA>() as u32;
         si.hStdOutput = self.h_stdout_write;
         si.hStdInput = self.h_stdin_read;
-        si.hStdError = self.h_stdout_write; // Redirect stderr to stdout
+        si.hStdError = self.h_stdout_write;
         si.dwFlags = STARTF_USESTDHANDLES;
 
-        // Working directory
-        let wd_cstring = if working_dir.is_empty() || working_dir == "." {
+        let wd_cstring = if working_dir.is_empty() {
             None
         } else {
             Some(std::ffi::CString::new(working_dir).unwrap())
         };
         let wd_ptr = wd_cstring
             .as_ref()
-            .map_or(null(), |s| s.as_ptr() as *const u8);
+            .map_or(null_mut(), |s| s.as_ptr() as *mut u8);
 
-        // Create process
         let mut pi: PROCESS_INFORMATION = unsafe { zeroed() };
+
         let success = unsafe {
             CreateProcessA(
-                null(),                          // Application name
-                cmd_cstring.as_ptr() as *mut u8, // Command line
-                null_mut(),                      // Process security attributes
-                null_mut(),                      // Thread security attributes
-                1,                               // Inherit handles
-                0x00000200,                      // CREATE_NEW_PROCESS_GROUP
-                null_mut(),                      // Environment
-                wd_ptr,                          // Working directory
-                addr_of_mut!(si),                // Startup info
-                addr_of_mut!(pi),                // Process info
+                null_mut(),
+                cmd_cstring.as_ptr() as *mut u8,
+                null_mut(),
+                null_mut(),
+                1,
+                CREATE_NEW_PROCESS_GROUP,
+                null_mut(),
+                wd_ptr,
+                addr_of_mut!(si),
+                addr_of_mut!(pi),
             )
         };
 
@@ -161,12 +152,10 @@ impl Process {
             }));
         }
 
-        // Store process handles
         self.h_process = pi.hProcess;
         self.h_thread = pi.hThread;
         self.process_id = pi.dwProcessId;
 
-        // Close child-side handles in parent process
         unsafe {
             CloseHandle(self.h_stdout_write);
             CloseHandle(self.h_stdin_read);
@@ -175,10 +164,10 @@ impl Process {
         self.h_stdin_read = INVALID_HANDLE_VALUE;
 
         self.initialized = true;
+
         ProcessResult::ok()
     }
 
-    /// Create named pipes for stdin/stdout with overlapped I/O support.
     fn create_pipes(&mut self) -> bool {
         use std::sync::atomic::{AtomicU32, Ordering};
         static PIPE_SERIAL: AtomicU32 = AtomicU32::new(0);
@@ -186,8 +175,14 @@ impl Process {
         let pid = unsafe { windows_sys::Win32::System::Threading::GetCurrentProcessId() };
         let serial = PIPE_SERIAL.fetch_add(1, Ordering::SeqCst);
 
-        // Create stdout pipe (child writes, parent reads)
-        let pipe_name_out = format!("\\\\.\\Pipe\\Fastchess.{:08x}.{:08x}.out", pid, serial);
+        let mut sa = SECURITY_ATTRIBUTES {
+            nLength: std::mem::size_of::<SECURITY_ATTRIBUTES>() as u32,
+            lpSecurityDescriptor: null_mut(),
+            bInheritHandle: 1,
+        };
+
+        // stdout pipe
+        let pipe_name_out = format!("\\\\.\\Pipe\\RemoteExeAnon.{:08x}.{:08x}", pid, serial);
         let pipe_name_out_c = std::ffi::CString::new(&*pipe_name_out).unwrap();
 
         self.h_stdout_read = unsafe {
@@ -195,11 +190,11 @@ impl Process {
                 pipe_name_out_c.as_ptr() as *const u8,
                 PIPE_ACCESS_INBOUND | FILE_FLAG_OVERLAPPED,
                 PIPE_TYPE_BYTE | PIPE_WAIT,
-                1,                  // Max instances
-                BUFFER_SIZE as u32, // Output buffer size
-                BUFFER_SIZE as u32, // Input buffer size
-                120_000,            // Timeout in ms
-                null_mut(),         // Security attributes
+                1,
+                BUFFER_SIZE as u32,
+                BUFFER_SIZE as u32,
+                120_000,
+                addr_of_mut!(sa),
             )
         };
 
@@ -212,7 +207,7 @@ impl Process {
                 pipe_name_out_c.as_ptr() as *const u8,
                 GENERIC_WRITE,
                 0 as FILE_SHARE_MODE,
-                null_mut(),
+                addr_of_mut!(sa),
                 OPEN_EXISTING,
                 FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OVERLAPPED,
                 INVALID_HANDLE_VALUE,
@@ -225,8 +220,9 @@ impl Process {
             return false;
         }
 
-        // Create stdin pipe (parent writes, child reads)
-        let pipe_name_in = format!("\\\\.\\Pipe\\Fastchess.{:08x}.{:08x}.in", pid, serial);
+        // stdin pipe
+        let serial_in = PIPE_SERIAL.fetch_add(1, Ordering::SeqCst);
+        let pipe_name_in = format!("\\\\.\\Pipe\\RemoteExeAnon.{:08x}.{:08x}", pid, serial_in);
         let pipe_name_in_c = std::ffi::CString::new(&*pipe_name_in).unwrap();
 
         self.h_stdin_read = unsafe {
@@ -238,7 +234,7 @@ impl Process {
                 BUFFER_SIZE as u32,
                 BUFFER_SIZE as u32,
                 120_000,
-                null_mut(),
+                addr_of_mut!(sa),
             )
         };
 
@@ -257,7 +253,7 @@ impl Process {
                 pipe_name_in_c.as_ptr() as *const u8,
                 GENERIC_WRITE,
                 0 as FILE_SHARE_MODE,
-                null_mut(),
+                addr_of_mut!(sa),
                 OPEN_EXISTING,
                 FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OVERLAPPED,
                 INVALID_HANDLE_VALUE,
@@ -300,7 +296,6 @@ impl Process {
         }
     }
 
-    /// Check if the process is still alive.
     pub fn alive(&mut self) -> ProcessResult {
         if self.h_process == INVALID_HANDLE_VALUE {
             return ProcessResult::error("Process not initialized");
@@ -320,12 +315,10 @@ impl Process {
         }
     }
 
-    /// Clear line buffers before a new read cycle.
     pub fn setup_read(&mut self) {
         self.line_buffer_out.clear();
     }
 
-    /// Read output from the engine using overlapped I/O.
     pub fn read_output(
         &mut self,
         lines: &mut Vec<Line>,
@@ -339,6 +332,11 @@ impl Process {
         }
 
         let start_time = std::time::Instant::now();
+        let timeout_ms = if timeout.is_zero() {
+            u32::MAX
+        } else {
+            timeout.as_millis() as u32
+        };
 
         let mut buffer = [0u8; BUFFER_SIZE];
 
@@ -348,7 +346,6 @@ impl Process {
                 return ProcessResult::timeout();
             }
 
-            // Create event for overlapped I/O
             let event = unsafe { CreateEventA(null_mut(), 1, 0, null()) };
             if event.is_null() {
                 return ProcessResult::error("Failed to create event");
@@ -370,63 +367,54 @@ impl Process {
 
             if result == 0 {
                 let error = unsafe { GetLastError() };
-                if error == 997 {
-                    // ERROR_IO_PENDING - wait for completion
-                    let remaining_ms = if timeout.is_zero() {
-                        u32::MAX
-                    } else {
-                        let remaining = timeout.saturating_sub(elapsed);
-                        remaining.as_millis() as u32
-                    };
+                if error != 997 {
+                    // ERROR_IO_PENDING
+                    unsafe { CloseHandle(event) };
+                    return ProcessResult::error(format!("Read failed: {}", error));
+                }
 
-                    let wait_result = unsafe { WaitForSingleObject(event, remaining_ms) };
-
-                    if wait_result == WAIT_TIMEOUT {
-                        unsafe {
-                            CancelIo(self.h_stdout_read);
-                            CloseHandle(event);
-                        }
-                        return ProcessResult::timeout();
-                    }
-
-                    if wait_result != WAIT_OBJECT_0 {
-                        unsafe {
-                            CloseHandle(event);
-                        }
-                        return ProcessResult::error("Wait failed");
-                    }
-
-                    if unsafe {
-                        GetOverlappedResult(
-                            self.h_stdout_read,
-                            addr_of_mut!(overlapped),
-                            addr_of_mut!(bytes_read),
-                            0,
-                        )
-                    } == 0
-                    {
-                        unsafe {
-                            CloseHandle(event);
-                        }
-                        return ProcessResult::error("Failed to get overlapped result");
-                    }
+                let remaining_ms = if timeout.is_zero() {
+                    timeout_ms
                 } else {
+                    let remaining = timeout.saturating_sub(elapsed);
+                    remaining.as_millis() as u32
+                };
+
+                let wait_result = unsafe { WaitForSingleObject(event, remaining_ms) };
+
+                if wait_result == WAIT_TIMEOUT {
                     unsafe {
+                        CancelIo(self.h_stdout_read);
                         CloseHandle(event);
                     }
-                    return ProcessResult::error(format!("Read failed with error: {}", error));
+                    return ProcessResult::timeout();
+                }
+
+                if wait_result != WAIT_OBJECT_0 {
+                    unsafe { CloseHandle(event) };
+                    return ProcessResult::error("Wait failed");
+                }
+
+                if unsafe {
+                    GetOverlappedResult(
+                        self.h_stdout_read,
+                        addr_of_mut!(overlapped),
+                        addr_of_mut!(bytes_read),
+                        0,
+                    )
+                } == 0
+                {
+                    unsafe { CloseHandle(event) };
+                    return ProcessResult::error("Failed to get overlapped result");
                 }
             }
 
-            unsafe {
-                CloseHandle(event);
-            }
+            unsafe { CloseHandle(event) };
 
             if bytes_read == 0 {
                 continue;
             }
 
-            // Process the bytes into lines
             for i in 0..bytes_read as usize {
                 let c = buffer[i] as char;
                 if c == '\n' || c == '\r' {
@@ -443,20 +431,18 @@ impl Process {
                             );
                         }
 
-                        let found =
-                            !searchword.is_empty() && self.line_buffer_out.starts_with(searchword);
-
                         lines.push(Line {
                             line: self.line_buffer_out.clone(),
                             time: ts,
                             std: Standard::Output,
                         });
 
-                        self.line_buffer_out.clear();
-
-                        if found {
+                        if !searchword.is_empty() && self.line_buffer_out.starts_with(searchword) {
+                            self.line_buffer_out.clear();
                             return ProcessResult::ok();
                         }
+
+                        self.line_buffer_out.clear();
                     }
                 } else {
                     self.line_buffer_out.push(c);
@@ -465,7 +451,6 @@ impl Process {
         }
     }
 
-    /// Write input to the engine's stdin.
     pub fn write_input(&mut self, input: &str) -> ProcessResult {
         if self.h_stdin_write == INVALID_HANDLE_VALUE {
             return ProcessResult::error("Process not initialized");
@@ -489,18 +474,12 @@ impl Process {
         }
     }
 
-    /// Set CPU affinity for the engine process (not implemented on Windows).
     pub fn set_affinity(&self, _cpus: &[i32]) -> bool {
-        // Could be implemented using SetProcessAffinityMask on Windows
         false
     }
 
-    /// Interrupt any blocking operations (no-op on Windows for now).
-    pub fn interrupt(&self) {
-        // Not implemented - would require signaling mechanism
-    }
+    pub fn interrupt(&self) {}
 
-    /// Get the process ID, if running.
     pub fn pid(&self) -> Option<u32> {
         if self.process_id != 0 {
             Some(self.process_id)
@@ -512,40 +491,38 @@ impl Process {
 
 impl Drop for Process {
     fn drop(&mut self) {
-        // Wait for process to terminate gracefully
-        if self.h_process == INVALID_HANDLE_VALUE {
+        self.close_handles();
+
+        if self.h_process == INVALID_HANDLE_VALUE || !self.initialized {
             return;
         }
 
         let start = std::time::Instant::now();
+        let kill_timeout = Duration::from_millis(100);
+
         loop {
             let mut exit_code: u32 = 0;
-            let result = unsafe { GetExitCodeProcess(self.h_process, addr_of_mut!(exit_code)) };
+            unsafe { GetExitCodeProcess(self.h_process, addr_of_mut!(exit_code)) };
 
-            if result == 0 || exit_code != STILL_ACTIVE {
-                break; // Process terminated
-            }
-
-            if start.elapsed() > Duration::from_secs(5) {
-                // Force terminate
-                unsafe {
-                    TerminateProcess(self.h_process, 1);
-                }
+            if exit_code != STILL_ACTIVE {
                 break;
             }
 
-            std::thread::sleep(Duration::from_millis(50));
+            if start.elapsed() >= kill_timeout {
+                unsafe { TerminateProcess(self.h_process, 1) };
+                break;
+            }
+
+            std::thread::sleep(Duration::from_millis(10));
         }
 
-        // Clean up handles
         unsafe {
-            CloseHandle(self.h_process);
-
+            if self.h_process != INVALID_HANDLE_VALUE {
+                CloseHandle(self.h_process);
+            }
             if self.h_thread != INVALID_HANDLE_VALUE {
                 CloseHandle(self.h_thread);
             }
         }
-
-        self.close_handles();
     }
 }

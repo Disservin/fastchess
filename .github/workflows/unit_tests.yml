@@ -43,7 +43,7 @@ jobs:
           fetch-depth: 0
 
       - name: Install Rust
-        uses: dtolnay/rust-action@stable
+        uses: dtolnay/rust-toolchain@stable@stable
 
       - name: Installing required packages
         if: runner.os == 'Linux'
@@ -92,7 +92,7 @@ jobs:
           fetch-depth: 0
 
       - name: Install Rust nightly
-        uses: dtolnay/rust-action@nightly
+        uses: dtolnay/rust-toolchain@stable@nightly
 
       - name: Installing required packages
         if: runner.os == 'Linux'
@@ -129,7 +129,7 @@ jobs:
           fetch-depth: 0
 
       - name: Install Rust nightly
-        uses: dtolnay/rust-action@nightly
+        uses: dtolnay/rust-toolchain@stable@nightly
 
       - name: Installing required packages
         if: runner.os == 'Linux'
@@ -166,7 +166,7 @@ jobs:
           fetch-depth: 0
 
       - name: Install Rust nightly
-        uses: dtolnay/rust-action@nightly
+        uses: dtolnay/rust-toolchain@stable@nightly
 
       - name: Installing required packages
         if: runner.os == 'Linux'
@@ -193,7 +193,7 @@ jobs:
           fetch-depth: 0
 
       - name: Install Rust
-        uses: dtolnay/rust-action@stable
+        uses: dtolnay/rust-toolchain@stable@stable
 
       - name: Installing required packages
         run: |

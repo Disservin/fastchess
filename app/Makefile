@@ -10,40 +10,18 @@ DEBUG_DIR := $(TARGET_DIR)/debug
 # Binary name
 BINARY_NAME := fastchess
 
-# Sanitizer support
-SAN ?=
-
-# Determine cargo flags based on sanitizer
-ifeq ($(SAN), asan)
-    CARGO_FLAGS := --target x86_64-unknown-linux-gnu
-    RUSTFLAGS := -Z sanitizer=address
-    CARGO_CMD := cargo +nightly
-else ifeq ($(SAN), thread)
-    CARGO_FLAGS := --target x86_64-unknown-linux-gnu
-    RUSTFLAGS := -Z sanitizer=thread
-    CARGO_CMD := cargo +nightly
-else ifeq ($(SAN), undefined)
-    CARGO_FLAGS := --target x86_64-unknown-linux-gnu
-    RUSTFLAGS := -Z sanitizer=undefined
-    CARGO_CMD := cargo +nightly
-else
-    CARGO_FLAGS :=
-    RUSTFLAGS :=
-    CARGO_CMD := cargo
-endif
-
 .PHONY: all tests coverage clean format tidy scan
 
 all: ## Build the release binary
 	@echo "Building release binary with cargo..."
-	$(CARGO_CMD) build --release $(CARGO_FLAGS)
+	cargo build --release
 	@echo "Copying binary to $(BINARY_PATH)/"
 	@cp $(RELEASE_DIR)/$(BINARY_NAME) $(BINARY_PATH)/
 	@echo "Done."
 
 tests: ## Build and run tests
 	@echo "Running tests with cargo..."
-	RUSTFLAGS="$(RUSTFLAGS)" $(CARGO_CMD) test --release $(CARGO_FLAGS)
+	cargo test --release
 	@echo "Done."
 
 coverage: ## Run tests with coverage

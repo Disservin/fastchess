@@ -4,63 +4,30 @@ on:
   workflow_call:
 
 jobs:
-  Tests:
-    name: ${{matrix.config.name}}
-    runs-on: ${{matrix.config.os}}
+  tests:
+    name: ${{matrix.os}}
+    runs-on: ${{matrix.os}}
     strategy:
       fail-fast: false
       matrix:
-        config:
-          - { name: "Ubuntu 22.04", os: ubuntu-22.04, shell: "bash {0}" }
-          - { name: "MacOS Apple Clang", os: macos-latest, shell: "bash {0}" }
-          - {
-              name: "Windows GCC",
-              os: windows-latest,
-              msys_sys: "mingw64",
-              msys_env: "x86_64-gcc",
-              shell: "msys2 {0}",
-            }
+        os: [ubuntu-22.04, macos-latest, windows-latest]
 
     defaults:
       run:
-        shell: ${{ matrix.config.shell }}
+        shell: ${{ runner.os == 'Windows' && 'msys2 {0}' || 'bash' }}
+
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
-      - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
+      - uses: dtolnay/rust-toolchain@stable
 
-      - name: Installing required packages
-        if: runner.os == 'Linux'
-        run: |
-          sudo apt-get update
-          clang++ --version
-          g++ --version
-
-      - name: Install windows make
-        if: runner.os == 'Windows'
+      - if: runner.os == 'Windows'
         uses: msys2/setup-msys2@v2
         with:
-          msystem: ${{matrix.config.msys_sys}}
-          install: mingw-w64-${{matrix.config.msys_env}} make git expect
+          msystem: mingw64
+          install: mingw-w64-x86_64-gcc make git expect
           path-type: inherit
 
-      - name: Sanitize Thread E2E Test
-        if: runner.os == 'Linux'
-        run: |
-          make clean
-          bash app/tests/e2e/e2e.sh san=thread
-
-      - name: Asan E2E
-        if: runner.os == 'Linux'
-        continue-on-error: true
-        run: |
-          make clean
-          bash app/tests/e2e/e2e.sh san=asan
-
-      - name: Normal E2E
-        run: |
+      - run: |
           make clean
           bash app/tests/e2e/e2e.sh

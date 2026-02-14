@@ -1118,4 +1118,276 @@ mod tests {
             pgn
         );
     }
+
+    // Additional edge case tests ported from C++ pgn_builder_test.cpp
+
+    /// Test PGN with Black winning.
+    #[test]
+    fn test_pgn_black_wins() {
+        let config = make_config();
+        let mut data = MatchData::default();
+        data.fen = STARTPOS.to_string();
+        data.date = "2025.01.15".to_string();
+        data.termination = MatchTermination::Normal;
+        data.players = GamePair::new(
+            make_player("engine1", GameResult::Lose),
+            make_player("engine2", GameResult::Win),
+        );
+        data.moves = vec![
+            make_move("e2e4", "+1.00", 15, 1321),
+            make_move("e7e5", "+1.23", 15, 430),
+            make_move("g1f3", "+1.45", 16, 310),
+            make_move("g8f6", "+10.15", 18, 1821),
+        ];
+        data.reason = "engine1 got checkmated".to_string();
+
+        let pgn = PgnBuilder::build(&config, &data, 1);
+
+        assert!(pgn.contains("[Result \"0-1\"]"));
+        assert!(pgn.contains("0-1\n"));
+        assert!(pgn.contains("engine1 got checkmated"));
+    }
+
+    /// Test PGN with Black to move first (custom FEN).
+    #[test]
+    fn test_pgn_black_starts() {
+        let config = make_config();
+        let mut data = MatchData::default();
+        // Position with Black to move
+        data.fen =
+            "r2qk2r/1bpp2pp/n3pn2/p2P1p2/1bP5/2N1BNP1/1PQ1PPBP/R3K2R b KQkq - 0 1".to_string();
+        data.date = "2025.01.15".to_string();
+        data.termination = MatchTermination::Normal;
+        data.players = GamePair::new(
+            make_player("engine2", GameResult::None),
+            make_player("engine1", GameResult::None),
+        );
+        data.moves = vec![
+            make_move("e8g8", "+1.00", 15, 1321),
+            make_move("e1g1", "+1.23", 15, 430),
+            make_move("a6c5", "+1.45", 16, 310),
+        ];
+        data.reason = "aborted".to_string();
+
+        let pgn = PgnBuilder::build(&config, &data, 1);
+
+        // Black starts, so first move should be "1... O-O"
+        assert!(
+            pgn.contains("1... O-O") || pgn.contains("1... O-O"),
+            "Should have 1... O-O for black-to-move start, got: {}",
+            pgn
+        );
+        assert!(pgn.contains("[Result \"*\"]"));
+        assert!(pgn.contains("[SetUp \"1\"]"));
+        assert!(pgn.contains("[FEN"));
+    }
+
+    /// Test PGN with fixed time per move.
+    #[test]
+    fn test_pgn_fixed_time_per_move() {
+        let config = make_config();
+        let mut data = MatchData::default();
+        data.fen =
+            "r2qk2r/1bpp2pp/n3pn2/p2P1p2/1bP5/2N1BNP1/1PQ1PPBP/R3K2R b KQkq - 0 1".to_string();
+        data.date = "2025.01.15".to_string();
+        data.termination = MatchTermination::Normal;
+        let mut white = make_player("engine2", GameResult::None);
+        white.config.limit.tc = TimeControlLimits {
+            fixed_time: 1000,
+            ..TimeControlLimits::default()
+        };
+        let mut black = make_player("engine1", GameResult::None);
+        black.config.limit.tc = TimeControlLimits {
+            fixed_time: 1000,
+            ..TimeControlLimits::default()
+        };
+        data.players = GamePair::new(white, black);
+        data.moves = vec![
+            make_move("e8g8", "+1.00", 15, 1321),
+            make_move("e1g1", "+1.23", 15, 430),
+        ];
+        data.reason = "aborted".to_string();
+
+        let pgn = PgnBuilder::build(&config, &data, 1);
+
+        // Both players have same fixed time
+        assert!(
+            pgn.contains("[TimeControl \"1/move\"]")
+                || pgn.contains("[WhiteTimeControl \"1/move\"]")
+        );
+    }
+
+    /// Test PGN with different time controls for white and black.
+    #[test]
+    fn test_pgn_different_time_controls() {
+        let config = make_config();
+        let mut data = MatchData::default();
+        data.fen = STARTPOS.to_string();
+        data.date = "2025.01.15".to_string();
+        data.termination = MatchTermination::Normal;
+        let mut white = make_player("engine2", GameResult::None);
+        white.config.limit.tc = TimeControlLimits {
+            time: 1000,
+            increment: 5,
+            ..TimeControlLimits::default()
+        };
+        let mut black = make_player("engine1", GameResult::None);
+        black.config.limit.tc = TimeControlLimits {
+            time: 0,
+            increment: 5,
+            ..TimeControlLimits::default()
+        };
+        data.players = GamePair::new(white, black);
+        let mut mv1 = make_move("e2e4", "+1.00", 15, 1321);
+        mv1.nodes = 1250;
+        mv1.seldepth = 4;
+        let mut mv2 = make_move("e7e5", "+1.23", 15, 430);
+        mv2.nodes = 4363;
+        mv2.seldepth = 3;
+        data.moves = vec![mv1, mv2];
+        data.reason = "aborted".to_string();
+
+        let pgn = PgnBuilder::build(&config, &data, 1);
+
+        // Different TCs should produce split headers
+        assert!(pgn.contains("[WhiteTimeControl") || pgn.contains("[BlackTimeControl"));
+    }
+
+    /// Test PGN with multiple fixed time per move (different for each player).
+    #[test]
+    fn test_pgn_multiple_fixed_times() {
+        let config = make_config();
+        let mut data = MatchData::default();
+        data.fen =
+            "r2qk2r/1bpp2pp/n3pn2/p2P1p2/1bP5/2N1BNP1/1PQ1PPBP/R3K2R b KQkq - 0 1".to_string();
+        data.date = "2025.01.15".to_string();
+        data.termination = MatchTermination::Normal;
+        let mut white = make_player("engine2", GameResult::None);
+        white.config.limit.tc = TimeControlLimits {
+            fixed_time: 1000,
+            ..TimeControlLimits::default()
+        };
+        let mut black = make_player("engine1", GameResult::None);
+        black.config.limit.tc = TimeControlLimits {
+            fixed_time: 200,
+            ..TimeControlLimits::default()
+        };
+        data.players = GamePair::new(white, black);
+        data.moves = vec![
+            make_move("e8g8", "+1.00", 15, 1321),
+            make_move("e1g1", "+1.23", 15, 430),
+        ];
+        data.reason = "aborted".to_string();
+
+        let pgn = PgnBuilder::build(&config, &data, 1);
+
+        // Different fixed times should produce split headers
+        assert!(pgn.contains("[WhiteTimeControl") && pgn.contains("[BlackTimeControl"));
+    }
+
+    /// Test PGN with Fullmove > 1 and Black to Move.
+    #[test]
+    fn test_pgn_fullmove_black_to_move() {
+        let config = make_config();
+        let mut data = MatchData::default();
+        // Fullmove = 4, Black to move
+        data.fen =
+            "r2qk2r/1bpp2pp/n3pn2/p2P1p2/1bP5/2N1BNP1/1PQ1PPBP/R3K2R b KQkq - 0 4".to_string();
+        data.date = "2025.01.15".to_string();
+        data.termination = MatchTermination::Normal;
+        let mut white = make_player("engine2", GameResult::None);
+        white.config.limit.tc = TimeControlLimits {
+            fixed_time: 1000,
+            ..TimeControlLimits::default()
+        };
+        let mut black = make_player("engine1", GameResult::None);
+        black.config.limit.tc = TimeControlLimits {
+            fixed_time: 200,
+            ..TimeControlLimits::default()
+        };
+        data.players = GamePair::new(white, black);
+        data.moves = vec![
+            make_move("e8g8", "+1.00", 15, 1321),
+            make_move("e1g1", "+1.23", 15, 430),
+            make_move("a6c5", "+1.45", 16, 310),
+        ];
+        data.reason = "aborted".to_string();
+
+        let pgn = PgnBuilder::build(&config, &data, 1);
+
+        // Should start with "4..." since fullmove is 4 and Black moves first
+        assert!(
+            pgn.contains("4... O-O") || pgn.contains("4... "),
+            "Should start with move 4 since fullmove=4, got: {}",
+            pgn
+        );
+    }
+
+    /// Test PGN with illegal move.
+    #[test]
+    fn test_pgn_illegal_move() {
+        let config = make_config();
+        let mut data = MatchData::default();
+        data.fen = STARTPOS.to_string();
+        data.date = "2025.01.15".to_string();
+        data.termination = MatchTermination::Normal;
+        data.players = GamePair::new(
+            make_player("engine1", GameResult::Win),
+            make_player("engine2", GameResult::Lose),
+        );
+        data.moves = vec![
+            make_move("e2e4", "+1.00", 15, 1321),
+            make_move("e7e5", "+1.23", 15, 430),
+            make_move("g1f3", "+1.45", 16, 310),
+            MoveData {
+                r#move: "a1a1".to_string(),
+                score_string: "+10.15".to_string(),
+                depth: 18,
+                elapsed_millis: 1821,
+                legal: false,
+                ..MoveData::default()
+            },
+        ];
+        data.reason = "Black makes an illegal move".to_string();
+
+        let pgn = PgnBuilder::build(&config, &data, 1);
+
+        // Should contain the illegal move in the comment of the previous move
+        assert!(pgn.contains("illegal move") || pgn.contains("a1a1"));
+        assert!(pgn.contains("[Result \"1-0\"]"));
+    }
+
+    /// Test PGN with illegal move on the first move.
+    #[test]
+    fn test_pgn_illegal_move_first() {
+        let config = make_config();
+        let mut data = MatchData::default();
+        data.fen = STARTPOS.to_string();
+        data.date = "2025.01.15".to_string();
+        data.termination = MatchTermination::Normal;
+        data.players = GamePair::new(
+            make_player("engine1", GameResult::Lose),
+            make_player("engine2", GameResult::Win),
+        );
+        data.moves = vec![MoveData {
+            r#move: "a1a1".to_string(),
+            score_string: "+10.15".to_string(),
+            depth: 18,
+            elapsed_millis: 1821,
+            legal: false,
+            ..MoveData::default()
+        }];
+        data.reason = "White makes an illegal move".to_string();
+
+        let pgn = PgnBuilder::build(&config, &data, 1);
+
+        // First illegal move should be formatted as {reason: move} result
+        assert!(
+            pgn.contains("{White makes an illegal move: a1a1}"),
+            "Should contain illegal move comment, got: {}",
+            pgn
+        );
+        assert!(pgn.contains("[Result \"0-1\"]"));
+        assert!(pgn.contains("0-1\n"));
+    }
 }

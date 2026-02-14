@@ -160,6 +160,99 @@ fn score_to_nelo_diff_penta(score: f64, variance: f64) -> f64 {
 mod tests {
     use super::*;
 
+    fn assert_approx_eq(actual: f64, expected: f64, epsilon: f64, msg: &str) {
+        let diff = (actual - expected).abs();
+        assert!(
+            diff < epsilon,
+            "{}: expected {:.2}, got {:.2}, diff {:.2} exceeds epsilon {:.2}",
+            msg,
+            expected,
+            actual,
+            diff,
+            epsilon
+        );
+    }
+
+    // Tests ported from C++ elo_test.cpp with exact expected values
+    #[test]
+    fn test_elo_wdl_1() {
+        // C++: Stats(76, 89, 123)
+        let stats = Stats::new(76, 89, 123);
+        let result = elo_wdl(&stats);
+        // C++: nEloDiff = -20.76, nEloError = 40.13, los = "15.53 %", score = 0.477
+        assert_approx_eq(result.nelo_diff, -20.76, 0.01, "nEloDiff");
+        assert_approx_eq(result.nelo_error, 40.13, 0.01, "nEloError");
+        assert_eq!(result.get_los(), "15.53 %");
+        assert_approx_eq(result.score, 0.477, 0.01, "score");
+    }
+
+    #[test]
+    fn test_elo_wdl_2() {
+        // C++: Stats(136, 96, 111)
+        let stats = Stats::new(136, 96, 111);
+        let result = elo_wdl(&stats);
+        // C++: nEloDiff = 49.77, nEloError = 36.77, diff = 40.70, error = 30.43, los = "99.60 %", score = 0.558
+        assert_approx_eq(result.nelo_diff, 49.77, 0.01, "nEloDiff");
+        assert_approx_eq(result.nelo_error, 36.77, 0.01, "nEloError");
+        assert_approx_eq(result.diff, 40.70, 0.01, "diff");
+        assert_approx_eq(result.error, 30.43, 0.01, "error");
+        assert_eq!(result.get_los(), "99.60 %");
+        assert_approx_eq(result.score, 0.558, 0.01, "score");
+    }
+
+    #[test]
+    fn test_elo_wdl_3() {
+        // C++: Stats(34, 356, 0)
+        let stats = Stats::new(34, 356, 0);
+        let result = elo_wdl(&stats);
+        // C++: nEloDiff = -508.44, nEloError = 34.48, score = 0.087
+        assert_approx_eq(result.nelo_diff, -508.44, 0.01, "nEloDiff");
+        assert_approx_eq(result.nelo_error, 34.48, 0.01, "nEloError");
+        assert_approx_eq(result.score, 0.087, 0.01, "score");
+    }
+
+    #[test]
+    fn test_elo_pentanomial_1() {
+        // C++: Stats(34, 54, 31, 32, 64, 75) - WW, WD, WL, DD, LD, LL
+        let stats = Stats::from_pentanomial(34, 54, 31, 32, 64, 75);
+        let result = elo_pentanomial(&stats);
+        // C++: nEloDiff = 57.94, nEloError = 28.28, diff = 55.58, error = 27.65, los = "100.00 %", score = 0.579
+        assert_approx_eq(result.nelo_diff, 57.94, 0.01, "nEloDiff");
+        assert_approx_eq(result.nelo_error, 28.28, 0.01, "nEloError");
+        assert_approx_eq(result.diff, 55.58, 0.01, "diff");
+        assert_approx_eq(result.error, 27.65, 0.01, "error");
+        assert_eq!(result.get_los(), "100.00 %");
+        assert_approx_eq(result.score, 0.579, 0.01, "score");
+    }
+
+    #[test]
+    fn test_elo_pentanomial_2() {
+        // C++: Stats(332, 433, 457, 41, 333, 334)
+        let stats = Stats::from_pentanomial(332, 433, 457, 41, 333, 334);
+        let result = elo_pentanomial(&stats);
+        // C++: nEloDiff = -9.17, nEloError = 10.96, diff = -8.64, error = 10.33, los = "5.05 %", score = 0.488
+        assert_approx_eq(result.nelo_diff, -9.17, 0.01, "nEloDiff");
+        assert_approx_eq(result.nelo_error, 10.96, 0.01, "nEloError");
+        assert_approx_eq(result.diff, -8.64, 0.01, "diff");
+        assert_approx_eq(result.error, 10.33, 0.01, "error");
+        assert_eq!(result.get_los(), "5.05 %");
+        assert_approx_eq(result.score, 0.488, 0.01, "score");
+    }
+
+    #[test]
+    fn test_elo_pentanomial_3() {
+        // C++: Stats(7895, 8757, 5485, 200, 568, 9999)
+        let stats = Stats::from_pentanomial(7895, 8757, 5485, 200, 568, 9999);
+        let result = elo_pentanomial(&stats);
+        // C++: nEloDiff = -19.01, nEloError = 2.65, diff = -21.04, error = 2.95, los = "0.00 %", score = 0.470
+        assert_approx_eq(result.nelo_diff, -19.01, 0.01, "nEloDiff");
+        assert_approx_eq(result.nelo_error, 2.65, 0.01, "nEloError");
+        assert_approx_eq(result.diff, -21.04, 0.01, "diff");
+        assert_approx_eq(result.error, 2.95, 0.01, "error");
+        assert_eq!(result.get_los(), "0.00 %");
+        assert_approx_eq(result.score, 0.470, 0.01, "score");
+    }
+
     #[test]
     fn test_elo_wdl_balanced() {
         let stats = Stats::new(100, 100, 200);

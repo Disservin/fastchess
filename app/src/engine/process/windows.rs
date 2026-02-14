@@ -1,6 +1,5 @@
 //! Windows-specific process implementation using named pipes and overlapped I/O.
 
-use std::ffi::c_void;
 use std::mem::zeroed;
 use std::ptr::{addr_of_mut, null, null_mut};
 use std::time::Duration;
@@ -8,24 +7,33 @@ use std::time::Duration;
 use windows_sys::Win32::Foundation::{
     CloseHandle, GetLastError, HANDLE, INVALID_HANDLE_VALUE, WAIT_OBJECT_0, WAIT_TIMEOUT,
 };
+use windows_sys::Win32::Foundation::{SetHandleInformation, HANDLE_FLAG_INHERIT};
 use windows_sys::Win32::Storage::FileSystem::{
     CreateFileA, ReadFile, WriteFile, FILE_ATTRIBUTE_NORMAL, FILE_FLAG_OVERLAPPED, FILE_SHARE_MODE,
-    GENERIC_WRITE, OPEN_EXISTING,
+    OPEN_EXISTING,
 };
-use windows_sys::Win32::System::Pipes::{
-    CreateNamedPipeA, PIPE_ACCESS_INBOUND, PIPE_TYPE_BYTE, PIPE_WAIT,
-};
+use windows_sys::Win32::System::Pipes::CreateNamedPipeA;
 use windows_sys::Win32::System::Threading::{
-    CreateProcessA, GetExitCodeProcess, SetHandleInformation, TerminateProcess,
-    WaitForSingleObject, HANDLE_FLAG_INHERIT, PROCESS_INFORMATION, STARTF_USESTDHANDLES,
-    STARTUPINFOA, STILL_ACTIVE,
+    CreateEventA, CreateProcessA, GetExitCodeProcess, TerminateProcess, WaitForSingleObject,
+    PROCESS_INFORMATION, STARTF_USESTDHANDLES, STARTUPINFOA,
 };
-use windows_sys::Win32::System::IO::{CancelIo, CreateEventA, GetOverlappedResult, OVERLAPPED};
+use windows_sys::Win32::System::IO::{CancelIo, GetOverlappedResult, OVERLAPPED};
 
 use super::common::{Line, ProcessResult, Standard};
 
 /// Buffer size for reading from pipes.
 const BUFFER_SIZE: usize = 4096;
+
+/// Pipe access mode constants
+const PIPE_ACCESS_INBOUND: u32 = 0x00000001;
+const PIPE_TYPE_BYTE: u32 = 0x00000000;
+const PIPE_WAIT: u32 = 0x00000000;
+
+/// File access constants
+const GENERIC_WRITE: u32 = 0x40000000;
+
+/// Process exit code indicating still active
+const STILL_ACTIVE: u32 = 259;
 
 /// Manages an engine child process with pipe-based I/O on Windows.
 ///
@@ -44,6 +52,9 @@ pub struct Process {
     line_buffer_out: String,
     initialized: bool,
 }
+
+// Windows HANDLEs are thread-safe and can be used across threads
+unsafe impl Send for Process {}
 
 impl Default for Process {
     fn default() -> Self {
@@ -122,14 +133,16 @@ impl Process {
         } else {
             Some(std::ffi::CString::new(working_dir).unwrap())
         };
-        let wd_ptr = wd_cstring.as_ref().map_or(null(), |s| s.as_ptr());
+        let wd_ptr = wd_cstring
+            .as_ref()
+            .map_or(null(), |s| s.as_ptr() as *const u8);
 
         // Create process
         let mut pi: PROCESS_INFORMATION = unsafe { zeroed() };
         let success = unsafe {
             CreateProcessA(
                 null(),                          // Application name
-                cmd_cstring.as_ptr() as *mut i8, // Command line
+                cmd_cstring.as_ptr() as *mut u8, // Command line
                 null_mut(),                      // Process security attributes
                 null_mut(),                      // Thread security attributes
                 1,                               // Inherit handles
@@ -198,7 +211,7 @@ impl Process {
             CreateFileA(
                 pipe_name_out_c.as_ptr() as *const u8,
                 GENERIC_WRITE,
-                FILE_SHARE_MODE(0),
+                0 as FILE_SHARE_MODE,
                 null_mut(),
                 OPEN_EXISTING,
                 FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OVERLAPPED,
@@ -243,7 +256,7 @@ impl Process {
             CreateFileA(
                 pipe_name_in_c.as_ptr() as *const u8,
                 GENERIC_WRITE,
-                FILE_SHARE_MODE(0),
+                0 as FILE_SHARE_MODE,
                 null_mut(),
                 OPEN_EXISTING,
                 FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OVERLAPPED,
@@ -348,7 +361,7 @@ impl Process {
             let result = unsafe {
                 ReadFile(
                     self.h_stdout_read,
-                    buffer.as_mut_ptr() as *mut c_void,
+                    buffer.as_mut_ptr(),
                     buffer.len() as u32,
                     addr_of_mut!(bytes_read),
                     addr_of_mut!(overlapped),
@@ -462,7 +475,7 @@ impl Process {
         let result = unsafe {
             WriteFile(
                 self.h_stdin_write,
-                input.as_ptr() as *const c_void,
+                input.as_ptr(),
                 input.len() as u32,
                 addr_of_mut!(bytes_written),
                 null_mut(),

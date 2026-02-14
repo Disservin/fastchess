@@ -449,9 +449,8 @@ impl Match {
         // TB adjudication (Syzygy tablebase probing)
         match self.tb_tracker.adjudicate(&self.game) {
             TbAdjudicationResult::Win => {
-                // Side to move wins
-                us.set_won();
-                them.set_lost();
+                us.set_lost();
+                them.set_won();
                 let stm = self.side_to_move();
                 let name = color_name(stm, self.variant);
                 self.data.termination = MatchTermination::Adjudication;
@@ -459,9 +458,8 @@ impl Match {
                 return true;
             }
             TbAdjudicationResult::Loss => {
-                // Side to move loses
-                us.set_lost();
-                them.set_won();
+                us.set_won();
+                them.set_lost();
                 let stm = self.side_to_move();
                 let name = color_name(opposite(stm), self.variant);
                 self.data.termination = MatchTermination::Adjudication;

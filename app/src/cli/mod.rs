@@ -1664,6 +1664,29 @@ mod tests {
     }
 
     #[test]
+    fn test_parse_tc_with_s_suffix() {
+        // increment with 's' suffix
+        let tc = parse_tc("2+0.02s").unwrap();
+        assert_eq!(tc.time, 2000);
+        assert_eq!(tc.increment, 20);
+
+        // main time with 's' suffix
+        let tc = parse_tc("10s+0.1").unwrap();
+        assert_eq!(tc.time, 10000);
+        assert_eq!(tc.increment, 100);
+
+        // both with 's' suffix
+        let tc = parse_tc("5s+0.5s").unwrap();
+        assert_eq!(tc.time, 5000);
+        assert_eq!(tc.increment, 500);
+
+        // main time only with 's' suffix
+        let tc = parse_tc("30s").unwrap();
+        assert_eq!(tc.time, 30000);
+        assert_eq!(tc.increment, 0);
+    }
+
+    #[test]
     fn test_parse_int_list() {
         let list = parse_int_list("5,10,13-17,23").unwrap();
         assert_eq!(list, vec![5, 10, 13, 14, 15, 16, 17, 23]);

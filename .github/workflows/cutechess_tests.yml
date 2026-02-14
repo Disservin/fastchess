@@ -28,8 +28,6 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          clang++ --version
-          g++ --version
 
       - name: Create cutechess-testing directory
         run: |

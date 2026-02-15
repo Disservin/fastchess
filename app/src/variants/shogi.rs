@@ -1242,12 +1242,13 @@ impl GameMove for ShogiMove {
         self.inner.to_string()
     }
 
-    fn to_san(&self) -> Option<String> {
-        // Shogi uses USI notation directly
+    fn to_san(&self, _game: &dyn crate::variants::Game) -> Option<String> {
+        // Shogi uses USI notation as its standard notation
         Some(self.inner.to_string())
     }
 
-    fn to_lan(&self) -> Option<String> {
+    fn to_lan(&self, _game: &dyn crate::variants::Game) -> Option<String> {
+        // Shogi uses USI notation as its standard notation
         Some(self.inner.to_string())
     }
 
@@ -1390,6 +1391,24 @@ impl crate::variants::Game for ShogiGame {
 
     fn move_to_lan(&self, notation: &str) -> Option<String> {
         self.usi_to_lan(notation)
+    }
+
+    fn convert_move_to_san(&self, mv: &dyn crate::variants::GameMove) -> Option<String> {
+        if let Some(shogi_move) = mv.as_any().downcast_ref::<ShogiMove>() {
+            // Shogi uses USI notation as its standard notation
+            Some(shogi_move.inner().to_string())
+        } else {
+            None
+        }
+    }
+
+    fn convert_move_to_lan(&self, mv: &dyn crate::variants::GameMove) -> Option<String> {
+        if let Some(shogi_move) = mv.as_any().downcast_ref::<ShogiMove>() {
+            // Shogi uses USI notation as its standard notation
+            Some(shogi_move.inner().to_string())
+        } else {
+            None
+        }
     }
 
     fn supports_syzygy(&self) -> bool {

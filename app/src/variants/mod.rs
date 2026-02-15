@@ -21,11 +21,11 @@ pub trait GameMove: Send + Sync + std::any::Any {
     /// Returns the move in UCI/USI notation (engine protocol format).
     fn to_uci(&self) -> String;
 
-    /// Returns the move in SAN notation (if applicable).
-    fn to_san(&self) -> Option<String>;
+    /// Returns the move in SAN notation given the game position.
+    fn to_san(&self, game: &dyn Game) -> Option<String>;
 
-    /// Returns the move in LAN notation (if applicable).
-    fn to_lan(&self) -> Option<String>;
+    /// Returns the move in LAN notation given the game position.
+    fn to_lan(&self, game: &dyn Game) -> Option<String>;
 
     /// Clone the move as a boxed trait object.
     fn clone_box(&self) -> Box<dyn GameMove>;
@@ -85,6 +85,12 @@ pub trait Game: Send + Sync {
 
     /// Converts a UCI/USI move to LAN notation.
     fn move_to_lan(&self, notation: &str) -> Option<String>;
+
+    /// Converts a GameMove to SAN notation.
+    fn convert_move_to_san(&self, mv: &dyn GameMove) -> Option<String>;
+
+    /// Converts a GameMove to LAN notation.
+    fn convert_move_to_lan(&self, mv: &dyn GameMove) -> Option<String>;
 
     /// Returns true if this game can use Syzygy tablebases.
     fn supports_syzygy(&self) -> bool;
@@ -212,6 +218,16 @@ impl GameInstance {
     /// Converts a move to LAN.
     pub fn move_to_lan(&self, notation: &str) -> Option<String> {
         self.inner.move_to_lan(notation)
+    }
+
+    /// Converts a GameMove to SAN.
+    pub fn convert_move_to_san(&self, mv: &dyn GameMove) -> Option<String> {
+        self.inner.convert_move_to_san(mv)
+    }
+
+    /// Converts a GameMove to LAN.
+    pub fn convert_move_to_lan(&self, mv: &dyn GameMove) -> Option<String> {
+        self.inner.convert_move_to_lan(mv)
     }
 
     /// Returns true if Syzygy is supported.

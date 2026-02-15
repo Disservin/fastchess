@@ -60,14 +60,20 @@ impl GameMove for ChessMove {
         self.to_uci()
     }
 
-    fn to_san(&self) -> Option<String> {
-        // This needs the position context, so we return None here
-        // The game will handle SAN conversion
-        None
+    fn to_san(&self, game: &dyn crate::variants::Game) -> Option<String> {
+        // Use the game's position to convert to SAN
+        if let Some(chess_game) = game.as_chess() {
+            use shakmaty::san::San;
+            let san = San::from_move(chess_game.inner(), &self.inner);
+            Some(san.to_string())
+        } else {
+            None
+        }
     }
 
-    fn to_lan(&self) -> Option<String> {
-        None
+    fn to_lan(&self, _game: &dyn crate::variants::Game) -> Option<String> {
+        // LAN doesn't need position context
+        Some(move_to_lan(&self.inner))
     }
 
     fn clone_box(&self) -> Box<dyn GameMove> {
@@ -415,6 +421,24 @@ impl Game for ChessGame {
 
     fn move_to_lan(&self, notation: &str) -> Option<String> {
         self.uci_to_lan(notation)
+    }
+
+    fn convert_move_to_san(&self, mv: &dyn GameMove) -> Option<String> {
+        if let Some(chess_move) = mv.as_any().downcast_ref::<ChessMove>() {
+            use shakmaty::san::San;
+            let san = San::from_move(&self.board, &chess_move.inner());
+            Some(san.to_string())
+        } else {
+            None
+        }
+    }
+
+    fn convert_move_to_lan(&self, mv: &dyn GameMove) -> Option<String> {
+        if let Some(chess_move) = mv.as_any().downcast_ref::<ChessMove>() {
+            Some(move_to_lan(&chess_move.inner()))
+        } else {
+            None
+        }
     }
 
     fn supports_syzygy(&self) -> bool {

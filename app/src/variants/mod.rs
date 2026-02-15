@@ -114,7 +114,7 @@ impl Clone for Box<dyn Game> {
 pub fn create_game(variant: VariantType) -> Box<dyn Game> {
     match variant {
         VariantType::Standard => Box::new(chess::ChessGame::new()),
-        VariantType::Frc => Box::new(chess::ChessGame::with_variant(chess::Variant::Chess960)),
+        VariantType::Frc => Box::new(chess::ChessGame::with_variant(VariantType::Frc)),
         VariantType::Shogi => Box::new(shogi::ShogiGame::new()),
     }
 }
@@ -122,10 +122,11 @@ pub fn create_game(variant: VariantType) -> Box<dyn Game> {
 /// Creates a new game instance from a FEN/SFEN string.
 pub fn create_game_from_fen(variant: VariantType, fen: &str) -> Option<Box<dyn Game>> {
     match variant {
-        VariantType::Standard => chess::ChessGame::from_fen(fen, chess::Variant::Standard)
+        VariantType::Standard => chess::ChessGame::from_fen(fen, VariantType::Standard)
             .map(|g| Box::new(g) as Box<dyn Game>),
-        VariantType::Frc => chess::ChessGame::from_fen(fen, chess::Variant::Chess960)
-            .map(|g| Box::new(g) as Box<dyn Game>),
+        VariantType::Frc => {
+            chess::ChessGame::from_fen(fen, VariantType::Frc).map(|g| Box::new(g) as Box<dyn Game>)
+        }
         VariantType::Shogi => {
             shogi::ShogiGame::from_sfen(fen).map(|g| Box::new(g) as Box<dyn Game>)
         }

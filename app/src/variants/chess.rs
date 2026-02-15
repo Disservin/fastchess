@@ -15,38 +15,25 @@ use crate::variants::{Game, GameMove};
 // Re-export types that other modules need
 pub use crate::variants::shogi::ShogiGame;
 
-// ── Chess-Specific Types ─────────────────────────────────────────────────────
-
-/// Variant type for chess games.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
-pub enum Variant {
-    #[default]
-    Standard,
-    Chess960,
-}
-
-impl Variant {
-    fn to_castling_mode(self) -> CastlingMode {
-        match self {
-            Variant::Standard => CastlingMode::Standard,
-            Variant::Chess960 => CastlingMode::Chess960,
-        }
-    }
-}
-
-// ── Chess Move ───────────────────────────────────────────────────────────────
-
 /// A validated chess move.
 #[derive(Clone)]
 pub struct ChessMove {
     inner: Move,
-    variant: Variant,
+    variant: VariantType,
+}
+
+fn to_castling_mode(variant: VariantType) -> CastlingMode {
+    match variant {
+        VariantType::Standard => CastlingMode::Standard,
+        VariantType::Frc => CastlingMode::Chess960,
+        _ => CastlingMode::Standard,
+    }
 }
 
 impl ChessMove {
     /// Returns the UCI representation of this move.
     pub fn to_uci(&self) -> String {
-        UciMove::from_move(&self.inner, self.variant.to_castling_mode()).to_string()
+        UciMove::from_move(&self.inner, to_castling_mode(self.variant)).to_string()
     }
 
     /// Returns the internal shakmaty move.
@@ -91,7 +78,7 @@ impl GameMove for ChessMove {
 #[derive(Clone)]
 pub struct ChessGame {
     board: Chess,
-    variant: Variant,
+    variant: VariantType,
     hash_history: Vec<u64>,
     ply_count: u32,
 }
@@ -110,16 +97,16 @@ impl ChessGame {
 
         Self {
             board,
-            variant: Variant::Standard,
+            variant: VariantType::Standard,
             hash_history: vec![initial_hash.0],
             ply_count: 0,
         }
     }
 
     /// Creates a new game from a FEN string.
-    pub fn from_fen(fen: &str, variant: Variant) -> Option<Self> {
+    pub fn from_fen(fen: &str, variant: VariantType) -> Option<Self> {
         let parsed: Fen = fen.parse().ok()?;
-        let board: Chess = parsed.into_position(variant.to_castling_mode()).ok()?;
+        let board: Chess = parsed.into_position(to_castling_mode(variant)).ok()?;
         let initial_hash: Zobrist64 = board.zobrist_hash(EnPassantMode::Legal);
 
         Some(Self {
@@ -131,7 +118,7 @@ impl ChessGame {
     }
 
     /// Creates a new game with the given variant.
-    pub fn with_variant(variant: Variant) -> Self {
+    pub fn with_variant(variant: VariantType) -> Self {
         let board = Chess::default();
         let initial_hash: Zobrist64 = board.zobrist_hash(EnPassantMode::Legal);
 
@@ -144,7 +131,7 @@ impl ChessGame {
     }
 
     /// Returns the variant.
-    pub fn variant_type(&self) -> Variant {
+    pub fn variant_type(&self) -> VariantType {
         self.variant
     }
 
@@ -313,10 +300,7 @@ impl Game for ChessGame {
     }
 
     fn variant(&self) -> VariantType {
-        match self.variant {
-            Variant::Standard => VariantType::Standard,
-            Variant::Chess960 => VariantType::Frc,
-        }
+        self.variant
     }
 
     fn side_to_move(&self) -> Color {
@@ -473,7 +457,7 @@ mod tests {
     #[test]
     fn test_from_fen() {
         let fen = "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1";
-        let game = ChessGame::from_fen(fen, Variant::Standard).unwrap();
+        let game = ChessGame::from_fen(fen, VariantType::Standard).unwrap();
         assert_eq!(game.side_to_move(), Color::Second);
     }
 

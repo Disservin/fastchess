@@ -28,6 +28,12 @@ pub enum ProcessError {
     General(String),
 }
 
+impl From<&str> for ProcessError {
+    fn from(s: &str) -> Self {
+        Self::General(s.to_string())
+    }
+}
+
 /// Result of a process operation.
 #[derive(Debug, Clone)]
 pub struct ProcessResult {

@@ -86,7 +86,7 @@ impl InterruptFds {
 }
 
 /// Process raw bytes into complete lines, pushing them to `lines`.
-/// Returns `Some(ProcessResult::ok())` if `searchword` is found at the start of a line.
+/// Returns `Some(Ok(()))` if `searchword` is found at the start of a line.
 fn drain_lines(
     buf: &[u8],
     line_buffer: &mut String,
@@ -127,7 +127,7 @@ fn drain_lines(
         line_buffer.clear();
 
         if found {
-            return Some(ProcessResult::ok());
+            return Some(Ok(()));
         }
     }
 
@@ -176,26 +176,24 @@ impl Process {
 
         let child = match cmd.spawn() {
             Ok(c) => c,
-            Err(e) => return ProcessResult::error(format!("Failed to spawn '{command}': {e}")),
+            Err(e) => return Err(format!("Failed to spawn '{command}': {e}").into()),
         };
 
         self.child = Some(child);
         self.initialized = true;
-        ProcessResult::ok()
+        Ok(())
     }
 
     pub fn alive(&mut self) -> ProcessResult {
         let child = match self.child.as_mut() {
             Some(c) => c,
-            None => return ProcessResult::error("Process not initialized"),
+            None => return Err("Process not initialized".into()),
         };
 
         match child.try_wait() {
-            Ok(None) => ProcessResult::ok(),
-            Ok(Some(status)) => {
-                ProcessResult::error(format!("Process exited with status: {status}"))
-            }
-            Err(e) => ProcessResult::error(format!("Failed to check process: {e}")),
+            Ok(None) => Ok(()),
+            Ok(Some(status)) => Err(format!("Process exited with status: {status}").into()),
+            Err(e) => Err(format!("Failed to check process: {e}").into()),
         }
     }
 
@@ -214,7 +212,7 @@ impl Process {
 
         let child = match self.child.as_mut() {
             Some(c) => c,
-            None => return ProcessResult::error("Process not initialized"),
+            None => return Err("Process not initialized".into()),
         };
 
         let stdout = child.stdout.as_mut().expect("Stdout not piped");
@@ -241,7 +239,7 @@ impl Process {
         loop {
             let ready = match poll(&mut poll_fds, poll_timeout) {
                 Ok(n) => n,
-                Err(e) => return ProcessResult::error(format!("poll failed: {e}")),
+                Err(e) => return Err(format!("poll failed: {e}").into()),
             };
 
             // Timeout
@@ -254,7 +252,7 @@ impl Process {
                         std: Standard::Output,
                     });
                 }
-                return ProcessResult::timeout();
+                return Err(ProcessError::Timeout);
             }
 
             // Check interrupt
@@ -262,21 +260,21 @@ impl Process {
                 if revents.contains(PollFlags::POLLIN) {
                     let mut junk = [0u8; 8];
                     let _ = unistd::read(self.interrupt_fds.read_fd().as_raw_fd(), &mut junk);
-                    return ProcessResult::error("Interrupted by control pipe");
+                    return Err("Interrupted by control pipe".into());
                 }
             }
 
             // Check stdout
             if let Some(revents) = poll_fds[0].revents() {
                 if revents.intersects(PollFlags::POLLHUP | PollFlags::POLLERR) {
-                    return ProcessResult::error("Engine crashed (stdout)");
+                    return Err("Engine crashed (stdout)".into());
                 }
 
                 if revents.contains(PollFlags::POLLIN) {
                     let n = match unistd::read(stdout.as_raw_fd(), &mut read_buf) {
-                        Ok(0) => return ProcessResult::error("EOF on stdout"),
+                        Ok(0) => return Err("EOF on stdout".into()),
                         Ok(n) => n,
-                        Err(_) => return ProcessResult::error("read failed on stdout"),
+                        Err(_) => return Err("read failed on stdout".into()),
                     };
 
                     if let Some(r) = drain_lines(
@@ -297,9 +295,9 @@ impl Process {
             if let Some(revents) = poll_fds[stderr_idx].revents() {
                 if revents.contains(PollFlags::POLLIN) {
                     let n = match unistd::read(stderr.as_raw_fd(), &mut read_buf) {
-                        Ok(0) => return ProcessResult::error("EOF on stderr"),
+                        Ok(0) => return Err("EOF on stderr".into()),
                         Ok(n) => n,
-                        Err(_) => return ProcessResult::error("read failed on stderr"),
+                        Err(_) => return Err("read failed on stderr".into()),
                     };
 
                     drain_lines(
@@ -314,7 +312,7 @@ impl Process {
                 }
 
                 if revents.intersects(PollFlags::POLLHUP | PollFlags::POLLERR) {
-                    return ProcessResult::error("Engine crashed (stderr)");
+                    return Err("Engine crashed (stderr)".into());
                 }
             }
         }
@@ -323,20 +321,20 @@ impl Process {
     pub fn write_input(&mut self, input: &str) -> ProcessResult {
         let child = match self.child.as_mut() {
             Some(c) => c,
-            None => return ProcessResult::error("Process not initialized"),
+            None => return Err("Process not initialized".into()),
         };
 
         let stdin = match child.stdin.as_mut() {
             Some(s) => s,
-            None => return ProcessResult::error("No stdin pipe"),
+            None => return Err("No stdin pipe".into()),
         };
 
         if let Err(e) = stdin.write_all(input.as_bytes()) {
-            return ProcessResult::error(format!("write failed: {e}"));
+            return Err(format!("write failed: {e}").into());
         }
 
         let _ = stdin.flush();
-        ProcessResult::ok()
+        Ok(())
     }
 
     #[cfg(target_os = "linux")]

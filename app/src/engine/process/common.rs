@@ -19,13 +19,22 @@ pub enum Status {
     None,
 }
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, Clone)]
 pub enum ProcessError {
-    #[error("failed to initialize interruption descriptors")]
-    Io(#[from] io::Error),
+    #[error("failed to initialize interruption descriptors: {0}")]
+    Io(String),
 
     #[error("{0}")]
     General(String),
+
+    #[error("timeout")]
+    Timeout,
+}
+
+impl From<io::Error> for ProcessError {
+    fn from(e: io::Error) -> Self {
+        Self::Io(e.to_string())
+    }
 }
 
 impl From<&str> for ProcessError {
@@ -40,37 +49,17 @@ impl From<String> for ProcessError {
     }
 }
 
-/// Result of a process operation.
-#[derive(Debug, Clone)]
-pub struct ProcessResult {
-    pub code: Status,
-    pub message: String,
+/// Result type for process operations.
+pub type ProcessResult<T = ()> = Result<T, ProcessError>;
+
+/// Extension trait for ProcessResult to provide helper methods.
+pub trait ProcessResultExt {
+    fn is_timeout(&self) -> bool;
 }
 
-impl ProcessResult {
-    pub fn ok() -> Self {
-        Self {
-            code: Status::Ok,
-            message: String::new(),
-        }
-    }
-
-    pub fn error(msg: impl Into<String>) -> Self {
-        Self {
-            code: Status::Err,
-            message: msg.into(),
-        }
-    }
-
-    pub fn timeout() -> Self {
-        Self {
-            code: Status::Timeout,
-            message: "timeout".to_string(),
-        }
-    }
-
-    pub fn is_ok(&self) -> bool {
-        self.code == Status::Ok
+impl<T> ProcessResultExt for ProcessResult<T> {
+    fn is_timeout(&self) -> bool {
+        matches!(self, Err(ProcessError::Timeout))
     }
 }
 

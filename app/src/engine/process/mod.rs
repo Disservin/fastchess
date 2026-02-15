@@ -5,7 +5,7 @@
 
 // Platform-independent types and traits
 mod common;
-pub use common::{Line, ProcessError, ProcessResult, Standard, Status};
+pub use common::{Line, ProcessError, ProcessResult, ProcessResultExt, Standard, Status};
 
 // Platform-specific implementations
 #[cfg(unix)]

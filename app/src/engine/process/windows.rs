@@ -146,7 +146,7 @@ pub struct Process {
 unsafe impl Send for Process {}
 
 impl Process {
-    pub fn new() -> Result<Self, ProcessResult> {
+    pub fn new() -> ProcessResult<Self> {
         Ok(Self {
             h_process: INVALID_HANDLE_VALUE,
             h_thread: INVALID_HANDLE_VALUE,
@@ -181,19 +181,19 @@ impl Process {
 
         let stdout_pipe = match create_pipe_pair(&mut sa) {
             Ok(p) => p,
-            Err(e) => return ProcessResult::error(e.to_string()),
+            Err(e) => return Err(e.to_string().into()),
         };
         let stdin_pipe = match create_pipe_pair(&mut sa) {
             Ok(p) => p,
-            Err(e) => return ProcessResult::error(e.to_string()),
+            Err(e) => return Err(e.to_string().into()),
         };
 
         // Prevent child from inheriting the ends we keep.
         if let Err(e) = set_no_inherit(stdout_pipe.read.raw()) {
-            return ProcessResult::error(e.to_string());
+            return Err(e.to_string().into());
         }
         if let Err(e) = set_no_inherit(stdin_pipe.write.raw()) {
-            return ProcessResult::error(e.to_string());
+            return Err(e.to_string().into());
         }
 
         let full_path = Path::new(working_dir)
@@ -209,7 +209,7 @@ impl Process {
 
         let cmd_cstring = match CString::new(cmd_line) {
             Ok(c) => c,
-            Err(_) => return ProcessResult::error("Invalid command string"),
+            Err(_) => return Err("Invalid command string".into()),
         };
 
         let mut si: STARTUPINFOA = unsafe { zeroed() };
@@ -246,9 +246,7 @@ impl Process {
         };
 
         if success == 0 {
-            return ProcessResult::error(format!("Failed to create process: {}", unsafe {
-                GetLastError()
-            }));
+            return Err(format!("Failed to create process: {}", unsafe { GetLastError() }).into());
         }
 
         self.h_process = pi.hProcess;
@@ -261,23 +259,23 @@ impl Process {
         // stdout_pipe.write and stdin_pipe.read drop here, closing the child's ends.
 
         self.initialized = true;
-        ProcessResult::ok()
+        Ok(())
     }
 
     pub fn alive(&mut self) -> ProcessResult {
         if self.h_process == INVALID_HANDLE_VALUE {
-            return ProcessResult::error("Process not initialized");
+            return Err("Process not initialized".into());
         }
 
         let mut exit_code: u32 = 0;
         if unsafe { GetExitCodeProcess(self.h_process, &mut exit_code) } == 0 {
-            return ProcessResult::error("Failed to get exit code");
+            return Err("Failed to get exit code".into());
         }
 
         if exit_code == STILL_ACTIVE {
-            ProcessResult::ok()
+            Ok(())
         } else {
-            ProcessResult::error(format!("Process exited with code: {exit_code}"))
+            Err(format!("Process exited with code: {exit_code}").into())
         }
     }
 
@@ -294,7 +292,7 @@ impl Process {
         lines.clear();
 
         if self.h_stdout_read == INVALID_HANDLE_VALUE {
-            return ProcessResult::error("Process not initialized");
+            return Err("Process not initialized".into());
         }
 
         let start = Instant::now();
@@ -303,12 +301,12 @@ impl Process {
         loop {
             let elapsed = start.elapsed();
             if !timeout.is_zero() && elapsed >= timeout {
-                return ProcessResult::timeout();
+                return Err(ProcessError::Timeout);
             }
 
             let event = match SafeHandle::new(unsafe { CreateEventA(null_mut(), 1, 0, null()) }) {
                 Some(e) => e,
-                None => return ProcessResult::error("Failed to create event"),
+                None => return Err("Failed to create event".into()),
             };
 
             let mut overlapped: OVERLAPPED = unsafe { zeroed() };
@@ -328,7 +326,7 @@ impl Process {
             if result == 0 {
                 let error = unsafe { GetLastError() };
                 if error != ERROR_IO_PENDING {
-                    return ProcessResult::error(format!("Read failed: {error}"));
+                    return Err(format!("Read failed: {error}").into());
                 }
 
                 let remaining_ms = if timeout.is_zero() {
@@ -341,17 +339,17 @@ impl Process {
 
                 if wait == WAIT_TIMEOUT {
                     unsafe { CancelIo(self.h_stdout_read) };
-                    return ProcessResult::timeout();
+                    return Err(ProcessError::Timeout);
                 }
                 if wait != WAIT_OBJECT_0 {
-                    return ProcessResult::error("Wait failed");
+                    return Err("Wait failed".into());
                 }
 
                 if unsafe {
                     GetOverlappedResult(self.h_stdout_read, &mut overlapped, &mut bytes_read, 0)
                 } == 0
                 {
-                    return ProcessResult::error("Failed to get overlapped result");
+                    return Err("Failed to get overlapped result".into());
                 }
             }
             // event dropped here automatically
@@ -391,7 +389,7 @@ impl Process {
                     self.line_buffer_out.clear();
 
                     if found {
-                        return ProcessResult::ok();
+                        return Ok(());
                     }
                 } else {
                     self.line_buffer_out.push(c);
@@ -402,7 +400,7 @@ impl Process {
 
     pub fn write_input(&mut self, input: &str) -> ProcessResult {
         if self.h_stdin_write == INVALID_HANDLE_VALUE {
-            return ProcessResult::error("Process not initialized");
+            return Err("Process not initialized".into());
         }
 
         let mut bytes_written: u32 = 0;
@@ -417,9 +415,9 @@ impl Process {
         };
 
         if result == 0 {
-            ProcessResult::error("Failed to write to stdin")
+            Err("Failed to write to stdin".into())
         } else {
-            ProcessResult::ok()
+            Ok(())
         }
     }
 

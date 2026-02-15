@@ -12,7 +12,7 @@ use std::time::Duration;
 use crate::core::logger::LOGGER;
 use crate::core::str_utils;
 use crate::engine::option::{parse_uci_option_line, OptionType, UCIOptions};
-use crate::engine::process::{Line, Process, ProcessResult, Standard, Status};
+use crate::engine::process::{Line, Process, ProcessResult, Standard};
 use crate::engine::protocol::Protocol;
 use crate::game::timecontrol::TimeControl;
 use crate::types::engine_config::EngineConfiguration;
@@ -132,8 +132,8 @@ impl UciEngine {
             &self.config.args,
             &self.config.name,
         );
-        if !res.is_ok() {
-            return Err(res.message);
+        if let Err(e) = res {
+            return Err(e.to_string());
         }
 
         if let Some(cpus) = cpus {
@@ -220,7 +220,7 @@ impl UciEngine {
         );
 
         let res = self.read_engine(self.protocol.init_ok(), threshold);
-        let ok = res.code == Status::Ok;
+        let ok = res.is_ok();
 
         // Log output if using deferred logging
         if !self.realtime_logging {
@@ -275,26 +275,26 @@ impl UciEngine {
             return false;
         }
 
-        self.isready(Some(Self::get_ucinewgame_time())).code == Status::Ok
+        self.isready(Some(Self::get_ucinewgame_time())).is_ok()
     }
 
     /// Send `isready` and wait for `readyok`.
     pub fn isready(&mut self, threshold: Option<Duration>) -> ProcessResult {
         let is_alive = self.process.alive();
-        if !is_alive.is_ok() {
+        if is_alive.is_err() {
             return is_alive;
         }
 
         let cmd = self.protocol.isready_cmd();
 
         if cmd.is_empty() {
-            return ProcessResult::ok();
+            return Ok(());
         }
 
         log_trace!("Pinging engine {} with {}", self.config.name, cmd);
 
         if !self.write_engine(&cmd) {
-            return ProcessResult::error("Failed to write isready");
+            return Err("Failed to write isready".into());
         }
 
         self.process.setup_read();
@@ -320,7 +320,7 @@ impl UciEngine {
             }
         }
 
-        if !res.is_ok() {
+        if res.is_err() {
             if !crate::STOP.load(std::sync::atomic::Ordering::Relaxed) {
                 log_trace!("Engine {} didn't respond to isready", self.config.name);
                 log_warn!("Warning; Engine {} is not responsive", self.config.name);
@@ -416,7 +416,7 @@ impl UciEngine {
     /// Write a UCI command to the engine (appends `\n`).
     pub fn write_engine(&mut self, input: &str) -> bool {
         LOGGER.write_to_engine(input, "", &self.config.name, None);
-        self.process.write_input(&format!("{}\n", input)).code == Status::Ok
+        self.process.write_input(&format!("{}\n", input)).is_ok()
     }
 
     /// Read engine output until `last_word` appears at the start of a line.

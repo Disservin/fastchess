@@ -527,7 +527,7 @@ fn run_game(pairing: Pairing, state: SharedState) {
         // Restart engines that are not responsive (recover mode)
         {
             let mut white_ref = white_guard.lock();
-            let responsive = white_ref.isready(None).code == crate::engine::process::Status::Ok;
+            let responsive = white_ref.isready(None).is_ok();
             drop(white_ref);
             if !responsive {
                 log::trace!("Restarting white engine {}", configs.white.name);
@@ -536,7 +536,7 @@ fn run_game(pairing: Pairing, state: SharedState) {
         }
         {
             let mut black_ref = black_guard.lock();
-            let responsive = black_ref.isready(None).code == crate::engine::process::Status::Ok;
+            let responsive = black_ref.isready(None).is_ok();
             drop(black_ref);
             if !responsive {
                 log::trace!("Restarting black engine {}", configs.black.name);

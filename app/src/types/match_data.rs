@@ -1,11 +1,16 @@
+use crate::variants::GameMove;
+
 use super::engine_config::*;
 use super::enums::*;
 
 /// Data captured for a single move in a game.
-#[derive(Debug, Clone, Default)]
+#[derive(Clone)]
 pub struct MoveData {
     pub additional_lines: Vec<String>,
-    pub r#move: String,
+    /// The parsed move object, if available.
+    pub r#move: Option<Box<dyn GameMove>>,
+    /// The raw UCI/USI notation string (for display and illegal moves).
+    pub notation: String,
     pub score_string: String,
     pub pv: String,
 
@@ -23,6 +28,53 @@ pub struct MoveData {
 
     pub legal: bool,
     pub book: bool,
+}
+
+impl Default for MoveData {
+    fn default() -> Self {
+        Self {
+            additional_lines: Vec::new(),
+            r#move: None,
+            notation: String::new(),
+            score_string: String::new(),
+            pv: String::new(),
+            nodes: 0,
+            nps: 0,
+            tbhits: 0,
+            elapsed_millis: 0,
+            depth: 0,
+            seldepth: 0,
+            score: 0,
+            timeleft: 0,
+            latency: 0,
+            hashfull: 0,
+            legal: false,
+            book: false,
+        }
+    }
+}
+
+impl std::fmt::Debug for MoveData {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("MoveData")
+            .field("r#move", &self.r#move.as_ref().map(|mv| mv.to_uci()))
+            .field("notation", &self.notation)
+            .field("score_string", &self.score_string)
+            .field("pv", &self.pv)
+            .field("nodes", &self.nodes)
+            .field("nps", &self.nps)
+            .field("tbhits", &self.tbhits)
+            .field("elapsed_millis", &self.elapsed_millis)
+            .field("depth", &self.depth)
+            .field("seldepth", &self.seldepth)
+            .field("score", &self.score)
+            .field("timeleft", &self.timeleft)
+            .field("latency", &self.latency)
+            .field("hashfull", &self.hashfull)
+            .field("legal", &self.legal)
+            .field("book", &self.book)
+            .finish()
+    }
 }
 
 /// Reason a match terminated.

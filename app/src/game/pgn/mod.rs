@@ -1,8 +1,9 @@
 use crate::game::timecontrol::TimeControlLimits;
+use crate::game::GameInstance;
 use crate::types::enums::NotationType;
 use crate::types::VariantType;
 use crate::types::{GameResult, MatchData, MatchTermination, MoveData, PgnConfig};
-use crate::variants::chess::{ChessGame, Variant};
+use crate::variants::chess::Variant;
 use crate::variants::GameMove;
 
 const STARTPOS: &str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
@@ -74,18 +75,22 @@ impl PgnBuilder {
             pgn.push('\n');
         }
 
-        // Determine board state and move numbering from FEN
+        // Determine board state and move numbering from FEN @todo
         let variant = if is_frc {
             Variant::Chess960
         } else {
             Variant::Standard
         };
 
-        let mut game: Option<ChessGame> = if data.fen.is_empty() || data.fen == STARTPOS {
-            Some(ChessGame::new())
+        let fen_str = if data.fen.is_empty() {
+            STARTPOS.to_string()
         } else {
-            ChessGame::from_fen(&data.fen, variant)
+            data.fen.clone()
         };
+
+        // todo variant
+        let mut game = GameInstance::from_fen(&fen_str, VariantType::Standard)
+            .unwrap_or_else(|| GameInstance::new(VariantType::Standard));
 
         // Compute starting move counter from FEN (matching C++ logic)
         // C++ computes: move_number = int(black_to_move) + 2*fullMoveNumber - 1
@@ -98,7 +103,12 @@ impl PgnBuilder {
         if first_illegal {
             // C++ adds: addMove("", reason + ": " + first_move)
             // Which produces: {reason: move} result
-            let comment = format!("{}: {}", data.reason, data.moves[0].r#move);
+            let move_str = data.moves[0]
+                .r#move
+                .as_ref()
+                .map(|mv| mv.to_uci())
+                .unwrap_or_else(|| data.moves[0].notation.clone());
+            let comment = format!("{}: {}", data.reason, move_str);
             let pair = format!("{{{}}}", comment);
             pgn.push_str(&pair);
             pgn.push(' ');
@@ -148,7 +158,7 @@ impl PgnBuilder {
             let mut pair = String::new();
 
             // Move notation
-            let move_str = Self::convert_move(&mv.r#move, &mut game, config.notation);
+            let move_str = Self::convert_move(mv.r#move.clone(), &mut game, config.notation);
             if !move_str.is_empty() {
                 let curr = move_counter.div_ceil(2);
                 if is_white {
@@ -165,7 +175,8 @@ impl PgnBuilder {
 
             // Comment
             if !config.min {
-                let comment = Self::create_comment(config, data, mv, i, next_illegal, is_last);
+                let comment =
+                    Self::create_comment(&mut game, config, data, mv, i, next_illegal, is_last);
                 if !comment.is_empty() {
                     if !pair.is_empty() {
                         pair.push(' ');
@@ -208,25 +219,28 @@ impl PgnBuilder {
         (black_starts, move_counter)
     }
 
-    /// Convert a UCI move string to the requested notation given a game position.
-    fn convert_move(mv_uci: &str, game: &mut Option<ChessGame>, notation: NotationType) -> String {
-        let Some(g) = game.as_mut() else {
-            return mv_uci.to_string();
-        };
-
-        // Parse the move first
-        let Some(chess_move) = g.parse_uci_move(mv_uci) else {
-            return mv_uci.to_string();
+    /// Convert a move to the requested notation given a game position.
+    fn convert_move(
+        game_mv: Option<Box<dyn GameMove>>,
+        game: &mut GameInstance,
+        notation: NotationType,
+    ) -> String {
+        let Some(mv) = game_mv else {
+            return String::new();
         };
 
         let result = match notation {
-            NotationType::Uci => mv_uci.to_string(),
-            NotationType::San => chess_move.to_san(g).unwrap_or_else(|| mv_uci.to_string()),
-            NotationType::Lan => chess_move.to_lan(g).unwrap_or_else(|| mv_uci.to_string()),
+            NotationType::Uci => mv.to_uci(),
+            NotationType::San => game
+                .convert_move_to_san(mv.as_ref())
+                .unwrap_or_else(|| mv.to_uci()),
+            NotationType::Lan => game
+                .convert_move_to_lan(mv.as_ref())
+                .unwrap_or_else(|| mv.to_uci()),
         };
 
         // Advance the game
-        g.make_chess_move(&chess_move);
+        game.make_move(&*mv);
         result
     }
 
@@ -236,6 +250,7 @@ impl PgnBuilder {
     /// For book moves: `{book}`
     /// For the last move: reason is appended to the comment
     fn create_comment(
+        game: &mut GameInstance,
         config: &PgnConfig,
         data: &MatchData,
         mv: &MoveData,
@@ -294,11 +309,15 @@ impl PgnBuilder {
         // Reason appended to last move's comment
         if is_last {
             let match_str = if next_illegal {
-                format!(
-                    "{}: {}",
-                    data.reason,
-                    data.moves.get(move_index + 1).map_or("", |m| &m.r#move)
-                )
+                let m = Self::convert_move(
+                    data.moves
+                        .get(move_index + 1)
+                        .and_then(|mv| mv.r#move.clone()),
+                    game,
+                    config.notation,
+                );
+
+                format!("{}: {}", data.reason, m)
             } else {
                 data.reason.clone()
             };
@@ -396,6 +415,7 @@ mod tests {
     use super::*;
     use crate::types::engine_config::*;
     use crate::types::match_data::*;
+    use crate::variants::chess::ChessGame;
 
     fn make_config() -> PgnConfig {
         PgnConfig {
@@ -415,9 +435,19 @@ mod tests {
         }
     }
 
-    fn make_move(uci: &str, score: &str, depth: i64, elapsed_ms: i64) -> MoveData {
+    fn make_move(
+        game: &mut ChessGame,
+        uci: &str,
+        score: &str,
+        depth: i64,
+        elapsed_ms: i64,
+    ) -> MoveData {
+        let move_obj = game.parse_uci_move(uci).map(|m| m.clone_box());
+        game.make_chess_move(&game.parse_uci_move(uci).unwrap());
+
         MoveData {
-            r#move: uci.to_string(),
+            r#move: move_obj,
+            notation: uci.to_string(),
             score_string: score.to_string(),
             depth,
             elapsed_millis: elapsed_ms,
@@ -426,9 +456,13 @@ mod tests {
         }
     }
 
-    fn make_book_move(uci: &str) -> MoveData {
+    fn make_book_move(game: &mut ChessGame, uci: &str) -> MoveData {
+        let move_obj = game.parse_uci_move(uci).map(|m| m.clone_box());
+        game.make_chess_move(&game.parse_uci_move(uci).unwrap());
+
         MoveData {
-            r#move: uci.to_string(),
+            r#move: move_obj,
+            notation: uci.to_string(),
             legal: true,
             book: true,
             ..MoveData::default()
@@ -449,9 +483,10 @@ mod tests {
             make_player("Engine1", GameResult::Win),
             make_player("Engine2", GameResult::Lose),
         );
+        let mut game = ChessGame::new();
         data.moves = vec![
-            make_move("e2e4", "+0.30", 20, 500),
-            make_move("e7e5", "-0.25", 18, 400),
+            make_move(&mut game, "e2e4", "+0.30", 20, 500),
+            make_move(&mut game, "e7e5", "-0.25", 18, 400),
         ];
         data.reason = "White wins".to_string();
 
@@ -489,7 +524,8 @@ mod tests {
             make_player("E1", GameResult::Draw),
             make_player("E2", GameResult::Draw),
         );
-        data.moves = vec![make_move("e2e4", "+0.10", 10, 100)];
+        let mut game = ChessGame::new();
+        data.moves = vec![make_move(&mut game, "e2e4", "+0.10", 10, 100)];
         data.reason = "".to_string();
 
         let pgn = PgnBuilder::build(&config, &data, 1);
@@ -517,9 +553,10 @@ mod tests {
             make_player("E1", GameResult::Draw),
             make_player("E2", GameResult::Draw),
         );
+        let mut game = ChessGame::new();
         data.moves = vec![
-            make_move("e2e4", "+0.10", 10, 100),
-            make_move("e7e5", "-0.10", 10, 100),
+            make_move(&mut game, "e2e4", "+0.10", 10, 100),
+            make_move(&mut game, "e7e5", "-0.10", 10, 100),
         ];
 
         let pgn = PgnBuilder::build(&config, &data, 1);
@@ -541,7 +578,8 @@ mod tests {
             make_player("E1", GameResult::Win),
             make_player("E2", GameResult::Lose),
         );
-        data.moves = vec![make_move("e2e4", "+0.50", 20, 1234)];
+        let mut game = ChessGame::new();
+        data.moves = vec![make_move(&mut game, "e2e4", "+0.50", 20, 1234)];
         data.reason = "White wins".to_string();
 
         let pgn = PgnBuilder::build(&config, &data, 1);
@@ -566,7 +604,8 @@ mod tests {
             make_player("E1", GameResult::Win),
             make_player("E2", GameResult::Lose),
         );
-        let mut mv = make_move("e2e4", "+0.50", 20, 1234);
+        let mut game = ChessGame::new();
+        let mut mv = make_move(&mut game, "e2e4", "+0.50", 20, 1234);
         mv.nodes = 100000;
         mv.seldepth = 25;
         mv.timeleft = 59000;
@@ -595,10 +634,11 @@ mod tests {
             make_player("E1", GameResult::Draw),
             make_player("E2", GameResult::Draw),
         );
+        let mut game = ChessGame::new();
         data.moves = vec![
-            make_book_move("e2e4"),
-            make_book_move("e7e5"),
-            make_move("g1f3", "+0.20", 15, 300),
+            make_book_move(&mut game, "e2e4"),
+            make_book_move(&mut game, "e7e5"),
+            make_move(&mut game, "g1f3", "+0.20", 15, 300),
         ];
         data.reason = "".to_string();
 
@@ -620,7 +660,8 @@ mod tests {
             make_player("E1", GameResult::Win),
             make_player("E2", GameResult::Lose),
         );
-        let mut mv = make_move("e2e4", "+0.50", 20, 1234);
+        let mut game = ChessGame::new();
+        let mut mv = make_move(&mut game, "e2e4", "+0.50", 20, 1234);
         mv.pv = "e7e5 g1f3".to_string();
         data.moves = vec![mv];
         data.reason = "White wins".to_string();
@@ -665,9 +706,12 @@ mod tests {
             make_player("E1", GameResult::Draw),
             make_player("E2", GameResult::Draw),
         );
+        // Parse moves from the custom FEN position
+        let mut game =
+            ChessGame::from_fen(&data.fen, Variant::Standard).unwrap_or_else(ChessGame::new);
         data.moves = vec![
-            make_move("e7e5", "-0.20", 15, 300),
-            make_move("g1f3", "+0.25", 16, 350),
+            make_move(&mut game, "e7e5", "-0.20", 15, 300),
+            make_move(&mut game, "g1f3", "+0.25", 16, 350),
         ];
         data.reason = "".to_string();
 
@@ -760,9 +804,10 @@ mod tests {
             "e2e4", "e7e5", "g1f3", "b8c6", "f1b5", "a7a6", "b5a4", "g8f6", "e1g1", "f8e7", "f1e1",
             "b7b5", "a4b3", "d7d6", "c2c3", "e8g8",
         ];
+        let mut game = ChessGame::new();
         data.moves = moves
             .iter()
-            .map(|m| make_move(m, "+0.10", 10, 100))
+            .map(|m| make_move(&mut game, m, "+0.10", 10, 100))
             .collect();
         data.reason = "".to_string();
 
@@ -793,9 +838,10 @@ mod tests {
             make_player("E1", GameResult::Win),
             make_player("E2", GameResult::Lose),
         );
+        let mut game = ChessGame::new();
         data.moves = vec![
-            make_move("e2e4", "+0.30", 20, 500),
-            make_move("e7e5", "-9.00", 18, 400),
+            make_move(&mut game, "e2e4", "+0.30", 20, 500),
+            make_move(&mut game, "e7e5", "-9.00", 18, 400),
         ];
         data.reason = "White wins by adjudication".to_string();
 
@@ -820,7 +866,8 @@ mod tests {
             make_player("E2", GameResult::Win),
         );
         data.moves = vec![MoveData {
-            r#move: "e1e3".to_string(),
+            r#move: None,                 // Illegal move, no parsed move object
+            notation: "e1e3".to_string(), // Store the attempted UCI
             legal: false,
             ..MoveData::default()
         }];
@@ -872,9 +919,10 @@ mod tests {
             make_player("E1", GameResult::Draw),
             make_player("E2", GameResult::Draw),
         );
+        let mut game = ChessGame::new();
         data.moves = vec![
-            make_move("e2e4", "+0.00", 20, 500),
-            make_move("e7e5", "+0.00", 18, 400),
+            make_move(&mut game, "e2e4", "+0.00", 20, 500),
+            make_move(&mut game, "e7e5", "+0.00", 18, 400),
         ];
         data.reason = "Draw by adjudication".to_string();
 
@@ -930,7 +978,10 @@ mod tests {
             make_player("E2", GameResult::Draw),
         );
         // Chess960 castling: e1h1 (king from e1 takes rook on h1)
-        data.moves = vec![make_move("e1h1", "+0.10", 10, 100)];
+        // Need to parse from the custom FEN position
+        let mut game =
+            ChessGame::from_fen(&data.fen, Variant::Chess960).unwrap_or_else(ChessGame::new);
+        data.moves = vec![make_move(&mut game, "e1h1", "+0.10", 10, 100)];
         data.reason = "".to_string();
 
         let pgn = PgnBuilder::build(&config, &data, 1);
@@ -959,8 +1010,10 @@ mod tests {
             make_player("E1", GameResult::Draw),
             make_player("E2", GameResult::Draw),
         );
-        // Standard castling: e1g1
-        data.moves = vec![make_move("e1g1", "+0.10", 10, 100)];
+        // Standard castling: e1g1 - parse from the custom FEN position
+        let mut game =
+            ChessGame::from_fen(&data.fen, Variant::Standard).unwrap_or_else(ChessGame::new);
+        data.moves = vec![make_move(&mut game, "e1g1", "+0.10", 10, 100)];
         data.reason = "".to_string();
 
         let pgn = PgnBuilder::build(&config, &data, 1);
@@ -988,8 +1041,10 @@ mod tests {
             make_player("E1", GameResult::Draw),
             make_player("E2", GameResult::Draw),
         );
-        // Chess960 castling as UCI
-        data.moves = vec![make_move("e1h1", "+0.10", 10, 100)];
+        // Chess960 castling as UCI - parse from the custom FEN position
+        let mut game =
+            ChessGame::from_fen(&data.fen, Variant::Chess960).unwrap_or_else(ChessGame::new);
+        data.moves = vec![make_move(&mut game, "e1h1", "+0.10", 10, 100)];
         data.reason = "".to_string();
 
         let pgn = PgnBuilder::build(&config, &data, 1);
@@ -1015,11 +1070,12 @@ mod tests {
             make_player("E1", GameResult::Draw),
             make_player("E2", GameResult::Draw),
         );
+        let mut game = ChessGame::new();
         data.moves = vec![
-            make_move("e2e4", "+0.10", 10, 100), // Pawn move
-            make_move("e7e5", "-0.10", 10, 100), // Pawn move
-            make_move("g1f3", "+0.15", 10, 100), // Knight move
-            make_move("b8c6", "-0.15", 10, 100), // Knight move
+            make_move(&mut game, "e2e4", "+0.10", 10, 100), // Pawn move
+            make_move(&mut game, "e7e5", "-0.10", 10, 100), // Pawn move
+            make_move(&mut game, "g1f3", "+0.15", 10, 100), // Knight move
+            make_move(&mut game, "b8c6", "-0.15", 10, 100), // Knight move
         ];
         data.reason = "".to_string();
 
@@ -1046,7 +1102,10 @@ mod tests {
             make_player("E1", GameResult::Draw),
             make_player("E2", GameResult::Draw),
         );
-        data.moves = vec![make_move("e4d5", "+0.20", 10, 100)]; // Pawn captures
+        // Parse from the custom FEN position
+        let mut game =
+            ChessGame::from_fen(&data.fen, Variant::Standard).unwrap_or_else(ChessGame::new);
+        data.moves = vec![make_move(&mut game, "e4d5", "+0.20", 10, 100)]; // Pawn captures
         data.reason = "".to_string();
 
         let pgn = PgnBuilder::build(&config, &data, 1);
@@ -1073,7 +1132,10 @@ mod tests {
             make_player("E1", GameResult::Win),
             make_player("E2", GameResult::Lose),
         );
-        data.moves = vec![make_move("a7a8q", "+99.00", 10, 100)];
+        // Parse from the custom FEN position
+        let mut game =
+            ChessGame::from_fen(&data.fen, Variant::Standard).unwrap_or_else(ChessGame::new);
+        data.moves = vec![make_move(&mut game, "a7a8q", "+99.00", 10, 100)];
         data.reason = "White wins".to_string();
 
         let pgn = PgnBuilder::build(&config, &data, 1);
@@ -1100,7 +1162,10 @@ mod tests {
             make_player("E1", GameResult::Draw),
             make_player("E2", GameResult::Draw),
         );
-        data.moves = vec![make_move("e1g1", "+0.10", 10, 100)]; // Castling
+        // Parse from the custom FEN position
+        let mut game =
+            ChessGame::from_fen(&data.fen, Variant::Standard).unwrap_or_else(ChessGame::new);
+        data.moves = vec![make_move(&mut game, "e1g1", "+0.10", 10, 100)]; // Castling
         data.reason = "".to_string();
 
         let pgn = PgnBuilder::build(&config, &data, 1);
@@ -1127,11 +1192,12 @@ mod tests {
             make_player("engine1", GameResult::Lose),
             make_player("engine2", GameResult::Win),
         );
+        let mut game = ChessGame::new();
         data.moves = vec![
-            make_move("e2e4", "+1.00", 15, 1321),
-            make_move("e7e5", "+1.23", 15, 430),
-            make_move("g1f3", "+1.45", 16, 310),
-            make_move("g8f6", "+10.15", 18, 1821),
+            make_move(&mut game, "e2e4", "+1.00", 15, 1321),
+            make_move(&mut game, "e7e5", "+1.23", 15, 430),
+            make_move(&mut game, "g1f3", "+1.45", 16, 310),
+            make_move(&mut game, "g8f6", "+10.15", 18, 1821),
         ];
         data.reason = "engine1 got checkmated".to_string();
 
@@ -1156,10 +1222,13 @@ mod tests {
             make_player("engine2", GameResult::None),
             make_player("engine1", GameResult::None),
         );
+        // Parse moves from the custom FEN position
+        let mut game =
+            ChessGame::from_fen(&data.fen, Variant::Standard).unwrap_or_else(ChessGame::new);
         data.moves = vec![
-            make_move("e8g8", "+1.00", 15, 1321),
-            make_move("e1g1", "+1.23", 15, 430),
-            make_move("a6c5", "+1.45", 16, 310),
+            make_move(&mut game, "e8g8", "+1.00", 15, 1321),
+            make_move(&mut game, "e1g1", "+1.23", 15, 430),
+            make_move(&mut game, "a6c5", "+1.45", 16, 310),
         ];
         data.reason = "aborted".to_string();
 
@@ -1196,9 +1265,12 @@ mod tests {
             ..TimeControlLimits::default()
         };
         data.players = GamePair::new(white, black);
+        // Parse moves from the custom FEN position
+        let mut game =
+            ChessGame::from_fen(&data.fen, Variant::Standard).unwrap_or_else(ChessGame::new);
         data.moves = vec![
-            make_move("e8g8", "+1.00", 15, 1321),
-            make_move("e1g1", "+1.23", 15, 430),
+            make_move(&mut game, "e8g8", "+1.00", 15, 1321),
+            make_move(&mut game, "e1g1", "+1.23", 15, 430),
         ];
         data.reason = "aborted".to_string();
 
@@ -1232,10 +1304,11 @@ mod tests {
             ..TimeControlLimits::default()
         };
         data.players = GamePair::new(white, black);
-        let mut mv1 = make_move("e2e4", "+1.00", 15, 1321);
+        let mut game = ChessGame::new();
+        let mut mv1 = make_move(&mut game, "e2e4", "+1.00", 15, 1321);
         mv1.nodes = 1250;
         mv1.seldepth = 4;
-        let mut mv2 = make_move("e7e5", "+1.23", 15, 430);
+        let mut mv2 = make_move(&mut game, "e7e5", "+1.23", 15, 430);
         mv2.nodes = 4363;
         mv2.seldepth = 3;
         data.moves = vec![mv1, mv2];
@@ -1267,9 +1340,12 @@ mod tests {
             ..TimeControlLimits::default()
         };
         data.players = GamePair::new(white, black);
+        // Parse moves from the custom FEN position
+        let mut game =
+            ChessGame::from_fen(&data.fen, Variant::Standard).unwrap_or_else(ChessGame::new);
         data.moves = vec![
-            make_move("e8g8", "+1.00", 15, 1321),
-            make_move("e1g1", "+1.23", 15, 430),
+            make_move(&mut game, "e8g8", "+1.00", 15, 1321),
+            make_move(&mut game, "e1g1", "+1.23", 15, 430),
         ];
         data.reason = "aborted".to_string();
 
@@ -1300,10 +1376,13 @@ mod tests {
             ..TimeControlLimits::default()
         };
         data.players = GamePair::new(white, black);
+        // Parse moves from the custom FEN position
+        let mut game =
+            ChessGame::from_fen(&data.fen, Variant::Standard).unwrap_or_else(ChessGame::new);
         data.moves = vec![
-            make_move("e8g8", "+1.00", 15, 1321),
-            make_move("e1g1", "+1.23", 15, 430),
-            make_move("a6c5", "+1.45", 16, 310),
+            make_move(&mut game, "e8g8", "+1.00", 15, 1321),
+            make_move(&mut game, "e1g1", "+1.23", 15, 430),
+            make_move(&mut game, "a6c5", "+1.45", 16, 310),
         ];
         data.reason = "aborted".to_string();
 
@@ -1329,12 +1408,14 @@ mod tests {
             make_player("engine1", GameResult::Win),
             make_player("engine2", GameResult::Lose),
         );
+        let mut game = ChessGame::new();
         data.moves = vec![
-            make_move("e2e4", "+1.00", 15, 1321),
-            make_move("e7e5", "+1.23", 15, 430),
-            make_move("g1f3", "+1.45", 16, 310),
+            make_move(&mut game, "e2e4", "+1.00", 15, 1321),
+            make_move(&mut game, "e7e5", "+1.23", 15, 430),
+            make_move(&mut game, "g1f3", "+1.45", 16, 310),
             MoveData {
-                r#move: "a1a1".to_string(),
+                r#move: None,                 // Illegal move
+                notation: "a1a1".to_string(), // Store the attempted UCI
                 score_string: "+10.15".to_string(),
                 depth: 18,
                 elapsed_millis: 1821,
@@ -1364,7 +1445,8 @@ mod tests {
             make_player("engine2", GameResult::Win),
         );
         data.moves = vec![MoveData {
-            r#move: "a1a1".to_string(),
+            r#move: None,                 // Illegal move
+            notation: "a1a1".to_string(), // Store the attempted UCI
             score_string: "+10.15".to_string(),
             depth: 18,
             elapsed_millis: 1821,

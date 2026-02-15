@@ -113,9 +113,10 @@ impl Match {
 
         for mv_uci in &opening.moves {
             // Parse UCI move and apply it to the game
+            let m = game.parse_move(mv_uci);
             if game.make_uci_move(mv_uci) {
                 let move_data = MoveData {
-                    r#move: mv_uci.clone(),
+                    r#move: m,
                     score_string: "0.00".to_string(),
                     book: true,
                     legal: true,
@@ -620,7 +621,7 @@ impl Match {
         };
 
         let mut move_data = MoveData {
-            r#move: mv,
+            r#move: self.game.parse_move(&mv),
             score_string: "0.00".to_string(),
             elapsed_millis: elapsed_ms,
             legal,

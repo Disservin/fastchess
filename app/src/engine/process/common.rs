@@ -34,6 +34,12 @@ impl From<&str> for ProcessError {
     }
 }
 
+impl From<String> for ProcessError {
+    fn from(s: String) -> Self {
+        Self::General(s)
+    }
+}
+
 /// Result of a process operation.
 #[derive(Debug, Clone)]
 pub struct ProcessResult {

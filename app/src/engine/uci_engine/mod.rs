@@ -12,7 +12,7 @@ use std::time::Duration;
 use crate::core::logger::LOGGER;
 use crate::core::str_utils;
 use crate::engine::option::{parse_uci_option_line, OptionType, UCIOptions};
-use crate::engine::process::{Line, Process, ProcessResult, Standard};
+use crate::engine::process::{Line, Process, ProcessError, ProcessResult, Standard};
 use crate::engine::protocol::Protocol;
 use crate::game::timecontrol::TimeControl;
 use crate::types::engine_config::EngineConfiguration;
@@ -93,12 +93,12 @@ impl UciEngine {
     /// Create a new `UciEngine` from an engine configuration.
     ///
     /// Does **not** start the engine process — call [`start`] for that.
-    pub fn new(config: &EngineConfiguration, realtime_logging: bool) -> Self {
-        let mut process = Process::new().unwrap();
+    pub fn new(config: &EngineConfiguration, realtime_logging: bool) -> Result<Self, ProcessError> {
+        let mut process = Process::new()?;
         process.set_realtime_logging(realtime_logging);
         let protocol = Protocol::new(config.variant);
 
-        Self {
+        Ok(Self {
             process,
             uci_options: UCIOptions::new(),
             config: config.clone(),
@@ -106,7 +106,7 @@ impl UciEngine {
             initialized: false,
             realtime_logging,
             protocol,
-        }
+        })
     }
 
     // ── Lifecycle ────────────────────────────────────────────────────────────

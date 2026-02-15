@@ -485,12 +485,30 @@ fn run_game(pairing: Pairing, state: SharedState) {
     }
 
     // Check out engines from the cache
-    let white_guard = state
+    let white_guard = match state
         .engine_cache
-        .get_engine(&configs.white.name, configs.white, rl);
-    let black_guard = state
+        .get_engine(&configs.white.name, configs.white, rl)
+    {
+        Ok(guard) => guard,
+        Err(e) => {
+            log::error!("Failed to create white engine: {}", e);
+            crate::ABNORMAL_TERMINATION.store(true, Ordering::Relaxed);
+            crate::STOP.store(true, Ordering::Relaxed);
+            return;
+        }
+    };
+    let black_guard = match state
         .engine_cache
-        .get_engine(&configs.black.name, configs.black, rl);
+        .get_engine(&configs.black.name, configs.black, rl)
+    {
+        Ok(guard) => guard,
+        Err(e) => {
+            log::error!("Failed to create black engine: {}", e);
+            crate::ABNORMAL_TERMINATION.store(true, Ordering::Relaxed);
+            crate::STOP.store(true, Ordering::Relaxed);
+            return;
+        }
+    };
 
     // Run the match — lock both engines for the duration of the game
     let mut game = Match::new(opening, tournament_config);
@@ -531,7 +549,11 @@ fn run_game(pairing: Pairing, state: SharedState) {
             drop(white_ref);
             if !responsive {
                 log::trace!("Restarting white engine {}", configs.white.name);
-                white_guard.restart_engine();
+                if let Err(e) = white_guard.restart_engine() {
+                    crate::ABNORMAL_TERMINATION.store(true, Ordering::Relaxed);
+                    crate::STOP.store(true, Ordering::Relaxed);
+                    log::error!("Failed to restart white engine: {}", e);
+                }
             }
         }
         {
@@ -540,7 +562,11 @@ fn run_game(pairing: Pairing, state: SharedState) {
             drop(black_ref);
             if !responsive {
                 log::trace!("Restarting black engine {}", configs.black.name);
-                black_guard.restart_engine();
+                if let Err(e) = black_guard.restart_engine() {
+                    crate::ABNORMAL_TERMINATION.store(true, Ordering::Relaxed);
+                    crate::STOP.store(true, Ordering::Relaxed);
+                    log::error!("Failed to restart black engine: {}", e);
+                }
             }
         }
     }

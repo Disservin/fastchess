@@ -821,8 +821,8 @@ mod tests {
         assert_eq!(m.side_to_move(), Color::White);
 
         let cfg = EngineConfiguration::default();
-        let mut engine_us = UciEngine::new(&cfg, false);
-        let mut engine_them = UciEngine::new(&cfg, false);
+        let mut engine_us = UciEngine::new(&cfg, false).expect("Failed to create UciEngine");
+        let mut engine_them = UciEngine::new(&cfg, false).expect("Failed to create UciEngine");
 
         // `us` in adjudicate is the engine that just moved (Black, since stm is White).
         // Black reports a losing score → White (stm) is the winner.
@@ -891,8 +891,8 @@ mod tests {
         let mut m = Match::new(opening, &tc);
         let cfg = EngineConfiguration::default();
 
-        let mut engine_us = UciEngine::new(&cfg, false);
-        let mut engine_them = UciEngine::new(&cfg, false);
+        let mut engine_us = UciEngine::new(&cfg, false).expect("Failed to create UciEngine");
+        let mut engine_them = UciEngine::new(&cfg, false).expect("Failed to create UciEngine");
         let mut us = Player::new(&mut engine_us);
         let mut them = Player::new(&mut engine_them);
 
@@ -946,8 +946,8 @@ mod tests {
         let cfg = EngineConfiguration::default();
         // `us` in adjudicate = the engine that just moved = White
         // White reports losing score → Black (stm) wins
-        let mut engine_us = UciEngine::new(&cfg, false);
-        let mut engine_them = UciEngine::new(&cfg, false);
+        let mut engine_us = UciEngine::new(&cfg, false).expect("Failed to create UciEngine");
+        let mut engine_them = UciEngine::new(&cfg, false).expect("Failed to create UciEngine");
         engine_us.inject_output_line("info depth 10 score cp -600 pv e7e5");
 
         let mut us = Player::new(&mut engine_us);

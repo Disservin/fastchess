@@ -23,6 +23,9 @@ pub enum Status {
 pub enum ProcessError {
     #[error("failed to initialize interruption descriptors")]
     Io(#[from] io::Error),
+
+    #[error("{0}")]
+    General(String),
 }
 
 /// Result of a process operation.

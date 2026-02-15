@@ -4,7 +4,7 @@ use super::engine_config::*;
 use super::enums::*;
 
 /// Data captured for a single move in a game.
-#[derive(Clone)]
+#[derive(Clone, Default)]
 pub struct MoveData {
     pub additional_lines: Vec<String>,
     /// The parsed move object, if available.
@@ -28,30 +28,6 @@ pub struct MoveData {
 
     pub legal: bool,
     pub book: bool,
-}
-
-impl Default for MoveData {
-    fn default() -> Self {
-        Self {
-            additional_lines: Vec::new(),
-            r#move: None,
-            notation: String::new(),
-            score_string: String::new(),
-            pv: String::new(),
-            nodes: 0,
-            nps: 0,
-            tbhits: 0,
-            elapsed_millis: 0,
-            depth: 0,
-            seldepth: 0,
-            score: 0,
-            timeleft: 0,
-            latency: 0,
-            hashfull: 0,
-            legal: false,
-            book: false,
-        }
-    }
 }
 
 impl std::fmt::Debug for MoveData {

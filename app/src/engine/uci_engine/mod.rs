@@ -280,9 +280,8 @@ impl UciEngine {
 
     /// Send `isready` and wait for `readyok`.
     pub fn isready(&mut self, threshold: Option<Duration>) -> ProcessResult {
-        let is_alive = self.process.alive();
-        if is_alive.is_err() {
-            return is_alive;
+        if let Err(e) = self.process.alive() {
+            return Err(format!("Engine process is not alive: {}", e).into());
         }
 
         let cmd = self.protocol.isready_cmd();
@@ -293,7 +292,7 @@ impl UciEngine {
 
         log_trace!("Pinging engine {} with {}", self.config.name, cmd);
 
-        if !self.write_engine(&cmd) {
+        if !self.write_engine(cmd) {
             return Err("Failed to write isready".into());
         }
 

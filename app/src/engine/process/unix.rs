@@ -64,7 +64,7 @@ impl InterruptFds {
                     write: write_owned,
                 })
             }
-            Err(e) => Err(io::Error::new(io::ErrorKind::Other, e)),
+            Err(e) => Err(io::Error::other(e)),
         }
     }
 

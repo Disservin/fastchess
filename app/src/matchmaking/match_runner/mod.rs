@@ -345,7 +345,7 @@ impl Match {
             return false;
         }
 
-        if !engine_status.is_ok() {
+        if engine_status.is_err() {
             self.set_engine_crash_status(us, them);
             return false;
         }

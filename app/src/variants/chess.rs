@@ -410,7 +410,7 @@ impl Game for ChessGame {
     fn convert_move_to_san(&self, mv: &dyn GameMove) -> Option<String> {
         if let Some(chess_move) = mv.as_any().downcast_ref::<ChessMove>() {
             use shakmaty::san::San;
-            let san = San::from_move(&self.board, &chess_move.inner());
+            let san = San::from_move(&self.board, chess_move.inner());
             Some(san.to_string())
         } else {
             None
@@ -418,11 +418,9 @@ impl Game for ChessGame {
     }
 
     fn convert_move_to_lan(&self, mv: &dyn GameMove) -> Option<String> {
-        if let Some(chess_move) = mv.as_any().downcast_ref::<ChessMove>() {
-            Some(move_to_lan(&chess_move.inner()))
-        } else {
-            None
-        }
+        mv.as_any()
+            .downcast_ref::<ChessMove>()
+            .map(|chess_move| move_to_lan(chess_move.inner()))
     }
 
     fn supports_syzygy(&self) -> bool {

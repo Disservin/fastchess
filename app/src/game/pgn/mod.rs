@@ -1,3 +1,5 @@
+use thiserror::Error;
+
 use crate::game::timecontrol::TimeControlLimits;
 use crate::game::GameInstance;
 use crate::types::enums::NotationType;
@@ -11,9 +13,15 @@ const LINE_LENGTH: usize = 80;
 /// Builds a PGN string from match data, matching the C++ fastchess output format.
 pub struct PgnBuilder;
 
+#[derive(Error, Debug, Clone)]
+pub enum PgnError {
+    #[error("failed to build PGN")]
+    InvalidGame,
+}
+
 impl PgnBuilder {
     /// Build a complete PGN game record.
-    pub fn build(config: &PgnConfig, data: &MatchData, round: usize) -> String {
+    pub fn build(config: &PgnConfig, data: &MatchData, round: usize) -> Result<String, PgnError> {
         let mut headers: Vec<(String, String)> = Vec::new();
         let result_str = Self::get_result_from_white(&data.players.white);
         let white_name = &data.players.white.config.name;
@@ -81,7 +89,8 @@ impl PgnBuilder {
         };
 
         // todo variant, todo error
-        let mut game = GameInstance::from_fen(&fen_str, data.variant).unwrap();
+        let mut game =
+            GameInstance::from_fen(&fen_str, data.variant).ok_or(PgnError::InvalidGame)?;
 
         // Compute starting move counter from FEN (matching C++ logic)
         // C++ computes: move_number = int(black_to_move) + 2*fullMoveNumber - 1
@@ -105,7 +114,7 @@ impl PgnBuilder {
             pgn.push(' ');
             pgn.push_str(result_str);
             pgn.push_str("\n\n");
-            return pgn;
+            return Ok(pgn);
         }
 
         // Generate moves with line wrapping
@@ -189,7 +198,7 @@ impl PgnBuilder {
         append_text(&mut pgn, result_str, &mut current_line_length);
 
         pgn.push_str("\n\n");
-        pgn
+        Ok(pgn)
     }
 
     /// Parse FEN to determine side to move and starting move counter.
@@ -481,7 +490,7 @@ mod tests {
         ];
         data.reason = "White wins".to_string();
 
-        let pgn = PgnBuilder::build(&config, &data, 1);
+        let pgn = PgnBuilder::build(&config, &data, 1).unwrap();
 
         // Check header order and content
         assert!(pgn.contains("[Event \"Test Tournament\"]"));
@@ -519,7 +528,7 @@ mod tests {
         data.moves = vec![make_move(&mut game, "e2e4", "+0.10", 10, 100)];
         data.reason = "".to_string();
 
-        let pgn = PgnBuilder::build(&config, &data, 1);
+        let pgn = PgnBuilder::build(&config, &data, 1).unwrap();
 
         // Min mode should NOT have these headers
         assert!(!pgn.contains("[GameDuration"));
@@ -550,7 +559,7 @@ mod tests {
             make_move(&mut game, "e7e5", "-0.10", 10, 100),
         ];
 
-        let pgn = PgnBuilder::build(&config, &data, 1);
+        let pgn = PgnBuilder::build(&config, &data, 1).unwrap();
 
         // No comments in min mode
         assert!(!pgn.contains('{'));
@@ -573,7 +582,7 @@ mod tests {
         data.moves = vec![make_move(&mut game, "e2e4", "+0.50", 20, 1234)];
         data.reason = "White wins".to_string();
 
-        let pgn = PgnBuilder::build(&config, &data, 1);
+        let pgn = PgnBuilder::build(&config, &data, 1).unwrap();
 
         // Should have: {+0.50/20 1.234s, White wins}
         assert!(pgn.contains("{+0.50/20 1.234s, White wins}"));
@@ -604,7 +613,7 @@ mod tests {
         data.moves = vec![mv];
         data.reason = "White wins".to_string();
 
-        let pgn = PgnBuilder::build(&config, &data, 1);
+        let pgn = PgnBuilder::build(&config, &data, 1).unwrap();
 
         // C++ format: {score/depth time, tl=..., latency=..., n=..., sd=...}
         assert!(pgn.contains("+0.50/20 1.234s"));
@@ -633,7 +642,7 @@ mod tests {
         ];
         data.reason = "".to_string();
 
-        let pgn = PgnBuilder::build(&config, &data, 1);
+        let pgn = PgnBuilder::build(&config, &data, 1).unwrap();
 
         // Book moves should get {book}
         assert!(pgn.contains("{book}"));
@@ -657,7 +666,7 @@ mod tests {
         data.moves = vec![mv];
         data.reason = "White wins".to_string();
 
-        let pgn = PgnBuilder::build(&config, &data, 1);
+        let pgn = PgnBuilder::build(&config, &data, 1).unwrap();
 
         // PV should be inside the comment as pv="..."
         assert!(pgn.contains("pv=\"e7e5 g1f3\""));
@@ -677,7 +686,7 @@ mod tests {
             make_player("E2", GameResult::Draw),
         );
 
-        let pgn = PgnBuilder::build(&config, &data, 1);
+        let pgn = PgnBuilder::build(&config, &data, 1).unwrap();
 
         // SetUp should come before FEN (matching C++)
         let setup_pos = pgn.find("[SetUp").unwrap();
@@ -706,7 +715,7 @@ mod tests {
         ];
         data.reason = "".to_string();
 
-        let pgn = PgnBuilder::build(&config, &data, 1);
+        let pgn = PgnBuilder::build(&config, &data, 1).unwrap();
 
         // Should start with "1... e5" (black to move)
         assert!(
@@ -741,7 +750,7 @@ mod tests {
             make_player("E2", GameResult::Draw),
         );
 
-        let pgn = PgnBuilder::build(&config, &data, 1);
+        let pgn = PgnBuilder::build(&config, &data, 1).unwrap();
 
         // FRC should always emit SetUp/FEN even for startpos
         assert!(pgn.contains("[SetUp \"1\"]"));
@@ -802,7 +811,7 @@ mod tests {
             .collect();
         data.reason = "".to_string();
 
-        let pgn = PgnBuilder::build(&config, &data, 1);
+        let pgn = PgnBuilder::build(&config, &data, 1).unwrap();
 
         // Check that the move text section has line breaks
         // (after the empty line that follows headers)
@@ -836,7 +845,7 @@ mod tests {
         ];
         data.reason = "White wins by adjudication".to_string();
 
-        let pgn = PgnBuilder::build(&config, &data, 1);
+        let pgn = PgnBuilder::build(&config, &data, 1).unwrap();
 
         // Reason should be in the LAST move's comment, not a separate comment
         // Last move is e5 (black's move), so its comment should contain the reason
@@ -864,7 +873,7 @@ mod tests {
         }];
         data.reason = "Illegal move".to_string();
 
-        let pgn = PgnBuilder::build(&config, &data, 1);
+        let pgn = PgnBuilder::build(&config, &data, 1).unwrap();
 
         // First illegal move: comment is "{reason: move}" then result
         assert!(pgn.contains("{Illegal move: e1e3}"));
@@ -917,7 +926,7 @@ mod tests {
         ];
         data.reason = "Draw by adjudication".to_string();
 
-        let pgn = PgnBuilder::build(&config, &data, 1);
+        let pgn = PgnBuilder::build(&config, &data, 1).unwrap();
 
         assert!(pgn.contains("[Result \"1/2-1/2\"]"));
         assert!(pgn.contains("1/2-1/2\n"));
@@ -944,7 +953,7 @@ mod tests {
         };
         data.players = GamePair::new(white, black);
 
-        let pgn = PgnBuilder::build(&config, &data, 1);
+        let pgn = PgnBuilder::build(&config, &data, 1).unwrap();
 
         // Different TCs should produce split headers
         assert!(pgn.contains("[WhiteTimeControl \"60+0.5\"]"));
@@ -975,7 +984,7 @@ mod tests {
         data.moves = vec![make_move(&mut game, "e1h1", "+0.10", 10, 100)];
         data.reason = "".to_string();
 
-        let pgn = PgnBuilder::build(&config, &data, 1);
+        let pgn = PgnBuilder::build(&config, &data, 1).unwrap();
 
         // The UCI move e1h1 should become O-O in SAN
         // Note: shakmaty converts castling to O-O/O-O-O in SAN automatically
@@ -1007,7 +1016,7 @@ mod tests {
         data.moves = vec![make_move(&mut game, "e1g1", "+0.10", 10, 100)];
         data.reason = "".to_string();
 
-        let pgn = PgnBuilder::build(&config, &data, 1);
+        let pgn = PgnBuilder::build(&config, &data, 1).unwrap();
 
         // The UCI move e1g1 should become O-O in SAN
         assert!(
@@ -1038,7 +1047,7 @@ mod tests {
         data.moves = vec![make_move(&mut game, "e1h1", "+0.10", 10, 100)];
         data.reason = "".to_string();
 
-        let pgn = PgnBuilder::build(&config, &data, 1);
+        let pgn = PgnBuilder::build(&config, &data, 1).unwrap();
 
         // With UCI notation, the move should stay as e1h1
         assert!(
@@ -1070,7 +1079,7 @@ mod tests {
         ];
         data.reason = "".to_string();
 
-        let pgn = PgnBuilder::build(&config, &data, 1);
+        let pgn = PgnBuilder::build(&config, &data, 1).unwrap();
 
         // LAN should have full origin squares
         assert!(pgn.contains("e2e4"), "LAN should have e2e4, got: {}", pgn);
@@ -1099,7 +1108,7 @@ mod tests {
         data.moves = vec![make_move(&mut game, "e4d5", "+0.20", 10, 100)]; // Pawn captures
         data.reason = "".to_string();
 
-        let pgn = PgnBuilder::build(&config, &data, 1);
+        let pgn = PgnBuilder::build(&config, &data, 1).unwrap();
 
         // LAN should have e4xd5 for pawn capture
         assert!(
@@ -1129,7 +1138,7 @@ mod tests {
         data.moves = vec![make_move(&mut game, "a7a8q", "+99.00", 10, 100)];
         data.reason = "White wins".to_string();
 
-        let pgn = PgnBuilder::build(&config, &data, 1);
+        let pgn = PgnBuilder::build(&config, &data, 1).unwrap();
 
         // LAN should have a7a8=Q for promotion
         assert!(
@@ -1159,7 +1168,7 @@ mod tests {
         data.moves = vec![make_move(&mut game, "e1g1", "+0.10", 10, 100)]; // Castling
         data.reason = "".to_string();
 
-        let pgn = PgnBuilder::build(&config, &data, 1);
+        let pgn = PgnBuilder::build(&config, &data, 1).unwrap();
 
         // LAN uses O-O for castling (same as SAN)
         assert!(
@@ -1192,7 +1201,7 @@ mod tests {
         ];
         data.reason = "engine1 got checkmated".to_string();
 
-        let pgn = PgnBuilder::build(&config, &data, 1);
+        let pgn = PgnBuilder::build(&config, &data, 1).unwrap();
 
         assert!(pgn.contains("[Result \"0-1\"]"));
         assert!(pgn.contains("0-1\n"));
@@ -1223,7 +1232,7 @@ mod tests {
         ];
         data.reason = "aborted".to_string();
 
-        let pgn = PgnBuilder::build(&config, &data, 1);
+        let pgn = PgnBuilder::build(&config, &data, 1).unwrap();
 
         // Black starts, so first move should be "1... O-O"
         assert!(
@@ -1265,7 +1274,7 @@ mod tests {
         ];
         data.reason = "aborted".to_string();
 
-        let pgn = PgnBuilder::build(&config, &data, 1);
+        let pgn = PgnBuilder::build(&config, &data, 1).unwrap();
 
         // Both players have same fixed time
         assert!(
@@ -1305,7 +1314,7 @@ mod tests {
         data.moves = vec![mv1, mv2];
         data.reason = "aborted".to_string();
 
-        let pgn = PgnBuilder::build(&config, &data, 1);
+        let pgn = PgnBuilder::build(&config, &data, 1).unwrap();
 
         // Different TCs should produce split headers
         assert!(pgn.contains("[WhiteTimeControl") || pgn.contains("[BlackTimeControl"));
@@ -1340,7 +1349,7 @@ mod tests {
         ];
         data.reason = "aborted".to_string();
 
-        let pgn = PgnBuilder::build(&config, &data, 1);
+        let pgn = PgnBuilder::build(&config, &data, 1).unwrap();
 
         // Different fixed times should produce split headers
         assert!(pgn.contains("[WhiteTimeControl") && pgn.contains("[BlackTimeControl"));
@@ -1377,7 +1386,7 @@ mod tests {
         ];
         data.reason = "aborted".to_string();
 
-        let pgn = PgnBuilder::build(&config, &data, 1);
+        let pgn = PgnBuilder::build(&config, &data, 1).unwrap();
 
         // Should start with "4..." since fullmove is 4 and Black moves first
         assert!(
@@ -1416,7 +1425,7 @@ mod tests {
         ];
         data.reason = "Black makes an illegal move".to_string();
 
-        let pgn = PgnBuilder::build(&config, &data, 1);
+        let pgn = PgnBuilder::build(&config, &data, 1).unwrap();
 
         // Should contain the illegal move in the comment of the previous move
         assert!(pgn.contains("illegal move") || pgn.contains("a1a1"));
@@ -1446,7 +1455,7 @@ mod tests {
         }];
         data.reason = "White makes an illegal move".to_string();
 
-        let pgn = PgnBuilder::build(&config, &data, 1);
+        let pgn = PgnBuilder::build(&config, &data, 1).unwrap();
 
         // First illegal move should be formatted as {reason: move} result
         assert!(

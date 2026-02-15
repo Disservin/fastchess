@@ -1394,21 +1394,15 @@ impl crate::variants::Game for ShogiGame {
     }
 
     fn convert_move_to_san(&self, mv: &dyn crate::variants::GameMove) -> Option<String> {
-        if let Some(shogi_move) = mv.as_any().downcast_ref::<ShogiMove>() {
-            // Shogi uses USI notation as its standard notation
-            Some(shogi_move.inner().to_string())
-        } else {
-            None
-        }
+        mv.as_any()
+            .downcast_ref::<ShogiMove>()
+            .map(|shogi_move| shogi_move.inner().to_string())
     }
 
     fn convert_move_to_lan(&self, mv: &dyn crate::variants::GameMove) -> Option<String> {
-        if let Some(shogi_move) = mv.as_any().downcast_ref::<ShogiMove>() {
-            // Shogi uses USI notation as its standard notation
-            Some(shogi_move.inner().to_string())
-        } else {
-            None
-        }
+        mv.as_any()
+            .downcast_ref::<ShogiMove>()
+            .map(|shogi_move| shogi_move.inner().to_string())
     }
 
     fn supports_syzygy(&self) -> bool {

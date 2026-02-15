@@ -3,7 +3,6 @@ use crate::game::GameInstance;
 use crate::types::enums::NotationType;
 use crate::types::VariantType;
 use crate::types::{GameResult, MatchData, MatchTermination, MoveData, PgnConfig};
-use crate::variants::chess::Variant;
 use crate::variants::GameMove;
 
 const STARTPOS: &str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
@@ -75,22 +74,14 @@ impl PgnBuilder {
             pgn.push('\n');
         }
 
-        // Determine board state and move numbering from FEN @todo
-        let variant = if is_frc {
-            Variant::Chess960
-        } else {
-            Variant::Standard
-        };
-
         let fen_str = if data.fen.is_empty() {
             STARTPOS.to_string()
         } else {
             data.fen.clone()
         };
 
-        // todo variant
-        let mut game = GameInstance::from_fen(&fen_str, VariantType::Standard)
-            .unwrap_or_else(|| GameInstance::new(VariantType::Standard));
+        // todo variant, todo error
+        let mut game = GameInstance::from_fen(&fen_str, data.variant).unwrap();
 
         // Compute starting move counter from FEN (matching C++ logic)
         // C++ computes: move_number = int(black_to_move) + 2*fullMoveNumber - 1
@@ -708,7 +699,7 @@ mod tests {
         );
         // Parse moves from the custom FEN position
         let mut game =
-            ChessGame::from_fen(&data.fen, Variant::Standard).unwrap_or_else(ChessGame::new);
+            ChessGame::from_fen(&data.fen, VariantType::Standard).unwrap_or_else(ChessGame::new);
         data.moves = vec![
             make_move(&mut game, "e7e5", "-0.20", 15, 300),
             make_move(&mut game, "g1f3", "+0.25", 16, 350),
@@ -980,7 +971,7 @@ mod tests {
         // Chess960 castling: e1h1 (king from e1 takes rook on h1)
         // Need to parse from the custom FEN position
         let mut game =
-            ChessGame::from_fen(&data.fen, Variant::Chess960).unwrap_or_else(ChessGame::new);
+            ChessGame::from_fen(&data.fen, VariantType::Frc).unwrap_or_else(ChessGame::new);
         data.moves = vec![make_move(&mut game, "e1h1", "+0.10", 10, 100)];
         data.reason = "".to_string();
 
@@ -1012,7 +1003,7 @@ mod tests {
         );
         // Standard castling: e1g1 - parse from the custom FEN position
         let mut game =
-            ChessGame::from_fen(&data.fen, Variant::Standard).unwrap_or_else(ChessGame::new);
+            ChessGame::from_fen(&data.fen, VariantType::Standard).unwrap_or_else(ChessGame::new);
         data.moves = vec![make_move(&mut game, "e1g1", "+0.10", 10, 100)];
         data.reason = "".to_string();
 
@@ -1043,7 +1034,7 @@ mod tests {
         );
         // Chess960 castling as UCI - parse from the custom FEN position
         let mut game =
-            ChessGame::from_fen(&data.fen, Variant::Chess960).unwrap_or_else(ChessGame::new);
+            ChessGame::from_fen(&data.fen, VariantType::Frc).unwrap_or_else(ChessGame::new);
         data.moves = vec![make_move(&mut game, "e1h1", "+0.10", 10, 100)];
         data.reason = "".to_string();
 
@@ -1104,7 +1095,7 @@ mod tests {
         );
         // Parse from the custom FEN position
         let mut game =
-            ChessGame::from_fen(&data.fen, Variant::Standard).unwrap_or_else(ChessGame::new);
+            ChessGame::from_fen(&data.fen, VariantType::Standard).unwrap_or_else(ChessGame::new);
         data.moves = vec![make_move(&mut game, "e4d5", "+0.20", 10, 100)]; // Pawn captures
         data.reason = "".to_string();
 
@@ -1134,7 +1125,7 @@ mod tests {
         );
         // Parse from the custom FEN position
         let mut game =
-            ChessGame::from_fen(&data.fen, Variant::Standard).unwrap_or_else(ChessGame::new);
+            ChessGame::from_fen(&data.fen, VariantType::Standard).unwrap_or_else(ChessGame::new);
         data.moves = vec![make_move(&mut game, "a7a8q", "+99.00", 10, 100)];
         data.reason = "White wins".to_string();
 
@@ -1164,7 +1155,7 @@ mod tests {
         );
         // Parse from the custom FEN position
         let mut game =
-            ChessGame::from_fen(&data.fen, Variant::Standard).unwrap_or_else(ChessGame::new);
+            ChessGame::from_fen(&data.fen, VariantType::Standard).unwrap_or_else(ChessGame::new);
         data.moves = vec![make_move(&mut game, "e1g1", "+0.10", 10, 100)]; // Castling
         data.reason = "".to_string();
 
@@ -1224,7 +1215,7 @@ mod tests {
         );
         // Parse moves from the custom FEN position
         let mut game =
-            ChessGame::from_fen(&data.fen, Variant::Standard).unwrap_or_else(ChessGame::new);
+            ChessGame::from_fen(&data.fen, VariantType::Standard).unwrap_or_else(ChessGame::new);
         data.moves = vec![
             make_move(&mut game, "e8g8", "+1.00", 15, 1321),
             make_move(&mut game, "e1g1", "+1.23", 15, 430),
@@ -1267,7 +1258,7 @@ mod tests {
         data.players = GamePair::new(white, black);
         // Parse moves from the custom FEN position
         let mut game =
-            ChessGame::from_fen(&data.fen, Variant::Standard).unwrap_or_else(ChessGame::new);
+            ChessGame::from_fen(&data.fen, VariantType::Standard).unwrap_or_else(ChessGame::new);
         data.moves = vec![
             make_move(&mut game, "e8g8", "+1.00", 15, 1321),
             make_move(&mut game, "e1g1", "+1.23", 15, 430),
@@ -1342,7 +1333,7 @@ mod tests {
         data.players = GamePair::new(white, black);
         // Parse moves from the custom FEN position
         let mut game =
-            ChessGame::from_fen(&data.fen, Variant::Standard).unwrap_or_else(ChessGame::new);
+            ChessGame::from_fen(&data.fen, VariantType::Standard).unwrap_or_else(ChessGame::new);
         data.moves = vec![
             make_move(&mut game, "e8g8", "+1.00", 15, 1321),
             make_move(&mut game, "e1g1", "+1.23", 15, 430),
@@ -1378,7 +1369,7 @@ mod tests {
         data.players = GamePair::new(white, black);
         // Parse moves from the custom FEN position
         let mut game =
-            ChessGame::from_fen(&data.fen, Variant::Standard).unwrap_or_else(ChessGame::new);
+            ChessGame::from_fen(&data.fen, VariantType::Standard).unwrap_or_else(ChessGame::new);
         data.moves = vec![
             make_move(&mut game, "e8g8", "+1.00", 15, 1321),
             make_move(&mut game, "e1g1", "+1.23", 15, 430),

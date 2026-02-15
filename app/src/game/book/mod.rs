@@ -3,7 +3,7 @@ use shakmaty::uci::UciMove;
 use shakmaty::{CastlingMode, Chess, Position};
 
 use crate::types::VariantType;
-use crate::variants::chess::{ChessGame, Variant};
+use crate::variants::chess::ChessGame;
 use crate::variants::shogi::ShogiGame;
 
 /// A chess opening position, optionally with a sequence of book moves.
@@ -42,9 +42,10 @@ impl Opening {
     pub fn validate_for_variant(&self, variant: VariantType) -> bool {
         match variant {
             VariantType::Standard => {
-                let Some(mut game) =
-                    ChessGame::from_fen(self.fen_epd.as_deref().unwrap_or(""), Variant::Standard)
-                else {
+                let Some(mut game) = ChessGame::from_fen(
+                    self.fen_epd.as_deref().unwrap_or(""),
+                    VariantType::Standard,
+                ) else {
                     return false;
                 };
 
@@ -57,7 +58,7 @@ impl Opening {
             }
             VariantType::Frc => {
                 let Some(mut game) =
-                    ChessGame::from_fen(self.fen_epd.as_deref().unwrap_or(""), Variant::Chess960)
+                    ChessGame::from_fen(self.fen_epd.as_deref().unwrap_or(""), VariantType::Frc)
                 else {
                     return false;
                 };

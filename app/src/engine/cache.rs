@@ -21,6 +21,7 @@ use std::collections::HashMap;
 use std::sync::{Arc, Mutex, MutexGuard};
 use std::thread;
 
+use crate::engine::process::ProcessError;
 use crate::engine::uci_engine::UciEngine;
 use crate::types::engine_config::EngineConfiguration;
 
@@ -75,7 +76,12 @@ impl CachePool {
     /// Otherwise a new `UciEngine` is constructed and appended to the pool.
     ///
     /// Returns the `Arc<Mutex<EntryInner>>` for the checked-out entry.
-    fn get_entry(&self, name: &str, config: &EngineConfiguration, realtime_logging: bool) -> Entry {
+    fn get_entry(
+        &self,
+        name: &str,
+        config: &EngineConfiguration,
+        realtime_logging: bool,
+    ) -> Result<Entry, ProcessError> {
         let mut entries = self.entries.lock().unwrap();
 
         // Look for an available entry with matching name.
@@ -84,19 +90,19 @@ impl CachePool {
             let mut inner = entry.lock().unwrap();
             if inner.available && inner.name == name {
                 inner.available = false;
-                return Arc::clone(entry);
+                return Ok(Arc::clone(entry));
             }
         }
 
         // Not found — create a new engine
-        let engine = UciEngine::new(config, realtime_logging);
+        let engine = UciEngine::new(config, realtime_logging)?;
         let entry = Arc::new(Mutex::new(EntryInner {
             engine,
             name: name.to_string(),
             available: false,
         }));
         entries.push(Arc::clone(&entry));
-        entry
+        Ok(entry)
     }
 
     /// Mark an entry as available (returns the engine to the pool).
@@ -144,11 +150,12 @@ impl EngineGuard {
     /// Restart the engine process in-place (for crash recovery).
     ///
     /// The old engine is dropped (sends quit) and replaced with a fresh one.
-    pub fn restart_engine(&self) {
+    pub fn restart_engine(&self) -> Result<(), ProcessError> {
         let mut inner = self.entry.lock().unwrap();
         let config = inner.engine.config().clone();
         let rl = inner.engine.is_realtime_logging();
-        inner.engine = UciEngine::new(&config, rl);
+        inner.engine = UciEngine::new(&config, rl)?;
+        Ok(())
     }
 }
 
@@ -214,14 +221,14 @@ impl EngineCache {
         name: &str,
         config: &EngineConfiguration,
         realtime_logging: bool,
-    ) -> EngineGuard {
+    ) -> Result<EngineGuard, ProcessError> {
         let pool = self.get_pool();
-        let entry = pool.get_entry(name, config, realtime_logging);
-        EngineGuard {
+        let entry = pool.get_entry(name, config, realtime_logging)?;
+        Ok(EngineGuard {
             pool,
             entry,
             restart: config.restart,
-        }
+        })
     }
 
     /// Get the appropriate pool for the calling thread.
@@ -263,7 +270,9 @@ mod tests {
         let config = dummy_config("engine1");
 
         // First checkout creates a new entry
-        let entry1 = pool.get_entry("engine1", &config, false);
+        let entry1 = pool
+            .get_entry("engine1", &config, false)
+            .expect("Failed to get entry");
         {
             let inner = entry1.lock().unwrap();
             assert!(!inner.available);
@@ -274,7 +283,9 @@ mod tests {
         CachePool::release(&entry1);
 
         // Second checkout should reuse the same entry (same Arc)
-        let entry2 = pool.get_entry("engine1", &config, false);
+        let entry2 = pool
+            .get_entry("engine1", &config, false)
+            .expect("Failed to get entry");
         assert!(Arc::ptr_eq(&entry1, &entry2));
 
         CachePool::release(&entry2);
@@ -286,8 +297,12 @@ mod tests {
         let config1 = dummy_config("engine1");
         let config2 = dummy_config("engine2");
 
-        let entry1 = pool.get_entry("engine1", &config1, false);
-        let entry2 = pool.get_entry("engine2", &config2, false);
+        let entry1 = pool
+            .get_entry("engine1", &config1, false)
+            .expect("Failed to get entry");
+        let entry2 = pool
+            .get_entry("engine2", &config2, false)
+            .expect("Failed to get entry");
 
         // Different entries
         assert!(!Arc::ptr_eq(&entry1, &entry2));
@@ -302,8 +317,12 @@ mod tests {
         let config = dummy_config("engine1");
 
         // Checkout without releasing — should create a second entry
-        let entry1 = pool.get_entry("engine1", &config, false);
-        let entry2 = pool.get_entry("engine1", &config, false);
+        let entry1 = pool
+            .get_entry("engine1", &config, false)
+            .expect("Failed to get entry");
+        let entry2 = pool
+            .get_entry("engine1", &config, false)
+            .expect("Failed to get entry");
 
         assert!(!Arc::ptr_eq(&entry1, &entry2));
 
@@ -316,13 +335,17 @@ mod tests {
         let pool = Arc::new(CachePool::new());
         let config = restart_config("engine1");
 
-        let entry = pool.get_entry("engine1", &config, false);
+        let entry = pool
+            .get_entry("engine1", &config, false)
+            .expect("Failed to get entry");
 
         // Delete instead of release
         pool.delete_entry(&entry);
 
         // Pool should be empty — next checkout creates a new entry
-        let entry2 = pool.get_entry("engine1", &config, false);
+        let entry2 = pool
+            .get_entry("engine1", &config, false)
+            .expect("Failed to get entry");
         assert!(!Arc::ptr_eq(&entry, &entry2));
 
         pool.delete_entry(&entry2);
@@ -335,7 +358,9 @@ mod tests {
 
         let entry_clone;
         {
-            let entry = pool.get_entry("engine1", &config, false);
+            let entry = pool
+                .get_entry("engine1", &config, false)
+                .expect("Failed to get entry");
             entry_clone = Arc::clone(&entry);
             let _guard = EngineGuard {
                 pool: Arc::clone(&pool),
@@ -356,7 +381,9 @@ mod tests {
         let config = restart_config("engine1");
 
         {
-            let entry = pool.get_entry("engine1", &config, false);
+            let entry = pool
+                .get_entry("engine1", &config, false)
+                .expect("Failed to get entry");
             let _guard = EngineGuard {
                 pool: Arc::clone(&pool),
                 entry,
@@ -376,12 +403,16 @@ mod tests {
         let config = dummy_config("engine1");
 
         {
-            let _guard = cache.get_engine("engine1", &config, false);
+            let _guard = cache
+                .get_engine("engine1", &config, false)
+                .expect("Failed to get engine");
         }
 
         // Should reuse — just verify no panic
         {
-            let _guard = cache.get_engine("engine1", &config, false);
+            let _guard = cache
+                .get_engine("engine1", &config, false)
+                .expect("Failed to get engine");
         }
     }
 
@@ -391,12 +422,16 @@ mod tests {
         let config = dummy_config("engine1");
 
         {
-            let _guard = cache.get_engine("engine1", &config, false);
+            let _guard = cache
+                .get_engine("engine1", &config, false)
+                .expect("Failed to get engine");
         }
 
         // Same thread — should reuse
         {
-            let _guard = cache.get_engine("engine1", &config, false);
+            let _guard = cache
+                .get_engine("engine1", &config, false)
+                .expect("Failed to get engine");
         }
     }
 
@@ -405,7 +440,9 @@ mod tests {
         let pool = Arc::new(CachePool::new());
         let config = dummy_config("test_engine");
 
-        let entry = pool.get_entry("test_engine", &config, false);
+        let entry = pool
+            .get_entry("test_engine", &config, false)
+            .expect("Failed to get entry");
         let guard = EngineGuard {
             pool: Arc::clone(&pool),
             entry,
@@ -426,8 +463,12 @@ mod tests {
         let config2 = dummy_config("black");
 
         // Check out two engines at the same time (like a game)
-        let entry1 = pool.get_entry("white", &config1, false);
-        let entry2 = pool.get_entry("black", &config2, false);
+        let entry1 = pool
+            .get_entry("white", &config1, false)
+            .expect("Failed to get entry");
+        let entry2 = pool
+            .get_entry("black", &config2, false)
+            .expect("Failed to get entry");
 
         let guard1 = EngineGuard {
             pool: Arc::clone(&pool),

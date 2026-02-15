@@ -215,8 +215,8 @@ impl Process {
             None => return Err("Process not initialized".into()),
         };
 
-        let stdout = child.stdout.as_mut().expect("Stdout not piped");
-        let stderr = child.stderr.as_mut().expect("Stderr not piped");
+        let stdout = child.stdout.as_mut().ok_or("Stdout not piped")?;
+        let stderr = child.stderr.as_mut().ok_or("Stderr not piped")?;
 
         let poll_timeout = if timeout.is_zero() {
             PollTimeout::NONE

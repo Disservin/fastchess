@@ -665,9 +665,15 @@ fn run_game(pairing: Pairing, state: SharedState) {
 
         // Write PGN file
         if let Some(ref writer) = state.file_writer_pgn {
-            let pgn_str = PgnBuilder::build(&tournament_config.pgn, match_data, pairing.round_id);
-            if let Ok(w) = writer.lock() {
-                w.write(&pgn_str);
+            let pgn = PgnBuilder::build(&tournament_config.pgn, match_data, pairing.round_id);
+
+            match pgn {
+                Ok(content) => {
+                    if let Ok(w) = writer.lock() {
+                        w.write(&content);
+                    }
+                }
+                Err(e) => log::warn!("Failed to build PGN: {}", e),
             }
         }
 

@@ -84,7 +84,7 @@ fn create_pipe_pair(sa: &mut SECURITY_ATTRIBUTES) -> Result<PipePair, ProcessErr
     let pid = unsafe { GetCurrentProcessId() };
     let serial = PIPE_SERIAL.fetch_add(1, Ordering::Relaxed);
     let name = CString::new(format!("\\\\.\\Pipe\\RemoteExeAnon.{pid:08x}.{serial:08x}"))
-        .map_err(|_| ProcessError::from("Invalid pipe name"))?;
+        .map_err(|_| ProcessError::General("Invalid pipe name".to_string()))?;
 
     let read = unsafe {
         CreateNamedPipeA(
@@ -98,7 +98,8 @@ fn create_pipe_pair(sa: &mut SECURITY_ATTRIBUTES) -> Result<PipePair, ProcessErr
             sa as *mut _,
         )
     };
-    let read = SafeHandle::new(read).ok_or_else(|| ProcessError::from("CreateNamedPipe failed"))?;
+    let read = SafeHandle::new(read)
+        .ok_or_else(|| ProcessError::General("CreateNamedPipe failed".to_string()))?;
 
     let write = unsafe {
         CreateFileA(
@@ -111,15 +112,15 @@ fn create_pipe_pair(sa: &mut SECURITY_ATTRIBUTES) -> Result<PipePair, ProcessErr
             INVALID_HANDLE_VALUE,
         )
     };
-    let write =
-        SafeHandle::new(write).ok_or_else(|| ProcessError::from("CreateFile for pipe failed"))?;
+    let write = SafeHandle::new(write)
+        .ok_or_else(|| ProcessError::General("CreateFile for pipe failed".to_string()))?;
 
     Ok(PipePair { read, write })
 }
 
 fn win_err(msg: &str) -> ProcessError {
     let code = unsafe { GetLastError() };
-    ProcessError::from(format!("{msg}: error {code}"))
+    ProcessError::General(format!("{msg}: error {code}"))
 }
 
 fn set_no_inherit(handle: HANDLE) -> Result<(), ProcessError> {
@@ -422,8 +423,11 @@ impl Process {
         }
     }
 
-    pub fn set_affinity(&self, _cpus: &[i32]) -> bool {
-        false
+    pub fn set_affinity(&self, cpus: &[i32]) -> bool {
+        if self.h_process == INVALID_HANDLE_VALUE {
+            return false;
+        }
+        crate::affinity::set_process_affinity_for_handle(cpus, self.h_process)
     }
 
     pub fn interrupt(&self) {}

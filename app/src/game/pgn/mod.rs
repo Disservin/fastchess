@@ -3,6 +3,7 @@ use crate::types::enums::NotationType;
 use crate::types::VariantType;
 use crate::types::{GameResult, MatchData, MatchTermination, MoveData, PgnConfig};
 use crate::variants::chess::{ChessGame, Variant};
+use crate::variants::GameMove;
 
 const STARTPOS: &str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 const LINE_LENGTH: usize = 80;
@@ -213,27 +214,20 @@ impl PgnBuilder {
             return mv_uci.to_string();
         };
 
-        match notation {
-            NotationType::Uci => {
-                // Still need to advance the game
-                g.make_uci_move(mv_uci);
-                mv_uci.to_string()
-            }
-            NotationType::San => {
-                if let Some(san) = g.uci_to_san(mv_uci) {
-                    g.make_uci_move(mv_uci);
-                    return san;
-                }
-                mv_uci.to_string()
-            }
-            NotationType::Lan => {
-                if let Some(lan) = g.uci_to_lan(mv_uci) {
-                    g.make_uci_move(mv_uci);
-                    return lan;
-                }
-                mv_uci.to_string()
-            }
-        }
+        // Parse the move first
+        let Some(chess_move) = g.parse_uci_move(mv_uci) else {
+            return mv_uci.to_string();
+        };
+
+        let result = match notation {
+            NotationType::Uci => mv_uci.to_string(),
+            NotationType::San => chess_move.to_san(g).unwrap_or_else(|| mv_uci.to_string()),
+            NotationType::Lan => chess_move.to_lan(g).unwrap_or_else(|| mv_uci.to_string()),
+        };
+
+        // Advance the game
+        g.make_chess_move(&chess_move);
+        result
     }
 
     /// Create a comment string for a move, matching C++ format:

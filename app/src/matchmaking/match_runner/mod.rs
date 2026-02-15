@@ -94,10 +94,10 @@ impl Match {
     ) -> Self {
         let variant = tournament_config.variant;
 
-        let fen_str = if opening.fen_epd.is_none() {
-            GameInstance::default_fen(variant).to_string()
+        let fen_str = if let Some(fen) = opening.fen_epd.as_ref() {
+            fen.clone()
         } else {
-            opening.fen_epd.clone().unwrap()
+            GameInstance::default_fen(variant).to_string()
         };
 
         let start_position = fen_str.clone();

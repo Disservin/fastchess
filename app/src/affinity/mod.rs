@@ -16,62 +16,267 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Mutex;
 
 // ---------------------------------------------------------------------------
-// Low-level affinity functions (Linux only, stubs elsewhere)
+// Platform-specific implementations
 // ---------------------------------------------------------------------------
 
-/// Set CPU affinity for the given thread/pid.
-///
-/// On Linux, uses `sched_setaffinity`. On other platforms, returns `false`.
 #[cfg(target_os = "linux")]
-pub fn set_thread_affinity(cpus: &[i32], pid: i32) -> bool {
-    use nix::sched::{sched_setaffinity, CpuSet};
-    use nix::unistd::Pid;
+mod sys {
+    pub fn set_thread_affinity(cpus: &[i32], pid: i32) -> bool {
+        use nix::sched::{sched_setaffinity, CpuSet};
+        use nix::unistd::Pid;
 
-    log::trace!("Setting affinity mask for thread pid: {}", pid);
+        log::trace!("Setting affinity mask for thread pid: {}", pid);
 
-    let mut cpu_set = CpuSet::new();
-    for &cpu in cpus {
-        if cpu_set.set(cpu as usize).is_err() {
-            return false;
+        let mut cpu_set = CpuSet::new();
+        for &cpu in cpus {
+            if cpu_set.set(cpu as usize).is_err() {
+                return false;
+            }
+        }
+
+        sched_setaffinity(Pid::from_raw(pid), &cpu_set).is_ok()
+    }
+
+    pub fn set_process_affinity(cpus: &[i32], pid: i32) -> bool {
+        set_thread_affinity(cpus, pid)
+    }
+
+    pub fn get_process_handle() -> i32 {
+        nix::unistd::getpid().as_raw()
+    }
+
+    pub fn get_thread_handle() -> i32 {
+        unsafe { libc::syscall(libc::SYS_gettid) as i32 }
+    }
+}
+
+#[cfg(windows)]
+mod sys {
+
+    /// Group affinity structure for Windows processor groups.
+    #[repr(C)]
+    #[derive(Debug, Clone, Copy)]
+    pub struct GroupAffinity {
+        mask: usize,
+        group: u16,
+        reserved: [u16; 3],
+    }
+
+    /// Type alias for SetProcessDefaultCpuSetMasks function pointer.
+    type SetProcessDefaultCpuSetMasksFn =
+        unsafe extern "system" fn(
+            process: windows_sys::Win32::Foundation::HANDLE,
+            cpu_set_masks: *const GroupAffinity,
+            cpu_set_mask_count: u16,
+        ) -> windows_sys::Win32::Foundation::BOOL;
+
+    /// Type alias for SetThreadSelectedCpuSetMasks function pointer.
+    type SetThreadSelectedCpuSetMasksFn =
+        unsafe extern "system" fn(
+            thread: windows_sys::Win32::Foundation::HANDLE,
+            cpu_set_masks: *const GroupAffinity,
+            cpu_set_mask_count: u16,
+        ) -> windows_sys::Win32::Foundation::BOOL;
+
+    /// Get a function pointer from kernel32.dll.
+    fn get_kernel32_proc<T>(name: &[u8]) -> Option<T> {
+        use windows_sys::Win32::System::LibraryLoader::{GetModuleHandleA, GetProcAddress};
+
+        unsafe {
+            let hmodule = GetModuleHandleA(b"kernel32.dll\0".as_ptr());
+            if hmodule.is_null() {
+                return None;
+            }
+            let proc = GetProcAddress(hmodule, name.as_ptr());
+            if proc.is_none() {
+                return None;
+            }
+            Some(std::mem::transmute_copy(&proc))
         }
     }
 
-    sched_setaffinity(Pid::from_raw(pid), &cpu_set).is_ok()
-}
-
-#[cfg(not(target_os = "linux"))]
-pub fn set_thread_affinity(_cpus: &[i32], _pid: i32) -> bool {
-    false
-}
-
-/// Set CPU affinity for a process (delegates to `set_thread_affinity` on Linux).
-pub fn set_process_affinity(cpus: &[i32], pid: i32) -> bool {
-    set_thread_affinity(cpus, pid)
-}
-
-/// Return the current process PID (for use with `set_process_affinity`).
-pub fn get_process_handle() -> i32 {
-    #[cfg(unix)]
-    {
-        nix::unistd::getpid().as_raw()
+    /// Build GROUP_AFFINITY array from CPU list.
+    fn get_group_affinities(cpus: &[i32]) -> Vec<GroupAffinity> {
+        cpus.iter()
+            .map(|&cpu| GroupAffinity {
+                mask: 1usize << (cpu % 64),
+                group: (cpu / 64) as u16,
+                reserved: [0; 3],
+            })
+            .collect()
     }
-    #[cfg(not(unix))]
-    {
+
+    pub fn set_thread_affinity(cpus: &[i32], _pid: i32) -> bool {
+        use windows_sys::Win32::System::Threading::{GetCurrentThread, SetThreadAffinityMask};
+
+        log::trace!("Setting affinity mask for current thread");
+
+        let thread_handle = unsafe { GetCurrentThread() };
+
+        // Try Windows 11+ API first (supports >64 CPUs)
+        if let Some(set_masks) =
+            get_kernel32_proc::<SetThreadSelectedCpuSetMasksFn>(b"SetThreadSelectedCpuSetMasks\0")
+        {
+            let group_affinities = get_group_affinities(cpus);
+            unsafe {
+                return set_masks(
+                    thread_handle,
+                    group_affinities.as_ptr(),
+                    group_affinities.len() as u16,
+                ) != 0;
+            }
+        }
+
+        // Fallback to SetThreadAffinityMask for older Windows (max 64 CPUs)
+        let mut affinity_mask: usize = 0;
+        for &cpu in cpus {
+            if cpu > 63 {
+                log::warn!(
+                    "Setting thread affinity for more than 64 logical CPUs is not supported: \
+                     requires at least Windows 11 or Windows Server 2022."
+                );
+                return false;
+            }
+            affinity_mask |= 1usize << cpu;
+        }
+
+        unsafe { SetThreadAffinityMask(thread_handle, affinity_mask) != 0 }
+    }
+
+    pub fn set_process_affinity(cpus: &[i32], pid: i32) -> bool {
+        use windows_sys::Win32::System::Threading::{
+            GetCurrentProcess, OpenProcess, SetProcessAffinityMask, PROCESS_SET_INFORMATION,
+        };
+
+        log::trace!("Setting affinity mask for process pid: {}", pid);
+
+        let process_handle = if pid == 0
+            || pid == unsafe { windows_sys::Win32::System::Threading::GetCurrentProcessId() as i32 }
+        {
+            unsafe { GetCurrentProcess() }
+        } else {
+            let handle = unsafe { OpenProcess(PROCESS_SET_INFORMATION, 0, pid as u32) };
+            if handle.is_null() {
+                return false;
+            }
+            handle
+        };
+
+        // Try Windows 11+ API first (supports >64 CPUs)
+        if let Some(set_masks) =
+            get_kernel32_proc::<SetProcessDefaultCpuSetMasksFn>(b"SetProcessDefaultCpuSetMasks\0")
+        {
+            let group_affinities = get_group_affinities(cpus);
+            let result = unsafe {
+                set_masks(
+                    process_handle,
+                    group_affinities.as_ptr(),
+                    group_affinities.len() as u16,
+                ) != 0
+            };
+            // Close handle if we opened it
+            if process_handle != unsafe { GetCurrentProcess() } {
+                unsafe { windows_sys::Win32::Foundation::CloseHandle(process_handle) };
+            }
+            return result;
+        }
+
+        // Fallback to SetProcessAffinityMask for older Windows (max 64 CPUs)
+        let mut affinity_mask: usize = 0;
+        for &cpu in cpus {
+            if cpu > 63 {
+                log::warn!(
+                    "Setting process affinity for more than 64 logical CPUs is not supported: \
+                     requires at least Windows 11 or Windows Server 2022."
+                );
+                return false;
+            }
+            affinity_mask |= 1usize << cpu;
+        }
+
+        let result = unsafe { SetProcessAffinityMask(process_handle, affinity_mask) != 0 };
+
+        // Close handle if we opened it
+        if process_handle != unsafe { GetCurrentProcess() } {
+            unsafe { windows_sys::Win32::Foundation::CloseHandle(process_handle) };
+        }
+
+        result
+    }
+
+    /// Set affinity for a process using a raw Windows handle.
+    /// This is used by the engine process module which already has a handle.
+    pub fn set_process_affinity_for_handle(
+        cpus: &[i32],
+        process_handle: windows_sys::Win32::Foundation::HANDLE,
+    ) -> bool {
+        use windows_sys::Win32::System::Threading::SetProcessAffinityMask;
+
+        log::trace!(
+            "Setting affinity mask for process handle: {:?}",
+            process_handle
+        );
+
+        // Try Windows 11+ API first (supports >64 CPUs)
+        if let Some(set_masks) =
+            get_kernel32_proc::<SetProcessDefaultCpuSetMasksFn>(b"SetProcessDefaultCpuSetMasks\0")
+        {
+            let group_affinities = get_group_affinities(cpus);
+            unsafe {
+                return set_masks(
+                    process_handle,
+                    group_affinities.as_ptr(),
+                    group_affinities.len() as u16,
+                ) != 0;
+            }
+        }
+
+        // Fallback to SetProcessAffinityMask for older Windows (max 64 CPUs)
+        let mut affinity_mask: usize = 0;
+        for &cpu in cpus {
+            if cpu > 63 {
+                log::warn!(
+                    "Setting process affinity for more than 64 logical CPUs is not supported: \
+                     requires at least Windows 11 or Windows Server 2022."
+                );
+                return false;
+            }
+            affinity_mask |= 1usize << cpu;
+        }
+
+        unsafe { SetProcessAffinityMask(process_handle, affinity_mask) != 0 }
+    }
+
+    pub fn get_process_handle() -> i32 {
+        unsafe { windows_sys::Win32::System::Threading::GetCurrentProcessId() as i32 }
+    }
+
+    pub fn get_thread_handle() -> i32 {
+        unsafe { windows_sys::Win32::System::Threading::GetCurrentThreadId() as i32 }
+    }
+}
+
+#[cfg(not(any(target_os = "linux", windows)))]
+mod sys {
+    pub fn set_thread_affinity(_cpus: &[i32], _pid: i32) -> bool {
+        false
+    }
+
+    pub fn set_process_affinity(_cpus: &[i32], _pid: i32) -> bool {
+        false
+    }
+
+    pub fn get_process_handle() -> i32 {
+        0
+    }
+
+    pub fn get_thread_handle() -> i32 {
         0
     }
 }
 
-/// Return the current thread ID (for use with `set_thread_affinity`).
-pub fn get_thread_handle() -> i32 {
-    #[cfg(target_os = "linux")]
-    {
-        unsafe { libc::syscall(libc::SYS_gettid) as i32 }
-    }
-    #[cfg(not(target_os = "linux"))]
-    {
-        0
-    }
-}
+// Re-export platform-specific functions
+pub use sys::*;
 
 // ---------------------------------------------------------------------------
 // AffinityManager

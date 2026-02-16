@@ -332,7 +332,7 @@ impl Tournament {
     fn merge_results(&self) -> StatsMap {
         let engine_configs = config::engine_configs();
         let mut map = StatsMap::new();
-        let mut seen = Vec::new();
+        let mut seen = std::collections::HashSet::new();
 
         for engine in engine_configs.iter() {
             for opponent in engine_configs.iter() {
@@ -349,7 +349,7 @@ impl Tournament {
 
                 let stats = self.scoreboard.get_stats(&engine.name, &opponent.name);
                 map.insert(pair.clone(), stats);
-                seen.push(pair);
+                seen.insert(pair);
             }
         }
 

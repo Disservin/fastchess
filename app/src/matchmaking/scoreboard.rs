@@ -33,8 +33,11 @@ pub type StatsMap = HashMap<PlayerPairKey, Stats>;
 pub fn stats_map_to_json(map: &StatsMap) -> serde_json::Value {
     let mut obj = serde_json::Map::new();
     for (key, value) in map {
-        let label = format!("{} vs {}", key.first, key.second);
-        obj.insert(label, serde_json::to_value(value).unwrap_or_default());
+        // Use tuple key directly instead of string concatenation
+        obj.insert(
+            format!("{} vs {}", key.first, key.second),
+            serde_json::to_value(value).unwrap_or_default(),
+        );
     }
     serde_json::Value::Object(obj)
 }
@@ -44,11 +47,12 @@ pub fn stats_map_from_json(j: &serde_json::Value) -> StatsMap {
     let mut map = StatsMap::new();
     if let Some(obj) = j.as_object() {
         for (key, value) in obj {
-            if let Some(pos) = key.find(" vs ") {
-                let first = key[..pos].to_string();
-                let second = key[pos + 4..].to_string();
+            if let Some((first, second)) = key.split_once(" vs ") {
                 if let Ok(stats) = serde_json::from_value::<Stats>(value.clone()) {
-                    map.insert(PlayerPairKey::new(first, second), stats);
+                    map.insert(
+                        PlayerPairKey::new(first.to_string(), second.to_string()),
+                        stats,
+                    );
                 }
             }
         }

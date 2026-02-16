@@ -152,7 +152,7 @@ impl MatchData {
         } else if self.players.black.result == GameResult::Lose {
             Some(&self.players.black)
         } else {
-            Option::None
+            None
         }
     }
 
@@ -162,7 +162,7 @@ impl MatchData {
         } else if self.players.black.result == GameResult::Win {
             Some(&self.players.black)
         } else {
-            Option::None
+            None
         }
     }
 }

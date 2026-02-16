@@ -48,13 +48,7 @@ impl Opening {
                 ) else {
                     return false;
                 };
-
-                for mv in &self.moves {
-                    if !game.make_uci_move(mv) {
-                        return false;
-                    }
-                }
-                true
+                self.moves.iter().all(|mv| game.make_uci_move(mv))
             }
             VariantType::Frc => {
                 let Some(mut game) =
@@ -62,16 +56,9 @@ impl Opening {
                 else {
                     return false;
                 };
-
-                for mv in &self.moves {
-                    if !game.make_uci_move(mv) {
-                        return false;
-                    }
-                }
-                true
+                self.moves.iter().all(|mv| game.make_uci_move(mv))
             }
             VariantType::Shogi => {
-                // For shogi, parse SFEN and validate moves
                 let Some(mut game) = (if let Some(sfen) = &self.fen_epd {
                     ShogiGame::from_sfen(sfen)
                 } else {
@@ -79,13 +66,7 @@ impl Opening {
                 }) else {
                     return false;
                 };
-
-                for mv in &self.moves {
-                    if !game.make_usi_move(mv) {
-                        return false;
-                    }
-                }
-                true
+                self.moves.iter().all(|mv| game.make_usi_move(mv))
             }
         }
     }

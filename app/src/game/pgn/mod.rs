@@ -140,14 +140,15 @@ impl PgnBuilder {
         };
 
         let mut move_counter = start_move_counter;
-        let move_count = data.moves.len();
+        let mut moves_iter = data.moves.iter().enumerate().peekable();
 
-        for i in 0..move_count {
-            let mv = &data.moves[i];
-
-            // Check if next move is illegal
-            let next_illegal = i + 1 < move_count && !data.moves[i + 1].legal;
-            let is_last = i + 1 >= move_count || next_illegal;
+        while let Some((i, mv)) = moves_iter.next() {
+            // Check if next move is illegal by peeking ahead
+            let next_illegal = moves_iter
+                .peek()
+                .map(|(_, next_mv)| !next_mv.legal)
+                .unwrap_or(false);
+            let is_last = moves_iter.peek().is_none() || next_illegal;
 
             let is_white = if !black_starts {
                 i % 2 == 0

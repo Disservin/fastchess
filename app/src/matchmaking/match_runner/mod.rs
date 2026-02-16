@@ -68,8 +68,6 @@ fn game_color_to_uci_color(c: crate::game::Color) -> Color {
 
 /// Orchestrates a single game between two UCI engines.
 pub struct Match {
-    #[allow(dead_code)]
-    opening: Opening,
     data: MatchData,
     draw_tracker: DrawTracker,
     resign_tracker: ResignTracker,
@@ -129,7 +127,6 @@ impl Match {
         }
 
         Self {
-            opening,
             data: match_data,
             draw_tracker: DrawTracker::new(&tournament_config.draw),
             resign_tracker: ResignTracker::new(&tournament_config.resign),

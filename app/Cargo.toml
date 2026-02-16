@@ -4,6 +4,11 @@ version = "0.1.0"
 edition = "2021"
 description = "A high-performance chess engine tournament manager"
 
+# [lints.clippy]
+# unwrap_used = "deny"
+# expect_used = "deny"
+# panic = "deny"
+
 [dependencies]
 # Chess library for board representation, move generation, and SAN/UCI parsing
 shakmaty = "0.27"
@@ -30,6 +35,9 @@ rand = "0.8"
 # Error handling
 thiserror = "2"
 anyhow = "1"
+
+# Parallel processing (Rayon for data parallelism)
+rayon = "1.10"
 
 # Signal handling
 ctrlc = "3"

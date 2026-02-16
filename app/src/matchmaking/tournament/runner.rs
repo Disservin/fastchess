@@ -45,8 +45,8 @@ struct SharedState {
     output_mutex: Arc<Mutex<()>>,
     match_count: Arc<std::sync::atomic::AtomicU64>,
     final_matchcount: u64,
-    file_writer_pgn: Option<Arc<Mutex<FileWriter>>>,
-    file_writer_epd: Option<Arc<Mutex<FileWriter>>>,
+    file_writer_pgn: Option<Arc<FileWriter>>,
+    file_writer_epd: Option<Arc<FileWriter>>,
     sprt: Arc<Sprt>,
     opening_file: String,
     engine_cache: Arc<EngineCache>,
@@ -68,8 +68,8 @@ pub struct Tournament {
     initial_matchcount: u64,
     final_matchcount: u64,
 
-    file_writer_pgn: Option<Arc<Mutex<FileWriter>>>,
-    file_writer_epd: Option<Arc<Mutex<FileWriter>>>,
+    file_writer_pgn: Option<Arc<FileWriter>>,
+    file_writer_epd: Option<Arc<FileWriter>>,
 
     // The scheduler is behind a mutex because `startNext()` is called from threads
     scheduler: Arc<Mutex<Option<Scheduler>>>,
@@ -145,24 +145,24 @@ impl Tournament {
         // Set up file writers
         let file_writer_pgn = if !tournament_config.pgn.file.is_empty() {
             let append = tournament_config.pgn.append_file || initial_matchcount > 0;
-            Some(Arc::new(Mutex::new(
+            Some(Arc::new(
                 FileWriter::new(
                     &tournament_config.pgn.file,
                     append,
                     tournament_config.pgn.crc,
                 )
                 .map_err(|e| e.to_string())?,
-            )))
+            ))
         } else {
             None
         };
 
         let file_writer_epd = if !tournament_config.epd.file.is_empty() {
             let append = tournament_config.epd.append_file || initial_matchcount > 0;
-            Some(Arc::new(Mutex::new(
+            Some(Arc::new(
                 FileWriter::new(&tournament_config.epd.file, append, false)
                     .map_err(|e| e.to_string())?,
-            )))
+            ))
         } else {
             None
         };
@@ -695,11 +695,7 @@ fn run_game(pairing: Pairing, state: SharedState) {
             let pgn = PgnBuilder::build(&tournament_config.pgn, match_data, pairing.round_id);
 
             match pgn {
-                Ok(content) => {
-                    if let Ok(w) = writer.lock() {
-                        w.write(&content);
-                    }
-                }
+                Ok(content) => writer.write(&content),
                 Err(e) => log::warn!("Failed to build PGN: {}", e),
             }
         }
@@ -707,9 +703,7 @@ fn run_game(pairing: Pairing, state: SharedState) {
         // Write EPD file (final position FEN)
         if let Some(ref writer) = state.file_writer_epd {
             if !match_data.fen.is_empty() {
-                if let Ok(w) = writer.lock() {
-                    w.write(&format!("{}\n", match_data.fen));
-                }
+                writer.write(&format!("{}\n", match_data.fen));
             }
         }
 

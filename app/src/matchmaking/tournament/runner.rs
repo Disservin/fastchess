@@ -15,7 +15,6 @@ use std::time::Duration;
 use crate::affinity::AffinityManager;
 use crate::core::config;
 use crate::core::file_writer::FileWriter;
-use crate::core::threadpool::{TaskSender, ThreadPool};
 use crate::engine::cache::EngineCache;
 use crate::game::book::OpeningBook;
 use crate::game::pgn::PgnBuilder;
@@ -46,7 +45,6 @@ struct SharedState {
     output_mutex: Arc<Mutex<()>>,
     match_count: Arc<std::sync::atomic::AtomicU64>,
     final_matchcount: u64,
-    sender: TaskSender,
     file_writer_pgn: Option<Arc<Mutex<FileWriter>>>,
     file_writer_epd: Option<Arc<Mutex<FileWriter>>>,
     sprt: Arc<Sprt>,
@@ -62,7 +60,6 @@ struct SharedState {
 pub struct Tournament {
     scoreboard: Arc<ScoreBoard>,
     tracker: Arc<Mutex<PlayerTracker>>,
-    pool: ThreadPool,
     output: Arc<Mutex<Box<dyn crate::matchmaking::output::Output + Send>>>,
     output_mutex: Arc<Mutex<()>>,
     sprt: Arc<Sprt>,
@@ -170,7 +167,11 @@ impl Tournament {
             None
         };
 
-        let pool = ThreadPool::new(tournament_config.concurrency);
+        // Initialize Rayon thread pool with the specified concurrency
+        rayon::ThreadPoolBuilder::new()
+            .num_threads(tournament_config.concurrency)
+            .build_global()
+            .expect("Failed to initialize Rayon thread pool");
 
         let engine_cache = Arc::new(EngineCache::new(tournament_config.affinity));
 
@@ -184,7 +185,6 @@ impl Tournament {
         Ok(Self {
             scoreboard: Arc::new(scoreboard),
             tracker: Arc::new(Mutex::new(PlayerTracker::new())),
-            pool,
             output: Arc::new(Mutex::new(output)),
             output_mutex: Arc::new(Mutex::new(())),
             sprt: Arc::new(sprt),
@@ -234,7 +234,6 @@ impl Tournament {
             output_mutex: Arc::clone(&self.output_mutex),
             match_count: Arc::clone(&self.match_count),
             final_matchcount: self.final_matchcount,
-            sender: self.pool.sender(),
             file_writer_pgn: self.file_writer_pgn.clone(),
             file_writer_epd: self.file_writer_epd.clone(),
             sprt: Arc::clone(&self.sprt),
@@ -248,7 +247,8 @@ impl Tournament {
     fn create(&mut self) {
         log::trace!("Creating matches...");
 
-        let num_threads = self.pool.num_threads();
+        let tournament_config = config::tournament_config();
+        let num_threads = tournament_config.concurrency;
         let state = self.shared_state();
 
         for _ in 0..num_threads {
@@ -259,7 +259,7 @@ impl Tournament {
 
             if let Some(pairing) = pairing {
                 let state = state.clone();
-                self.pool.enqueue(move || {
+                rayon::spawn(move || {
                     run_game(pairing, state);
                 });
             }
@@ -426,7 +426,8 @@ fn run_game(pairing: Pairing, state: SharedState) {
                             }
                         }
 
-                        // Leak the guard so CPUs stay reserved for the lifetime of this thread
+                        // Leak the guard to keep CPUs reserved for the lifetime of this thread
+                        // This is safe because the thread-local will live for the entire thread lifetime
                         std::mem::forget(guard);
                         cpus
                     }
@@ -723,7 +724,7 @@ fn run_game(pairing: Pairing, state: SharedState) {
 
             if let Some(next) = next_pairing {
                 let next_state = state.clone();
-                state.sender.enqueue(move || {
+                rayon::spawn(move || {
                     run_game(next, next_state);
                 });
             }

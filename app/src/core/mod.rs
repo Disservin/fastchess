@@ -1,7 +1,6 @@
 pub mod config;
 pub mod file_writer;
 pub mod logger;
-pub mod threadpool;
 
 use chrono::Local;
 

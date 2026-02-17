@@ -1,18 +1,21 @@
-//! Engine cache — reuses engine processes across games (simplified).
+//! Engine cache — reuses engine processes across games.
 //!
-//! Key simplifications from original:
-//! - Uses `dashmap` instead of `Mutex<HashMap>` for lock-free pool lookup
-//! - Removes separate `EngineRef` type - direct `Deref` on guard instead
-//! - Simpler ownership: one Arc per entry instead of Arc<Mutex<>>
+//! Uses `dashmap` for global pools and `thread_local!` for affinity pools.
 
 use dashmap::DashMap;
+use std::cell::RefCell;
+use std::collections::HashMap;
 use std::ops::{Deref, DerefMut};
 use std::sync::{Arc, Mutex, MutexGuard};
-use std::thread;
 
 use crate::engine::process::ProcessError;
 use crate::engine::uci_engine::UciEngine;
 use crate::types::engine_config::EngineConfiguration;
+
+thread_local! {
+    static THREAD_POOLS: RefCell<HashMap<String, Arc<NamePool>>> =
+        RefCell::new(HashMap::new());
+}
 
 /// A pooled engine entry with its own lock (allows concurrent use of different engines).
 struct PooledEngine {
@@ -68,7 +71,7 @@ impl NamePool {
     }
 }
 
-/// RAII guard for engine access. Implements Deref/DerefMut for ergonomic use.
+/// RAII guard for engine access.
 pub struct EngineGuard {
     entry: Arc<PooledEngine>,
     pool: Arc<NamePool>,
@@ -76,7 +79,7 @@ pub struct EngineGuard {
 }
 
 impl EngineGuard {
-    /// Lock the engine for use. Returns a guard that derefs to &mut UciEngine.
+    /// Lock the engine for use.
     pub fn lock(&self) -> EngineRef<'_> {
         EngineRef {
             guard: self.entry.engine.lock().unwrap(),
@@ -103,7 +106,7 @@ impl Drop for EngineGuard {
     }
 }
 
-/// Locked reference to engine (implements Deref/DerefMut).
+/// Locked reference to engine.
 pub struct EngineRef<'a> {
     guard: MutexGuard<'a, UciEngine>,
 }
@@ -125,7 +128,6 @@ impl<'a> DerefMut for EngineRef<'a> {
 pub struct EngineCache {
     affinity: bool,
     global: DashMap<String, Arc<NamePool>>,
-    per_thread: DashMap<thread::ThreadId, DashMap<String, Arc<NamePool>>>,
 }
 
 impl EngineCache {
@@ -133,7 +135,6 @@ impl EngineCache {
         Self {
             affinity,
             global: DashMap::new(),
-            per_thread: DashMap::new(),
         }
     }
 
@@ -155,10 +156,13 @@ impl EngineCache {
 
     fn get_pool(&self, name: &str) -> Arc<NamePool> {
         if self.affinity {
-            let tid = thread::current().id();
-            let thread_map = self.per_thread.entry(tid).or_default();
-            let pool = thread_map.entry(name.to_string()).or_default().clone();
-            pool
+            THREAD_POOLS.with(|pools| {
+                pools
+                    .borrow_mut()
+                    .entry(name.to_string())
+                    .or_default()
+                    .clone()
+            })
         } else {
             self.global.entry(name.to_string()).or_default().clone()
         }
@@ -196,15 +200,11 @@ mod tests {
         let cache = EngineCache::new(false);
         let config = dummy_config("engine1");
 
-        // First checkout creates a new entry
         let _guard1 = cache
             .get_engine("engine1", &config, false)
             .expect("Failed to get engine");
-
-        // Guard drops here, releasing the engine
         drop(_guard1);
 
-        // Second checkout should reuse
         let _guard2 = cache
             .get_engine("engine1", &config, false)
             .expect("Failed to get engine");
@@ -219,10 +219,8 @@ mod tests {
             let _guard = cache
                 .get_engine("engine1", &config, false)
                 .expect("Failed to get engine");
-            // Guard drops here with restart=true, engine should be deleted
         }
 
-        // Pool should be empty - next checkout creates a new engine
         let _guard2 = cache
             .get_engine("engine1", &config, false)
             .expect("Failed to get engine");
@@ -234,7 +232,6 @@ mod tests {
         let config1 = dummy_config("white");
         let config2 = dummy_config("black");
 
-        // Check out two engines at the same time (like a game)
         let guard1 = cache
             .get_engine("white", &config1, false)
             .expect("Failed to get white engine");
@@ -242,7 +239,6 @@ mod tests {
             .get_engine("black", &config2, false)
             .expect("Failed to get black engine");
 
-        // Lock both simultaneously - no deadlock because each entry has its own mutex
         {
             let _ref1 = guard1.lock();
             let _ref2 = guard2.lock();
@@ -260,7 +256,6 @@ mod tests {
                 .expect("Failed to get engine");
         }
 
-        // Same thread - should reuse
         {
             let _guard = cache
                 .get_engine("engine1", &config, false)

@@ -14,6 +14,34 @@ use crate::matchmaking::stats::Stats;
 use crate::types::engine_config::{EngineConfiguration, GamePair};
 use crate::types::enums::OutputType;
 
+/// Information needed for displaying engine metadata in output.
+/// This is a lightweight alternative to passing full UciEngine references.
+#[derive(Debug, Clone)]
+pub struct EngineDisplayInfo {
+    pub config: EngineConfiguration,
+    pub threads: Option<String>,
+    pub hash: Option<String>,
+}
+
+impl EngineDisplayInfo {
+    /// Create EngineDisplayInfo from a UciEngine reference.
+    pub fn from_uci_engine(engine: &UciEngine) -> Self {
+        let threads = engine
+            .uci_options()
+            .get_option("Threads")
+            .map(|opt| opt.value_string());
+        let hash = engine
+            .uci_options()
+            .get_option("Hash")
+            .map(|opt| opt.value_string());
+        Self {
+            config: engine.config().clone(),
+            threads,
+            hash,
+        }
+    }
+}
+
 /// Format a Stats result as a game-result string.
 pub fn format_stats(stats: &Stats) -> &'static str {
     if stats.wins > 0 {
@@ -36,7 +64,7 @@ pub trait Output: Send {
         stats: &Stats,
         first: &str,
         second: &str,
-        engines: (&UciEngine, &UciEngine),
+        engines: (&EngineDisplayInfo, &EngineDisplayInfo),
         book: &str,
         scoreboard: &ScoreBoard,
     ) {
@@ -58,7 +86,7 @@ pub trait Output: Send {
         stats: &Stats,
         first: &str,
         second: &str,
-        engines: (&UciEngine, &UciEngine),
+        engines: (&EngineDisplayInfo, &EngineDisplayInfo),
         book: &str,
         scoreboard: &ScoreBoard,
     ) -> String;
@@ -131,23 +159,23 @@ impl FastchessOutput {
         stats: &Stats,
         first: &str,
         second: &str,
-        engines: (&UciEngine, &UciEngine),
+        engines: (&EngineDisplayInfo, &EngineDisplayInfo),
         book: &str,
     ) -> String {
         let elo_result = self.create_elo(stats);
 
-        let first_engine = if engines.0.config().name == first {
+        let first_engine = if engines.0.config.name == first {
             engines.0
         } else {
             engines.1
         };
-        let second_engine = if engines.0.config().name == second {
+        let second_engine = if engines.0.config.name == second {
             engines.0
         } else {
             engines.1
         };
 
-        let tc = self.format_time_control(first_engine.config(), second_engine.config());
+        let tc = self.format_time_control(&first_engine.config, &second_engine.config);
         let threads = self.format_threads_from_engines(first_engine, second_engine);
         let hash = self.format_hash_from_engines(first_engine, second_engine);
         let bookname = get_short_name(book);
@@ -225,17 +253,17 @@ impl FastchessOutput {
         }
     }
 
-    fn get_threads(engine: &UciEngine) -> String {
-        if let Some(opt) = engine.uci_options().get_option("Threads") {
-            format!("{}t", opt.value_string())
+    fn get_threads(engine: &EngineDisplayInfo) -> String {
+        if let Some(ref threads) = engine.threads {
+            format!("{}t", threads)
         } else {
             "NULL".to_string()
         }
     }
 
-    fn get_hash(engine: &UciEngine) -> String {
-        if let Some(opt) = engine.uci_options().get_option("Hash") {
-            format!("{}MB", opt.value_string())
+    fn get_hash(engine: &EngineDisplayInfo) -> String {
+        if let Some(ref hash) = engine.hash {
+            format!("{}MB", hash)
         } else {
             "NULL".to_string()
         }
@@ -275,7 +303,11 @@ impl FastchessOutput {
         }
     }
 
-    fn format_threads_from_engines(&self, first: &UciEngine, second: &UciEngine) -> String {
+    fn format_threads_from_engines(
+        &self,
+        first: &EngineDisplayInfo,
+        second: &EngineDisplayInfo,
+    ) -> String {
         let t1 = Self::get_threads(first);
         let t2 = Self::get_threads(second);
         if t1 == t2 {
@@ -285,7 +317,11 @@ impl FastchessOutput {
         }
     }
 
-    fn format_hash_from_engines(&self, first: &UciEngine, second: &UciEngine) -> String {
+    fn format_hash_from_engines(
+        &self,
+        first: &EngineDisplayInfo,
+        second: &EngineDisplayInfo,
+    ) -> String {
         let h1 = Self::get_hash(first);
         let h2 = Self::get_hash(second);
         if h1 == h2 {
@@ -303,7 +339,7 @@ impl Output for FastchessOutput {
         stats: &Stats,
         first: &str,
         second: &str,
-        engines: (&UciEngine, &UciEngine),
+        engines: (&EngineDisplayInfo, &EngineDisplayInfo),
         book: &str,
         scoreboard: &ScoreBoard,
     ) {
@@ -325,7 +361,7 @@ impl Output for FastchessOutput {
         stats: &Stats,
         first: &str,
         second: &str,
-        engines: (&UciEngine, &UciEngine),
+        engines: (&EngineDisplayInfo, &EngineDisplayInfo),
         book: &str,
         scoreboard: &ScoreBoard,
     ) -> String {
@@ -487,7 +523,7 @@ impl Output for CutechessOutput {
         stats: &Stats,
         first: &str,
         second: &str,
-        engines: (&UciEngine, &UciEngine),
+        engines: (&EngineDisplayInfo, &EngineDisplayInfo),
         book: &str,
         scoreboard: &ScoreBoard,
     ) {
@@ -517,7 +553,7 @@ impl Output for CutechessOutput {
         stats: &Stats,
         _first: &str,
         _second: &str,
-        _engines: (&UciEngine, &UciEngine),
+        _engines: (&EngineDisplayInfo, &EngineDisplayInfo),
         _book: &str,
         scoreboard: &ScoreBoard,
     ) -> String {

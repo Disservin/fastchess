@@ -343,7 +343,7 @@ impl UciEngine {
         }
 
         if res.is_err() {
-            if !crate::STOP.load(std::sync::atomic::Ordering::Relaxed) {
+            if !crate::is_stop() {
                 log_trace!("Engine {} didn't respond to isready", self.config.name);
                 log_warn!("Warning; Engine {} is not responsive", self.config.name);
             }

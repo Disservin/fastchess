@@ -221,8 +221,7 @@ impl Tournament {
         let mut save_iter = self.initial_matchcount + save_interval as u64;
 
         // Wait for games to finish
-        while self.match_count.load(Ordering::Relaxed) < self.final_matchcount
-            && !crate::STOP.load(Ordering::Relaxed)
+        while self.match_count.load(Ordering::Relaxed) < self.final_matchcount && !crate::is_stop()
         {
             if save_interval > 0 && self.match_count.load(Ordering::Relaxed) >= save_iter {
                 self.save_json();
@@ -407,7 +406,7 @@ fn all_matches_played(match_count: u64, final_matchcount: u64) -> bool {
 /// This is a free function (not a method) so it can be called from within
 /// worker closures without borrowing `Tournament`.
 fn run_game(pairing: Pairing, state: SharedState) {
-    if crate::STOP.load(Ordering::Relaxed) {
+    if crate::is_stop() {
         return;
     }
 
@@ -504,8 +503,8 @@ fn run_game(pairing: Pairing, state: SharedState) {
 
         log::trace!("Restarting engine {}", engine_name);
         if let Err(e) = engine.restart(cpus_for_game.as_deref()) {
-            crate::ABNORMAL_TERMINATION.store(true, Ordering::Relaxed);
-            crate::STOP.store(true, Ordering::Relaxed);
+            crate::set_abnormal_termination();
+            crate::set_stop();
             log::error!("Failed to restart engine: {}", e);
         }
     };
@@ -543,8 +542,8 @@ fn run_game(pairing: Pairing, state: SharedState) {
         Ok(info) => info,
         Err(GameError::EngineCreation(e)) => {
             log::error!("Failed to create engine, aborting: {}", e);
-            crate::ABNORMAL_TERMINATION.store(true, Ordering::Relaxed);
-            crate::STOP.store(true, Ordering::Relaxed);
+            crate::set_abnormal_termination();
+            crate::set_stop();
             return;
         }
         Err(GameError::NoRecover) => {
@@ -553,7 +552,7 @@ fn run_game(pairing: Pairing, state: SharedState) {
                     "Game {} stalled/disconnected, no recover option set, stopping tournament.",
                     pairing.game_id
                 );
-                crate::ABNORMAL_TERMINATION.store(true, Ordering::Relaxed);
+                crate::set_abnormal_termination();
             }
             return;
         }
@@ -569,8 +568,7 @@ fn run_game(pairing: Pairing, state: SharedState) {
     );
 
     // Record results if the game completed normally
-    if match_data.termination != MatchTermination::Interrupt && !crate::STOP.load(Ordering::Relaxed)
-    {
+    if match_data.termination != MatchTermination::Interrupt && !crate::is_stop() {
         // Build stats from white's perspective
         let stats = match match_data.players.white.result {
             GameResult::Win => Stats::new(1, 0, 0),
@@ -647,7 +645,8 @@ fn run_game(pairing: Pairing, state: SharedState) {
 
             if sprt_result != SprtResult::Continue || is_last {
                 log::trace!("SPRT test finished, stopping tournament.");
-                crate::STOP.store(true, Ordering::Relaxed);
+
+                crate::set_stop();
 
                 let termination_message = format!(
                     "SPRT ({}) completed - {} was accepted",
@@ -702,7 +701,7 @@ fn run_game(pairing: Pairing, state: SharedState) {
         state.match_count.fetch_add(1, Ordering::Relaxed);
 
         // Schedule next game (only if not stopping)
-        if !crate::STOP.load(Ordering::Relaxed) {
+        if !crate::is_stop() {
             let next_pairing = {
                 let mut sched = state.scheduler.lock().unwrap();
                 sched.as_mut().and_then(|s| s.next())

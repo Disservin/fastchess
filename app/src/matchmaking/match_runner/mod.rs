@@ -169,11 +169,13 @@ impl Match {
 
         // Start engines
         if let Err(e) = white_player.engine.start(cpus) {
-            if crate::STOP.load(std::sync::atomic::Ordering::Relaxed) {
+            if crate::is_stop() {
                 return;
             }
-            crate::STOP.store(true, std::sync::atomic::Ordering::Relaxed);
-            crate::ABNORMAL_TERMINATION.store(true, std::sync::atomic::Ordering::Relaxed);
+
+            crate::set_stop();
+            crate::set_abnormal_termination();
+
             log::error!(
                 "Fatal; {} engine startup failure: \"{}\"",
                 white_player.engine.config().name,
@@ -183,11 +185,13 @@ impl Match {
         }
 
         if let Err(e) = black_player.engine.start(cpus) {
-            if crate::STOP.load(std::sync::atomic::Ordering::Relaxed) {
+            if crate::is_stop() {
                 return;
             }
-            crate::STOP.store(true, std::sync::atomic::Ordering::Relaxed);
-            crate::ABNORMAL_TERMINATION.store(true, std::sync::atomic::Ordering::Relaxed);
+
+            crate::set_stop();
+            crate::set_abnormal_termination();
+
             log::error!(
                 "Fatal; {} engine startup failure: \"{}\"",
                 black_player.engine.config().name,
@@ -196,7 +200,7 @@ impl Match {
             return;
         }
 
-        if crate::STOP.load(std::sync::atomic::Ordering::Relaxed) {
+        if crate::is_stop() {
             return;
         }
 
@@ -240,7 +244,7 @@ impl Match {
     /// The core game loop.
     fn game_loop<'a>(&mut self, white: &mut Player<'a>, black: &mut Player<'a>, white_first: bool) {
         loop {
-            if crate::STOP.load(std::sync::atomic::Ordering::Relaxed) {
+            if crate::is_stop() {
                 self.data.termination = MatchTermination::Interrupt;
                 break;
             }
@@ -254,7 +258,7 @@ impl Match {
                 break;
             }
 
-            if crate::STOP.load(std::sync::atomic::Ordering::Relaxed) {
+            if crate::is_stop() {
                 self.data.termination = MatchTermination::Interrupt;
                 break;
             }
@@ -337,7 +341,7 @@ impl Match {
 
         let elapsed_ms = t1.duration_since(t0).as_millis() as i64;
 
-        if crate::STOP.load(std::sync::atomic::Ordering::Relaxed) {
+        if crate::is_stop() {
             self.data.termination = MatchTermination::Interrupt;
             return false;
         }
@@ -541,7 +545,7 @@ impl Match {
         let stm = self.side_to_move();
         let name = color_name(stm, self.variant);
 
-        if crate::STOP.load(std::sync::atomic::Ordering::Relaxed) {
+        if crate::is_stop() {
             self.data.termination = MatchTermination::Interrupt;
             self.data.reason = INTERRUPTED_MSG.to_string();
         } else {

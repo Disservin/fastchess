@@ -154,29 +154,6 @@ impl UciEngine {
         Ok(true)
     }
 
-    /// Restart the engine process completely.
-    ///
-    /// Kills the current process, creates a new one, and reinitializes UCI.
-    /// Returns `Ok(true)` on success, `Err(message)` on failure.
-    pub fn restart(&mut self, cpus: Option<&[i32]>) -> Result<bool, String> {
-        log_trace!("Restarting engine {}", self.config.name);
-
-        self.quit();
-
-        // Create a new process (old one is dropped/killed)
-        let mut new_process = Process::new().map_err(|e| e.to_string())?;
-        new_process.set_realtime_logging(self.realtime_logging);
-        self.process = new_process;
-
-        // Reset state
-        self.initialized = false;
-        self.uci_options = UCIOptions::new();
-        self.output.clear();
-
-        // Re-initialize
-        self.start(cpus)
-    }
-
     /// Restart/refresh the engine for a new game: send `ucinewgame`, reapply
     /// options, and optionally set `UCI_Chess960` for FRC.
     pub fn refresh_uci(&mut self) -> bool {
@@ -220,6 +197,29 @@ impl UciEngine {
         }
         let _ = self.write_engine("stop");
         let _ = self.write_engine("quit");
+    }
+
+    /// Restart the engine process completely.
+    ///
+    /// Kills the current process, creates a new one, and reinitializes UCI.
+    /// Returns `Ok(true)` on success, `Err(message)` on failure.
+    pub fn restart(&mut self, cpus: Option<&[i32]>) -> Result<bool, String> {
+        log_trace!("Restarting engine {}", self.config.name);
+
+        self.quit();
+
+        // Create a new process (old one is dropped/killed)
+        let mut new_process = Process::new().map_err(|e| e.to_string())?;
+        new_process.set_realtime_logging(self.realtime_logging);
+        self.process = new_process;
+
+        // Reset state
+        self.initialized = false;
+        self.uci_options = UCIOptions::new();
+        self.output.clear();
+
+        // Re-initialize
+        self.start(cpus)
     }
 
     // ── UCI commands ─────────────────────────────────────────────────────────

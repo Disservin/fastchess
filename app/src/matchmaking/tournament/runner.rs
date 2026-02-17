@@ -12,10 +12,14 @@ use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::Duration;
 
+use thiserror::Error;
+
 use crate::affinity::AffinityManager;
 use crate::core::config;
 use crate::core::file_writer::FileWriter;
-use crate::engine::cache::{EngineCache, EngineGuard};
+use crate::engine::cache::EngineCache;
+use crate::engine::process::ProcessError;
+use crate::engine::UciEngine;
 use crate::game::book::OpeningBook;
 use crate::game::pgn::PgnBuilder;
 use crate::matchmaking::match_runner::Match;
@@ -79,6 +83,14 @@ pub struct Tournament {
 
     // CPU affinity manager — allocates CPU cores to worker threads
     affinity_manager: Arc<AffinityManager>,
+}
+
+#[derive(Error, Debug, Clone)]
+enum GameError {
+    #[error("Engine creation failed: {0}")]
+    EngineCreation(ProcessError),
+    #[error("Game stalled")]
+    NoRecover,
 }
 
 impl Tournament {
@@ -484,64 +496,58 @@ fn run_game(pairing: Pairing, state: SharedState) {
         let out = state.output.lock().unwrap();
         out.start_game(&configs, pairing.game_id, state.final_matchcount as usize);
     }
-    
 
-    // Check out engines from the cache
-    let white_guard = match state
+    let restart_if_unresponsive = |engine: &mut UciEngine, engine_name: &str| {
+        if engine.isready(None).is_ok() {
+            return;
+        }
+
+        log::trace!("Restarting engine {}", engine_name);
+        if let Err(e) = engine.restart(cpus_for_game.as_deref()) {
+            crate::ABNORMAL_TERMINATION.store(true, Ordering::Relaxed);
+            crate::STOP.store(true, Ordering::Relaxed);
+            log::error!("Failed to restart engine: {}", e);
+        }
+    };
+
+    let (game, white_info, black_info) = match state
         .engine_cache
-        .get_engine(&configs.white.name, configs.white, rl)
+        .with_engines(
+            &configs.white.name,
+            configs.white,
+            &configs.black.name,
+            configs.black,
+            rl,
+            |white, black| {
+                let mut game = Match::new(opening, tournament_config);
+                game.start(white, black, cpus_for_game.as_deref());
+
+                if game.is_stall_or_disconnect() {
+                    if !tournament_config.recover {
+                        return Err(GameError::NoRecover);
+                    }
+
+                    restart_if_unresponsive(white, &configs.white.name);
+                    restart_if_unresponsive(black, &configs.black.name);
+                }
+
+                let white_info = EngineDisplayInfo::from_uci_engine(white);
+                let black_info = EngineDisplayInfo::from_uci_engine(black);
+
+                Ok((game, white_info, black_info))
+            },
+        )
+        .map_err(GameError::EngineCreation)
+        .flatten()
     {
-        Ok(guard) => guard,
-        Err(e) => {
-            log::error!("Failed to create white engine: {}", e);
+        Ok(info) => info,
+        Err(GameError::EngineCreation(e)) => {
+            log::error!("Failed to create engine, aborting: {}", e);
             crate::ABNORMAL_TERMINATION.store(true, Ordering::Relaxed);
             crate::STOP.store(true, Ordering::Relaxed);
             return;
         }
-    };
-    let black_guard = match state
-        .engine_cache
-        .get_engine(&configs.black.name, configs.black, rl)
-    {
-        Ok(guard) => guard,
-        Err(e) => {
-            log::error!("Failed to create black engine: {}", e);
-            crate::ABNORMAL_TERMINATION.store(true, Ordering::Relaxed);
-            crate::STOP.store(true, Ordering::Relaxed);
-            return;
-        }
-    };
-
-    let mut white_ref = white_guard.lock();
-    let mut black_ref = black_guard.lock();
-
-    // Run the match — lock both engines for the duration of the game
-    let mut game = Match::new(opening, tournament_config);
-    {
-        // Pass CPUs to engines (will be set on engine processes)
-        let cpus_slice = cpus_for_game.as_deref();
-        game.start(&mut white_ref, &mut black_ref, cpus_slice);
-    }
-
-    let white_info = EngineDisplayInfo::from_uci_engine(&*white_ref);
-    let black_info = EngineDisplayInfo::from_uci_engine(&*black_ref);
-
-    // Drop engine refs early - we only need the display info from now on
-    drop(white_ref);
-    drop(black_ref);
-
-    let match_data = game.get();
-
-    log::trace!(
-        "Game {} between {} and {} finished",
-        pairing.game_id,
-        configs.white.name,
-        configs.black.name
-    );
-
-    // Handle stall/disconnect
-    if game.is_stall_or_disconnect() {
-        if !tournament_config.recover {
+        Err(GameError::NoRecover) => {
             if !crate::STOP.swap(true, Ordering::Relaxed) {
                 log::warn!(
                     "Game {} stalled/disconnected, no recover option set, stopping tournament.",
@@ -551,24 +557,16 @@ fn run_game(pairing: Pairing, state: SharedState) {
             }
             return;
         }
+    };
 
-        let restart_if_unresponsive = |guard: &EngineGuard, name: &str, engine_name: &str| {
-            let mut engine_ref = guard.lock();
-            let responsive = engine_ref.isready(None).is_ok();
-            drop(engine_ref);
-            if !responsive {
-                log::trace!("Restarting {} engine {}", name, engine_name);
-                if let Err(e) = guard.restart_engine() {
-                    crate::ABNORMAL_TERMINATION.store(true, Ordering::Relaxed);
-                    crate::STOP.store(true, Ordering::Relaxed);
-                    log::error!("Failed to restart {} engine: {}", name, e);
-                }
-            }
-        };
+    let match_data = game.get();
 
-        restart_if_unresponsive(&white_guard, "white", &configs.white.name);
-        restart_if_unresponsive(&black_guard, "black", &configs.black.name);
-    }
+    log::trace!(
+        "Game {} between {} and {} finished",
+        pairing.game_id,
+        configs.white.name,
+        configs.black.name
+    );
 
     // Record results if the game completed normally
     if match_data.termination != MatchTermination::Interrupt && !crate::STOP.load(Ordering::Relaxed)
@@ -721,8 +719,6 @@ fn run_game(pairing: Pairing, state: SharedState) {
 
     // Drop engine guards (returns engines to cache, or deletes if restart=on)
     // This happens automatically, but we do it before timeout tracking for clarity.
-    drop(white_guard);
-    drop(black_guard);
 
     // Track timeouts/disconnects
     if let Some(loser) = match_data.get_losing_player() {

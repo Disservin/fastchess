@@ -15,11 +15,11 @@ use std::time::Duration;
 use crate::affinity::AffinityManager;
 use crate::core::config;
 use crate::core::file_writer::FileWriter;
-use crate::engine::cache::EngineCache;
+use crate::engine::cache::{EngineCache, EngineGuard};
 use crate::game::book::OpeningBook;
 use crate::game::pgn::PgnBuilder;
 use crate::matchmaking::match_runner::Match;
-use crate::matchmaking::output::create_output;
+use crate::matchmaking::output::{create_output, EngineDisplayInfo};
 use crate::matchmaking::scoreboard::{PlayerPairKey, ScoreBoard, StatsMap};
 use crate::matchmaking::sprt::{Sprt, SprtModel, SprtResult};
 use crate::matchmaking::stats::Stats;
@@ -484,6 +484,7 @@ fn run_game(pairing: Pairing, state: SharedState) {
         let out = state.output.lock().unwrap();
         out.start_game(&configs, pairing.game_id, state.final_matchcount as usize);
     }
+    
 
     // Check out engines from the cache
     let white_guard = match state
@@ -511,15 +512,23 @@ fn run_game(pairing: Pairing, state: SharedState) {
         }
     };
 
+    let mut white_ref = white_guard.lock();
+    let mut black_ref = black_guard.lock();
+
     // Run the match — lock both engines for the duration of the game
     let mut game = Match::new(opening, tournament_config);
     {
-        let mut white_ref = white_guard.lock();
-        let mut black_ref = black_guard.lock();
         // Pass CPUs to engines (will be set on engine processes)
         let cpus_slice = cpus_for_game.as_deref();
         game.start(&mut white_ref, &mut black_ref, cpus_slice);
     }
+
+    let white_info = EngineDisplayInfo::from_uci_engine(&*white_ref);
+    let black_info = EngineDisplayInfo::from_uci_engine(&*black_ref);
+
+    // Drop engine refs early - we only need the display info from now on
+    drop(white_ref);
+    drop(black_ref);
 
     let match_data = game.get();
 
@@ -543,33 +552,22 @@ fn run_game(pairing: Pairing, state: SharedState) {
             return;
         }
 
-        // Restart engines that are not responsive (recover mode)
-        {
-            let mut white_ref = white_guard.lock();
-            let responsive = white_ref.isready(None).is_ok();
-            drop(white_ref);
+        let restart_if_unresponsive = |guard: &EngineGuard, name: &str, engine_name: &str| {
+            let mut engine_ref = guard.lock();
+            let responsive = engine_ref.isready(None).is_ok();
+            drop(engine_ref);
             if !responsive {
-                log::trace!("Restarting white engine {}", configs.white.name);
-                if let Err(e) = white_guard.restart_engine() {
+                log::trace!("Restarting {} engine {}", name, engine_name);
+                if let Err(e) = guard.restart_engine() {
                     crate::ABNORMAL_TERMINATION.store(true, Ordering::Relaxed);
                     crate::STOP.store(true, Ordering::Relaxed);
-                    log::error!("Failed to restart white engine: {}", e);
+                    log::error!("Failed to restart {} engine: {}", name, e);
                 }
             }
-        }
-        {
-            let mut black_ref = black_guard.lock();
-            let responsive = black_ref.isready(None).is_ok();
-            drop(black_ref);
-            if !responsive {
-                log::trace!("Restarting black engine {}", configs.black.name);
-                if let Err(e) = black_guard.restart_engine() {
-                    crate::ABNORMAL_TERMINATION.store(true, Ordering::Relaxed);
-                    crate::STOP.store(true, Ordering::Relaxed);
-                    log::error!("Failed to restart black engine: {}", e);
-                }
-            }
-        }
+        };
+
+        restart_if_unresponsive(&white_guard, "white", &configs.white.name);
+        restart_if_unresponsive(&black_guard, "black", &configs.black.name);
     }
 
     // Record results if the game completed normally
@@ -630,15 +628,13 @@ fn run_game(pairing: Pairing, state: SharedState) {
         };
 
         if (should_print_rating && pair_completed) || is_last {
-            let white_ref = white_guard.lock();
-            let black_ref = black_guard.lock();
             let out = state.output.lock().unwrap();
             out.print_interval(
                 &state.sprt,
                 &updated_stats,
                 &first_name,
                 &second_name,
-                (&*white_ref, &*black_ref),
+                (&white_info, &black_info),
                 &state.opening_file,
                 &state.scoreboard,
             );
@@ -671,14 +667,12 @@ fn run_game(pairing: Pairing, state: SharedState) {
                 // Only print these if we haven't already printed them above
                 if !((should_print_rating && pair_completed) || is_last) {
                     out.print_result(&updated_stats, &first_name, &second_name);
-                    let white_ref = white_guard.lock();
-                    let black_ref = black_guard.lock();
                     out.print_interval(
                         &state.sprt,
                         &updated_stats,
                         &first_name,
                         &second_name,
-                        (&*white_ref, &*black_ref),
+                        (&white_info, &black_info),
                         &state.opening_file,
                         &state.scoreboard,
                     );

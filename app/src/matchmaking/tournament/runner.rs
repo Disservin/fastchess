@@ -481,37 +481,33 @@ fn restart_engine_if_unresponsive(engine: &EngineGuard, engine_name: &str) {
     }
 }
 
+/// Get a single engine from cache with error handling.
+fn get_single_engine(
+    state: &SharedState,
+    name: &str,
+    config: &'static crate::types::engine_config::EngineConfiguration,
+    rl: bool,
+    color: &str,
+) -> Option<EngineGuard> {
+    match state.engine_cache.get_engine(name, config, rl) {
+        Ok(guard) => Some(guard),
+        Err(e) => {
+            log::error!("Failed to create {} engine: {}", color, e);
+            crate::ABNORMAL_TERMINATION.store(true, Ordering::Relaxed);
+            crate::STOP.store(true, Ordering::Relaxed);
+            None
+        }
+    }
+}
+
 /// Get engines from cache, returning early on error.
 fn get_engines(
     state: &SharedState,
     configs: &GamePair<&'static crate::types::engine_config::EngineConfiguration>,
     rl: bool,
 ) -> Option<(EngineGuard, EngineGuard)> {
-    let white_guard = match state
-        .engine_cache
-        .get_engine(&configs.white.name, configs.white, rl)
-    {
-        Ok(guard) => guard,
-        Err(e) => {
-            log::error!("Failed to create white engine: {}", e);
-            crate::ABNORMAL_TERMINATION.store(true, Ordering::Relaxed);
-            crate::STOP.store(true, Ordering::Relaxed);
-            return None;
-        }
-    };
-
-    let black_guard = match state
-        .engine_cache
-        .get_engine(&configs.black.name, configs.black, rl)
-    {
-        Ok(guard) => guard,
-        Err(e) => {
-            log::error!("Failed to create black engine: {}", e);
-            crate::ABNORMAL_TERMINATION.store(true, Ordering::Relaxed);
-            crate::STOP.store(true, Ordering::Relaxed);
-            return None;
-        }
-    };
+    let white_guard = get_single_engine(state, &configs.white.name, configs.white, rl, "white")?;
+    let black_guard = get_single_engine(state, &configs.black.name, configs.black, rl, "black")?;
 
     Some((white_guard, black_guard))
 }

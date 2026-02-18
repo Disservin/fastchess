@@ -80,6 +80,9 @@ pub struct Match {
     game: GameInstance,
     /// The variant type (Standard, Chess960, or Shogi).
     variant: VariantType,
+    /// Which color is to move at the start (after applying opening).
+    /// Used to determine which player plays white.
+    side_to_move_at_start: Color,
 }
 
 impl Match {
@@ -126,6 +129,9 @@ impl Match {
             }
         }
 
+        // Capture which color is to move after applying the opening
+        let side_to_move_at_start = game_color_to_uci_color(game.side_to_move());
+
         Self {
             data: match_data,
             draw_tracker: DrawTracker::new(&tournament_config.draw),
@@ -137,12 +143,19 @@ impl Match {
             stall_or_disconnect: false,
             game,
             variant,
+            side_to_move_at_start,
         }
     }
 
     /// Current side to move (from the game).
     fn side_to_move(&self) -> Color {
         game_color_to_uci_color(self.game.side_to_move())
+    }
+
+    /// Side to move at the start of the game (after applying opening).
+    /// Used to determine which player plays white.
+    fn side_to_move_at_start(&self) -> Color {
+        self.side_to_move_at_start
     }
 
     /// Half-move clock (for fifty-move rule) from the game.
@@ -163,12 +176,17 @@ impl Match {
     ///
     /// This is the main entry point. It starts the engines, runs the game loop,
     /// and populates the `MatchData` with the result.
-    pub fn start(&mut self, white: &mut UciEngine, black: &mut UciEngine, cpus: Option<&[i32]>) {
-        let mut white_player = Player::new(white);
-        let mut black_player = Player::new(black);
+    ///
+    /// The `first` and `second` parameters refer to the player order from the pairing,
+    /// not colors. The actual color assignment (who plays white/black) is determined
+    /// by the opening position after applying opening moves.
+    pub fn start(&mut self, first: &mut UciEngine, second: &mut UciEngine, cpus: Option<&[i32]>) {
+        // Create players in pairing order
+        let mut first_player = Player::new(first);
+        let mut second_player = Player::new(second);
 
         // Start engines
-        if let Err(e) = white_player.engine.start(cpus) {
+        if let Err(e) = first_player.engine.start(cpus) {
             if crate::is_stop() {
                 return;
             }
@@ -178,13 +196,13 @@ impl Match {
 
             log::error!(
                 "Fatal; {} engine startup failure: \"{}\"",
-                white_player.engine.config().name,
+                first_player.engine.config().name,
                 e
             );
             return;
         }
 
-        if let Err(e) = black_player.engine.start(cpus) {
+        if let Err(e) = second_player.engine.start(cpus) {
             if crate::is_stop() {
                 return;
             }
@@ -194,7 +212,7 @@ impl Match {
 
             log::error!(
                 "Fatal; {} engine startup failure: \"{}\"",
-                black_player.engine.config().name,
+                second_player.engine.config().name,
                 e
             );
             return;
@@ -205,22 +223,23 @@ impl Match {
         }
 
         // Refresh UCI
-        if !white_player.engine.refresh_uci() {
-            self.set_engine_crash_status(&mut white_player, &mut black_player);
+        if !first_player.engine.refresh_uci() {
+            self.set_engine_crash_status(&mut first_player, &mut second_player);
         }
 
-        if !black_player.engine.refresh_uci() {
-            self.set_engine_crash_status(&mut black_player, &mut white_player);
+        if !second_player.engine.refresh_uci() {
+            self.set_engine_crash_status(&mut second_player, &mut first_player);
         }
 
         // Check connection
-        self.valid_connection(&mut white_player, &mut black_player);
+        self.valid_connection(&mut first_player, &mut second_player);
 
         let start_time = Instant::now();
 
         if self.data.termination == MatchTermination::None {
-            let white_first = self.side_to_move() == Color::White;
-            self.game_loop(&mut white_player, &mut black_player, white_first);
+            // Run the game loop with first/second players
+            // The loop determines color assignment from the opening position
+            self.game_loop(&mut first_player, &mut second_player);
         }
 
         let elapsed = start_time.elapsed();
@@ -229,32 +248,50 @@ impl Match {
         self.data.end_time = crate::core::datetime_iso();
         self.data.duration = crate::core::duration_string(elapsed);
 
-        self.data.players = GamePair::new(
-            PlayerInfo {
-                config: white_player.engine.config().clone(),
-                result: white_player.result(),
-            },
-            PlayerInfo {
-                config: black_player.engine.config().clone(),
-                result: black_player.result(),
-            },
-        );
+        // Determine which player played white based on the opening
+        let first_played_white = self.side_to_move_at_start() == Color::White;
+
+        // Map results to white/black based on who actually played which color
+        let (white_info, black_info) = if first_played_white {
+            (
+                PlayerInfo {
+                    config: first_player.engine.config().clone(),
+                    result: first_player.result(),
+                },
+                PlayerInfo {
+                    config: second_player.engine.config().clone(),
+                    result: second_player.result(),
+                },
+            )
+        } else {
+            (
+                PlayerInfo {
+                    config: second_player.engine.config().clone(),
+                    result: second_player.result(),
+                },
+                PlayerInfo {
+                    config: first_player.engine.config().clone(),
+                    result: first_player.result(),
+                },
+            )
+        };
+
+        self.data.players = GamePair::new(white_info, black_info);
     }
 
     /// The core game loop.
-    fn game_loop<'a>(&mut self, white: &mut Player<'a>, black: &mut Player<'a>, white_first: bool) {
+    ///
+    /// Runs the game with first/second players. Determines turn order from the
+    /// opening position - whichever color is to move first determines which
+    /// player moves first.
+    fn game_loop<'a>(&mut self, first: &mut Player<'a>, second: &mut Player<'a>) {
         loop {
             if crate::is_stop() {
                 self.data.termination = MatchTermination::Interrupt;
                 break;
             }
 
-            let cont = if white_first {
-                self.play_move(white, black)
-            } else {
-                self.play_move(black, white)
-            };
-            if !cont {
+            if !self.play_move(first, second) {
                 break;
             }
 
@@ -263,12 +300,7 @@ impl Match {
                 break;
             }
 
-            let cont = if white_first {
-                self.play_move(black, white)
-            } else {
-                self.play_move(white, black)
-            };
-            if !cont {
+            if !self.play_move(second, first) {
                 break;
             }
         }

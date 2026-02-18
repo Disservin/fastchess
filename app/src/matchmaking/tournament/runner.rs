@@ -568,10 +568,6 @@ fn run_match(
         (game, white_info, black_info)
     };
 
-    // Drop engine guards (returns engines to cache, or deletes if restart=on)
-    drop(white_guard);
-    drop(black_guard);
-
     Some((game, white_info, black_info))
 }
 

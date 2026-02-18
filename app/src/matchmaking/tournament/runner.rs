@@ -389,59 +389,59 @@ fn all_matches_played(match_count: u64, final_matchcount: u64) -> bool {
     match_count + 1 == final_matchcount
 }
 
-/// Run a single game and schedule the next one when done.
+thread_local! {
+    static THREAD_CPUS: std::cell::OnceCell<Vec<i32>> = const { std::cell::OnceCell::new() };
+}
+
+/// Get or initialize CPU cores for the current thread.
 ///
-/// This is a free function (not a method) so it can be called from within
-/// worker closures without borrowing `Tournament`.
-fn run_game(pairing: Pairing, state: SharedState) {
-    if crate::is_stop() {
-        return;
-    }
+/// This consumes CPUs from the affinity manager once per thread and reuses them
+/// for all games on this thread.
+fn get_thread_cpus(affinity_manager: &Arc<AffinityManager>) -> Vec<i32> {
+    THREAD_CPUS.with(|cell| {
+        cell.get_or_init(|| {
+            match affinity_manager.consume() {
+                Ok(guard) => {
+                    let cpus = guard.cpus().to_vec();
 
-    let engine_configs = config::engine_configs();
-    let tournament_config = config::tournament_config();
-    let rl = tournament_config.log.realtime;
-
-    // Thread-local CPU affinity (consume once per thread, reuse for all games on this thread)
-    thread_local! {
-        static THREAD_CPUS: std::cell::OnceCell<Vec<i32>> = const { std::cell::OnceCell::new() };
-    }
-
-    // Consume CPUs for this thread if affinity is enabled
-    let cpus_for_game: Option<Vec<i32>> = if tournament_config.affinity {
-        Some(THREAD_CPUS.with(|cell| {
-            cell.get_or_init(|| {
-                match state.affinity_manager.consume() {
-                    Ok(guard) => {
-                        let cpus = guard.cpus().to_vec();
-
-                        // Set thread affinity BEFORE starting engines
-                        // This ensures spawned engine processes inherit correct affinity on Linux
-                        if !cpus.is_empty() {
-                            let tid = crate::affinity::get_thread_handle();
-                            let success = crate::affinity::set_thread_affinity(&cpus, tid);
-                            if !success {
-                                log::warn!("Failed to set CPU affinity for tournament thread");
-                            }
+                    // Set thread affinity BEFORE starting engines
+                    // This ensures spawned engine processes inherit correct affinity on Linux
+                    if !cpus.is_empty() {
+                        let tid = crate::affinity::get_thread_handle();
+                        let success = crate::affinity::set_thread_affinity(&cpus, tid);
+                        if !success {
+                            log::warn!("Failed to set CPU affinity for tournament thread");
                         }
+                    }
 
-                        // Leak the guard to keep CPUs reserved for the lifetime of this thread
-                        // This is safe because the thread-local will live for the entire thread lifetime
-                        std::mem::forget(guard);
-                        cpus
-                    }
-                    Err(e) => {
-                        log::warn!("Failed to consume CPU cores: {}", e);
-                        Vec::new()
-                    }
+                    // Leak the guard to keep CPUs reserved for the lifetime of this thread
+                    // This is safe because the thread-local will live for the entire thread lifetime
+                    std::mem::forget(guard);
+                    cpus
                 }
-            })
-            .clone()
-        }))
-    } else {
-        None
-    };
+                Err(e) => {
+                    log::warn!("Failed to consume CPU cores: {}", e);
+                    Vec::new()
+                }
+            }
+        })
+        .clone()
+    })
+}
 
+/// Prepare engine configs with correct colors for this game.
+///
+/// Handles color swapping for even games and reverse option.
+fn prepare_engine_configs(
+    pairing: &Pairing,
+    noswap: bool,
+    reverse: bool,
+) -> (
+    GamePair<&'static crate::types::engine_config::EngineConfiguration>,
+    String,
+    String,
+) {
+    let engine_configs = config::engine_configs();
     let first = &engine_configs[pairing.player1];
     let second = &engine_configs[pairing.player2];
 
@@ -454,13 +454,273 @@ fn run_game(pairing: Pairing, state: SharedState) {
     let mut configs = GamePair::new(first, second);
 
     // Swap colors for even games (unless noswap is set)
-    if pairing.game_id.is_multiple_of(2) && !tournament_config.noswap {
+    if pairing.game_id.is_multiple_of(2) && !noswap {
         std::mem::swap(&mut configs.white, &mut configs.black);
     }
 
-    if tournament_config.reverse {
+    if reverse {
         std::mem::swap(&mut configs.white, &mut configs.black);
     }
+
+    (configs, first_name, second_name)
+}
+
+/// Restart an engine if it's unresponsive.
+fn restart_engine_if_unresponsive(engine: &EngineGuard, engine_name: &str) {
+    let mut engine = engine.lock();
+
+    if engine.isready(None).is_ok() {
+        return;
+    }
+
+    log::trace!("Restarting engine {}", engine_name);
+    if let Err(e) = engine.restart() {
+        crate::set_abnormal_termination();
+        crate::set_stop();
+        log::error!("Failed to restart engine: {}", e);
+    }
+}
+
+/// Get engines from cache, returning early on error.
+fn get_engines(
+    state: &SharedState,
+    configs: &GamePair<&'static crate::types::engine_config::EngineConfiguration>,
+    rl: bool,
+) -> Option<(EngineGuard, EngineGuard)> {
+    let white_guard = match state
+        .engine_cache
+        .get_engine(&configs.white.name, configs.white, rl)
+    {
+        Ok(guard) => guard,
+        Err(e) => {
+            log::error!("Failed to create white engine: {}", e);
+            crate::ABNORMAL_TERMINATION.store(true, Ordering::Relaxed);
+            crate::STOP.store(true, Ordering::Relaxed);
+            return None;
+        }
+    };
+
+    let black_guard = match state
+        .engine_cache
+        .get_engine(&configs.black.name, configs.black, rl)
+    {
+        Ok(guard) => guard,
+        Err(e) => {
+            log::error!("Failed to create black engine: {}", e);
+            crate::ABNORMAL_TERMINATION.store(true, Ordering::Relaxed);
+            crate::STOP.store(true, Ordering::Relaxed);
+            return None;
+        }
+    };
+
+    Some((white_guard, black_guard))
+}
+
+/// Run a single match between two engines.
+///
+/// Returns the match result and engine info, or None if the game should stop.
+fn run_match(
+    configs: &GamePair<&'static crate::types::engine_config::EngineConfiguration>,
+    opening: crate::game::book::Opening,
+    cpus_for_game: Option<&[i32]>,
+    state: &SharedState,
+    pairing: &Pairing,
+) -> Option<(Match, EngineDisplayInfo, EngineDisplayInfo)> {
+    let tournament_config = config::tournament_config();
+
+    let (white_guard, black_guard) = get_engines(state, configs, tournament_config.log.realtime)?;
+
+    let (game, white_info, black_info) = {
+        let mut white_ref = white_guard.lock();
+        let mut black_ref = black_guard.lock();
+
+        // Run the match — lock both engines for the duration of the game
+        let mut game = Match::new(opening, tournament_config);
+        game.start(&mut white_ref, &mut black_ref, cpus_for_game);
+
+        log::trace!(
+            "Game {} between {} and {} finished",
+            pairing.game_id,
+            configs.white.name,
+            configs.black.name
+        );
+
+        let white_info = EngineDisplayInfo::from_uci_engine(&*white_ref);
+        let black_info = EngineDisplayInfo::from_uci_engine(&*black_ref);
+
+        // Handle stall/disconnect
+        if game.is_stall_or_disconnect() {
+            if !tournament_config.recover {
+                if !crate::STOP.swap(true, Ordering::Relaxed) {
+                    log::warn!(
+                        "Game {} stalled/disconnected, no recover option set, stopping tournament.",
+                        pairing.game_id
+                    );
+                    crate::ABNORMAL_TERMINATION.store(true, Ordering::Relaxed);
+                }
+                return None;
+            }
+
+            restart_engine_if_unresponsive(&white_guard, &configs.white.name);
+            restart_engine_if_unresponsive(&black_guard, &configs.black.name);
+        }
+
+        (game, white_info, black_info)
+    };
+
+    // Drop engine guards (returns engines to cache, or deletes if restart=on)
+    drop(white_guard);
+    drop(black_guard);
+
+    Some((game, white_info, black_info))
+}
+
+/// Convert a game result to stats.
+fn result_to_stats(result: GameResult) -> Stats {
+    match result {
+        GameResult::Win => Stats::new(1, 0, 0),
+        GameResult::Lose => Stats::new(0, 1, 0),
+        GameResult::Draw => Stats::new(0, 0, 1),
+        GameResult::None => Stats::new(0, 0, 0),
+    }
+}
+
+/// Check SPRT and return whether the tournament should stop.
+fn check_sprt(
+    state: &SharedState,
+    stats: &Stats,
+    first_name: &str,
+    second_name: &str,
+    white_info: &EngineDisplayInfo,
+    black_info: &EngineDisplayInfo,
+    pair_completed: bool,
+    is_last: bool,
+    should_print_rating: bool,
+) -> bool {
+    if !state.sprt.is_enabled() {
+        return false;
+    }
+
+    let tournament_config = config::tournament_config();
+    let llr = state.sprt.get_llr(stats, tournament_config.report_penta);
+    let sprt_result = state.sprt.get_result(llr);
+
+    if sprt_result == SprtResult::Continue && !is_last {
+        return false;
+    }
+
+    log::trace!("SPRT test finished, stopping tournament.");
+    crate::set_stop();
+
+    let termination_message = format!(
+        "SPRT ({}) completed - {} was accepted",
+        state.sprt.get_elo(),
+        if sprt_result == SprtResult::H0 {
+            "H0"
+        } else {
+            "H1"
+        }
+    );
+
+    log::info!("{}", termination_message);
+
+    let out = state.output.lock().unwrap();
+    // Only print these if we haven't already printed them above
+    if !(should_print_rating && pair_completed) && !is_last {
+        out.print_result(stats, first_name, second_name);
+        out.print_interval(
+            &state.sprt,
+            stats,
+            first_name,
+            second_name,
+            (white_info, black_info),
+            &state.opening_file,
+            &state.scoreboard,
+        );
+    }
+    out.end_tournament(&termination_message);
+
+    true
+}
+
+/// Write match results to output files.
+fn write_match_files(state: &SharedState, match_data: &MatchData, round_id: usize) {
+    // Write PGN file
+    if let Some(ref writer) = state.file_writer_pgn {
+        let tournament_config = config::tournament_config();
+        let pgn = PgnBuilder::build(&tournament_config.pgn, match_data, round_id);
+
+        match pgn {
+            Ok(content) => writer.write(&content),
+            Err(e) => log::warn!("Failed to build PGN: {}", e),
+        }
+    }
+
+    // Write EPD file (final position FEN)
+    if let Some(ref writer) = state.file_writer_epd {
+        if !match_data.fen.is_empty() {
+            writer.write(&format!("{}\n", match_data.fen));
+        }
+    }
+}
+
+/// Schedule the next game if not stopping.
+fn schedule_next_game(state: &SharedState) {
+    if crate::is_stop() {
+        return;
+    }
+
+    let next_pairing = {
+        let mut sched = state.scheduler.lock().unwrap();
+        sched.as_mut().and_then(|s| s.next())
+    };
+
+    if let Some(next) = next_pairing {
+        let next_state = state.clone();
+        rayon::spawn(move || {
+            run_game(next, next_state);
+        });
+    }
+}
+
+/// Track timeouts and disconnects for a player.
+fn track_timeouts(state: &SharedState, match_data: &MatchData) {
+    if let Some(loser) = match_data.get_losing_player() {
+        let t = state.tracker.lock().unwrap();
+        match match_data.termination {
+            MatchTermination::Timeout => {
+                t.report_timeout(&loser.config.name);
+            }
+            MatchTermination::Disconnect | MatchTermination::Stall => {
+                t.report_disconnect(&loser.config.name);
+            }
+            _ => {}
+        }
+    }
+}
+
+/// Run a single game and schedule the next one when done.
+///
+/// This is a free function (not a method) so it can be called from within
+/// worker closures without borrowing `Tournament`.
+fn run_game(pairing: Pairing, state: SharedState) {
+    if crate::is_stop() {
+        return;
+    }
+
+    let tournament_config = config::tournament_config();
+
+    // Get CPU affinity for this thread (if enabled)
+    let cpus_for_game = tournament_config
+        .affinity
+        .then(|| get_thread_cpus(&state.affinity_manager));
+
+    // Prepare engine configs with correct colors
+    let (configs, first_name, second_name) = prepare_engine_configs(
+        &pairing,
+        tournament_config.noswap,
+        tournament_config.reverse,
+    );
 
     // Get opening from the scheduler's book
     let opening = {
@@ -484,257 +744,139 @@ fn run_game(pairing: Pairing, state: SharedState) {
         out.start_game(&configs, pairing.game_id, state.final_matchcount as usize);
     }
 
-    let restart_if_unresponsive = |engine: &EngineGuard, engine_name: &str| {
-        let mut engine = engine.lock();
-
-        if engine.isready(None).is_ok() {
-            return;
-        }
-
-        log::trace!("Restarting engine {}", engine_name);
-        if let Err(e) = engine.restart() {
-            crate::set_abnormal_termination();
-            crate::set_stop();
-            log::error!("Failed to restart engine: {}", e);
-        }
-    };
-
-    let white_guard = match state
-        .engine_cache
-        .get_engine(&configs.white.name, configs.white, rl)
-    {
-        Ok(guard) => guard,
-        Err(e) => {
-            log::error!("Failed to create white engine: {}", e);
-            crate::ABNORMAL_TERMINATION.store(true, Ordering::Relaxed);
-            crate::STOP.store(true, Ordering::Relaxed);
-            return;
-        }
-    };
-    let black_guard = match state
-        .engine_cache
-        .get_engine(&configs.black.name, configs.black, rl)
-    {
-        Ok(guard) => guard,
-        Err(e) => {
-            log::error!("Failed to create black engine: {}", e);
-            crate::ABNORMAL_TERMINATION.store(true, Ordering::Relaxed);
-            crate::STOP.store(true, Ordering::Relaxed);
-            return;
-        }
-    };
-
-    let white_info: EngineDisplayInfo;
-    let black_info: EngineDisplayInfo;
-    let mut game: Match;
-
-    {
-        let mut white_ref = white_guard.lock();
-        let mut black_ref = black_guard.lock();
-
-        // Run the match — lock both engines for the duration of the game
-        game = Match::new(opening, tournament_config);
-        {
-            // Pass CPUs to engines (will be set on engine processes)
-            let cpus_slice = cpus_for_game.as_deref();
-            game.start(&mut white_ref, &mut black_ref, cpus_slice);
-        }
-
-        log::trace!(
-            "Game {} between {} and {} finished",
-            pairing.game_id,
-            configs.white.name,
-            configs.black.name
-        );
-
-        white_info = EngineDisplayInfo::from_uci_engine(&*white_ref);
-        black_info = EngineDisplayInfo::from_uci_engine(&*black_ref);
-
-        // Handle stall/disconnect
-        if game.is_stall_or_disconnect() {
-            if !tournament_config.recover {
-                if !crate::STOP.swap(true, Ordering::Relaxed) {
-                    log::warn!(
-                        "Game {} stalled/disconnected, no recover option set, stopping tournament.",
-                        pairing.game_id
-                    );
-                    crate::ABNORMAL_TERMINATION.store(true, Ordering::Relaxed);
-                }
-                return;
-            }
-
-            restart_if_unresponsive(&white_guard, &configs.white.name);
-            restart_if_unresponsive(&black_guard, &configs.black.name);
-        }
-    }
+    // Run the match
+    let cpus_slice = cpus_for_game.as_deref();
+    let (game, white_info, black_info) =
+        match run_match(&configs, opening, cpus_slice, &state, &pairing) {
+            Some(result) => result,
+            None => return,
+        };
 
     let match_data = game.get();
 
     // Record results if the game completed normally
-    if match_data.termination != MatchTermination::Interrupt && !crate::is_stop() {
-        // Build stats from white's perspective
-        let stats = match match_data.players.white.result {
-            GameResult::Win => Stats::new(1, 0, 0),
-            GameResult::Lose => Stats::new(0, 1, 0),
-            GameResult::Draw => Stats::new(0, 0, 1),
-            GameResult::None => Stats::new(0, 0, 0),
-        };
-
-        // Lock the output mutex to serialize the entire end-game output block.
-        // This prevents interleaved output from concurrent workers.
-        let _output_guard = state.output_mutex.lock().unwrap();
-
-        {
-            let out = state.output.lock().unwrap();
-            out.end_game(&configs, &stats, &match_data.reason, pairing.game_id);
-        }
-
-        // ScoreBoard has interior mutability, no need for outer lock
-        if tournament_config.report_penta {
-            state
-                .scoreboard
-                .update_pair(&configs, &stats, pairing.pairing_id as u64);
-        } else {
-            state.scoreboard.update_non_pair(&configs, &stats);
-        }
-
-        let current_count = state.match_count.load(Ordering::Relaxed);
-        let is_last = all_matches_played(current_count, state.final_matchcount);
-
-        // Get updated stats for the pair
-        let updated_stats = state.scoreboard.get_stats(&first_name, &second_name);
-
-        // Print score interval (e.g., "Score of X vs Y: W - L - D [ratio] N")
-        if should_print_score_interval(current_count, tournament_config.scoreinterval) || is_last {
-            let out = state.output.lock().unwrap();
-            out.print_result(&updated_stats, &first_name, &second_name);
-        }
-
-        // Print rating interval (Elo, SPRT, etc.)
-        let should_print_rating = should_print_rating_interval(
-            current_count,
-            pairing.pairing_id,
-            tournament_config.report_penta,
-            tournament_config.ratinginterval,
-        );
-
-        let pair_completed = if tournament_config.report_penta {
-            state
-                .scoreboard
-                .is_pair_completed(pairing.pairing_id as u64)
-        } else {
-            true
-        };
-
-        if (should_print_rating && pair_completed) || is_last {
-            let out = state.output.lock().unwrap();
-            out.print_interval(
-                &state.sprt,
-                &updated_stats,
-                &first_name,
-                &second_name,
-                (&white_info, &black_info),
-                &state.opening_file,
-                &state.scoreboard,
-            );
-        }
-
-        // Check SPRT
-        if state.sprt.is_enabled() {
-            let llr = state
-                .sprt
-                .get_llr(&updated_stats, tournament_config.report_penta);
-            let sprt_result = state.sprt.get_result(llr);
-
-            if sprt_result != SprtResult::Continue || is_last {
-                log::trace!("SPRT test finished, stopping tournament.");
-
-                crate::set_stop();
-
-                let termination_message = format!(
-                    "SPRT ({}) completed - {} was accepted",
-                    state.sprt.get_elo(),
-                    if sprt_result == SprtResult::H0 {
-                        "H0"
-                    } else {
-                        "H1"
-                    }
-                );
-
-                log::info!("{}", termination_message);
-
-                let out = state.output.lock().unwrap();
-                // Only print these if we haven't already printed them above
-                if !((should_print_rating && pair_completed) || is_last) {
-                    out.print_result(&updated_stats, &first_name, &second_name);
-                    out.print_interval(
-                        &state.sprt,
-                        &updated_stats,
-                        &first_name,
-                        &second_name,
-                        (&white_info, &black_info),
-                        &state.opening_file,
-                        &state.scoreboard,
-                    );
-                }
-                out.end_tournament(&termination_message);
-            }
-        }
-
-        // Drop the output guard before file I/O
-        drop(_output_guard);
-
-        // Write PGN file
-        if let Some(ref writer) = state.file_writer_pgn {
-            let pgn = PgnBuilder::build(&tournament_config.pgn, match_data, pairing.round_id);
-
-            match pgn {
-                Ok(content) => writer.write(&content),
-                Err(e) => log::warn!("Failed to build PGN: {}", e),
-            }
-        }
-
-        // Write EPD file (final position FEN)
-        if let Some(ref writer) = state.file_writer_epd {
-            if !match_data.fen.is_empty() {
-                writer.write(&format!("{}\n", match_data.fen));
-            }
-        }
-
-        state.match_count.fetch_add(1, Ordering::Relaxed);
-
-        // Schedule next game (only if not stopping)
-        if !crate::is_stop() {
-            let next_pairing = {
-                let mut sched = state.scheduler.lock().unwrap();
-                sched.as_mut().and_then(|s| s.next())
-            };
-
-            if let Some(next) = next_pairing {
-                let next_state = state.clone();
-                rayon::spawn(move || {
-                    run_game(next, next_state);
-                });
-            }
-        }
+    if match_data.termination == MatchTermination::Interrupt || crate::is_stop() {
+        track_timeouts(&state, &match_data);
+        return;
     }
 
-    // Drop engine guards (returns engines to cache, or deletes if restart=on)
-    // This happens automatically, but we do it before timeout tracking for clarity.
-    drop(white_guard);
-    drop(black_guard);
+    // Build stats from white's perspective
+    let stats = result_to_stats(match_data.players.white.result);
+
+    // Process results and output
+    process_game_results(
+        &state,
+        &configs,
+        &stats,
+        &match_data,
+        &first_name,
+        &second_name,
+        &white_info,
+        &black_info,
+        &pairing,
+    );
 
     // Track timeouts/disconnects
-    if let Some(loser) = match_data.get_losing_player() {
-        let t = state.tracker.lock().unwrap();
-        match match_data.termination {
-            MatchTermination::Timeout => {
-                t.report_timeout(&loser.config.name);
-            }
-            MatchTermination::Disconnect | MatchTermination::Stall => {
-                t.report_disconnect(&loser.config.name);
-            }
-            _ => {}
-        }
+    track_timeouts(&state, &match_data);
+}
+
+/// Process game results: update scoreboard, print output, check SPRT, write files.
+fn process_game_results(
+    state: &SharedState,
+    configs: &GamePair<&'static crate::types::engine_config::EngineConfiguration>,
+    stats: &Stats,
+    match_data: &MatchData,
+    first_name: &str,
+    second_name: &str,
+    white_info: &EngineDisplayInfo,
+    black_info: &EngineDisplayInfo,
+    pairing: &Pairing,
+) {
+    let tournament_config = config::tournament_config();
+
+    // Lock the output mutex to serialize the entire end-game output block.
+    // This prevents interleaved output from concurrent workers.
+    let _output_guard = state.output_mutex.lock().unwrap();
+
+    {
+        let out = state.output.lock().unwrap();
+        out.end_game(configs, stats, &match_data.reason, pairing.game_id);
+    }
+
+    // ScoreBoard has interior mutability, no need for outer lock
+    if tournament_config.report_penta {
+        state
+            .scoreboard
+            .update_pair(configs, stats, pairing.pairing_id as u64);
+    } else {
+        state.scoreboard.update_non_pair(configs, stats);
+    }
+
+    let current_count = state.match_count.load(Ordering::Relaxed);
+    let is_last = all_matches_played(current_count, state.final_matchcount);
+
+    // Get updated stats for the pair
+    let updated_stats = state.scoreboard.get_stats(first_name, second_name);
+
+    // Print score interval (e.g., "Score of X vs Y: W - L - D [ratio] N")
+    if should_print_score_interval(current_count, tournament_config.scoreinterval) || is_last {
+        let out = state.output.lock().unwrap();
+        out.print_result(&updated_stats, first_name, second_name);
+    }
+
+    // Print rating interval (Elo, SPRT, etc.)
+    let should_print_rating = should_print_rating_interval(
+        current_count,
+        pairing.pairing_id,
+        tournament_config.report_penta,
+        tournament_config.ratinginterval,
+    );
+
+    let pair_completed = if tournament_config.report_penta {
+        state
+            .scoreboard
+            .is_pair_completed(pairing.pairing_id as u64)
+    } else {
+        true
+    };
+
+    if (should_print_rating && pair_completed) || is_last {
+        let out = state.output.lock().unwrap();
+        out.print_interval(
+            &state.sprt,
+            &updated_stats,
+            first_name,
+            second_name,
+            (white_info, black_info),
+            &state.opening_file,
+            &state.scoreboard,
+        );
+    }
+
+    // Check SPRT
+    let sprt_stopped = check_sprt(
+        state,
+        &updated_stats,
+        first_name,
+        second_name,
+        white_info,
+        black_info,
+        pair_completed,
+        is_last,
+        should_print_rating,
+    );
+
+    // Drop the output guard before file I/O
+    drop(_output_guard);
+
+    // Write PGN and EPD files
+    write_match_files(state, match_data, pairing.round_id);
+
+    // Increment match count
+    state.match_count.fetch_add(1, Ordering::Relaxed);
+
+    // Schedule next game (only if SPRT didn't stop us and we're not stopping)
+    if !sprt_stopped {
+        schedule_next_game(state);
     }
 }

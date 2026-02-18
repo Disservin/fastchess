@@ -360,32 +360,15 @@ impl Tournament {
 ///
 /// C++: `(match_count_ + 1) % cfg.scoreinterval == 0`
 /// Called before incrementing match_count, so we add 1.
-fn should_print_score_interval(match_count: u64, scoreinterval: i32) -> bool {
+fn score_report_due(match_count: u64, scoreinterval: i32) -> bool {
     let idx = match_count + 1;
     idx.is_multiple_of(scoreinterval as u64)
-}
-
-/// Check whether the rating interval should trigger.
-///
-/// C++: When `report_penta`, uses `pairing_id + 1`; otherwise `match_count_ + 1`.
-fn should_print_rating_interval(
-    match_count: u64,
-    pairing_id: usize,
-    report_penta: bool,
-    ratinginterval: i32,
-) -> bool {
-    let idx = if report_penta {
-        pairing_id as u64 + 1
-    } else {
-        match_count + 1
-    };
-    idx % ratinginterval as u64 == 0
 }
 
 /// Check whether all matches have been played.
 ///
 /// C++: `match_count_ + 1 == final_matchcount_`
-fn all_matches_played(match_count: u64, final_matchcount: u64) -> bool {
+fn matches_exhausted(match_count: u64, final_matchcount: u64) -> bool {
     match_count + 1 == final_matchcount
 }
 
@@ -585,9 +568,9 @@ fn check_sprt(
     second_name: &str,
     white_info: &EngineDisplayInfo,
     black_info: &EngineDisplayInfo,
-    pair_completed: bool,
+    pair_done: bool,
     is_last: bool,
-    should_print_rating: bool,
+    rating_due: bool,
 ) -> bool {
     if !state.sprt.is_enabled() {
         return false;
@@ -618,7 +601,7 @@ fn check_sprt(
 
     let out = state.output.lock().unwrap();
     // Only print these if we haven't already printed them above
-    if !(should_print_rating && pair_completed) && !is_last {
+    if !(rating_due && pair_done) && !is_last {
         out.print_result(stats, first_name, second_name);
         out.print_interval(
             &state.sprt,
@@ -772,6 +755,59 @@ fn run_game(pairing: Pairing, state: SharedState) {
     track_timeouts(&state, &match_data);
 }
 
+/// Reporting mode abstraction to handle penta vs standard mode differences.
+enum ReportingMode {
+    Penta { pairing_id: u64 },
+    Standard,
+}
+
+impl ReportingMode {
+    fn from_config(report_penta: bool, pairing_id: usize) -> Self {
+        if report_penta {
+            Self::Penta {
+                pairing_id: pairing_id as u64,
+            }
+        } else {
+            Self::Standard
+        }
+    }
+
+    fn update_scoreboard(
+        &self,
+        scoreboard: &ScoreBoard,
+        configs: &GamePair<&'static crate::types::engine_config::EngineConfiguration>,
+        stats: &Stats,
+    ) {
+        match self {
+            Self::Penta { pairing_id } => {
+                scoreboard.update_pair(configs, stats, *pairing_id);
+            }
+            Self::Standard => {
+                scoreboard.update_non_pair(configs, stats);
+            }
+        }
+    }
+
+    fn rating_interval_index(&self, match_count: u64) -> u64 {
+        match self {
+            Self::Penta { pairing_id } => *pairing_id + 1,
+            Self::Standard => match_count + 1,
+        }
+    }
+
+    fn rating_report_due(&self, match_count: u64, ratinginterval: i32) -> bool {
+        let idx = self.rating_interval_index(match_count);
+        idx % ratinginterval as u64 == 0
+    }
+
+    fn pair_finished(&self, scoreboard: &ScoreBoard) -> bool {
+        match self {
+            Self::Penta { pairing_id } => scoreboard.is_pair_completed(*pairing_id),
+            Self::Standard => true,
+        }
+    }
+}
+
 /// Process game results: update scoreboard, print output, check SPRT, write files.
 fn process_game_results(
     state: &SharedState,
@@ -784,7 +820,8 @@ fn process_game_results(
     black_info: &EngineDisplayInfo,
     pairing: &Pairing,
 ) {
-    let tournament_config = config::tournament_config();
+    let config = config::tournament_config();
+    let reporting_mode = ReportingMode::from_config(config.report_penta, pairing.pairing_id);
 
     // Lock the output mutex to serialize the entire end-game output block.
     // This prevents interleaved output from concurrent workers.
@@ -796,47 +833,27 @@ fn process_game_results(
     }
 
     // ScoreBoard has interior mutability, no need for outer lock
-    if tournament_config.report_penta {
-        state
-            .scoreboard
-            .update_pair(configs, stats, pairing.pairing_id as u64);
-    } else {
-        state.scoreboard.update_non_pair(configs, stats);
-    }
+    reporting_mode.update_scoreboard(&state.scoreboard, configs, stats);
 
     let current_count = state.match_count.load(Ordering::Relaxed);
-    let is_last = all_matches_played(current_count, state.final_matchcount);
+    let is_last = matches_exhausted(current_count, state.final_matchcount);
 
-    // Get updated stats for the pair
-    let updated_stats = state.scoreboard.get_stats(first_name, second_name);
+    let stats = state.scoreboard.get_stats(first_name, second_name);
 
     // Print score interval (e.g., "Score of X vs Y: W - L - D [ratio] N")
-    if should_print_score_interval(current_count, tournament_config.scoreinterval) || is_last {
+    if score_report_due(current_count, config.scoreinterval) || is_last {
         let out = state.output.lock().unwrap();
-        out.print_result(&updated_stats, first_name, second_name);
+        out.print_result(&stats, first_name, second_name);
     }
 
-    // Print rating interval (Elo, SPRT, etc.)
-    let should_print_rating = should_print_rating_interval(
-        current_count,
-        pairing.pairing_id,
-        tournament_config.report_penta,
-        tournament_config.ratinginterval,
-    );
+    let rating_due = reporting_mode.rating_report_due(current_count, config.ratinginterval);
+    let pair_done = reporting_mode.pair_finished(&state.scoreboard);
 
-    let pair_completed = if tournament_config.report_penta {
-        state
-            .scoreboard
-            .is_pair_completed(pairing.pairing_id as u64)
-    } else {
-        true
-    };
-
-    if (should_print_rating && pair_completed) || is_last {
+    if (rating_due && pair_done) || is_last {
         let out = state.output.lock().unwrap();
         out.print_interval(
             &state.sprt,
-            &updated_stats,
+            &stats,
             first_name,
             second_name,
             (white_info, black_info),
@@ -848,17 +865,16 @@ fn process_game_results(
     // Check SPRT
     let sprt_stopped = check_sprt(
         state,
-        &updated_stats,
+        &stats,
         first_name,
         second_name,
         white_info,
         black_info,
-        pair_completed,
+        pair_done,
         is_last,
-        should_print_rating,
+        rating_due,
     );
 
-    // Drop the output guard before file I/O
     drop(_output_guard);
 
     // Write PGN and EPD files

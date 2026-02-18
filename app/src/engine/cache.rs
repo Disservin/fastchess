@@ -85,15 +85,6 @@ impl EngineGuard {
             guard: self.entry.engine.lock().unwrap(),
         }
     }
-
-    /// Restart the engine in-place.
-    pub fn restart_engine(&self) -> Result<(), ProcessError> {
-        let mut engine = self.entry.engine.lock().unwrap();
-        let config = engine.config().clone();
-        let rl = engine.is_realtime_logging();
-        *engine = UciEngine::new(&config, rl)?;
-        Ok(())
-    }
 }
 
 impl Drop for EngineGuard {

@@ -16,7 +16,6 @@ use crate::affinity::AffinityManager;
 use crate::core::config;
 use crate::core::file_writer::FileWriter;
 use crate::engine::cache::{EngineCache, EngineGuard};
-use crate::engine::UciEngine;
 use crate::game::book::OpeningBook;
 use crate::game::pgn::PgnBuilder;
 use crate::matchmaking::match_runner::Match;
@@ -493,7 +492,7 @@ fn run_game(pairing: Pairing, state: SharedState) {
         }
 
         log::trace!("Restarting engine {}", engine_name);
-        if let Err(e) = engine.restart(cpus_for_game.as_deref()) {
+        if let Err(e) = engine.restart() {
             crate::set_abnormal_termination();
             crate::set_stop();
             log::error!("Failed to restart engine: {}", e);

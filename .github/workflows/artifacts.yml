@@ -8,11 +8,8 @@ jobs:
     name: ${{ matrix.config.name }}
     runs-on: ${{ matrix.config.os }}
     env:
-      COMPILER: ${{ matrix.config.compiler }}
       EXT: ${{ matrix.config.ext }}
       OS: ${{ matrix.config.os }}
-      NATIVE: ${{ matrix.config.native }}
-      PLATFORM: ${{ matrix.config.platform }}
     strategy:
       matrix:
         config:
@@ -20,12 +17,10 @@ jobs:
           - {
               name: "Ubuntu 22.04 GCC x86-64",
               os: ubuntu-22.04,
-              compiler: g++,
               shell: "bash {0}",
-              native: "-march=x86-64",
               arch: "x86-64",
-              extra_ldflags: "",
               platform: "linux",
+              target: "x86_64-unknown-linux-musl",
               docker: true,
               docker_platform: "linux/amd64",
               image: "alpine:3.22",
@@ -33,12 +28,10 @@ jobs:
           - {
               name: "Ubuntu 22.04 GCC ARM64",
               os: ubuntu-22.04-arm,
-              compiler: g++,
               shell: "bash {0}",
-              native: "",
               arch: "arm64",
-              extra_ldflags: "",
               platform: "linux",
+              target: "aarch64-unknown-linux-musl",
               docker: true,
               docker_platform: "linux/arm64",
               image: "alpine:3.22",
@@ -46,14 +39,12 @@ jobs:
           - {
               name: "Ubuntu 22.04 GCC RISC-V",
               os: ubuntu-22.04,
-              compiler: g++,
               shell: "bash {0}",
-              native: "",
-              extra_ldflags: "-latomic",
               docker: true,
               docker_platform: "linux/riscv64",
               image: "riscv64/alpine:3.22",
               arch: "risc-v",
+              target: "riscv64gc-unknown-linux-gnu",
               platform: "linux",
             }
 
@@ -61,21 +52,17 @@ jobs:
           - {
               name: "MacOS Apple Clang x86-64",
               os: macos-15-intel,
-              compiler: clang++,
               shell: "bash {0}",
-              native: "",
-              extra_ldflags: "",
               arch: "x86-64",
+              target: "x86_64-apple-darwin",
               platform: "mac",
             }
           - {
               name: "MacOS Apple Clang ARM64",
               os: macos-latest,
-              compiler: clang++,
               shell: "bash {0}",
-              native: "",
-              extra_ldflags: "",
               arch: "arm64",
+              target: "aarch64-apple-darwin",
               platform: "mac",
             }
 
@@ -83,27 +70,23 @@ jobs:
           - {
               name: "Windows GCC x86-64",
               os: windows-latest,
-              compiler: g++,
               msys_sys: "mingw64",
               msys_env: "x86_64-gcc",
               shell: "msys2 {0}",
               ext: .exe,
-              native: "-march=x86-64",
-              extra_ldflags: "",
               arch: "x86-64",
+              target: "x86_64-pc-windows-gnu",
               platform: "windows",
             }
           - {
               name: "Windows GCC ARM64",
               os: windows-11-arm,
-              compiler: g++,
               msys_sys: "mingw64",
               msys_env: "x86_64-gcc",
               shell: "msys2 {0}",
               ext: .exe,
-              native: "",
-              extra_ldflags: "",
               arch: "arm64",
+              target: "aarch64-pc-windows-gnu",
               platform: "windows",
             }
 
@@ -116,12 +99,17 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Install Rust
+        if: matrix.config.docker != true
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.config.target }}
+
       - name: Installing required packages
         if: runner.os == 'Linux' && matrix.config.docker != true
         run: |
           sudo apt-get update
-          sudo apt-get install g++-multilib
-          $COMPILER --version
+          sudo apt-get install musl-tools
 
       - name: Install windows make
         if: runner.os == 'Windows'
@@ -141,7 +129,7 @@ jobs:
         run: echo "COMMIT_DATE=$(git show -s --date=format:'%Y%m%d' --format=%cd HEAD)" >> $GITHUB_ENV
 
       - name: Set up QEMU
-        if: matrix.config.base_image
+        if: matrix.config.docker
         uses: docker/setup-qemu-action@v3
 
       # replace version string if this is a tagged build
@@ -156,53 +144,68 @@ jobs:
               echo "Last tag found: $TAG"
             else
               echo "No tags found, using default version string."
-              cat app/src/main.cpp
               exit 0
             fi
           fi
           VERSION=$(echo "$TAG" | sed 's/^v//' | sed 's/-alpha$//')
-          sed -i "s/const char\* version = \"[^\"]*\"/const char* version = \"alpha $VERSION \"/" app/src/main.cpp
-          cat app/src/main.cpp
+          sed -i "s/^version = \"[^\"]*\"/version = \"$VERSION\"/" app/Cargo.toml
+          cat app/Cargo.toml
 
-      # Build RISC-V in Docker
+      # Build in Docker for cross-compilation
       - name: Build in Docker
-        if: matrix.config.docker == true
+        if: matrix.config.docker
         run: |
-          sudo apt-get update
-          sudo apt-get install qemu-user-static
           docker run --rm --platform ${{ matrix.config.docker_platform }} \
             -v ${{ github.workspace }}:/workspace \
-            -w /workspace \
+            -w /workspace/app \
             ${{ matrix.config.image }} \
             sh -c "
-              apk add --no-cache build-base g++ make &&
-              make -j2 build=release EXTRA_LDFLAGS='${{ matrix.config.extra_ldflags }}' NATIVE='${{ matrix.config.native }}' COMPILER='${{ matrix.config.compiler }}' COMPILE_MSG='compiled for ${{ matrix.config.os }} ${{ env.COMMIT_DATE }}-${{ env.COMMIT_SHA }} (CI)' &&
-              strip ./fastchess${{ matrix.config.ext }} || true &&
-              find . -type f \( -name "*.o" -o -name "*.d" \) -delete &&
-              find . -type d -name "sha" -exec rm -rf {} + &&
-              ./fastchess* -version
+              apk add --no-cache rust cargo &&
+              cargo build --release --target ${{ matrix.config.target }} &&
+              cp target/${{ matrix.config.target }}/release/fastchess ../fastchess${{ matrix.config.ext }}
             "
+          strip ./fastchess${{ matrix.config.ext }} || true
+          ./fastchess* --version
 
-      # Build (non-Docker)
-      - name: Building fastchess
-        if: matrix.config.docker != true
+      # Build macOS (non-Docker)
+      - name: Building fastchess (macOS)
+        if: matrix.config.docker != true && runner.os == 'macOS'
         run: |
-          make -j2 build=release EXTRA_LDFLAGS='${{ matrix.config.extra_ldflags }}' NATIVE="$NATIVE" COMPILER="$COMPILER" COMPILE_MSG="compiled for ${{ matrix.config.os }} ${{ env.COMMIT_DATE }}-${{ env.COMMIT_SHA }} (CI)"
-          strip ./fastchess$EXT || true
-          find . -type f \( -name "*.o" -o -name "*.d" \) -delete
-          find . -type d -name "sha" -exec rm -rf {} +
-          ./fastchess* -version
+          rustup target add ${{ matrix.config.target }}
+          cd app && cargo build --release --target ${{ matrix.config.target }}
+          cp target/${{ matrix.config.target }}/release/fastchess ../fastchess
+          strip ./fastchess || true
+          ./fastchess --version
 
-      - name: Archive binaries
-        uses: actions/upload-artifact@v4
-        with:
-          name: fastchess-${{ matrix.config.platform }}-${{ matrix.config.arch }}
-          path: |
-            app
-            .clang-format
-            config.json
-            Makefile
-            man
-            README.md
-            LICENSE
-            fastchess${{ matrix.config.ext }}
+      # Build Windows (non-Docker)
+      - name: Building fastchess (Windows)
+        if: matrix.config.docker != true && runner.os == 'Windows'
+        run: |
+          cd app
+          cargo build --release --target ${{ matrix.config.target }}
+          cp target/${{ matrix.config.target }}/release/fastchess.exe ../fastchess.exe
+          ./fastchess.exe --version
+
+      # Build Linux native (non-Docker)
+      - name: Building fastchess (Linux native)
+        if: matrix.config.docker != true && runner.os == 'Linux'
+        run: |
+          rustup target add ${{ matrix.config.target }}
+          cd app && cargo build --release --target ${{ matrix.config.target }}
+          cp target/${{ matrix.config.target }}/release/fastchess ../fastchess
+          strip ./fastchess || true
+          ./fastchess --version
+
+      # - name: Archive binaries
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: fastchess-${{ matrix.config.platform }}-${{ matrix.config.arch }}
+      #     path: |
+      #       app
+      #       .clang-format
+      #       config.json
+      #       Makefile
+      #       man
+      #       README.md
+      #       LICENSE
+      #       fastchess${{ matrix.config.ext }}

@@ -6,7 +6,7 @@ on:
       - "v*"
     branches: ["master"]
   pull_request:
-    branches: ["master"]
+    branches: ["master", "port-rust"]
 
 jobs:
   Artifacts:

@@ -524,49 +524,51 @@ fn run_game(pairing: Pairing, state: SharedState) {
         }
     };
 
-    let mut white_ref = white_guard.lock();
-    let mut black_ref = black_guard.lock();
+    let white_info: EngineDisplayInfo;
+    let black_info: EngineDisplayInfo;
+    let mut game: Match;
 
-    // Run the match — lock both engines for the duration of the game
-    let mut game = Match::new(opening, tournament_config);
     {
-        // Pass CPUs to engines (will be set on engine processes)
-        let cpus_slice = cpus_for_game.as_deref();
-        game.start(&mut white_ref, &mut black_ref, cpus_slice);
-    }
+        let mut white_ref = white_guard.lock();
+        let mut black_ref = black_guard.lock();
 
-    let white_info = EngineDisplayInfo::from_uci_engine(&*white_ref);
-    let black_info = EngineDisplayInfo::from_uci_engine(&*black_ref);
-
-    // Drop engine refs early - we only need the display info from now on
-    drop(white_ref);
-    drop(black_ref);
-
-    let match_data = game.get();
-
-    log::trace!(
-        "Game {} between {} and {} finished",
-        pairing.game_id,
-        configs.white.name,
-        configs.black.name
-    );
-
-    // Handle stall/disconnect
-    if game.is_stall_or_disconnect() {
-        if !tournament_config.recover {
-            if !crate::STOP.swap(true, Ordering::Relaxed) {
-                log::warn!(
-                    "Game {} stalled/disconnected, no recover option set, stopping tournament.",
-                    pairing.game_id
-                );
-                crate::ABNORMAL_TERMINATION.store(true, Ordering::Relaxed);
-            }
-            return;
+        // Run the match — lock both engines for the duration of the game
+        game = Match::new(opening, tournament_config);
+        {
+            // Pass CPUs to engines (will be set on engine processes)
+            let cpus_slice = cpus_for_game.as_deref();
+            game.start(&mut white_ref, &mut black_ref, cpus_slice);
         }
 
-        restart_if_unresponsive(&white_guard, &configs.white.name);
-        restart_if_unresponsive(&black_guard, &configs.black.name);
+        log::trace!(
+            "Game {} between {} and {} finished",
+            pairing.game_id,
+            configs.white.name,
+            configs.black.name
+        );
+
+        white_info = EngineDisplayInfo::from_uci_engine(&*white_ref);
+        black_info = EngineDisplayInfo::from_uci_engine(&*black_ref);
+
+        // Handle stall/disconnect
+        if game.is_stall_or_disconnect() {
+            if !tournament_config.recover {
+                if !crate::STOP.swap(true, Ordering::Relaxed) {
+                    log::warn!(
+                        "Game {} stalled/disconnected, no recover option set, stopping tournament.",
+                        pairing.game_id
+                    );
+                    crate::ABNORMAL_TERMINATION.store(true, Ordering::Relaxed);
+                }
+                return;
+            }
+
+            restart_if_unresponsive(&white_guard, &configs.white.name);
+            restart_if_unresponsive(&black_guard, &configs.black.name);
+        }
     }
+
+    let match_data = game.get();
 
     // Record results if the game completed normally
     if match_data.termination != MatchTermination::Interrupt && !crate::is_stop() {

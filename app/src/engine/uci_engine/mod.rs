@@ -87,6 +87,7 @@ pub struct UciEngine {
     initialized: bool,
     realtime_logging: bool,
     protocol: Protocol,
+    cpus: Option<Vec<i32>>,
 }
 
 impl UciEngine {
@@ -106,6 +107,7 @@ impl UciEngine {
             initialized: false,
             realtime_logging,
             protocol,
+            cpus: None,
         })
     }
 
@@ -119,6 +121,8 @@ impl UciEngine {
         if self.initialized {
             return Ok(true);
         }
+
+        self.cpus = cpus.map(|c| c.to_vec());
 
         log_trace!(
             "Starting engine {} at {}",
@@ -203,7 +207,7 @@ impl UciEngine {
     ///
     /// Kills the current process, creates a new one, and reinitializes UCI.
     /// Returns `Ok(true)` on success, `Err(message)` on failure.
-    pub fn restart(&mut self, cpus: Option<&[i32]>) -> Result<bool, String> {
+    pub fn restart(&mut self) -> Result<bool, String> {
         log_trace!("Restarting engine {}", self.config.name);
 
         self.quit();
@@ -219,7 +223,7 @@ impl UciEngine {
         self.output.clear();
 
         // Re-initialize
-        self.start(cpus)
+        self.start(self.cpus.clone().as_deref())
     }
 
     // ── UCI commands ─────────────────────────────────────────────────────────

@@ -412,40 +412,71 @@ fn get_thread_cpus(affinity_manager: &Arc<AffinityManager>) -> Vec<i32> {
     })
 }
 
+/// Unified structure for game player assignment.
+///
+/// Tracks both the color assignment (who plays white/black) and the original
+/// player order (first/second from the pairing) to eliminate confusion between
+/// color-based and player-based naming throughout the codebase.
+pub struct GameAssignment {
+    /// Engine playing white (may be first or second player depending on swaps)
+    first: &'static crate::types::engine_config::EngineConfiguration,
+    /// Engine playing black (may be first or second player depending on swaps)
+    second: &'static crate::types::engine_config::EngineConfiguration,
+}
+
+impl GameAssignment {
+    /// Get the first player (original pairing order, for stats).
+    pub fn first(&self) -> &'static crate::types::engine_config::EngineConfiguration {
+        self.first
+    }
+
+    /// Get the second player (original pairing order, for stats).
+    pub fn second(&self) -> &'static crate::types::engine_config::EngineConfiguration {
+        self.second
+    }
+
+    /// Get the first player's name.
+    pub fn first_name(&self) -> &str {
+        self.first().name.as_str()
+    }
+
+    /// Get the second player's name.
+    pub fn second_name(&self) -> &str {
+        self.second().name.as_str()
+    }
+
+    /// Convert to GamePair for color-based operations.
+    fn as_game_pair(&self) -> GamePair<&'static crate::types::engine_config::EngineConfiguration> {
+        GamePair::new(self.first, self.second)
+    }
+}
+
 /// Prepare engine configs with correct colors for this game.
 ///
 /// Handles color swapping for even games and reverse option.
-fn prepare_engine_configs(
-    pairing: &Pairing,
-    noswap: bool,
-    reverse: bool,
-) -> (
-    GamePair<&'static crate::types::engine_config::EngineConfiguration>,
-    String,
-    String,
-) {
+fn prepare_engine_configs(pairing: &Pairing, noswap: bool, reverse: bool) -> GameAssignment {
     let engine_configs = config::engine_configs();
     let first = &engine_configs[pairing.player1];
     let second = &engine_configs[pairing.player2];
 
-    // Store names before moving configs - these are used later for stats lookup
-    // regardless of which color each player ends up playing
-    let first_name = first.name.clone();
-    let second_name = second.name.clone();
+    let (first, second) = if pairing.game_id.is_multiple_of(2) && !noswap {
+        // Swap colors for even games
+        (second, first)
+    } else {
+        (first, second)
+    };
 
-    // Move the cloned configs into GamePair instead of cloning again
-    let mut configs = GamePair::new(first, second);
-
-    // Swap colors for even games (unless noswap is set)
-    if pairing.game_id.is_multiple_of(2) && !noswap {
-        std::mem::swap(&mut configs.white, &mut configs.black);
-    }
-
+    // // Apply reverse option (swaps colors again)
     if reverse {
-        std::mem::swap(&mut configs.white, &mut configs.black);
+        panic!("Reverse option is not supported in this implementation");
     }
+    let (first, second) = if reverse {
+        (second, first)
+    } else {
+        (first, second)
+    };
 
-    (configs, first_name, second_name)
+    GameAssignment { first, second }
 }
 
 /// Restart an engine if it's unresponsive.
@@ -464,42 +495,14 @@ fn restart_engine_if_unresponsive(engine: &EngineGuard, engine_name: &str) {
     }
 }
 
-/// Get a single engine from cache with error handling.
-fn get_single_engine(
-    state: &SharedState,
-    name: &str,
-    config: &'static crate::types::engine_config::EngineConfiguration,
-    rl: bool,
-    color: &str,
-) -> Option<EngineGuard> {
-    match state.engine_cache.get_engine(name, config, rl) {
-        Ok(guard) => Some(guard),
-        Err(e) => {
-            log::error!("Failed to create {} engine: {}", color, e);
-            crate::ABNORMAL_TERMINATION.store(true, Ordering::Relaxed);
-            crate::STOP.store(true, Ordering::Relaxed);
-            None
-        }
-    }
-}
-
-/// Get engines from cache, returning early on error.
-fn get_engines(
-    state: &SharedState,
-    configs: &GamePair<&'static crate::types::engine_config::EngineConfiguration>,
-    rl: bool,
-) -> Option<(EngineGuard, EngineGuard)> {
-    let white_guard = get_single_engine(state, &configs.white.name, configs.white, rl, "white")?;
-    let black_guard = get_single_engine(state, &configs.black.name, configs.black, rl, "black")?;
-
-    Some((white_guard, black_guard))
-}
-
 /// Run a single match between two engines.
 ///
 /// Returns the match result and engine info, or None if the game should stop.
+///
+/// Note: We pass first/second players (from the pairing) to Match::start.
+/// The Match determines who actually plays white/black based on the opening.
 fn run_match(
-    configs: &GamePair<&'static crate::types::engine_config::EngineConfiguration>,
+    assignment: &GameAssignment,
     opening: crate::game::book::Opening,
     cpus_for_game: Option<&[i32]>,
     state: &SharedState,
@@ -507,25 +510,65 @@ fn run_match(
 ) -> Option<(Match, EngineDisplayInfo, EngineDisplayInfo)> {
     let tournament_config = config::tournament_config();
 
-    let (white_guard, black_guard) = get_engines(state, configs, tournament_config.log.realtime)?;
+    // Get engines by their player order (first/second), not color
+    let first_guard = match state.engine_cache.get_engine(
+        &assignment.first().name,
+        assignment.first(),
+        tournament_config.log.realtime,
+    ) {
+        Ok(guard) => guard,
+        Err(e) => {
+            log::error!("Failed to create first engine: {}", e);
+            crate::ABNORMAL_TERMINATION.store(true, Ordering::Relaxed);
+            crate::STOP.store(true, Ordering::Relaxed);
+            return None;
+        }
+    };
 
-    let (game, white_info, black_info) = {
-        let mut white_ref = white_guard.lock();
-        let mut black_ref = black_guard.lock();
+    let second_guard = match state.engine_cache.get_engine(
+        &assignment.second().name,
+        assignment.second(),
+        tournament_config.log.realtime,
+    ) {
+        Ok(guard) => guard,
+        Err(e) => {
+            log::error!("Failed to create second engine: {}", e);
+            crate::ABNORMAL_TERMINATION.store(true, Ordering::Relaxed);
+            crate::STOP.store(true, Ordering::Relaxed);
+            return None;
+        }
+    };
+
+    let (game, first_info, second_info) = {
+        let mut first_ref = first_guard.lock();
+        let mut second_ref = second_guard.lock();
 
         // Run the match — lock both engines for the duration of the game
+        // Match::start determines who plays white based on the opening
         let mut game = Match::new(opening, tournament_config);
-        game.start(&mut white_ref, &mut black_ref, cpus_for_game);
+        game.start(&mut first_ref, &mut second_ref, cpus_for_game);
+
+        // Get the actual white/black info from the match result
+        let match_data = game.get();
+        let white_name = &match_data.players.white.config.name;
+        let black_name = &match_data.players.black.config.name;
 
         log::trace!(
-            "Game {} between {} and {} finished",
+            "Game {} between {} (white) and {} (black) finished",
             pairing.game_id,
-            configs.white.name,
-            configs.black.name
+            white_name,
+            black_name
         );
 
-        let white_info = EngineDisplayInfo::from_uci_engine(&*white_ref);
-        let black_info = EngineDisplayInfo::from_uci_engine(&*black_ref);
+        // Determine which engine reference is white/black for display info
+        // let (white_ref, black_ref) = if *white_name == assignment.first().name {
+        //     (&first_ref, &second_ref)
+        // } else {
+        //     (&second_ref, &first_ref)
+        // };
+
+        let first_info = EngineDisplayInfo::from_uci_engine(&first_ref);
+        let second_info = EngineDisplayInfo::from_uci_engine(&second_ref);
 
         // Handle stall/disconnect
         if game.is_stall_or_disconnect() {
@@ -540,14 +583,14 @@ fn run_match(
                 return None;
             }
 
-            restart_engine_if_unresponsive(&white_guard, &configs.white.name);
-            restart_engine_if_unresponsive(&black_guard, &configs.black.name);
+            restart_engine_if_unresponsive(&first_guard, &assignment.first().name);
+            restart_engine_if_unresponsive(&second_guard, &assignment.second().name);
         }
 
-        (game, white_info, black_info)
+        (game, first_info, second_info)
     };
 
-    Some((game, white_info, black_info))
+    Some((game, first_info, second_info))
 }
 
 /// Convert a game result to stats.
@@ -564,8 +607,7 @@ fn result_to_stats(result: GameResult) -> Stats {
 fn check_sprt(
     state: &SharedState,
     stats: &Stats,
-    first_name: &str,
-    second_name: &str,
+    assignment: &GameAssignment,
     white_info: &EngineDisplayInfo,
     black_info: &EngineDisplayInfo,
     pair_done: bool,
@@ -602,12 +644,12 @@ fn check_sprt(
     let out = state.output.lock().unwrap();
     // Only print these if we haven't already printed them above
     if !(rating_due && pair_done) && !is_last {
-        out.print_result(stats, first_name, second_name);
+        out.print_result(stats, assignment.first_name(), assignment.second_name());
         out.print_interval(
             &state.sprt,
             stats,
-            first_name,
-            second_name,
+            assignment.first_name(),
+            assignment.second_name(),
             (white_info, black_info),
             &state.opening_file,
             &state.scoreboard,
@@ -691,7 +733,7 @@ fn run_game(pairing: Pairing, state: SharedState) {
         .then(|| get_thread_cpus(&state.affinity_manager));
 
     // Prepare engine configs with correct colors
-    let (configs, first_name, second_name) = prepare_engine_configs(
+    let assignment = prepare_engine_configs(
         &pairing,
         tournament_config.noswap,
         tournament_config.reverse,
@@ -709,20 +751,24 @@ fn run_game(pairing: Pairing, state: SharedState) {
     log::trace!(
         "Game {} between {} and {} starting",
         pairing.game_id,
-        configs.white.name,
-        configs.black.name
+        assignment.first().name,
+        assignment.second().name
     );
 
     // Print start
     {
         let out = state.output.lock().unwrap();
-        out.start_game(&configs, pairing.game_id, state.final_matchcount as usize);
+        out.start_game(
+            &assignment,
+            pairing.game_id,
+            state.final_matchcount as usize,
+        );
     }
 
     // Run the match
     let cpus_slice = cpus_for_game.as_deref();
-    let (game, white_info, black_info) =
-        match run_match(&configs, opening, cpus_slice, &state, &pairing) {
+    let (game, first_info, second_info) =
+        match run_match(&assignment, opening, cpus_slice, &state, &pairing) {
             Some(result) => result,
             None => return,
         };
@@ -741,13 +787,11 @@ fn run_game(pairing: Pairing, state: SharedState) {
     // Process results and output
     process_game_results(
         &state,
-        &configs,
+        &assignment,
         &stats,
         &match_data,
-        &first_name,
-        &second_name,
-        &white_info,
-        &black_info,
+        &first_info,
+        &second_info,
         &pairing,
     );
 
@@ -811,13 +855,11 @@ impl ReportingMode {
 /// Process game results: update scoreboard, print output, check SPRT, write files.
 fn process_game_results(
     state: &SharedState,
-    configs: &GamePair<&'static crate::types::engine_config::EngineConfiguration>,
+    assignment: &GameAssignment,
     stats: &Stats,
     match_data: &MatchData,
-    first_name: &str,
-    second_name: &str,
-    white_info: &EngineDisplayInfo,
-    black_info: &EngineDisplayInfo,
+    first_info: &EngineDisplayInfo,
+    second_info: &EngineDisplayInfo,
     pairing: &Pairing,
 ) {
     let config = config::tournament_config();
@@ -829,21 +871,23 @@ fn process_game_results(
 
     {
         let out = state.output.lock().unwrap();
-        out.end_game(configs, stats, &match_data.reason, pairing.game_id);
+        out.end_game(&assignment, stats, &match_data.reason, pairing.game_id);
     }
 
     // ScoreBoard has interior mutability, no need for outer lock
-    reporting_mode.update_scoreboard(&state.scoreboard, configs, stats);
+    reporting_mode.update_scoreboard(&state.scoreboard, &assignment.as_game_pair(), stats);
 
     let current_count = state.match_count.load(Ordering::Relaxed);
     let is_last = matches_exhausted(current_count, state.final_matchcount);
 
-    let stats = state.scoreboard.get_stats(first_name, second_name);
+    let stats = state
+        .scoreboard
+        .get_stats(assignment.first_name(), assignment.second_name());
 
     // Print score interval (e.g., "Score of X vs Y: W - L - D [ratio] N")
     if score_report_due(current_count, config.scoreinterval) || is_last {
         let out = state.output.lock().unwrap();
-        out.print_result(&stats, first_name, second_name);
+        out.print_result(&stats, assignment.first_name(), assignment.second_name());
     }
 
     let rating_due = reporting_mode.rating_report_due(current_count, config.ratinginterval);
@@ -854,9 +898,9 @@ fn process_game_results(
         out.print_interval(
             &state.sprt,
             &stats,
-            first_name,
-            second_name,
-            (white_info, black_info),
+            assignment.first_name(),
+            assignment.second_name(),
+            (first_info, second_info),
             &state.opening_file,
             &state.scoreboard,
         );
@@ -866,10 +910,9 @@ fn process_game_results(
     let sprt_stopped = check_sprt(
         state,
         &stats,
-        first_name,
-        second_name,
-        white_info,
-        black_info,
+        assignment,
+        first_info,
+        second_info,
         pair_done,
         is_last,
         rating_due,

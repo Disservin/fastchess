@@ -11,7 +11,8 @@ use crate::matchmaking::elo::{self, EloResult};
 use crate::matchmaking::scoreboard::ScoreBoard;
 use crate::matchmaking::sprt::Sprt;
 use crate::matchmaking::stats::Stats;
-use crate::types::engine_config::{EngineConfiguration, GamePair};
+use crate::matchmaking::tournament::runner::GameAssignment;
+use crate::types::engine_config::EngineConfiguration;
 use crate::types::enums::OutputType;
 
 /// Information needed for displaying engine metadata in output.
@@ -97,19 +98,13 @@ pub trait Output: Send {
     /// Print game start notification.
     fn start_game(
         &self,
-        configs: &GamePair<&EngineConfiguration, &EngineConfiguration>,
+        configs: &GameAssignment,
         current_game_count: usize,
         max_game_count: usize,
     );
 
     /// Print game end notification.
-    fn end_game(
-        &self,
-        configs: &GamePair<&EngineConfiguration, &EngineConfiguration>,
-        stats: &Stats,
-        annotation: &str,
-        id: usize,
-    );
+    fn end_game(&self, configs: &GameAssignment, stats: &Stats, annotation: &str, id: usize);
 
     /// Print tournament end message.
     fn end_tournament(&self, termination_message: &str);
@@ -164,16 +159,8 @@ impl FastchessOutput {
     ) -> String {
         let elo_result = self.create_elo(stats);
 
-        let first_engine = if engines.0.config.name == first {
-            engines.0
-        } else {
-            engines.1
-        };
-        let second_engine = if engines.0.config.name == second {
-            engines.0
-        } else {
-            engines.1
-        };
+        let first_engine = engines.0;
+        let second_engine = engines.1;
 
         let tc = self.format_time_control(&first_engine.config, &second_engine.config);
         let threads = self.format_threads_from_engines(first_engine, second_engine);
@@ -458,28 +445,25 @@ impl Output for FastchessOutput {
 
     fn start_game(
         &self,
-        configs: &GamePair<&EngineConfiguration, &EngineConfiguration>,
+        configs: &GameAssignment,
         current_game_count: usize,
         max_game_count: usize,
     ) {
         println!(
             "Started game {} of {} ({} vs {})",
-            current_game_count, max_game_count, configs.white.name, configs.black.name
+            current_game_count,
+            max_game_count,
+            configs.first_name(),
+            configs.second_name()
         );
     }
 
-    fn end_game(
-        &self,
-        configs: &GamePair<&EngineConfiguration, &EngineConfiguration>,
-        stats: &Stats,
-        annotation: &str,
-        id: usize,
-    ) {
+    fn end_game(&self, configs: &GameAssignment, stats: &Stats, annotation: &str, id: usize) {
         println!(
             "Finished game {} ({} vs {}): {} {{{}}}",
             id,
-            configs.white.name,
-            configs.black.name,
+            configs.first_name(),
+            configs.second_name(),
             format_stats(stats),
             annotation
         );
@@ -657,28 +641,25 @@ impl Output for CutechessOutput {
 
     fn start_game(
         &self,
-        configs: &GamePair<&EngineConfiguration, &EngineConfiguration>,
+        configs: &GameAssignment,
         current_game_count: usize,
         max_game_count: usize,
     ) {
         println!(
             "Started game {} of {} ({} vs {})",
-            current_game_count, max_game_count, configs.white.name, configs.black.name
+            current_game_count,
+            max_game_count,
+            configs.first_name(),
+            configs.second_name()
         );
     }
 
-    fn end_game(
-        &self,
-        configs: &GamePair<&EngineConfiguration, &EngineConfiguration>,
-        stats: &Stats,
-        annotation: &str,
-        id: usize,
-    ) {
+    fn end_game(&self, configs: &GameAssignment, stats: &Stats, annotation: &str, id: usize) {
         println!(
             "Finished game {} ({} vs {}): {} {{{}}}",
             id,
-            configs.white.name,
-            configs.black.name,
+            configs.first_name(),
+            configs.second_name(),
             format_stats(stats),
             annotation
         );

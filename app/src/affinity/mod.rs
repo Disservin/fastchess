@@ -11,6 +11,7 @@
 
 pub mod cpu_info;
 
+use crate::log_trace;
 use std::collections::VecDeque;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Mutex;
@@ -21,11 +22,13 @@ use std::sync::Mutex;
 
 #[cfg(target_os = "linux")]
 mod sys {
+    use crate::log_trace;
+
     pub fn set_thread_affinity(cpus: &[i32], pid: i32) -> bool {
         use nix::sched::{sched_setaffinity, CpuSet};
         use nix::unistd::Pid;
 
-        log::trace!("Setting affinity mask for thread pid: {}", pid);
+        log_trace!("Setting affinity mask for thread pid: {}", pid);
 
         let mut cpu_set = CpuSet::new();
         for &cpu in cpus {
@@ -52,6 +55,7 @@ mod sys {
 
 #[cfg(windows)]
 mod sys {
+    use crate::{log_trace, log_warn};
 
     /// Group affinity structure for Windows processor groups.
     #[repr(C)]
@@ -109,7 +113,7 @@ mod sys {
     pub fn set_thread_affinity(cpus: &[i32], _pid: i32) -> bool {
         use windows_sys::Win32::System::Threading::{GetCurrentThread, SetThreadAffinityMask};
 
-        log::trace!("Setting affinity mask for current thread");
+        log_trace!("Setting affinity mask for current thread");
 
         let thread_handle = unsafe { GetCurrentThread() };
 
@@ -131,7 +135,7 @@ mod sys {
         let mut affinity_mask: usize = 0;
         for &cpu in cpus {
             if cpu > 63 {
-                log::warn!(
+                log_warn!(
                     "Setting thread affinity for more than 64 logical CPUs is not supported: \
                      requires at least Windows 11 or Windows Server 2022."
                 );
@@ -148,7 +152,7 @@ mod sys {
             GetCurrentProcess, OpenProcess, SetProcessAffinityMask, PROCESS_SET_INFORMATION,
         };
 
-        log::trace!("Setting affinity mask for process pid: {}", pid);
+        log_trace!("Setting affinity mask for process pid: {}", pid);
 
         let process_handle = if pid == 0
             || pid == unsafe { windows_sys::Win32::System::Threading::GetCurrentProcessId() as i32 }
@@ -185,7 +189,7 @@ mod sys {
         let mut affinity_mask: usize = 0;
         for &cpu in cpus {
             if cpu > 63 {
-                log::warn!(
+                log_warn!(
                     "Setting process affinity for more than 64 logical CPUs is not supported: \
                      requires at least Windows 11 or Windows Server 2022."
                 );
@@ -212,7 +216,7 @@ mod sys {
     ) -> bool {
         use windows_sys::Win32::System::Threading::SetProcessAffinityMask;
 
-        log::trace!(
+        log_trace!(
             "Setting affinity mask for process handle: {:?}",
             process_handle
         );
@@ -235,7 +239,7 @@ mod sys {
         let mut affinity_mask: usize = 0;
         for &cpu in cpus {
             if cpu > 63 {
-                log::warn!(
+                log_warn!(
                     "Setting process affinity for more than 64 logical CPUs is not supported: \
                      requires at least Windows 11 or Windows Server 2022."
                 );
@@ -371,7 +375,7 @@ impl AffinityManager {
             } else {
                 mgr.setup_selected_cores(cpus);
             }
-            log::trace!("Using affinity");
+            log_trace!("Using affinity");
         }
 
         mgr
@@ -418,7 +422,7 @@ impl AffinityManager {
     /// so that HT_1 contains one hyperthread per physical core and
     /// HT_2 contains the other.
     fn setup_cores(&mut self, cpu_info: &cpu_info::CpuInfo) {
-        log::trace!("Setting up cores");
+        log_trace!("Setting up cores");
 
         for physical_cpu in cpu_info.physical_cpus.values() {
             for core in physical_cpu.cores.values() {
@@ -438,7 +442,7 @@ impl AffinityManager {
     /// Populate the core pool from a user-specified list of CPUs.
     /// All entries go into HT_1.
     fn setup_selected_cores(&mut self, cpus: &[i32]) {
-        log::trace!("Setting up selected cores");
+        log_trace!("Setting up selected cores");
 
         for &cpu in cpus {
             self.cores[HtGroup::Ht1 as usize].push_back(AffinityProcessor::new(vec![cpu]));

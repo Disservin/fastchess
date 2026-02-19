@@ -5,6 +5,7 @@
 use crate::types::engine_config::EngineConfiguration;
 use crate::types::enums::*;
 use crate::types::tournament::TournamentConfig;
+use crate::{log_info, log_warn};
 #[cfg(target_os = "windows")]
 use std::ffi::OsStr;
 #[cfg(target_os = "windows")]
@@ -89,7 +90,7 @@ fn adjust_concurrency(config: &mut TournamentConfig) -> Result<(), String> {
     // Negative values are handled during CLI parsing in mod.rs.
     if config.concurrency == 0 {
         config.concurrency = hw_threads;
-        log::info!(
+        log_info!(
             "Info: Adjusted concurrency to {} based on number of available hardware threads.",
             config.concurrency
         );
@@ -114,7 +115,7 @@ fn adjust_concurrency(config: &mut TournamentConfig) -> Result<(), String> {
         {
             let max_fds = rlim.0 as usize; // soft limit
             if max_fds < min_fds {
-                log::warn!(
+                log_warn!(
                     "There aren't enough file descriptors available for the specified concurrency.\n\
                      Please increase the limit using ulimit -n 65536.\n\
                      The maximum number of file descriptors required for this configuration is: {}",
@@ -129,7 +130,7 @@ fn adjust_concurrency(config: &mut TournamentConfig) -> Result<(), String> {
                     );
                 }
 
-                log::warn!("Limiting concurrency to: {}", max_concurrency);
+                log_warn!("Limiting concurrency to: {}", max_concurrency);
                 config.concurrency = max_concurrency;
             }
         }
@@ -159,7 +160,7 @@ fn validate_config(config: &mut TournamentConfig) -> Result<(), String> {
 
     // Warn about missing opening book
     if config.opening.file.is_empty() {
-        log::warn!(
+        log_warn!(
             "Warning: No opening book specified! Consider using one, otherwise all games \
              will be played from the starting position."
         );
@@ -167,7 +168,7 @@ fn validate_config(config: &mut TournamentConfig) -> Result<(), String> {
 
     // Warn about unknown opening format
     if config.opening.format != FormatType::Epd && config.opening.format != FormatType::Pgn {
-        log::warn!(
+        log_warn!(
             "Warning: Unknown opening format. All games will be played from the starting position."
         );
     }

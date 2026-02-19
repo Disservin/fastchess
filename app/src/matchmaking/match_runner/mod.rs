@@ -22,6 +22,7 @@ use crate::matchmaking::player::Player;
 use crate::types::engine_config::GamePair;
 use crate::types::match_data::*;
 use crate::types::VariantType;
+use crate::{log_fatal, log_warn};
 
 use trackers::*;
 
@@ -194,7 +195,7 @@ impl Match {
             crate::set_stop();
             crate::set_abnormal_termination();
 
-            log::error!(
+            log_fatal!(
                 "Fatal; {} engine startup failure: \"{}\"",
                 first_player.engine.config().name,
                 e
@@ -210,7 +211,7 @@ impl Match {
             crate::set_stop();
             crate::set_abnormal_termination();
 
-            log::error!(
+            log_fatal!(
                 "Fatal; {} engine startup failure: \"{}\"",
                 second_player.engine.config().name,
                 e
@@ -589,7 +590,7 @@ impl Match {
             self.data.reason = format!("{}{}", name, DISCONNECT_MSG);
         }
 
-        log::warn!("Engine {} disconnects", loser.engine.config().name);
+        log_warn!("Engine {} disconnects", loser.engine.config().name);
     }
 
     fn set_engine_stall_status(&mut self, loser: &mut Player, winner: &mut Player) {
@@ -602,7 +603,7 @@ impl Match {
         self.data.termination = MatchTermination::Stall;
         self.data.reason = format!("{}{}", name, STALL_MSG);
 
-        log::warn!("Engine {} stalls", loser.engine.config().name);
+        log_warn!("Engine {} stalls", loser.engine.config().name);
     }
 
     fn set_engine_timeout_status(&mut self, loser: &mut Player, winner: &mut Player) {
@@ -614,7 +615,7 @@ impl Match {
         self.data.termination = MatchTermination::Timeout;
         self.data.reason = format!("{}{}", name, TIMEOUT_MSG);
 
-        log::warn!("Engine {} loses on time", loser.engine.config().name);
+        log_warn!("Engine {} loses on time", loser.engine.config().name);
 
         // Send stop and wait for bestmove
         loser.engine.write_engine("stop");
@@ -635,7 +636,7 @@ impl Match {
         self.data.reason = format!("{}{}", name, ILLEGAL_MSG);
 
         let mv = best_move.as_deref().unwrap_or("<none>");
-        log::warn!(
+        log_warn!(
             "Warning; Illegal move {} played by {}",
             mv,
             loser.engine.config().name

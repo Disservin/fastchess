@@ -943,10 +943,10 @@ lnsgkgsnl/r6b1/ppppppppp/9/9/P8/1PPPPPPPP/1B3G1R1/LNSGK1SNL b - 1
             FormatType::Pgn,
             OrderType::Sequential,
             -1, // all plies
-            1,
-            2,
-            1,
-            0,
+            1,  // start
+            2,  // rounds (only use first 2 games)
+            1,  // games
+            0,  // initial_matchcount
             VariantType::Standard,
             12345, // seed
         )
@@ -1178,9 +1178,7 @@ lnsgkgsnl/r6b1/ppppppppp/9/9/P8/1PPPPPPPP/1B3G1R1/LNSGK1SNL b - 1
         let opening = book.get(id);
         assert_eq!(
             opening.fen_epd,
-            Some(
-                "1n1qkb1r/rp3ppp/p1p1pn2/2PpN2b/3PP3/1QN5/PP3PPP/R1B1KB1R w KQk - 0 9".to_string()
-            )
+            Some("rnbq1rk1/pppp2bp/4p1p1/5p2/3PP3/3B1N2/PPPNQPPP/R3K2R w KQ - 2 9".to_string())
         );
 
         let id = book.fetch_id();
@@ -1189,7 +1187,92 @@ lnsgkgsnl/r6b1/ppppppppp/9/9/P8/1PPPPPPPP/1B3G1R1/LNSGK1SNL b - 1
         let opening = book.get(id);
         assert_eq!(
             opening.fen_epd,
-            Some("rnbqkb1r/5ppp/p2p1n2/2pP4/Pp2P3/5NP1/1P3P1P/RNBQKB1R w KQkq - 0 9".to_string())
+            Some("r1bqk2r/pppn2bp/5ppn/4p3/1PPp4/3P1NP1/P2NPPBP/R1BQ1RK1 w kq - 0 9".to_string())
         );
+    }
+
+    /// Test start parameter with EPD and seed (sequential order)
+    #[test]
+    fn test_start_parameter_with_seed_epd() {
+        use crate::types::{FormatType, OrderType, VariantType};
+
+        // start=2 skips the first opening in openings.epd
+        let mut book = OpeningBook::new(
+            "./tests/data/openings.epd",
+            FormatType::Epd,
+            OrderType::Sequential,
+            -1,
+            2, // start = 2, skip first opening
+            3,
+            1,
+            0,
+            VariantType::Standard,
+            99999, // seed
+        )
+        .unwrap();
+
+        // Should start from the second opening (index 1)
+        let id = book.fetch_id();
+        assert!(id.is_some());
+        assert_eq!(id.unwrap(), 0);
+        let opening = book.get(id);
+        assert_eq!(
+            opening.fen_epd,
+            Some("rnb2rk1/ppp2pbp/3p2p1/3Pp2n/2P1P2q/2N1BP2/PP1Q2PP/R3KBNR w KQ - 3 9".to_string())
+        );
+
+        let id = book.fetch_id();
+        assert!(id.is_some());
+        assert_eq!(id.unwrap(), 1);
+        let opening = book.get(id);
+        assert_eq!(
+            opening.fen_epd,
+            Some("r3kb1r/pppqpppp/1nn1b3/4P3/3P4/2NBB3/PP3PPP/R2QK1NR w KQkq - 7 9".to_string())
+        );
+    }
+
+    /// Test start parameter with random order and seed
+    #[test]
+    fn test_start_parameter_random_with_seed() {
+        use crate::types::{FormatType, OrderType, VariantType};
+
+        // Same seed, same start should produce deterministic results
+        let mut book1 = OpeningBook::new(
+            "./tests/data/openings.epd",
+            FormatType::Epd,
+            OrderType::Random,
+            -1,
+            2, // start = 2
+            3,
+            1,
+            0,
+            VariantType::Standard,
+            77777,
+        )
+        .unwrap();
+
+        let mut book2 = OpeningBook::new(
+            "./tests/data/openings.epd",
+            FormatType::Epd,
+            OrderType::Random,
+            -1,
+            2, // start = 2
+            3,
+            1,
+            0,
+            VariantType::Standard,
+            77777, // same seed
+        )
+        .unwrap();
+
+        // Both books should produce identical results
+        for _ in 0..3 {
+            let id1 = book1.fetch_id();
+            let id2 = book2.fetch_id();
+            assert_eq!(id1, id2);
+            let o1 = book1.get(id1);
+            let o2 = book2.get(id2);
+            assert_eq!(o1.fen_epd, o2.fen_epd);
+        }
     }
 }

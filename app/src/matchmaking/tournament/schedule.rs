@@ -189,6 +189,7 @@ mod tests {
             1,
             0,
             crate::types::VariantType::Standard,
+            12345, // seed
         )
         .unwrap()
     }

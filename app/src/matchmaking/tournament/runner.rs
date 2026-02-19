@@ -128,6 +128,7 @@ impl Tournament {
             tournament_config.games,
             initial_matchcount as usize,
             tournament_config.variant,
+            tournament_config.seed,
         )?;
 
         // Scheduler now owns the opening book - no need for Box::leak

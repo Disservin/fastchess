@@ -11,7 +11,7 @@
 
 pub mod trackers;
 
-use std::time::Instant;
+use std::time::{Duration, Instant};
 
 use crate::engine::process::ProcessResultExt;
 use crate::engine::protocol::Protocol;
@@ -617,8 +617,15 @@ impl Match {
 
         log_warn!("Engine {} loses on time", loser.engine.config().name);
 
-        // Send stop and wait for bestmove
+        // we send a stop command to the engine to prevent it from thinking
+        // and wait for a bestmove to appear
         loser.engine.write_engine("stop");
+
+        if !loser.engine.output_includes_bestmove() {
+            let _ = loser
+                .engine
+                .read_engine("bestmove", Some(Duration::from_secs(1) * 10));
+        }
     }
 
     fn set_engine_illegal_move_status(

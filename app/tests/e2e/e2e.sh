@@ -465,3 +465,100 @@ if ! grep -q "{book} [0-9]\+\." plies_test.pgn; then
 fi
 
 echo "PGN book plies option works correctly."
+
+# Random Order Test
+# Test that order=random actually shuffles the openings
+# We'll run the same tournament twice and verify the opening order is different
+
+rm random_run1.pgn random_run2.pgn
+
+# First run with order=random
+OUTPUT_FILE_9=$(mktemp)
+./fastchess -engine cmd=./random_mover name=random_move_1 -engine cmd=./random_mover name=random_move_2 \
+    -each tc=2+0.02s -rounds 3 -repeat -concurrency 1 \
+    -openings file=./app/tests/data/short.epd format=epd order=random -pgnout file=random_run1.pgn -log file=log.txt level=info 2>&1 | tee $OUTPUT_FILE_9
+
+if grep -q "WARNING: ThreadSanitizer:" $OUTPUT_FILE_9; then
+    echo "Data races detected."
+    exit 1
+fi
+
+# If the output contains "illegal move" then fail
+if grep -q "illegal move" $OUTPUT_FILE_9; then
+    echo "Illegal move detected."
+    exit 1
+fi
+
+# If the output contains "disconnects" then fail
+if grep -q "disconnects" $OUTPUT_FILE_9; then
+    echo "Disconnect detected."
+    exit 1
+fi
+
+# If the output contains "stalls" then fail
+if grep -q "stalls" $OUTPUT_FILE_9; then
+    echo "Stall detected."
+    exit 1
+fi
+
+# If the output contains "loses on time" then fail
+if grep -q "loses on time" $OUTPUT_FILE_9; then
+    echo "Loses on time detected."
+    exit 1
+fi
+
+# Second run with order=random
+OUTPUT_FILE_10=$(mktemp)
+./fastchess -engine cmd=./random_mover name=random_move_1 -engine cmd=./random_mover name=random_move_2 \
+    -each tc=2+0.02s -rounds 3 -repeat -concurrency 1 \
+    -openings file=./app/tests/data/short.epd format=epd order=random -pgnout file=random_run2.pgn -log file=log.txt level=info 2>&1 | tee $OUTPUT_FILE_10
+
+if grep -q "WARNING: ThreadSanitizer:" $OUTPUT_FILE_10; then
+    echo "Data races detected."
+    exit 1
+fi
+
+# If the output contains "illegal move" then fail
+if grep -q "illegal move" $OUTPUT_FILE_10; then
+    echo "Illegal move detected."
+    exit 1
+fi
+
+# If the output contains "disconnects" then fail
+if grep -q "disconnects" $OUTPUT_FILE_10; then
+    echo "Disconnect detected."
+    exit 1
+fi
+
+# If the output contains "stalls" then fail
+if grep -q "stalls" $OUTPUT_FILE_10; then
+    echo "Stall detected."
+    exit 1
+fi
+
+# If the output contains "loses on time" then fail
+if grep -q "loses on time" $OUTPUT_FILE_10; then
+    echo "Loses on time detected."
+    exit 1
+fi
+
+# Extract the FENs from both PGN files to compare the opening order
+# Each game has a [FEN "..."] tag showing the starting position
+fens_run1=$(grep -A1 "^\[SetUp" random_run1.pgn | grep "^\[FEN" | head -6)
+fens_run2=$(grep -A1 "^\[SetUp" random_run2.pgn | grep "^\[FEN" | head -6)
+
+echo "First 6 FENs from run 1:"
+echo "$fens_run1"
+echo ""
+echo "First 6 FENs from run 2:"
+echo "$fens_run2"
+
+# Compare the FEN sequences - they should be different if randomization is working
+if [ "$fens_run1" = "$fens_run2" ]; then
+    echo "Opening order is the same in both runs. Randomization may not be working."
+    # Note: There's a small chance (1/5!^6) that two random shuffles produce the same order
+    # But for testing purposes, we expect them to be different
+    exit 1
+fi
+
+echo "Random order test passed - openings were shuffled differently in each run."

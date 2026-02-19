@@ -12,6 +12,8 @@ use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::Duration;
 
+use thiserror::Error;
+
 use crate::affinity::AffinityManager;
 use crate::core::config;
 use crate::core::file_writer::FileWriter;
@@ -25,8 +27,17 @@ use crate::matchmaking::sprt::{Sprt, SprtModel, SprtResult};
 use crate::matchmaking::stats::Stats;
 use crate::matchmaking::timeout_tracker::PlayerTracker;
 use crate::matchmaking::tournament::schedule::{Pairing, Scheduler, SchedulerVariant};
-use crate::types::engine_config::GamePair;
 use crate::types::match_data::*;
+
+#[derive(Error, Debug, Clone)]
+pub enum RunGameError {
+    #[error("Failed to create first engine: {0}")]
+    FirstEngineCreation(String),
+    #[error("Failed to create second engine: {0}")]
+    SecondEngineCreation(String),
+    #[error("Game {0} stalled/disconnected, no recover option set, stopping tournament.")]
+    GameStalled(usize),
+}
 
 /// Shared state that is cloned into each game-running closure.
 ///
@@ -425,6 +436,13 @@ pub struct GameAssignment {
 }
 
 impl GameAssignment {
+    pub fn new(
+        first: &'static crate::types::engine_config::EngineConfiguration,
+        second: &'static crate::types::engine_config::EngineConfiguration,
+    ) -> Self {
+        Self { first, second }
+    }
+
     /// Get the first player (original pairing order, for stats).
     pub fn first(&self) -> &'static crate::types::engine_config::EngineConfiguration {
         self.first
@@ -436,18 +454,13 @@ impl GameAssignment {
     }
 
     /// Get the first player's name.
-    pub fn first_name(&self) -> &str {
+    pub fn first_name(&self) -> &'static str {
         self.first().name.as_str()
     }
 
     /// Get the second player's name.
-    pub fn second_name(&self) -> &str {
+    pub fn second_name(&self) -> &'static str {
         self.second().name.as_str()
-    }
-
-    /// Convert to GamePair for color-based operations.
-    fn as_game_pair(&self) -> GamePair<&'static crate::types::engine_config::EngineConfiguration> {
-        GamePair::new(self.first, self.second)
     }
 }
 
@@ -507,7 +520,7 @@ fn run_match(
     cpus_for_game: Option<&[i32]>,
     state: &SharedState,
     pairing: &Pairing,
-) -> Option<(Match, EngineDisplayInfo, EngineDisplayInfo)> {
+) -> Result<(Match, EngineDisplayInfo, EngineDisplayInfo), RunGameError> {
     let tournament_config = config::tournament_config();
 
     // Get engines by their player order (first/second), not color
@@ -518,10 +531,7 @@ fn run_match(
     ) {
         Ok(guard) => guard,
         Err(e) => {
-            log::error!("Failed to create first engine: {}", e);
-            crate::ABNORMAL_TERMINATION.store(true, Ordering::Relaxed);
-            crate::STOP.store(true, Ordering::Relaxed);
-            return None;
+            return Err(RunGameError::FirstEngineCreation(e.to_string()));
         }
     };
 
@@ -532,10 +542,7 @@ fn run_match(
     ) {
         Ok(guard) => guard,
         Err(e) => {
-            log::error!("Failed to create second engine: {}", e);
-            crate::ABNORMAL_TERMINATION.store(true, Ordering::Relaxed);
-            crate::STOP.store(true, Ordering::Relaxed);
-            return None;
+            return Err(RunGameError::SecondEngineCreation(e.to_string()));
         }
     };
 
@@ -573,14 +580,7 @@ fn run_match(
         // Handle stall/disconnect
         if game.is_stall_or_disconnect() {
             if !tournament_config.recover {
-                if !crate::STOP.swap(true, Ordering::Relaxed) {
-                    log::warn!(
-                        "Game {} stalled/disconnected, no recover option set, stopping tournament.",
-                        pairing.game_id
-                    );
-                    crate::ABNORMAL_TERMINATION.store(true, Ordering::Relaxed);
-                }
-                return None;
+                return Err(RunGameError::GameStalled(pairing.game_id));
             }
 
             restart_engine_if_unresponsive(&first_guard, &assignment.first().name);
@@ -590,7 +590,7 @@ fn run_match(
         (game, first_info, second_info)
     };
 
-    Some((game, first_info, second_info))
+    Ok((game, first_info, second_info))
 }
 
 /// Convert a game result to stats.
@@ -769,8 +769,23 @@ fn run_game(pairing: Pairing, state: SharedState) {
     let cpus_slice = cpus_for_game.as_deref();
     let (game, first_info, second_info) =
         match run_match(&assignment, opening, cpus_slice, &state, &pairing) {
-            Some(result) => result,
-            None => return,
+            Ok(result) => result,
+            Err(RunGameError::GameStalled(id)) => {
+                if !crate::STOP.swap(true, Ordering::Relaxed) {
+                    log::warn!(
+                        "Game {} stalled/disconnected, no recover option set, stopping tournament.",
+                        id
+                    );
+                    crate::set_abnormal_termination();
+                }
+                return;
+            }
+            Err(e) => {
+                log::error!("{}", e);
+                crate::set_abnormal_termination();
+                crate::set_stop();
+                return;
+            }
         };
 
     let match_data = game.get();
@@ -781,8 +796,15 @@ fn run_game(pairing: Pairing, state: SharedState) {
         return;
     }
 
-    // Build stats from white's perspective
-    let stats = result_to_stats(match_data.players.white.result);
+    // Build stats from first perspective, this changes according to pairing
+    let Some(first_player_info) = match_data.players.get_first_moved() else {
+        log::error!("No first move player found, internal error");
+        crate::set_abnormal_termination();
+        crate::set_stop();
+        return;
+    };
+
+    let stats = result_to_stats(first_player_info.result);
 
     // Process results and output
     process_game_results(
@@ -816,12 +838,7 @@ impl ReportingMode {
         }
     }
 
-    fn update_scoreboard(
-        &self,
-        scoreboard: &ScoreBoard,
-        configs: &GamePair<&'static crate::types::engine_config::EngineConfiguration>,
-        stats: &Stats,
-    ) {
+    fn update_scoreboard(&self, scoreboard: &ScoreBoard, configs: &GameAssignment, stats: &Stats) {
         match self {
             Self::Penta { pairing_id } => {
                 scoreboard.update_pair(configs, stats, *pairing_id);
@@ -875,7 +892,7 @@ fn process_game_results(
     }
 
     // ScoreBoard has interior mutability, no need for outer lock
-    reporting_mode.update_scoreboard(&state.scoreboard, &assignment.as_game_pair(), stats);
+    reporting_mode.update_scoreboard(&state.scoreboard, assignment, stats);
 
     let current_count = state.match_count.load(Ordering::Relaxed);
     let is_last = matches_exhausted(current_count, state.final_matchcount);

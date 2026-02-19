@@ -257,10 +257,12 @@ impl Match {
                 PlayerInfo {
                     config: first_player.engine.config().clone(),
                     result: first_player.result(),
+                    first_move: Some(true),
                 },
                 PlayerInfo {
                     config: second_player.engine.config().clone(),
                     result: second_player.result(),
+                    first_move: Some(false),
                 },
             )
         } else {
@@ -268,10 +270,12 @@ impl Match {
                 PlayerInfo {
                     config: second_player.engine.config().clone(),
                     result: second_player.result(),
+                    first_move: Some(false),
                 },
                 PlayerInfo {
                     config: first_player.engine.config().clone(),
                     result: first_player.result(),
+                    first_move: Some(true),
                 },
             )
         };

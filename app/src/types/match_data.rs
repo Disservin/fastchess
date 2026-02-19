@@ -82,12 +82,13 @@ pub enum GameResult {
 pub struct PlayerInfo {
     pub config: EngineConfiguration,
     pub result: GameResult,
+    pub first_move: Option<bool>,
 }
 
 /// All data from a completed match.
 #[derive(Debug, Clone)]
 pub struct MatchData {
-    pub players: GamePair<PlayerInfo>,
+    pub players: GamePair,
 
     pub start_time: String,
     pub end_time: String,
@@ -115,10 +116,12 @@ impl Default for MatchData {
                 PlayerInfo {
                     config: EngineConfiguration::default(),
                     result: GameResult::None,
+                    first_move: None,
                 },
                 PlayerInfo {
                     config: EngineConfiguration::default(),
                     result: GameResult::None,
+                    first_move: None,
                 },
             ),
             start_time: String::new(),

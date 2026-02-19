@@ -9,6 +9,7 @@ use shakmaty::{Chess, Position};
 use shakmaty_syzygy::{AmbiguousWdl, Dtz, MaybeRounded, Tablebase, Wdl};
 
 use crate::types::adjudication::{TbAdjudication, TbResultType};
+use crate::{log_info, log_warn};
 
 /// Global tablebase instance (initialized once).
 static TABLEBASE: OnceLock<Option<Tablebase<Chess>>> = OnceLock::new();
@@ -86,23 +87,23 @@ pub fn init_tablebase(syzygy_dirs: &str) {
                 match tb.add_directory(path) {
                     Ok(count) => {
                         if count > 0 {
-                            log::info!("Loaded {} tablebase files from {}", count, dir);
+                            log_info!("Loaded {} tablebase files from {}", count, dir);
                             any_loaded = true;
                         }
                     }
                     Err(e) => {
-                        log::warn!("Failed to load tablebases from {}: {}", dir, e);
+                        log_warn!("Failed to load tablebases from {}: {}", dir, e);
                     }
                 }
             } else {
-                log::warn!("Syzygy directory not found: {}", dir);
+                log_warn!("Syzygy directory not found: {}", dir);
             }
         }
 
         if any_loaded {
             Some(tb)
         } else {
-            log::warn!("No Syzygy tablebases loaded");
+            log_warn!("No Syzygy tablebases loaded");
             None
         }
     });

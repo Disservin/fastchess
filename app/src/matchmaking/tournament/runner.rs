@@ -28,6 +28,7 @@ use crate::matchmaking::stats::Stats;
 use crate::matchmaking::timeout_tracker::PlayerTracker;
 use crate::matchmaking::tournament::schedule::{Pairing, Scheduler, SchedulerVariant};
 use crate::types::match_data::*;
+use crate::{log_fatal, log_info, log_trace, log_warn};
 
 #[derive(Error, Debug, Clone)]
 pub enum RunGameError {
@@ -212,7 +213,7 @@ impl Tournament {
 
     /// Start and run the tournament to completion.
     pub fn start(&mut self) {
-        log::trace!("Starting tournament...");
+        log_trace!("Starting tournament...");
 
         self.create();
 
@@ -255,7 +256,7 @@ impl Tournament {
 
     /// Kick off the initial batch of games (one per thread).
     fn create(&mut self) {
-        log::trace!("Creating matches...");
+        log_trace!("Creating matches...");
 
         let tournament_config = config::tournament_config();
         let num_threads = tournament_config.concurrency;
@@ -280,9 +281,9 @@ impl Tournament {
     fn print_tracker_stats(&self) {
         let tracker = self.tracker.lock().unwrap();
         for (name, timeouts, disconnects) in tracker.iter() {
-            log::info!("Player: {}", name);
-            log::info!("  Timeouts: {}", timeouts);
-            log::info!("  Crashed: {}", disconnects);
+            log_info!("Player: {}", name);
+            log_info!("  Timeouts: {}", timeouts);
+            log_info!("  Crashed: {}", disconnects);
         }
     }
 
@@ -291,7 +292,7 @@ impl Tournament {
     /// Writes the tournament config, engine configs, and current stats
     /// to `config_name` (default: "config.json").
     fn save_json(&self) {
-        log::trace!("Saving results...");
+        log_trace!("Saving results...");
 
         let tournament_config = config::tournament_config();
         let engine_configs = config::engine_configs();
@@ -303,7 +304,7 @@ impl Tournament {
         let mut json_val = match serde_json::to_value(tournament_config) {
             Ok(v) => v,
             Err(e) => {
-                log::warn!("Failed to serialize tournament config: {}", e);
+                log_warn!("Failed to serialize tournament config: {}", e);
                 return;
             }
         };
@@ -324,13 +325,13 @@ impl Tournament {
             Ok(file) => {
                 let writer = std::io::BufWriter::new(file);
                 if let Err(e) = serde_json::to_writer_pretty(writer, &json_val) {
-                    log::warn!("Failed to write JSON to {}: {}", config_name, e);
+                    log_warn!("Failed to write JSON to {}: {}", config_name, e);
                 } else {
-                    log::trace!("Saved results to {}", config_name);
+                    log_trace!("Saved results to {}", config_name);
                 }
             }
             Err(e) => {
-                log::warn!("Failed to create file {}: {}", config_name, e);
+                log_warn!("Failed to create file {}: {}", config_name, e);
             }
         }
     }
@@ -404,7 +405,7 @@ fn get_thread_cpus(affinity_manager: &Arc<AffinityManager>) -> Vec<i32> {
                         let tid = crate::affinity::get_thread_handle();
                         let success = crate::affinity::set_thread_affinity(&cpus, tid);
                         if !success {
-                            log::warn!("Failed to set CPU affinity for tournament thread");
+                            log_warn!("Failed to set CPU affinity for tournament thread");
                         }
                     }
 
@@ -414,7 +415,7 @@ fn get_thread_cpus(affinity_manager: &Arc<AffinityManager>) -> Vec<i32> {
                     cpus
                 }
                 Err(e) => {
-                    log::warn!("Failed to consume CPU cores: {}", e);
+                    log_warn!("Failed to consume CPU cores: {}", e);
                     Vec::new()
                 }
             }
@@ -500,11 +501,11 @@ fn restart_engine_if_unresponsive(engine: &EngineGuard, engine_name: &str) {
         return;
     }
 
-    log::trace!("Restarting engine {}", engine_name);
+    log_trace!("Restarting engine {}", engine_name);
     if let Err(e) = engine.restart() {
         crate::set_abnormal_termination();
         crate::set_stop();
-        log::error!("Failed to restart engine: {}", e);
+        log_fatal!("Failed to restart engine: {}", e);
     }
 }
 
@@ -560,19 +561,12 @@ fn run_match(
         let white_name = &match_data.players.white.config.name;
         let black_name = &match_data.players.black.config.name;
 
-        log::trace!(
+        log_trace!(
             "Game {} between {} (white) and {} (black) finished",
             pairing.game_id,
             white_name,
             black_name
         );
-
-        // Determine which engine reference is white/black for display info
-        // let (white_ref, black_ref) = if *white_name == assignment.first().name {
-        //     (&first_ref, &second_ref)
-        // } else {
-        //     (&second_ref, &first_ref)
-        // };
 
         let first_info = EngineDisplayInfo::from_uci_engine(&first_ref);
         let second_info = EngineDisplayInfo::from_uci_engine(&second_ref);
@@ -626,7 +620,7 @@ fn check_sprt(
         return false;
     }
 
-    log::trace!("SPRT test finished, stopping tournament.");
+    log_trace!("SPRT test finished, stopping tournament.");
     crate::set_stop();
 
     let termination_message = format!(
@@ -639,7 +633,7 @@ fn check_sprt(
         }
     );
 
-    log::info!("{}", termination_message);
+    log_info!("{}", termination_message);
 
     let out = state.output.lock().unwrap();
     // Only print these if we haven't already printed them above
@@ -669,7 +663,7 @@ fn write_match_files(state: &SharedState, match_data: &MatchData, round_id: usiz
 
         match pgn {
             Ok(content) => writer.write(&content),
-            Err(e) => log::warn!("Failed to build PGN: {}", e),
+            Err(e) => log_warn!("Failed to build PGN: {}", e),
         }
     }
 
@@ -748,7 +742,7 @@ fn run_game(pairing: Pairing, state: SharedState) {
             .unwrap_or_default()
     };
 
-    log::trace!(
+    log_trace!(
         "Game {} between {} and {} starting",
         pairing.game_id,
         assignment.first().name,
@@ -772,7 +766,7 @@ fn run_game(pairing: Pairing, state: SharedState) {
             Ok(result) => result,
             Err(RunGameError::GameStalled(id)) => {
                 if !crate::STOP.swap(true, Ordering::Relaxed) {
-                    log::warn!(
+                    log_warn!(
                         "Game {} stalled/disconnected, no recover option set, stopping tournament.",
                         id
                     );
@@ -781,7 +775,7 @@ fn run_game(pairing: Pairing, state: SharedState) {
                 return;
             }
             Err(e) => {
-                log::error!("{}", e);
+                log_fatal!("{}", e);
                 crate::set_abnormal_termination();
                 crate::set_stop();
                 return;
@@ -798,7 +792,7 @@ fn run_game(pairing: Pairing, state: SharedState) {
 
     // Build stats from first perspective, this changes according to pairing
     let Some(first_player_info) = match_data.players.get_first_moved() else {
-        log::error!("No first move player found, internal error");
+        log_fatal!("No first move player found, internal error");
         crate::set_abnormal_termination();
         crate::set_stop();
         return;

@@ -4,6 +4,7 @@
 //! and logical processors (hyperthreads). On macOS and other unsupported
 //! platforms, a flat topology is synthesised from `num_cpus`.
 
+use crate::{log_trace, log_warn};
 use std::collections::BTreeMap;
 
 /// A single logical processor (hyperthread).
@@ -37,7 +38,7 @@ pub struct CpuInfo {
 pub fn get_cpu_info() -> CpuInfo {
     use std::fs;
 
-    log::trace!("Getting CPU info");
+    log_trace!("Getting CPU info");
 
     let mut cpu_info = CpuInfo {
         physical_cpus: BTreeMap::new(),
@@ -46,7 +47,7 @@ pub fn get_cpu_info() -> CpuInfo {
     let contents = match fs::read_to_string("/proc/cpuinfo") {
         Ok(c) => c,
         Err(e) => {
-            log::warn!("Failed to read /proc/cpuinfo: {}", e);
+            log_warn!("Failed to read /proc/cpuinfo: {}", e);
             return cpu_info;
         }
     };

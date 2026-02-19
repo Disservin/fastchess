@@ -18,6 +18,7 @@ use crate::types::adjudication::TbResultType;
 use crate::types::engine_config::EngineConfiguration;
 use crate::types::enums::*;
 use crate::types::tournament::{LogLevel, TournamentConfig};
+use crate::{log_info, log_warn};
 
 // ---------------------------------------------------------------------------
 // ArgumentData — the parsing context
@@ -748,7 +749,7 @@ impl OptionsParser {
                         "file" => load_json(data, value)?,
                         "outname" => data.tournament_config.config_name = value.clone(),
                         "discard" if value == "true" => {
-                            log::info!("Discarding config file");
+                            log_info!("Discarding config file");
                             data.tournament_config = data.old_tournament_config.clone();
                             data.configs = data.old_configs.clone();
                             data.stats.clear();
@@ -763,7 +764,7 @@ impl OptionsParser {
                     }
                 }
                 if data.configs.len() > 2 {
-                    log::warn!("Warning: Stats will be dropped for more than 2 engines.");
+                    log_warn!("Warning: Stats will be dropped for more than 2 engines.");
                     data.stats.clear();
                 }
                 if drop_stats {
@@ -847,7 +848,7 @@ impl OptionsParser {
                     let mut adjusted = hw_threads as i32 - concurrency_raw.abs();
 
                     if adjusted < 0 {
-                        log::warn!(
+                        log_warn!(
                             "Warning: Adjusted concurrency value {} is less than 0, setting to 1.",
                             adjusted
                         );
@@ -1514,7 +1515,7 @@ fn parse_int_list(s: &str) -> Result<Vec<i32>, String> {
 
 /// Load tournament configuration from a JSON file.
 fn load_json(data: &mut ArgumentData, filename: &str) -> Result<(), String> {
-    log::info!("Loading config file: {}", filename);
+    log_info!("Loading config file: {}", filename);
 
     let contents = std::fs::read_to_string(filename)
         .map_err(|e| format!("File not found: {} ({})", filename, e))?;

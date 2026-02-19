@@ -384,3 +384,84 @@ if ! grep -q "Ptnml" $OUTPUT_FILE_7; then
 fi
 
 echo "Rating interval output with penta=true works correctly."
+
+# PGN Book Plies Test
+# Test that the plies option for PGN books works correctly
+# The openings.pgn file has games with 16 plies (8 full moves), we'll limit to 4 plies (2 full moves)
+rm plies_test.pgn
+
+OUTPUT_FILE_8=$(mktemp)
+./fastchess -engine cmd=./random_mover name=random_move_1 -engine cmd=./random_mover name=random_move_2 \
+    -each tc=2+0.02s -rounds 3 -repeat -concurrency 2 \
+    -openings file=./app/tests/data/openings.pgn format=pgn order=sequential plies=4 \
+    -pgnout file=plies_test.pgn -log file=log.txt level=info 2>&1 | tee $OUTPUT_FILE_8
+
+if grep -q "WARNING: ThreadSanitizer:" $OUTPUT_FILE_8; then
+    echo "Data races detected."
+    exit 1
+fi
+
+# If the output contains "illegal move" then fail
+if grep -q "illegal move" $OUTPUT_FILE_8; then
+    echo "Illegal move detected."
+    exit 1
+fi
+
+# If the output contains "disconnects" then fail
+if grep -q "disconnects" $OUTPUT_FILE_8; then
+    echo "Disconnect detected."
+    exit 1
+fi
+
+# If the output contains "stalls" then fail
+if grep -q "stalls" $OUTPUT_FILE_8; then
+    echo "Stall detected."
+    exit 1
+fi
+
+# If the output contains "loses on time" then fail
+if grep -q "loses on time" $OUTPUT_FILE_8; then
+    echo "Loses on time detected."
+    exit 1
+fi
+
+# Verify that all 6 games were played (3 rounds * 2 games per round with -repeat)
+if ! grep -q "Finished game 6" $OUTPUT_FILE_8; then
+    echo "Not all 6 games were played."
+    exit 1
+fi
+
+# Verify that the plies_test.pgn file was created and contains games
+if [ ! -f "plies_test.pgn" ]; then
+    echo "plies_test.pgn file was not created."
+    exit 1
+fi
+
+# Count the number of games in the PGN file (each game starts with "[Event ")
+game_count=$(grep -c "^\[Event " plies_test.pgn)
+if [ "$game_count" -ne 6 ]; then
+    echo "Expected 6 games in plies_test.pgn, but found $game_count."
+    exit 1
+fi
+
+# Check that moves from the opening book are marked with {book}
+# With plies=4, we should see exactly 4 {book} annotations per game (2 moves for white, 2 for black)
+# Count {book} annotations in the PGN file
+book_count=$(grep -o "{book}" plies_test.pgn | wc -l)
+echo "Found $book_count {book} annotations in PGN file"
+# We expect 6 games * 4 plies = 24 {book} annotations
+if [ "$book_count" -ne 24 ]; then
+    echo "Expected exactly 24 {book} annotations (6 games * 4 plies), but found $book_count."
+    exit 1
+fi
+
+# Verify the structure: moves should be marked as {book} for the first 4 plies
+# Then engine moves should follow without {book} annotation
+# Check that we have moves after the book moves (engine-generated moves)
+# Look for pattern like "2... Nc6 {book} 3." which indicates engine move after book moves
+if ! grep -q "{book} [0-9]\+\." plies_test.pgn; then
+    echo "PGN does not show engine moves after book moves."
+    exit 1
+fi
+
+echo "PGN book plies option works correctly."

@@ -152,6 +152,7 @@ fi
 # Short EPD Book Test - More rounds than openings
 # short.epd has only 5 openings, but we play 10 rounds (20 games with -repeat)
 # This tests that the opening book cycles/repeats correctly
+rm games.pgn
 
 OUTPUT_FILE_5=$(mktemp)
 ./fastchess -engine cmd=./random_mover name=random_move_1 -engine cmd=./random_mover name=random_move_2 \
@@ -239,3 +240,147 @@ if [ "$opening1_count" -ne "$expected_count" ] || [ "$opening2_count" -ne "$expe
 fi
 
 echo "All openings were played the expected number of times."
+
+# Rating Interval Test with penta=false
+# Test that ratinginterval output works correctly - should print rating report every N games
+# With -ratinginterval 2 and -report penta=false, we should see rating output after every 2 games: 2, 4, 6, 8, 10
+
+OUTPUT_FILE_6=$(mktemp)
+./fastchess -engine cmd=./random_mover name=random_move_1 -engine cmd=./random_mover name=random_move_2 \
+    -each tc=2+0.02s -rounds 5 -repeat -concurrency 2 -ratinginterval 2 -report penta=false \
+    -openings file=./app/tests/data/openings.epd format=epd order=random -log file=log.txt level=info 2>&1 | tee $OUTPUT_FILE_6
+
+if grep -q "WARNING: ThreadSanitizer:" $OUTPUT_FILE_6; then
+    echo "Data races detected."
+    exit 1
+fi
+
+# If the output contains "illegal move" then fail
+if grep -q "illegal move" $OUTPUT_FILE_6; then
+    echo "Illegal move detected."
+    exit 1
+fi
+
+# If the output contains "disconnects" then fail
+if grep -q "disconnects" $OUTPUT_FILE_6; then
+    echo "Disconnect detected."
+    exit 1
+fi
+
+# If the output contains "stalls" then fail
+if grep -q "stalls" $OUTPUT_FILE_6; then
+    echo "Stall detected."
+    exit 1
+fi
+
+# If the output contains "loses on time" then fail
+if grep -q "loses on time" $OUTPUT_FILE_6; then
+    echo "Loses on time detected."
+    exit 1
+fi
+
+# Verify that all 10 games were played (5 rounds * 2 games per round with -repeat)
+if ! grep -q "Finished game 10" $OUTPUT_FILE_6; then
+    echo "Not all 10 games were played."
+    exit 1
+fi
+
+# Check that rating reports were printed
+# With -ratinginterval 2 and -report penta=false, rating reports are printed every 2 games
+# Count occurrences of "Results of" which indicates rating interval output
+rating_report_count=$(grep -c "Results of" $OUTPUT_FILE_6)
+echo "Found $rating_report_count rating reports"
+# We expect exactly 5 rating reports (after games 2, 4, 6, 8, 10)
+if [ "$rating_report_count" -ne 5 ]; then
+    echo "Expected exactly 5 rating interval reports (at games 2, 4, 6, 8, 10), but found $rating_report_count."
+    exit 1
+fi
+
+# Check that Elo information is being printed in the rating reports
+if ! grep -q "Elo:" $OUTPUT_FILE_6; then
+    echo "Rating interval output does not contain Elo information."
+    exit 1
+fi
+
+# Check that the rating reports contain game statistics
+if ! grep -q "Games:" $OUTPUT_FILE_6; then
+    echo "Rating interval output does not contain game statistics."
+    exit 1
+fi
+
+echo "Rating interval output with penta=false works correctly."
+
+# Rating Interval Test with penta=true (default)
+# Test that ratinginterval output works correctly with pentanomial reporting
+# With -ratinginterval 2 and -report penta=true, reports are printed when pairs complete
+
+OUTPUT_FILE_7=$(mktemp)
+./fastchess -engine cmd=./random_mover name=random_move_1 -engine cmd=./random_mover name=random_move_2 \
+    -each tc=2+0.02s -rounds 5 -repeat -concurrency 2 -ratinginterval 2 -report penta=true \
+    -openings file=./app/tests/data/openings.epd format=epd order=random -log file=log.txt level=info 2>&1 | tee $OUTPUT_FILE_7
+
+if grep -q "WARNING: ThreadSanitizer:" $OUTPUT_FILE_7; then
+    echo "Data races detected."
+    exit 1
+fi
+
+# If the output contains "illegal move" then fail
+if grep -q "illegal move" $OUTPUT_FILE_7; then
+    echo "Illegal move detected."
+    exit 1
+fi
+
+# If the output contains "disconnects" then fail
+if grep -q "disconnects" $OUTPUT_FILE_7; then
+    echo "Disconnect detected."
+    exit 1
+fi
+
+# If the output contains "stalls" then fail
+if grep -q "stalls" $OUTPUT_FILE_7; then
+    echo "Stall detected."
+    exit 1
+fi
+
+# If the output contains "loses on time" then fail
+if grep -q "loses on time" $OUTPUT_FILE_7; then
+    echo "Loses on time detected."
+    exit 1
+fi
+
+# Verify that all 10 games were played (5 rounds * 2 games per round with -repeat)
+if ! grep -q "Finished game 10" $OUTPUT_FILE_7; then
+    echo "Not all 10 games were played."
+    exit 1
+fi
+
+# Check that rating reports were printed
+# With -ratinginterval 2 and -report penta=true, rating reports are printed when pairs complete
+# Count occurrences of "Results of" which indicates rating interval output
+rating_report_count_penta=$(grep -c "Results of" $OUTPUT_FILE_7)
+echo "Found $rating_report_count_penta rating reports with penta=true"
+# We expect exactly 3 rating reports (after pairs complete)
+if [ "$rating_report_count_penta" -ne 3 ]; then
+    echo "Expected exactly 3 rating interval reports with penta=true, but found $rating_report_count_penta."
+    exit 1
+fi
+
+# Check that Elo information is being printed in the rating reports
+if ! grep -q "Elo:" $OUTPUT_FILE_7; then
+    echo "Rating interval output does not contain Elo information."
+    exit 1
+fi
+
+# Check that the rating reports contain game statistics
+if ! grep -q "Games:" $OUTPUT_FILE_7; then
+    echo "Rating interval output does not contain game statistics."
+    exit 1
+fi
+
+# Check that pentanomial statistics are present
+if ! grep -q "Ptnml" $OUTPUT_FILE_7; then
+    echo "Rating interval output with penta=true does not contain Ptnml statistics."
+    exit 1
+fi
+
+echo "Rating interval output with penta=true works correctly."

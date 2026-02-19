@@ -189,6 +189,7 @@ mod tests {
             1,
             0,
             crate::types::VariantType::Standard,
+            12345, // seed
         )
         .unwrap()
     }
@@ -381,6 +382,30 @@ mod tests {
             let p = sched.next().unwrap();
             assert_eq!(p.round_id, round);
             assert_eq!((p.player1, p.player2), (0, 1));
+        }
+        assert!(sched.next().is_none());
+    }
+
+    // 2 players, 2 games per pair, 2 rounds = 4 total games
+    #[test]
+    fn test_multi_games_multi_rounds() {
+        let book = make_empty_book();
+        let mut sched = Scheduler::new(
+            book,
+            SchedulerVariant::RoundRobin,
+            2, // 2 players => 1 pair
+            2, // 2 rounds
+            2, // 2 games per pair
+            0,
+        );
+        assert_eq!(sched.total(), 4); // 1 pair * 2 rounds * 2 games = 4
+
+        for round in 1..=2 {
+            for _ in 1..=2 {
+                let p = sched.next().unwrap();
+                assert_eq!(p.round_id, round);
+                assert_eq!((p.player1, p.player2), (0, 1));
+            }
         }
         assert!(sched.next().is_none());
     }

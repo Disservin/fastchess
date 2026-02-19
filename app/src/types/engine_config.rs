@@ -1,18 +1,30 @@
 use serde::{Deserialize, Serialize};
 
 use super::enums::*;
-use crate::game::timecontrol::TimeControlLimits;
+use crate::{game::timecontrol::TimeControlLimits, types::PlayerInfo};
 
 /// Pair of white/black items (engines, configs, player info, etc.)
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GamePair<W, B = W> {
-    pub white: W,
-    pub black: B,
+#[derive(Debug, Clone)]
+pub struct GamePair {
+    pub white: PlayerInfo,
+    pub black: PlayerInfo,
 }
 
-impl<W, B> GamePair<W, B> {
-    pub fn new(white: W, black: B) -> Self {
+impl GamePair {
+    pub fn new(white: PlayerInfo, black: PlayerInfo) -> Self {
         Self { white, black }
+    }
+
+    pub fn get_first_moved(&self) -> Option<&PlayerInfo> {
+        if let Some(first_move) = self.white.first_move {
+            if first_move == true {
+                return Some(&self.white);
+            }
+
+            return Some(&self.black);
+        }
+
+        None
     }
 }
 

@@ -8,7 +8,7 @@ use fastchess::game::syzygy;
 use fastchess::matchmaking::tournament::runner::Tournament;
 use fastchess::matchmaking::tournament::schedule::SchedulerVariant;
 use fastchess::types::enums::TournamentType;
-use fastchess::types::tournament::LogLevel;
+use fastchess::{log_info, log_trace};
 
 fn run() -> Result<(), String> {
     let start_time = Instant::now();
@@ -28,24 +28,10 @@ fn run() -> Result<(), String> {
         tournament_config.log.engine_coms,
     );
 
-    //    Set up env_logger for the `log` crate macros (log::trace!, log::info!, etc.)
-    let log_level = match tournament_config.log.level {
-        LogLevel::Trace => log::LevelFilter::Trace,
-        LogLevel::Debug => log::LevelFilter::Debug,
-        LogLevel::Info => log::LevelFilter::Info,
-        LogLevel::Warn => log::LevelFilter::Warn,
-        LogLevel::Error => log::LevelFilter::Error,
-        LogLevel::Fatal => log::LevelFilter::Error,
-    };
-    env_logger::Builder::new()
-        .filter_level(log_level)
-        .format_timestamp(None)
-        .init();
-
     // 3. Seed RNG
     //    The C++ code calls srand(config.seed). In Rust, rand is not globally seeded
     //    the same way, but the opening book shuffle uses the seed directly.
-    log::trace!("Using seed: {}", tournament_config.seed);
+    log_trace!("Using seed: {}", tournament_config.seed);
 
     // 4. Determine scheduler variant from tournament type
     let variant = match tournament_config.r#type {
@@ -64,7 +50,7 @@ fn run() -> Result<(), String> {
     if tb_config.enabled && !tb_config.syzygy_dirs.is_empty() {
         syzygy::init_tablebase(&tb_config.syzygy_dirs);
         if syzygy::is_available() {
-            log::info!(
+            log_info!(
                 "Syzygy tablebases initialized (up to {} pieces)",
                 syzygy::max_pieces()
             );
@@ -82,7 +68,7 @@ fn run() -> Result<(), String> {
     // 7. Create and run the tournament
     let mut tournament = Tournament::new(&results, variant)?;
 
-    log::info!("Starting tournament...");
+    log_info!("Starting tournament...");
     tournament.start();
 
     // 8. Report elapsed time

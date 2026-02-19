@@ -8,7 +8,7 @@ use std::sync::Mutex;
 use serde::{Deserialize, Serialize};
 
 use super::stats::Stats;
-use crate::types::engine_config::{EngineConfiguration, GamePair};
+use crate::matchmaking::tournament::runner::GameAssignment;
 
 /// A key identifying a pair of players (white, black).
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -67,19 +67,19 @@ pub struct StatsMapWrapper {
 }
 
 impl StatsMapWrapper {
-    pub fn get_or_insert(
-        &mut self,
-        configs: &GamePair<&EngineConfiguration, &EngineConfiguration>,
-    ) -> &mut Stats {
-        let key = PlayerPairKey::new(&configs.white.name, &configs.black.name);
+    pub fn get_or_insert(&mut self, configs: &GameAssignment) -> &mut Stats {
+        let key = PlayerPairKey::new(
+            configs.first_name().to_owned(),
+            configs.second_name().to_owned(),
+        );
         self.results.entry(key).or_default()
     }
 
-    pub fn get(
-        &self,
-        configs: &GamePair<&EngineConfiguration, &EngineConfiguration>,
-    ) -> Option<&Stats> {
-        let key = PlayerPairKey::new(&configs.white.name, &configs.black.name);
+    pub fn get(&self, configs: &GameAssignment) -> Option<&Stats> {
+        let key = PlayerPairKey::new(
+            configs.first_name().to_owned(),
+            configs.second_name().to_owned(),
+        );
         self.results.get(&key)
     }
 
@@ -128,11 +128,7 @@ impl ScoreBoard {
     }
 
     /// Update stats directly (no pair tracking). Always returns true.
-    pub fn update_non_pair(
-        &self,
-        configs: &GamePair<&EngineConfiguration, &EngineConfiguration>,
-        stats: &Stats,
-    ) -> bool {
+    pub fn update_non_pair(&self, configs: &GameAssignment, stats: &Stats) -> bool {
         let mut results = self.results.lock().unwrap();
         let entry = results.get_or_insert(configs);
         *entry += stats;
@@ -143,18 +139,14 @@ impl ScoreBoard {
     ///
     /// Returns true if the pair was completed (second game of the pair),
     /// false if this was the first game.
-    pub fn update_pair(
-        &self,
-        configs: &GamePair<&EngineConfiguration, &EngineConfiguration>,
-        stats: &Stats,
-        round_id: u64,
-    ) -> bool {
+    pub fn update_pair(&self, configs: &GameAssignment, stats: &Stats, round_id: u64) -> bool {
         let mut cache = self.game_pair_cache.lock().unwrap();
 
         let is_first_game = !cache.contains_key(&round_id);
 
         if is_first_game {
-            // Invert because the other player plays the opposite color in the second game
+            // Invert because otherwise the stats would be from the same perspective
+            // for different players
             cache.insert(round_id, stats.inverted());
             return false;
         }
@@ -243,6 +235,17 @@ impl Default for ScoreBoard {
 mod tests {
     use super::*;
 
+    use crate::{
+        matchmaking::tournament::runner::GameAssignment, types::engine_config::EngineConfiguration,
+    };
+
+    static W_CFG: std::sync::LazyLock<EngineConfiguration> =
+        std::sync::LazyLock::new(|| create_config("engine1"));
+    static B_CFG: std::sync::LazyLock<EngineConfiguration> =
+        std::sync::LazyLock::new(|| create_config("engine2"));
+    static C_CFG: std::sync::LazyLock<EngineConfiguration> =
+        std::sync::LazyLock::new(|| create_config("engine3"));
+
     fn create_config(name: &str) -> EngineConfiguration {
         let mut cfg = EngineConfiguration::default();
         cfg.name = name.to_string();
@@ -253,13 +256,7 @@ mod tests {
     fn test_update_non_pair() {
         let board = ScoreBoard::new();
 
-        let w_cfg = create_config("engine1");
-        let b_cfg = create_config("engine2");
-
-        let configs = GamePair {
-            white: &w_cfg,
-            black: &b_cfg,
-        };
+        let configs = GameAssignment::new(&*W_CFG, &*B_CFG);
 
         let stats = Stats::new(1, 0, 0); // engine1 wins
 
@@ -273,13 +270,7 @@ mod tests {
     #[test]
     fn test_update_pair() {
         let board = ScoreBoard::new();
-        let w_cfg = create_config("engine1");
-        let b_cfg = create_config("engine2");
-
-        let configs = GamePair {
-            white: &w_cfg,
-            black: &b_cfg,
-        };
+        let configs = GameAssignment::new(&*W_CFG, &*B_CFG);
 
         // First game: engine1 wins as white
         let stats1 = Stats::new(1, 0, 0);
@@ -298,19 +289,9 @@ mod tests {
     #[test]
     fn test_get_all_stats() {
         let board = ScoreBoard::new();
-        let w_cfg1 = create_config("engine1");
-        let b_cfg1 = create_config("engine2");
-        let configs1 = GamePair {
-            white: &w_cfg1,
-            black: &b_cfg1,
-        };
 
-        let w_cfg2 = create_config("engine1");
-        let b_cfg2 = create_config("engine3");
-        let configs2 = GamePair {
-            white: &w_cfg2,
-            black: &b_cfg2,
-        };
+        let configs1 = GameAssignment::new(&*W_CFG, &*B_CFG);
+        let configs2 = GameAssignment::new(&*W_CFG, &*C_CFG);
 
         board.update_non_pair(&configs1, &Stats::new(3, 1, 2));
         board.update_non_pair(&configs2, &Stats::new(2, 2, 1));
@@ -341,13 +322,7 @@ mod tests {
     #[test]
     fn test_pentanomial_pair_tracking() {
         let board = ScoreBoard::new();
-        let w_cfg = create_config("engine1");
-        let b_cfg = create_config("engine2");
-
-        let configs = GamePair {
-            white: &w_cfg,
-            black: &b_cfg,
-        };
+        let configs = GameAssignment::new(&*W_CFG, &*B_CFG);
 
         // Game pair where engine1 wins both games
         let win_stats = Stats::new(1, 0, 0);

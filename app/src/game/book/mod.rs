@@ -1,4 +1,5 @@
 use pgn_reader::{BufferedReader, RawHeader, SanPlus, Skip, Visitor};
+use rand_mt::Mt64;
 use shakmaty::uci::UciMove;
 use shakmaty::{CastlingMode, Chess, Position};
 
@@ -358,12 +359,11 @@ impl OpeningBook {
 
 /// Fisher-Yates shuffle with seed.
 fn shuffle<T>(vec: &mut [T], seed: u64) {
-    use rand::Rng;
-    use rand::SeedableRng;
-    let mut rng = rand::rngs::StdRng::seed_from_u64(seed);
+    let mut rng = Mt64::new(seed);
     let len = vec.len();
     for i in 0..len.saturating_sub(1) {
-        let j = i + rng.gen_range(0..len - i);
+        let rand = rng.next_u64();
+        let j = i + (rand as usize % (len - i));
         vec.swap(i, j);
     }
 }

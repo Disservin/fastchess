@@ -5,8 +5,6 @@
 use serde::{Deserialize, Serialize};
 use std::ops;
 
-use crate::types::match_data::{GameResult, MatchData};
-
 /// Win/Loss/Draw statistics with pentanomial pair tracking.
 ///
 /// Pentanomial stats track game-pair outcomes:
@@ -50,23 +48,6 @@ impl Stats {
             penta_ww: ww,
             ..Default::default()
         }
-    }
-
-    /// Create stats from a single match result (white player's perspective).
-    pub fn from_match(match_data: &MatchData) -> Self {
-        let mut stats = Self::default();
-        match match_data.players.white.result {
-            GameResult::Win => stats.wins += 1,
-            GameResult::Lose => stats.losses += 1,
-            GameResult::Draw => stats.draws += 1,
-            GameResult::None => {
-                // Also check black side for draw
-                if match_data.players.black.result == GameResult::Draw {
-                    stats.draws += 1;
-                }
-            }
-        }
-        stats
     }
 
     /// Invert stats (swap wins/losses, swap WW/LL, swap WD/LD).

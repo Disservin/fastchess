@@ -433,6 +433,8 @@ mod tests {
                 ..EngineConfiguration::default()
             },
             result,
+            // we don't need first_move info here as of yet
+            first_move: None
         }
     }
 

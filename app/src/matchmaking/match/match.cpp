@@ -657,10 +657,11 @@ void Match::verifyPvLines(const Player& us) {
     // finally check if the final PV matches bestmove
     const auto best_move = us.engine.bestmove().value_or("<none>");
 
-    // allow for upperbound/lowerbound info lines
+    // skip the check if the final score is upperbound/lowerbound
     const auto& info = info_lines.back();
+    bool isBound     = (info.find("lowerbound") != std::string::npos || info.find("upperbound") != std::string::npos);
     const auto pv    = engine::UciEngine::getPv(info);
-    if (!pv.has_value() || pv->empty() || best_move == "<none>") {
+    if (isBound || !pv.has_value() || pv->empty() || best_move == "<none>") {
         return;
     }
 

@@ -116,10 +116,10 @@ class UciEngine {
     [[nodiscard]] ms lastTime() const;
 
     // Get all the info lines from the last output.
-    [[nodiscard]] std::vector<std::string> getInfoLines() const;
+    [[nodiscard]] std::vector<const std::string*> getInfoLines() const;
 
     // Get the score from an info line.
-    [[nodiscard]] static tl::expected<Score, std::string> getScore(std::string_view info_line);
+    [[nodiscard]] static tl::expected<Score, std::string> getScore(const std::string& info_line);
 
     // Get the last score from the last output.
     [[nodiscard]] tl::expected<Score, std::string> lastScore() const;
@@ -145,6 +145,10 @@ class UciEngine {
     [[nodiscard]] static ms getPingTime() { return config::TournamentConfig->ping_time; }
     [[nodiscard]] static ms getUciNewGameTime() { return config::TournamentConfig->ucinewgame_time; }
     [[nodiscard]] static ms getStartupTime() { return config::TournamentConfig->startup_time; }
+
+    [[nodiscard]] static bool isBound(const std::string& info_line) {
+        return (info_line.find("lowerbound") != std::string::npos || info_line.find("upperbound") != std::string::npos);
+    }
 
    private:
     void loadConfig(const EngineConfiguration& config);

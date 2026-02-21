@@ -134,7 +134,7 @@ void Match::addMoveData(const Player& player, int64_t measured_time_ms, int64_t 
                                            player.engine.getConfig().name);
     }
 
-    const auto info  = str_utils::splitString(info_line, ' ');
+    const auto info = str_utils::splitString(info_line, ' ');
 
     const auto score = player.engine.lastScore();
 
@@ -616,62 +616,66 @@ void Match::verifyPvLines(const Player& us) {
         }
 
         // for mate scores check correct length of PV
-        const auto score = engine::UciEngine::getScore(info);
-        bool isBound = (info.find("lowerbound") != std::string::npos || info.find("upperbound") != std::string::npos);
+        const auto score   = engine::UciEngine::getScore(info);
+        const bool isBound = engine::UciEngine::isBound(info);
 
-        if (score.has_value() && score.value().type == engine::ScoreType::MATE && !isBound) {
-            const auto score_value = score.value().value;
-            uint64_t plies = score_value > 0 ? score_value * 2 - 1 : score_value * -2;
-            std::string warning;
-            if (pv->size() < plies) {
-                warning = "Warning; Incomplete mating PV - from {}";
-            } else if (pv->size() > plies) {
-                warning = "Warning; Too long mating PV - from {}";
-            } else {
-                movegen::legalmoves(moves, board);
-                if (!moves.empty() || !board.inCheck()) {
-                    warning = "Warning; Mating PV does not end with checkmate - from {}";
-                }
-            }
-
-            if (warning.empty()) {
-                return;
-            }
-
-            auto out      = fmt::format(fmt::runtime(warning), name);
-            auto uci_info = fmt::format("Info; {}", info);
-            auto position = fmt::format("Position; {}", startpos == "startpos" ? "startpos" : ("fen " + startpos));
-            auto ucimoves = fmt::format("Moves; {}", str_utils::join(uci_moves, " "));
-
-            auto separator = config::TournamentConfig->test_env ? " :: " : "\n";
-
-            Logger::print<Logger::Level::WARN>("{1}{0}{2}{0}{3}{0}{4}", separator, out, uci_info, position, ucimoves);
+        if (!score.has_value() || score.value().type != engine::ScoreType::MATE || isBound) {
+            return;
         }
+
+        const auto score_value = score.value().value;
+        uint64_t plies         = score_value > 0 ? score_value * 2 - 1 : score_value * -2;
+        std::string warning;
+
+        if (pv->size() < plies) {
+            warning = "Warning; Incomplete mating PV - from {}";
+        } else if (pv->size() > plies) {
+            warning = "Warning; Too long mating PV - from {}";
+        } else {
+            movegen::legalmoves(moves, board);
+            if (!moves.empty() || !board.inCheck()) {
+                warning = "Warning; Mating PV does not end with checkmate - from {}";
+            }
+        }
+
+        if (warning.empty()) {
+            return;
+        }
+
+        auto out      = fmt::format(fmt::runtime(warning), name);
+        auto uci_info = fmt::format("Info; {}", info);
+        auto position = fmt::format("Position; {}", startpos == "startpos" ? "startpos" : ("fen " + startpos));
+        auto ucimoves = fmt::format("Moves; {}", str_utils::join(uci_moves, " "));
+
+        auto separator = config::TournamentConfig->test_env ? " :: " : "\n";
+
+        Logger::print<Logger::Level::WARN>("{1}{0}{2}{0}{3}{0}{4}", separator, out, uci_info, position, ucimoves);
     };
 
     const auto info_lines = us.engine.getInfoLines();
-    for (const auto& info : info_lines) {
-        verifyPv(board_, start_position_, uci_moves_, info, us.engine.getConfig().name);
+
+    for (const auto info : info_lines) {
+        verifyPv(board_, start_position_, uci_moves_, *info, us.engine.getConfig().name);
     }
 
     // finally check if the final PV matches bestmove
-    const auto best_move = us.engine.bestmove().value_or("<none>");
+    const auto best_move = us.engine.bestmove();
 
     // skip the check if the final score is upperbound/lowerbound
-    const auto& info = info_lines.back();
-    bool isBound     = (info.find("lowerbound") != std::string::npos || info.find("upperbound") != std::string::npos);
-    const auto pv    = engine::UciEngine::getPv(info);
-    if (isBound || !pv.has_value() || pv->empty() || best_move == "<none>") {
+    const auto& info   = info_lines.back();
+    const auto isBound = engine::UciEngine::isBound(*info);
+    const auto pv      = engine::UciEngine::getPv(*info);
+    if (isBound || !pv.has_value() || pv->empty() || !best_move.has_value()) {
         return;
     }
 
-    if (best_move != (*pv)[0]) {
-        std::string warning = "Warning; Bestmove does not match beginning of last PV - move {} from {}";
-        auto out            = fmt::format(fmt::runtime(warning), best_move, us.engine.getConfig().name);
-        auto uci_info       = fmt::format("Info; {}", info);
-        auto position =
-            fmt::format("Position; {}", start_position_ == "startpos" ? "startpos" : ("fen " + start_position_));
-        auto ucimoves = fmt::format("Moves; {}", str_utils::join(uci_moves_, " "));
+    if (best_move.value() != (*pv)[0]) {
+        auto warning   = "Warning; Bestmove does not match beginning of last PV - move {} from {}";
+        auto start_pos = start_position_ == "startpos" ? "startpos" : ("fen " + start_position_);
+        auto out       = fmt::format(fmt::runtime(warning), best_move.value(), us.engine.getConfig().name);
+        auto uci_info  = fmt::format("Info; {}", *info);
+        auto position  = fmt::format("Position; {}", start_pos);
+        auto ucimoves  = fmt::format("Moves; {}", str_utils::join(uci_moves_, " "));
 
         auto separator = config::TournamentConfig->test_env ? " :: " : "\n";
 

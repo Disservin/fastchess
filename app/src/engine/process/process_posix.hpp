@@ -280,7 +280,7 @@ class Process : public IProcess {
             // 1. Check Interrupt
             if (fds[INT_IDX].revents & POLLIN) {
                 [[maybe_unused]] uint64_t junk;
-                read(fds[INT_IDX].fd, &junk, sizeof(junk));
+                [[maybe_unused]] auto r = read(fds[INT_IDX].fd, &junk, sizeof(junk));
                 assert(junk > 0);
                 return Result::Error("Interrupted by control pipe");
             }

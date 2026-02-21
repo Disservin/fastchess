@@ -110,17 +110,24 @@ class UciEngine {
     // Get the bestmove from the last output.
     [[nodiscard]] std::optional<std::string> bestmove() const;
 
+    // Get the last info line from the last output.
     [[nodiscard]] std::string lastInfoLine() const;
 
-    // Get the last info from the last output.
-    [[nodiscard]] std::optional<std::vector<std::string>> lastInfo() const;
-
     [[nodiscard]] ms lastTime() const;
+
+    // Get all the info lines from the last output.
+    [[nodiscard]] std::vector<const std::string*> getInfoLines() const;
+
+    // Get the score from an info line.
+    [[nodiscard]] static tl::expected<Score, std::string> getScore(const std::string& info_line);
 
     // Get the last score from the last output.
     [[nodiscard]] tl::expected<Score, std::string> lastScore() const;
 
-    // returns false if the output doesnt include a bestmove
+    // Get the PV from an info line.
+    [[nodiscard]] static std::optional<std::vector<std::string>> getPv(std::string_view info_line);
+
+    // returns false if the output doesn't include a bestmove
     [[nodiscard]] bool outputIncludesBestmove() const;
 
     [[nodiscard]] const std::vector<process::Line>& output() const noexcept { return output_; }
@@ -138,6 +145,10 @@ class UciEngine {
     [[nodiscard]] static ms getPingTime() { return config::TournamentConfig->ping_time; }
     [[nodiscard]] static ms getUciNewGameTime() { return config::TournamentConfig->ucinewgame_time; }
     [[nodiscard]] static ms getStartupTime() { return config::TournamentConfig->startup_time; }
+
+    [[nodiscard]] static bool isBound(const std::string& info_line) {
+        return (info_line.find("lowerbound") != std::string::npos || info_line.find("upperbound") != std::string::npos);
+    }
 
    private:
     void loadConfig(const EngineConfiguration& config);

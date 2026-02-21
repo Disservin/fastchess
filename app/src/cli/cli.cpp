@@ -671,7 +671,7 @@ void parseAffinity(const std::vector<std::string>& params, ArgumentData& argumen
     }
 }
 
-void parseMatePvs(ArgumentData &argument_data) { argument_data.tournament_config.check_mate_pvs = true; }
+void parseMatePvs(ArgumentData& argument_data) { argument_data.tournament_config.check_mate_pvs = true; }
 
 void parseLatency(ArgumentData& argument_data) { argument_data.tournament_config.show_latency = true; }
 

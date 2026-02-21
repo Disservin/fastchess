@@ -65,13 +65,13 @@ struct Tournament {
     uint32_t wait          = 0;
     bool force_concurrency = false;
 
-    bool noswap       = false;
-    bool reverse      = false;
-    bool recover      = false;
-    bool affinity     = false;
+    bool noswap         = false;
+    bool reverse        = false;
+    bool recover        = false;
+    bool affinity       = false;
     bool check_mate_pvs = false;
-    bool show_latency = false;
-    bool test_env     = false;
+    bool show_latency   = false;
+    bool test_env       = false;
 
     std::chrono::milliseconds startup_time    = std::chrono::seconds(10);
     std::chrono::milliseconds ucinewgame_time = std::chrono::seconds(60);

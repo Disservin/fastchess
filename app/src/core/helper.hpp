@@ -34,7 +34,7 @@ namespace fastchess::str_utils {
 }
 
 // Split a string into a vector of strings based on a delimiter.
-[[nodiscard]] inline std::vector<std::string> splitString(std::string_view string, const char &delimiter) {
+[[nodiscard]] inline std::vector<std::string> splitString(std::string_view string, const char& delimiter) {
     std::stringstream string_stream{std::string(string)};
     std::string segment;
     std::vector<std::string> seglist;

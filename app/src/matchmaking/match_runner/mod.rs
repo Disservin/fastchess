@@ -65,47 +65,6 @@ fn game_color_to_uci_color(c: crate::game::Color) -> Color {
     }
 }
 
-/// Check if a string is a valid UCI move (4-5 lowercase alphanumeric chars).
-fn is_uci_move(token: &str) -> bool {
-    if token.len() != 4 && token.len() != 5 {
-        return false;
-    }
-    // First two and next two chars should be file (a-h) and rank (1-8)
-    let bytes = token.as_bytes();
-    if !bytes[0].is_ascii_lowercase() || !bytes[1].is_ascii_digit() {
-        return false;
-    }
-    if !bytes[2].is_ascii_lowercase() || !bytes[3].is_ascii_digit() {
-        return false;
-    }
-    // Optional 5th char for promotion (q, r, b, n)
-    if token.len() == 5 && !matches!(bytes[4], b'q' | b'r' | b'b' | b'n') {
-        return false;
-    }
-    true
-}
-
-/// Extract the PV (principal variation) moves from an info line.
-/// Returns None if no PV is found.
-fn extract_pv_from_info(info: &str) -> Option<Vec<&str>> {
-    let tokens: Vec<&str> = info.split_whitespace().collect();
-    let pv_pos = tokens.iter().position(|&t| t == "pv")?;
-    let pv_start = pv_pos + 1;
-
-    // Find where PV ends (first non-UCI-move token)
-    let pv_end = tokens[pv_start..]
-        .iter()
-        .position(|&t| !is_uci_move(t))
-        .map(|pos| pv_start + pos)
-        .unwrap_or(tokens.len());
-
-    let pv: Vec<&str> = tokens[pv_start..pv_end].iter().copied().collect();
-    if pv.is_empty() {
-        return None;
-    }
-    Some(pv)
-}
-
 /// Simple game-over check for PV verification.
 /// Returns (reason, is_game_over).
 fn is_game_over_simple(game: &GameInstance) -> (GameOverReason, bool) {
@@ -149,6 +108,8 @@ pub struct Match {
     side_to_move_at_start: Color,
     /// Whether we're in test environment (affects log formatting).
     test_env: bool,
+    /// Whether to check mate PVs for correct length and checkmate ending.
+    check_mate_pvs: bool,
 }
 
 impl Match {
@@ -211,6 +172,7 @@ impl Match {
             variant,
             side_to_move_at_start,
             test_env: tournament_config.test_env,
+            check_mate_pvs: tournament_config.check_mate_pvs,
         }
     }
 
@@ -531,7 +493,7 @@ impl Match {
         self.add_move_data(us, elapsed_ms, latency, timeleft, true);
 
         // Verify PV lines from engine output
-        self.verify_pv_lines(us, self.test_env);
+        self.verify_pv_lines(us, self.test_env, self.check_mate_pvs);
 
         // Apply the move to the game (this also updates hash history for repetition detection)
         self.game.make_move(game_move.as_ref());
@@ -793,23 +755,77 @@ impl Match {
     }
 
     /// Verify PV lines from engine output for illegal moves or continuation after game over.
-    fn verify_pv_lines(&self, us: &Player, test_env: bool) {
+    fn verify_pv_lines(&self, us: &Player, test_env: bool, check_mate_pvs: bool) {
         let engine_name = &us.engine.config().name;
 
         // if not chess skip
-        if !(self.variant == VariantType::Standard || self.variant == VariantType::Standard) {
+        if !(self.variant == VariantType::Standard || self.variant == VariantType::Frc) {
             return;
         }
 
-        for line in us.engine.output() {
-            self.verify_single_pv_line(&line.line, engine_name, test_env);
+        let info_lines = us.engine.get_info_lines();
+
+        for line in &info_lines {
+            self.verify_single_pv_line(&line.line, engine_name, test_env, check_mate_pvs);
+        }
+
+        // Finally check if the final PV matches bestmove
+        self.verify_bestmove_matches_pv(us, test_env, &info_lines);
+    }
+
+    /// Verify that bestmove matches the beginning of the last PV.
+    fn verify_bestmove_matches_pv(
+        &self,
+        us: &Player,
+        test_env: bool,
+        info_lines: &[&crate::engine::process::Line],
+    ) {
+        let engine_name = &us.engine.config().name;
+
+        let best_move = match us.engine.bestmove() {
+            Some(BestMoveResult::Move(mv)) => mv,
+            _ => return,
+        };
+
+        // Skip the check if the final score is upperbound/lowerbound
+        let Some(last_info) = info_lines.last() else {
+            return;
+        };
+
+        let is_bound = UciEngine::is_bound(&last_info.line);
+        let pv = UciEngine::extract_pv_from_info(&last_info.line);
+
+        if is_bound {
+            return;
+        }
+
+        let Some(pv_ref) = pv.as_ref() else {
+            return;
+        };
+
+        if pv_ref.is_empty() {
+            return;
+        }
+
+        if best_move != pv_ref[0] {
+            let warning = format!(
+                "Warning; Bestmove does not match beginning of last PV - move {} from {}",
+                best_move, engine_name
+            );
+            self.log_pv_warning(&warning, &last_info.line, engine_name, test_env);
         }
     }
 
     /// Verify a single PV line from engine output.
-    fn verify_single_pv_line(&self, info: &str, engine_name: &str, test_env: bool) {
+    fn verify_single_pv_line(
+        &self,
+        info: &str,
+        engine_name: &str,
+        test_env: bool,
+        check_mate_pvs: bool,
+    ) {
         // Extract PV from info line
-        let pv = match extract_pv_from_info(info) {
+        let pv = match UciEngine::extract_pv_from_info(info) {
             Some(pv) if !pv.is_empty() => pv,
             _ => return,
         };
@@ -817,7 +833,7 @@ impl Match {
         // Clone the current game state to simulate the PV
         let mut game = self.game.clone();
 
-        for move_str in pv {
+        for move_str in &pv {
             // Check if game is already over
             let (reason, is_over) = is_game_over_simple(&game);
 
@@ -879,6 +895,50 @@ impl Match {
                 self.log_pv_warning(&warning, info, engine_name, test_env);
                 return;
             }
+        }
+
+        // For mate scores, check correct length of PV
+        if !check_mate_pvs {
+            return;
+        }
+
+        let score = match UciEngine::get_score(info) {
+            Ok(s) => s,
+            Err(_) => return,
+        };
+
+        let is_bound = UciEngine::is_bound(info);
+
+        if score.score_type != ScoreType::Mate || is_bound {
+            return;
+        }
+
+        let score_value = score.value;
+        let plies = if score_value > 0 {
+            (score_value * 2 - 1) as usize
+        } else {
+            ((-score_value) * 2) as usize
+        };
+
+        let mut warning = String::new();
+
+        if pv.len() < plies {
+            warning = format!("Warning; Incomplete mating PV - from {}", engine_name);
+        } else if pv.len() > plies {
+            warning = format!("Warning; Too long mating PV - from {}", engine_name);
+        } else {
+            // Check if the position after the PV is checkmate
+            let status = game.status();
+            if !status.is_game_over() || status.reason != GameOverReason::Checkmate {
+                warning = format!(
+                    "Warning; Mating PV does not end with checkmate - from {}",
+                    engine_name
+                );
+            }
+        }
+
+        if !warning.is_empty() {
+            self.log_pv_warning(&warning, info, engine_name, test_env);
         }
     }
 
@@ -1227,59 +1287,6 @@ mod tests {
         // initial, after move 4, after move 8
         let status = m.game.status();
         assert_eq!(status.reason, GameOverReason::Repetition);
-    }
-
-    #[test]
-    fn test_extract_pv_from_info() {
-        // Valid PV lines
-        assert_eq!(
-            extract_pv_from_info("info depth 10 score cp 25 pv e2e4 e7e5 g1f3"),
-            Some(vec!["e2e4", "e7e5", "g1f3"])
-        );
-
-        // PV with promotion
-        assert_eq!(
-            extract_pv_from_info("info depth 5 score cp 100 pv a7a8q"),
-            Some(vec!["a7a8q"])
-        );
-
-        // No PV keyword
-        assert_eq!(extract_pv_from_info("info depth 10 score cp 25"), None);
-
-        // Empty PV
-        assert_eq!(extract_pv_from_info("info depth 10 score cp 25 pv"), None);
-
-        // PV followed by non-move tokens
-        assert_eq!(
-            extract_pv_from_info("info depth 10 pv e2e4 e7e5 currmove g1f3"),
-            Some(vec!["e2e4", "e7e5"])
-        );
-    }
-
-    #[test]
-    fn test_is_uci_move() {
-        assert!(is_uci_move("e2e4"));
-        assert!(is_uci_move("e7e8q"));
-        assert!(is_uci_move("a1h8"));
-
-        // Too short
-        assert!(!is_uci_move("e2e"));
-
-        // Too long
-        assert!(!is_uci_move("e2e4e5"));
-
-        // Uppercase
-        assert!(!is_uci_move("E2E4"));
-
-        // Invalid characters - 'x' is not a valid file/rank
-        // Note: 'x' is lowercase but not in a-h for file, and not a digit for rank
-        // Actually, the current implementation only checks that:
-        // - bytes[0] is lowercase (a-h)
-        // - bytes[1] is digit (0-9)
-        // - bytes[2] is lowercase (a-h)
-        // - bytes[3] is digit (0-9)
-        // So "e2x4" would pass because 'e' and 'x' are lowercase, '2' and '4' are digits
-        // This is actually fine for PV extraction - we just need to filter out obvious non-moves
     }
 
     #[test]

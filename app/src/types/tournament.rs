@@ -179,6 +179,7 @@ pub struct TournamentConfig {
     pub reverse: bool,
     pub recover: bool,
     pub affinity: bool,
+    pub check_mate_pvs: bool,
     pub show_latency: bool,
     pub test_env: bool,
 
@@ -227,6 +228,7 @@ impl Default for TournamentConfig {
             reverse: false,
             recover: false,
             affinity: false,
+            check_mate_pvs: false,
             show_latency: false,
             test_env: false,
             startup_time: Duration::from_secs(10),

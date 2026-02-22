@@ -1224,6 +1224,17 @@ impl OptionsParser {
             false,
         );
 
+        // -check-mate-pvs
+        add(
+            &mut opts,
+            "check-mate-pvs",
+            Self::wrap_none("-check-mate-pvs", |data| {
+                data.tournament_config.check_mate_pvs = true;
+                Ok(())
+            }),
+            false,
+        );
+
         // -show-latency
         add(
             &mut opts,

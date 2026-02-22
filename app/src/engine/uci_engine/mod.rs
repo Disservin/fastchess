@@ -19,6 +19,26 @@ use crate::types::engine_config::EngineConfiguration;
 use crate::types::enums::VariantType;
 use crate::{log_trace, log_warn};
 
+/// Check if a string is a valid UCI move (4-5 lowercase alphanumeric chars).
+fn is_uci_move(token: &str) -> bool {
+    if token.len() != 4 && token.len() != 5 {
+        return false;
+    }
+    // First two and next two chars should be file (a-h) and rank (1-8)
+    let bytes = token.as_bytes();
+    if !bytes[0].is_ascii_lowercase() || !bytes[1].is_ascii_digit() {
+        return false;
+    }
+    if !bytes[2].is_ascii_lowercase() || !bytes[3].is_ascii_digit() {
+        return false;
+    }
+    // Optional 5th char for promotion (q, r, b, n)
+    if token.len() == 5 && !matches!(bytes[4], b'q' | b'r' | b'b' | b'n') {
+        return false;
+    }
+    true
+}
+
 // ── Score types ──────────────────────────────────────────────────────────────
 
 /// The kind of score reported by the engine in `info` lines.
@@ -595,9 +615,7 @@ impl UciEngine {
                 continue;
             }
 
-            let is_bound = s.contains("lowerbound") || s.contains("upperbound");
-
-            if !is_bound {
+            if !Self::is_bound(s) {
                 return s.clone();
             }
 
@@ -607,6 +625,29 @@ impl UciEngine {
         }
 
         fallback
+    }
+
+    /// Check if an info line contains upperbound or lowerbound.
+    pub fn is_bound(info_line: &str) -> bool {
+        info_line.contains("lowerbound") || info_line.contains("upperbound")
+    }
+
+    /// Get all info lines with scores from the engine output.
+    pub fn get_info_lines(&self) -> Vec<&Line> {
+        let mut info_lines = Vec::new();
+        for line in self.get_stdout_lines() {
+            let s = &line.line;
+            // Skip "info string" lines
+            if s.contains("info string") {
+                continue;
+            }
+            // Only consider info lines with score
+            if !s.contains("info") || !s.contains(" score ") {
+                continue;
+            }
+            info_lines.push(line);
+        }
+        info_lines
     }
 
     /// Parse the last info line into tokens.
@@ -636,21 +677,23 @@ impl UciEngine {
         Duration::ZERO
     }
 
-    /// Extract the score from the last info output.
-    pub fn last_score(&self) -> Result<Score, String> {
-        let info = self.last_info().ok_or_else(|| {
-            format!(
+    /// Extract the score from a specific info line.
+    pub fn get_score(info_line: &str) -> Result<Score, String> {
+        if info_line.is_empty() {
+            return Err(format!(
                 "No info line available to extract score from: {}",
-                self.last_info_line()
-            )
-        })?;
+                info_line
+            ));
+        }
+
+        let info = str_utils::split_string(info_line, ' ');
 
         let type_str: String = str_utils::find_element_result(&info, "score")?;
 
         let score_type = match type_str.as_str() {
             "cp" => ScoreType::Cp,
             "mate" => ScoreType::Mate,
-            _ => return Err(format!("Unexpected score type: {}", self.last_info_line())),
+            _ => return Err(format!("Unexpected score type: {}", info_line)),
         };
 
         let keyword = match score_type {
@@ -664,6 +707,11 @@ impl UciEngine {
         Ok(Score { score_type, value })
     }
 
+    /// Extract the score from the last info output.
+    pub fn last_score(&self) -> Result<Score, String> {
+        Self::get_score(&self.last_info_line())
+    }
+
     /// Extract all info data (depth, seldepth, nodes, nps, hashfull, tbhits, pv) from the last info line.
     ///
     /// This is used to populate PGN move comments when tracking is enabled.
@@ -675,6 +723,10 @@ impl UciEngine {
         // Extract PV: everything after "pv" until end of line or next known keyword
         let pv = Self::extract_pv(&info);
 
+        if let Some(pv) = &pv {
+            log_trace!("Extracted PV from info: {:?}", pv);
+        }
+
         InfoData {
             depth: str_utils::find_element(&info, "depth").unwrap_or(0),
             seldepth: str_utils::find_element(&info, "seldepth").unwrap_or(0),
@@ -682,21 +734,50 @@ impl UciEngine {
             nps: str_utils::find_element(&info, "nps").unwrap_or(0),
             hashfull: str_utils::find_element(&info, "hashfull").unwrap_or(0),
             tbhits: str_utils::find_element(&info, "tbhits").unwrap_or(0),
-            pv,
+            pv: pv
+                .as_ref()
+                .map(|pv_vec| pv_vec.join(" "))
+                .unwrap_or_default(),
         }
     }
 
     /// Extract the PV (principal variation) from info tokens.
     ///
     /// The PV is a space-separated list of moves that appears after "pv" in the info line.
-    fn extract_pv(tokens: &[String]) -> String {
-        let Some(pv_pos) = tokens.iter().position(|s| s == "pv") else {
-            return String::new();
-        };
+    fn extract_pv(tokens: &[String]) -> Option<Vec<&str>> {
+        let pv_pos = tokens.iter().position(|t| t == "pv")?;
+        let pv_start = pv_pos + 1;
 
-        // Collect all tokens after "pv" - these are the PV moves
-        // PV continues to end of line (bestmove is on a separate line)
-        tokens[pv_pos + 1..].join(" ")
+        if pv_start >= tokens.len() {
+            return None;
+        }
+
+        // Find where PV ends (first non-UCI-move token)
+        let pv_end = tokens[pv_start..]
+            .iter()
+            .position(|t| !is_uci_move(&t))
+            .map(|pos| pv_start + pos)
+            .unwrap_or(tokens.len());
+
+        let pv: Vec<&str> = tokens[pv_start..pv_end]
+            .iter()
+            .map(|s| s.as_str())
+            .collect();
+
+        if pv.is_empty() {
+            return None;
+        }
+
+        Some(pv)
+    }
+
+    pub fn extract_pv_from_info(info: &str) -> Option<Vec<String>> {
+        if info.is_empty() {
+            return None;
+        }
+
+        let tokens = str_utils::split_string(info, ' ');
+        Self::extract_pv(&tokens).map(|pv_vec| pv_vec.into_iter().map(|s| s.to_string()).collect())
     }
 
     /// Check if the engine output includes a `bestmove` line.
@@ -838,5 +919,59 @@ impl UciEngine {
 impl Drop for UciEngine {
     fn drop(&mut self) {
         self.quit();
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_is_uci_move() {
+        assert!(is_uci_move("e2e4"));
+        assert!(is_uci_move("7g7f"));
+        assert!(is_uci_move("e7e8q"));
+        assert!(!is_uci_move("e9e4"));
+        assert!(!is_uci_move("e2e9"));
+        assert!(!is_uci_move("e2e4x"));
+        assert!(!is_uci_move("e2"));
+        assert!(!is_uci_move("move e2e4"));
+    }
+
+    #[test]
+    fn test_extract_pv_from_info() {
+        // Valid PV lines
+        assert_eq!(
+            UciEngine::extract_pv_from_info("info depth 10 score cp 25 pv e2e4 e7e5 g1f3"),
+            Some(vec![
+                "e2e4".to_string(),
+                "e7e5".to_string(),
+                "g1f3".to_string()
+            ])
+        );
+
+        // PV with promotion
+        assert_eq!(
+            UciEngine::extract_pv_from_info("info depth 5 score cp 100 pv a7a8q"),
+            Some(vec!["a7a8q".to_string()])
+        );
+
+        // No PV keyword
+        assert_eq!(
+            UciEngine::extract_pv_from_info("info depth 10 score cp 25"),
+            None
+        );
+
+        // Empty PV
+        assert_eq!(
+            UciEngine::extract_pv_from_info("info depth 10 score cp 25 pv"),
+            None
+        );
+
+        // PV followed by non-move tokens
+        assert_eq!(
+            UciEngine::extract_pv_from_info("info depth 10 pv e2e4 e7e5 currmove g1f3"),
+            Some(vec!["e2e4".to_string(), "e7e5".to_string()])
+        );
     }
 }

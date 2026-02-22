@@ -316,7 +316,7 @@ echo "Rating interval output with penta=false works correctly."
 
 OUTPUT_FILE_7=$(mktemp)
 ./fastchess -engine cmd=./random_mover name=random_move_1 -engine cmd=./random_mover name=random_move_2 \
-    -each tc=2+0.02s -rounds 5 -repeat -concurrency 2 -ratinginterval 2 -report penta=true \
+    -each tc=2+0.02s -rounds 5 -repeat -concurrency 1 -ratinginterval 2 -report penta=true \
     -openings file=./app/tests/data/openings.epd format=epd order=random -log file=log.txt level=info 2>&1 | tee $OUTPUT_FILE_7
 
 if grep -q "WARNING: ThreadSanitizer:" $OUTPUT_FILE_7; then

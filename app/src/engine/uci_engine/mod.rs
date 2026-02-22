@@ -24,15 +24,16 @@ fn is_uci_move(token: &str) -> bool {
     if token.len() != 4 && token.len() != 5 {
         return false;
     }
-    // First two and next two chars should be file (a-h) and rank (1-8)
+
     let bytes = token.as_bytes();
-    if !bytes[0].is_ascii_lowercase() || !bytes[1].is_ascii_digit() {
+    if !matches!(bytes[0], b'a'..=b'h') || !matches!(bytes[1], b'1'..=b'8') {
         return false;
     }
-    if !bytes[2].is_ascii_lowercase() || !bytes[3].is_ascii_digit() {
+
+    if !matches!(bytes[2], b'a'..=b'h') || !matches!(bytes[3], b'1'..=b'8') {
         return false;
     }
-    // Optional 5th char for promotion (q, r, b, n)
+
     if token.len() == 5 && !matches!(bytes[4], b'q' | b'r' | b'b' | b'n') {
         return false;
     }
@@ -924,8 +925,8 @@ mod tests {
     #[test]
     fn test_is_uci_move() {
         assert!(is_uci_move("e2e4"));
-        assert!(is_uci_move("7g7f"));
         assert!(is_uci_move("e7e8q"));
+        assert!(!is_uci_move("7g7f"));
         assert!(!is_uci_move("e9e4"));
         assert!(!is_uci_move("e2e9"));
         assert!(!is_uci_move("e2e4x"));

@@ -1,3 +1,5 @@
+#![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
+
 use itertools::iproduct;
 use lazy_static::lazy_static;
 use std::fmt;
@@ -1415,5 +1417,11 @@ impl crate::variants::Game for ShogiGame {
 
     fn as_shogi(&self) -> Option<&ShogiGame> {
         Some(self)
+    }
+
+    fn is_threefold_repetition(&self) -> bool {
+        // Shogi uses fourfold repetition (sennichite), not threefold
+        // For now, return false as we don't track position history
+        false
     }
 }

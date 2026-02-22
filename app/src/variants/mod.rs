@@ -100,6 +100,9 @@ pub trait Game: Send + Sync {
 
     /// Returns a reference to the inner game as a shogi game, if applicable.
     fn as_shogi(&self) -> Option<&shogi::ShogiGame>;
+
+    /// Returns true if the position has occurred 3 times (threefold repetition).
+    fn is_threefold_repetition(&self) -> bool;
 }
 
 impl Clone for Box<dyn Game> {
@@ -244,6 +247,11 @@ impl GameInstance {
     /// Returns a reference to the inner shogi game.
     pub fn as_shogi(&self) -> Option<&shogi::ShogiGame> {
         self.inner.as_shogi()
+    }
+
+    /// Returns true if the position has occurred 3 times (threefold repetition).
+    pub fn is_threefold_repetition(&self) -> bool {
+        self.inner.is_threefold_repetition()
     }
 
     /// Makes a move from UCI/USI notation (convenience method).

@@ -434,6 +434,10 @@ impl Game for ChessGame {
     fn as_shogi(&self) -> Option<&ShogiGame> {
         None
     }
+
+    fn is_threefold_repetition(&self) -> bool {
+        self.is_threefold_repetition()
+    }
 }
 
 // ── Tests ────────────────────────────────────────────────────────────────────

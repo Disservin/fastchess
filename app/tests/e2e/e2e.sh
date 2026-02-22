@@ -212,8 +212,8 @@ fi
 # Since we have 5 openings and 20 games, each opening should be used 4 times (20/5=4)
 
 # Count occurrences of each opening FEN in the PGN file
-# Opening 1: rnbq1rk1/p3bppp/2pp1n2/1p6/3NPB2/2N5/PPPQ1PPP/2KR1B1R w - b6 0 9
-opening1_count=$(grep -c "rnbq1rk1/p3bppp/2pp1n2/1p6/3NPB2/2N5/PPPQ1PPP/2KR1B1R w - b6 0 9" games.pgn)
+# Opening 1: rnbq1rk1/p3bppp/2pp1n2/1p6/3NPB2/2N5/PPPQ1PPP/2KR1B1R w - - 0 9
+opening1_count=$(grep -c "rnbq1rk1/p3bppp/2pp1n2/1p6/3NPB2/2N5/PPPQ1PPP/2KR1B1R w - - 0 9" games.pgn)
 # Opening 2: r1bq1rk1/2ppbppp/p4n2/np2p3/4P3/1BNP1N2/PPP2PPP/R1BQ1RK1 w - - 1 9
 opening2_count=$(grep -c "r1bq1rk1/2ppbppp/p4n2/np2p3/4P3/1BNP1N2/PPP2PPP/R1BQ1RK1 w - - 1 9" games.pgn)
 # Opening 3: rnbq1rk1/pp3pbp/3p2p1/2pPp2n/2P1P3/2NB1N2/PP3PPP/R1BQ1RK1 w - - 2 9

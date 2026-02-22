@@ -6,13 +6,13 @@ namespace fastchess {
 
 TEST_SUITE("Match Test") {
     TEST_CASE("convertScoreToString") {
-        CHECK(Match::convertScoreToString(0, engine::ScoreType::CP) == "0.00");
-        CHECK(Match::convertScoreToString(100, engine::ScoreType::CP) == "+1.00");
-        CHECK(Match::convertScoreToString(-100, engine::ScoreType::CP) == "-1.00");
-        CHECK(Match::convertScoreToString(100, engine::ScoreType::MATE) == "+M199");
-        CHECK(Match::convertScoreToString(-100, engine::ScoreType::MATE) == "-M200");
-        CHECK(Match::convertScoreToString(1, engine::ScoreType::MATE) == "+M1");
-        CHECK(Match::convertScoreToString(-1, engine::ScoreType::MATE) == "-M2");
+        CHECK(Match::convertScoreToString(engine::Score{engine::ScoreType::CP, 0}) == "0.00");
+        CHECK(Match::convertScoreToString(engine::Score{engine::ScoreType::CP, 100}) == "+1.00");
+        CHECK(Match::convertScoreToString(engine::Score{engine::ScoreType::CP, -100}) == "-1.00");
+        CHECK(Match::convertScoreToString(engine::Score{engine::ScoreType::MATE, 100}) == "+M199");
+        CHECK(Match::convertScoreToString(engine::Score{engine::ScoreType::MATE, -100}) == "-M200");
+        CHECK(Match::convertScoreToString(engine::Score{engine::ScoreType::MATE, 1}) == "+M1");
+        CHECK(Match::convertScoreToString(engine::Score{engine::ScoreType::MATE, -1}) == "-M2");
     }
 
     TEST_CASE("DrawTracker") {

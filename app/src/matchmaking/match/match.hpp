@@ -157,7 +157,7 @@ class Match {
 
     [[nodiscard]] bool isStallOrDisconnect() const noexcept { return stall_or_disconnect_; }
 
-    static std::string convertScoreToString(int score, engine::ScoreType score_type);
+    static std::string convertScoreToString(engine::Score);
 
    private:
     void gameLoop(Player& first, Player& second);

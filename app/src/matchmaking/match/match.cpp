@@ -98,13 +98,13 @@ Match::Match(const book::Opening& opening)
     std::transform(opening_.moves.begin(), opening_.moves.end(), std::back_inserter(data_.moves), insert_move);
 }
 
-std::string Match::convertScoreToString(int score, engine::ScoreType score_type) {
-    if (score_type == engine::ScoreType::CP) {
-        float normalized_score = static_cast<float>(std::abs(score)) / 100;
-        return fmt::format("{}{:.2f}", score > 0 ? "+" : score < 0 ? "-" : "", normalized_score);
-    } else if (score_type == engine::ScoreType::MATE) {
-        uint64_t plies = score > 0 ? score * 2 - 1 : score * -2;
-        return fmt::format("{}M{}", score > 0 ? "+" : "-", plies);
+std::string Match::convertScoreToString(engine::Score score) {
+    if (score.type == engine::ScoreType::CP) {
+        float normalized_score = static_cast<float>(std::abs(score.value)) / 100;
+        return fmt::format("{}{:.2f}", score.value > 0 ? "+" : score.value < 0 ? "-" : "", normalized_score);
+    } else if (score.type == engine::ScoreType::MATE) {
+        uint64_t plies = score.value > 0 ? score.value * 2 - 1 : score.value * -2;
+        return fmt::format("{}M{}", score.value > 0 ? "+" : "-", plies);
     }
 
     return "ERR";
@@ -143,7 +143,8 @@ void Match::addMoveData(const Player& player, int64_t measured_time_ms, int64_t 
                                            player.engine.getConfig().name, score.error());
     }
 
-    const auto default_score = engine::Score{engine::ScoreType::ERR, 0};
+    const auto clean_score = score.value_or(engine::Score{engine::ScoreType::ERR, 0});
+    move_data.score_string = Match::convertScoreToString(clean_score);
 
     move_data.nps      = str_utils::findElement<uint64_t>(info, "nps").value_or(0);
     move_data.hashfull = str_utils::findElement<int64_t>(info, "hashfull").value_or(0);
@@ -152,11 +153,10 @@ void Match::addMoveData(const Player& player, int64_t measured_time_ms, int64_t 
     move_data.seldepth = str_utils::findElement<int64_t>(info, "seldepth").value_or(0);
     move_data.nodes    = str_utils::findElement<uint64_t>(info, "nodes").value_or(0);
     move_data.pv       = str_utils::join(engine::UciEngine::getPv(info_line).value_or(std::vector<std::string>{}), " ");
-    move_data.score    = score.value_or(default_score).value;
+    move_data.score    = clean_score.value;
     move_data.timeleft = timeleft;
     move_data.latency  = latency;
 
-    move_data.score_string = Match::convertScoreToString(move_data.score, score.value_or(default_score).type);
     if (!config::TournamentConfig->pgn.additional_lines_rgx.empty()) {
         for (const auto& rgx : config::TournamentConfig->pgn.additional_lines_rgx) {
             const auto lines = player.engine.output();

@@ -476,7 +476,7 @@ rm random_run1.pgn random_run2.pgn
 OUTPUT_FILE_9=$(mktemp)
 ./fastchess -engine cmd=./random_mover name=random_move_1 -engine cmd=./random_mover name=random_move_2 \
     -each tc=2+0.02s -rounds 3 -repeat -concurrency 1 \
-    -openings file=./app/tests/data/short.epd format=epd order=random -srand=12345 -pgnout file=random_run1.pgn -log file=log.txt level=info 2>&1 | tee $OUTPUT_FILE_9
+    -openings file=./app/tests/data/short.epd format=epd order=random -srand 12345 -pgnout file=random_run1.pgn -log file=log.txt level=info 2>&1 | tee $OUTPUT_FILE_9
 
 if grep -q "WARNING: ThreadSanitizer:" $OUTPUT_FILE_9; then
     echo "Data races detected."
@@ -511,7 +511,7 @@ fi
 OUTPUT_FILE_10=$(mktemp)
 ./fastchess -engine cmd=./random_mover name=random_move_1 -engine cmd=./random_mover name=random_move_2 \
     -each tc=2+0.02s -rounds 3 -repeat -concurrency 1 \
-    -openings file=./app/tests/data/short.epd format=epd order=random -srand=12345 -pgnout file=random_run2.pgn -log file=log.txt level=info 2>&1 | tee $OUTPUT_FILE_10
+    -openings file=./app/tests/data/short.epd format=epd order=random -srand 12345 -pgnout file=random_run2.pgn -log file=log.txt level=info 2>&1 | tee $OUTPUT_FILE_10
 
 if grep -q "WARNING: ThreadSanitizer:" $OUTPUT_FILE_10; then
     echo "Data races detected."

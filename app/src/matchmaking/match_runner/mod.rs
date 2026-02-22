@@ -15,7 +15,7 @@ use std::time::{Duration, Instant};
 
 use crate::engine::process::ProcessResultExt;
 use crate::engine::protocol::Protocol;
-use crate::engine::uci_engine::{BestMoveResult, Color, ScoreType, UciEngine};
+use crate::engine::uci_engine::{BestMoveResult, Color, Score, ScoreType, UciEngine};
 use crate::game::book::Opening;
 use crate::game::{GameInstance, GameStatus};
 use crate::matchmaking::player::Player;
@@ -677,8 +677,7 @@ impl Match {
         // Extract score info from engine output
         if let Ok(score) = player.engine.last_score() {
             move_data.score = score.value;
-            move_data.score_string =
-                Self::convert_score_to_string(score.value as i32, score.score_type);
+            move_data.score_string = Self::convert_score_to_string(score);
         }
 
         move_data.latency = latency;
@@ -698,13 +697,13 @@ impl Match {
     }
 
     /// Convert a numeric score to a human-readable string.
-    pub fn convert_score_to_string(score: i32, score_type: ScoreType) -> String {
-        match score_type {
+    pub fn convert_score_to_string(score: Score) -> String {
+        match score.score_type {
             ScoreType::Cp => {
-                let normalized = (score.unsigned_abs() as f64) / 100.0;
-                let sign = if score > 0 {
+                let normalized = (score.value.unsigned_abs() as f64) / 100.0;
+                let sign = if score.value > 0 {
                     "+"
-                } else if score < 0 {
+                } else if score.value < 0 {
                     "-"
                 } else {
                     ""
@@ -712,12 +711,12 @@ impl Match {
                 format!("{}{:.2}", sign, normalized)
             }
             ScoreType::Mate => {
-                let plies = if score > 0 {
-                    score as u64 * 2 - 1
+                let plies = if score.value > 0 {
+                    score.value as u64 * 2 - 1
                 } else {
-                    ((-score) as u64) * 2
+                    ((-score.value) as u64) * 2
                 };
-                let sign = if score > 0 { "+" } else { "-" };
+                let sign = if score.value > 0 { "+" } else { "-" };
                 format!("{}M{}", sign, plies)
             }
             ScoreType::Err => "ERR".to_string(),
@@ -743,38 +742,63 @@ impl Match {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::game::GameOverReason;
+    use crate::{engine::uci_engine::Score, game::GameOverReason};
 
     #[test]
     fn test_convert_score_cp_positive() {
-        assert_eq!(Match::convert_score_to_string(150, ScoreType::Cp), "+1.50");
+        let score = Score {
+            value: 150,
+            score_type: ScoreType::Cp,
+        };
+
+        assert_eq!(Match::convert_score_to_string(score), "+1.50");
     }
 
     #[test]
     fn test_convert_score_cp_negative() {
-        assert_eq!(Match::convert_score_to_string(-75, ScoreType::Cp), "-0.75");
+        let score = Score {
+            value: -75,
+            score_type: ScoreType::Cp,
+        };
+        assert_eq!(Match::convert_score_to_string(score), "-0.75");
     }
 
     #[test]
     fn test_convert_score_cp_zero() {
-        assert_eq!(Match::convert_score_to_string(0, ScoreType::Cp), "0.00");
+        let score = Score {
+            value: 0,
+            score_type: ScoreType::Cp,
+        };
+        assert_eq!(Match::convert_score_to_string(score), "0.00");
     }
 
     #[test]
     fn test_convert_score_mate_positive() {
         // Mate in 3 = 5 plies
-        assert_eq!(Match::convert_score_to_string(3, ScoreType::Mate), "+M5");
+        let score = Score {
+            value: 3,
+            score_type: ScoreType::Mate,
+        };
+        assert_eq!(Match::convert_score_to_string(score), "+M5");
     }
 
     #[test]
     fn test_convert_score_mate_negative() {
         // Mated in 2 = 4 plies
-        assert_eq!(Match::convert_score_to_string(-2, ScoreType::Mate), "-M4");
+        let score = Score {
+            value: -2,
+            score_type: ScoreType::Mate,
+        };
+        assert_eq!(Match::convert_score_to_string(score), "-M4");
     }
 
     #[test]
     fn test_convert_score_err() {
-        assert_eq!(Match::convert_score_to_string(0, ScoreType::Err), "ERR");
+        let score = Score {
+            value: 0,
+            score_type: ScoreType::Err,
+        };
+        assert_eq!(Match::convert_score_to_string(score), "ERR");
     }
 
     #[test]

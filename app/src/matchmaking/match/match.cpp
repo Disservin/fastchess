@@ -120,7 +120,7 @@ void Match::addMoveData(const Player& player, int64_t measured_time_ms, int64_t 
     move_data.elapsed_millis = measured_time_ms;
     move_data.legal          = legal;
 
-    if (player.engine.output().size() <= 1) {
+    if (player.engine.getStdoutLines().size() <= 1) {
         data_.moves.push_back(move_data);
         uci_moves_.push_back(move);
         return;
@@ -159,12 +159,12 @@ void Match::addMoveData(const Player& player, int64_t measured_time_ms, int64_t 
 
     if (!config::TournamentConfig->pgn.additional_lines_rgx.empty()) {
         for (const auto& rgx : config::TournamentConfig->pgn.additional_lines_rgx) {
-            const auto lines = player.engine.output();
+            const auto lines = player.engine.getStdoutLines();
             const auto regex = std::regex(rgx);
             // find the last line that matches the regex, iterate in reverse
             for (auto it = lines.rbegin(); it != lines.rend(); ++it) {
-                if (std::regex_search(it->line, regex)) {
-                    move_data.additional_lines.push_back(it->line);
+                if (std::regex_search((*it)->line, regex)) {
+                    move_data.additional_lines.push_back((*it)->line);
                     break;
                 }
             }

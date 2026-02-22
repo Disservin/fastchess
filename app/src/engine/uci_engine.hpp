@@ -130,8 +130,10 @@ class UciEngine {
     // returns false if the output doesn't include a bestmove
     [[nodiscard]] bool outputIncludesBestmove() const;
 
-    [[nodiscard]] const std::vector<process::Line>& output() const noexcept { return output_; }
     [[nodiscard]] const EngineConfiguration& getConfig() const noexcept { return config_; }
+
+    std::vector<const process::Line*> getStdoutLines() const { return getLines(process::Standard::OUTPUT); }
+    std::vector<const process::Line*> getStderrLines() const { return getLines(process::Standard::ERR); }
 
     // @TODO: expose this to the user?
 
@@ -139,8 +141,6 @@ class UciEngine {
     UCIOptions& uciOptions() noexcept { return uci_options_; }
 
     [[nodiscard]] bool isRealtimeLogging() const noexcept { return realtime_logging_; }
-
-    [[nodiscard]] const std::vector<process::Line>& lastOutput() const noexcept { return output_; }
 
     [[nodiscard]] static ms getPingTime() { return config::TournamentConfig->ping_time; }
     [[nodiscard]] static ms getUciNewGameTime() { return config::TournamentConfig->ucinewgame_time; }
@@ -163,9 +163,6 @@ class UciEngine {
         }
         return lines;
     }
-
-    std::vector<const process::Line*> getStdoutLines() const { return getLines(process::Standard::OUTPUT); }
-    std::vector<const process::Line*> getStderrLines() const { return getLines(process::Standard::ERR); }
 
     process::Process process_ = {};
     UCIOptions uci_options_   = {};

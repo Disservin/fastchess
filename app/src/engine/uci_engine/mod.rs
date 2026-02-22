@@ -789,11 +789,6 @@ impl UciEngine {
 
     // ── Accessors ────────────────────────────────────────────────────────────
 
-    /// The full captured output from the last read cycle.
-    pub fn output(&self) -> &[Line] {
-        &self.output
-    }
-
     /// The engine configuration.
     pub fn config(&self) -> &EngineConfiguration {
         &self.config

@@ -119,6 +119,20 @@ pub enum LogLevel {
     Fatal,
 }
 
+impl LogLevel {
+    pub fn from_u8(v: u8) -> Self {
+        match v {
+            0 => LogLevel::Trace,
+            1 => LogLevel::Debug,
+            2 => LogLevel::Info,
+            3 => LogLevel::Warn,
+            4 => LogLevel::Error,
+            5 => LogLevel::Fatal,
+            _ => LogLevel::Warn,
+        }
+    }
+}
+
 /// Logging configuration.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LogConfig {

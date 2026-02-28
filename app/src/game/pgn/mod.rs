@@ -990,7 +990,6 @@ mod tests {
         let pgn = PgnBuilder::build(&config, &data, 1).unwrap();
 
         // The UCI move e1h1 should become O-O in SAN
-        // Note: shakmaty converts castling to O-O/O-O-O in SAN automatically
         assert!(
             pgn.contains("O-O") || pgn.contains("5. O-O"),
             "Chess960 e1h1 should convert to O-O in SAN, got: {}",

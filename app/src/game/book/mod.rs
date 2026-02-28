@@ -1,7 +1,8 @@
-use pgn_reader::{BufferedReader, RawHeader, SanPlus, Skip, Visitor};
 use rand_mt::Mt64;
-use shakmaty::uci::UciMove;
-use shakmaty::{CastlingMode, Chess, Position};
+use std::fs::File;
+
+use crate::variants::chessport::pgn::{StreamParser, Visitor};
+use crate::variants::chessport::{constants, move_to_uci, parse_san, Board as CpBoard, GameResult};
 
 use crate::types::VariantType;
 use crate::variants::chess::ChessGame;
@@ -106,17 +107,17 @@ impl EpdReader {
     }
 }
 
-/// PGN visitor that collects opening moves up to a ply limit.
-///
-/// Note: This uses shakmaty directly because the pgn_reader crate
-/// requires its Visitor to work with shakmaty types for SAN parsing.
+/// PGN visitor that collects opening moves up to a ply limit using the
+/// chessport PGN parser and move utilities.
 struct OpeningVisitor {
     fen: String,
     moves: Vec<String>,
-    pos: Chess,
+    board: CpBoard,
     plies_limit: i32,
     ply_count: i32,
     is_frc: bool,
+    openings: Vec<Opening>,
+    early_exit: bool,
 }
 
 impl OpeningVisitor {
@@ -124,83 +125,86 @@ impl OpeningVisitor {
         Self {
             fen: String::new(),
             moves: Vec::new(),
-            pos: Chess::default(),
+            board: CpBoard::new(),
             plies_limit,
             ply_count: 0,
             is_frc,
+            openings: Vec::new(),
+            early_exit: false,
         }
     }
 }
 
 impl Visitor for OpeningVisitor {
-    type Result = Opening;
-
-    fn begin_game(&mut self) {
-        self.fen = String::new();
+    fn start_pgn(&mut self) {
+        self.fen.clear();
         self.moves.clear();
-        self.pos = Chess::default();
+        self.board = CpBoard::new();
+        if self.is_frc {
+            self.board.set_960(true);
+        }
         self.ply_count = 0;
     }
 
-    fn header(&mut self, key: &[u8], value: RawHeader<'_>) {
-        if key == b"FEN" {
-            if let Ok(fen_str) = std::str::from_utf8(value.as_bytes()) {
-                self.fen = fen_str.to_string();
-            }
+    fn header(&mut self, key: &str, value: &str) {
+        if key == "FEN" {
+            self.fen = value.to_string();
         }
     }
 
-    fn end_headers(&mut self) -> Skip {
-        // Set up the position from the FEN, or use the default start position
+    fn start_moves(&mut self) {
+        // Initialize board from FEN header if present
         if !self.fen.is_empty() {
-            let mode = if self.is_frc {
-                CastlingMode::Chess960
-            } else {
-                CastlingMode::Standard
-            };
-            if let Ok(fen) = self.fen.parse::<shakmaty::fen::Fen>() {
-                if let Ok(pos) = fen.into_position::<Chess>(mode) {
-                    self.pos = pos;
-                }
-            }
+            self.board.set_fen(&self.fen);
+        } else {
+            self.board.set_fen(&constants::STARTPOS);
         }
-        Skip(false)
+
+        self.ply_count = 0;
     }
 
-    fn san(&mut self, san_plus: SanPlus) {
+    fn move_token(&mut self, mv: &str, _comment: &str) {
+        if self.early_exit {
+            return;
+        }
+
         // Stop collecting moves if we've hit the ply limit
         if self.plies_limit >= 0 && self.ply_count >= self.plies_limit {
             return;
         }
 
-        // Try to parse the SAN move in the current position
-        if let Ok(m) = san_plus.san.to_move(&self.pos) {
-            // Convert to UCI with correct castling mode and store
-            let mode = if self.is_frc {
-                CastlingMode::Chess960
-            } else {
-                CastlingMode::Standard
-            };
-            let uci = UciMove::from_move(&m, mode);
-            self.moves.push(uci.to_string());
+        if let Ok(m) = parse_san(&self.board, mv) {
+            let uci = move_to_uci(m, self.board.chess960());
+            self.board.make_move(m, false);
 
-            // Advance the position
-            self.pos.play_unchecked(&m);
+            if self.board.is_game_over().1 != GameResult::None {
+                self.early_exit = true;
+                return;
+            }
+
+            self.moves.push(uci);
+
             self.ply_count += 1;
+        } else {
+            self.early_exit = true;
         }
     }
 
-    fn begin_variation(&mut self) -> Skip {
-        Skip(true) // skip variations
-    }
-
-    fn end_game(&mut self) -> Self::Result {
-        let fen = if self.fen.is_empty() {
-            "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1".to_string()
+    fn end_pgn(&mut self) {
+        let fen_out = if self.fen.is_empty() {
+            // @TODO chess960?
+            constants::STARTPOS.to_string()
         } else {
             self.fen.clone()
         };
-        Opening::new(Some(fen), self.moves.clone())
+        self.openings
+            .push(Opening::new(Some(fen_out), self.moves.clone()));
+    }
+
+    fn skip_pgn(&mut self, _skip: bool) {}
+
+    fn skip(&self) -> bool {
+        false
     }
 }
 
@@ -214,30 +218,23 @@ pub struct PgnReader {
 
 impl PgnReader {
     pub fn new(path: &str, plies_limit: i32, is_frc: bool) -> Result<Self, String> {
-        let content = std::fs::read_to_string(path)
-            .map_err(|e| format!("Failed to open PGN file '{}': {}", path, e))?;
-
-        let mut reader = BufferedReader::new_cursor(content.as_bytes());
+        // Use the chessport StreamParser to read PGN games
+        let file =
+            File::open(path).map_err(|e| format!("Failed to open PGN file '{}': {}", path, e))?;
+        let mut parser = StreamParser::new(file);
         let mut visitor = OpeningVisitor::new(plies_limit, is_frc);
-        let mut openings = Vec::new();
 
-        loop {
-            match reader.read_game(&mut visitor) {
-                Ok(Some(opening)) => {
-                    openings.push(opening);
-                }
-                Ok(None) => break,
-                Err(e) => {
-                    return Err(format!("Error parsing PGN file '{}': {}", path, e));
-                }
-            }
-        }
+        parser
+            .read_games(&mut visitor)
+            .map_err(|e| format!("Error parsing PGN file '{}': {}", path, e))?;
 
-        if openings.is_empty() {
+        if visitor.openings.is_empty() {
             return Err(format!("No openings found in file: {}", path));
         }
 
-        Ok(Self { openings })
+        Ok(Self {
+            openings: visitor.openings,
+        })
     }
 
     pub fn get(&self) -> &[Opening] {

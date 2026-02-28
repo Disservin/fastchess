@@ -1217,7 +1217,7 @@ mod tests {
 
 // ── Game Trait Implementation ────────────────────────────────────────────────
 
-use crate::game::{Color as GameColor, GameStatus};
+use crate::game::{GameStatus, Side as GameColor};
 use crate::types::VariantType;
 use crate::variants::GameMove;
 
@@ -1343,8 +1343,8 @@ impl crate::variants::Game for ShogiGame {
 
     fn side_to_move(&self) -> GameColor {
         match self.game.stm() {
-            Color::Sente => GameColor::First,
-            Color::Gote => GameColor::Second,
+            Color::Sente => GameColor::White,
+            Color::Gote => GameColor::Black,
         }
     }
 

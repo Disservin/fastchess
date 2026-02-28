@@ -57,6 +57,7 @@ lazy_static = "1.5"
 # Concurrent hashmap for engine cache
 dashmap = "6"
 rand_mt = "6.0.0"
+pyrrhic-rs = "=0.2.0"
 
 # Unix-specific dependencies
 [target.'cfg(unix)'.dependencies]

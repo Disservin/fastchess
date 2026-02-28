@@ -7,7 +7,6 @@ use crate::types::VariantType;
 use crate::types::{GameResult, MatchData, MatchTermination, MoveData, PgnConfig};
 use crate::variants::GameMove;
 
-const STARTPOS: &str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 const LINE_LENGTH: usize = 80;
 
 /// Builds a PGN string from match data, matching the C++ fastchess output format.
@@ -38,7 +37,7 @@ impl PgnBuilder {
         headers.push(("Result".into(), result_str.to_string()));
 
         // FEN/SetUp: emit if non-startpos OR if FRC variant
-        if data.fen != STARTPOS || is_frc {
+        if data.fen != GameInstance::default_fen(data.variant).to_string() || is_frc {
             headers.push(("SetUp".into(), "1".into()));
             headers.push(("FEN".into(), data.fen.clone()));
         }
@@ -83,7 +82,7 @@ impl PgnBuilder {
         }
 
         let fen_str = if data.fen.is_empty() {
-            STARTPOS.to_string()
+            GameInstance::default_fen(data.variant).to_string()
         } else {
             data.fen.clone()
         };
@@ -95,7 +94,7 @@ impl PgnBuilder {
         // Compute starting move counter from FEN (matching C++ logic)
         // C++ computes: move_number = int(black_to_move) + 2*fullMoveNumber - 1
         // This is the 1-based ply offset used for move numbering.
-        let (black_starts, start_move_counter) = Self::parse_fen_move_info(&data.fen);
+        let (black_starts, start_move_counter) = Self::parse_fen_move_info(&fen_str);
 
         // Check if first move is illegal
         let first_illegal = !data.moves.is_empty() && !data.moves[0].legal;
@@ -206,10 +205,6 @@ impl PgnBuilder {
     /// Returns (black_starts, start_move_counter).
     /// The move counter is: int(black_to_move) + 2*fullMoveNumber - 1
     fn parse_fen_move_info(fen: &str) -> (bool, usize) {
-        if fen.is_empty() || fen == STARTPOS {
-            return (false, 1);
-        }
-
         let parts: Vec<&str> = fen.split_whitespace().collect();
         let side_to_move = parts.get(1).copied().unwrap_or("w");
         let full_move_number: usize = parts.get(5).and_then(|s| s.parse().ok()).unwrap_or(1);
@@ -417,6 +412,8 @@ mod tests {
     use crate::types::engine_config::*;
     use crate::types::match_data::*;
     use crate::variants::chess::ChessGame;
+
+    const STARTPOS: &str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
     fn make_config() -> PgnConfig {
         PgnConfig {

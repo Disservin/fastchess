@@ -294,6 +294,10 @@ impl Square {
         Square(file + rank * 8)
     }
 
+    pub fn from_u8(v: u8) -> Square {
+        Square(v)
+    }
+
     #[inline]
     pub fn index(self) -> usize {
         self.0 as usize

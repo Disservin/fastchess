@@ -6,6 +6,7 @@ use std::time::Duration;
 
 use crate::engine::uci_engine::UciEngine;
 use crate::game::timecontrol::TimeControl;
+use crate::game::Side;
 use crate::types::match_data::GameResult;
 
 /// A player in a match: wraps a UCI engine reference with its time control
@@ -14,6 +15,7 @@ pub struct Player<'a> {
     pub engine: &'a mut UciEngine,
     time_control: TimeControl,
     result: GameResult,
+    side: Option<Side>,
 }
 
 impl<'a> Player<'a> {
@@ -23,6 +25,7 @@ impl<'a> Player<'a> {
             engine,
             time_control,
             result: GameResult::None,
+            side: None,
         }
     }
 
@@ -62,5 +65,25 @@ impl<'a> Player<'a> {
 
     pub fn result(&self) -> GameResult {
         self.result
+    }
+
+    pub fn set_first_side(&mut self) {
+        self.side = Some(Side::White);
+    }
+
+    pub fn set_second_side(&mut self) {
+        self.side = Some(Side::Black);
+    }
+
+    pub fn first_side(&self) -> bool {
+        self.side == Some(Side::White)
+    }
+
+    pub fn second_side(&self) -> bool {
+        self.side == Some(Side::Black)
+    }
+
+    pub fn side(&self) -> Option<Side> {
+        self.side
     }
 }

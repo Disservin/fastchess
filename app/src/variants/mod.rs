@@ -4,7 +4,7 @@
 //! a factory for creating game instances. Each variant (chess, shogi, etc.)
 //! implements the `Game` trait.
 
-use crate::game::{Color, GameStatus};
+use crate::game::{GameStatus, Side};
 use crate::types::VariantType;
 
 pub mod chessport;
@@ -54,7 +54,7 @@ pub trait Game: Send + Sync {
     fn variant(&self) -> VariantType;
 
     /// Returns the current side to move.
-    fn side_to_move(&self) -> Color;
+    fn side_to_move(&self) -> Side;
 
     /// Returns the half-move clock (for fifty-move rule, etc.).
     /// Returns 0 for variants without this concept.
@@ -177,7 +177,7 @@ impl GameInstance {
     }
 
     /// Returns the current side to move.
-    pub fn side_to_move(&self) -> Color {
+    pub fn side_to_move(&self) -> Side {
         self.inner.side_to_move()
     }
 

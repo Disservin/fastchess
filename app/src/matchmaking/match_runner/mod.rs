@@ -14,10 +14,9 @@ pub mod trackers;
 use std::time::{Duration, Instant};
 
 use crate::engine::process::ProcessResultExt;
-use crate::engine::protocol::Protocol;
-use crate::engine::uci_engine::{BestMoveResult, Color, Score, ScoreType, UciEngine};
+use crate::engine::uci_engine::{BestMoveResult, Score, ScoreType, UciEngine};
 use crate::game::book::Opening;
-use crate::game::{GameInstance, GameOverReason, GameStatus};
+use crate::game::{GameInstance, GameOverReason, GameStatus, Side};
 use crate::matchmaking::player::Player;
 use crate::types::engine_config::GamePair;
 use crate::types::match_data::*;
@@ -39,31 +38,6 @@ const STALL_MSG: &str = "'s connection stalls";
 const INTERRUPTED_MSG: &str = "Game interrupted";
 const ENGINE_WIN_MSG: &str = " wins by engine declaration";
 const ENGINE_RESIGN_MSG: &str = " resigns";
-
-// ── Color helpers ────────────────────────────────────────────────────────────
-
-fn color_name(color: Color, variant: VariantType) -> &'static str {
-    let protocol = Protocol::new(variant);
-    match color {
-        Color::White => protocol.first_player_name(),
-        Color::Black => protocol.second_player_name(),
-    }
-}
-
-fn opposite(color: Color) -> Color {
-    match color {
-        Color::White => Color::Black,
-        Color::Black => Color::White,
-    }
-}
-
-/// Convert from game::Color to engine::uci_engine::Color
-fn game_color_to_uci_color(c: crate::game::Color) -> Color {
-    match c {
-        crate::game::Color::First => Color::White,
-        crate::game::Color::Second => Color::Black,
-    }
-}
 
 /// Simple game-over check for PV verification.
 /// Returns (reason, is_game_over).
@@ -105,7 +79,7 @@ pub struct Match {
     variant: VariantType,
     /// Which color is to move at the start (after applying opening).
     /// Used to determine which player plays white.
-    side_to_move_at_start: Color,
+    side_to_move_at_start: Side,
     /// Whether we're in test environment (affects log formatting).
     test_env: bool,
     /// Whether to check mate PVs for correct length and checkmate ending.
@@ -157,7 +131,7 @@ impl Match {
         }
 
         // Capture which color is to move after applying the opening
-        let side_to_move_at_start = game_color_to_uci_color(game.side_to_move());
+        let side_to_move_at_start = game.side_to_move();
 
         Self {
             data: match_data,
@@ -177,13 +151,13 @@ impl Match {
     }
 
     /// Current side to move (from the game).
-    fn side_to_move(&self) -> Color {
-        game_color_to_uci_color(self.game.side_to_move())
+    fn side_to_move(&self) -> Side {
+        self.game.side_to_move()
     }
 
     /// Side to move at the start of the game (after applying opening).
     /// Used to determine which player plays white.
-    fn side_to_move_at_start(&self) -> Color {
+    fn side_to_move_at_start(&self) -> Side {
         self.side_to_move_at_start
     }
 
@@ -263,6 +237,17 @@ impl Match {
         // Check connection
         self.valid_connection(&mut first_player, &mut second_player);
 
+        // Determine which player played white based on the opening
+        let first_played_white = self.side_to_move_at_start() == Side::White;
+
+        if first_played_white {
+            first_player.set_first_side();
+            second_player.set_second_side();
+        } else {
+            first_player.set_second_side();
+            second_player.set_first_side();
+        }
+
         let start_time = Instant::now();
 
         if self.data.termination == MatchTermination::None {
@@ -276,9 +261,6 @@ impl Match {
         self.data.variant = self.variant;
         self.data.end_time = crate::core::datetime_iso();
         self.data.duration = crate::core::duration_string(elapsed);
-
-        // Determine which player played white based on the opening
-        let first_played_white = self.side_to_move_at_start() == Color::White;
 
         // Map results to white/black based on who actually played which color
         let (white_info, black_info) = if first_played_white {
@@ -350,14 +332,20 @@ impl Match {
             if status.is_draw() {
                 us.set_draw();
                 them.set_draw();
-            } else if status.winner.is_some() {
-                // The side to move lost (they got checkmated)
+            } else {
+                assert!(!status.is_ongoing());
                 us.set_lost();
                 them.set_won();
             }
 
+            let name = if status.is_draw() {
+                None
+            } else {
+                Some(them.side().unwrap().name(self.variant))
+            };
+
             self.data.termination = MatchTermination::Normal;
-            self.data.reason = self.convert_game_status(&status);
+            self.data.reason = self.convert_game_status(name, &status);
             return false;
         }
 
@@ -383,10 +371,8 @@ impl Match {
         }
 
         // Send go command — clone time controls to avoid borrow conflict
-        let our_tc = us.time_control().clone();
-        let their_tc = them.time_control().clone();
-        let stm = self.side_to_move();
-        if !us.engine.go(&our_tc, &their_tc, stm) {
+        let go_cmd = us.engine.get_go(us, them);
+        if !us.engine.go(&go_cmd) {
             self.set_engine_crash_status(us, them);
             return false;
         }
@@ -456,7 +442,7 @@ impl Match {
                 us.set_won();
                 them.set_lost();
                 let stm = self.side_to_move();
-                let name = color_name(stm, self.variant);
+                let name = stm.name(self.variant);
                 self.data.termination = MatchTermination::Normal;
                 self.data.reason = format!("{}{}", name, ENGINE_WIN_MSG);
                 return false;
@@ -467,7 +453,7 @@ impl Match {
                 us.set_lost();
                 them.set_won();
                 let stm = self.side_to_move();
-                let name = color_name(stm, self.variant);
+                let name = stm.name(self.variant);
                 self.data.termination = MatchTermination::Normal;
                 self.data.reason = format!("{}{}", name, ENGINE_RESIGN_MSG);
                 return false;
@@ -504,10 +490,10 @@ impl Match {
         if let Ok(score) = us.engine.last_score() {
             self.draw_tracker
                 .update(&score, self.half_move_clock() as i32);
-            self.resign_tracker.update(&score, opposite(stm_after));
+            self.resign_tracker.update(&score, stm_after.opposite());
         } else {
             self.draw_tracker.invalidate();
-            self.resign_tracker.invalidate(opposite(stm_after));
+            self.resign_tracker.invalidate(stm_after.opposite());
         }
 
         self.maxmoves_tracker.update();
@@ -523,7 +509,7 @@ impl Match {
                 us.set_lost();
                 them.set_won();
                 let stm = self.side_to_move();
-                let name = color_name(stm, self.variant);
+                let name = stm.name(self.variant);
                 self.data.termination = MatchTermination::Adjudication;
                 self.data.reason = format!("{}{}", name, ADJUDICATION_TB_WIN_MSG);
                 return true;
@@ -532,7 +518,7 @@ impl Match {
                 us.set_won();
                 them.set_lost();
                 let stm = self.side_to_move();
-                let name = color_name(opposite(stm), self.variant);
+                let name = stm.opposite().name(self.variant);
                 self.data.termination = MatchTermination::Adjudication;
                 self.data.reason = format!("{}{}", name, ADJUDICATION_TB_WIN_MSG);
                 return true;
@@ -559,7 +545,7 @@ impl Match {
                     them.set_won();
 
                     let stm = self.side_to_move();
-                    let name = color_name(stm, self.variant);
+                    let name = stm.name(self.variant);
                     self.data.termination = MatchTermination::Adjudication;
                     self.data.reason = format!("{}{}", name, ADJUDICATION_WIN_MSG);
                     return true;
@@ -611,7 +597,7 @@ impl Match {
         self.stall_or_disconnect = true;
 
         let stm = self.side_to_move();
-        let name = color_name(stm, self.variant);
+        let name = stm.name(self.variant);
 
         if crate::is_stop() {
             self.data.termination = MatchTermination::Interrupt;
@@ -630,7 +616,7 @@ impl Match {
         self.stall_or_disconnect = true;
 
         let stm = self.side_to_move();
-        let name = color_name(stm, self.variant);
+        let name = stm.name(self.variant);
         self.data.termination = MatchTermination::Stall;
         self.data.reason = format!("{}{}", name, STALL_MSG);
 
@@ -642,7 +628,7 @@ impl Match {
         winner.set_won();
 
         let stm = self.side_to_move();
-        let name = color_name(stm, self.variant);
+        let name = stm.name(self.variant);
         self.data.termination = MatchTermination::Timeout;
         self.data.reason = format!("{}{}", name, TIMEOUT_MSG);
 
@@ -669,7 +655,7 @@ impl Match {
         winner.set_won();
 
         let stm = self.side_to_move();
-        let name = color_name(stm, self.variant);
+        let name = stm.name(self.variant);
         self.data.termination = MatchTermination::IllegalMove;
         self.data.reason = format!("{}{}", name, ILLEGAL_MSG);
 
@@ -961,8 +947,8 @@ impl Match {
     }
 
     /// Convert a GameStatus to a human-readable reason string.
-    fn convert_game_status(&self, status: &GameStatus) -> String {
-        status.reason.message(status.winner, self.variant)
+    fn convert_game_status(&self, name: Option<&str>, status: &GameStatus) -> String {
+        status.reason.message(name, self.variant)
     }
 
     /// Get the match data after the game has finished.
@@ -1043,7 +1029,7 @@ mod tests {
         let tc = crate::types::tournament::TournamentConfig::default();
         let opening = Opening::startpos();
         let m = Match::new(opening, &tc);
-        assert_eq!(m.side_to_move(), Color::White);
+        assert_eq!(m.side_to_move(), Side::White);
     }
 
     #[test]
@@ -1054,7 +1040,7 @@ mod tests {
             Vec::new(),
         );
         let m = Match::new(opening, &tc);
-        assert_eq!(m.side_to_move(), Color::Black);
+        assert_eq!(m.side_to_move(), Side::Black);
     }
 
     #[test]
@@ -1065,21 +1051,27 @@ mod tests {
 
         let status = GameStatus {
             reason: GameOverReason::Checkmate,
-            winner: Some(crate::game::Color::First),
         };
-        assert_eq!(m.convert_game_status(&status), "White mates");
+        assert_eq!(
+            m.convert_game_status(Some(Side::White.name(VariantType::Standard)), &status),
+            "White mates"
+        );
 
         let status = GameStatus {
             reason: GameOverReason::Stalemate,
-            winner: None,
         };
-        assert_eq!(m.convert_game_status(&status), "Draw by stalemate");
+        assert_eq!(
+            m.convert_game_status(Some(&""), &status),
+            "Draw by stalemate"
+        );
 
         let status = GameStatus {
             reason: GameOverReason::FiftyMoveRule,
-            winner: None,
         };
-        assert_eq!(m.convert_game_status(&status), "Draw by fifty moves rule");
+        assert_eq!(
+            m.convert_game_status(Some(&""), &status),
+            "Draw by fifty moves rule"
+        );
     }
 
     #[test]
@@ -1093,7 +1085,6 @@ mod tests {
         let m = Match::new(opening, &tc);
         let status = m.game.status();
         assert_eq!(status.reason, GameOverReason::Checkmate);
-        assert_eq!(status.winner, Some(crate::game::Color::Second));
     }
 
     #[test]
@@ -1106,7 +1097,7 @@ mod tests {
         let m = Match::new(opening, &tc);
         assert_eq!(m.game.ply_count(), 2);
         assert_eq!(m.uci_moves.len(), 2);
-        assert_eq!(m.side_to_move(), Color::White);
+        assert_eq!(m.side_to_move(), Side::White);
     }
 
     #[test]
@@ -1124,7 +1115,7 @@ mod tests {
         // White to move at startpos
         let opening = Opening::startpos();
         let mut m = Match::new(opening, &tc);
-        assert_eq!(m.side_to_move(), Color::White);
+        assert_eq!(m.side_to_move(), Side::White);
 
         let cfg = EngineConfiguration::default();
         let mut engine_us = UciEngine::new(&cfg, false).expect("Failed to create UciEngine");
@@ -1247,7 +1238,7 @@ mod tests {
             vec!["e2e4".to_string()],
         );
         let mut m = Match::new(opening, &tc);
-        assert_eq!(m.side_to_move(), Color::Black);
+        assert_eq!(m.side_to_move(), Side::Black);
 
         let cfg = EngineConfiguration::default();
         // `us` in adjudicate = the engine that just moved = White

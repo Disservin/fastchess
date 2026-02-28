@@ -14,7 +14,7 @@ use crate::core::str_utils;
 use crate::engine::option::{parse_uci_option_line, OptionType, UCIOptions};
 use crate::engine::process::{Line, Process, ProcessError, ProcessResult, Standard};
 use crate::engine::protocol::Protocol;
-use crate::game::timecontrol::TimeControl;
+use crate::matchmaking::player::Player;
 use crate::types::engine_config::EngineConfiguration;
 use crate::types::enums::VariantType;
 use crate::{log_trace, log_warn};
@@ -78,15 +78,6 @@ pub struct InfoData {
     pub hashfull: i64,
     pub tbhits: u64,
     pub pv: String,
-}
-
-// ── Side to move (lightweight, avoids pulling in the full chess crate) ───────
-
-/// Side to move, used to map `wtime`/`btime` correctly.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Color {
-    White,
-    Black,
 }
 
 // ── Default timing constants ─────────────────────────────────────────────────
@@ -385,11 +376,10 @@ impl UciEngine {
         self.write_engine(&pos_cmd)
     }
 
-    /// Send a `go` command with time controls and engine limits.
-    ///
-    /// The protocol wrapper handles the mapping of time parameters correctly
-    /// for UCI (White moves first) and USI (Black/Sente moves first).
-    pub fn go(&mut self, our_tc: &TimeControl, enemy_tc: &TimeControl, stm: Color) -> bool {
+    pub fn get_go(&self, us: &Player, enemy: &Player) -> String {
+        let our_tc = us.time_control();
+        let enemy_tc = enemy.time_control();
+
         let mut input = String::from("go");
 
         if self.config.limit.nodes > 0 {
@@ -403,13 +393,13 @@ impl UciEngine {
         // Fixed time per move (movetime) — cannot combine with tc
         if our_tc.is_fixed_time() {
             let _ = write!(input, " movetime {}", our_tc.get_fixed_time());
-            return self.write_engine(&input);
+            return input;
         }
 
-        // Map side-to-move to first/second player time controls
-        let (first_tc, second_tc) = match stm {
-            Color::White => (our_tc, enemy_tc),
-            Color::Black => (enemy_tc, our_tc),
+        let (first_tc, second_tc) = if us.first_side() {
+            (our_tc, enemy_tc)
+        } else {
+            (enemy_tc, our_tc)
         };
 
         // Use protocol wrapper to get correct time parameter names
@@ -455,7 +445,16 @@ impl UciEngine {
             let _ = write!(input, " movestogo {}", our_tc.get_moves_left());
         }
 
-        self.write_engine(&input)
+        return input;
+    }
+
+    /// Send a `go` command with time controls and engine limits.
+    ///
+    /// The protocol wrapper handles the mapping of time parameters correctly
+    /// for UCI (White moves first) and USI (Black/Sente moves first).
+    pub fn go(&mut self, go_cmd: &str) -> bool {
+        // log_trace!("Sending go command to engine {}: {}", self.config.name, go_cmd);
+        self.write_engine(&go_cmd)
     }
 
     // ── I/O helpers ──────────────────────────────────────────────────────────

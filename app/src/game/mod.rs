@@ -13,29 +13,30 @@ pub use crate::variants::GameInstance;
 
 /// Unified color type for all game variants.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Color {
+pub enum Side {
     /// First player (White in chess, Sente in shogi)
-    First,
+    White,
     /// Second player (Black in chess, Gote in shogi)
-    Second,
+    Black,
 }
 
-impl Color {
+impl Side {
     /// Returns the opposite color.
     pub fn opposite(self) -> Self {
         match self {
-            Color::First => Color::Second,
-            Color::Second => Color::First,
+            Side::White => Side::Black,
+            Side::Black => Side::White,
         }
     }
 
     /// Returns a human-readable name for this color in context.
+    /// // TODO?
     pub fn name(self, variant: VariantType) -> &'static str {
         match (self, variant) {
-            (Color::First, VariantType::Shogi) => "Sente",
-            (Color::Second, VariantType::Shogi) => "Gote",
-            (Color::First, _) => "White",
-            (Color::Second, _) => "Black",
+            (Side::White, VariantType::Shogi) => "Sente",
+            (Side::Black, VariantType::Shogi) => "Gote",
+            (Side::White, _) => "White",
+            (Side::Black, _) => "Black",
         }
     }
 }
@@ -65,11 +66,12 @@ pub enum GameOverReason {
 
 impl GameOverReason {
     /// Returns a human-readable message for this game-over reason.
-    pub fn message(self, winner: Option<Color>, variant: VariantType) -> String {
+    pub fn message(self, winner: Option<&str>, variant: VariantType) -> String {
+        // c.name(variant)
         match self {
             GameOverReason::None => String::new(),
             GameOverReason::Checkmate => match winner {
-                Some(c) => format!("{} mates", c.name(variant)),
+                Some(c) => format!("{} mates", c),
                 None => "Checkmate".to_string(),
             },
             GameOverReason::Stalemate => "Draw by stalemate".to_string(),
@@ -82,15 +84,15 @@ impl GameOverReason {
             },
             GameOverReason::FiftyMoveRule => "Draw by fifty moves rule".to_string(),
             GameOverReason::PerpetualCheck => match winner {
-                Some(c) => format!("{} wins by perpetual check", c.name(variant)),
+                Some(c) => format!("{} wins by perpetual check", c),
                 None => "Loss by perpetual check".to_string(),
             },
             GameOverReason::IllegalMove => match winner {
-                Some(c) => format!("{} wins by illegal move", c.name(variant)),
+                Some(c) => format!("{} wins by illegal move", c),
                 None => "Loss by illegal move".to_string(),
             },
             GameOverReason::ImpasseWin => match winner {
-                Some(c) => format!("{} wins by impasse", c.name(variant)),
+                Some(c) => format!("{} wins by impasse", c),
                 None => "Win by impasse".to_string(),
             },
         }
@@ -113,15 +115,12 @@ impl GameOverReason {
 pub struct GameStatus {
     /// The reason the game ended, or None if ongoing.
     pub reason: GameOverReason,
-    /// The winner, if any (None for draws or ongoing games).
-    pub winner: Option<Color>,
 }
 
 impl GameStatus {
     /// Game is still ongoing.
     pub const ONGOING: Self = Self {
         reason: GameOverReason::None,
-        winner: None,
     };
 
     /// Returns true if the game is over.

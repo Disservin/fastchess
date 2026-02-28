@@ -1,4 +1,3 @@
-use crate::variants::chessport::attacks;
 use crate::variants::chessport::bitboard::Bitboard;
 use crate::variants::chessport::chess_move::Move;
 use crate::variants::chessport::color::Color;
@@ -6,6 +5,7 @@ use crate::variants::chessport::coords::{File, Rank, Square};
 use crate::variants::chessport::movegen;
 use crate::variants::chessport::piece::{Piece, PieceType};
 use crate::variants::chessport::zobrist::Zobrist;
+use crate::variants::chessport::{attacks, STARTPOS};
 
 // ---------------------------------------------------------------------------
 // CastlingRights
@@ -185,8 +185,6 @@ pub struct Board {
 // ---------------------------------------------------------------------------
 // constants
 // ---------------------------------------------------------------------------
-
-pub const STARTPOS: &str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
 // ---------------------------------------------------------------------------
 // Board implementation

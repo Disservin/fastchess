@@ -1,18 +1,56 @@
 //! Syzygy tablebase probing module.
 //!
-//! Provides tablebase probing for endgame adjudication using the `shakmaty_syzygy` crate.
+//! Provides tablebase probing for endgame adjudication using the `pyrrhic_rs` crate.
 
-use std::path::Path;
 use std::sync::OnceLock;
 
-use shakmaty::{Chess, Position};
-use shakmaty_syzygy::{AmbiguousWdl, Dtz, MaybeRounded, Tablebase, Wdl};
+use pyrrhic_rs::{EngineAdapter, TableBases, WdlProbeResult};
 
 use crate::types::adjudication::{TbAdjudication, TbResultType};
+use crate::variants::chessport::Board;
+use crate::variants::chessport::{bishop, king, knight, pawn, rook, Bitboard, Color, Square};
 use crate::{log_info, log_warn};
 
+#[derive(Clone)]
+struct TablebaseAdapter;
+
+impl EngineAdapter for TablebaseAdapter {
+    fn pawn_attacks(color: pyrrhic_rs::Color, sq: u64) -> u64 {
+        pawn(
+            if color == pyrrhic_rs::Color::Black {
+                Color::Black
+            } else {
+                Color::White
+            },
+            Square::from_u8(sq as u8),
+        )
+        .0
+    }
+
+    fn knight_attacks(sq: u64) -> u64 {
+        knight(Square::from_u8(sq as u8)).0
+    }
+
+    fn bishop_attacks(sq: u64, occ: u64) -> u64 {
+        bishop(Square::from_u8(sq as u8), Bitboard(occ)).0
+    }
+
+    fn rook_attacks(sq: u64, occ: u64) -> u64 {
+        rook(Square::from_u8(sq as u8), Bitboard(occ)).0
+    }
+
+    fn king_attacks(sq: u64) -> u64 {
+        king(Square::from_u8(sq as u8)).0
+    }
+
+    fn queen_attacks(sq: u64, occ: u64) -> u64 {
+        bishop(Square::from_u8(sq as u8), Bitboard(occ)).0
+            | rook(Square::from_u8(sq as u8), Bitboard(occ)).0
+    }
+}
+
 /// Global tablebase instance (initialized once).
-static TABLEBASE: OnceLock<Option<Tablebase<Chess>>> = OnceLock::new();
+static TABLEBASE: OnceLock<Option<TableBases<TablebaseAdapter>>> = OnceLock::new();
 
 /// Result of a tablebase probe.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -31,42 +69,16 @@ pub enum TbProbeResult {
     NotAvailable,
 }
 
-impl From<Wdl> for TbProbeResult {
-    fn from(wdl: Wdl) -> Self {
+impl From<WdlProbeResult> for TbProbeResult {
+    fn from(wdl: WdlProbeResult) -> Self {
         match wdl {
-            Wdl::Win => TbProbeResult::Win,
-            Wdl::Loss => TbProbeResult::Loss,
-            Wdl::Draw => TbProbeResult::Draw,
-            Wdl::CursedWin => TbProbeResult::CursedWin,
-            Wdl::BlessedLoss => TbProbeResult::BlessedLoss,
+            WdlProbeResult::Win => TbProbeResult::Win,
+            WdlProbeResult::Loss => TbProbeResult::Loss,
+            WdlProbeResult::Draw => TbProbeResult::Draw,
+            WdlProbeResult::CursedWin => TbProbeResult::CursedWin,
+            WdlProbeResult::BlessedLoss => TbProbeResult::BlessedLoss,
         }
     }
-}
-
-impl From<AmbiguousWdl> for TbProbeResult {
-    fn from(wdl: AmbiguousWdl) -> Self {
-        match wdl {
-            AmbiguousWdl::Win => TbProbeResult::Win,
-            AmbiguousWdl::Loss => TbProbeResult::Loss,
-            AmbiguousWdl::Draw => TbProbeResult::Draw,
-            AmbiguousWdl::CursedWin => TbProbeResult::CursedWin,
-            AmbiguousWdl::BlessedLoss => TbProbeResult::BlessedLoss,
-            // MaybeLoss/MaybeWin are ambiguous due to en passant; treat conservatively
-            AmbiguousWdl::MaybeWin => TbProbeResult::Win,
-            AmbiguousWdl::MaybeLoss => TbProbeResult::Loss,
-        }
-    }
-}
-
-/// Split a syzygy directory string into individual directory paths.
-///
-/// Accepts both `;` (Windows) and `:` (Unix) as separators for flexibility.
-fn split_syzygy_dirs(syzygy_dirs: &str) -> Vec<&str> {
-    syzygy_dirs
-        .split(&[';', ':'][..])
-        .map(|d| d.trim())
-        .filter(|d| !d.is_empty())
-        .collect()
 }
 
 /// Initialize the global tablebase from a semicolon-separated list of directories.
@@ -78,34 +90,26 @@ pub fn init_tablebase(syzygy_dirs: &str) {
             return None;
         }
 
-        let mut tb = Tablebase::new();
         let mut any_loaded = false;
+        let mut tb = None;
 
-        for dir in split_syzygy_dirs(syzygy_dirs) {
-            let path = Path::new(dir);
-            if path.is_dir() {
-                match tb.add_directory(path) {
-                    Ok(count) => {
-                        if count > 0 {
-                            log_info!("Loaded {} tablebase files from {}", count, dir);
-                            any_loaded = true;
-                        }
-                    }
-                    Err(e) => {
-                        log_warn!("Failed to load tablebases from {}: {}", dir, e);
-                    }
-                }
-            } else {
-                log_warn!("Syzygy directory not found: {}", dir);
+        match pyrrhic_rs::TableBases::<TablebaseAdapter>::new(syzygy_dirs) {
+            Ok(loaded_tb) => {
+                log_info!("Loaded Syzygy tablebases from {}", syzygy_dirs);
+                tb = Some(loaded_tb);
+                any_loaded = true;
+            }
+            Err(_e) => {
+                // log error
+                log_warn!("Failed to load tablebases from {}", syzygy_dirs);
             }
         }
 
-        if any_loaded {
-            Some(tb)
-        } else {
+        if !any_loaded {
             log_warn!("No Syzygy tablebases loaded");
-            None
         }
+
+        tb
     });
 }
 
@@ -126,12 +130,27 @@ pub fn max_pieces() -> u32 {
 /// Probe WDL (Win/Draw/Loss) for a position.
 ///
 /// Returns `NotAvailable` if the position cannot be probed.
-pub fn probe_wdl(pos: &Chess) -> TbProbeResult {
+pub fn probe_wdl(board: &Board) -> TbProbeResult {
     let Some(Some(tb)) = TABLEBASE.get() else {
         return TbProbeResult::NotAvailable;
     };
 
-    match tb.probe_wdl(pos) {
+    use crate::variants::chessport::PieceType;
+
+    let white = board.us(Color::White).0;
+    let black = board.us(Color::Black).0;
+    let kings = board.pieces_pt(PieceType::KING).0;
+    let queens = board.pieces_pt(PieceType::QUEEN).0;
+    let rooks = board.pieces_pt(PieceType::ROOK).0;
+    let bishops = board.pieces_pt(PieceType::BISHOP).0;
+    let knights = board.pieces_pt(PieceType::KNIGHT).0;
+    let pawns = board.pieces_pt(PieceType::PAWN).0;
+    let ep = board.enpassant_sq().0 as u32;
+    let turn = board.side_to_move() == Color::White;
+
+    match tb.probe_wdl(
+        white, black, kings, queens, rooks, bishops, knights, pawns, ep, turn,
+    ) {
         Ok(wdl) => wdl.into(),
         Err(_) => TbProbeResult::NotAvailable,
     }
@@ -140,26 +159,48 @@ pub fn probe_wdl(pos: &Chess) -> TbProbeResult {
 /// Probe DTZ (Distance To Zeroing) for a position.
 ///
 /// Returns `None` if the position cannot be probed.
-pub fn probe_dtz(pos: &Chess) -> Option<MaybeRounded<Dtz>> {
+pub fn probe_dtz(board: &Board) -> Option<u32> {
     let Some(Some(tb)) = TABLEBASE.get() else {
         return None;
     };
 
-    tb.probe_dtz(pos).ok()
+    use crate::variants::chessport::PieceType;
+
+    let white = board.us(Color::White).0;
+    let black = board.us(Color::Black).0;
+    let kings = board.pieces_pt(PieceType::KING).0;
+    let queens = board.pieces_pt(PieceType::QUEEN).0;
+    let rooks = board.pieces_pt(PieceType::ROOK).0;
+    let bishops = board.pieces_pt(PieceType::BISHOP).0;
+    let knights = board.pieces_pt(PieceType::KNIGHT).0;
+    let pawns = board.pieces_pt(PieceType::PAWN).0;
+    let rule50 = board.half_move_clock();
+    let ep = board.enpassant_sq().0 as u32;
+    let turn = board.side_to_move() == Color::White;
+
+    match tb.probe_root(
+        white, black, kings, queens, rooks, bishops, knights, pawns, rule50, ep, turn,
+    ) {
+        Ok(result) => match result.root {
+            pyrrhic_rs::DtzProbeValue::DtzResult(dtz_result) => Some(dtz_result.dtz as u32),
+            _ => None,
+        },
+        Err(_) => None,
+    }
 }
 
 /// Check if a position can be probed (piece count within limits).
-pub fn can_probe(pos: &Chess, max_pieces_limit: u32) -> bool {
-    let piece_count = pos.board().occupied().count();
+pub fn can_probe(board: &Board, max_pieces_limit: u32) -> bool {
+    let piece_count = board.occ().count();
 
     // Check against configured max pieces limit
-    if max_pieces_limit > 0 && piece_count > max_pieces_limit as usize {
+    if max_pieces_limit > 0 && piece_count > max_pieces_limit {
         return false;
     }
 
     // Check against loaded tablebase capacity
     let tb_max = max_pieces();
-    if tb_max > 0 && piece_count > tb_max as usize {
+    if tb_max > 0 && piece_count > tb_max {
         return false;
     }
 
@@ -171,7 +212,7 @@ pub fn can_probe(pos: &Chess, max_pieces_limit: u32) -> bool {
 ///
 /// Returns the probe result if adjudication is applicable, or `NotAvailable` otherwise.
 pub fn should_adjudicate(
-    pos: &Chess,
+    board: &Board,
     config: &TbAdjudication,
     ignore_50_move_rule: bool,
 ) -> TbProbeResult {
@@ -179,11 +220,11 @@ pub fn should_adjudicate(
         return TbProbeResult::NotAvailable;
     }
 
-    if !can_probe(pos, config.max_pieces as u32) {
+    if !can_probe(board, config.max_pieces as u32) {
         return TbProbeResult::NotAvailable;
     }
 
-    let result = probe_wdl(pos);
+    let result = probe_wdl(board);
 
     // Handle 50-move rule consideration
     let effective_result = if ignore_50_move_rule {
@@ -216,20 +257,25 @@ pub fn should_adjudicate(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use shakmaty::fen::Fen;
-    use shakmaty::CastlingMode;
+    use crate::variants::chessport::Board;
 
     #[test]
     fn test_probe_result_from_wdl() {
-        assert_eq!(TbProbeResult::from(Wdl::Win), TbProbeResult::Win);
-        assert_eq!(TbProbeResult::from(Wdl::Loss), TbProbeResult::Loss);
-        assert_eq!(TbProbeResult::from(Wdl::Draw), TbProbeResult::Draw);
+        assert_eq!(TbProbeResult::from(WdlProbeResult::Win), TbProbeResult::Win);
         assert_eq!(
-            TbProbeResult::from(Wdl::CursedWin),
+            TbProbeResult::from(WdlProbeResult::Loss),
+            TbProbeResult::Loss
+        );
+        assert_eq!(
+            TbProbeResult::from(WdlProbeResult::Draw),
+            TbProbeResult::Draw
+        );
+        assert_eq!(
+            TbProbeResult::from(WdlProbeResult::CursedWin),
             TbProbeResult::CursedWin
         );
         assert_eq!(
-            TbProbeResult::from(Wdl::BlessedLoss),
+            TbProbeResult::from(WdlProbeResult::BlessedLoss),
             TbProbeResult::BlessedLoss
         );
     }
@@ -238,50 +284,16 @@ mod tests {
     fn test_not_available_without_init() {
         // Without initialization, probing should return NotAvailable
         // Use a valid KvK position where kings are sufficiently separated
-        let fen: Fen = "8/8/8/4k3/8/8/4K3/8 w - - 0 1".parse().unwrap();
-        let pos: Chess = fen.into_position(CastlingMode::Standard).unwrap();
+        let board = Board::from_fen("8/8/8/4k3/8/8/4K3/8 w - - 0 1");
 
         // Note: This test may pass or fail depending on whether init_tablebase
         // was called in other tests. In isolation, it should return NotAvailable.
-        let result = probe_wdl(&pos);
+        let result = probe_wdl(&board);
         // We just verify it doesn't panic
         assert!(matches!(
             result,
             TbProbeResult::NotAvailable | TbProbeResult::Draw
         ));
-    }
-
-    #[test]
-    fn test_split_syzygy_dirs_semicolon() {
-        assert_eq!(split_syzygy_dirs("/tb1;/tb2"), vec!["/tb1", "/tb2"]);
-    }
-
-    #[test]
-    fn test_split_syzygy_dirs_colon() {
-        assert_eq!(split_syzygy_dirs("/tb1:/tb2"), vec!["/tb1", "/tb2"]);
-    }
-
-    #[test]
-    fn test_split_syzygy_dirs_mixed() {
-        assert_eq!(
-            split_syzygy_dirs("/tb1;/tb2:/tb3"),
-            vec!["/tb1", "/tb2", "/tb3"]
-        );
-    }
-
-    #[test]
-    fn test_split_syzygy_dirs_whitespace_and_empty() {
-        assert_eq!(split_syzygy_dirs(";/tb1; ;/tb2;"), vec!["/tb1", "/tb2"]);
-    }
-
-    #[test]
-    fn test_split_syzygy_dirs_single() {
-        assert_eq!(split_syzygy_dirs("/syzygy"), vec!["/syzygy"]);
-    }
-
-    #[test]
-    fn test_split_syzygy_dirs_empty() {
-        assert!(split_syzygy_dirs("").is_empty());
     }
 
     #[test]

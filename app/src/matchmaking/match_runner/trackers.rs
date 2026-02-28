@@ -3,9 +3,9 @@
 //! Ports the `DrawTracker`, `ResignTracker`, `MaxMovesTracker`, and
 //! `TbAdjudicationTracker` classes from `matchmaking/match/match.hpp`.
 
-use crate::engine::uci_engine::{Color, Score, ScoreType};
+use crate::engine::uci_engine::{Score, ScoreType};
 use crate::game::syzygy::{self, TbProbeResult};
-use crate::game::GameInstance;
+use crate::game::{GameInstance, Side};
 use crate::types::adjudication::*;
 
 // ── Draw Tracker ─────────────────────────────────────────────────────────────
@@ -102,7 +102,7 @@ impl ResignTracker {
     }
 
     /// Update tracker with the engine's score and the side that just moved.
-    pub fn update(&mut self, score: &Score, color: Color) {
+    pub fn update(&mut self, score: &Score, color: Side) {
         if !self.enabled {
             return;
         }
@@ -118,8 +118,8 @@ impl ResignTracker {
             }
         } else {
             let counter = match color {
-                Color::Black => &mut self.resign_moves_black,
-                Color::White => &mut self.resign_moves_white,
+                Side::Black => &mut self.resign_moves_black,
+                Side::White => &mut self.resign_moves_white,
             };
             if (score.value <= -(self.resign_score as i64) && score.score_type == ScoreType::Cp)
                 || (score.value < 0 && score.score_type == ScoreType::Mate)
@@ -145,14 +145,14 @@ impl ResignTracker {
     }
 
     /// Invalidate (reset) the tracker for the given color.
-    pub fn invalidate(&mut self, color: Color) {
+    pub fn invalidate(&mut self, color: Side) {
         if self.twosided {
             self.resign_moves = 0;
             return;
         }
         match color {
-            Color::Black => self.resign_moves_black = 0,
-            Color::White => self.resign_moves_white = 0,
+            Side::Black => self.resign_moves_black = 0,
+            Side::White => self.resign_moves_white = 0,
         }
     }
 }
@@ -396,13 +396,13 @@ mod tests {
         };
 
         // Need 2 * 2 = 4 consecutive plies with |score| >= 500
-        tracker.update(&losing, Color::White);
+        tracker.update(&losing, Side::White);
         assert!(!tracker.resignable());
-        tracker.update(&losing, Color::Black);
+        tracker.update(&losing, Side::Black);
         assert!(!tracker.resignable());
-        tracker.update(&losing, Color::White);
+        tracker.update(&losing, Side::White);
         assert!(!tracker.resignable());
-        tracker.update(&losing, Color::Black);
+        tracker.update(&losing, Side::Black);
         assert!(tracker.resignable());
     }
 
@@ -422,9 +422,9 @@ mod tests {
         };
 
         // One-sided: black reports losing twice
-        tracker.update(&losing, Color::Black);
+        tracker.update(&losing, Side::Black);
         assert!(!tracker.resignable());
-        tracker.update(&losing, Color::Black);
+        tracker.update(&losing, Side::Black);
         assert!(tracker.resignable());
     }
 
@@ -443,9 +443,9 @@ mod tests {
             value: -3,
         };
 
-        tracker.update(&mate, Color::White);
+        tracker.update(&mate, Side::White);
         assert!(!tracker.resignable());
-        tracker.update(&mate, Color::Black);
+        tracker.update(&mate, Side::Black);
         assert!(tracker.resignable());
     }
 
@@ -464,8 +464,8 @@ mod tests {
             value: -600,
         };
 
-        tracker.update(&losing, Color::Black);
-        tracker.invalidate(Color::Black);
+        tracker.update(&losing, Side::Black);
+        tracker.invalidate(Side::Black);
         assert!(!tracker.resignable());
     }
 

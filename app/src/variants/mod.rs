@@ -7,6 +7,8 @@
 use crate::game::{Color, GameStatus};
 use crate::types::VariantType;
 
+pub mod chessport;
+
 // Re-export variant implementations
 pub mod chess;
 pub mod shogi;

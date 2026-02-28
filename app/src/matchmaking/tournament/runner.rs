@@ -282,9 +282,9 @@ impl Tournament {
     fn print_tracker_stats(&self) {
         let tracker = self.tracker.lock().unwrap();
         for (name, timeouts, disconnects) in tracker.iter() {
-            log_info!("Player: {}", name);
-            log_info!("  Timeouts: {}", timeouts);
-            log_info!("  Crashed: {}", disconnects);
+            println!("Player: {}", name);
+            println!("  Timeouts: {}", timeouts);
+            println!("  Crashed: {}", disconnects);
         }
     }
 

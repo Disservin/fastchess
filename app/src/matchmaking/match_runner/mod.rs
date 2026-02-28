@@ -42,19 +42,11 @@ const ENGINE_RESIGN_MSG: &str = " resigns";
 /// Simple game-over check for PV verification.
 /// Returns (reason, is_game_over).
 fn is_game_over_simple(game: &GameInstance) -> (GameOverReason, bool) {
-    // Check fifty-move rule
-    if game.halfmove_clock() >= 100 {
-        return (GameOverReason::FiftyMoveRule, true);
-    }
-
-    // Check threefold repetition
-    if game.is_threefold_repetition() {
-        return (GameOverReason::Repetition, true);
-    }
-
     // Check for checkmate/stalemate by looking at game status
     let status = game.status();
-    if status.is_game_over() {
+
+    // we ignore insufficient material here since it's rather uncommon
+    if status.is_game_over() && status.reason != GameOverReason::InsufficientMaterial {
         return (status.reason, true);
     }
 
@@ -377,8 +369,6 @@ impl Match {
             return false;
         }
 
-        // Wait for bestmove
-        let t0 = Instant::now();
         let threshold = {
             let t = us.get_timeout_threshold();
             if t.is_zero() {
@@ -387,10 +377,12 @@ impl Match {
                 Some(t)
             }
         };
-        let engine_status = us.engine.read_engine("bestmove", threshold);
-        let t1 = Instant::now();
 
-        let elapsed_ms = t1.duration_since(t0).as_millis() as i64;
+        // Wait for bestmove
+
+        let t0 = Instant::now();
+        let engine_status = us.engine.read_engine("bestmove", threshold);
+        let elapsed_ms = t0.elapsed().as_millis() as i64;
 
         if crate::is_stop() {
             self.data.termination = MatchTermination::Interrupt;

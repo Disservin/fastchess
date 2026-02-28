@@ -1,0 +1,17 @@
+[Event "Batch 285: resc3 vs master"]
+[Site "https://tests.stockfishchess.org/tests/view/66ca338bbf8c9d8780fda84e"]
+[Date "2024.08.26"]
+[Round "1"]
+[White "New-4b280597d2d985af7b8c5597c438ed375d753420"]
+[Black "Base-9fb58328e363d84e3cf720b018e639b139ba95c2"]
+[Result "*"]
+[FEN "r1bqk2r/pp1p1pbp/2n2np1/4p3/4P3/2NP2P1/PP2NPBP/R1BQ1RK1 w kq - 0 9"]
+[GameDuration "00:00:08"]
+[GameEndTime "2024-08-26T03:53:45.284 EEST"]
+[GameStartTime "2024-08-26T03:53:36.365 EEST"]
+[PlyCount "0"]
+[SetUp "1"]
+[Termination "unterminated"]
+[TimeControl "70.55+0.706"]
+
+{No result} *

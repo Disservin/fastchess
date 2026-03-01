@@ -7,6 +7,7 @@ use crate::types::LogLevel;
 
 pub static LOGGER: std::sync::LazyLock<Logger> = std::sync::LazyLock::new(Logger::new);
 
+use chrono::Local;
 use std::io::BufWriter;
 
 enum LogWriter {
@@ -54,6 +55,7 @@ impl LogWriter {
 
 enum LogMessage {
     Write(String),
+    #[allow(dead_code)]
     Flush,
     Finish,
 }
@@ -305,7 +307,6 @@ impl Drop for Logger {
 }
 
 fn get_precise_timestamp() -> String {
-    use chrono::Local;
     let now = Local::now();
     let time_str = now.format("%H:%M:%S").to_string();
     let micros = now.timestamp_subsec_micros();

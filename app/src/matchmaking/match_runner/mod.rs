@@ -743,68 +743,76 @@ impl Match {
         let info_lines = us.engine.get_info_lines();
 
         for line in &info_lines {
-            self.verify_single_pv_line(&line.line, engine_name, test_env, check_mate_pvs);
+            if let Some(warning) =
+                self.verify_single_pv_line(&line.line, engine_name, check_mate_pvs)
+            {
+                self.log_pv_warning(&warning, &line.line, engine_name, test_env);
+            }
         }
 
         // Finally check if the final PV matches bestmove
-        self.verify_bestmove_matches_pv(us, test_env, &info_lines);
+        if let Some(warning) = self.verify_bestmove_matches_pv(us, &info_lines) {
+            let last_info = info_lines.last().map(|l| l.line.as_str()).unwrap_or("");
+            self.log_pv_warning(&warning, last_info, engine_name, test_env);
+        }
     }
 
     /// Verify that bestmove matches the beginning of the last PV.
+    /// Returns Some(warning) if there's a mismatch, None otherwise.
     fn verify_bestmove_matches_pv(
         &self,
         us: &Player,
-        test_env: bool,
         info_lines: &[&crate::engine::process::Line],
-    ) {
+    ) -> Option<String> {
         let engine_name = &us.engine.config().name;
 
         let best_move = match us.engine.bestmove() {
             Some(BestMoveResult::Move(mv)) => mv,
-            _ => return,
+            _ => return None,
         };
 
         // Skip the check if the final score is upperbound/lowerbound
         let Some(last_info) = info_lines.last() else {
-            return;
+            return None;
         };
 
         let is_bound = UciEngine::is_bound(&last_info.line);
         let pv = UciEngine::extract_pv_from_info(&last_info.line);
 
         if is_bound {
-            return;
+            return None;
         }
 
         let Some(pv_ref) = pv.as_ref() else {
-            return;
+            return None;
         };
 
         if pv_ref.is_empty() {
-            return;
+            return None;
         }
 
         if best_move != pv_ref[0] {
-            let warning = format!(
+            return Some(format!(
                 "Warning; Bestmove does not match beginning of last PV - move {} from {}",
                 best_move, engine_name
-            );
-            self.log_pv_warning(&warning, &last_info.line, engine_name, test_env);
+            ));
         }
+
+        None
     }
 
     /// Verify a single PV line from engine output.
+    /// Returns Some(warning) if there's an issue, None otherwise.
     fn verify_single_pv_line(
         &self,
         info: &str,
         engine_name: &str,
-        test_env: bool,
         check_mate_pvs: bool,
-    ) {
+    ) -> Option<String> {
         // Extract PV from info line
         let pv = match UciEngine::extract_pv_from_info(info) {
             Some(pv) if !pv.is_empty() => pv,
-            _ => return,
+            _ => return None,
         };
 
         // Clone the current game state to simulate the PV
@@ -846,48 +854,43 @@ impl Match {
                     ),
                 };
 
-                self.log_pv_warning(&warning, info, engine_name, test_env);
-                return;
+                return Some(warning);
             }
 
             // Try to parse and make the move
             let game_move = match game.parse_move(move_str) {
                 Some(m) => m,
                 None => {
-                    let warning = format!(
+                    return Some(format!(
                         "Warning; Illegal PV move - move {} from {}",
                         move_str, engine_name
-                    );
-                    self.log_pv_warning(&warning, info, engine_name, test_env);
-                    return;
+                    ));
                 }
             };
 
             // Check if move is legal
             if !game.make_move(game_move.as_ref()) {
-                let warning = format!(
+                return Some(format!(
                     "Warning; Illegal PV move - move {} from {}",
                     move_str, engine_name
-                );
-                self.log_pv_warning(&warning, info, engine_name, test_env);
-                return;
+                ));
             }
         }
 
         // For mate scores, check correct length of PV
         if !check_mate_pvs {
-            return;
+            return None;
         }
 
         let score = match UciEngine::get_score(info) {
             Ok(s) => s,
-            Err(_) => return,
+            Err(_) => return None,
         };
 
         let is_bound = UciEngine::is_bound(info);
 
         if score.score_type != ScoreType::Mate || is_bound {
-            return;
+            return None;
         }
 
         let score_value = score.value;
@@ -897,26 +900,28 @@ impl Match {
             ((-score_value) * 2) as usize
         };
 
-        let mut warning = String::new();
-
         if pv.len() < plies {
-            warning = format!("Warning; Incomplete mating PV - from {}", engine_name);
+            return Some(format!(
+                "Warning; Incomplete mating PV - from {}",
+                engine_name
+            ));
         } else if pv.len() > plies {
-            warning = format!("Warning; Too long mating PV - from {}", engine_name);
+            return Some(format!(
+                "Warning; Too long mating PV - from {}",
+                engine_name
+            ));
         } else {
             // Check if the position after the PV is checkmate
             let status = game.status();
             if !status.is_game_over() || status.reason != GameOverReason::Checkmate {
-                warning = format!(
+                return Some(format!(
                     "Warning; Mating PV does not end with checkmate - from {}",
                     engine_name
-                );
+                ));
             }
         }
 
-        if !warning.is_empty() {
-            self.log_pv_warning(&warning, info, engine_name, test_env);
-        }
+        None
     }
 
     /// Log a PV warning with all relevant context.
@@ -1318,5 +1323,236 @@ mod tests {
             GameOverReason::Stalemate,
             "Expected stalemate reason"
         );
+    }
+
+    #[test]
+    fn test_pv_valid_from_startpos() {
+        let tc = crate::types::tournament::TournamentConfig::default();
+        let m = Match::new(Opening::startpos(), &tc);
+
+        let info = "info depth 10 score cp 25 pv e2e4 e7e5 g1f3 b8c6 d2d4 d7d6 b1c3 c8g4";
+        assert!(m.verify_single_pv_line(info, "TestEngine", false).is_none());
+    }
+
+    #[test]
+    fn test_pv_illegal_move_empty_square() {
+        let tc = crate::types::tournament::TournamentConfig::default();
+        let m = Match::new(Opening::startpos(), &tc);
+
+        let info = "info depth 10 score cp 25 pv e2e4 a3a4";
+        let warning = m.verify_single_pv_line(info, "TestEngine", false);
+
+        assert!(warning.is_some());
+        assert!(warning.unwrap().contains("Illegal PV move"));
+    }
+
+    #[test]
+    fn test_pv_non_uci_token_filtered() {
+        let tc = crate::types::tournament::TournamentConfig::default();
+        let m = Match::new(Opening::startpos(), &tc);
+
+        // "invalid_move" is filtered by extract_pv, leaving only "e2e4"
+        let info = "info depth 10 score cp 25 pv e2e4 invalid_move";
+        assert!(m.verify_single_pv_line(info, "TestEngine", false).is_none());
+    }
+
+    #[test]
+    fn test_pv_move_from_vacated_square() {
+        let tc = crate::types::tournament::TournamentConfig::default();
+        let m = Match::new(Opening::startpos(), &tc);
+
+        // Knight moves to c3, then tries to move from b1 again (now empty)
+        let info = "info depth 10 score cp 25 pv b1c3 b8c6 b1c3";
+        let warning = m.verify_single_pv_line(info, "TestEngine", false);
+
+        assert!(warning.is_some());
+        assert!(warning.unwrap().contains("Illegal PV move"));
+    }
+
+    #[test]
+    fn test_bestmove_matches_pv() {
+        use crate::types::engine_config::EngineConfiguration;
+        let tc = crate::types::tournament::TournamentConfig::default();
+        let m = Match::new(Opening::startpos(), &tc);
+        let cfg = EngineConfiguration::default();
+        let mut engine = UciEngine::new(&cfg, false).expect("Failed to create UciEngine");
+
+        engine.inject_output_line("info depth 10 score cp 25 pv e2e4 e7e5 g1f3");
+        engine.inject_output_line("bestmove e2e4");
+
+        let player = Player::new(&mut engine);
+        let info_lines: Vec<&crate::engine::process::Line> =
+            player.engine.get_info_lines().into_iter().collect();
+
+        assert!(m.verify_bestmove_matches_pv(&player, &info_lines).is_none());
+    }
+
+    #[test]
+    fn test_bestmove_mismatch_with_pv() {
+        use crate::types::engine_config::EngineConfiguration;
+        let tc = crate::types::tournament::TournamentConfig::default();
+        let m = Match::new(Opening::startpos(), &tc);
+        let cfg = EngineConfiguration::default();
+        let mut engine = UciEngine::new(&cfg, false).expect("Failed to create UciEngine");
+
+        engine.inject_output_line("info depth 10 score cp 25 pv e2e4 e7e5 g1f3");
+        engine.inject_output_line("bestmove d2d4");
+
+        let player = Player::new(&mut engine);
+        let info_lines: Vec<&crate::engine::process::Line> =
+            player.engine.get_info_lines().into_iter().collect();
+
+        let warning = m.verify_bestmove_matches_pv(&player, &info_lines);
+
+        assert!(warning.is_some());
+        let msg = warning.unwrap();
+        assert!(msg.contains("Bestmove does not match beginning of last PV"));
+        assert!(msg.contains("d2d4"));
+    }
+
+    #[test]
+    fn test_bestmove_check_skipped_for_upperbound() {
+        use crate::types::engine_config::EngineConfiguration;
+        let tc = crate::types::tournament::TournamentConfig::default();
+        let m = Match::new(Opening::startpos(), &tc);
+        let cfg = EngineConfiguration::default();
+        let mut engine = UciEngine::new(&cfg, false).expect("Failed to create UciEngine");
+
+        engine.inject_output_line("info depth 10 score cp 25 upperbound pv e2e4 e7e5");
+        engine.inject_output_line("bestmove d2d4");
+
+        let player = Player::new(&mut engine);
+        let info_lines: Vec<&crate::engine::process::Line> =
+            player.engine.get_info_lines().into_iter().collect();
+
+        assert!(m.verify_bestmove_matches_pv(&player, &info_lines).is_none());
+    }
+
+    #[test]
+    fn test_mate_pv_too_short_positive_mate() {
+        let tc = crate::types::tournament::TournamentConfig::default();
+        let m = Match::new(Opening::startpos(), &tc);
+
+        // Mate in 3 requires 5 plies; only 3 provided
+        let info = "info depth 20 score mate 3 pv e2e4 e7e5 g1f3";
+        let warning = m.verify_single_pv_line(info, "TestEngine", true);
+
+        assert!(warning.is_some());
+        assert!(warning.unwrap().contains("Incomplete mating PV"));
+    }
+
+    #[test]
+    fn test_mate_pv_too_short_negative_mate() {
+        let tc = crate::types::tournament::TournamentConfig::default();
+        let m = Match::new(Opening::startpos(), &tc);
+
+        // Mated in 2 requires 4 plies; only 2 provided
+        let info = "info depth 20 score mate -2 pv e2e4 e7e5";
+        let warning = m.verify_single_pv_line(info, "TestEngine", true);
+
+        assert!(warning.is_some());
+        assert!(warning.unwrap().contains("Incomplete mating PV"));
+    }
+
+    #[test]
+    fn test_mate_pv_correct_length_no_checkmate_at_end() {
+        let tc = crate::types::tournament::TournamentConfig::default();
+        let m = Match::new(Opening::startpos(), &tc);
+
+        // Mate in 1 = 1 ply; e2e4 has correct length but doesn't deliver checkmate
+        let info = "info depth 10 score mate 1 pv e2e4";
+        let warning = m.verify_single_pv_line(info, "TestEngine", true);
+
+        assert!(warning.is_some());
+        let msg = warning.unwrap();
+        assert!(!msg.contains("Incomplete mating PV"), "unexpected: {}", msg);
+        assert!(msg.contains("Mating PV does not end with checkmate"));
+    }
+
+    #[test]
+    fn test_mate_pv_too_long() {
+        let tc = crate::types::tournament::TournamentConfig::default();
+        let m = Match::new(Opening::startpos(), &tc);
+
+        // Mate in 1 = 1 ply; PV has 3 moves
+        let info = "info depth 10 score mate 1 pv e2e4 e7e5 g1f3";
+        let warning = m.verify_single_pv_line(info, "TestEngine", true);
+
+        assert!(warning.is_some());
+        assert!(warning.unwrap().contains("Too long mating PV"));
+    }
+
+    #[test]
+    fn test_mate_pv_check_disabled() {
+        let tc = crate::types::tournament::TournamentConfig::default();
+        let m = Match::new(Opening::startpos(), &tc);
+
+        // Would fail mate PV length check, but check_mate_pvs is false
+        let info = "info depth 20 score mate 3 pv e2e4 e7e5";
+        assert!(m
+            .verify_single_pv_line(info, "TestEngine", false,)
+            .is_none());
+    }
+
+    #[test]
+    fn test_mate_pv_correct_length_not_ending_in_checkmate() {
+        let tc = crate::types::tournament::TournamentConfig::default();
+        let m = Match::new(Opening::startpos(), &tc);
+
+        // Mate in 3 = 5 plies; correct length but doesn't end in checkmate
+        let info = "info depth 20 score mate 3 pv e2e4 e7e5 g1f3 b8c6 d2d4";
+        let warning = m.verify_single_pv_line(info, "TestEngine", true);
+
+        assert!(warning.is_some());
+        assert!(warning
+            .unwrap()
+            .contains("Mating PV does not end with checkmate"));
+    }
+
+    #[test]
+    fn test_mate_pv_upperbound_skips_length_check() {
+        let tc = crate::types::tournament::TournamentConfig::default();
+        let m = Match::new(Opening::startpos(), &tc);
+
+        let info = "info depth 20 score mate 3 upperbound pv e2e4";
+        assert!(m
+            .verify_single_pv_line(info, "TestEngine", false,)
+            .is_none());
+    }
+
+    #[test]
+    fn test_pv_continues_after_checkmate() {
+        let tc = crate::types::tournament::TournamentConfig::default();
+        let m = Match::new(
+            Opening::new(
+                Some("rnb1kbnr/pppp1ppp/4p3/8/6Pq/5P2/PPPPP2P/RNBQKBNR w KQkq - 1 3".to_string()),
+                Vec::new(),
+            ),
+            &tc,
+        );
+
+        let info = "info depth 10 score cp 0 pv e2e4 e7e5";
+        let warning = m.verify_single_pv_line(info, "TestEngine", false);
+
+        assert!(warning.is_some());
+        assert!(warning.unwrap().contains("PV continues after checkmate"));
+    }
+
+    #[test]
+    fn test_pv_continues_after_stalemate() {
+        let tc = crate::types::tournament::TournamentConfig::default();
+        let m = Match::new(
+            Opening::new(
+                Some("7k/5Q2/5K2/8/8/8/8/8 b - - 0 1".to_string()),
+                Vec::new(),
+            ),
+            &tc,
+        );
+
+        let info = "info depth 10 score cp 0 pv a7a6";
+        let warning = m.verify_single_pv_line(info, "TestEngine", false);
+
+        assert!(warning.is_some());
+        assert!(warning.unwrap().contains("PV continues after stalemate"));
     }
 }

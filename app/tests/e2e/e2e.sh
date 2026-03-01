@@ -2,8 +2,8 @@
 
 set -x
 
-# Compile the random_mover
-g++ -O3 -std=c++17 app/tests/mock/engine/random_mover.cpp -o random_mover
+# Compile the random_mover (Rust version)
+cargo build --release --bin random_mover
 
 # Compile fastchess
 make -j build=debug $1
@@ -11,7 +11,7 @@ make -j build=debug $1
 # EPD Book Test
 
 OUTPUT_FILE=$(mktemp)
-./fastchess -engine cmd=./random_mover name=random_move_1 -engine cmd=./random_mover name=random_move_2 \
+./fastchess -engine cmd=./app/target/release/random_mover name=random_move_1 -engine cmd=./app/target/release/random_mover name=random_move_2 \
     -each tc=2+0.02s -rounds 5 -repeat -concurrency 2 \
     -openings file=./app/tests/data/openings.epd format=epd order=random -log file=log.txt level=info 2>&1 | tee $OUTPUT_FILE
 
@@ -47,7 +47,7 @@ fi
 # PGN Book Test
 
 OUTPUT_FILE_2=$(mktemp)
-./fastchess -engine cmd=./random_mover name=random_move_1 -engine cmd=./random_mover name=random_move_2 \
+./fastchess -engine cmd=./app/target/release/random_mover name=random_move_1 -engine cmd=./app/target/release/random_mover name=random_move_2 \
     -each tc=2+0.02s -rounds 5 -repeat -concurrency 2 \
     -openings file=app/tests/data/openings.pgn format=pgn order=random -log file=log.txt level=info  2>&1 | tee $OUTPUT_FILE_2
 
@@ -84,7 +84,7 @@ fi
 # Invalid UciOptions Test
 
 OUTPUT_FILE_3=$(mktemp)
-./fastchess -engine cmd=./random_mover name=random_move_1 -engine cmd=./random_mover name=random_move_2 \
+./fastchess -engine cmd=./app/target/release/random_mover name=random_move_1 -engine cmd=./app/target/release/random_mover name=random_move_2 \
     -each tc=2+0.02s option.Hash=-16 option.Threads=2 -rounds 5 -repeat -concurrency 2 \
     -openings file=app/tests/data/openings.pgn format=pgn order=random -log file=log.txt level=info  2>&1 | tee $OUTPUT_FILE_3
 
@@ -138,7 +138,7 @@ if [[ "$OSTYPE" != "linux-gnu" && "$OSTYPE" != "darwin"* ]]; then
 fi
 
 OUTPUT_FILE_4=$(mktemp)
-./fastchess -engine cmd=app/tests/mock/engine/missing_engine.sh name=random_move_1 -engine cmd=./random_mover name=random_move_2 \
+./fastchess -engine cmd=app/tests/mock/engine/missing_engine.sh name=random_move_1 -engine cmd=./app/target/release/random_mover name=random_move_2 \
     -each tc=2+0.02s option.Hash=-16 option.Threads=2 -rounds 5 -repeat -concurrency 1 \
     -openings file=app/tests/data/openings.pgn format=pgn order=random -log file=log.txt level=warn  2>&1 | tee $OUTPUT_FILE_4
 
@@ -155,7 +155,7 @@ fi
 rm games.pgn
 
 OUTPUT_FILE_5=$(mktemp)
-./fastchess -engine cmd=./random_mover name=random_move_1 -engine cmd=./random_mover name=random_move_2 \
+./fastchess -engine cmd=./app/target/release/random_mover name=random_move_1 -engine cmd=./app/target/release/random_mover name=random_move_2 \
     -each tc=2+0.02s -rounds 10 -repeat -concurrency 2 \
     -openings file=./app/tests/data/short.epd format=epd order=random -pgnout file=games.pgn -log file=log.txt level=info 2>&1 | tee $OUTPUT_FILE_5
 
@@ -246,7 +246,7 @@ echo "All openings were played the expected number of times."
 # With -ratinginterval 2 and -report penta=false, we should see rating output after every 2 games: 2, 4, 6, 8, 10
 
 OUTPUT_FILE_6=$(mktemp)
-./fastchess -engine cmd=./random_mover name=random_move_1 -engine cmd=./random_mover name=random_move_2 \
+./fastchess -engine cmd=./app/target/release/random_mover name=random_move_1 -engine cmd=./app/target/release/random_mover name=random_move_2 \
     -each tc=2+0.02s -rounds 5 -repeat -concurrency 2 -ratinginterval 2 -report penta=false \
     -openings file=./app/tests/data/openings.epd format=epd order=random -log file=log.txt level=info 2>&1 | tee $OUTPUT_FILE_6
 
@@ -315,7 +315,7 @@ echo "Rating interval output with penta=false works correctly."
 # With -ratinginterval 2 and -report penta=true, reports are printed when pairs complete
 
 OUTPUT_FILE_7=$(mktemp)
-./fastchess -engine cmd=./random_mover name=random_move_1 -engine cmd=./random_mover name=random_move_2 \
+./fastchess -engine cmd=./app/target/release/random_mover name=random_move_1 -engine cmd=./app/target/release/random_mover name=random_move_2 \
     -each tc=2+0.02s -rounds 5 -repeat -concurrency 1 -ratinginterval 2 -report penta=true \
     -openings file=./app/tests/data/openings.epd format=epd order=random -log file=log.txt level=info 2>&1 | tee $OUTPUT_FILE_7
 
@@ -391,7 +391,7 @@ echo "Rating interval output with penta=true works correctly."
 rm plies_test.pgn
 
 OUTPUT_FILE_8=$(mktemp)
-./fastchess -engine cmd=./random_mover name=random_move_1 -engine cmd=./random_mover name=random_move_2 \
+./fastchess -engine cmd=./app/target/release/random_mover name=random_move_1 -engine cmd=./app/target/release/random_mover name=random_move_2 \
     -each tc=2+0.02s -rounds 3 -repeat -concurrency 2 \
     -openings file=./app/tests/data/openings.pgn format=pgn order=sequential plies=4 \
     -pgnout file=plies_test.pgn -log file=log.txt level=info 2>&1 | tee $OUTPUT_FILE_8
@@ -474,7 +474,7 @@ rm random_run1.pgn random_run2.pgn
 
 # First run with order=random
 OUTPUT_FILE_9=$(mktemp)
-./fastchess -engine cmd=./random_mover name=random_move_1 -engine cmd=./random_mover name=random_move_2 \
+./fastchess -engine cmd=./app/target/release/random_mover name=random_move_1 -engine cmd=./app/target/release/random_mover name=random_move_2 \
     -each tc=2+0.02s -rounds 3 -repeat -concurrency 1 \
     -openings file=./app/tests/data/short.epd format=epd order=random -pgnout file=random_run1.pgn -log file=log.txt level=info 2>&1 | tee $OUTPUT_FILE_9
 
@@ -509,7 +509,7 @@ fi
 
 # Second run with order=random
 OUTPUT_FILE_10=$(mktemp)
-./fastchess -engine cmd=./random_mover name=random_move_1 -engine cmd=./random_mover name=random_move_2 \
+./fastchess -engine cmd=./app/target/release/random_mover name=random_move_1 -engine cmd=./app/target/release/random_mover name=random_move_2 \
     -each tc=2+0.02s -rounds 3 -repeat -concurrency 1 \
     -openings file=./app/tests/data/short.epd format=epd order=random -pgnout file=random_run2.pgn -log file=log.txt level=info 2>&1 | tee $OUTPUT_FILE_10
 

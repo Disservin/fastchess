@@ -72,18 +72,7 @@ pub fn datetime_precise_fast() -> String {
     format!("{}.{:06}", time_str, micros)
 }
 
-/// String utility functions (replaces C++ str_utils namespace).
 pub mod str_utils {
-    /// Join a slice of strings with a separator.
-    pub fn join(parts: &[String], sep: &str) -> String {
-        parts.join(sep)
-    }
-
-    /// Check if a collection of strings contains a given string.
-    pub fn contains(items: &[String], target: &str) -> bool {
-        items.iter().any(|s| s == target)
-    }
-
     /// Find the element *after* a keyword in a token list and parse it.
     ///
     /// Given tokens `["info", "depth", "20", "score", "cp", "15"]`,

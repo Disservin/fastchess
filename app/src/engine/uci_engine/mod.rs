@@ -581,7 +581,7 @@ impl UciEngine {
         }
 
         let last_line = &stdout.last()?.line;
-        let tokens = str_utils::split_string(last_line, ' ');
+        let tokens = last_line.split_whitespace().collect::<Vec<&str>>();
         let move_str: String = str_utils::find_element(&tokens, "bestmove")?;
 
         // Handle USI special cases using protocol wrapper
@@ -595,19 +595,16 @@ impl UciEngine {
     }
 
     /// Get the last `info` line (with score, preferring non-bound lines).
-    pub fn last_info_line(&self) -> String {
-        let mut fallback = String::new();
+    pub fn last_info_line(&self) -> &str {
+        let mut fallback = "";
 
         let lines = self.get_stdout_lines();
         for line in lines.iter().rev() {
             let s = &line.line;
 
-            // Skip "info string" lines
             if s.contains("info string") {
                 continue;
             }
-
-            // Only consider info lines with score (and multipv 1 if present)
             if !s.contains("info") || !s.contains(" score ") {
                 continue;
             }
@@ -616,11 +613,10 @@ impl UciEngine {
             }
 
             if !Self::is_bound(s) {
-                return s.clone();
+                return s;
             }
-
             if fallback.is_empty() {
-                fallback = s.clone();
+                fallback = s;
             }
         }
 
@@ -651,12 +647,12 @@ impl UciEngine {
     }
 
     /// Parse the last info line into tokens.
-    pub fn last_info(&self) -> Option<Vec<String>> {
+    pub fn last_info(&self) -> Option<Vec<&str>> {
         let info = self.last_info_line();
         if info.is_empty() {
             return None;
         }
-        Some(str_utils::split_string(&info, ' '))
+        Some(info.split_whitespace().collect())
     }
 
     /// Get the last reported `time` value from info lines.
@@ -670,7 +666,7 @@ impl UciEngine {
             if !s.contains("info") || !s.contains("time") {
                 continue;
             }
-            let tokens = str_utils::split_string(s, ' ');
+            let tokens = s.split_whitespace().collect::<Vec<&str>>();
             let time_ms: i64 = str_utils::find_element(&tokens, "time").unwrap_or(0);
             return Duration::from_millis(time_ms.max(0) as u64);
         }
@@ -686,7 +682,7 @@ impl UciEngine {
             ));
         }
 
-        let info = str_utils::split_string(info_line, ' ');
+        let info = info_line.split_whitespace().collect::<Vec<&str>>();
 
         let type_str: String = str_utils::find_element_result(&info, "score")?;
 
@@ -744,31 +740,27 @@ impl UciEngine {
     /// Extract the PV (principal variation) from info tokens.
     ///
     /// The PV is a space-separated list of moves that appears after "pv" in the info line.
-    fn extract_pv(tokens: &[String]) -> Option<Vec<&str>> {
-        let pv_pos = tokens.iter().position(|t| t == "pv")?;
+    fn extract_pv<'a>(tokens: &[&'a str]) -> Option<Vec<&'a str>> {
+        let pv_pos = tokens.iter().position(|t| *t == "pv")?;
         let pv_start = pv_pos + 1;
 
         if pv_start >= tokens.len() {
             return None;
         }
 
-        // Find where PV ends (first non-UCI-move token)
         let pv_end = tokens[pv_start..]
             .iter()
-            .position(|t| !is_uci_move(&t))
+            .position(|t| !is_uci_move(t))
             .map(|pos| pv_start + pos)
             .unwrap_or(tokens.len());
 
-        let pv: Vec<&str> = tokens[pv_start..pv_end]
-            .iter()
-            .map(|s| s.as_str())
-            .collect();
+        let pv = tokens[pv_start..pv_end].to_vec();
 
         if pv.is_empty() {
-            return None;
+            None
+        } else {
+            Some(pv)
         }
-
-        Some(pv)
     }
 
     pub fn extract_pv_from_info(info: &str) -> Option<Vec<String>> {
@@ -776,7 +768,7 @@ impl UciEngine {
             return None;
         }
 
-        let tokens = str_utils::split_string(info, ' ');
+        let tokens = info.split_whitespace().collect::<Vec<&str>>();
         Self::extract_pv(&tokens).map(|pv_vec| pv_vec.into_iter().map(|s| s.to_string()).collect())
     }
 

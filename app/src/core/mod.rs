@@ -74,11 +74,6 @@ pub fn datetime_precise_fast() -> String {
 
 /// String utility functions (replaces C++ str_utils namespace).
 pub mod str_utils {
-    /// Split a string by a delimiter character.
-    pub fn split_string(s: &str, delim: char) -> Vec<String> {
-        s.split(delim).map(|s| s.to_string()).collect()
-    }
-
     /// Join a slice of strings with a separator.
     pub fn join(parts: &[String], sep: &str) -> String {
         parts.join(sep)
@@ -93,20 +88,20 @@ pub mod str_utils {
     ///
     /// Given tokens `["info", "depth", "20", "score", "cp", "15"]`,
     /// `find_element::<i64>(&tokens, "depth")` returns `Some(20)`.
-    pub fn find_element<T: std::str::FromStr>(tokens: &[String], keyword: &str) -> Option<T> {
-        let pos = tokens.iter().position(|s| s == keyword)?;
+    pub fn find_element<T: std::str::FromStr>(tokens: &[&str], keyword: &str) -> Option<T> {
+        let pos = tokens.iter().position(|s| *s == keyword)?;
         let next = tokens.get(pos + 1)?;
         next.parse().ok()
     }
 
     /// Find the element after a keyword, returning a Result with error context.
     pub fn find_element_result<T: std::str::FromStr>(
-        tokens: &[String],
+        tokens: &[&str],
         keyword: &str,
     ) -> Result<T, String> {
         let pos = tokens
             .iter()
-            .position(|s| s == keyword)
+            .position(|s| *s == keyword)
             .ok_or_else(|| format!("Keyword '{}' not found", keyword))?;
         let next = tokens
             .get(pos + 1)

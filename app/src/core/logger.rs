@@ -1,5 +1,6 @@
 use std::io::Write;
 use std::sync::atomic::{AtomicBool, AtomicU8, Ordering};
+use std::sync::mpsc::{self, SyncSender};
 use std::sync::Mutex;
 
 use crate::types::LogLevel;
@@ -16,7 +17,6 @@ enum LogWriter {
 impl LogWriter {
     pub fn new(f: std::fs::File, compress: bool) -> std::io::Result<Self> {
         let buf = BufWriter::with_capacity(65536, f);
-
         if compress {
             Ok(LogWriter::Gzip(flate2::write::GzEncoder::new(
                 buf,
@@ -45,10 +45,64 @@ impl LogWriter {
         match self {
             LogWriter::Plain(mut file) => file.flush(),
             LogWriter::Gzip(encoder) => {
-                let buf_writer = encoder.finish()?;
-                drop(buf_writer);
+                encoder.finish()?;
                 Ok(())
             }
+        }
+    }
+}
+
+enum LogMessage {
+    Write(String),
+    Flush,
+    Finish,
+}
+
+struct LoggingThread {
+    sender: SyncSender<LogMessage>,
+    handle: Option<std::thread::JoinHandle<()>>,
+}
+
+impl LoggingThread {
+    fn new(mut writer: LogWriter) -> Self {
+        let (sender, receiver) = mpsc::sync_channel::<LogMessage>(4096);
+
+        let handle = std::thread::Builder::new()
+            .name("logger".to_string())
+            .spawn(move || {
+                for msg in receiver {
+                    match msg {
+                        LogMessage::Write(s) => {
+                            let _ = writer.write_str(&s);
+                        }
+                        LogMessage::Flush => {
+                            let _ = writer.flush();
+                        }
+                        LogMessage::Finish => {
+                            let _ = writer.finish();
+                            return;
+                        }
+                    }
+                }
+                // channel closed without Finish — still finalize
+                let _ = writer.flush();
+            })
+            .expect("Failed to spawn logging thread");
+
+        Self {
+            sender,
+            handle: Some(handle),
+        }
+    }
+
+    fn send(&self, msg: LogMessage) {
+        let _ = self.sender.send(msg);
+    }
+
+    fn finish(&mut self) {
+        self.send(LogMessage::Finish);
+        if let Some(handle) = self.handle.take() {
+            let _ = handle.join();
         }
     }
 }
@@ -57,7 +111,7 @@ pub struct Logger {
     pub should_log: AtomicBool,
     level: AtomicU8,
     engine_coms: AtomicBool,
-    writer: Mutex<Option<LogWriter>>,
+    thread: Mutex<Option<LoggingThread>>,
 }
 
 impl Default for Logger {
@@ -78,7 +132,7 @@ impl Logger {
             should_log: AtomicBool::new(false),
             level: AtomicU8::new(LogLevel::Warn as u8),
             engine_coms: AtomicBool::new(false),
-            writer: Mutex::new(None),
+            thread: Mutex::new(None),
         }
     }
 
@@ -104,7 +158,8 @@ impl Logger {
             match file {
                 Ok(f) => {
                     let writer = LogWriter::new(f, compress).expect("Failed to create log writer");
-                    *self.writer.lock().unwrap() = Some(writer);
+                    let logging_thread = LoggingThread::new(writer);
+                    *self.thread.lock().unwrap() = Some(logging_thread);
                     self.should_log.store(true, Ordering::Relaxed);
                 }
                 Err(e) => {
@@ -142,12 +197,7 @@ impl Logger {
             return;
         }
 
-        let thread_id = if let Some(id) = thread_id {
-            id
-        } else {
-            Self::get_thread_id()
-        };
-
+        let thread_id = thread_id.unwrap_or_else(Self::get_thread_id);
         let stderr_prefix = if is_err { "<stderr> " } else { "" };
         let prefix = self.make_prefix("Engine", timestamp, thread_id);
         let formatted_msg = format!(
@@ -155,7 +205,7 @@ impl Logger {
             prefix, stderr_prefix, engine_name, line
         );
 
-        self.write_raw(&formatted_msg);
+        self.write_raw(formatted_msg);
     }
 
     pub fn write_to_engine(
@@ -175,15 +225,11 @@ impl Logger {
             timestamp.to_string()
         };
 
-        let thread_id = if let Some(id) = thread_id {
-            id
-        } else {
-            Self::get_thread_id()
-        };
+        let thread_id = thread_id.unwrap_or_else(Self::get_thread_id);
         let prefix = self.make_prefix("Engine", &actual_timestamp, thread_id);
         let formatted_msg = format!("{}  {} <--- {}\n", prefix, engine_name, input);
 
-        self.write_raw(&formatted_msg);
+        self.write_raw(formatted_msg);
     }
 
     fn make_prefix(&self, label: &str, timestamp: &str, thread_id: u64) -> String {
@@ -220,18 +266,15 @@ impl Logger {
         } else {
             0
         };
-
         let prefix = self.make_prefix(label, &timestamp, thread_id);
         let formatted_msg = format!("{} fastchess --- {}\n", prefix, msg);
 
-        self.write_raw(&formatted_msg);
+        self.write_raw(formatted_msg);
     }
 
-    fn write_raw(&self, msg: &str) {
-        let mut writer = self.writer.lock().unwrap();
-        if let Some(ref mut w) = *writer {
-            let _ = w.write_str(msg);
-            let _ = w.flush();
+    fn write_raw(&self, msg: String) {
+        if let Some(ref t) = *self.thread.lock().unwrap() {
+            t.send(LogMessage::Write(msg));
         }
     }
 
@@ -244,17 +287,18 @@ impl Logger {
     }
 
     pub fn finish(&self) {
-        if let Some(writer) = self.writer.lock().unwrap().take() {
-            let _ = writer.finish();
+        self.should_log.store(false, Ordering::Relaxed);
+        if let Some(mut t) = self.thread.lock().unwrap().take() {
+            t.finish();
         }
     }
 }
 
 impl Drop for Logger {
     fn drop(&mut self) {
-        if let Ok(mut writer) = self.writer.lock() {
-            if let Some(w) = writer.take() {
-                let _ = w.finish();
+        if let Ok(mut thread) = self.thread.lock() {
+            if let Some(mut t) = thread.take() {
+                t.finish();
             }
         }
     }

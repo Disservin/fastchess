@@ -8,7 +8,7 @@ use fastchess::game::syzygy;
 use fastchess::matchmaking::tournament::runner::Tournament;
 use fastchess::matchmaking::tournament::schedule::SchedulerVariant;
 use fastchess::types::enums::TournamentType;
-use fastchess::{log_info, log_trace};
+use fastchess::{log_info, log_trace, set_abnormal_termination};
 
 fn run() -> Result<(), String> {
     let start_time = Instant::now();
@@ -60,6 +60,7 @@ fn run() -> Result<(), String> {
     // 6. Set up Ctrl+C handler
     ctrlc::set_handler(move || {
         if !fastchess::STOP.swap(true, Ordering::SeqCst) {
+            set_abnormal_termination();
             eprintln!("\nInterrupted — stopping tournament...");
         }
     })

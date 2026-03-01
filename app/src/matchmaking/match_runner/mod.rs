@@ -597,9 +597,8 @@ impl Match {
         } else {
             self.data.termination = MatchTermination::Disconnect;
             self.data.reason = format!("{}{}", name, DISCONNECT_MSG);
+            log_warn!("Engine {} disconnects", loser.engine.config().name);
         }
-
-        log_warn!("Engine {} disconnects", loser.engine.config().name);
     }
 
     fn set_engine_stall_status(&mut self, loser: &mut Player, winner: &mut Player) {

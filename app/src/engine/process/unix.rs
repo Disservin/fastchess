@@ -118,7 +118,7 @@ fn drain_lines(
             continue;
         }
 
-        let ts = crate::core::datetime_precise();
+        let ts = crate::core::datetime_precise_fast();
 
         if realtime_logging {
             crate::core::logger::LOGGER.read_from_engine(
@@ -263,7 +263,7 @@ impl Process {
             // Timeout
             if ready == 0 {
                 if !self.line_buffer_out.is_empty() {
-                    let ts = crate::core::datetime_precise();
+                    let ts = crate::core::datetime_precise_fast();
                     lines.push(Line {
                         line: std::mem::take(&mut self.line_buffer_out),
                         time: ts,

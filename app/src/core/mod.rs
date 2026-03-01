@@ -3,6 +3,7 @@ pub mod file_writer;
 pub mod logger;
 
 use chrono::Local;
+use std::time::{SystemTime, UNIX_EPOCH};
 
 /// Get current datetime as ISO 8601 string.
 pub fn datetime_iso() -> String {
@@ -29,6 +30,46 @@ pub fn duration_string(dur: std::time::Duration) -> String {
     let minutes = (total_secs % 3600) / 60;
     let seconds = total_secs % 60;
     format!("{}:{:02}:{:02}", hours, minutes, seconds)
+}
+
+fn datetime_fast(format: &str) -> String {
+    let now = SystemTime::now();
+    let dur = now.duration_since(UNIX_EPOCH).unwrap();
+    let secs = dur.as_secs() as libc::time_t;
+
+    #[cfg(windows)]
+    let tm_buf = unsafe {
+        let mut tm_buf = std::mem::zeroed::<libc::tm>();
+        libc::localtime_s(&mut tm_buf, &secs);
+        tm_buf
+    };
+
+    #[cfg(not(windows))]
+    let tm_buf = unsafe {
+        let mut tm_buf = std::mem::zeroed::<libc::tm>();
+        libc::localtime_r(&secs, &mut tm_buf);
+        tm_buf
+    };
+
+    let hour = tm_buf.tm_hour;
+    let min = tm_buf.tm_min;
+    let sec = tm_buf.tm_sec;
+
+    format
+        .replace("%H", &format!("{:02}", hour))
+        .replace("%M", &format!("{:02}", min))
+        .replace("%S", &format!("{:02}", sec))
+        .replace("%Y", &format!("{:04}", 1900 + tm_buf.tm_year))
+        .replace("%m", &format!("{:02}", tm_buf.tm_mon + 1))
+        .replace("%d", &format!("{:02}", tm_buf.tm_mday))
+}
+
+pub fn datetime_precise_fast() -> String {
+    let now = SystemTime::now();
+    let dur = now.duration_since(UNIX_EPOCH).unwrap();
+    let micros = dur.subsec_micros();
+    let time_str = datetime_fast("%H:%M:%S");
+    format!("{}.{:06}", time_str, micros)
 }
 
 /// String utility functions (replaces C++ str_utils namespace).

@@ -10,43 +10,31 @@ description = "A high-performance chess engine tournament manager"
 # panic = "deny"
 
 [dependencies]
-# JSON serialization/deserialization (replaces nlohmann/json)
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 
-# Time handling
 chrono = { version = "0.4", features = ["serde"] }
 
-# Random number generation
 rand = "0.8"
 
-# Error handling
 thiserror = "2"
 anyhow = "1"
 
-# Parallel processing (Rayon for data parallelism)
 rayon = "1.10"
 
-# Signal handling
 ctrlc = "3"
 
-# CRC32
 crc32fast = "1"
 
-# Math functions (erf, etc.) not available in std
 libm = "0.2"
 
-# libc — for syscall(SYS_gettid) on Linux
 libc = "0.2"
 
-# GZIP compression for log files
 flate2 = "1"
 
-# For shogi move generation
 itertools = "0.13"
 lazy_static = "1.5"
 
-# Concurrent hashmap for engine cache
 dashmap = "6"
 rand_mt = "6.0.0"
 pyrrhic-rs = "=0.2.0"

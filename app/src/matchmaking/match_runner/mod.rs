@@ -13,7 +13,7 @@ pub mod trackers;
 
 use std::time::{Duration, Instant};
 
-use crate::engine::process::ProcessResultExt;
+use crate::engine::process::ProcessError;
 use crate::engine::uci_engine::{BestMoveResult, Score, ScoreType, UciEngine};
 use crate::game::book::Opening;
 use crate::game::{GameInstance, GameOverReason, GameStatus, Side};
@@ -570,17 +570,17 @@ impl Match {
     fn valid_connection(&mut self, us: &mut Player, them: &mut Player) -> bool {
         let is_ready = us.engine.isready(Some(UciEngine::get_ping_time()));
 
-        if is_ready.is_timeout() {
-            self.set_engine_stall_status(us, them);
-            return false;
+        match is_ready {
+            Ok(_) => true,
+            Err(ProcessError::Timeout) => {
+                self.set_engine_stall_status(us, them);
+                false
+            }
+            Err(_) => {
+                self.set_engine_crash_status(us, them);
+                false
+            }
         }
-
-        if is_ready.is_err() {
-            self.set_engine_crash_status(us, them);
-            return false;
-        }
-
-        true
     }
 
     fn set_engine_crash_status(&mut self, loser: &mut Player, winner: &mut Player) {

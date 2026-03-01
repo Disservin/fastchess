@@ -10,15 +10,6 @@ pub enum Standard {
     Err,
 }
 
-/// Status of a process operation.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Status {
-    Ok,
-    Err,
-    Timeout,
-    None,
-}
-
 #[derive(Error, Debug, Clone)]
 pub enum ProcessError {
     #[error("failed to initialize interruption descriptors: {0}")]
@@ -51,17 +42,6 @@ impl From<String> for ProcessError {
 
 /// Result type for process operations.
 pub type ProcessResult<T = ()> = Result<T, ProcessError>;
-
-/// Extension trait for ProcessResult to provide helper methods.
-pub trait ProcessResultExt {
-    fn is_timeout(&self) -> bool;
-}
-
-impl<T> ProcessResultExt for ProcessResult<T> {
-    fn is_timeout(&self) -> bool {
-        matches!(self, Err(ProcessError::Timeout))
-    }
-}
 
 /// A line of output from an engine process.
 #[derive(Debug, Clone)]

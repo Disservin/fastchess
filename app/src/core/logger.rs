@@ -6,16 +6,31 @@ use crate::types::LogLevel;
 
 pub static LOGGER: std::sync::LazyLock<Logger> = std::sync::LazyLock::new(Logger::new);
 
+use std::io::BufWriter;
+
 enum LogWriter {
-    Plain(std::fs::File),
-    Gzip(flate2::write::GzEncoder<std::fs::File>),
+    Plain(BufWriter<std::fs::File>),
+    Gzip(flate2::write::GzEncoder<BufWriter<std::fs::File>>),
 }
 
 impl LogWriter {
+    pub fn new(f: std::fs::File, compress: bool) -> std::io::Result<Self> {
+        let buf = BufWriter::with_capacity(65536, f);
+
+        if compress {
+            Ok(LogWriter::Gzip(flate2::write::GzEncoder::new(
+                buf,
+                flate2::Compression::default(),
+            )))
+        } else {
+            Ok(LogWriter::Plain(buf))
+        }
+    }
+
     fn write_str(&mut self, msg: &str) -> std::io::Result<()> {
         match self {
-            LogWriter::Plain(file) => write!(file, "{}", msg),
-            LogWriter::Gzip(encoder) => write!(encoder, "{}", msg),
+            LogWriter::Plain(file) => file.write_all(msg.as_bytes()),
+            LogWriter::Gzip(encoder) => encoder.write_all(msg.as_bytes()),
         }
     }
 
@@ -30,7 +45,8 @@ impl LogWriter {
         match self {
             LogWriter::Plain(mut file) => file.flush(),
             LogWriter::Gzip(encoder) => {
-                encoder.finish()?;
+                let buf_writer = encoder.finish()?;
+                drop(buf_writer);
                 Ok(())
             }
         }
@@ -87,14 +103,7 @@ impl Logger {
 
             match file {
                 Ok(f) => {
-                    let writer = if compress {
-                        LogWriter::Gzip(flate2::write::GzEncoder::new(
-                            f,
-                            flate2::Compression::default(),
-                        ))
-                    } else {
-                        LogWriter::Plain(f)
-                    };
+                    let writer = LogWriter::new(f, compress).expect("Failed to create log writer");
                     *self.writer.lock().unwrap() = Some(writer);
                     self.should_log.store(true, Ordering::Relaxed);
                 }

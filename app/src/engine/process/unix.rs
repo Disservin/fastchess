@@ -22,6 +22,7 @@ pub struct Process {
     line_buffer_out: String,
     line_buffer_err: String,
     initialized: bool,
+    thread_id: u64,
 }
 
 /// Owned file descriptors for the interrupt mechanism.
@@ -85,6 +86,14 @@ impl InterruptFds {
     }
 }
 
+fn get_thread_id() -> u64 {
+    format!("{:?}", std::thread::current().id())
+        .trim_start_matches("ThreadId(")
+        .trim_end_matches(')')
+        .parse::<u64>()
+        .unwrap()
+}
+
 /// Process raw bytes into complete lines, pushing them to `lines`.
 /// Returns `Some(Ok(()))` if `searchword` is found at the start of a line.
 fn drain_lines(
@@ -95,6 +104,7 @@ fn drain_lines(
     searchword: Option<&str>,
     realtime_logging: bool,
     log_name: &str,
+    thread_id: u64,
 ) -> Option<ProcessResult> {
     let is_stderr = matches!(std, Standard::Err);
 
@@ -108,19 +118,26 @@ fn drain_lines(
             continue;
         }
 
-        let line = line_buffer.trim_end_matches('\r').to_string();
         let ts = crate::core::datetime_precise();
 
         if realtime_logging {
-            crate::core::logger::LOGGER.read_from_engine(&line, &ts, log_name, is_stderr, None);
+            crate::core::logger::LOGGER.read_from_engine(
+                &line_buffer,
+                &ts,
+                log_name,
+                is_stderr,
+                Some(thread_id),
+            );
         }
 
-        let found = searchword
-            .filter(|sw| !sw.is_empty())
-            .is_some_and(|sw| line.starts_with(sw));
+        let found = if let Some(sw) = searchword {
+            !sw.is_empty() && line_buffer.starts_with(sw)
+        } else {
+            false
+        };
 
         lines.push(Line {
-            line,
+            line: line_buffer.clone(),
             time: ts,
             std,
         });
@@ -144,6 +161,7 @@ impl Process {
             line_buffer_out: String::with_capacity(300),
             line_buffer_err: String::with_capacity(300),
             initialized: false,
+            thread_id: get_thread_id(),
         })
     }
 
@@ -285,6 +303,7 @@ impl Process {
                         Some(searchword),
                         self.realtime_logging,
                         &self.log_name,
+                        self.thread_id,
                     ) {
                         return r;
                     }
@@ -308,6 +327,7 @@ impl Process {
                         None,
                         self.realtime_logging,
                         &self.log_name,
+                        self.thread_id,
                     );
                 }
 

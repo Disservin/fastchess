@@ -94,13 +94,13 @@ impl Match {
             GameInstance::default_fen(variant).to_string()
         };
 
-        let start_position = fen_str.clone();
-
-        // Create the game from FEN
+        // Create the game from FEN, TODO propagate error
         let mut game =
             GameInstance::from_fen(&fen_str, variant).unwrap_or_else(|| GameInstance::new(variant));
 
-        let data = MatchData::new(&fen_str);
+        let start_position = game.fen();
+
+        let data = MatchData::new(&start_position);
 
         // Apply opening book moves and collect UCI strings
         let mut uci_moves = Vec::new();

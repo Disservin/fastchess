@@ -211,8 +211,16 @@ impl UciEngine {
         if !self.initialized {
             return;
         }
-        let _ = self.write_engine("stop");
-        let _ = self.write_engine("quit");
+
+        self.process.stop_gracefully();
+    }
+
+    pub fn kill(&mut self) {
+        self.process.kill();
+    }
+
+    pub fn alive(&mut self) -> bool {
+        self.process.alive().is_ok()
     }
 
     /// Restart the engine process completely.
@@ -289,8 +297,9 @@ impl UciEngine {
 
         if !ok {
             log_warn!(
-                "Engine {} did not respond to uciok in time.",
-                self.config.name
+                "Engine {} didn't respond to {} in time.",
+                self.config.name,
+                self.protocol.init_ok()
             );
         }
 
@@ -899,12 +908,6 @@ impl UciEngine {
             time: String::new(),
             std: Standard::Output,
         });
-    }
-}
-
-impl Drop for UciEngine {
-    fn drop(&mut self) {
-        self.quit();
     }
 }
 

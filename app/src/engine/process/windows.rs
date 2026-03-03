@@ -440,6 +440,20 @@ impl Process {
             *h = INVALID_HANDLE_VALUE;
         }
     }
+
+    pub fn stop_gracefully(&mut self) {
+        // write_input
+        if self.h_stdin_write != INVALID_HANDLE_VALUE {
+            let _ = self.write_input("stop\n");
+            let _ = self.write_input("quit\n");
+        }
+    }
+
+    pub fn kill(&mut self) {
+        if self.h_process != INVALID_HANDLE_VALUE {
+            unsafe { TerminateProcess(self.h_process, 1) };
+        }
+    }
 }
 
 impl Drop for Process {

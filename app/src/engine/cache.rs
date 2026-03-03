@@ -1,29 +1,21 @@
 //! Engine cache — reuses engine processes across games.
 //!
-//! Uses `dashmap` for global pools and `thread_local!` for affinity pools.
+//! Uses `dashmap` for all pools (keyed by `"name"` or `"name:thread_id"` for affinity).
 
 use dashmap::DashMap;
-use std::cell::RefCell;
-use std::collections::HashMap;
 use std::ops::{Deref, DerefMut};
 use std::sync::{Arc, Mutex, MutexGuard};
+use std::thread;
 
 use crate::engine::process::ProcessError;
 use crate::engine::uci_engine::UciEngine;
 use crate::types::engine_config::EngineConfiguration;
 
-thread_local! {
-    static THREAD_POOLS: RefCell<HashMap<String, Arc<NamePool>>> =
-        RefCell::new(HashMap::new());
-}
-
-/// A pooled engine entry with its own lock (allows concurrent use of different engines).
 struct PooledEngine {
     engine: Mutex<UciEngine>,
     available: Mutex<bool>,
 }
 
-/// Pool for one engine name.
 struct NamePool {
     entries: Mutex<Vec<Arc<PooledEngine>>>,
 }
@@ -37,13 +29,11 @@ impl NamePool {
 
     fn acquire(
         &self,
-        _name: &str,
         config: &EngineConfiguration,
         realtime_logging: bool,
     ) -> Result<Arc<PooledEngine>, ProcessError> {
         let mut entries = self.entries.lock().unwrap();
 
-        // Find available entry
         for entry in entries.iter() {
             if *entry.available.lock().unwrap() {
                 *entry.available.lock().unwrap() = false;
@@ -51,7 +41,6 @@ impl NamePool {
             }
         }
 
-        // Create new
         let engine = UciEngine::new(config, realtime_logging)?;
         let entry = Arc::new(PooledEngine {
             engine: Mutex::new(engine),
@@ -71,7 +60,12 @@ impl NamePool {
     }
 }
 
-/// RAII guard for engine access.
+impl Default for NamePool {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 pub struct EngineGuard {
     entry: Arc<PooledEngine>,
     pool: Arc<NamePool>,
@@ -79,7 +73,6 @@ pub struct EngineGuard {
 }
 
 impl EngineGuard {
-    /// Lock the engine for use.
     pub fn lock(&self) -> EngineRef<'_> {
         EngineRef {
             guard: self.entry.engine.lock().unwrap(),
@@ -97,7 +90,6 @@ impl Drop for EngineGuard {
     }
 }
 
-/// Locked reference to engine.
 pub struct EngineRef<'a> {
     guard: MutexGuard<'a, UciEngine>,
 }
@@ -115,7 +107,6 @@ impl<'a> DerefMut for EngineRef<'a> {
     }
 }
 
-/// Engine cache with optional thread affinity.
 pub struct EngineCache {
     affinity: bool,
     global: DashMap<String, Arc<NamePool>>,
@@ -136,8 +127,7 @@ impl EngineCache {
         realtime_logging: bool,
     ) -> Result<EngineGuard, ProcessError> {
         let pool = self.get_pool(name);
-        let entry = pool.acquire(name, config, realtime_logging)?;
-
+        let entry = pool.acquire(config, realtime_logging)?;
         Ok(EngineGuard {
             entry,
             pool,
@@ -146,23 +136,43 @@ impl EngineCache {
     }
 
     fn get_pool(&self, name: &str) -> Arc<NamePool> {
-        if self.affinity {
-            THREAD_POOLS.with(|pools| {
-                pools
-                    .borrow_mut()
-                    .entry(name.to_string())
-                    .or_default()
-                    .clone()
-            })
+        let key = if self.affinity {
+            format!("{}:{:?}", name, thread::current().id())
         } else {
-            self.global.entry(name.to_string()).or_default().clone()
+            name.to_string()
+        };
+        self.global.entry(key).or_default().clone()
+    }
+
+    pub fn shutdown_handles(&self) -> Vec<EngineShutdownHandle> {
+        let mut handles = Vec::new();
+        for pool in self.global.iter() {
+            let entries = pool.entries.lock().unwrap();
+            for entry in entries.iter() {
+                handles.push(EngineShutdownHandle {
+                    entry: Arc::clone(entry),
+                });
+            }
         }
+        handles
     }
 }
 
-impl Default for NamePool {
-    fn default() -> Self {
-        Self::new()
+pub struct EngineShutdownHandle {
+    entry: Arc<PooledEngine>,
+}
+
+impl EngineShutdownHandle {
+    pub fn terminate(&self) {
+        self.entry.engine.lock().unwrap().kill();
+    }
+
+    pub fn quit(&self) {
+        self.entry.engine.lock().unwrap().quit();
+    }
+
+    pub fn alive(&self) -> bool {
+        self.entry.engine.lock().unwrap().alive()
     }
 }
 

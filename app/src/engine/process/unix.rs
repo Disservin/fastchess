@@ -8,6 +8,8 @@ use std::time::Duration;
 use nix::poll::{poll, PollFd, PollFlags, PollTimeout};
 use nix::unistd;
 
+use crate::log_trace;
+
 use super::common::{Line, ProcessError, ProcessResult, Standard};
 
 /// Manages an engine child process with pipe-based I/O on Unix systems.
@@ -390,27 +392,41 @@ impl Process {
     pub fn pid(&self) -> Option<u32> {
         self.child.as_ref().map(|c| c.id())
     }
+
+    pub fn stop_gracefully(&mut self) {
+        if let Some(ref mut child) = self.child {
+            if let Some(ref mut stdin) = child.stdin {
+                let _ = stdin.write_all(b"stop\n");
+                let _ = stdin.write_all(b"quit\n");
+                let _ = stdin.flush();
+            }
+        }
+    }
+
+    pub fn kill(&mut self) {
+        if let Some(ref mut child) = self.child {
+            let _ = child.kill();
+            let _ = child.wait();
+        }
+    }
 }
 
 impl Drop for Process {
     fn drop(&mut self) {
-        let Some(ref mut child) = self.child else {
+        let Some(mut child) = self.child.take() else {
             return;
         };
 
-        if let Some(ref mut stdin) = child.stdin {
-            let _ = stdin.write_all(b"stop\n");
-            let _ = stdin.write_all(b"quit\n");
-            let _ = stdin.flush();
-        }
+        self.stop_gracefully();
+
+        log_trace!("Process drop: ensuring child is terminated");
 
         let start = std::time::Instant::now();
         loop {
             match child.try_wait() {
                 Ok(Some(_)) | Err(_) => break,
                 Ok(None) if start.elapsed() > Duration::from_secs(5) => {
-                    let _ = child.kill();
-                    let _ = child.wait();
+                    self.kill();
                     break;
                 }
                 Ok(None) => std::thread::sleep(Duration::from_millis(50)),

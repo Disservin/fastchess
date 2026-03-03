@@ -7,7 +7,7 @@
 //! Since `Gauntlet` only differs in the scheduler (which we handle via
 //! `SchedulerVariant`), we merge everything into a single `Tournament` struct.
 
-use std::sync::atomic::Ordering;
+use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::Duration;
@@ -30,6 +30,8 @@ use crate::matchmaking::tournament::schedule::{Pairing, Scheduler, SchedulerVari
 use crate::types::match_data::*;
 use crate::{log_fatal, log_info, log_trace, log_warn};
 
+static RUNNING_MATCHES_COUNTER: AtomicUsize = AtomicUsize::new(0);
+
 #[derive(Error, Debug, Clone)]
 pub enum RunGameError {
     #[error("Failed to create first engine: {0}")]
@@ -38,6 +40,8 @@ pub enum RunGameError {
     SecondEngineCreation(String),
     #[error("Game {0} stalled/disconnected, no recover option set, stopping tournament.")]
     GameStalled(usize),
+    #[error("Game error: {0}")]
+    GameErrorNone(String),
 }
 
 /// Shared state that is cloned into each game-running closure.
@@ -234,6 +238,38 @@ impl Tournament {
         // Print final timeout/disconnect stats
         self.print_tracker_stats();
         self.save_json();
+
+        log_trace!(
+            "Running matches {}, stopping tournament...",
+            RUNNING_MATCHES_COUNTER.load(Ordering::Relaxed)
+        );
+
+        // loop over the individual engine caches and enqueue a terminate to the pool
+        // to ensure all engines are properly shutdown, without having to wait sequentially
+
+        let shutdown_threads = self.engine_cache.shutdown_handles();
+
+        for handle in &shutdown_threads {
+            handle.quit();
+        }
+
+        thread::sleep(Duration::from_millis(500));
+
+        let has_alive_engines = shutdown_threads.iter().any(|handle| handle.alive());
+
+        if !has_alive_engines {
+            log_trace!("All engines stopped gracefully.");
+            return;
+        }
+
+        log_trace!("Some engines did not stop gracefully, waiting and then force killing...");
+
+        thread::sleep(Duration::from_secs(5));
+
+        // force kill any engines that didn't stop gracefully
+        for handle in &shutdown_threads {
+            handle.terminate();
+        }
     }
 
     /// Build the `SharedState` bundle for worker closures.
@@ -272,7 +308,9 @@ impl Tournament {
             if let Some(pairing) = pairing {
                 let state = state.clone();
                 rayon::spawn(move || {
+                    RUNNING_MATCHES_COUNTER.fetch_add(1, Ordering::Relaxed);
                     run_game(pairing, state);
+                    RUNNING_MATCHES_COUNTER.fetch_sub(1, Ordering::Relaxed);
                 });
             }
         }
@@ -582,6 +620,13 @@ fn run_match(
             restart_engine_if_unresponsive(&second_guard, &assignment.second().name);
         }
 
+        if game.get().termination == MatchTermination::None {
+            return Err(RunGameError::GameErrorNone(format!(
+                "Game {} ended with no result",
+                pairing.game_id
+            )));
+        }
+
         (game, first_info, second_info)
     };
 
@@ -690,7 +735,9 @@ fn schedule_next_game(state: &SharedState) {
     if let Some(next) = next_pairing {
         let next_state = state.clone();
         rayon::spawn(move || {
+            RUNNING_MATCHES_COUNTER.fetch_add(1, Ordering::Relaxed);
             run_game(next, next_state);
+            RUNNING_MATCHES_COUNTER.fetch_sub(1, Ordering::Relaxed);
         });
     }
 }
@@ -773,6 +820,16 @@ fn run_game(pairing: Pairing, state: SharedState) {
                     );
                     crate::set_abnormal_termination();
                 }
+                log_trace!("Returning early from game {} due to stall/disconnect.", id);
+                return;
+            }
+            Err(RunGameError::GameErrorNone(e)) => {
+                // @TODO FIX?
+                log_trace!("No Game Termination Result {}", e);
+
+                if !crate::STOP.swap(true, Ordering::Relaxed) {
+                    crate::set_abnormal_termination();
+                }
                 return;
             }
             Err(e) => {
@@ -784,6 +841,13 @@ fn run_game(pairing: Pairing, state: SharedState) {
         };
 
     let match_data = game.get();
+
+    log_trace!(
+        "Game {} result: {:?}, termination: {:?}",
+        pairing.game_id,
+        match_data.players.get_first_moved().map(|p| p.result),
+        match_data.termination
+    );
 
     // Record results if the game completed normally
     if match_data.termination == MatchTermination::Interrupt || crate::is_stop() {

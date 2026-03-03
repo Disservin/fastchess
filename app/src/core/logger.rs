@@ -277,6 +277,7 @@ impl Logger {
     fn write_raw(&self, msg: String) {
         if let Some(ref t) = *self.thread.lock().unwrap() {
             t.send(LogMessage::Write(msg));
+            t.send(LogMessage::Flush);
         }
     }
 

@@ -4,6 +4,7 @@ use std::time::Instant;
 use fastchess::cli::OptionsParser;
 use fastchess::core::config;
 use fastchess::core::logger::LOGGER;
+use fastchess::engine::compliance;
 use fastchess::game::syzygy;
 use fastchess::matchmaking::tournament::runner::Tournament;
 use fastchess::matchmaking::tournament::schedule::SchedulerVariant;
@@ -15,6 +16,12 @@ fn run() -> Result<(), String> {
 
     // 1. Parse CLI arguments
     let args: Vec<String> = std::env::args().collect();
+    if args.get(1).map(|s| s.as_str()) == Some("--compliance") {
+        match compliance::run_compliance_test(&args)? {
+            true => return Ok(()),
+            false => return Err("Compliance test failed".to_string()),
+        }
+    }
     let parser = OptionsParser::new(&args)?;
     let (tournament_config, engine_configs, results) = parser.into_parts();
 

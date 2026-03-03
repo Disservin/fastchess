@@ -874,7 +874,7 @@ impl UciEngine {
     }
 
     /// Filter output lines to only stdout.
-    fn get_stdout_lines(&self) -> Vec<&Line> {
+    pub fn get_stdout_lines(&self) -> Vec<&Line> {
         self.output
             .iter()
             .filter(|l| l.std == Standard::Output)
@@ -882,8 +882,7 @@ impl UciEngine {
     }
 
     /// Filter output lines to only stderr.
-    #[allow(dead_code)]
-    fn get_stderr_lines(&self) -> Vec<&Line> {
+    pub fn get_stderr_lines(&self) -> Vec<&Line> {
         self.output
             .iter()
             .filter(|l| l.std == Standard::Err)

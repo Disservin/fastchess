@@ -38,6 +38,7 @@ lazy_static = "1.5"
 dashmap = "6"
 rand_mt = "6.0.0"
 pyrrhic-rs = "=0.2.0"
+colored = "3.1.1"
 
 # Unix-specific dependencies
 [target.'cfg(unix)'.dependencies]

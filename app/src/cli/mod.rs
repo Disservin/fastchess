@@ -1560,71 +1560,10 @@ fn load_json(data: &mut ArgumentData, filename: &str) -> Result<(), String> {
 
 /// Print help text.
 fn print_help() {
+    const HELP_TEXT: &str = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/cli/help.txt"));
     println!(
-        "fastchess-rust {}\n\
-         \n\
-         Usage: fastchess [OPTIONS]\n\
-         \n\
-         Engine options:\n\
-         -engine cmd=<path> name=<name> [tc=<tc>] [st=<time>] [nodes=<n>] [plies=<n>]\n\
-             [dir=<path>] [args=<args>] [restart=on|off] [option.<name>=<value>]\n\
-         -each <key=value pairs>   Apply options to all engines\n\
-         \n\
-         Tournament options:\n\
-         -tournament <roundrobin|gauntlet>\n\
-         -concurrency <n>          Number of concurrent games\n\
-         -rounds <n>               Number of rounds\n\
-         -games <n>                Games per encounter (1 or 2)\n\
-         -repeat [n]               Shorthand for -games n (default 2)\n\
-         -noswap                   Do not swap colors\n\
-         -reverse                  Reverse color assignment\n\
-         -recover                  Continue after engine crash\n\
-         -variant <standard|fischerandom>\n\
-         -seeds <n>                Number of gauntlet seeds\n\
-         \n\
-         Time control:\n\
-         tc format: [moves/]time[+increment]\n\
-             time can be seconds or minutes:seconds\n\
-             Example: 40/60+0.6, 0:30+0.1, 10+0.1\n\
-         st=<seconds>              Fixed time per move\n\
-         \n\
-         Adjudication:\n\
-         -draw movenumber=<n> movecount=<n> score=<n>\n\
-         -resign movecount=<n> score=<n> [twosided=true|false]\n\
-         -maxmoves <n>\n\
-         -tb <syzygy_dirs> [-tbpieces <n>] [-tbignore50] [-tbadjudicate <WIN_LOSS|DRAW|BOTH>]\n\
-         \n\
-         Output:\n\
-         -pgnout file=<path> [notation=san|lan|uci] [append=true|false] ...\n\
-         -epdout file=<path> [append=true|false]\n\
-         -output format=<fastchess|cutechess>\n\
-         -report penta=<true|false>\n\
-         -ratinginterval <n>\n\
-         -scoreinterval <n>\n\
-         \n\
-         SPRT:\n\
-         -sprt elo0=<n> elo1=<n> [alpha=<n>] [beta=<n>] [model=<name>]\n\
-         \n\
-         Opening book:\n\
-         -openings file=<path> [format=epd|pgn] [order=sequential|random] [plies=<n>] [start=<n>]\n\
-         \n\
-         Misc:\n\
-         -log file=<path> [level=trace|info|warn|err|fatal] [engine=true|false] ...\n\
-         -config file=<path> [outname=<name>] [discard=true] [stats=false]\n\
-         -crc32 pgn=true|false\n\
-         -use-affinity [cpu_list]  CPU pinning (e.g. 0,2,4-7)\n\
-         -show-latency\n\
-         -srand <seed>\n\
-         -autosaveinterval <n>\n\
-         -wait <seconds>\n\
-         -force-concurrency\n\
-         -quick cmd=<path1> cmd=<path2> book=<file>\n\
-         -startup-ms <ms>\n\
-         -ucinewgame-ms <ms>\n\
-         -ping-ms <ms>\n\
-         -version, -v\n\
-         -help\n",
-        env!("CARGO_PKG_VERSION")
+        "{}",
+        HELP_TEXT.replace("{VERSION}", env!("CARGO_PKG_VERSION"))
     );
 }
 

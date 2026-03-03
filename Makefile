@@ -48,15 +48,10 @@ install-manpage: manpage ## Install the man page to $(MANDIR)
 	@echo "Installed man page."
 
 update-man: ## Update man like page
-	lowdown -Tterm man.md > fastchess-tmp-man-page
-	xxd -i fastchess-tmp-man-page | sed 's/fastchess_tmp_man_page/man/g' | sed 's/fastchess_tmp_man_page_len/man_len/g' | sed 's/unsigned char/inline unsigned char/g' | sed 's/unsigned int/inline unsigned int/g' > temp.hpp
-	printf '/* Generate with make update-man*/\n#pragma once\n' > ./app/src/cli/man.hpp
-	echo 'namespace fastchess::man {' >> ./app/src/cli/man.hpp
-	cat temp.hpp >> ./app/src/cli/man.hpp
-	echo '}' >> ./app/src/cli/man.hpp
-	rm temp.hpp
-	clang-format -i ./app/src/cli/man.hpp
-	rm fastchess-tmp-man-page
+	@sed 's/fastchess-rust [^ ]\+/fastchess-rust {VERSION}/' man.md > ./app/src/cli/help-tmp.md
+	@lowdown -Tterm ./app/src/cli/help-tmp.md > ./app/src/cli/help.txt
+	@rm ./app/src/cli/help-tmp.md
+	@echo "Updated ./app/src/cli/help.txt"
 
 update-fmt: ## Fetch subtree fmt
 	@echo "Updating fmt.."

@@ -1384,7 +1384,7 @@ impl crate::variants::Game for ShogiGame {
     }
 
     fn fen(&self) -> String {
-        self.game.usi_string()
+        format!("{}", self.game.current_position)
     }
 
     fn move_to_san(&self, notation: &str) -> Option<String> {

@@ -21,7 +21,7 @@ use crate::matchmaking::player::Player;
 use crate::types::engine_config::GamePair;
 use crate::types::match_data::*;
 use crate::types::VariantType;
-use crate::{log_fatal, log_warn};
+use crate::{log_fatal, log_trace, log_warn};
 
 use trackers::*;
 
@@ -227,7 +227,10 @@ impl Match {
         }
 
         // Check connection
-        self.valid_connection(&mut first_player, &mut second_player);
+        if !self.valid_connection(&mut first_player, &mut second_player) {
+            log_trace!("Engine connection check failed");
+            return;
+        }
 
         // Determine which player played white based on the opening
         let first_played_white = self.side_to_move_at_start() == Side::White;

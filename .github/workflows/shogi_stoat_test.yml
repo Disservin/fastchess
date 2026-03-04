@@ -47,4 +47,4 @@ jobs:
           ./fastchess -engine name=sf-dev1 cmd=./stoat \
             -engine name=sf-dev2 cmd=./stoat \
             -rounds 1 -concurrency 1 -openings file=shogi_short.epd format=epd \
-            -each tc=1+0.01 dir=${{ github.workspace }}/stoat -variant shogi
+            -each nodes=2000 dir=${{ github.workspace }}/stoat -variant shogi

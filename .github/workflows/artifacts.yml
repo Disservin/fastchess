@@ -9,85 +9,69 @@ jobs:
     runs-on: ${{ matrix.config.os }}
     env:
       EXT: ${{ matrix.config.ext }}
-      OS: ${{ matrix.config.os }}
     strategy:
       matrix:
         config:
-          # Linux
           - {
-              name: "Ubuntu 22.04 GCC x86-64",
+              name: "Ubuntu 22.04 x86-64",
               os: ubuntu-22.04,
               shell: "bash {0}",
               arch: "x86-64",
               platform: "linux",
               target: "x86_64-unknown-linux-musl",
-              docker: true,
-              docker_platform: "linux/amd64",
-              image: "alpine:3.22",
             }
           - {
-              name: "Ubuntu 22.04 GCC ARM64",
+              name: "Ubuntu 22.04 ARM64",
               os: ubuntu-22.04-arm,
               shell: "bash {0}",
               arch: "arm64",
               platform: "linux",
               target: "aarch64-unknown-linux-musl",
-              docker: true,
-              docker_platform: "linux/arm64",
-              image: "alpine:3.22",
             }
           - {
-              name: "Ubuntu 22.04 GCC RISC-V",
+              name: "Ubuntu 22.04 RISC-V",
               os: ubuntu-22.04,
               shell: "bash {0}",
-              docker: true,
-              docker_platform: "linux/riscv64",
-              image: "riscv64/alpine:3.22",
               arch: "risc-v",
-              target: "riscv64gc-unknown-linux-gnu",
               platform: "linux",
+              target: "riscv64gc-unknown-linux-gnu",
+              cross: true,
             }
-
-          # macOS
           - {
-              name: "MacOS Apple Clang x86-64",
+              name: "MacOS x86-64",
               os: macos-15-intel,
               shell: "bash {0}",
               arch: "x86-64",
-              target: "x86_64-apple-darwin",
               platform: "mac",
+              target: "x86_64-apple-darwin",
             }
           - {
-              name: "MacOS Apple Clang ARM64",
+              name: "MacOS ARM64",
               os: macos-latest,
               shell: "bash {0}",
               arch: "arm64",
-              target: "aarch64-apple-darwin",
               platform: "mac",
+              target: "aarch64-apple-darwin",
             }
-
-          # Windows (MSYS2 / MinGW)
           - {
-              name: "Windows GCC x86-64",
+              name: "Windows x86-64",
               os: windows-latest,
-              msys_sys: "mingw64",
-              msys_env: "x86_64-gcc",
-              shell: "msys2 {0}",
-              ext: .exe,
+              shell: "bash {0}",
               arch: "x86-64",
-              target: "x86_64-pc-windows-gnu",
               platform: "windows",
+              target: "x86_64-pc-windows-msvc",
+              ext: .exe,
+              rustflags: "-C target-feature=+crt-static",
             }
           - {
-              name: "Windows GCC ARM64",
+              name: "Windows ARM64",
               os: windows-11-arm,
-              msys_sys: "mingw64",
-              msys_env: "x86_64-gcc",
-              shell: "msys2 {0}",
-              ext: .exe,
+              shell: "bash {0}",
               arch: "arm64",
-              target: "aarch64-pc-windows-gnu",
               platform: "windows",
+              target: "aarch64-pc-windows-msvc",
+              ext: .exe,
+              rustflags: "-C target-feature=+crt-static",
             }
 
     defaults:
@@ -100,101 +84,47 @@ jobs:
           fetch-depth: 0
 
       - name: Install Rust
-        if: matrix.config.docker != true
+        if: runner.os != 'Windows'
         uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.config.target }}
 
-      - name: Installing required packages
-        if: runner.os == 'Linux' && matrix.config.docker != true
+      - name: Install musl-tools (Linux)
+        if: runner.os == 'Linux' && matrix.config.cross != true
         run: |
           sudo apt-get update
-          sudo apt-get install musl-tools
+          sudo apt-get install -y musl-tools
 
-      - name: Install windows make
-        if: runner.os == 'Windows'
-        uses: msys2/setup-msys2@v2
-        with:
-          msystem: ${{matrix.config.msys_sys}}
-          install: mingw-w64-${{matrix.config.msys_env}} make git expect
+      - name: Install cross (RISC-V)
+        if: matrix.config.cross == true
+        run: cargo install cross --git https://github.com/cross-rs/cross
 
-      - name: Extract the commit sha
+      - name: Extract commit info
         run: |
-          git rev-parse --short "$GITHUB_SHA" > sha
-          echo "COMMIT_SHA=$(cat sha)" >> $GITHUB_ENV
-          echo "Git sha:" $(cat sha)
+          echo "COMMIT_SHA=$(git rev-parse --short "$GITHUB_SHA")" >> $GITHUB_ENV
+          echo "COMMIT_DATE=$(git show -s --date=format:'%Y%m%d' --format=%cd HEAD)" >> $GITHUB_ENV
 
-      - name: Get commit date
-        id: commit_date
-        run: echo "COMMIT_DATE=$(git show -s --date=format:'%Y%m%d' --format=%cd HEAD)" >> $GITHUB_ENV
-
-      - name: Set up QEMU
-        if: matrix.config.docker
-        uses: docker/setup-qemu-action@v3
-
-      # replace version string if this is a tagged build
       - name: Version replace
         run: |
-          if [ -n "$GITHUB_REF" ] && [[ "$GITHUB_REF" == refs/tags/* ]]; then
+          if [[ "$GITHUB_REF" == refs/tags/* ]]; then
             TAG="${GITHUB_REF#refs/tags/}"
-            echo "Current tag found: $TAG"
           else
             TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
-            if [ -n "$TAG" ]; then
-              echo "Last tag found: $TAG"
-            else
-              echo "No tags found, using default version string."
-              exit 0
-            fi
+            [ -z "$TAG" ] && exit 0
           fi
           VERSION=$(echo "$TAG" | sed 's/^v//' | sed 's/-alpha$//')
-          sed -i "s/^version = \"[^\"]*\"/version = \"$VERSION\"/" app/Cargo.toml
-          cat app/Cargo.toml
+          perl -i -pe "s/^version = \"[^\"]*\"/version = \"$VERSION\"/" app/Cargo.toml
 
-      # Build in Docker for cross-compilation
-      - name: Build in Docker
-        if: matrix.config.docker
-        run: |
-          docker run --rm --platform ${{ matrix.config.docker_platform }} \
-            -v ${{ github.workspace }}:/workspace \
-            -w /workspace/app \
-            ${{ matrix.config.image }} \
-            sh -c "
-              apk add --no-cache rust cargo &&
-              cargo build --release --target ${{ matrix.config.target }} &&
-              cp target/${{ matrix.config.target }}/release/fastchess ../fastchess${{ matrix.config.ext }}
-            "
-          strip ./fastchess${{ matrix.config.ext }} || true
-          ./fastchess* --version
-
-      # Build macOS (non-Docker)
-      - name: Building fastchess (macOS)
-        if: matrix.config.docker != true && runner.os == 'macOS'
-        run: |
-          rustup target add ${{ matrix.config.target }}
-          cd app && cargo build --release --target ${{ matrix.config.target }}
-          cp target/${{ matrix.config.target }}/release/fastchess ../fastchess
-          strip ./fastchess || true
-          ./fastchess --version
-
-      # Build Windows (non-Docker)
-      - name: Building fastchess (Windows)
-        if: matrix.config.docker != true && runner.os == 'Windows'
+      - name: Build
         run: |
           cd app
-          cargo build --release --target ${{ matrix.config.target }}
-          cp target/${{ matrix.config.target }}/release/fastchess.exe ../fastchess.exe
-          ./fastchess.exe --version
-
-      # Build Linux native (non-Docker)
-      - name: Building fastchess (Linux native)
-        if: matrix.config.docker != true && runner.os == 'Linux'
-        run: |
-          rustup target add ${{ matrix.config.target }}
-          cd app && cargo build --release --target ${{ matrix.config.target }}
-          cp target/${{ matrix.config.target }}/release/fastchess ../fastchess
-          strip ./fastchess || true
-          ./fastchess --version
+          if [ "${{ matrix.config.cross }}" = "true" ]; then
+            cross build --release --target ${{ matrix.config.target }}
+          else
+            cargo build --release --target ${{ matrix.config.target }}
+          fi
+          cp target/${{ matrix.config.target }}/release/fastchess${{ matrix.config.ext }} ../fastchess${{ matrix.config.ext }}
+          strip ../fastchess${{ matrix.config.ext }} || true
 
       # - name: Archive binaries
       #   uses: actions/upload-artifact@v4

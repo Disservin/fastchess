@@ -9,6 +9,24 @@ description = "A high-performance chess engine tournament manager"
 # expect_used = "deny"
 # panic = "deny"
 
+[profile.dev]
+debug = "line-tables-only"
+
+[profile.dev.package."*"]
+debug = false
+
+[profile.debugging]
+inherits = "dev"
+debug = true
+
+[profile.release]
+opt-level = 3
+lto = true
+
+[[bin]]
+name = "random_mover"
+path = "tests/mock/engine/random_mover.rs"
+
 [dependencies]
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
@@ -37,7 +55,7 @@ lazy_static = "1.5"
 
 dashmap = "6"
 rand_mt = "6.0.0"
-pyrrhic-rs = "=0.2.0"
+pyrrhic-rs = { git = "https://github.com/Disservin/pyrrhic-rs/", rev = "ffa0adf4e17e9476d00ac314f20695827a1a6765" }
 colored = "3.1.1"
 
 # Unix-specific dependencies
@@ -64,11 +82,3 @@ windows-sys = { version = "0.59", features = [
     "Win32_System_WindowsProgramming",
     "Win32_System_LibraryLoader",
 ] }
-
-[profile.release]
-opt-level = 3
-lto = true
-
-[[bin]]
-name = "random_mover"
-path = "tests/mock/engine/random_mover.rs"

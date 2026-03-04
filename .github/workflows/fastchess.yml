@@ -10,7 +10,7 @@ on:
 
 jobs:
   Artifacts:
-    if: github.ref == 'refs/heads/master' || github.ref_type == 'tag'
+    if: github.ref == 'refs/heads/master' || github.ref_type == 'tag' || github.head_ref == 'port-rust'
     uses: ./.github/workflows/artifacts.yml
   Precreate-Release:
     needs: [Artifacts]

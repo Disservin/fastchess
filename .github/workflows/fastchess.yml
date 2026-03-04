@@ -46,3 +46,6 @@ jobs:
   Cutechess-Tests:
     if: github.ref_type != 'tag'
     uses: ./.github/workflows/cutechess_tests.yml
+  Shogi-Stoat-Test:
+    if: github.ref_type != 'tag'
+    uses: ./.github/workflows/shogi_stoat_test.yml

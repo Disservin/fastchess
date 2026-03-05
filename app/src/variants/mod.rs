@@ -7,8 +7,6 @@
 use crate::game::{GameStatus, Side};
 use crate::types::VariantType;
 
-pub mod chessport;
-
 // Re-export variant implementations
 pub mod chess;
 pub mod shogi;

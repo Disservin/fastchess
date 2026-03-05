@@ -1,8 +1,13 @@
 use rand_mt::Mt64;
 use std::fs::File;
 
-use crate::variants::chessport::pgn::{StreamParser, Visitor};
-use crate::variants::chessport::{constants, move_to_uci, parse_san, Board as CpBoard, GameResult};
+use chess_library_rs::pgn::{StreamParser, Visitor};
+use chess_library_rs::{
+    board::Board as CpBoard,
+    board::GameResult,
+    constants,
+    uci::{move_to_uci, parse_san},
+};
 
 use crate::types::VariantType;
 use crate::variants::chess::ChessGame;
@@ -108,7 +113,7 @@ impl EpdReader {
 }
 
 /// PGN visitor that collects opening moves up to a ply limit using the
-/// chessport PGN parser and move utilities.
+/// chess_library_rs PGN parser and move utilities.
 struct OpeningVisitor {
     fen: String,
     moves: Vec<String>,
@@ -218,7 +223,7 @@ pub struct PgnReader {
 
 impl PgnReader {
     pub fn new(path: &str, plies_limit: i32, is_frc: bool) -> Result<Self, String> {
-        // Use the chessport StreamParser to read PGN games
+        // Use the chess_library_rs StreamParser to read PGN games
         let file =
             File::open(path).map_err(|e| format!("Failed to open PGN file '{}': {}", path, e))?;
         let mut parser = StreamParser::new(file);

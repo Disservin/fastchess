@@ -7,9 +7,13 @@ use std::sync::OnceLock;
 use pyrrhic_rs::{EngineAdapter, TableBases, WdlProbeResult};
 
 use crate::types::adjudication::{TbAdjudication, TbResultType};
-use crate::variants::chessport::Board;
-use crate::variants::chessport::{bishop, king, knight, pawn, rook, Bitboard, Color, Square};
 use crate::{log_info, log_warn};
+
+use chess_library_rs::attacks::{bishop, king, knight, pawn, rook};
+use chess_library_rs::bitboard::Bitboard;
+use chess_library_rs::board::Board;
+use chess_library_rs::color::Color;
+use chess_library_rs::coords::Square;
 
 #[derive(Clone)]
 struct TablebaseAdapter;
@@ -135,7 +139,7 @@ pub fn probe_wdl(board: &Board) -> TbProbeResult {
         return TbProbeResult::NotAvailable;
     };
 
-    use crate::variants::chessport::PieceType;
+    use chess_library_rs::piece::PieceType;
 
     let white = board.us(Color::White).0;
     let black = board.us(Color::Black).0;
@@ -164,7 +168,7 @@ pub fn probe_dtz(board: &Board) -> Option<u32> {
         return None;
     };
 
-    use crate::variants::chessport::PieceType;
+    use chess_library_rs::piece::PieceType;
 
     let white = board.us(Color::White).0;
     let black = board.us(Color::Black).0;
@@ -257,7 +261,7 @@ pub fn should_adjudicate(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::variants::chessport::Board;
+    use chess_library_rs::board::Board;
 
     #[test]
     fn test_probe_result_from_wdl() {

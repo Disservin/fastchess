@@ -1,7 +1,7 @@
-use fastchess::variants::chessport::board::Board;
-use fastchess::variants::chessport::movegen;
-use fastchess::variants::chessport::movelist::Movelist;
-use fastchess::variants::chessport::uci;
+use chess_library_rs::board::Board;
+use chess_library_rs::movegen;
+use chess_library_rs::movelist::Movelist;
+use chess_library_rs::uci;
 
 use rand::rngs::StdRng;
 use rand::{Rng, SeedableRng};

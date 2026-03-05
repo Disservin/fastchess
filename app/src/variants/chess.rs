@@ -1,13 +1,19 @@
 //! Chess variant implementation.
 //!
-//! Implements the `Game` trait for standard chess and Chess960 using the chessport library.
+//! Implements the `Game` trait for standard chess and Chess960 using the chess_library_rs library.
 
 use crate::game::{GameOverReason, GameStatus, Side};
 use crate::types::VariantType;
-use crate::variants::chessport::{
-    self, move_to_lan, uci_to_move, Board, Color as ChessColor, GameResult, GameResultReason, Move,
-};
 use crate::variants::{Game, GameMove};
+use chess_library_rs::{
+    self,
+    board::Board,
+    board::GameResult,
+    board::GameResultReason,
+    chess_move::Move,
+    color::Color as ChessColor,
+    uci::{move_to_lan, uci_to_move},
+};
 
 // Re-export types that other modules need
 pub use crate::variants::shogi::ShogiGame;
@@ -23,10 +29,10 @@ impl ChessMove {
     /// Returns the UCI representation of this move.
     pub fn to_uci(&self) -> String {
         let chess960 = matches!(self.variant, VariantType::Frc);
-        chessport::uci::move_to_uci(self.inner, chess960)
+        chess_library_rs::uci::move_to_uci(self.inner, chess960)
     }
 
-    /// Returns the internal chessport move.
+    /// Returns the internal chess_library_rs move.
     pub fn inner(&self) -> &Move {
         &self.inner
     }
@@ -40,7 +46,7 @@ impl GameMove for ChessMove {
     fn to_san(&self, game: &dyn crate::variants::Game) -> Option<String> {
         // Use the game's position to convert to SAN
         if let Some(chess_game) = game.as_chess() {
-            let san = chessport::uci::move_to_san(&chess_game.board, self.inner);
+            let san = chess_library_rs::uci::move_to_san(&chess_game.board, self.inner);
             Some(san)
         } else {
             None
@@ -136,7 +142,7 @@ impl ChessGame {
         self.variant
     }
 
-    /// Returns a reference to the underlying chessport board.
+    /// Returns a reference to the underlying chess_library_rs board.
     pub fn inner(&self) -> &Board {
         &self.board
     }
@@ -175,7 +181,7 @@ impl ChessGame {
 
     /// Parses a UCI move string.
     pub fn parse_uci_move(&self, uci: &str) -> Option<ChessMove> {
-        let chess_move = chessport::uci::uci_to_move(&self.board, uci);
+        let chess_move = chess_library_rs::uci::uci_to_move(&self.board, uci);
 
         // Check if move is valid (not NO_MOVE)
         if chess_move.raw() == Move::NO_MOVE {
@@ -183,12 +189,12 @@ impl ChessGame {
         }
 
         // Verify the move is legal by checking if it's in the legal moves list
-        let mut movelist = chessport::movelist::Movelist::new();
-        chessport::movegen::legalmoves(
+        let mut movelist = chess_library_rs::movelist::Movelist::new();
+        chess_library_rs::movegen::legalmoves(
             &mut movelist,
             &self.board,
-            chessport::movegen::MoveGenType::All,
-            chessport::movegen::PieceGenType::ALL,
+            chess_library_rs::movegen::MoveGenType::All,
+            chess_library_rs::movegen::PieceGenType::ALL,
         );
 
         if !movelist.iter().any(|m| m.raw() == chess_move.raw()) {
@@ -204,12 +210,12 @@ impl ChessGame {
     /// Makes a move on the board.
     pub fn make_chess_move(&mut self, chess_move: &ChessMove) -> bool {
         // Verify the move is legal
-        let mut movelist = chessport::movelist::Movelist::new();
-        chessport::movegen::legalmoves(
+        let mut movelist = chess_library_rs::movelist::Movelist::new();
+        chess_library_rs::movegen::legalmoves(
             &mut movelist,
             &self.board,
-            chessport::movegen::MoveGenType::All,
-            chessport::movegen::PieceGenType::ALL,
+            chess_library_rs::movegen::MoveGenType::All,
+            chess_library_rs::movegen::PieceGenType::ALL,
         );
 
         if !movelist.iter().any(|m| m.raw() == chess_move.inner.raw()) {
@@ -236,11 +242,11 @@ impl ChessGame {
 
     /// Converts UCI to SAN.
     pub fn uci_to_san(&self, uci: &str) -> Option<String> {
-        let chess_move = chessport::uci::uci_to_move(&self.board, uci);
+        let chess_move = chess_library_rs::uci::uci_to_move(&self.board, uci);
         if chess_move.raw() == Move::NO_MOVE {
             return None;
         }
-        let san = chessport::uci::move_to_san(&self.board, chess_move);
+        let san = chess_library_rs::uci::move_to_san(&self.board, chess_move);
         Some(san)
     }
 
@@ -365,7 +371,7 @@ impl Game for ChessGame {
 
     fn convert_move_to_san(&self, mv: &dyn GameMove) -> Option<String> {
         if let Some(chess_move) = mv.as_any().downcast_ref::<ChessMove>() {
-            let san = chessport::uci::move_to_san(&self.board, chess_move.inner);
+            let san = chess_library_rs::uci::move_to_san(&self.board, chess_move.inner);
             Some(san)
         } else {
             None

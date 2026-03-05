@@ -930,12 +930,15 @@ pub(crate) struct Game {
 
 impl Game {
     pub fn new(startpos: Position) -> Game {
-        assert!(!startpos.is_in_check());
+        let mut last_not_in_check_ply = [-1; 2];
+        if !startpos.is_in_check() {
+            last_not_in_check_ply[startpos.stm.to_index()] = 0;
+        }
         Game {
             current_position: startpos,
             moves: vec![],
             history: vec![startpos],
-            last_not_in_check_ply: [-1, -1],
+            last_not_in_check_ply,
         }
     }
 

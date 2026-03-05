@@ -4,8 +4,7 @@
 
 Fastchess is a versatile command-line tool designed for running chess engine
 tournaments.  
-Written primarily in C++17, it utilizes [doctest](https://github.com/doctest/doctest) as its testing
-framework.
+Written primarily in Rust.
 
 With Fastchess, you can effortlessly orchestrate chess tournaments, configure
 time controls, and execute matches concurrently for optimal time efficiency.
@@ -91,12 +90,11 @@ are **beneficial** to the development and **pass the CI tests**.
 The code follows the Google style and is formatted with clang-format. When
 creating pull requests, please format your code accordingly.
 
-To contribute, you'll need a recent GCC compiler that supports C++17 and the
-ability to run the Makefile. You can locally test your changes by running
-`make -j tests`, followed by executing the `./fastchess-tests` executable to
-verify your changes pass the tests.
+To contribute, you'll need a recent Rust compiler that supports Rust 2018
+edition and the ability to run the Cargo build system. You can locally test your
+changes by running `make test`.
 
-You can format the code with clang-format by running `make format`.
+You can format the code with rustfmt by running `make format`.
 After making changes to the man file, you need to run `make update-man`.
 
 ## Maintainers & contributors
@@ -104,8 +102,6 @@ After making changes to the man file, you need to run `make update-man`.
 The following people have push access to the repository:
 
 - [Disservin](https://github.com/Disservin)
-- [Szil](https://github.com/SzilBalazs)
-- [PGG106](https://github.com/PGG106)
 
-Special thanks to [gahtan-syarif](https://github.com/gahtan-syarif) for his many contributions and
-thorough testing.
+Special thanks to [gahtan-syarif](https://github.com/gahtan-syarif) for his many
+contributions and thorough testing, as well as all other contributors and people who opened issues.

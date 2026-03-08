@@ -1,0 +1,50 @@
+name: Shogi Stoat Test
+
+on:
+  workflow_call:
+
+jobs:
+  shogi-stoat:
+    name: Ubuntu 22.04
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install build tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential
+
+      - name: Build fastchess
+        run: |
+          make clean
+          make -j2
+
+      - name: Download stoat
+        run: |
+          git clone https://github.com/Ciekce/stoat.git
+          cd stoat
+          git checkout 3d2a18ee15bb8bbc78a9e6a0d2b4970fca618fea
+
+      - name: Build stoat
+        working-directory: stoat
+        run: |
+          make -j2
+          mv ./stoat* ./stoat
+
+      - name: Create shogi openings
+        run: |
+          cat <<'EOF' > shogi_short.epd
+          lnsgkgsnl/1r5b1/p1pppp1p1/1p4p1p/7P1/8P/PPPPPPP2/1B5R1/LNSGKGSNL b - 9
+          ln1gkgsnl/1rs4b1/pppppp1p1/6p1p/7P1/8P/PPPPPPP2/1B5R1/LNSGKGSNL b - 9
+          EOF
+
+      - name: Run shogi match
+        run: |
+          ./fastchess -engine name=sf-dev1 cmd=./stoat \
+            -engine name=sf-dev2 cmd=./stoat \
+            -rounds 1 -concurrency 1 -openings file=shogi_short.epd format=epd \
+            -each nodes=2000 dir=${{ github.workspace }}/stoat -variant shogi

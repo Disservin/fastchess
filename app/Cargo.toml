@@ -1,0 +1,85 @@
+[package]
+name = "fastchess"
+version = "0.1.0"
+edition = "2021"
+description = "A high-performance chess engine tournament manager"
+
+# [lints.clippy]
+# unwrap_used = "deny"
+# expect_used = "deny"
+# panic = "deny"
+
+[profile.dev]
+debug = "line-tables-only"
+
+[profile.dev.package."*"]
+debug = false
+
+[profile.debugging]
+inherits = "dev"
+debug = true
+
+[profile.release]
+opt-level = 3
+lto = true
+
+[[bin]]
+name = "random_mover"
+path = "tests/mock/engine/random_mover.rs"
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+chrono = { version = "0.4", features = ["serde"] }
+
+rand = "0.8"
+
+thiserror = "2"
+anyhow = "1"
+
+rayon = "1.10"
+
+ctrlc = "3"
+
+crc32fast = "1"
+
+libm = "0.2"
+
+libc = "0.2"
+
+flate2 = "1"
+
+itertools = "0.13"
+lazy_static = "1.5"
+
+dashmap = "6"
+rand_mt = "6.0.0"
+pyrrhic-rs = { git = "https://github.com/Disservin/pyrrhic-rs/", rev = "ffa0adf4e17e9476d00ac314f20695827a1a6765" }
+chess-library-rs = { git = "https://github.com/Disservin/chess-library-rs/", rev = "d86541a132f3987b974014309b0b379dfba53360" }
+colored = "3.1.1"
+
+# Unix-specific dependencies
+[target.'cfg(unix)'.dependencies]
+nix = { version = "0.29", features = [
+    "process",
+    "signal",
+    "poll",
+    "fs",
+    "sched",
+    "event",
+    "resource",
+] }
+
+# Windows-specific dependencies
+[target.'cfg(windows)'.dependencies]
+windows-sys = { version = "0.59", features = [
+    "Win32_Foundation",
+    "Win32_System_Threading",
+    "Win32_Security",
+    "Win32_System_Pipes",
+    "Win32_Storage_FileSystem",
+    "Win32_System_IO",
+    "Win32_System_WindowsProgramming",
+    "Win32_System_LibraryLoader",
+] }

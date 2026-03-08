@@ -1,0 +1,363 @@
+[1;91m[0m[1;91mNAME[0m
+
+    fastchess - a command-line tool for managing chess games with engines
+
+[1;91m[0m[1;91mSYNOPSIS[0m
+
+    fastchess [OPTIONS]
+
+[1;91m[0m[1;91mDESCRIPTION[0m
+
+    Fastchess is a command-line tool designed to manage and orchestrate
+    chess games between engines. It provides a range of options to
+    configure game settings, engine parameters, concurrency, and output
+    formats.
+
+[1;91m[0m[1;91mOPTIONS[0m
+
+    The following options are available. Options are grouped by their
+    primary function for easier navigation. The default values are the
+    first value in parentheses.
+
+[1;36m## [0m[1;36mGeneral [0m[1;36m& Help[0m
+
+    [93m  · [0m[1;94m-version[0m
+        Print [1;94mfastchess[0m version number and exit. 
+    [93m  · [0m[1;94m-help[0m
+        Print this help message and exit. 
+
+[1;36m## [0m[1;36mTournament Setup[0m
+
+    [93m  · [0m[1;94m-quick cmd=ENGINE1 cmd=ENGINE2 book=BOOK[0m
+        Shortcut for predefined game settings involving two engines, time
+        controls, rounds, and concurrency.
+    
+    [93m  · [0m[1;94m-concurrency (1|N)[0m
+        Play N games concurrently, limited by the number of hardware
+        threads. Default value is 1.
+    
+    [93m  · [0m[1;94m-force-concurrency[0m
+        Ignore the hardware concurrency limit and force the specified
+        concurrency.
+    
+    [93m  · [0m[1;94m-rounds (2|N)[0m
+        Play N rounds of games where each game within the round uses the
+        same opening. Default value is 2.
+    
+    [93m  · [0m[1;94m-games (2|N)[0m
+        Play N games in each round. Default value is 2. Setting this
+        higher than 2 does not provide meaningful results.
+    
+    [93m  · [0m[1;94m-repeat[0m
+        Set the number of games to 2. Equivalent to [1;94m-games 2[0m.
+    
+    [93m  · [0m[1;94m-sprt elo0=ELO0 elo1=ELO1 alpha=ALPHA beta=BETA[0m
+        [1;94mmodel=(normalized|logistic|bayesian)[0m
+        Set parameters for a Sequential Probability Ratio Test (SPRT).
+        
+        [93m  · [0m[1;94mmodel[0m: 
+            [93m  · [0m[1;94mnormalized[0m - Uses nElo (default). 
+            [93m  · [0m[1;94mlogistic[0m - Uses regular/logistic Elo. 
+            [93m  · [0m[1;94mbayesian[0m - Uses BayesElo. 
+    
+    [93m  · [0m[1;94m-tournament (roundrobin|gauntlet)[0m
+        Choose type of tournament.
+        
+        [93m  · [0m[1;94mroundrobin[0m - each engine plays every other engine (default) 
+        [93m  · [0m[1;94mgauntlet[0m - the first [1;94m-seeds[0m engines play against all other
+            engines 
+    
+    [93m  · [0m[1;94m-seeds (1|N)[0m
+        First N engines are playing the [1;94mgauntlet[0m. Default value is 1.
+    
+    [93m  · [0m[1;94m-variant (standard|fischerandom)[0m
+        Choose between the following game variants:
+        
+        [93m  · [0m[1;94mstandard[0m - play Standard Chess (default) 
+        [93m  · [0m[1;94mfischerandom[0m - play Fischer Random Chess 
+    
+    [93m  · [0m[1;94m-noswap[0m
+        Prevent swapping of colors.
+    
+    [93m  · [0m[1;94m-reverse[0m
+        Use a tournament schedule with reversed colors.
+    
+    [93m  · [0m[1;94m-wait (0|N)[0m
+        Wait N milliseconds between games. Default is 0.
+
+[1;36m## [0m[1;36mEngine Configuration[0m
+
+    [93m  · [0m[1;94m-each OPTIONS[0m
+        Apply specified OPTIONS to both engines.
+    
+    [93m  · [0m[1;94m-engine OPTIONS[0m
+        Apply specified OPTIONS to the next engine.
+        
+        [93m  · [0m[1;94mcmd=COMMAND[0m - Specify engine command. 
+        [93m  · [0m[1;94mname=NAME[0m - Set engine name (must be unique). 
+        [93m  · [0m[1;94margs="ARGS"[0m - Pass multiple arguments using args="ARG1 ARG2”.
+        [93m  · [0m[1;94mtc=moves/minutes:seconds+increment[0m - Time control in
+            Cute-Chess format. 
+        [93m  · [0m[1;94mtimemargin=N[0m - Time margin for exceeding time limit. 
+        [93m  · [0m[1;94mst=N[0m - Movetime in seconds. 
+        [93m  · [0m[1;94mnodes=N[0m - Max number of nodes to search. 
+        [93m  · [0m[1;94mrestart=(off|on)[0m - Enable or disable engine restarts between
+            games, default is off. 
+        [93m  · [0m[1;94mplies=N[0m - Max number of plies (depth) to search. The alias [0m
+            [1;94mdepth[0m can also be used. 
+        [93m  · [0m[1;94mproto=uci[0m - Specify the engine protocol. Only [1;94muci[0m is
+            supported. 
+        [93m  · [0m[1;94mdir=DIRECTORY[0m - Working directory for the engine. 
+        [93m  · [0m[1;94moption.name=VALUE[0m - Set engine-specific options. The value
+            for a button option should be “true” or “false”. 
+
+[1;36m## [0m[1;36mAdjudication [0m[1;36m& Rules[0m
+
+    [93m  · [0m[1;94m-draw movenumber=(0|N) movecount=(1|N) score=(0|N)[0m
+        Enables draw adjudication based on number of moves, move count,
+        and score threshold.
+        
+        [93m  · [0m[1;94mmovenumber[0m - number of moves before checking for a draw.
+            Default is 0. 
+        [93m  · [0m[1;94mmovecount[0m - number of consecutive moves below the score
+            threshold. Default is 1. 
+        [93m  · [0m[1;94mscore[0m - score threshold (in centipawns) for a draw. Default
+            is 0. 
+    
+    [93m  · [0m[1;94m-resign movecount=(1|N) score=(0|N) [twosided=(false|true)][0m
+        Configures engine resignation based on move count and score
+        threshold.
+        
+        [93m  · [0m[1;94mmovecount[0m - number of consecutive moves above the score
+            threshold. Default is 1. 
+        [93m  · [0m[1;94mscore[0m - score threshold (in centipawns) to resign. Default is
+            0. 
+        [93m  · [0m[1;94mtwosided[0m - if true, enables two-sided resignation. Defaults
+            to false. 
+    
+    [93m  · [0m[1;94m-maxmoves N[0m
+        Enables draw adjudication if the game reaches N moves without a
+        result.
+    
+    [93m  · [0m[1;94m-tb PATHS[0m
+        Adjudicate games using Syzygy tablebases. PATHS must be a
+        semicolon-separated (on Windows) or colon-separated (other
+        platforms) list of paths to the tablebase directories. Only the
+        WDL tablebase files are required.
+    
+    [93m  · [0m[1;94m-tbpieces N[0m
+        Only use tablebase adjudication for positions with N pieces or
+        less.
+    
+    [93m  · [0m[1;94m-tbignore50[0m
+        Disable the fifty move rule for tablebase adjudication.
+    
+    [93m  · [0m[1;94m-tbadjudicate (BOTH|WIN_LOSS|DRAW)[0m
+        Control when tablebase adjudication is applied. SETTING can be:
+        
+        [93m  · [0m[1;94mBOTH[0m - Adjudicate both wins and draws (default) 
+        [93m  · [0m[1;94mWIN_LOSS[0m - Only adjudicate won/lost positions 
+        [93m  · [0m[1;94mDRAW[0m - Only adjudicate drawn positions 
+
+[1;36m## [0m[1;36mOpening Book Management[0m
+
+    [93m  · [0m[1;94m-openings file=NAME format=(epd|pgn) [order=(sequential|random)][0m
+        [1;94m[plies=(Max plies|N)] [start=(1|N)][0m
+        Specifies an opening book file and its format for game starting
+        positions.
+        
+        [93m  · [0m[1;94mformat[0m - file format, either epd or pgn. 
+        [93m  · [0m[1;94morder[0m - order of openings ([1;94mrandom[0m or [1;94msequential[0m). Default is [0m
+            [1;94msequential[0m. 
+        [93m  · [0m[1;94mplies[0m - number of plies for pgn. Defaults to max available
+            plies. 
+        [93m  · [0m[1;94mstart[0m - starting index of the opening book. Default is 1. 
+    
+    [93m  · [0m[1;94m-srand SEED[0m
+        Specify the seed for opening book randomization.
+
+[1;36m## [0m[1;36mOutput [0m[1;36m& Reporting[0m
+
+    [93m  · [0m[1;94m-output format=(fastchess|cutechess)[0m
+        Choose the output format for game results ([1;94mfastchess[0m or [0m
+        [1;94mcutechess[0m). Default is [1;94mfastchess[0m.
+    
+    [93m  · [0m[1;94m-pgnout file=NAME notation=(san|lan|uci) [append=(true|false)][0m
+        [1;94m[nodes=(false|true)] [seldepth=(false|true)] [nps=(false|true)][0m
+        [1;94m[hashfull=(false|true)] [tbhits=(false|true)] [pv=(false|true)][0m
+        [1;94m[timeleft=(false|true)] [latency=(false|true)] [min=(false|true)][0m
+        [1;94m[match_line=REGEX][0m Export games in PGN format with specified
+        notations and optional tracking of nodes, seldepth, and others.
+        
+        [93m  · [0mnotation:
+            
+            [93m  · [0m[1;94msan[0m - Standard Algebraic Notation (default) 
+            [93m  · [0m[1;94mlan[0m - Long Algebraic Notation 
+            [93m  · [0m[1;94muci[0m - Universal Chess Interface 
+
+        [93m  · [0m[1;94mappend[0m - Append to file. Default is true.
+
+        [93m  · [0m[1;94mnodes[0m - Track node count. Default is false.
+
+        [93m  · [0m[1;94mseldepth[0m - Track seldepth. Default is false.
+
+        [93m  · [0m[1;94mnps[0m - Track nps. Default is false.
+
+        [93m  · [0m[1;94mhashfull[0m - Track hashfull. Default is false.
+
+        [93m  · [0m[1;94mtbhits[0m - Track tbhits. Default is false.
+
+        [93m  · [0m[1;94mpv[0m - Track the full pv. Default is false.
+
+        [93m  · [0m[1;94mtimeleft[0m - Track time left at end of move. Default is false.
+
+        [93m  · [0m[1;94mlatency[0m - Track difference between measured time and engine
+            reported time at end of move. Default is false.
+
+        [93m  · [0m[1;94mmin[0m - Minimal PGN format. Default is false.
+
+        [93m  · [0m[1;94mmatch_line[0m - Add lines to the PGN that match the given regex.
+    
+    [93m  · [0m[1;94m-epdout file=NAME [append=(true|false)][0m Export the final position
+        of each game in EPD format.
+        
+        [93m  · [0m[1;94mappend[0m - Append to file. Default is true. 
+    
+    [93m  · [0m[1;94m-event NAME[0m
+        Set the event name for the PGN header.
+    
+    [93m  · [0m[1;94m-site NAME[0m
+        Set the site name for the PGN header.
+    
+    [93m  · [0m[1;94m-ratinginterval (10|N)[0m
+        Set rating interval for the report. Default is 10. Set to 0 to
+        disable.
+    
+    [93m  · [0m[1;94m-scoreinterval (1|N)[0m
+        For cutechess output, set interval for printing score results.
+        Default is 1.
+    
+    [93m  · [0m[1;94m-report penta=(true|false)[0m
+        Reports pentanomial statistics (for Fastchess output). Defaults
+        to true.
+
+[1;36m## [0m[1;36mPersistence [0m[1;36m& Recovery[0m
+
+    [93m  · [0m[1;94m-config [file=NAME] [discard=(false|true)][0m
+        [1;94m[outname=(config.json|NAME)] [stats=(true|false)][0m
+        Load engine configurations to resume games from previous
+        sessions.
+        
+        [93m  · [0m[1;94mfile[0m - the file name to load the configuration from. 
+        [93m  · [0m[1;94mdiscard[0m - discard the loaded configuration after loading.
+            Defaults to false. This lets you specify a filename to save
+            the configuration to, while ignoring it for the current
+            session. 
+        [93m  · [0m[1;94moutname[0m - the auto-generated file name of the config. Default
+            is “config.json”. 
+        [93m  · [0m[1;94mstats[0m - load the stats from the config file, and ignore [0m
+            [1;94mappend=false[0m for [1;94m-pgnout[0m and [1;94m-epdout[0m. Defaults to true. 
+    
+    [93m  · [0m[1;94m-recover[0m
+        Enables crash recovery to attempt to recover the engine after a
+        crash and continue the tournament.
+    
+    [93m  · [0m[1;94m-autosaveinterval (20|N)[0m
+        Automatically saves the tournament state every N games. Default
+        is 20. Set to 0 to disable.
+
+[1;36m## [0m[1;36mTesting [0m[1;36m& Debugging[0m
+
+    [93m  · [0m[1;94m--compliance ENGINE_PATH [ARGS][0m
+        Check the UCI compliance of an engine by running it with the
+        specified arguments.
+    
+    [93m  · [0m[1;94m-crc32 pgn=true[0m
+        Calculate the CRC32 checksum for the PGN file.
+    
+    [93m  · [0m[1;94m-check-mate-pvs[0m Check that PVs for mate scores have the correct
+        length and end in checkmate.
+    
+    [93m  · [0m[1;94m-show-latency[0m
+        Show the “think” latency (difference between measured and
+        reported time) for each engine. Note that a lot of engines add
+        1ms to the time they report, so the latency will be 1ms higher
+        than the actual latency. It is also possible that the latency is
+        negative, due to different measurement methods or missing
+        synchronization of the clocks between different threads.
+    
+    [93m  · [0m[1;94m-testEnv[0m Specifies that the program is running in a test
+        environment (OpenBench/Fishtest). This will change some
+        outputs/settings.
+    
+    [93m  · [0m[1;94m-log file=NAME level=(warn|trace|info|err|fatal)[0m
+        [1;94mappend=(true|false) compress=(false|true) realtime=(true|false)[0m
+        [1;94mengine=(false|true)[0m Specify a log file with a specific log level.
+        Set append to false to overwrite existing file. Default is true.
+        Set compress to true to write to gzipped file with timestamp
+        (ignores append). Default is false. By default engine logs are
+        disabled. Set engine to true to enable them.
+        
+        [93m  · [0mLEVEL: 
+            [93m  · [0m[1;94mtrace[0m 
+            [93m  · [0m[1;94minfo[0m 
+            [93m  · [0m[1;94mwarn[0m (default) 
+            [93m  · [0m[1;94merr[0m 
+            [93m  · [0m[1;94mfatal[0m 
+    
+    [93m  · [0m[1;94m-use-affinity [CPUS][0m
+        Enable thread affinity for binding engines to CPU cores.
+        
+        [93m  · [0mCPUS - The cpus to use as a list of the form “3,5,7-11,13”. 
+    
+    [93m  · [0m[1;94m-startup-ms N[0m
+        Set the maximum time to wait for engine UCI initialization in
+        milliseconds. Default is 10000.
+    
+    [93m  · [0m[1;94m-ucinewgame-ms N[0m
+        Set the maximum time to wait for engine UCI new game
+        initialization in milliseconds. Default is 60000.
+    
+    [93m  · [0m[1;94m-ping-ms N[0m
+        Set the maximum time to wait for engine ping responses in
+        milliseconds, this is everything else which doesn’t fit the above
+        categories. Default is 60000.
+
+[1;91m[0m[1;91mEXAMPLES[0m
+
+    To start a match between two engines using random openings from
+    book.epd:
+
+    [1;94m  | [0m[1m$ fastchess -engine cmd=Engine1.exe name=Engine1 -engine cmd=Engine2.exe \[0m
+    [1;94m  | [0m[1m  name=Engine2 -openings file=book.epd format=epd order=random \[0m
+    [1;94m  | [0m[1m  -each tc=60+0.6 option.Hash=64 -rounds 200 -repeat -concurrency 4[0m
+
+    To start a SPRT test between two engines up to 100000 rounds (200000
+    games) with 3 concurrent games with one engine playing with 2 million
+    nodes per move and 1 thread and the other playing with 1 million
+    nodes per move and 2 threads, and both having a time control of 5
+    minutes plus 5 seconds increment per move, using random openings from
+    UHO_Lichess_4852_v1.epd, Fishtest adjudication rules, and saving the
+    games to a file in a specific folder with SAN notation and nodes
+    count:
+
+    [1;94m  | [0m[1m$ fastchess \[0m
+    [1;94m  | [0m[1m  -engine cmd=Engine1.exe name=Engine1 option.Threads=1 nodes=2000000 \[0m
+    [1;94m  | [0m[1m  -engine cmd=Engine2.exe name=Engine2 option.Threads=2 nodes=1000000 \[0m
+    [1;94m  | [0m[1m  -openings file=UHO_Lichess_4852_v1.epd format=epd order=random \[0m
+    [1;94m  | [0m[1m  -each tc=300+5 -resign movecount=3 score=600 -draw movenumber=34 movecount=8 score=20 \[0m
+    [1;94m  | [0m[1m  -sprt elo0=0 elo1=2 alpha=0.05 beta=0.05 \[0m
+    [1;94m  | [0m[1m  -rounds 100000 -concurrency 3 -pgnout notation=san nodes=true file=./games/sprt.pgn[0m
+
+[1;91m[0m[1;91mAUTHORS[0m
+
+    Fastchess was written by Disservin, Szil, PGG106, and contributors.
+
+[1;91m[0m[1;91mREPORTING BUGS[0m
+
+    Report any bugs to [4;32mhttps://github.com/Disservin/fastchess/issues[0m.
+
+[1;91m[0m[1;91mCOPYRIGHT[0m
+
+    This software is licensed under the MIT license. See the LICENSE file
+    for details.

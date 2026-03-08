@@ -8,103 +8,70 @@ jobs:
     name: ${{ matrix.config.name }}
     runs-on: ${{ matrix.config.os }}
     env:
-      COMPILER: ${{ matrix.config.compiler }}
       EXT: ${{ matrix.config.ext }}
-      OS: ${{ matrix.config.os }}
-      NATIVE: ${{ matrix.config.native }}
-      PLATFORM: ${{ matrix.config.platform }}
     strategy:
       matrix:
         config:
-          # Linux
           - {
-              name: "Ubuntu 22.04 GCC x86-64",
+              name: "Ubuntu 22.04 x86-64",
               os: ubuntu-22.04,
-              compiler: g++,
               shell: "bash {0}",
-              native: "-march=x86-64",
               arch: "x86-64",
-              extra_ldflags: "",
               platform: "linux",
-              docker: true,
-              docker_platform: "linux/amd64",
-              image: "alpine:3.22",
+              target: "x86_64-unknown-linux-musl",
             }
           - {
-              name: "Ubuntu 22.04 GCC ARM64",
+              name: "Ubuntu 22.04 ARM64",
               os: ubuntu-22.04-arm,
-              compiler: g++,
               shell: "bash {0}",
-              native: "",
               arch: "arm64",
-              extra_ldflags: "",
               platform: "linux",
-              docker: true,
-              docker_platform: "linux/arm64",
-              image: "alpine:3.22",
+              target: "aarch64-unknown-linux-musl",
             }
           - {
-              name: "Ubuntu 22.04 GCC RISC-V",
+              name: "Ubuntu 22.04 RISC-V",
               os: ubuntu-22.04,
-              compiler: g++,
               shell: "bash {0}",
-              native: "",
-              extra_ldflags: "-latomic",
-              docker: true,
-              docker_platform: "linux/riscv64",
-              image: "riscv64/alpine:3.22",
               arch: "risc-v",
               platform: "linux",
+              target: "riscv64gc-unknown-linux-gnu",
+              cross: true,
             }
-
-          # macOS
           - {
-              name: "MacOS Apple Clang x86-64",
+              name: "MacOS x86-64",
               os: macos-15-intel,
-              compiler: clang++,
               shell: "bash {0}",
-              native: "",
-              extra_ldflags: "",
               arch: "x86-64",
               platform: "mac",
+              target: "x86_64-apple-darwin",
             }
           - {
-              name: "MacOS Apple Clang ARM64",
+              name: "MacOS ARM64",
               os: macos-latest,
-              compiler: clang++,
               shell: "bash {0}",
-              native: "",
-              extra_ldflags: "",
               arch: "arm64",
               platform: "mac",
+              target: "aarch64-apple-darwin",
             }
-
-          # Windows (MSYS2 / MinGW)
           - {
-              name: "Windows GCC x86-64",
+              name: "Windows x86-64",
               os: windows-latest,
-              compiler: g++,
-              msys_sys: "mingw64",
-              msys_env: "x86_64-gcc",
-              shell: "msys2 {0}",
-              ext: .exe,
-              native: "-march=x86-64",
-              extra_ldflags: "",
+              shell: "bash {0}",
               arch: "x86-64",
               platform: "windows",
+              target: "x86_64-pc-windows-msvc",
+              ext: .exe,
+              rustflags: "-C target-feature=+crt-static",
             }
           - {
-              name: "Windows GCC ARM64",
+              name: "Windows ARM64",
               os: windows-11-arm,
-              compiler: g++,
-              msys_sys: "mingw64",
-              msys_env: "x86_64-gcc",
-              shell: "msys2 {0}",
-              ext: .exe,
-              native: "",
-              extra_ldflags: "",
+              shell: "bash {0}",
               arch: "arm64",
               platform: "windows",
+              target: "aarch64-pc-windows-msvc",
+              ext: .exe,
+              rustflags: "-C target-feature=+crt-static",
             }
 
     defaults:
@@ -116,93 +83,59 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Installing required packages
-        if: runner.os == 'Linux' && matrix.config.docker != true
+      - name: Install Rust
+        if: runner.os != 'Windows'
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.config.target }}
+
+      - name: Install musl-tools (Linux)
+        if: runner.os == 'Linux' && matrix.config.cross != true
         run: |
           sudo apt-get update
-          sudo apt-get install g++-multilib
-          $COMPILER --version
+          sudo apt-get install -y musl-tools
 
-      - name: Install windows make
-        if: runner.os == 'Windows'
-        uses: msys2/setup-msys2@v2
-        with:
-          msystem: ${{matrix.config.msys_sys}}
-          install: mingw-w64-${{matrix.config.msys_env}} make git expect
+      - name: Install cross (RISC-V)
+        if: matrix.config.cross == true
+        run: cargo install cross --git https://github.com/cross-rs/cross
 
-      - name: Extract the commit sha
+      - name: Extract commit info
         run: |
-          git rev-parse --short "$GITHUB_SHA" > sha
-          echo "COMMIT_SHA=$(cat sha)" >> $GITHUB_ENV
-          echo "Git sha:" $(cat sha)
+          echo "COMMIT_SHA=$(git rev-parse --short "$GITHUB_SHA")" >> $GITHUB_ENV
+          echo "COMMIT_DATE=$(git show -s --date=format:'%Y%m%d' --format=%cd HEAD)" >> $GITHUB_ENV
 
-      - name: Get commit date
-        id: commit_date
-        run: echo "COMMIT_DATE=$(git show -s --date=format:'%Y%m%d' --format=%cd HEAD)" >> $GITHUB_ENV
-
-      - name: Set up QEMU
-        if: matrix.config.base_image
-        uses: docker/setup-qemu-action@v3
-
-      # replace version string if this is a tagged build
       - name: Version replace
         run: |
-          if [ -n "$GITHUB_REF" ] && [[ "$GITHUB_REF" == refs/tags/* ]]; then
+          if [[ "$GITHUB_REF" == refs/tags/* ]]; then
             TAG="${GITHUB_REF#refs/tags/}"
-            echo "Current tag found: $TAG"
           else
             TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
-            if [ -n "$TAG" ]; then
-              echo "Last tag found: $TAG"
-            else
-              echo "No tags found, using default version string."
-              cat app/src/main.cpp
-              exit 0
-            fi
+            [ -z "$TAG" ] && exit 0
           fi
           VERSION=$(echo "$TAG" | sed 's/^v//' | sed 's/-alpha$//')
-          sed -i "s/const char\* version = \"[^\"]*\"/const char* version = \"alpha $VERSION \"/" app/src/main.cpp
-          cat app/src/main.cpp
+          perl -i -pe "s/^version = \"[^\"]*\"/version = \"$VERSION\"/" app/Cargo.toml
 
-      # Build RISC-V in Docker
-      - name: Build in Docker
-        if: matrix.config.docker == true
+      - name: Build
         run: |
-          sudo apt-get update
-          sudo apt-get install qemu-user-static
-          docker run --rm --platform ${{ matrix.config.docker_platform }} \
-            -v ${{ github.workspace }}:/workspace \
-            -w /workspace \
-            ${{ matrix.config.image }} \
-            sh -c "
-              apk add --no-cache build-base g++ make &&
-              make -j2 build=release EXTRA_LDFLAGS='${{ matrix.config.extra_ldflags }}' NATIVE='${{ matrix.config.native }}' COMPILER='${{ matrix.config.compiler }}' COMPILE_MSG='compiled for ${{ matrix.config.os }} ${{ env.COMMIT_DATE }}-${{ env.COMMIT_SHA }} (CI)' &&
-              strip ./fastchess${{ matrix.config.ext }} || true &&
-              find . -type f \( -name "*.o" -o -name "*.d" \) -delete &&
-              find . -type d -name "sha" -exec rm -rf {} + &&
-              ./fastchess* -version
-            "
+          cd app
+          if [ "${{ matrix.config.cross }}" = "true" ]; then
+            cross build --release --target ${{ matrix.config.target }}
+          else
+            cargo build --release --target ${{ matrix.config.target }}
+          fi
+          cp target/${{ matrix.config.target }}/release/fastchess${{ matrix.config.ext }} ../fastchess${{ matrix.config.ext }}
+          strip ../fastchess${{ matrix.config.ext }} || true
 
-      # Build (non-Docker)
-      - name: Building fastchess
-        if: matrix.config.docker != true
-        run: |
-          make -j2 build=release EXTRA_LDFLAGS='${{ matrix.config.extra_ldflags }}' NATIVE="$NATIVE" COMPILER="$COMPILER" COMPILE_MSG="compiled for ${{ matrix.config.os }} ${{ env.COMMIT_DATE }}-${{ env.COMMIT_SHA }} (CI)"
-          strip ./fastchess$EXT || true
-          find . -type f \( -name "*.o" -o -name "*.d" \) -delete
-          find . -type d -name "sha" -exec rm -rf {} +
-          ./fastchess* -version
-
-      - name: Archive binaries
-        uses: actions/upload-artifact@v4
-        with:
-          name: fastchess-${{ matrix.config.platform }}-${{ matrix.config.arch }}
-          path: |
-            app
-            .clang-format
-            config.json
-            Makefile
-            man
-            README.md
-            LICENSE
-            fastchess${{ matrix.config.ext }}
+      # - name: Archive binaries
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: fastchess-${{ matrix.config.platform }}-${{ matrix.config.arch }}
+      #     path: |
+      #       app
+      #       .clang-format
+      #       config.json
+      #       Makefile
+      #       man
+      #       README.md
+      #       LICENSE
+      #       fastchess${{ matrix.config.ext }}

@@ -1,0 +1,1280 @@
+use rand_mt::Mt64;
+use std::fs::File;
+
+use chess_library_rs::pgn::{StreamParser, Visitor};
+use chess_library_rs::{
+    board::Board as CpBoard,
+    board::GameResult,
+    constants,
+    uci::{move_to_uci, parse_san},
+};
+
+use crate::types::VariantType;
+use crate::variants::chess::ChessGame;
+use crate::variants::shogi::ShogiGame;
+
+/// A chess opening position, optionally with a sequence of book moves.
+#[derive(Debug, Clone, Default)]
+pub struct Opening {
+    /// FEN or EPD string for the starting position.
+    pub fen_epd: Option<String>,
+    /// Sequence of moves from that position stored as UCI strings.
+    pub moves: Vec<String>,
+}
+
+impl Opening {
+    pub fn new(fen_epd: Option<String>, moves: Vec<String>) -> Self {
+        Self { fen_epd, moves }
+    }
+
+    /// Create an opening for the standard starting position.
+    pub fn startpos() -> Self {
+        Self {
+            fen_epd: None,
+            moves: Vec::new(),
+        }
+    }
+
+    /// Validate that all moves in this opening are legal for standard chess.
+    ///
+    /// Returns true if all moves are valid, false otherwise.
+    /// For variant-specific validation, use `validate_for_variant()`.
+    pub fn validate(&self) -> bool {
+        self.validate_for_variant(VariantType::Standard)
+    }
+
+    /// Validate that all moves in this opening are legal for the given variant.
+    ///
+    /// Returns true if all moves are valid, false otherwise.
+    pub fn validate_for_variant(&self, variant: VariantType) -> bool {
+        match variant {
+            VariantType::Standard => {
+                let Some(mut game) = ChessGame::from_fen(
+                    self.fen_epd.as_deref().unwrap_or(""),
+                    VariantType::Standard,
+                ) else {
+                    return false;
+                };
+                self.moves.iter().all(|mv| game.make_uci_move(mv))
+            }
+            VariantType::Frc => {
+                let Some(mut game) =
+                    ChessGame::from_fen(self.fen_epd.as_deref().unwrap_or(""), VariantType::Frc)
+                else {
+                    return false;
+                };
+                self.moves.iter().all(|mv| game.make_uci_move(mv))
+            }
+            VariantType::Shogi => {
+                let Some(mut game) = (if let Some(sfen) = &self.fen_epd {
+                    ShogiGame::from_sfen(sfen)
+                } else {
+                    Some(ShogiGame::new())
+                }) else {
+                    return false;
+                };
+                self.moves.iter().all(|mv| game.make_usi_move(mv))
+            }
+        }
+    }
+}
+
+/// Reads openings from an EPD file (one position per line).
+pub struct EpdReader {
+    openings: Vec<String>,
+}
+
+impl EpdReader {
+    pub fn new(path: &str) -> Result<Self, String> {
+        let content = std::fs::read_to_string(path)
+            .map_err(|e| format!("Failed to open EPD file '{}': {}", path, e))?;
+
+        let openings: Vec<String> = content
+            .lines()
+            .map(|line| line.trim())
+            .filter(|line| !line.is_empty())
+            .map(|line| line.to_string())
+            .collect();
+
+        if openings.is_empty() {
+            return Err(format!("No openings found in file: {}", path));
+        }
+
+        Ok(Self { openings })
+    }
+
+    pub fn get(&self) -> &[String] {
+        &self.openings
+    }
+
+    pub fn get_mut(&mut self) -> &mut Vec<String> {
+        &mut self.openings
+    }
+}
+
+/// PGN visitor that collects opening moves up to a ply limit using the
+/// chess_library_rs PGN parser and move utilities.
+struct OpeningVisitor {
+    fen: String,
+    moves: Vec<String>,
+    board: CpBoard,
+    plies_limit: i32,
+    ply_count: i32,
+    is_frc: bool,
+    openings: Vec<Opening>,
+    early_exit: bool,
+}
+
+impl OpeningVisitor {
+    fn new(plies_limit: i32, is_frc: bool) -> Self {
+        Self {
+            fen: String::new(),
+            moves: Vec::new(),
+            board: CpBoard::new(),
+            plies_limit,
+            ply_count: 0,
+            is_frc,
+            openings: Vec::new(),
+            early_exit: false,
+        }
+    }
+}
+
+impl Visitor for OpeningVisitor {
+    fn start_pgn(&mut self) {
+        self.fen.clear();
+        self.moves.clear();
+        self.board = CpBoard::new();
+        if self.is_frc {
+            self.board.set_960(true);
+        }
+        self.ply_count = 0;
+    }
+
+    fn header(&mut self, key: &str, value: &str) {
+        if key == "FEN" {
+            self.fen = value.to_string();
+        }
+    }
+
+    fn start_moves(&mut self) {
+        // Initialize board from FEN header if present
+        if !self.fen.is_empty() {
+            self.board.set_fen(&self.fen);
+        } else {
+            self.board.set_fen(&constants::STARTPOS);
+        }
+
+        self.ply_count = 0;
+    }
+
+    fn move_token(&mut self, mv: &str, _comment: &str) {
+        if self.early_exit {
+            return;
+        }
+
+        // Stop collecting moves if we've hit the ply limit
+        if self.plies_limit >= 0 && self.ply_count >= self.plies_limit {
+            return;
+        }
+
+        if let Ok(m) = parse_san(&self.board, mv) {
+            let uci = move_to_uci(m, self.board.chess960());
+            self.board.make_move(m, false);
+
+            if self.board.is_game_over().1 != GameResult::None {
+                self.early_exit = true;
+                return;
+            }
+
+            self.moves.push(uci);
+
+            self.ply_count += 1;
+        } else {
+            self.early_exit = true;
+        }
+    }
+
+    fn end_pgn(&mut self) {
+        let fen_out = if self.fen.is_empty() {
+            // @TODO chess960?
+            constants::STARTPOS.to_string()
+        } else {
+            self.fen.clone()
+        };
+        self.openings
+            .push(Opening::new(Some(fen_out), self.moves.clone()));
+    }
+
+    fn skip_pgn(&mut self, _skip: bool) {}
+
+    fn skip(&self) -> bool {
+        false
+    }
+}
+
+/// Reads openings from a PGN file.
+///
+/// Each game in the PGN is parsed up to `plies_limit` half-moves.
+/// The resulting `Opening` contains the starting FEN and the move list as UCI strings.
+pub struct PgnReader {
+    openings: Vec<Opening>,
+}
+
+impl PgnReader {
+    pub fn new(path: &str, plies_limit: i32, is_frc: bool) -> Result<Self, String> {
+        // Use the chess_library_rs StreamParser to read PGN games
+        let file =
+            File::open(path).map_err(|e| format!("Failed to open PGN file '{}': {}", path, e))?;
+        let mut parser = StreamParser::new(file);
+        let mut visitor = OpeningVisitor::new(plies_limit, is_frc);
+
+        parser
+            .read_games(&mut visitor)
+            .map_err(|e| format!("Error parsing PGN file '{}': {}", path, e))?;
+
+        if visitor.openings.is_empty() {
+            return Err(format!("No openings found in file: {}", path));
+        }
+
+        Ok(Self {
+            openings: visitor.openings,
+        })
+    }
+
+    pub fn get(&self) -> &[Opening] {
+        &self.openings
+    }
+
+    pub fn get_mut(&mut self) -> &mut Vec<Opening> {
+        &mut self.openings
+    }
+}
+
+/// The opening book manager.
+///
+/// Handles reading, shuffling, rotating, and serving openings to games.
+/// Uses interior index tracking to serve openings round-robin style.
+#[allow(dead_code)]
+pub struct OpeningBook {
+    openings: OpeningSource,
+    opening_index: usize,
+    rounds: usize,
+    games: usize,
+}
+
+enum OpeningSource {
+    None,
+    Epd(EpdReader),
+    Pgn(PgnReader),
+}
+
+impl OpeningBook {
+    /// Create an opening book from configuration.
+    pub fn new(
+        file: &str,
+        format: crate::types::FormatType,
+        order: crate::types::OrderType,
+        plies: i32,
+        start: usize,
+        rounds: usize,
+        games: usize,
+        initial_matchcount: usize,
+        variant: crate::types::VariantType,
+        seed: u64,
+    ) -> Result<Self, String> {
+        let offset = start.saturating_sub(1) + initial_matchcount / games;
+
+        let openings = if file.is_empty() {
+            OpeningSource::None
+        } else {
+            match format {
+                crate::types::FormatType::Epd => {
+                    let mut reader = EpdReader::new(file)?;
+                    if order == crate::types::OrderType::Random {
+                        shuffle(reader.get_mut(), seed);
+                    }
+                    if offset > 0 {
+                        rotate(reader.get_mut(), offset);
+                    }
+                    truncate(reader.get_mut(), rounds);
+                    OpeningSource::Epd(reader)
+                }
+                crate::types::FormatType::Pgn => {
+                    let is_frc = variant == crate::types::VariantType::Frc;
+                    let mut reader = PgnReader::new(file, plies, is_frc)?;
+                    if order == crate::types::OrderType::Random {
+                        shuffle(reader.get_mut(), seed);
+                    }
+                    if offset > 0 {
+                        rotate(reader.get_mut(), offset);
+                    }
+                    truncate(reader.get_mut(), rounds);
+                    OpeningSource::Pgn(reader)
+                }
+                crate::types::FormatType::None => OpeningSource::None,
+            }
+        };
+
+        Ok(Self {
+            openings,
+            opening_index: 0,
+            rounds,
+            games,
+        })
+    }
+
+    /// Fetch the next opening index, cycling through the book.
+    pub fn fetch_id(&mut self) -> Option<usize> {
+        let book_size = self.book_size();
+        if book_size == 0 {
+            return None;
+        }
+        let idx = self.opening_index;
+        self.opening_index += 1;
+        Some(idx % book_size)
+    }
+
+    /// Get an opening by index.
+    pub fn get(&self, idx: Option<usize>) -> Opening {
+        match idx {
+            None => Opening::new(None, Vec::new()),
+            Some(i) => match &self.openings {
+                OpeningSource::None => Opening::new(None, Vec::new()),
+                OpeningSource::Epd(reader) => {
+                    let fen = &reader.get()[i];
+                    Opening::new(Some(fen.clone()), Vec::new())
+                }
+                OpeningSource::Pgn(reader) => reader.get()[i].clone(),
+            },
+        }
+    }
+
+    fn book_size(&self) -> usize {
+        match &self.openings {
+            OpeningSource::None => 0,
+            OpeningSource::Epd(reader) => reader.get().len(),
+            OpeningSource::Pgn(reader) => reader.get().len(),
+        }
+    }
+}
+
+/// Fisher-Yates shuffle with seed.
+fn shuffle<T>(vec: &mut [T], seed: u64) {
+    let mut rng = Mt64::new(seed);
+    let len = vec.len();
+    for i in 0..len.saturating_sub(1) {
+        let rand = rng.next_u64();
+        let j = i + (rand as usize % (len - i));
+        vec.swap(i, j);
+    }
+}
+
+/// Rotate a vector by `offset` positions.
+fn rotate<T>(vec: &mut [T], offset: usize) {
+    if vec.is_empty() {
+        return;
+    }
+    let offset = offset % vec.len();
+    vec.rotate_left(offset);
+}
+
+/// Truncate a vector to at most `max_len` elements.
+fn truncate<T>(vec: &mut Vec<T>, max_len: usize) {
+    if vec.len() > max_len {
+        vec.truncate(max_len);
+        vec.shrink_to_fit();
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// Test that standard castling produces e1g1/e1c1 format in UCI.
+    #[test]
+    fn test_standard_castling_uci_format() {
+        // A game with kingside castling
+        let pgn_content = r#"[Event "Test"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "W"]
+[Black "B"]
+[Result "*"]
+
+1. e4 e5 2. Nf3 Nc6 3. Bb5 a6 4. Ba4 Nf6 5. O-O *
+"#;
+
+        // Write to temp file
+        let temp_path = std::env::temp_dir().join("test_standard_castling.pgn");
+        std::fs::write(&temp_path, pgn_content).unwrap();
+
+        let reader = PgnReader::new(temp_path.to_str().unwrap(), -1, false).unwrap();
+        let opening = &reader.get()[0];
+
+        // The 9th move (O-O) should be e1g1 in standard notation
+        assert_eq!(opening.moves.len(), 9);
+        assert_eq!(opening.moves[8], "e1g1", "Standard castling should be e1g1");
+
+        std::fs::remove_file(&temp_path).ok();
+    }
+
+    /// Test that Chess960 castling produces king-takes-rook format (e.g., e1h1).
+    #[test]
+    fn test_chess960_castling_uci_format() {
+        // A Chess960 game with kingside castling (standard start position)
+        // In Chess960 notation, O-O from e1 with rook on h1 = e1h1
+        let pgn_content = r#"[Event "Test"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "W"]
+[Black "B"]
+[Result "*"]
+[Variant "Chess960"]
+
+1. e4 e5 2. Nf3 Nc6 3. Bb5 a6 4. Ba4 Nf6 5. O-O *
+"#;
+
+        // Write to temp file
+        let temp_path = std::env::temp_dir().join("test_chess960_castling.pgn");
+        std::fs::write(&temp_path, pgn_content).unwrap();
+
+        let reader = PgnReader::new(temp_path.to_str().unwrap(), -1, true).unwrap();
+        let opening = &reader.get()[0];
+
+        // The 9th move (O-O) should be e1h1 in Chess960 notation
+        assert_eq!(opening.moves.len(), 9);
+        assert_eq!(
+            opening.moves[8], "e1h1",
+            "Chess960 castling should be e1h1 (king takes rook)"
+        );
+
+        std::fs::remove_file(&temp_path).ok();
+    }
+
+    /// Test that queenside castling works correctly in both modes.
+    #[test]
+    fn test_queenside_castling_both_modes() {
+        let pgn_content = r#"[Event "Test"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "W"]
+[Black "B"]
+[Result "*"]
+
+1. d4 d5 2. c4 e6 3. Nc3 Nf6 4. Bg5 Be7 5. e3 O-O 6. Nf3 Nbd7 7. Qc2 c6 8. Bd3 dxc4 9. Bxc4 b5 10. Bd3 Bb7 11. O-O *
+"#;
+
+        // Write to temp files
+        let temp_std = std::env::temp_dir().join("test_queenside_std.pgn");
+        let temp_frc = std::env::temp_dir().join("test_queenside_frc.pgn");
+        std::fs::write(&temp_std, pgn_content).unwrap();
+        std::fs::write(&temp_frc, pgn_content).unwrap();
+
+        // Standard mode
+        let reader_std = PgnReader::new(temp_std.to_str().unwrap(), -1, false).unwrap();
+        let opening_std = &reader_std.get()[0];
+
+        // Black castles O-O at move 10 (ply 9, 0-indexed as 9)
+        // White castles O-O at move 21 (ply 21, 0-indexed as 20)
+        // Find black's O-O (should be e8g8 in standard)
+        assert_eq!(
+            opening_std.moves[9], "e8g8",
+            "Black O-O should be e8g8 in standard"
+        );
+        // White's O-O at ply 20
+        assert_eq!(
+            opening_std.moves[20], "e1g1",
+            "White O-O should be e1g1 in standard"
+        );
+
+        // Chess960 mode
+        let reader_frc = PgnReader::new(temp_frc.to_str().unwrap(), -1, true).unwrap();
+        let opening_frc = &reader_frc.get()[0];
+
+        // In Chess960, these become king-takes-rook moves
+        assert_eq!(
+            opening_frc.moves[9], "e8h8",
+            "Black O-O should be e8h8 in Chess960"
+        );
+        assert_eq!(
+            opening_frc.moves[20], "e1h1",
+            "White O-O should be e1h1 in Chess960"
+        );
+
+        std::fs::remove_file(&temp_std).ok();
+        std::fs::remove_file(&temp_frc).ok();
+    }
+
+    /// Test non-castling moves are the same in both modes.
+    #[test]
+    fn test_regular_moves_same_in_both_modes() {
+        let pgn_content = r#"[Event "Test"]
+[Site "?"]
+[Date "????.??.??"]
+[Round "?"]
+[White "W"]
+[Black "B"]
+[Result "*"]
+
+1. e4 e5 2. Nf3 Nc6 3. Bb5 a6 *
+"#;
+
+        let temp_std = std::env::temp_dir().join("test_regular_std.pgn");
+        let temp_frc = std::env::temp_dir().join("test_regular_frc.pgn");
+        std::fs::write(&temp_std, pgn_content).unwrap();
+        std::fs::write(&temp_frc, pgn_content).unwrap();
+
+        let reader_std = PgnReader::new(temp_std.to_str().unwrap(), -1, false).unwrap();
+        let reader_frc = PgnReader::new(temp_frc.to_str().unwrap(), -1, true).unwrap();
+
+        let opening_std = &reader_std.get()[0];
+        let opening_frc = &reader_frc.get()[0];
+
+        // All moves should be identical (no castling)
+        assert_eq!(opening_std.moves, opening_frc.moves);
+        assert_eq!(
+            opening_std.moves,
+            vec!["e2e4", "e7e5", "g1f3", "b8c6", "f1b5", "a7a6"]
+        );
+
+        std::fs::remove_file(&temp_std).ok();
+        std::fs::remove_file(&temp_frc).ok();
+    }
+
+    /// Test Opening::startpos returns standard starting position.
+    #[test]
+    fn test_opening_startpos() {
+        let opening = Opening::startpos();
+        assert_eq!(opening.fen_epd, None); // None means use standard start position
+        assert!(opening.moves.is_empty());
+    }
+
+    /// Test Opening::new creates opening with given FEN and moves.
+    #[test]
+    fn test_opening_new() {
+        let moves = vec!["e2e4".to_string(), "e7e5".to_string()];
+        let opening = Opening::new(Some("custom_fen".to_string()), moves.clone());
+        assert_eq!(opening.fen_epd, Some("custom_fen".to_string()));
+        assert_eq!(opening.moves, moves);
+    }
+
+    /// Test Opening::validate for valid openings.
+    #[test]
+    fn test_opening_validate_valid() {
+        let opening = Opening::new(
+            Some("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1".to_string()),
+            vec!["e2e4".to_string(), "e7e5".to_string()],
+        );
+        assert!(opening.validate());
+    }
+
+    /// Test Opening::validate for invalid openings.
+    #[test]
+    fn test_opening_validate_invalid() {
+        let opening = Opening::new(
+            Some("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1".to_string()),
+            vec!["e1e5".to_string()], // Invalid move
+        );
+        assert!(!opening.validate());
+    }
+
+    /// Test SFEN parsing for shogi starting position.
+    #[test]
+    fn test_sfen_startpos_validation() {
+        use crate::types::VariantType;
+
+        // Standard shogi starting position
+        let opening = Opening::new(
+            Some("lnsgkgsnl/1r5b1/ppppppppp/9/9/9/PPPPPPPPP/1B5R1/LNSGKGSNL b - 1".to_string()),
+            Vec::new(),
+        );
+        assert!(opening.validate_for_variant(VariantType::Shogi));
+    }
+
+    /// Test SFEN parsing with valid moves.
+    #[test]
+    fn test_sfen_with_moves_validation() {
+        use crate::types::VariantType;
+
+        // Shogi position with some moves
+        let opening = Opening::new(
+            Some("lnsgkgsnl/1r5b1/ppppppppp/9/9/9/PPPPPPPPP/1B5R1/LNSGKGSNL b - 1".to_string()),
+            vec!["7g7f".to_string(), "3c3d".to_string()],
+        );
+        assert!(opening.validate_for_variant(VariantType::Shogi));
+    }
+
+    /// Test SFEN parsing with invalid move.
+    #[test]
+    fn test_sfen_invalid_move() {
+        use crate::types::VariantType;
+
+        let opening = Opening::new(
+            Some("lnsgkgsnl/1r5b1/ppppppppp/9/9/9/PPPPPPPPP/1B5R1/LNSGKGSNL b - 1".to_string()),
+            vec!["1a1b".to_string()], // Invalid move - lance can't move sideways
+        );
+        assert!(!opening.validate_for_variant(VariantType::Shogi));
+    }
+
+    /// Test SFEN with hand pieces (pieces in hand for drops).
+    #[test]
+    fn test_sfen_with_hand_pieces() {
+        use crate::types::VariantType;
+
+        // Position with pieces in hand: P2p means sente has 1 pawn, gote has 2 pawns
+        let opening = Opening::new(
+            Some("lnsgkgsnl/1r5b1/ppppppppp/9/9/9/PPPPPPPPP/1B5R1/LNSGKGSNL b P2p 1".to_string()),
+            Vec::new(),
+        );
+        assert!(opening.validate_for_variant(VariantType::Shogi));
+    }
+
+    /// Test SFEN with empty hand.
+    #[test]
+    fn test_sfen_empty_hand() {
+        use crate::types::VariantType;
+
+        // Position from the user's example
+        let opening = Opening::new(
+            Some("lnsgkgsnl/r6b1/ppppppppp/9/9/P8/1PPPPPPPP/1B3G1R1/LNSGK1SNL b - 1".to_string()),
+            Vec::new(),
+        );
+        assert!(opening.validate_for_variant(VariantType::Shogi));
+    }
+
+    /// Test EpdReader works with SFEN file.
+    #[test]
+    fn test_epd_reader_sfen() {
+        use crate::types::VariantType;
+
+        // Create a temp file with SFEN positions
+        let sfen_content = r#"lnsgkgsnl/1r5b1/ppppppppp/9/9/9/PPPPPPPPP/1B5R1/LNSGKGSNL b - 1
+lnsgkgsnl/r6b1/ppppppppp/9/9/P8/1PPPPPPPP/1B3G1R1/LNSGK1SNL b - 1
+"#;
+        let temp_path = std::env::temp_dir().join("test_sfen.epd");
+        std::fs::write(&temp_path, sfen_content).unwrap();
+
+        let reader = EpdReader::new(temp_path.to_str().unwrap()).unwrap();
+        assert_eq!(reader.get().len(), 2);
+
+        // Validate both positions
+        for sfen in reader.get() {
+            let opening = Opening::new(Some(sfen.clone()), Vec::new());
+            assert!(
+                opening.validate_for_variant(VariantType::Shogi),
+                "Failed to validate SFEN: {}",
+                sfen
+            );
+        }
+
+        std::fs::remove_file(&temp_path).ok();
+    }
+
+    /// Test fewer openings than rounds - openings should cycle
+    #[test]
+    fn test_fewer_openings_than_rounds() {
+        use crate::types::{FormatType, OrderType, VariantType};
+
+        // test.epd has 3 openings
+        let mut book = OpeningBook::new(
+            "./tests/data/test.epd",
+            FormatType::Epd,
+            OrderType::Sequential,
+            -1, // plies (not used for EPD)
+            1,  // start
+            10, // rounds (more than openings)
+            1,  // games
+            0,  // initial_matchcount
+            VariantType::Standard,
+            12345, // seed
+        )
+        .unwrap();
+
+        // First 3 openings
+        let id = book.fetch_id();
+        assert!(id.is_some());
+        assert_eq!(id.unwrap(), 0);
+        let opening = book.get(id);
+        assert_eq!(
+            opening.fen_epd,
+            Some("5k2/3r1p2/1p3pp1/p2n3p/P6P/1PPR1PP1/3KN3/6b1 w - - 0 34".to_string())
+        );
+
+        let id = book.fetch_id();
+        assert!(id.is_some());
+        assert_eq!(id.unwrap(), 1);
+        let opening = book.get(id);
+        assert_eq!(
+            opening.fen_epd,
+            Some("5k2/5p2/4B2p/r5pn/4P3/5PPP/2NR2K1/8 b - - 0 59".to_string())
+        );
+
+        let id = book.fetch_id();
+        assert!(id.is_some());
+        assert_eq!(id.unwrap(), 2);
+        let opening = book.get(id);
+        assert_eq!(
+            opening.fen_epd,
+            Some("8/p3kp1p/1p4p1/2r2b2/2BR3P/1P3P2/P4PK1/8 b - - 0 28".to_string())
+        );
+
+        // Should cycle back to first opening
+        let id = book.fetch_id();
+        assert!(id.is_some());
+        assert_eq!(id.unwrap(), 0);
+        let opening = book.get(id);
+        assert_eq!(
+            opening.fen_epd,
+            Some("5k2/3r1p2/1p3pp1/p2n3p/P6P/1PPR1PP1/3KN3/6b1 w - - 0 34".to_string())
+        );
+
+        let id = book.fetch_id();
+        assert!(id.is_some());
+        assert_eq!(id.unwrap(), 1);
+        let opening = book.get(id);
+        assert_eq!(
+            opening.fen_epd,
+            Some("5k2/5p2/4B2p/r5pn/4P3/5PPP/2NR2K1/8 b - - 0 59".to_string())
+        );
+
+        let id = book.fetch_id();
+        assert!(id.is_some());
+        assert_eq!(id.unwrap(), 2);
+        let opening = book.get(id);
+        assert_eq!(
+            opening.fen_epd,
+            Some("8/p3kp1p/1p4p1/2r2b2/2BR3P/1P3P2/P4PK1/8 b - - 0 28".to_string())
+        );
+
+        // Cycle again
+        let id = book.fetch_id();
+        assert!(id.is_some());
+        assert_eq!(id.unwrap(), 0);
+        let opening = book.get(id);
+        assert_eq!(
+            opening.fen_epd,
+            Some("5k2/3r1p2/1p3pp1/p2n3p/P6P/1PPR1PP1/3KN3/6b1 w - - 0 34".to_string())
+        );
+
+        let id = book.fetch_id();
+        assert!(id.is_some());
+        assert_eq!(id.unwrap(), 1);
+        let opening = book.get(id);
+        assert_eq!(
+            opening.fen_epd,
+            Some("5k2/5p2/4B2p/r5pn/4P3/5PPP/2NR2K1/8 b - - 0 59".to_string())
+        );
+
+        let id = book.fetch_id();
+        assert!(id.is_some());
+        assert_eq!(id.unwrap(), 2);
+        let opening = book.get(id);
+        assert_eq!(
+            opening.fen_epd,
+            Some("8/p3kp1p/1p4p1/2r2b2/2BR3P/1P3P2/P4PK1/8 b - - 0 28".to_string())
+        );
+
+        // Final cycle
+        let id = book.fetch_id();
+        assert!(id.is_some());
+        assert_eq!(id.unwrap(), 0);
+        let opening = book.get(id);
+        assert_eq!(
+            opening.fen_epd,
+            Some("5k2/3r1p2/1p3pp1/p2n3p/P6P/1PPR1PP1/3KN3/6b1 w - - 0 34".to_string())
+        );
+    }
+
+    /// Test equal openings to rounds - each opening used exactly once
+    #[test]
+    fn test_equal_openings_to_rounds() {
+        use crate::types::{FormatType, OrderType, VariantType};
+
+        // test.epd has 3 openings, using exactly 3 rounds
+        let mut book = OpeningBook::new(
+            "./tests/data/test.epd",
+            FormatType::Epd,
+            OrderType::Sequential,
+            -1,
+            1,
+            3, // rounds equal to number of openings
+            1,
+            0,
+            VariantType::Standard,
+            12345, // seed
+        )
+        .unwrap();
+
+        let id = book.fetch_id();
+        assert!(id.is_some());
+        assert_eq!(id.unwrap(), 0);
+        let opening = book.get(id);
+        assert_eq!(
+            opening.fen_epd,
+            Some("5k2/3r1p2/1p3pp1/p2n3p/P6P/1PPR1PP1/3KN3/6b1 w - - 0 34".to_string())
+        );
+
+        let id = book.fetch_id();
+        assert!(id.is_some());
+        assert_eq!(id.unwrap(), 1);
+        let opening = book.get(id);
+        assert_eq!(
+            opening.fen_epd,
+            Some("5k2/5p2/4B2p/r5pn/4P3/5PPP/2NR2K1/8 b - - 0 59".to_string())
+        );
+
+        let id = book.fetch_id();
+        assert!(id.is_some());
+        assert_eq!(id.unwrap(), 2);
+        let opening = book.get(id);
+        assert_eq!(
+            opening.fen_epd,
+            Some("8/p3kp1p/1p4p1/2r2b2/2BR3P/1P3P2/P4PK1/8 b - - 0 28".to_string())
+        );
+    }
+
+    /// Test more openings than rounds - only use first N openings
+    #[test]
+    fn test_more_openings_than_rounds() {
+        use crate::types::{FormatType, OrderType, VariantType};
+
+        // openings.epd has many openings, using only 2 rounds
+        let mut book = OpeningBook::new(
+            "./tests/data/openings.epd",
+            FormatType::Epd,
+            OrderType::Sequential,
+            -1,
+            1,
+            2, // only 2 rounds
+            1,
+            0,
+            VariantType::Standard,
+            12345, // seed
+        )
+        .unwrap();
+
+        let id = book.fetch_id();
+        assert!(id.is_some());
+        assert_eq!(id.unwrap(), 0);
+        let opening = book.get(id);
+        // First opening in openings.epd
+        assert_eq!(
+            opening.fen_epd,
+            Some("r1bqkb1r/pp3pp1/2nppn2/7p/3NP1PP/2N5/PPP2P2/R1BQKBR1 w Qkq - 0 9".to_string())
+        );
+
+        let id = book.fetch_id();
+        assert!(id.is_some());
+        assert_eq!(id.unwrap(), 1);
+        let opening = book.get(id);
+        // Second opening in openings.epd
+        assert_eq!(
+            opening.fen_epd,
+            Some("rnb2rk1/ppp2pbp/3p2p1/3Pp2n/2P1P2q/2N1BP2/PP1Q2PP/R3KBNR w KQ - 3 9".to_string())
+        );
+    }
+
+    /// Test more openings than rounds with initial matchcount offset
+    #[test]
+    fn test_more_openings_with_initial_matchcount() {
+        use crate::types::{FormatType, OrderType, VariantType};
+
+        // openings.epd with initial_matchcount = 1
+        let mut book = OpeningBook::new(
+            "./tests/data/openings.epd",
+            FormatType::Epd,
+            OrderType::Sequential,
+            -1,
+            1,
+            2,
+            1,
+            1, // initial_matchcount = 1
+            VariantType::Standard,
+            12345, // seed
+        )
+        .unwrap();
+
+        // With initial_matchcount=1 and games=1, offset = 1/1 = 1
+        // So we should start from the second opening
+        let id = book.fetch_id();
+        assert!(id.is_some());
+        assert_eq!(id.unwrap(), 0);
+        let opening = book.get(id);
+        assert_eq!(
+            opening.fen_epd,
+            Some("rnb2rk1/ppp2pbp/3p2p1/3Pp2n/2P1P2q/2N1BP2/PP1Q2PP/R3KBNR w KQ - 3 9".to_string())
+        );
+
+        // Second opening with initial_matchcount=2
+        let mut book2 = OpeningBook::new(
+            "./tests/data/openings.epd",
+            FormatType::Epd,
+            OrderType::Sequential,
+            -1,
+            1,
+            2,
+            1,
+            2, // initial_matchcount = 2
+            VariantType::Standard,
+            12345, // seed
+        )
+        .unwrap();
+
+        let id = book2.fetch_id();
+        assert!(id.is_some());
+        assert_eq!(id.unwrap(), 0);
+        let opening = book2.get(id);
+        assert_eq!(
+            opening.fen_epd,
+            Some("r3kb1r/pppqpppp/1nn1b3/4P3/3P4/2NBB3/PP3PPP/R2QK1NR w KQkq - 7 9".to_string())
+        );
+    }
+
+    /// Test PGN opening book
+    #[test]
+    fn test_pgn_opening_book() {
+        use crate::types::{FormatType, OrderType, VariantType};
+
+        // test.pgn has games with moves - first 3 games start from standard position
+        let mut book = OpeningBook::new(
+            "./tests/data/test.pgn",
+            FormatType::Pgn,
+            OrderType::Sequential,
+            -1, // all plies
+            1,  // start
+            2,  // rounds (only use first 2 games)
+            1,  // games
+            0,  // initial_matchcount
+            VariantType::Standard,
+            12345, // seed
+        )
+        .unwrap();
+
+        let id = book.fetch_id();
+        assert!(id.is_some());
+        assert_eq!(id.unwrap(), 0);
+        let opening = book.get(id);
+        // First 3 PGN games start from standard position
+        // The PGN reader stores the FEN as the standard start position string
+        assert_eq!(
+            opening.fen_epd,
+            Some("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1".to_string())
+        );
+        assert_eq!(opening.moves.len(), 16); // 16 plies = 8 full moves
+        assert_eq!(opening.moves[0], "e2e4");
+
+        let id = book.fetch_id();
+        assert!(id.is_some());
+        assert_eq!(id.unwrap(), 1);
+        let opening = book.get(id);
+        assert_eq!(
+            opening.fen_epd,
+            Some("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1".to_string())
+        );
+        assert_eq!(opening.moves.len(), 16);
+    }
+
+    /// Test that random order with same seed produces same shuffle
+    #[test]
+    fn test_random_order_deterministic() {
+        use crate::types::{FormatType, OrderType, VariantType};
+
+        // Create two books with same seed
+        let mut book1 = OpeningBook::new(
+            "./tests/data/test.epd",
+            FormatType::Epd,
+            OrderType::Random,
+            -1,
+            1,
+            3,
+            1,
+            0,
+            VariantType::Standard,
+            12345, // seed
+        )
+        .unwrap();
+
+        let mut book2 = OpeningBook::new(
+            "./tests/data/test.epd",
+            FormatType::Epd,
+            OrderType::Random,
+            -1,
+            1,
+            3,
+            1,
+            0,
+            VariantType::Standard,
+            12345, // same seed
+        )
+        .unwrap();
+
+        // Both should produce the same order
+        for _ in 0..3 {
+            let id1 = book1.fetch_id();
+            let id2 = book2.fetch_id();
+            assert_eq!(id1, id2);
+
+            let opening1 = book1.get(id1);
+            let opening2 = book2.get(id2);
+            assert_eq!(opening1.fen_epd, opening2.fen_epd);
+        }
+    }
+
+    /// Test that different seeds produce different shuffles (with high probability)
+    #[test]
+    fn test_random_order_different_seeds() {
+        use crate::types::{FormatType, OrderType, VariantType};
+
+        // Create two books with different seeds
+        let mut book1 = OpeningBook::new(
+            "./tests/data/test.epd",
+            FormatType::Epd,
+            OrderType::Random,
+            -1,
+            1,
+            3,
+            1,
+            0,
+            VariantType::Standard,
+            12345, // seed 1
+        )
+        .unwrap();
+
+        let mut book2 = OpeningBook::new(
+            "./tests/data/test.epd",
+            FormatType::Epd,
+            OrderType::Random,
+            -1,
+            1,
+            3,
+            1,
+            0,
+            VariantType::Standard,
+            54321, // different seed
+        )
+        .unwrap();
+
+        // Get first opening from each
+        let id1 = book1.fetch_id();
+        let id2 = book2.fetch_id();
+
+        let opening1 = book1.get(id1);
+        let opening2 = book2.get(id2);
+
+        // With different seeds, the first opening should be different
+        // (This has a 2/3 chance of being true for 3 items, so it should pass reliably)
+        assert_ne!(
+            opening1.fen_epd, opening2.fen_epd,
+            "Different seeds should produce different shuffles"
+        );
+    }
+
+    #[test]
+    fn test_fewer_openings_than_rounds_random() {
+        use crate::types::{FormatType, OrderType, VariantType};
+
+        let mut book = OpeningBook::new(
+            "./tests/data/test.epd",
+            FormatType::Epd,
+            OrderType::Random,
+            -1,
+            1,
+            4, // rounds
+            1,
+            0,
+            VariantType::Standard,
+            123456789, // seed
+        )
+        .unwrap();
+
+        let id = book.fetch_id();
+        assert!(id.is_some());
+        assert_eq!(id.unwrap(), 0);
+        let opening = book.get(id);
+        assert_eq!(
+            opening.fen_epd,
+            Some("5k2/3r1p2/1p3pp1/p2n3p/P6P/1PPR1PP1/3KN3/6b1 w - - 0 34".to_string())
+        );
+
+        let id = book.fetch_id();
+        assert!(id.is_some());
+        assert_eq!(id.unwrap(), 1);
+        let opening = book.get(id);
+        assert_eq!(
+            opening.fen_epd,
+            Some("8/p3kp1p/1p4p1/2r2b2/2BR3P/1P3P2/P4PK1/8 b - - 0 28".to_string())
+        );
+    }
+
+    #[test]
+    fn test_equal_openings_to_rounds_random() {
+        use crate::types::{FormatType, OrderType, VariantType};
+
+        let mut book = OpeningBook::new(
+            "./tests/data/test.epd",
+            FormatType::Epd,
+            OrderType::Random,
+            -1,
+            1,
+            3, // rounds equal to number of openings
+            1,
+            0,
+            VariantType::Standard,
+            123456789, // seed
+        )
+        .unwrap();
+
+        let id = book.fetch_id();
+        assert!(id.is_some());
+        assert_eq!(id.unwrap(), 0);
+        let opening = book.get(id);
+        assert_eq!(
+            opening.fen_epd,
+            Some("5k2/3r1p2/1p3pp1/p2n3p/P6P/1PPR1PP1/3KN3/6b1 w - - 0 34".to_string())
+        );
+
+        let id = book.fetch_id();
+        assert!(id.is_some());
+        assert_eq!(id.unwrap(), 1);
+        let opening = book.get(id);
+        assert_eq!(
+            opening.fen_epd,
+            Some("8/p3kp1p/1p4p1/2r2b2/2BR3P/1P3P2/P4PK1/8 b - - 0 28".to_string())
+        );
+
+        let id = book.fetch_id();
+        assert!(id.is_some());
+        assert_eq!(id.unwrap(), 2);
+        let opening = book.get(id);
+        assert_eq!(
+            opening.fen_epd,
+            Some("5k2/5p2/4B2p/r5pn/4P3/5PPP/2NR2K1/8 b - - 0 59".to_string())
+        );
+    }
+
+    #[test]
+    fn test_more_openings_than_rounds_random() {
+        use crate::types::{FormatType, OrderType, VariantType};
+
+        let mut book = OpeningBook::new(
+            "./tests/data/openings.epd",
+            FormatType::Epd,
+            OrderType::Random,
+            -1,
+            1,
+            2, // rounds
+            1,
+            0,
+            VariantType::Standard,
+            123456789, // seed
+        )
+        .unwrap();
+
+        let id = book.fetch_id();
+        assert!(id.is_some());
+        assert_eq!(id.unwrap(), 0);
+        let opening = book.get(id);
+        assert_eq!(
+            opening.fen_epd,
+            Some("rnbq1rk1/pppp2bp/4p1p1/5p2/3PP3/3B1N2/PPPNQPPP/R3K2R w KQ - 2 9".to_string())
+        );
+
+        let id = book.fetch_id();
+        assert!(id.is_some());
+        assert_eq!(id.unwrap(), 1);
+        let opening = book.get(id);
+        assert_eq!(
+            opening.fen_epd,
+            Some("r1bqk2r/pppn2bp/5ppn/4p3/1PPp4/3P1NP1/P2NPPBP/R1BQ1RK1 w kq - 0 9".to_string())
+        );
+    }
+
+    /// Test start parameter with EPD and seed (sequential order)
+    #[test]
+    fn test_start_parameter_with_seed_epd() {
+        use crate::types::{FormatType, OrderType, VariantType};
+
+        // start=2 skips the first opening in openings.epd
+        let mut book = OpeningBook::new(
+            "./tests/data/openings.epd",
+            FormatType::Epd,
+            OrderType::Sequential,
+            -1,
+            2, // start = 2, skip first opening
+            3,
+            1,
+            0,
+            VariantType::Standard,
+            99999, // seed
+        )
+        .unwrap();
+
+        // Should start from the second opening (index 1)
+        let id = book.fetch_id();
+        assert!(id.is_some());
+        assert_eq!(id.unwrap(), 0);
+        let opening = book.get(id);
+        assert_eq!(
+            opening.fen_epd,
+            Some("rnb2rk1/ppp2pbp/3p2p1/3Pp2n/2P1P2q/2N1BP2/PP1Q2PP/R3KBNR w KQ - 3 9".to_string())
+        );
+
+        let id = book.fetch_id();
+        assert!(id.is_some());
+        assert_eq!(id.unwrap(), 1);
+        let opening = book.get(id);
+        assert_eq!(
+            opening.fen_epd,
+            Some("r3kb1r/pppqpppp/1nn1b3/4P3/3P4/2NBB3/PP3PPP/R2QK1NR w KQkq - 7 9".to_string())
+        );
+    }
+
+    /// Test start parameter with random order and seed
+    #[test]
+    fn test_start_parameter_random_with_seed() {
+        use crate::types::{FormatType, OrderType, VariantType};
+
+        // Same seed, same start should produce deterministic results
+        let mut book1 = OpeningBook::new(
+            "./tests/data/openings.epd",
+            FormatType::Epd,
+            OrderType::Random,
+            -1,
+            2, // start = 2
+            3,
+            1,
+            0,
+            VariantType::Standard,
+            77777,
+        )
+        .unwrap();
+
+        let mut book2 = OpeningBook::new(
+            "./tests/data/openings.epd",
+            FormatType::Epd,
+            OrderType::Random,
+            -1,
+            2, // start = 2
+            3,
+            1,
+            0,
+            VariantType::Standard,
+            77777, // same seed
+        )
+        .unwrap();
+
+        // Both books should produce identical results
+        for _ in 0..3 {
+            let id1 = book1.fetch_id();
+            let id2 = book2.fetch_id();
+            assert_eq!(id1, id2);
+            let o1 = book1.get(id1);
+            let o2 = book2.get(id2);
+            assert_eq!(o1.fen_epd, o2.fen_epd);
+        }
+    }
+}

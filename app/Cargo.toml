@@ -56,7 +56,7 @@ lazy_static = "1.5"
 dashmap = "6"
 rand_mt = "6.0.0"
 pyrrhic-rs = { git = "https://github.com/Disservin/pyrrhic-rs/", rev = "ffa0adf4e17e9476d00ac314f20695827a1a6765" }
-chess-library-rs = { git = "https://github.com/Disservin/chess-library-rs/", rev = "81d81a7337e86176b514fdb9548cc71ca157ace4" }
+chess-library-rs = { git = "https://github.com/Disservin/chess-library-rs/", rev = "d86541a132f3987b974014309b0b379dfba53360" }
 colored = "3.1.1"
 
 # Unix-specific dependencies

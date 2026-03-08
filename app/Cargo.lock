@@ -75,7 +75,10 @@ checksum = "613afe47fcd5fac7ccf1db93babcb082c5994d996f20b8b159f2ad1658eb5724"
 [[package]]
 name = "chess-library-rs"
 version = "0.1.0"
-source = "git+https://github.com/Disservin/chess-library-rs/?rev=81d81a7337e86176b514fdb9548cc71ca157ace4#81d81a7337e86176b514fdb9548cc71ca157ace4"
+source = "git+https://github.com/Disservin/chess-library-rs/?rev=d86541a132f3987b974014309b0b379dfba53360#d86541a132f3987b974014309b0b379dfba53360"
+dependencies = [
+ "memchr",
+]
 
 [[package]]
 name = "chrono"

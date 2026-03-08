@@ -1,4 +1,4 @@
-# Script that downloads bin/gen.py from lichess-org/chess-openings, runs it to generate combined data, and updates 'openings_data.cpp' file
+# Script that downloads bin/gen.py from lichess-org/chess-openings, runs it to generate combined data, and updates the embedded Rust openings data file.
 
 import os
 import csv
@@ -6,18 +6,23 @@ import shutil
 import subprocess
 import sys
 from pathlib import Path
+
 try:
     import chess
     import chess.pgn
 except ImportError:
-    print("Error importing module: No module named 'chess'. Install with: 'pip3 install chess'")
+    print(
+        "Error importing module: No module named 'chess'. Install with: 'pip3 install chess'"
+    )
     sys.exit(1)
 try:
     import requests
 except ImportError:
-    print("Error importing module: No module named 'requests'. Install with: 'pip3 install requests'")
+    print(
+        "Error importing module: No module named 'requests'. Install with: 'pip3 install requests'"
+    )
     sys.exit(1)
-    
+
 # === CONFIGURATION ===
 REPO_BASE_URL = (
     "https://raw.githubusercontent.com/lichess-org/chess-openings/refs/heads/master"
@@ -26,7 +31,7 @@ GEN_SCRIPT_URL = f"{REPO_BASE_URL}/bin/gen.py"
 TSV_FILES = ["a.tsv", "b.tsv", "c.tsv", "d.tsv", "e.tsv"]
 SCRIPT_DIR = Path(__file__).resolve().parent
 SAVE_PATH = SCRIPT_DIR / "tmp"
-HEADER_PATH = SCRIPT_DIR.parent / "app" / "src" / "game" / "pgn" / "openings_data.cpp"
+OUTPUT_PATH = SCRIPT_DIR.parent / "app" / "src" / "game" / "pgn" / "openings_data.tsv"
 
 # === STEP 1: Create temporary directory ===
 os.makedirs(SAVE_PATH, exist_ok=True)
@@ -94,41 +99,33 @@ if not all_tsv_path.exists():
 
 print(f"all.tsv successfully generated at {all_tsv_path}")
 
-# === STEP 6: Write C++ header file ===
-print(f"Writing C++ header file to {HEADER_PATH}...")
+# === STEP 6: Write embedded data file ===
+print(f"Writing openings data to {OUTPUT_PATH}...")
 
 with (
     open(all_tsv_path, encoding="utf-8") as f,
-    open(HEADER_PATH, "w", encoding="utf-8", newline="\n") as out,
+    open(OUTPUT_PATH, "w", encoding="utf-8", newline="\n") as out,
 ):
     reader = csv.DictReader(f, delimiter="\t")
 
-    out.write("""
-#include <string_view>
-#include <unordered_map>
+    rows = []
+    for row in reader:
+        rows.append(
+            (
+                row["epd"].strip().replace('"', r'\\"'),
+                row["eco"].strip().replace('"', r'\\"'),
+                row["name"].strip().replace('"', r'\\"'),
+            )
+        )
 
-#include <game/pgn/openings_data.hpp>
-
-namespace fastchess::pgn {
-
-std::unordered_map<std::string_view, Opening> EPD_TO_OPENING = {
-""")
+    rows.sort(key=lambda entry: entry[0])
 
     count = 0
-    for row in reader:
-        epd = row["epd"].strip().replace('"', r"\"")
-        eco = row["eco"].strip().replace('"', r"\"")
-        name = row["name"].strip().replace('"', r"\"")
-        out.write(f'    {{"{epd}", {{"{eco}", "{name}"}}}},\n')
+    for epd, eco, name in rows:
+        out.write(f"{epd}\t{eco}\t{name}\n")
         count += 1
 
-    out.write("""
-};
-
-}  // namespace fastchess::pgn
-""")
-
-print(f"{HEADER_PATH} successfully written with {count} opening records.")
+print(f"{OUTPUT_PATH} successfully written with {count} opening records.")
 
 # === STEP 7: Cleanup ===
 if os.path.exists(SAVE_PATH):

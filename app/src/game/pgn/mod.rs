@@ -1,3 +1,7 @@
+use chess_library_rs::{
+    board::Board as ChessBoard, chess_move::Move as RawChessMove, uci::uci_to_move,
+};
+use std::sync::OnceLock;
 use thiserror::Error;
 
 use crate::game::timecontrol::TimeControlLimits;
@@ -8,6 +12,39 @@ use crate::types::{GameResult, MatchData, MatchTermination, MoveData, PgnConfig}
 use crate::variants::GameMove;
 
 const LINE_LENGTH: usize = 80;
+
+/*
+ * Data source:
+ *   https://github.com/lichess-org/chess-openings
+ *
+ * License:
+ *   CC0 1.0 Universal
+ *   https://creativecommons.org/publicdomain/zero/1.0/
+ *
+ * The following data was adapted from the Lichess "chess-openings" project.
+ * As stated in their repository, the content is released under the CC0 license,
+ * meaning it is dedicated to the public domain and may be freely used, modified,
+ * and distributed without restriction.
+ */
+
+const OPENINGS_DATA: &[u8] = include_bytes!("openings_data.tsv");
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+struct OpeningData<'a> {
+    eco: &'a str,
+    _name: &'a str,
+}
+
+static OPENINGS_BY_EPD: OnceLock<Vec<(&'static str, OpeningData<'static>)>> = OnceLock::new();
+
+fn find_opening(epd: &str) -> Option<OpeningData<'static>> {
+    let openings = PgnBuilder::openings_by_epd();
+
+    openings
+        .binary_search_by_key(&epd, |(opening_epd, _)| *opening_epd)
+        .ok()
+        .map(|index| openings[index].1)
+}
 
 pub struct PgnBuilder;
 
@@ -25,6 +62,11 @@ impl PgnBuilder {
         let white_name = &data.players.white.config.name;
         let black_name = &data.players.black.config.name;
         let is_frc = data.variant == VariantType::Frc;
+        let fen_str = if data.fen.is_empty() {
+            GameInstance::default_fen(data.variant).to_string()
+        } else {
+            data.fen.clone()
+        };
 
         // Standard headers (always emitted)
         headers.push(("Event".into(), config.event_name.clone()));
@@ -34,6 +76,10 @@ impl PgnBuilder {
         headers.push(("White".into(), white_name.clone()));
         headers.push(("Black".into(), black_name.clone()));
         headers.push(("Result".into(), result_str.to_string()));
+
+        if let Some(opening) = Self::get_opening_classification(data, &fen_str) {
+            headers.push(("ECO".into(), opening.eco.to_string()));
+        }
 
         // FEN/SetUp: emit if non-startpos OR if FRC variant
         if data.fen != GameInstance::default_fen(data.variant).to_string() || is_frc {
@@ -79,12 +125,6 @@ impl PgnBuilder {
         if !headers.is_empty() {
             pgn.push('\n');
         }
-
-        let fen_str = if data.fen.is_empty() {
-            GameInstance::default_fen(data.variant).to_string()
-        } else {
-            data.fen.clone()
-        };
 
         // todo variant, todo error
         let mut game =
@@ -196,6 +236,43 @@ impl PgnBuilder {
         Ok(pgn)
     }
 
+    fn get_opening_classification(
+        data: &MatchData,
+        initial_fen: &str,
+    ) -> Option<OpeningData<'static>> {
+        if data.variant != VariantType::Standard {
+            return None;
+        }
+
+        let mut board = ChessBoard::from_fen(initial_fen);
+        let mut current_opening = find_opening(&board.get_fen(false));
+
+        for mv in &data.moves {
+            if !mv.legal {
+                break;
+            }
+
+            let notation = mv
+                .r#move
+                .as_ref()
+                .map(|game_move| game_move.to_uci())
+                .unwrap_or_else(|| mv.notation.clone());
+            let chess_move = uci_to_move(&board, &notation);
+
+            if chess_move.raw() == RawChessMove::NO_MOVE {
+                break;
+            }
+
+            board.make_move(chess_move, false);
+
+            if let Some(opening) = find_opening(&board.get_fen(false)) {
+                current_opening = Some(opening);
+            }
+        }
+
+        current_opening
+    }
+
     /// Parse FEN to determine side to move and starting move counter.
     /// Returns (black_starts, start_move_counter).
     /// The move counter is: int(black_to_move) + 2*fullMoveNumber - 1
@@ -208,6 +285,25 @@ impl PgnBuilder {
         let move_counter = (if black_starts { 1 } else { 0 }) + 2 * full_move_number - 1;
 
         (black_starts, move_counter)
+    }
+
+    fn openings_by_epd() -> &'static [(&'static str, OpeningData<'static>)] {
+        OPENINGS_BY_EPD.get_or_init(|| {
+            let text =
+                std::str::from_utf8(OPENINGS_DATA).expect("openings data must be valid UTF-8");
+
+            text.lines()
+                .filter(|line| !line.is_empty())
+                .map(|line| {
+                    let mut parts = line.splitn(3, '\t');
+                    let epd = parts.next().expect("opening row missing epd");
+                    let eco = parts.next().expect("opening row missing eco");
+                    let name = parts.next().expect("opening row missing name");
+
+                    (epd, OpeningData { eco, _name: name })
+                })
+                .collect()
+        })
     }
 
     /// Convert a move to the requested notation given a game position.
@@ -714,6 +810,71 @@ mod tests {
             "Should have 1... e5 for black-to-move start, got: {}",
             pgn
         );
+    }
+
+    #[test]
+    fn test_eco_header_uses_deepest_matching_opening() {
+        let config = make_config();
+        let mut data = MatchData::default();
+        data.fen = STARTPOS.to_string();
+        data.date = "2025.01.15".to_string();
+        data.termination = MatchTermination::Normal;
+        data.players = GamePair::new(
+            make_player("Engine1", GameResult::Draw),
+            make_player("Engine2", GameResult::Draw),
+        );
+
+        let mut game = ChessGame::new();
+        data.moves = vec![
+            make_move(&mut game, "e2e4", "+0.10", 10, 100),
+            make_move(&mut game, "e7e5", "-0.10", 10, 100),
+            make_move(&mut game, "g1f3", "+0.10", 10, 100),
+        ];
+
+        let pgn = PgnBuilder::build(&config, &data, 1).unwrap();
+
+        assert!(pgn.contains("[ECO \"C40\"]"), "got: {}", pgn);
+    }
+
+    #[test]
+    fn test_eco_header_uses_initial_position_when_moves_do_not_match() {
+        let config = make_config();
+        let mut data = MatchData::default();
+        data.fen = "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1".to_string();
+        data.date = "2025.01.15".to_string();
+        data.termination = MatchTermination::IllegalMove;
+        data.players = GamePair::new(
+            make_player("Engine1", GameResult::Lose),
+            make_player("Engine2", GameResult::Win),
+        );
+        data.moves = vec![MoveData {
+            r#move: None,
+            notation: "e7e6".to_string(),
+            legal: false,
+            ..MoveData::default()
+        }];
+
+        let pgn = PgnBuilder::build(&config, &data, 1).unwrap();
+
+        assert!(pgn.contains("[ECO \"B00\"]"), "got: {}", pgn);
+    }
+
+    #[test]
+    fn test_eco_header_omitted_for_chess960() {
+        let config = make_config();
+        let mut data = MatchData::default();
+        data.fen = STARTPOS.to_string();
+        data.variant = VariantType::Frc;
+        data.date = "2025.01.15".to_string();
+        data.termination = MatchTermination::Normal;
+        data.players = GamePair::new(
+            make_player("Engine1", GameResult::Draw),
+            make_player("Engine2", GameResult::Draw),
+        );
+
+        let pgn = PgnBuilder::build(&config, &data, 1).unwrap();
+
+        assert!(!pgn.contains("[ECO "));
     }
 
     #[test]

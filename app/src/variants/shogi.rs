@@ -946,15 +946,6 @@ impl Game {
         self.current_position.stm
     }
 
-    pub fn usi_string(&self) -> String {
-        let mut string = format!("sfen {}", self.history[0]);
-        if !self.moves.is_empty() {
-            string += " moves";
-            string.extend(self.moves.iter().map(|m| format!(" {m}")));
-        }
-        string
-    }
-
     pub fn do_move(&mut self, m: Move) -> GameOutcome {
         let stm = self.current_position.stm;
 

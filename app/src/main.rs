@@ -35,12 +35,9 @@ fn run() -> Result<(), String> {
         tournament_config.log.engine_coms,
     );
 
-    // 3. Seed RNG
-    //    The C++ code calls srand(config.seed). In Rust, rand is not globally seeded
-    //    the same way, but the opening book shuffle uses the seed directly.
     log_trace!("Using seed: {}", tournament_config.seed);
 
-    // 4. Determine scheduler variant from tournament type
+    // 3. Determine scheduler variant from tournament type
     let variant = match tournament_config.r#type {
         TournamentType::RoundRobin => SchedulerVariant::RoundRobin,
         TournamentType::Gauntlet => SchedulerVariant::Gauntlet {
@@ -48,11 +45,11 @@ fn run() -> Result<(), String> {
         },
     };
 
-    // 5. Set global configs (must happen before Tournament::new reads them)
+    // 4. Set global configs (must happen before Tournament::new reads them)
     config::set_tournament_config(tournament_config);
     config::set_engine_configs(engine_configs);
 
-    // 5.5 Initialize Syzygy tablebases if configured
+    // 4.1 Initialize Syzygy tablebases if configured
     let tb_config = &config::tournament_config().tb_adjudication;
     if tb_config.enabled && !tb_config.syzygy_dirs.is_empty() {
         syzygy::init_tablebase(&tb_config.syzygy_dirs);
@@ -64,7 +61,7 @@ fn run() -> Result<(), String> {
         }
     }
 
-    // 6. Set up Ctrl+C handler
+    // 5. Set up Ctrl+C handler
     ctrlc::set_handler(move || {
         if !fastchess::STOP.swap(true, Ordering::SeqCst) {
             set_abnormal_termination();
@@ -73,13 +70,13 @@ fn run() -> Result<(), String> {
     })
     .map_err(|e| format!("Failed to set Ctrl+C handler: {}", e))?;
 
-    // 7. Create and run the tournament
+    // 6. Create and run the tournament
     let mut tournament = Tournament::new(&results, variant)?;
 
     log_info!("Starting tournament...");
     tournament.start();
 
-    // 8. Report elapsed time
+    // 7. Report elapsed time
     let elapsed = start_time.elapsed();
     let total_secs = elapsed.as_secs();
     let hours = total_secs / 3600;

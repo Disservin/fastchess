@@ -9,7 +9,6 @@ use crate::variants::GameMove;
 
 const LINE_LENGTH: usize = 80;
 
-/// Builds a PGN string from match data, matching the C++ fastchess output format.
 pub struct PgnBuilder;
 
 #[derive(Error, Debug, Clone)]
@@ -71,7 +70,7 @@ impl PgnBuilder {
         // Build PGN string
         let mut pgn = String::with_capacity(2048);
 
-        // Emit headers (skip empty values, matching C++ addHeader behavior)
+        // Emit headers
         for (key, value) in &headers {
             if !key.is_empty() && !value.is_empty() {
                 pgn.push_str(&format!("[{} \"{}\"]\n", key, value));
@@ -91,17 +90,13 @@ impl PgnBuilder {
         let mut game =
             GameInstance::from_fen(&fen_str, data.variant).ok_or(PgnError::InvalidGame)?;
 
-        // Compute starting move counter from FEN (matching C++ logic)
-        // C++ computes: move_number = int(black_to_move) + 2*fullMoveNumber - 1
-        // This is the 1-based ply offset used for move numbering.
+        // Compute starting move counter from FEN
         let (black_starts, start_move_counter) = Self::parse_fen_move_info(&fen_str);
 
         // Check if first move is illegal
         let first_illegal = !data.moves.is_empty() && !data.moves[0].legal;
 
         if first_illegal {
-            // C++ adds: addMove("", reason + ": " + first_move)
-            // Which produces: {reason: move} result
             let move_str = data.moves[0]
                 .r#move
                 .as_ref()
@@ -240,7 +235,7 @@ impl PgnBuilder {
         result
     }
 
-    /// Create a comment string for a move, matching C++ format:
+    /// Create a comment string for a move.
     /// `{score_string/depth time, tl=..., latency=..., n=..., ...}`
     ///
     /// For book moves: `{book}`
@@ -323,8 +318,6 @@ impl PgnBuilder {
         }
 
         // Join with ", " but skip empty parts
-        // C++ uses: ss << first; ((ss << (empty ? "" : ", ") << arg), ...);
-        // This means: first part has no comma, subsequent non-empty parts get ", " prefix
         let mut result = String::new();
         for part in &parts {
             if part.is_empty() {
@@ -363,17 +356,15 @@ impl PgnBuilder {
     }
 }
 
-/// Format milliseconds to seconds with 3 decimal places, matching C++ formatTime.
+/// Format milliseconds to seconds with 3 decimal places.
 /// E.g. 1234 -> "1.234s"
 fn format_time(millis: i64) -> String {
     format!("{:.3}s", millis as f64 / 1000.0)
 }
 
 /// Format a TimeControlLimits for PGN header output.
-/// Matches C++ operator<< for TimeControl.
 fn format_tc(tc: &TimeControlLimits) -> String {
     if tc.fixed_time > 0 {
-        // C++ uses setprecision(8) + noshowpoint
         let secs = tc.fixed_time as f64 / 1000.0;
         return format!("{}/move", format_float_no_trailing_zeros(secs));
     }
@@ -395,7 +386,7 @@ fn format_tc(tc: &TimeControlLimits) -> String {
     s
 }
 
-/// Format a float removing unnecessary trailing zeros (matching C++ noshowpoint behavior).
+/// Format a float removing unnecessary trailing zeros.
 fn format_float_no_trailing_zeros(v: f64) -> String {
     // If it's an integer value, show without decimal point
     if v == v.floor() {
@@ -615,7 +606,7 @@ mod tests {
 
         let pgn = PgnBuilder::build(&config, &data, 1).unwrap();
 
-        // C++ format: {score/depth time, tl=..., latency=..., n=..., sd=...}
+        // {score/depth time, tl=..., latency=..., n=..., sd=...}
         assert!(pgn.contains("+0.50/20 1.234s"));
         assert!(pgn.contains("tl=59.000s"));
         assert!(pgn.contains("latency=0.005s"));
@@ -688,7 +679,7 @@ mod tests {
 
         let pgn = PgnBuilder::build(&config, &data, 1).unwrap();
 
-        // SetUp should come before FEN (matching C++)
+        // SetUp should come before FEN
         let setup_pos = pgn.find("[SetUp").unwrap();
         let fen_pos = pgn.find("[FEN").unwrap();
         assert!(setup_pos < fen_pos, "SetUp should come before FEN");
@@ -1177,7 +1168,7 @@ mod tests {
         );
     }
 
-    // Additional edge case tests ported from C++ pgn_builder_test.cpp
+    // Additional edge case tests
 
     /// Test PGN with Black winning.
     #[test]

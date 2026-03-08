@@ -1,7 +1,5 @@
 //! UCI/USI engine management — the protocol layer between process I/O and game logic.
 //!
-//! Ports `engine/uci_engine.hpp` and `engine/uci_engine.cpp` from C++.
-//!
 //! This module manages a chess/shogi engine that speaks the UCI or USI protocol.
 //! It wraps a [`Process`] and provides high-level methods such as [`UciEngine::start`],
 //! [`UciEngine::go`], [`UciEngine::ucinewgame`], etc.
@@ -81,8 +79,6 @@ pub struct InfoData {
 }
 
 // ── Default timing constants ─────────────────────────────────────────────────
-// These mirror the C++ `config::TournamentConfig` defaults.  When a proper
-// config system is ported they should come from there instead.
 
 const DEFAULT_PING_TIME: Duration = Duration::from_millis(10_000);
 const DEFAULT_UCINEWGAME_TIME: Duration = Duration::from_millis(30_000);

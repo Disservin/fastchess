@@ -1,6 +1,4 @@
 //! Scoreboard for tracking per-pair engine match statistics.
-//!
-//! Ports `matchmaking/scoreboard.hpp` from C++.
 
 use std::collections::HashMap;
 use std::sync::Mutex;

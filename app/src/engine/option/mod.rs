@@ -1,8 +1,4 @@
 //! UCI option types and parsing.
-//!
-//! Ports the C++ `engine/option/` module. The C++ code uses virtual dispatch
-//! (UCIOption base class + derived classes). In Rust, we use an enum for the
-//! different option types, which is more natural and avoids heap allocation.
 
 use std::fmt;
 

@@ -3,9 +3,6 @@ use std::io::Write;
 use std::sync::Mutex;
 
 /// Thread-safe file writer with optional CRC32 checksumming.
-///
-/// Mirrors the C++ `util::FileWriter` which protects writes with a mutex
-/// and optionally appends a CRC32 checksum.
 pub struct FileWriter {
     inner: Mutex<FileWriterInner>,
 }

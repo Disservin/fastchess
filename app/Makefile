@@ -1,6 +1,3 @@
-# Rust Cargo wrapper Makefile
-# This Makefile provides a compatibility layer between the old C++ build system
-# and the new Rust cargo-based build system
 
 BINARY_PATH ?= ..
 TARGET_DIR := target

@@ -1,6 +1,4 @@
 //! Configuration validation and sanitization.
-//!
-//! Ports `cli/sanitize.cpp` from C++.
 
 use crate::types::engine_config::EngineConfiguration;
 use crate::types::enums::*;

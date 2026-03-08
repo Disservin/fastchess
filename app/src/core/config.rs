@@ -1,9 +1,4 @@
 //! Global tournament configuration.
-//!
-//! Ports `core/config/config.hpp` from C++.
-//!
-//! The C++ code uses `inline std::unique_ptr<Tournament>` globals. In Rust we
-//! use `OnceLock` for safe, single-initialization global state.
 
 use std::sync::OnceLock;
 

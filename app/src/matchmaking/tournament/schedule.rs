@@ -24,9 +24,6 @@ pub enum SchedulerVariant {
 
 /// Tournament scheduler that generates pairings for games.
 ///
-/// Replaces the C++ `Scheduler` → `TournamentSchedulerBase` → `RoundRobinScheduler` / `GauntletScheduler`
-/// virtual class hierarchy with a single struct + enum variant.
-///
 /// The scheduler **owns** the opening book to avoid lifetime issues with
 /// `Arc<Mutex<Scheduler>>`. Since opening books can be very large (up to 1GB),
 /// ownership ensures there's only one copy in memory.
@@ -359,10 +356,6 @@ mod tests {
 
         let p2 = sched.next().unwrap();
         assert_eq!(p2.game_id, 4);
-
-        // But note: the C++ code doesn't truly fast-forward the pairing state on resumption.
-        // It only advances game_counter and current_round. The pair iteration still starts from (0,1).
-        // This test verifies the game_id numbering continues correctly.
     }
 
     #[test]

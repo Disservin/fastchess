@@ -7,7 +7,6 @@
 //!   handing them out to threadpool workers via `consume()`.
 //! - `CpuGuard` — RAII guard that releases the CPU core back to the pool on drop.
 //!
-//! Ports `affinity/affinity.hpp` and `affinity/affinity_manager.hpp` from C++.
 
 pub mod cpu_info;
 
@@ -295,7 +294,6 @@ enum HtGroup {
 
 /// A processor entry in the affinity pool.
 ///
-/// This is the Rust equivalent of C++ `AffinityProcessor : ScopeEntry`.
 /// The `available` flag is atomic so it can be checked from any thread.
 #[derive(Debug)]
 struct AffinityProcessor {

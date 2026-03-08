@@ -1,10 +1,4 @@
 //! Output formatting for tournament results.
-//!
-//! Ports `matchmaking/output/output.hpp`, `output_fastchess.hpp`,
-//! `output_cutechess.hpp`, and `output_factory.hpp` from C++.
-//!
-//! The C++ code uses virtual dispatch (IOutput → Fastchess / Cutechess).
-//! In Rust we use a trait `Output` with two implementations.
 
 use crate::engine::uci_engine::UciEngine;
 use crate::matchmaking::elo::{self, EloResult};

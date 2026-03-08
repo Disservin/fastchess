@@ -1,6 +1,4 @@
 //! Per-player timeout and disconnect tracking.
-//!
-//! Ports `matchmaking/timeout_tracker.hpp` from C++.
 
 use std::collections::HashMap;
 use std::sync::Mutex;

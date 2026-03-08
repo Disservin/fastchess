@@ -1,7 +1,5 @@
 //! Match runner — orchestrates a single game between two UCI engines.
 //!
-//! Ports `matchmaking/match/match.hpp` and `match.cpp` from C++.
-//!
 //! The `Match` struct handles the full lifecycle:
 //! 1. Set up the board from the opening position
 //! 2. Start both engines

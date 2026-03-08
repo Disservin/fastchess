@@ -1,8 +1,6 @@
 //! Command-line argument parser.
 //!
-//! Ports `cli/cli.hpp`, `cli/cli.cpp`, and `cli/sanitize.cpp` from C++.
-//!
-//! The parser uses a hand-rolled option-registry pattern similar to the C++ version.
+//! The parser uses a hand-rolled option-registry pattern.
 //! Each CLI flag is registered with a `ParamStyle` that determines how its
 //! parameters are consumed, and handlers populate an `ArgumentData` struct
 //! that contains the `TournamentConfig`, engine configs, and saved stats.
@@ -81,7 +79,6 @@ impl OptionsParser {
     /// The `args` should be the raw argv (including program name at index 0).
     pub fn new(args: &[String]) -> Result<Self, String> {
         if args.len() <= 1 {
-            // In C++ this prints help and exits; here we return an error.
             return Err("No arguments provided. Use -help for usage information.".to_string());
         }
 
@@ -839,7 +836,6 @@ impl OptionsParser {
                     .map_err(|_| format!("Invalid concurrency value: {}", value))?;
 
                 // Negative or zero means "hardware_threads - abs(value)"
-                // This matches the C++ behavior: -concurrency -2 means "use all threads except 2"
                 if concurrency_raw <= 0 {
                     let hw_threads = std::thread::available_parallelism()
                         .map(|n| n.get())

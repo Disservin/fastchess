@@ -1,7 +1,4 @@
 //! Adjudication trackers for draw, resign, max-moves, and tablebase conditions.
-//!
-//! Ports the `DrawTracker`, `ResignTracker`, `MaxMovesTracker`, and
-//! `TbAdjudicationTracker` classes from `matchmaking/match/match.hpp`.
 
 use crate::engine::uci_engine::{Score, ScoreType};
 use crate::game::syzygy::{self, TbProbeResult};

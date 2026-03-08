@@ -1,11 +1,4 @@
 //! Tournament runner — orchestrates a complete tournament of games.
-//!
-//! Ports `matchmaking/tournament/base/tournament.hpp/cpp` and
-//! `matchmaking/tournament/roundrobin/roundrobin.hpp/cpp` from C++.
-//!
-//! In C++, there's a `BaseTournament` → `RoundRobin` → `Gauntlet` hierarchy.
-//! Since `Gauntlet` only differs in the scheduler (which we handle via
-//! `SchedulerVariant`), we merge everything into a single `Tournament` struct.
 
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::{Arc, Mutex};
@@ -376,9 +369,6 @@ impl Tournament {
     }
 
     /// Merge all per-pair stats from the scoreboard into a StatsMap.
-    ///
-    /// This mirrors the C++ `merged_results` lambda that iterates all
-    /// engine pairs and collects their stats.
     fn merge_results(&self) -> StatsMap {
         let engine_configs = config::engine_configs();
         let mut map = StatsMap::new();
@@ -409,7 +399,6 @@ impl Tournament {
 
 /// Check whether the score interval should trigger at the current match count.
 ///
-/// C++: `(match_count_ + 1) % cfg.scoreinterval == 0`
 /// Called before incrementing match_count, so we add 1.
 fn score_report_due(match_count: u64, scoreinterval: i32) -> bool {
     let idx = match_count + 1;
@@ -418,7 +407,6 @@ fn score_report_due(match_count: u64, scoreinterval: i32) -> bool {
 
 /// Check whether all matches have been played.
 ///
-/// C++: `match_count_ + 1 == final_matchcount_`
 fn matches_exhausted(match_count: u64, final_matchcount: u64) -> bool {
     match_count + 1 == final_matchcount
 }

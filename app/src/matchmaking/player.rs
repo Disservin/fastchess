@@ -1,6 +1,4 @@
 //! Player wrapper around a UCI engine and its time control.
-//!
-//! Ports `matchmaking/player.hpp` from C++.
 
 use std::time::Duration;
 

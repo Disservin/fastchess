@@ -1,6 +1,4 @@
 //! Win/Loss/Draw statistics with pentanomial pair tracking.
-//!
-//! Ports `matchmaking/stats.hpp` from C++.
 
 use serde::{Deserialize, Serialize};
 use std::ops;

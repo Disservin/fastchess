@@ -202,10 +202,10 @@ template <size_t N>
 double SPRT::getLLR_logistic(double total, std::array<double, N> scores, std::array<double, N> probs, double s0,
                              double s1) const noexcept {
     // Compute the maximum likelihood estimate for a discrete probability distribution with an expectation of s,
-    // given an empirical distribution. See proposition 1.1 of [1] for details.
+    // given an empirical distribution. See Proposition 1.1 of [1] for details.
     //
-    // [1]: Michel Van den Bergh, Comments on Normalized Elo,
-    // https://www.cantate.be/Fishtest/normalized_elo_practical.pdf
+    // [1]: Michel Van den Bergh, Comparing the approximations for the generalized log likelihood ratio of a
+    // multinomial distribution, https://www.cantate.be/Fishtest/comparing_approximations.pdf
     const auto mle = [&](double s) -> std::array<double, N> {
         const double theta_epsilon = 1e-3;
 
@@ -245,9 +245,9 @@ template <size_t N>
 double SPRT::getLLR_normalized(double total, std::array<double, N> scores, std::array<double, N> probs, double t0,
                                double t1) const noexcept {
     // Compute the maximum likelihood estimate for a discrete probability distribution that has t = (mu - mu_ref) /
-    // sigma, given an empirical distribution. See section 4.1 of [1] for details.
+    // sigma, given an empirical distribution. See Section 4.1 of [1] for details.
     //
-    // [1]: Michel Van den Bergh, Comments on Normalized Elo,
+    // [1]: Michel Van den Bergh, Comments on normalized Elo,
     // https://www.cantate.be/Fishtest/normalized_elo_practical.pdf
     const auto mle = [&](double mu_ref, double t_star) -> std::array<double, N> {
         const double theta_epsilon = 1e-7;

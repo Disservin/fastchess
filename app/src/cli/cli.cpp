@@ -673,6 +673,8 @@ void parseAffinity(const std::vector<std::string>& params, ArgumentData& argumen
 
 void parseMatePvs(ArgumentData& argument_data) { argument_data.tournament_config.check_mate_pvs = true; }
 
+void parsePonderPvs(ArgumentData& argument_data) { argument_data.tournament_config.check_ponder_pvs = true; }
+
 void parseLatency(ArgumentData& argument_data) { argument_data.tournament_config.show_latency = true; }
 
 void parseDebug(ArgumentData&) {
@@ -764,6 +766,7 @@ void OptionsParser::registerOptions() {
     addOption<ParamStyle::KeyValue>("quick", parseQuick);
     addOption("use-affinity", parseAffinity);
     addOption<ParamStyle::None>("check-mate-pvs", parseMatePvs);
+    addOption<ParamStyle::None>("check-ponder-pvs", parsePonderPvs);
     addOption<ParamStyle::None>("show-latency", parseLatency);
     addOption<ParamStyle::None>("debug", parseDebug);
     addOption<ParamStyle::None>("testEnv", parseTestEnv);

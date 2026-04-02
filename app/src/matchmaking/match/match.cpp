@@ -661,11 +661,23 @@ void Match::verifyPvLines(const Player& us) {
     // finally check if the final PV matches bestmove
     const auto best_move = us.engine.bestmove();
 
-    // skip the check if the final score is upperbound/lowerbound
-    const auto& info   = info_lines.back();
-    const auto isBound = engine::UciEngine::isBound(*info);
-    const auto pv      = engine::UciEngine::getPv(*info);
-    if (isBound || !pv.has_value() || pv->empty() || !best_move.has_value()) {
+    if (!best_move.has_value()) {
+        return;
+    }
+
+    // find the correct info line: search backwards for multipv 1 or no multipv
+    const auto it = std::find_if(info_lines.rbegin(), info_lines.rend(), [](const auto* line) {
+        return line->find(" multipv ") == std::string::npos || line->find(" multipv 1 ") != std::string::npos;
+    });
+
+    if (it == info_lines.rend()) {
+        return;
+    }
+
+    const auto& info   = **it;
+    const auto isBound = engine::UciEngine::isBound(info);
+    const auto pv      = engine::UciEngine::getPv(info);
+    if (isBound || !pv.has_value() || pv->empty()) {
         return;
     }
 
@@ -673,7 +685,7 @@ void Match::verifyPvLines(const Player& us) {
         auto warning   = "Warning; Bestmove does not match beginning of last PV - move {} from {}";
         auto start_pos = start_position_ == "startpos" ? "startpos" : ("fen " + start_position_);
         auto out       = fmt::format(fmt::runtime(warning), best_move.value(), us.engine.getConfig().name);
-        auto uci_info  = fmt::format("Info; {}", *info);
+        auto uci_info  = fmt::format("Info; {}", info);
         auto position  = fmt::format("Position; {}", start_pos);
         auto ucimoves  = fmt::format("Moves; {}", str_utils::join(uci_moves_, " "));
 

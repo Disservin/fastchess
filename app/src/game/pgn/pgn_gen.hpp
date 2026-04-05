@@ -71,7 +71,7 @@ class PGNGenerator {
         auto appendText = [&](const std::string& text) {
             // Check if adding this text exceeds 80 chars
             // +1 accounts for the space we might add
-            if (currentLineLength + text.length() + (currentLineLength > 0 ? 1 : 0) > 80) {
+            if (currentLineLength > 0 && currentLineLength + text.length() + 1 > 80) {
                 ss << "\n";
                 currentLineLength = 0;
             }

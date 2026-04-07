@@ -302,6 +302,30 @@ bool Match::playMove(Player& us, Player& them) {
         return false;
     }
 
+    auto usScore   = us.engine.lastScore();
+    auto themScore = them.engine.lastScore();
+
+    if (usScore.has_value() && themScore.has_value() && usScore.value().type == engine::ScoreType::MATE &&
+        themScore.value().type == engine::ScoreType::MATE) {
+        auto usMate   = usScore.value().value;
+        auto themMate = themScore.value().value;
+
+        // if both engines claim to have a proven win, only one of them can be right (same for loss)
+        if (usMate * themMate > 0) {
+            auto warning   = "Warning; Sign mismatch in mate scores {} and {} from {} and {}";
+            auto start_pos = start_position_ == "startpos" ? "startpos" : ("fen " + start_position_);
+            auto out       = fmt::format(fmt::runtime(warning), usMate, themMate, us.engine.getConfig().name,
+                                         them.engine.getConfig().name);
+            auto uci_info  = fmt::format("Infos; {} ; {}", us.engine.lastInfoLine(), them.engine.lastInfoLine());
+            auto position  = fmt::format("Position; {}", start_pos);
+            auto ucimoves  = fmt::format("Moves; {}", str_utils::join(uci_moves_, " "));
+
+            auto separator = config::TournamentConfig->test_env ? " :: " : "\n";
+
+            Logger::print<Logger::Level::WARN>("{1}{0}{2}{0}{3}{0}{4}", separator, out, uci_info, position, ucimoves);
+        }
+    }
+
     // make sure adjudicate is placed after normal termination as it has lower priority
     if (adjudicate(them, us)) {
         return false;

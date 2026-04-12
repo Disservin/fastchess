@@ -121,6 +121,27 @@ TEST_SUITE("Uci Engine Communication Tests") {
         CHECK(res2.code == engine::process::Status::OK);
         CHECK(uci_engine.getStdoutLines().size() == 1);
         CHECK(uci_engine.getStdoutLines()[0]->line == "done");
+
+        // check if ponder move is parsed correctly
+        CHECK(uci_engine.writeEngine("go depth 1"));
+        const auto res3 = uci_engine.readEngine("bestmove");
+        CHECK(res3.code == engine::process::Status::OK);
+        CHECK(uci_engine.getStdoutLines().size());
+        CHECK(uci_engine.outputIncludesBestmove());
+        const auto bestmove3 = uci_engine.bestmove();
+        CHECK(bestmove3.first.has_value());
+        CHECK(bestmove3.second.has_value());
+
+        // check if missing ponder move is parsed correctly
+        CHECK(uci_engine.writeEngine("position startpos moves f2f3 e7e5 g2g4"));
+        CHECK(uci_engine.writeEngine("go depth 1"));
+        const auto res4 = uci_engine.readEngine("bestmove");
+        CHECK(res4.code == engine::process::Status::OK);
+        CHECK(uci_engine.getStdoutLines().size());
+        CHECK(uci_engine.outputIncludesBestmove());
+        const auto bestmove4 = uci_engine.bestmove();
+        CHECK(bestmove4.first.has_value());
+        CHECK(!bestmove4.second.has_value());
     }
 
     TEST_CASE("Testing the EngineProcess class with lower level class functions") {

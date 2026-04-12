@@ -3,6 +3,7 @@
 #include <chrono>
 #include <optional>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include <chess.hpp>
@@ -107,8 +108,8 @@ class UciEngine {
             "Warning; Failed to set CPU affinity for the engine process to {}. Please restart.", cpu_str);
     }
 
-    // Get the bestmove from the last output.
-    [[nodiscard]] std::optional<std::string> bestmove() const;
+    // Get the bestmove (and possibly ponder move) from the last output.
+    [[nodiscard]] std::pair<std::optional<std::string>, std::optional<std::string>> bestmove() const;
 
     // Get the last info line from the last output.
     [[nodiscard]] std::string lastInfoLine() const;

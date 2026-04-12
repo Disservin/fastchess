@@ -78,6 +78,7 @@
   "report_penta": true,
   "affinity": false,
   "check_mate_pvs": true,
+  "warn_ponder_pv_short": true,
   "show_latency": true,
   "log": {
     "file": "",

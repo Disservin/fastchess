@@ -432,24 +432,27 @@ bool UciEngine::writeEngine(const std::string& input) {
     return process_.writeInput(input + "\n").code == process::Status::OK;
 }
 
-std::optional<std::string> UciEngine::bestmove() const {
+std::pair<std::optional<std::string>, std::optional<std::string>> UciEngine::bestmove() const {
     const auto lines = getStdoutLines();
     if (lines.empty()) {
         Logger::print<Logger::Level::WARN>("Warning; No output from {}", config_.name);
 
-        return std::nullopt;
+        return {std::nullopt, std::nullopt};
     }
 
-    const auto bm = str_utils::findElement<std::string>(str_utils::splitString(lines.back()->line, ' '), "bestmove");
+    const auto last_info = str_utils::splitString(lines.back()->line, ' ');
+    const auto bm        = str_utils::findElement<std::string>(last_info, "bestmove");
 
     if (!bm.has_value()) {
         Logger::print<Logger::Level::WARN>("Warning; No bestmove found in the last line from {} because: {}",
                                            config_.name, bm.error());
 
-        return std::nullopt;
+        return {std::nullopt, std::nullopt};
     }
 
-    return bm.value();
+    const auto pm = str_utils::findElement<std::string>(last_info, "ponder");
+
+    return {bm.value(), pm.has_value() ? std::optional<std::string>{pm.value()} : std::nullopt};
 }
 
 std::chrono::milliseconds UciEngine::lastTime() const {

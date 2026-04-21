@@ -157,9 +157,7 @@ impl PgnBuilder {
         let append_text = |pgn: &mut String, text: &str, current_line_length: &mut usize| {
             // Check if adding this text exceeds LINE_LENGTH
             // +1 accounts for the space we might add
-            if *current_line_length + text.len() + if *current_line_length > 0 { 1 } else { 0 }
-                > LINE_LENGTH
-            {
+            if *current_line_length > 0 && *current_line_length + text.len() + 1 > LINE_LENGTH {
                 pgn.push('\n');
                 *current_line_length = 0;
             }
@@ -977,6 +975,30 @@ mod tests {
                 panic!("Line too long ({} chars): {}", line.len(), line);
             }
         }
+    }
+
+    #[test]
+    fn test_line_wrapping_does_not_insert_leading_blank_line() {
+        let config = make_config();
+        let mut data = MatchData::default();
+        data.fen = STARTPOS.to_string();
+        data.date = "2025.01.15".to_string();
+        data.termination = MatchTermination::Normal;
+        data.players = GamePair::new(
+            make_player("E1", GameResult::Draw),
+            make_player("E2", GameResult::Draw),
+        );
+
+        let mut game = ChessGame::new();
+        let mut mv = make_move(&mut game, "e2e4", "+0.10", 10, 100);
+        mv.additional_lines = vec!["x".repeat(90)];
+        data.moves = vec![mv];
+
+        let pgn = PgnBuilder::build(&config, &data, 1).unwrap();
+
+        let move_section = pgn.split("\n\n").nth(1).unwrap_or("");
+        assert!(!move_section.starts_with('\n'));
+        assert!(move_section.starts_with("1. e4"));
     }
 
     #[test]

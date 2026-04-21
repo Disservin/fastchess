@@ -752,19 +752,18 @@ impl Match {
         }
 
         // Finally check if the final PV matches bestmove
-        if let Some(warning) = self.verify_bestmove_matches_pv(us, &info_lines) {
-            let last_info = info_lines.last().map(|l| l.line.as_str()).unwrap_or("");
-            self.log_pv_warning(&warning, last_info, engine_name, test_env);
+        if let Some((warning, info)) = self.verify_bestmove_matches_pv(us, &info_lines) {
+            self.log_pv_warning(&warning, info, engine_name, test_env);
         }
     }
 
-    /// Verify that bestmove matches the beginning of the last PV.
-    /// Returns Some(warning) if there's a mismatch, None otherwise.
-    fn verify_bestmove_matches_pv(
+    /// Verify that bestmove matches the beginning of the relevant PV line.
+    /// Returns Some((warning, info_line)) if there's a mismatch, None otherwise.
+    fn verify_bestmove_matches_pv<'a>(
         &self,
         us: &Player,
-        info_lines: &[&crate::engine::process::Line],
-    ) -> Option<String> {
+        info_lines: &'a [&'a crate::engine::process::Line],
+    ) -> Option<(String, &'a str)> {
         let engine_name = &us.engine.config().name;
 
         let best_move = match us.engine.bestmove() {
@@ -772,13 +771,18 @@ impl Match {
             _ => return None,
         };
 
-        // Skip the check if the final score is upperbound/lowerbound
-        let Some(last_info) = info_lines.last() else {
+        // Search backwards for the relevant PV: multipv 1 or a line without multipv.
+        let Some(info) = info_lines
+            .iter()
+            .rev()
+            .find(|line| !line.line.contains(" multipv ") || line.line.contains(" multipv 1 "))
+            .map(|line| line.line.as_str())
+        else {
             return None;
         };
 
-        let is_bound = UciEngine::is_bound(&last_info.line);
-        let pv = UciEngine::extract_pv_from_info(&last_info.line);
+        let is_bound = UciEngine::is_bound(info);
+        let pv = UciEngine::extract_pv_from_info(info);
 
         if is_bound {
             return None;
@@ -793,9 +797,12 @@ impl Match {
         }
 
         if best_move != pv_ref[0] {
-            return Some(format!(
-                "Warning; Bestmove does not match beginning of last PV - move {} from {}",
-                best_move, engine_name
+            return Some((
+                format!(
+                    "Warning; Bestmove does not match beginning of last PV - move {} from {}",
+                    best_move, engine_name
+                ),
+                info,
             ));
         }
 
@@ -1406,7 +1413,7 @@ mod tests {
         let warning = m.verify_bestmove_matches_pv(&player, &info_lines);
 
         assert!(warning.is_some());
-        let msg = warning.unwrap();
+        let (msg, _) = warning.unwrap();
         assert!(msg.contains("Bestmove does not match beginning of last PV"));
         assert!(msg.contains("d2d4"));
     }
@@ -1427,6 +1434,50 @@ mod tests {
             player.engine.get_info_lines().into_iter().collect();
 
         assert!(m.verify_bestmove_matches_pv(&player, &info_lines).is_none());
+    }
+
+    #[test]
+    fn test_bestmove_matches_last_multipv_1_line() {
+        use crate::types::engine_config::EngineConfiguration;
+        let tc = crate::types::tournament::TournamentConfig::default();
+        let m = Match::new(Opening::startpos(), &tc);
+        let cfg = EngineConfiguration::default();
+        let mut engine = UciEngine::new(&cfg, false).expect("Failed to create UciEngine");
+
+        engine.inject_output_line("info depth 10 score cp 25 multipv 1 pv e2e4 e7e5 g1f3");
+        engine.inject_output_line("info depth 10 score cp 20 multipv 2 pv d2d4 d7d5 c2c4");
+        engine.inject_output_line("bestmove e2e4");
+
+        let player = Player::new(&mut engine);
+        let info_lines: Vec<&crate::engine::process::Line> =
+            player.engine.get_info_lines().into_iter().collect();
+
+        assert!(m.verify_bestmove_matches_pv(&player, &info_lines).is_none());
+    }
+
+    #[test]
+    fn test_bestmove_mismatch_reports_multipv_1_line() {
+        use crate::types::engine_config::EngineConfiguration;
+        let tc = crate::types::tournament::TournamentConfig::default();
+        let m = Match::new(Opening::startpos(), &tc);
+        let cfg = EngineConfiguration::default();
+        let mut engine = UciEngine::new(&cfg, false).expect("Failed to create UciEngine");
+
+        engine.inject_output_line("info depth 10 score cp 25 multipv 1 pv e2e4 e7e5 g1f3");
+        engine.inject_output_line("info depth 10 score cp 20 multipv 2 pv d2d4 d7d5 c2c4");
+        engine.inject_output_line("bestmove g2g4");
+
+        let player = Player::new(&mut engine);
+        let info_lines: Vec<&crate::engine::process::Line> =
+            player.engine.get_info_lines().into_iter().collect();
+
+        let warning = m.verify_bestmove_matches_pv(&player, &info_lines);
+
+        assert!(warning.is_some());
+        let (msg, info) = warning.unwrap();
+        assert!(msg.contains("Bestmove does not match beginning of last PV"));
+        assert!(msg.contains("g2g4"));
+        assert!(info.contains(" multipv 1 "));
     }
 
     #[test]

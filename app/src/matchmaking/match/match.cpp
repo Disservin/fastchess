@@ -330,7 +330,7 @@ bool Match::playMove(Player& us, Player& them) {
     // prepare the engine for reading
     us.engine.setupReadEngine();
 
-    // wait for bestmove
+    // wait for output line starting with "bestmove"
     const auto t0     = clock::now();
     const auto status = us.engine.readEngineLowLat("bestmove", us.getTimeoutThreshold());
     const auto t1     = clock::now();

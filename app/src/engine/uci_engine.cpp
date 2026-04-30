@@ -436,16 +436,22 @@ std::optional<std::string> UciEngine::bestmove() const {
     const auto lines = getStdoutLines();
     if (lines.empty()) {
         Logger::print<Logger::Level::WARN>("Warning; No output from {}", config_.name);
-
         return std::nullopt;
     }
 
-    const auto bm = str_utils::findElement<std::string>(str_utils::splitString(lines.back()->line, ' '), "bestmove");
+    const auto& last_line = lines.back()->line;
+
+    if (last_line.rfind("bestmove", 0) != 0) {
+        Logger::print<Logger::Level::WARN>("Warning; No bestmove found in the last line from {} because: {}",
+                                           config_.name, "Line does not start with 'bestmove'");
+        return std::nullopt;
+    }
+
+    const auto bm = str_utils::findElement<std::string>(str_utils::splitString(last_line, ' '), "bestmove");
 
     if (!bm.has_value()) {
         Logger::print<Logger::Level::WARN>("Warning; No bestmove found in the last line from {} because: {}",
                                            config_.name, bm.error());
-
         return std::nullopt;
     }
 
@@ -525,7 +531,7 @@ std::optional<std::vector<std::string>> UciEngine::getPv(std::string_view info_l
 
 bool UciEngine::outputIncludesBestmove() const {
     for (const auto& line : getStdoutLines()) {
-        if (line->line.find("bestmove") != std::string::npos) return true;
+        if (line->line.rfind("bestmove", 0) == 0) return true;
     }
 
     return false;

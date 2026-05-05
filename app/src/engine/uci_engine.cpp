@@ -442,16 +442,18 @@ std::optional<std::string> UciEngine::bestmove() const {
     const auto& last_line = lines.back()->line;
 
     if (last_line.rfind("bestmove", 0) != 0) {
-        Logger::print<Logger::Level::WARN>("Warning; No bestmove found in the last line from {} because: {}",
-                                           config_.name, "Line does not start with 'bestmove'");
+        Logger::print<Logger::Level::WARN>(
+            "Warning; No bestmove found in the last line from {} because: {}. Last line was: {}", config_.name,
+            "Line does not start with 'bestmove'", last_line);
         return std::nullopt;
     }
 
     const auto bm = str_utils::findElement<std::string>(str_utils::splitString(last_line, ' '), "bestmove");
 
     if (!bm.has_value()) {
-        Logger::print<Logger::Level::WARN>("Warning; No bestmove found in the last line from {} because: {}",
-                                           config_.name, bm.error());
+        Logger::print<Logger::Level::WARN>(
+            "Warning; No bestmove found in the last line from {} because: {}. Last line was: {}", config_.name,
+            bm.error(), last_line);
         return std::nullopt;
     }
 

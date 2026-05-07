@@ -167,9 +167,8 @@ class Match {
 
     void setEngineCrashStatus(Player& loser, Player& winner);
     void setEngineStallStatus(Player& loser, Player& winner);
-    void setEngineTimeoutStatus(Player& loser, Player& winner);
-    void setEngineIllegalMoveStatus(Player& loser, Player& winner, const std::optional<std::string>& best_move,
-                                    bool invalid_format = false);
+    void setEngineTimeoutStatus(Player& loser, Player& winner, const std::optional<std::string>& best_move);
+    void setEngineIllegalMoveStatus(Player& loser, Player& winner, const std::optional<std::string>& best_move);
 
     void verifyPvLines(const Player& us, const std::string& best_move);
 

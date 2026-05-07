@@ -531,12 +531,4 @@ std::optional<std::vector<std::string>> UciEngine::getPv(std::string_view info_l
     return std::vector<std::string>(it_start, it_end);
 }
 
-bool UciEngine::outputIncludesBestmove() const {
-    for (const auto& line : getStdoutLines()) {
-        if (line->line.rfind("bestmove", 0) == 0) return true;
-    }
-
-    return false;
-}
-
 }  // namespace fastchess::engine

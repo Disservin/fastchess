@@ -127,9 +127,6 @@ class UciEngine {
     // Get the PV from an info line.
     [[nodiscard]] static std::optional<std::vector<std::string>> getPv(std::string_view info_line);
 
-    // returns false if the output doesn't include a bestmove
-    [[nodiscard]] bool outputIncludesBestmove() const;
-
     [[nodiscard]] const EngineConfiguration& getConfig() const noexcept { return config_; }
 
     std::vector<const process::Line*> getStdoutLines() const { return getLines(process::Standard::OUTPUT); }

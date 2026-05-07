@@ -382,21 +382,16 @@ bool Match::playMove(Player& us, Player& them) {
     // there are two reasons why best_move could be empty
     // 1. the engine crashed
     // 2. the engine did not respond in time
-    // we report a loss on time when the engine didnt respond in time
+    // we report a loss on time when the engine didn't respond in time
     // and otherwise an illegal move
-    if (best_move == std::nullopt) {
+    if (!best_move) {
         // Time forfeit
         if (timeout) {
-            setEngineTimeoutStatus(us, them);
+            setEngineTimeoutStatus(us, them, best_move);
         } else {
             setEngineIllegalMoveStatus(us, them, best_move);
         }
 
-        return false;
-    }
-
-    if (best_move && !uci::isUciMove(best_move.value())) {
-        setEngineIllegalMoveStatus(us, them, best_move, true);
         return false;
     }
 
@@ -407,7 +402,7 @@ bool Match::playMove(Player& us, Player& them) {
     }
 
     if (timeout) {
-        setEngineTimeoutStatus(us, them);
+        setEngineTimeoutStatus(us, them, best_move);
         return false;
     }
 
@@ -506,7 +501,7 @@ void Match::setEngineStallStatus(Player& loser, Player& winner) {
     LOG_WARN_THREAD("Engine {} stalls", name);
 }
 
-void Match::setEngineTimeoutStatus(Player& loser, Player& winner) {
+void Match::setEngineTimeoutStatus(Player& loser, Player& winner, const std::optional<std::string>& best_move) {
     loser.setLost();
     winner.setWon();
 
@@ -523,14 +518,13 @@ void Match::setEngineTimeoutStatus(Player& loser, Player& winner) {
 
     loser.engine.writeEngine("stop");
 
-    if (!loser.engine.outputIncludesBestmove()) {
+    if (!best_move) {
         // wait 10 seconds for the bestmove to appear
         loser.engine.readEngine("bestmove", 1000ms * 10);
     }
 }
 
-void Match::setEngineIllegalMoveStatus(Player& loser, Player& winner, const std::optional<std::string>& best_move,
-                                       bool invalid_format) {
+void Match::setEngineIllegalMoveStatus(Player& loser, Player& winner, const std::optional<std::string>& best_move) {
     loser.setLost();
     winner.setWon();
 
@@ -540,14 +534,13 @@ void Match::setEngineIllegalMoveStatus(Player& loser, Player& winner, const std:
     data_.termination = MatchTermination::ILLEGAL_MOVE;
     data_.reason      = color + Match::ILLEGAL_MSG;
 
-    auto mv = best_move.value_or("<none>");
-
-    if (invalid_format) {
+    if (best_move && !uci::isUciMove(*best_move)) {
         Logger::print<Logger::Level::WARN>(
-            "Warning; Move does not match uci move format, lowercase and 4/5 chars. Move {} played by {}", mv, name);
+            "Warning; Move does not match uci move format, lowercase and 4/5 chars. Move {} played by {}", *best_move,
+            name);
     }
 
-    Logger::print<Logger::Level::WARN>("Warning; Illegal move {} played by {}", mv, name);
+    Logger::print<Logger::Level::WARN>("Warning; Illegal move {} played by {}", best_move.value_or("<none>"), name);
 }
 
 void Match::verifyPvLines(const Player& us, const std::string& best_move) {

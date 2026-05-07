@@ -368,7 +368,7 @@ bool Match::playMove(Player& us, Player& them) {
         LOG_INFO_THREAD("Engine {} latency: {}ms (elapsed: {}, reported: {})", name, latency, elapsed_ms, last_time);
     }
 
-    const auto best_move = us.engine.bestmove();
+    const auto best_move = us.engine.bestmove(status.code == engine::process::Status::OK);
     const auto move      = best_move && uci::isUciMove(*best_move) ? uci::uciToMove(board_, *best_move) : Move::NO_MOVE;
     const auto legal     = isLegal(move);
 

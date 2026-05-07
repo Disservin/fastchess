@@ -432,32 +432,42 @@ bool UciEngine::writeEngine(const std::string& input) {
     return process_.writeInput(input + "\n").code == process::Status::OK;
 }
 
-std::optional<std::string> UciEngine::bestmove() const {
+std::optional<std::string> UciEngine::bestmove(bool warn_on_error) const {
+    const auto warn = [&](std::string_view reason, std::string_view last_line = {}) {
+        if (!warn_on_error) {
+            return;
+        }
+
+        if (last_line.empty()) {
+            Logger::print<Logger::Level::WARN>("Warning; No output from {}", config_.name);
+        } else {
+            Logger::print<Logger::Level::WARN>("Warning; No bestmove found from {} because: {}. Last line was: {}",
+                                               config_.name, reason, last_line);
+        }
+    };
+
     const auto lines = getStdoutLines();
+
     if (lines.empty()) {
-        Logger::print<Logger::Level::WARN>("Warning; No output from {}", config_.name);
+        warn("No output");
         return std::nullopt;
     }
 
     const auto& last_line = lines.back()->line;
 
     if (last_line.rfind("bestmove", 0) != 0) {
-        Logger::print<Logger::Level::WARN>(
-            "Warning; No bestmove found in the last line from {} because: {}. Last line was: {}", config_.name,
-            "Line does not start with 'bestmove'", last_line);
+        warn("Line does not start with 'bestmove'", last_line);
         return std::nullopt;
     }
 
     const auto bm = str_utils::findElement<std::string>(str_utils::splitString(last_line, ' '), "bestmove");
 
     if (!bm.has_value()) {
-        Logger::print<Logger::Level::WARN>(
-            "Warning; No bestmove found in the last line from {} because: {}. Last line was: {}", config_.name,
-            bm.error(), last_line);
+        warn(bm.error(), last_line);
         return std::nullopt;
     }
 
-    return bm.value();
+    return *bm;
 }
 
 std::chrono::milliseconds UciEngine::lastTime() const {

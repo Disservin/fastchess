@@ -108,7 +108,7 @@ class UciEngine {
     }
 
     // Get the bestmove from the last output.
-    [[nodiscard]] std::optional<std::string> bestmove() const;
+    [[nodiscard]] std::optional<std::string> bestmove(bool warn_on_error = true) const;
 
     // Get the last info line from the last output.
     [[nodiscard]] std::string lastInfoLine() const;

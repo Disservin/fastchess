@@ -171,10 +171,11 @@ class Match {
     void setEngineIllegalMoveStatus(Player& loser, Player& winner, const std::optional<std::string>& best_move,
                                     bool invalid_format = false);
 
-    void verifyPvLines(const Player& us);
+    void verifyPvLines(const Player& us, const std::string& best_move);
 
     // append the move data to the match data
-    void addMoveData(const Player& player, int64_t latency, int64_t measured_time_ms, int64_t timeleft, bool legal);
+    void addMoveData(const Player& player, const std::string& move, int64_t measured_time_ms, int64_t latency,
+                     int64_t timeleft, bool legal);
 
     // returns false if the next move could not be played
     [[nodiscard]] bool playMove(Player& us, Player& them);

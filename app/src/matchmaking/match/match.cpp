@@ -110,9 +110,8 @@ std::string Match::convertScoreToString(engine::Score score) {
     return "ERR";
 }
 
-void Match::addMoveData(const Player& player, int64_t measured_time_ms, int64_t latency, int64_t timeleft, bool legal) {
-    const auto move = player.engine.bestmove().value_or("<none>");
-
+void Match::addMoveData(const Player& player, const std::string& move, int64_t measured_time_ms, int64_t latency,
+                        int64_t timeleft, bool legal) {
     MoveData move_data;
 
     move_data.move           = move;
@@ -171,7 +170,7 @@ void Match::addMoveData(const Player& player, int64_t measured_time_ms, int64_t 
         }
     }
 
-    verifyPvLines(player);
+    verifyPvLines(player, legal ? move : "");
 
     data_.moves.push_back(move_data);
     uci_moves_.push_back(move);
@@ -370,14 +369,14 @@ bool Match::playMove(Player& us, Player& them) {
     }
 
     const auto best_move = us.engine.bestmove();
-    const auto move      = best_move ? uci::uciToMove(board_, *best_move) : Move::NO_MOVE;
+    const auto move      = best_move && uci::isUciMove(*best_move) ? uci::uciToMove(board_, *best_move) : Move::NO_MOVE;
     const auto legal     = isLegal(move);
 
     const auto timeout  = us.hasTimeControl() ? !us.getTimeControl().updateTime(elapsed_ms) : false;
     const auto timeleft = us.hasTimeControl() ? us.getTimeControl().getTimeLeft() : 0;
 
     if (best_move) {
-        addMoveData(us, elapsed_ms, latency, timeleft, legal && uci::isUciMove(best_move.value()));
+        addMoveData(us, *best_move, elapsed_ms, latency, timeleft, legal);
     }
 
     // there are two reasons why best_move could be empty
@@ -551,7 +550,7 @@ void Match::setEngineIllegalMoveStatus(Player& loser, Player& winner, const std:
     Logger::print<Logger::Level::WARN>("Warning; Illegal move {} played by {}", mv, name);
 }
 
-void Match::verifyPvLines(const Player& us) {
+void Match::verifyPvLines(const Player& us, const std::string& best_move) {
     const static auto verifyPv = [](Board board, const std::string& startpos, const std::vector<std::string>& uci_moves,
                                     const std::string& info, std::string_view name) {
         // skip lines without pv
@@ -659,9 +658,7 @@ void Match::verifyPvLines(const Player& us) {
     }
 
     // finally check if the final PV matches bestmove
-    const auto best_move = us.engine.bestmove();
-
-    if (!best_move.has_value()) {
+    if (best_move.empty()) {
         return;
     }
 
@@ -681,10 +678,10 @@ void Match::verifyPvLines(const Player& us) {
         return;
     }
 
-    if (best_move.value() != (*pv)[0]) {
+    if (best_move != (*pv)[0]) {
         auto warning   = "Warning; Bestmove does not match beginning of last PV - move {} from {}";
         auto start_pos = start_position_ == "startpos" ? "startpos" : ("fen " + start_position_);
-        auto out       = fmt::format(fmt::runtime(warning), best_move.value(), us.engine.getConfig().name);
+        auto out       = fmt::format(fmt::runtime(warning), best_move, us.engine.getConfig().name);
         auto uci_info  = fmt::format("Info; {}", info);
         auto position  = fmt::format("Position; {}", start_pos);
         auto ucimoves  = fmt::format("Moves; {}", str_utils::join(uci_moves_, " "));

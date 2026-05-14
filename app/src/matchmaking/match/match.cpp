@@ -56,7 +56,7 @@ bool isFen(const std::string& line) { return line.find(';') == std::string::npos
 
 // if both engines have made a move in this game, we perform a sanity check on their scores
 template <typename TScore>
-void checkMateScoreSignMismatch(const Player& us, const Player& them, const Board& board,
+void checkMateScoreSignMismatch(const Player& them, const Player& us, const Board& board,
                                 const std::string& start_position, const MatchData& data, const TScore& usScore) {
     if (data.moves.size() <= 1) return;
 
@@ -456,7 +456,7 @@ bool Match::playMove(Player& us, Player& them) {
 
     maxmoves_tracker_.update();
 
-    checkMateScoreSignMismatch(us, them, board_, start_position_, data_, usScore);
+    checkMateScoreSignMismatch(them, us, board_, start_position_, data_, usScore);
 
     return true;
 }

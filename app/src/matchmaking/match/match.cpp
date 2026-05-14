@@ -420,7 +420,7 @@ bool Match::playMove(Player& us, Player& them) {
 
     // if both engines have made a move in this game, we perform a sanity check on their scores
     auto themScore =
-        uci_moves_.size() > 1 ? them.engine.lastScore() : tl::make_unexpected(std::string("No score yet"));
+        data_.getMoves().size() > 1 ? them.engine.lastScore() : tl::make_unexpected(std::string("No score yet"));
 
     if (themScore.has_value() && usScore.has_value() && themScore.value().type == engine::ScoreType::MATE &&
         usScore.value().type == engine::ScoreType::MATE) {
@@ -437,7 +437,7 @@ bool Match::playMove(Player& us, Player& them) {
                                    us.engine.getConfig().name, usColor);
             auto uci_info = fmt::format("Infos; {} ; {}", them.engine.lastInfoLine(), us.engine.lastInfoLine());
             auto position = fmt::format("Position; {}", start_pos);
-            auto ucimoves = fmt::format("Moves; {}", str_utils::join(uci_moves_, " "));
+            auto ucimoves = fmt::format("Moves; {}", str_utils::join(data_.getMoves(), " "));
 
             auto separator = config::TournamentConfig->test_env ? " :: " : "\n";
 

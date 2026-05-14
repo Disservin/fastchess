@@ -16,6 +16,7 @@ namespace fastchess {
 
 struct MoveData {
     MoveData() = default;
+    explicit MoveData(std::string _move) : move(std::move(_move)) {}
     MoveData(std::string _move, std::string _score_string, int64_t _elapsed_millis, int _depth, int _seldepth,
              int _score, int _nodes, bool _legal = true, bool _book = false, std::string _pv = "")
         : move(std::move(_move)),
@@ -90,6 +91,17 @@ struct MatchData {
         if (check(players.white)) return players.white;
         if (check(players.black)) return players.black;
         return std::nullopt;
+    }
+
+    std::vector<std::string_view> getMoves() const {
+        std::vector<std::string_view> result;
+        result.reserve(moves.size());
+
+        for (const auto& data : moves) {
+            result.emplace_back(data.move);
+        }
+
+        return result;
     }
 
     std::string start_time;

@@ -199,7 +199,6 @@ class Match {
     MaxMovesTracker maxmoves_tracker_;
     TbAdjudicationTracker tb_adjudication_tracker_;
 
-    std::vector<std::string> uci_moves_;
 
     // start position, required for the uci position command
     // is either startpos or the fen of the opening

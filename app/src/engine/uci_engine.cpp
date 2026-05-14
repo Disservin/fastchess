@@ -97,17 +97,24 @@ process::Result UciEngine::isready(std::optional<std::chrono::milliseconds> thre
     return res;
 }
 
-bool UciEngine::position(const std::vector<std::string>& moves, const std::string& fen) {
-    auto position = fmt::format("position {}", fen == "startpos" ? "startpos" : ("fen " + fen));
+bool UciEngine::position(const std::vector<std::string_view>& moves, const std::string& fen) {
+    std::string command;
+
+    if (fen == "startpos") {
+        command = "position startpos";
+    } else {
+        command = fmt::format("position fen {}", fen);
+    }
 
     if (!moves.empty()) {
-        position += " moves";
-        for (const auto& move : moves) {
-            position += " " + move;
+        command += " moves";
+
+        for (std::string_view move : moves) {
+            fmt::format_to(std::back_inserter(command), " {}", move);
         }
     }
 
-    return writeEngine(position);
+    return writeEngine(command);
 }
 
 bool UciEngine::go(const TimeControl& our_tc, const TimeControl& enemy_tc, chess::Color stm) {

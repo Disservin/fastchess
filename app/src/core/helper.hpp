@@ -77,14 +77,19 @@ template <typename T>
     }
 }
 
-[[nodiscard]] inline std::string join(const std::vector<std::string>& strings, const std::string& delimiter) {
+template <class StringLike>
+[[nodiscard]] std::string join(const std::vector<StringLike>& strings, std::string_view delimiter) {
     std::string result;
 
     for (const auto& string : strings) {
-        result += string + delimiter;
+        if (!result.empty()) {
+            result.append(delimiter.data(), delimiter.size());
+        }
+
+        std::string_view view = string;
+        result.append(view.data(), view.size());
     }
 
-    // remove delimiter at the end
-    return result.substr(0, result.size() - delimiter.size());
+    return result;
 }
 }  // namespace fastchess::str_utils

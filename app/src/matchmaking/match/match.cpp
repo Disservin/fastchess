@@ -279,43 +279,38 @@ void Match::start(engine::UciEngine& white, engine::UciEngine& black, std::optio
 }
 
 void Match::gameLoop(Player& first, Player& second) {
-    while (true) {
-        if (atomic::stop.load()) {
-            data_.termination = MatchTermination::INTERRUPT;
-            break;
-        }
+    auto interrupted = [&] {
+        if (!atomic::stop.load()) return false;
+
+        data_.termination = MatchTermination::INTERRUPT;
+        data_.reason      = Match::INTERRUPTED_MSG;
+        return true;
+    };
+
+    auto takeTurn = [&](Player& current, Player& opponent) {
+        if (interrupted()) return false;
+
         try {
-            if (!playMove(first, second)) break;
+            return playMove(current, opponent);
         } catch (const std::exception& e) {
             Logger::print<Logger::Level::FATAL>("Match failed with exception: {}", e.what());
 
-            first.setLost();
-            second.setWon();
+            current.setLost();
+            opponent.setWon();
 
             data_.termination = MatchTermination::INTERRUPT;
             data_.reason      = Match::INTERRUPTED_MSG;
+
+            return false;
         }
+    };
 
-        if (atomic::stop.load()) {
-            data_.termination = MatchTermination::INTERRUPT;
-            break;
-        }
-
-        try {
-            if (!playMove(second, first)) break;
-        } catch (const std::exception& e) {
-            Logger::print<Logger::Level::FATAL>("Match failed with exception: {}", e.what());
-
-            second.setLost();
-            first.setWon();
-
-            data_.termination = MatchTermination::INTERRUPT;
-            data_.reason      = Match::INTERRUPTED_MSG;
-        }
+    while (takeTurn(first, second) && takeTurn(second, first)) {
     }
 
     assert(data_.termination != MatchTermination::None);
-    assert(first.getResult() != GameResult::NONE && second.getResult() != GameResult::NONE);
+    assert(first.getResult() != GameResult::NONE);
+    assert(second.getResult() != GameResult::NONE);
 }
 
 bool Match::playMove(Player& us, Player& them) {

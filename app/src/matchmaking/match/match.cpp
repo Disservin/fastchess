@@ -58,7 +58,7 @@ bool isFen(const std::string& line) { return line.find(';') == std::string::npos
 template <typename TScore>
 void checkMateScoreSignMismatch(const Player& us, const Player& them, const Board& board,
                                 const std::string& start_position, const MatchData& data, const TScore& usScore) {
-    if (data.getMoves().size() <= 1 || !usScore) return;
+    if (data.moves.size() <= 1 || !usScore) return;
 
     const auto themScore = them.engine.lastScore();
 

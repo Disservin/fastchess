@@ -85,9 +85,8 @@ Match::Match(const book::Opening& opening)
         const auto move = uci::moveToUci(opening_move, board_.chess960());
         board_.makeMove<true>(opening_move);
 
-        MoveData move_data;
+        MoveData move_data{move};
 
-        move_data.move         = move;
         move_data.score_string = "0.00";
         move_data.book         = true;
         move_data.legal        = true;
@@ -121,7 +120,6 @@ void Match::addMoveData(const Player& player, const std::string& move, int64_t m
 
     if (player.engine.getStdoutLines().size() <= 1) {
         data_.moves.push_back(move_data);
-        uci_moves_.push_back(move);
         return;
     }
 
@@ -173,13 +171,9 @@ void Match::addMoveData(const Player& player, const std::string& move, int64_t m
     verifyPvLines(player, legal ? move : "");
 
     data_.moves.push_back(move_data);
-    uci_moves_.push_back(move);
 }
 
 void Match::start(engine::UciEngine& white, engine::UciEngine& black, std::optional<std::vector<int>>& cpus) {
-    std::transform(data_.moves.begin(), data_.moves.end(), std::back_inserter(uci_moves_),
-                   [](const MoveData& data) { return data.move; });
-
     Player white_player = Player(white);
     Player black_player = Player(black);
 
@@ -310,7 +304,7 @@ bool Match::playMove(Player& us, Player& them) {
     if (!validConnection(us, them)) return false;
 
     // write new uci position
-    if (!us.engine.position(uci_moves_, start_position_)) {
+    if (!us.engine.position(data_.getMoves(), start_position_)) {
         setEngineCrashStatus(us, them);
         return false;
     }
@@ -426,7 +420,7 @@ bool Match::playMove(Player& us, Player& them) {
 
     // if both engines have made a move in this game, we perform a sanity check on their scores
     auto themScore =
-        uci_moves_.size() > 1 ? them.engine.lastScore() : tl::make_unexpected(std::string("No score yet"));
+        data_.getMoves().size() > 1 ? them.engine.lastScore() : tl::make_unexpected(std::string("No score yet"));
 
     if (themScore.has_value() && usScore.has_value() && themScore.value().type == engine::ScoreType::MATE &&
         usScore.value().type == engine::ScoreType::MATE) {
@@ -443,7 +437,7 @@ bool Match::playMove(Player& us, Player& them) {
                                    us.engine.getConfig().name, usColor);
             auto uci_info = fmt::format("Infos; {} ; {}", them.engine.lastInfoLine(), us.engine.lastInfoLine());
             auto position = fmt::format("Position; {}", start_pos);
-            auto ucimoves = fmt::format("Moves; {}", str_utils::join(uci_moves_, " "));
+            auto ucimoves = fmt::format("Moves; {}", str_utils::join(data_.getMoves(), " "));
 
             auto separator = config::TournamentConfig->test_env ? " :: " : "\n";
 
@@ -571,8 +565,9 @@ void Match::setEngineIllegalMoveStatus(Player& loser, Player& winner, const std:
 }
 
 void Match::verifyPvLines(const Player& us, const std::string& best_move) {
-    const static auto verifyPv = [](Board board, const std::string& startpos, const std::vector<std::string>& uci_moves,
-                                    const std::string& info, std::string_view name) {
+    const static auto verifyPv = [](Board board, const std::string& startpos,
+                                    const std::vector<std::string_view>& uci_moves, const std::string& info,
+                                    std::string_view name) {
         // skip lines without pv
         const auto pv = engine::UciEngine::getPv(info);
 
@@ -674,7 +669,7 @@ void Match::verifyPvLines(const Player& us, const std::string& best_move) {
     const auto info_lines = us.engine.getInfoLines();
 
     for (const auto info : info_lines) {
-        verifyPv(board_, start_position_, uci_moves_, *info, us.engine.getConfig().name);
+        verifyPv(board_, start_position_, data_.getMoves(), *info, us.engine.getConfig().name);
     }
 
     // finally check if the final PV matches bestmove
@@ -704,7 +699,7 @@ void Match::verifyPvLines(const Player& us, const std::string& best_move) {
         auto out       = fmt::format(fmt::runtime(warning), best_move, us.engine.getConfig().name);
         auto uci_info  = fmt::format("Info; {}", info);
         auto position  = fmt::format("Position; {}", start_pos);
-        auto ucimoves  = fmt::format("Moves; {}", str_utils::join(uci_moves_, " "));
+        auto ucimoves  = fmt::format("Moves; {}", str_utils::join(data_.getMoves(), " "));
 
         auto separator = config::TournamentConfig->test_env ? " :: " : "\n";
 

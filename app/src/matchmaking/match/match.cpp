@@ -412,17 +412,44 @@ bool Match::playMove(Player& us, Player& them) {
     // into account the fullmove counter of the starting FEN, leading to different behavior between
     // pgn and epd adjudication. fastchess fixes this by using the fullmove counter from the board
     // object directly
-    auto score = us.engine.lastScore();
+    auto usScore = us.engine.lastScore();
 
-    if (score.has_value()) {
-        draw_tracker_.update(score.value(), board_.halfMoveClock());
-        resign_tracker_.update(score.value(), ~board_.sideToMove());
+    if (usScore.has_value()) {
+        draw_tracker_.update(usScore.value(), board_.halfMoveClock());
+        resign_tracker_.update(usScore.value(), ~board_.sideToMove());
     } else {
         draw_tracker_.invalidate();
         resign_tracker_.invalidate(~board_.sideToMove());
     }
 
     maxmoves_tracker_.update();
+
+    // if both engines have made a move in this game, we perform a sanity check on their scores
+    auto themScore =
+        uci_moves_.size() > 1 ? them.engine.lastScore() : tl::make_unexpected(std::string("No score yet"));
+
+    if (themScore.has_value() && usScore.has_value() && themScore.value().type == engine::ScoreType::MATE &&
+        usScore.value().type == engine::ScoreType::MATE) {
+        auto themMate = themScore.value().value;
+        auto usMate   = usScore.value().value;
+
+        // if both engines claim to have a proven win, only one of them can be right (same for loss)
+        if (usMate * themMate > 0) {
+            auto themColor = board_.sideToMove() == Color::WHITE ? "White" : "Black";
+            auto usColor   = board_.sideToMove() == Color::WHITE ? "Black" : "White";
+            auto warning   = "Warning; Sign mismatch in mate scores {} and {} from {} ({}) and {} ({})";
+            auto start_pos = start_position_ == "startpos" ? "startpos" : ("fen " + start_position_);
+            auto out = fmt::format(fmt::runtime(warning), themMate, usMate, them.engine.getConfig().name, themColor,
+                                   us.engine.getConfig().name, usColor);
+            auto uci_info = fmt::format("Infos; {} ; {}", them.engine.lastInfoLine(), us.engine.lastInfoLine());
+            auto position = fmt::format("Position; {}", start_pos);
+            auto ucimoves = fmt::format("Moves; {}", str_utils::join(uci_moves_, " "));
+
+            auto separator = config::TournamentConfig->test_env ? " :: " : "\n";
+
+            Logger::print<Logger::Level::WARN>("{1}{0}{2}{0}{3}{0}{4}", separator, out, uci_info, position, ucimoves);
+        }
+    }
 
     return true;
 }

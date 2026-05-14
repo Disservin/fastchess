@@ -60,14 +60,17 @@ void checkMateScoreSignMismatch(const Player& us, const Player& them, const Boar
                                 const std::string& start_position, const MatchData& data, const TScore& usScore) {
     if (data.moves.size() <= 1 || !usScore) return;
 
+    const auto& usScoreValue = *usScore;
+
+    if (usScoreValue.type != engine::ScoreType::MATE) return;
+
     const auto themScore = them.engine.lastScore();
 
     if (!themScore) return;
 
     const auto& themScoreValue = *themScore;
-    const auto& usScoreValue   = *usScore;
 
-    if (themScoreValue.type != engine::ScoreType::MATE || usScoreValue.type != engine::ScoreType::MATE) return;
+    if (themScoreValue.type != engine::ScoreType::MATE) return;
 
     const auto themMate = themScoreValue.value;
     const auto usMate   = usScoreValue.value;

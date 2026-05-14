@@ -54,6 +54,49 @@ bool isFen(const std::string& line) { return line.find(';') == std::string::npos
     return {GameResultReason::NONE, GameResult::NONE};
 }
 
+// if both engines have made a move in this game, we perform a sanity check on their scores
+template <typename TScore>
+void checkMateScoreSignMismatch(const Player& us, const Player& them, const Board& board,
+                                const std::string& start_position, const MatchData& data, const TScore& usScore) {
+    if (data.moves.size() <= 1) return;
+
+    const auto themScore = them.engine.lastScore();
+    if (!themScore || !usScore) return;
+
+    const auto& themScoreValue = *themScore;
+    const auto& usScoreValue   = *usScore;
+
+    if (themScoreValue.type != engine::ScoreType::MATE || usScoreValue.type != engine::ScoreType::MATE) {
+        return;
+    }
+
+    const auto themMate = themScoreValue.value;
+    const auto usMate   = usScoreValue.value;
+
+    // if both engines claim to have a proven win, only one of them can be right (same for loss)
+    if (themMate * usMate <= 0) return;
+
+    const bool whiteToMove = board.sideToMove() == Color::WHITE;
+
+    const auto themColor = whiteToMove ? "White" : "Black";
+    const auto usColor   = whiteToMove ? "Black" : "White";
+
+    const auto startPos = start_position == "startpos" ? "startpos" : "fen " + start_position;
+
+    const auto warning =
+        fmt::format("Warning; Sign mismatch in mate scores {} and {} from {} ({}) and {} ({})", themMate, usMate,
+                    them.engine.getConfig().name, themColor, us.engine.getConfig().name, usColor);
+
+    const auto uciInfo = fmt::format("Infos; {} ; {}", them.engine.lastInfoLine(), us.engine.lastInfoLine());
+
+    const auto position = fmt::format("Position; {}", startPos);
+    const auto moves    = fmt::format("Moves; {}", str_utils::join(data.getMoves(), " "));
+
+    const auto separator = config::TournamentConfig->test_env ? " :: " : "\n";
+
+    Logger::print<Logger::Level::WARN>("{1}{0}{2}{0}{3}{0}{4}", separator, warning, uciInfo, position, moves);
+}
+
 }  // namespace
 
 Match::Match(const book::Opening& opening)
@@ -418,32 +461,7 @@ bool Match::playMove(Player& us, Player& them) {
 
     maxmoves_tracker_.update();
 
-    // if both engines have made a move in this game, we perform a sanity check on their scores
-    auto themScore =
-        data_.getMoves().size() > 1 ? them.engine.lastScore() : tl::make_unexpected(std::string("No score yet"));
-
-    if (themScore.has_value() && usScore.has_value() && themScore.value().type == engine::ScoreType::MATE &&
-        usScore.value().type == engine::ScoreType::MATE) {
-        auto themMate = themScore.value().value;
-        auto usMate   = usScore.value().value;
-
-        // if both engines claim to have a proven win, only one of them can be right (same for loss)
-        if (usMate * themMate > 0) {
-            auto themColor = board_.sideToMove() == Color::WHITE ? "White" : "Black";
-            auto usColor   = board_.sideToMove() == Color::WHITE ? "Black" : "White";
-            auto warning   = "Warning; Sign mismatch in mate scores {} and {} from {} ({}) and {} ({})";
-            auto start_pos = start_position_ == "startpos" ? "startpos" : ("fen " + start_position_);
-            auto out = fmt::format(fmt::runtime(warning), themMate, usMate, them.engine.getConfig().name, themColor,
-                                   us.engine.getConfig().name, usColor);
-            auto uci_info = fmt::format("Infos; {} ; {}", them.engine.lastInfoLine(), us.engine.lastInfoLine());
-            auto position = fmt::format("Position; {}", start_pos);
-            auto ucimoves = fmt::format("Moves; {}", str_utils::join(data_.getMoves(), " "));
-
-            auto separator = config::TournamentConfig->test_env ? " :: " : "\n";
-
-            Logger::print<Logger::Level::WARN>("{1}{0}{2}{0}{3}{0}{4}", separator, out, uci_info, position, ucimoves);
-        }
-    }
+    checkMateScoreSignMismatch(us, them, board_, start_position_, data_, usScore);
 
     return true;
 }

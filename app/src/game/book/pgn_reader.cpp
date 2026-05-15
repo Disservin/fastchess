@@ -29,7 +29,7 @@ class PGNVisitor : public chess::pgn::Visitor {
 
         pgn_.fen_epd = chess::constants::STARTPOS;
         pgn_.moves.clear();
-        plie_count_ = 0;
+        ply_count_  = 0;
         early_stop_ = false;
     }
 
@@ -44,7 +44,7 @@ class PGNVisitor : public chess::pgn::Visitor {
 
     void move(std::string_view move, std::string_view) override {
         if (early_stop_) return;
-        if (plie_count_++ >= plies_limit_ && plies_limit_ != -1) return;
+        if (ply_count_++ >= plies_limit_ && plies_limit_ != -1) return;
 
         chess::Move move_i;
 
@@ -73,7 +73,7 @@ class PGNVisitor : public chess::pgn::Visitor {
     Opening pgn_;
     chess::Board board_;
     const int plies_limit_;
-    int plie_count_  = 0;
+    int ply_count_   = 0;
     bool is_frc_     = false;
     bool early_stop_ = false;
 };

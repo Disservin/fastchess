@@ -166,10 +166,10 @@ class Match {
     void setEngineTimeoutStatus(Player& loser, Player& winner, const std::optional<std::string>& best_move);
     void setEngineIllegalMoveStatus(Player& loser, Player& winner, const std::optional<std::string>& best_move);
 
-    void verifyPvLines(const Player& us, const std::string& best_move);
+    void verifyPvLines(const Player& us, const std::string& best_move, const std::string& ponder_move);
 
     // append the move data to the match data
-    void addMoveData(const Player& player, const std::string& move, int64_t measured_time_ms, int64_t latency,
+    void addMoveData(const Player& player, const std::string& move, const std::string& ponder, int64_t measured_time_ms, int64_t latency,
                      int64_t timeleft, bool legal);
 
     // returns false if the next move could not be played

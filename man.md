@@ -218,6 +218,9 @@ The default values are the first value in parentheses.
 - `-check-mate-pvs`
     Check that PVs for mate scores have the correct length and end in checkmate.
 
+- `-warn-ponder-pv-short`
+    Emit a warning if the engine shows a ponder move despite the final PV having length 1 and being for an exact score.
+
 - `-show-latency`  
     Show the "think" latency (difference between measured and reported time) for each engine.
     Note that a lot of engines add 1ms to the time they report, so the latency will be 1ms higher than the actual latency.

@@ -10,7 +10,7 @@ using namespace std;
 
 int main(int argc, char const *argv[]) {
     std::vector<std::string> moves = {"f2f3", "e7e5", "g2g4", "d8h4"};
-    int moveIndex                  = 0;
+    unsigned int moveIndex         = 0;
 
     if (argc > 1) {
         for (int i = 1; i < argc; i++) {
@@ -74,14 +74,17 @@ int main(int argc, char const *argv[]) {
 
             cout << "done" << endl;
         } else if (contains(cmd, "position")) {
-            for (int i = moves.size() - 1; i >= 0; i--) {
+            for (int i = moves.size() - 2; i >= 0; i--) {
                 if (contains(cmd, moves[i])) {
                     moveIndex = i + 1;
                     break;
                 }
             }
         } else if (contains(cmd, "go")) {
-            std::cout << "bestmove " << moves[moveIndex] << std::endl;
+            std::cout << "bestmove " << moves[moveIndex];
+            if (moveIndex + 1 < moves.size())
+                std::cout << " ponder " << moves[moveIndex + 1];
+            std::cout << std::endl;
         } else if (contains(cmd, "setoption")) {
             // Simulate setting an option
             std::cout << "option set: " << cmd << std::endl;

@@ -144,11 +144,12 @@ Match::Match(const book::Opening& opening)
     std::transform(opening_.moves.begin(), opening_.moves.end(), std::back_inserter(data_.moves), insert_move);
 }
 
-void Match::addMoveData(const Player& player, const std::string& move, int64_t measured_time_ms, int64_t latency,
+void Match::addMoveData(const Player& player, const std::string& move, const std::string& ponder, int64_t measured_time_ms, int64_t latency,
                         int64_t timeleft, bool legal) {
     MoveData move_data;
 
     move_data.move           = move;
+    move_data.ponder         = ponder;
     move_data.elapsed_millis = measured_time_ms;
     move_data.legal          = legal;
 
@@ -199,7 +200,8 @@ void Match::addMoveData(const Player& player, const std::string& move, int64_t m
         }
     }
 
-    verifyPvLines(player, legal ? move : "");
+    // only warn on PV/bestmove mismatch if the move is legal
+    verifyPvLines(player, legal ? move : "", ponder);
 
     data_.moves.push_back(move_data);
 }
@@ -388,7 +390,8 @@ bool Match::playMove(Player& us, Player& them) {
         LOG_INFO_THREAD("Engine {} latency: {}ms (elapsed: {}, reported: {})", name, latency, elapsed_ms, last_time);
     }
 
-    const auto best_move = us.engine.bestmove(status.code == engine::process::Status::OK);
+    const auto bestmove  = us.engine.bestmove(status.code == engine::process::Status::OK);
+    const auto best_move = bestmove.first;
     const auto move      = best_move && uci::isUciMove(*best_move) ? uci::uciToMove(board_, *best_move) : Move::NO_MOVE;
     const auto legal     = isLegal(move);
 
@@ -396,7 +399,8 @@ bool Match::playMove(Player& us, Player& them) {
     const auto timeleft = us.hasTimeControl() ? us.getTimeControl().getTimeLeft() : 0;
 
     if (best_move) {
-        addMoveData(us, *best_move, elapsed_ms, latency, timeleft, legal);
+        const auto ponder = bestmove.second;
+        addMoveData(us, *best_move, ponder ? *ponder : "", elapsed_ms, latency, timeleft, legal);
     }
 
     // there are two reasons why best_move could be empty
@@ -565,7 +569,7 @@ void Match::setEngineIllegalMoveStatus(Player& loser, Player& winner, const std:
     Logger::print<Logger::Level::WARN>("Warning; Illegal move {} played by {}", best_move.value_or("<none>"), name);
 }
 
-void Match::verifyPvLines(const Player& us, const std::string& best_move) {
+void Match::verifyPvLines(const Player& us, const std::string& best_move, const std::string& ponder_move) {
     const static auto verifyPv = [](Board board, const std::string& startpos,
                                     const std::vector<std::string_view>& uci_moves, const std::string& info,
                                     std::string_view name) {
@@ -673,7 +677,7 @@ void Match::verifyPvLines(const Player& us, const std::string& best_move) {
         verifyPv(board_, start_position_, data_.getMoves(), *info, us.engine.getConfig().name);
     }
 
-    // finally check if the final PV matches bestmove
+    // finally check if the final PV matches bestmove (and possibly ponder move)
     if (best_move.empty()) {
         return;
     }
@@ -694,10 +698,26 @@ void Match::verifyPvLines(const Player& us, const std::string& best_move) {
         return;
     }
 
-    if (best_move != (*pv)[0]) {
-        auto warning   = "Warning; Bestmove does not match beginning of last PV - move {} from {}";
+    for (unsigned int i = 0; i < 2; i++) {
+        if (i && (ponder_move.empty() || (!config::TournamentConfig->warn_ponder_pv_short && pv->size() < 2))) {
+            break;
+        }
+
+        const auto &value = i ? ponder_move : best_move;
+        if (i < pv->size() && value == (*pv)[i]) {
+            continue;
+        }
+
+        std::string warning;
+        if (i && pv->size() == 1) {
+            warning = "Warning; PV has length 1 despite ponder move output - move {} from {}";
+        } else {
+            warning =
+                "Warning; "s + (i ? "Ponder" : "Best") + "move does not match beginning of last PV - move {} from {}";
+        }
+
         auto start_pos = start_position_ == "startpos" ? "startpos" : ("fen " + start_position_);
-        auto out       = fmt::format(fmt::runtime(warning), best_move, us.engine.getConfig().name);
+        auto out       = fmt::format(fmt::runtime(warning), value, us.engine.getConfig().name);
         auto uci_info  = fmt::format("Info; {}", info);
         auto position  = fmt::format("Position; {}", start_pos);
         auto ucimoves  = fmt::format("Moves; {}", str_utils::join(data_.getMoves(), " "));
@@ -705,6 +725,9 @@ void Match::verifyPvLines(const Player& us, const std::string& best_move) {
         auto separator = config::TournamentConfig->test_env ? " :: " : "\n";
 
         Logger::print<Logger::Level::WARN>("{1}{0}{2}{0}{3}{0}{4}", separator, out, uci_info, position, ucimoves);
+
+        // Do not emit ponder move warning if already the bestmove does not match PV
+        break;
     }
 }
 

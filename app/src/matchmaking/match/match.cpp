@@ -72,7 +72,7 @@ void checkMateScoreSignMismatch(const Player& them, const Player& us, const Boar
     const auto themScore = themMove.score.value();
     const auto usScore   = usMove.score.value();
 
-    if (themScore.isCp() || usScore.isCp()) {
+    if (!themScore.isMate() || !usScore.isMate()) {
         return;
     }
 
@@ -634,7 +634,7 @@ void Match::verifyPvLines(const Player& us, const std::string& best_move) {
         const auto score   = engine::UciEngine::getScore(info);
         const bool isBound = engine::UciEngine::isBound(info);
 
-        if (!score.has_value() || score.value().isCp() || isBound) {
+        if (!score.has_value() || !score.value().isMate() || isBound) {
             return;
         }
 

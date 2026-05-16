@@ -3,6 +3,18 @@
 #include <doctest/doctest.hpp>
 
 namespace fastchess {
+
+namespace {
+
+MoveData makeMoveData(std::string move, Score score, int64_t elapsed_millis, int64_t depth, int64_t seldepth,
+                      uint64_t nodes, bool legal = true) {
+    MoveData move_data(std::move(move), elapsed_millis, depth, seldepth, nodes, legal);
+    move_data.score = score;
+    return move_data;
+}
+
+}  // namespace
+
 TEST_SUITE("PGN Builder Tests") {
     TEST_CASE("PGN Creation") {
         MatchData match_data;
@@ -12,9 +24,10 @@ TEST_SUITE("PGN Builder Tests") {
         match_data.players.black.config.name = "engine2";
         match_data.players.black.result      = chess::GameResult::LOSE;
 
-        match_data.moves = {MoveData("e2e4", "+1.00", 1321, 15, 4, 0, 0), MoveData("e7e5", "+1.23", 430, 15, 3, 0, 0),
-                            MoveData("g1f3", "+1.45", 310, 16, 24, 0, 0),
-                            MoveData("g8f6", "+10.15", 1821, 18, 7, 0, 0)};
+        match_data.moves = {makeMoveData("e2e4", {ScoreType::CP, 100}, 1321, 15, 4, 0),
+                            makeMoveData("e7e5", {ScoreType::CP, 123}, 430, 15, 3, 0),
+                            makeMoveData("g1f3", {ScoreType::CP, 145}, 310, 16, 24, 0),
+                            makeMoveData("g8f6", {ScoreType::CP, 1015}, 1821, 18, 7, 0)};
 
         match_data.fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
@@ -54,9 +67,10 @@ Nf6 {+10.15/18 1.821s, engine2 got checkmated} 1-0
         match_data.players.black.config.name = "engine2";
         match_data.players.black.result      = chess::GameResult::WIN;
 
-        match_data.moves = {MoveData("e2e4", "+1.00", 1321, 15, 4, 0, 0), MoveData("e7e5", "+1.23", 430, 15, 3, 0, 0),
-                            MoveData("g1f3", "+1.45", 310, 16, 24, 0, 0),
-                            MoveData("g8f6", "+10.15", 1821, 18, 7, 0, 0)};
+        match_data.moves = {makeMoveData("e2e4", {ScoreType::CP, 100}, 1321, 15, 4, 0),
+                            makeMoveData("e7e5", {ScoreType::CP, 123}, 430, 15, 3, 0),
+                            makeMoveData("g1f3", {ScoreType::CP, 145}, 310, 16, 24, 0),
+                            makeMoveData("g8f6", {ScoreType::CP, 1015}, 1821, 18, 7, 0)};
 
         match_data.fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
@@ -96,8 +110,9 @@ Nf6 {+10.15/18 1.821s, engine1 got checkmated} 0-1
         match_data.players.white.config.name = "engine2";
         match_data.players.white.result      = chess::GameResult::NONE;
 
-        match_data.moves = {MoveData("e8g8", "+1.00", 1321, 15, 4, 0, 0), MoveData("e1g1", "+1.23", 430, 15, 3, 0, 0),
-                            MoveData("a6c5", "+1.45", 310, 16, 24, 0, 0)};
+        match_data.moves = {makeMoveData("e8g8", {ScoreType::CP, 100}, 1321, 15, 4, 0),
+                            makeMoveData("e1g1", {ScoreType::CP, 123}, 430, 15, 3, 0),
+                            makeMoveData("a6c5", {ScoreType::CP, 145}, 310, 16, 24, 0)};
 
         match_data.fen = "r2qk2r/1bpp2pp/n3pn2/p2P1p2/1bP5/2N1BNP1/1PQ1PPBP/R3K2R b KQkq - 0 1";
 
@@ -136,8 +151,9 @@ Nc5 {+1.45/16 0.310s, aborted} *
         match_data.players.white.result                     = chess::GameResult::NONE;
         match_data.players.white.config.limit.tc.fixed_time = 1000;
 
-        match_data.moves = {MoveData("e8g8", "+1.00", 1321, 15, 4, 0, 0), MoveData("e1g1", "+1.23", 430, 15, 3, 0, 0),
-                            MoveData("a6c5", "+1.45", 310, 16, 24, 0, 0)};
+        match_data.moves = {makeMoveData("e8g8", {ScoreType::CP, 100}, 1321, 15, 4, 0),
+                            makeMoveData("e1g1", {ScoreType::CP, 123}, 430, 15, 3, 0),
+                            makeMoveData("a6c5", {ScoreType::CP, 145}, 310, 16, 24, 0)};
 
         match_data.fen = "r2qk2r/1bpp2pp/n3pn2/p2P1p2/1bP5/2N1BNP1/1PQ1PPBP/R3K2R b KQkq - 0 1";
 
@@ -178,9 +194,9 @@ Nc5 {+1.45/16 0.310s, aborted} *
         match_data.players.white.config.limit.tc.time      = 1;
         match_data.players.white.config.limit.tc.increment = 5;
 
-        match_data.moves = {MoveData("e8g8", "+1.00", 1321, 15, 4, 0, 1250),
-                            MoveData("e1g1", "+1.23", 430, 15, 3, 0, 4363),
-                            MoveData("a6c5", "+1.45", 310, 16, 24, 0, 0)};
+        match_data.moves = {makeMoveData("e8g8", {ScoreType::CP, 100}, 1321, 15, 4, 1250),
+                            makeMoveData("e1g1", {ScoreType::CP, 123}, 430, 15, 3, 4363),
+                            makeMoveData("a6c5", {ScoreType::CP, 145}, 310, 16, 24, 0)};
 
         match_data.fen = "r2qk2r/1bpp2pp/n3pn2/p2P1p2/1bP5/2N1BNP1/1PQ1PPBP/R3K2R b KQkq - 0 1";
 
@@ -222,8 +238,9 @@ Nc5 {+1.45/16 0.310s, n=0, sd=24, aborted} *
         match_data.players.white.result                     = chess::GameResult::NONE;
         match_data.players.white.config.limit.tc.fixed_time = 1000;
 
-        match_data.moves = {MoveData("e8g8", "+1.00", 1321, 15, 4, 0, 0), MoveData("e1g1", "+1.23", 430, 15, 3, 0, 0),
-                            MoveData("a6c5", "+1.45", 310, 16, 24, 0, 0)};
+        match_data.moves = {makeMoveData("e8g8", {ScoreType::CP, 100}, 1321, 15, 4, 0),
+                            makeMoveData("e1g1", {ScoreType::CP, 123}, 430, 15, 3, 0),
+                            makeMoveData("a6c5", {ScoreType::CP, 145}, 310, 16, 24, 0)};
 
         match_data.fen = "r2qk2r/1bpp2pp/n3pn2/p2P1p2/1bP5/2N1BNP1/1PQ1PPBP/R3K2R b KQkq - 0 1";
 
@@ -263,8 +280,9 @@ Nc5 {+1.45/16 0.310s, aborted} *
         match_data.players.white.result                     = chess::GameResult::NONE;
         match_data.players.white.config.limit.tc.fixed_time = 1000;
 
-        match_data.moves = {MoveData("e8g8", "+1.00", 1321, 15, 4, 0, 0), MoveData("e1g1", "+1.23", 430, 15, 3, 0, 0),
-                            MoveData("a6c5", "+1.45", 310, 16, 24, 0, 0)};
+        match_data.moves = {makeMoveData("e8g8", {ScoreType::CP, 100}, 1321, 15, 4, 0),
+                            makeMoveData("e1g1", {ScoreType::CP, 123}, 430, 15, 3, 0),
+                            makeMoveData("a6c5", {ScoreType::CP, 145}, 310, 16, 24, 0)};
 
         match_data.fen = "r2qk2r/1bpp2pp/n3pn2/p2P1p2/1bP5/2N1BNP1/1PQ1PPBP/R3K2R b KQkq - 0 4";
 
@@ -303,10 +321,14 @@ Nc5 {+1.45/16 0.310s, aborted} *
         match_data.players.black.result      = chess::GameResult::LOSE;
 
         match_data.moves = {
-            MoveData("e2e4", "+1.00", 1321, 15, 4, 0, 0), MoveData("c7c6", "+1.23", 430, 15, 3, 0, 0),
-            MoveData("d2d4", "+1.45", 310, 16, 24, 0, 0), MoveData("d7d5", "+1.45", 310, 16, 24, 0, 0),
-            MoveData("e4e5", "+1.45", 310, 16, 24, 0, 0), MoveData("c6c5", "+1.45", 310, 16, 24, 0, 0),
-            MoveData("d4c5", "+1.45", 310, 16, 24, 0, 0), MoveData("e7e6", "+10.15", 1821, 18, 7, 0, 0)};
+            makeMoveData("e2e4", {ScoreType::CP, 100}, 1321, 15, 4, 0),
+            makeMoveData("c7c6", {ScoreType::CP, 123}, 430, 15, 3, 0),
+            makeMoveData("d2d4", {ScoreType::CP, 145}, 310, 16, 24, 0),
+            makeMoveData("d7d5", {ScoreType::CP, 145}, 310, 16, 24, 0),
+            makeMoveData("e4e5", {ScoreType::CP, 145}, 310, 16, 24, 0),
+            makeMoveData("c6c5", {ScoreType::CP, 145}, 310, 16, 24, 0),
+            makeMoveData("d4c5", {ScoreType::CP, 145}, 310, 16, 24, 0),
+            makeMoveData("e7e6", {ScoreType::CP, 1015}, 1821, 18, 7, 0)};
 
         match_data.fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
@@ -347,9 +369,10 @@ d5 {+1.45/16 0.310s} 3. e5 {+1.45/16 0.310s} c5 {+1.45/16 0.310s}
         match_data.players.black.config.name = "engine2";
         match_data.players.black.result      = chess::GameResult::LOSE;
 
-        match_data.moves = {MoveData("e2e4", "+1.00", 1321, 15, 4, 0, 0), MoveData("e7e5", "+1.23", 430, 15, 3, 0, 0),
-                            MoveData("g1f3", "+1.45", 310, 16, 24, 0, 0),
-                            MoveData("g8f6", "+10.15", 1821, 18, 7, 0, 0)};
+        match_data.moves = {makeMoveData("e2e4", {ScoreType::CP, 100}, 1321, 15, 4, 0),
+                            makeMoveData("e7e5", {ScoreType::CP, 123}, 430, 15, 3, 0),
+                            makeMoveData("g1f3", {ScoreType::CP, 145}, 310, 16, 24, 0),
+                            makeMoveData("g8f6", {ScoreType::CP, 1015}, 1821, 18, 7, 0)};
 
         match_data.fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 17";
 
@@ -391,9 +414,10 @@ Nf6 {+10.15/18 1.821s, engine2 got checkmated} 1-0
         match_data.players.black.config.name = "engine2";
         match_data.players.black.result      = chess::GameResult::LOSE;
 
-        match_data.moves = {MoveData("e2e4", "+1.00", 1321, 15, 4, 0, 0), MoveData("e7e5", "+1.23", 430, 15, 3, 0, 0),
-                            MoveData("g1f3", "+1.45", 310, 16, 24, 0, 0),
-                            MoveData("a1a1", "+10.15", 1821, 18, 7, 0, 0, false)};
+        match_data.moves = {makeMoveData("e2e4", {ScoreType::CP, 100}, 1321, 15, 4, 0),
+                            makeMoveData("e7e5", {ScoreType::CP, 123}, 430, 15, 3, 0),
+                            makeMoveData("g1f3", {ScoreType::CP, 145}, 310, 16, 24, 0),
+                            makeMoveData("a1a1", {ScoreType::CP, 1015}, 1821, 18, 7, 0, false)};
 
         match_data.fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 17";
 
@@ -435,7 +459,7 @@ Nf6 {+10.15/18 1.821s, engine2 got checkmated} 1-0
         match_data.players.black.config.name = "engine2";
         match_data.players.black.result      = chess::GameResult::WIN;
 
-        match_data.moves = {MoveData("a1a1", "+10.15", 1821, 18, 7, 0, 0, false)};
+        match_data.moves = {makeMoveData("a1a1", {ScoreType::CP, 1015}, 1821, 18, 7, 0, false)};
 
         match_data.fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 17";
 

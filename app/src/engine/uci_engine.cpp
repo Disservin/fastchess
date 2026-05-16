@@ -518,13 +518,11 @@ tl::expected<Score, std::string> UciEngine::getScore(const std::string& info_lin
 
     if (!type_str.has_value()) return tl::make_unexpected(type_str.error());
 
-    score.type = type_str.value() == "cp"     ? ScoreType::CP
-                 : type_str.value() == "mate" ? ScoreType::MATE
-                                              : ScoreType::ERR;
+    score.type = ScoreType::fromString(type_str.value());
 
-    if (score.type == ScoreType::ERR) return tl::make_unexpected("Unexpected score type: " + info_line);
+    if (score.isErr()) return tl::make_unexpected("Unexpected score type: " + info_line);
 
-    auto value = str_utils::findElement<int64_t>(info, score.type == ScoreType::CP ? "cp" : "mate");
+    auto value = str_utils::findElement<int64_t>(info, static_cast<std::string_view>(score.type));
 
     if (!value.has_value()) return tl::make_unexpected(value.error());
 

@@ -54,7 +54,7 @@ bool isFen(const std::string& line) { return line.find(';') == std::string::npos
     return {GameResultReason::NONE, GameResult::NONE};
 }
 
-// if both engines have made a move in this game, we perform a sanity check on their scores
+// emits a warning if both engines claim to have a proven win (same for loss)
 template <typename TScore>
 void checkMateScoreSignMismatch(const Player& them, const Player& us, const Board& board,
                                 const std::string& start_position, const MatchData& data, const TScore& usScore) {
@@ -66,7 +66,7 @@ void checkMateScoreSignMismatch(const Player& them, const Player& us, const Boar
     const auto& themScoreValue = *themScore;
     const auto& usScoreValue   = *usScore;
 
-    if (themScoreValue.type != engine::ScoreType::MATE || usScoreValue.type != engine::ScoreType::MATE) {
+    if (themScoreValue.isCp() || usScoreValue.isCp()) {
         return;
     }
 
@@ -130,9 +130,8 @@ Match::Match(const book::Opening& opening)
 
         MoveData move_data{move};
 
-        move_data.score_string = "0.00";
-        move_data.book         = true;
-        move_data.legal        = true;
+        move_data.book  = true;
+        move_data.legal = true;
 
         return move_data;
     };
@@ -140,24 +139,11 @@ Match::Match(const book::Opening& opening)
     std::transform(opening_.moves.begin(), opening_.moves.end(), std::back_inserter(data_.moves), insert_move);
 }
 
-std::string Match::convertScoreToString(engine::Score score) {
-    if (score.type == engine::ScoreType::CP) {
-        float normalized_score = static_cast<float>(std::abs(score.value)) / 100;
-        return fmt::format("{}{:.2f}", score.value > 0 ? "+" : score.value < 0 ? "-" : "", normalized_score);
-    } else if (score.type == engine::ScoreType::MATE) {
-        uint64_t plies = score.value > 0 ? score.value * 2 - 1 : score.value * -2;
-        return fmt::format("{}M{}", score.value > 0 ? "+" : "-", plies);
-    }
-
-    return "ERR";
-}
-
 void Match::addMoveData(const Player& player, const std::string& move, int64_t measured_time_ms, int64_t latency,
                         int64_t timeleft, bool legal) {
     MoveData move_data;
 
     move_data.move           = move;
-    move_data.score_string   = "0.00";
     move_data.elapsed_millis = measured_time_ms;
     move_data.legal          = legal;
 
@@ -183,9 +169,6 @@ void Match::addMoveData(const Player& player, const std::string& move, int64_t m
                                            player.engine.getConfig().name, score.error());
     }
 
-    const auto clean_score = score.value_or(engine::Score{engine::ScoreType::ERR, 0});
-    move_data.score_string = Match::convertScoreToString(clean_score);
-
     move_data.nps      = str_utils::findElement<uint64_t>(info, "nps").value_or(0);
     move_data.hashfull = str_utils::findElement<int64_t>(info, "hashfull").value_or(0);
     move_data.tbhits   = str_utils::findElement<uint64_t>(info, "tbhits").value_or(0);
@@ -193,7 +176,7 @@ void Match::addMoveData(const Player& player, const std::string& move, int64_t m
     move_data.seldepth = str_utils::findElement<int64_t>(info, "seldepth").value_or(0);
     move_data.nodes    = str_utils::findElement<uint64_t>(info, "nodes").value_or(0);
     move_data.pv       = str_utils::join(engine::UciEngine::getPv(info_line).value_or(std::vector<std::string>{}), " ");
-    move_data.score    = clean_score.value;
+    move_data.score    = score.has_value() ? std::make_optional(Score{score->type, score->value}) : std::nullopt;
     move_data.timeleft = timeleft;
     move_data.latency  = latency;
 
@@ -646,7 +629,7 @@ void Match::verifyPvLines(const Player& us, const std::string& best_move) {
         const auto score   = engine::UciEngine::getScore(info);
         const bool isBound = engine::UciEngine::isBound(info);
 
-        if (!score.has_value() || score.value().type != engine::ScoreType::MATE || isBound) {
+        if (!score.has_value() || score.value().isCp() || isBound) {
             return;
         }
 

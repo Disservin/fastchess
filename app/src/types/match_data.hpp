@@ -17,14 +17,14 @@ namespace fastchess {
 struct MoveData {
     MoveData() = default;
     explicit MoveData(std::string _move) : move(std::move(_move)) {}
-    MoveData(std::string _move, int64_t _elapsed_millis, int64_t _depth, int64_t _seldepth, uint64_t _nodes,
+    MoveData(std::string _move, Score _score, int64_t _elapsed_millis, int64_t _depth, int64_t _seldepth, uint64_t _nodes,
              bool _legal = true)
         : move(std::move(_move)),
           nodes(_nodes),
           elapsed_millis(_elapsed_millis),
           depth(_depth),
           seldepth(_seldepth),
-          legal(_legal) {}
+          legal(_legal) { score = _score; }
 
     std::vector<std::string> additional_lines;
     std::string move;

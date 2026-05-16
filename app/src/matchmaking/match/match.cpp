@@ -54,26 +54,24 @@ bool isFen(const std::string& line) { return line.find(';') == std::string::npos
     return {GameResultReason::NONE, GameResult::NONE};
 }
 
-// if both engines have made a move in this game, we perform a sanity check on their scores
-template <typename TScore>
+// emits a warning if both engines claim to have a proven win (same for loss)
 void checkMateScoreSignMismatch(const Player& them, const Player& us, const Board& board,
-                                const std::string& start_position, const MatchData& data, const TScore& usScore) {
+                                const std::string& start_position, const MatchData& data) {
     if (data.moves.size() <= 1) return;
 
-    const auto themScore = them.engine.lastScore();
-    if (!themScore || !usScore) return;
+    const auto& themMove = data.moves[data.moves.size() - 2];
 
-    const auto& themScoreValue = *themScore;
-    const auto& usScoreValue   = *usScore;
+    if (themMove.book) return;
 
-    if (themScoreValue.type != engine::ScoreType::MATE || usScoreValue.type != engine::ScoreType::MATE) {
+    const auto& usMove = data.moves[data.moves.size() - 1];
+
+    if (themMove.score_string[1] != 'M' || usMove.score_string[1] != 'M') {
         return;
     }
 
-    const auto themMate = themScoreValue.value;
-    const auto usMate   = usScoreValue.value;
+    const auto themMate = themMove.score;
+    const auto usMate   = usMove.score;
 
-    // if both engines claim to have a proven win, only one of them can be right (same for loss)
     if (themMate * usMate <= 0) return;
 
     const bool whiteToMove = board.sideToMove() == Color::WHITE;
@@ -456,7 +454,7 @@ bool Match::playMove(Player& us, Player& them) {
 
     maxmoves_tracker_.update();
 
-    checkMateScoreSignMismatch(them, us, board_, start_position_, data_, usScore);
+    checkMateScoreSignMismatch(them, us, board_, start_position_, data_);
 
     return true;
 }

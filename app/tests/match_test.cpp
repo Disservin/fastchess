@@ -5,46 +5,36 @@
 namespace fastchess {
 
 TEST_SUITE("Match Test") {
-    TEST_CASE("convertScoreToString") {
-        CHECK(Match::convertScoreToString(engine::Score{engine::ScoreType::CP, 0}) == "0.00");
-        CHECK(Match::convertScoreToString(engine::Score{engine::ScoreType::CP, 100}) == "+1.00");
-        CHECK(Match::convertScoreToString(engine::Score{engine::ScoreType::CP, -100}) == "-1.00");
-        CHECK(Match::convertScoreToString(engine::Score{engine::ScoreType::MATE, 100}) == "+M199");
-        CHECK(Match::convertScoreToString(engine::Score{engine::ScoreType::MATE, -100}) == "-M200");
-        CHECK(Match::convertScoreToString(engine::Score{engine::ScoreType::MATE, 1}) == "+M1");
-        CHECK(Match::convertScoreToString(engine::Score{engine::ScoreType::MATE, -1}) == "-M2");
-    }
-
     TEST_CASE("DrawTracker") {
         SUBCASE("adjudicates when conditions met") {
             DrawTracker dt(10, 3, 50);
-            for (int i = 0; i < 6; ++i) dt.update({engine::ScoreType::CP, 40}, 1);
+            for (int i = 0; i < 6; ++i) dt.update({ScoreType::CP, 40}, 1);
             CHECK(dt.adjudicatable(10));
         }
 
         SUBCASE("does not adjudicate before move_number") {
             DrawTracker dt(10, 3, 50);
-            for (int i = 0; i < 6; ++i) dt.update({engine::ScoreType::CP, 40}, 1);
+            for (int i = 0; i < 6; ++i) dt.update({ScoreType::CP, 40}, 1);
             CHECK_FALSE(dt.adjudicatable(9));
         }
 
         SUBCASE("hmvc resets counter") {
             DrawTracker dt(10, 3, 50);
-            dt.update({engine::ScoreType::CP, 40}, 0);
-            dt.update({engine::ScoreType::CP, 40}, 1);
+            dt.update({ScoreType::CP, 40}, 0);
+            dt.update({ScoreType::CP, 40}, 1);
             CHECK_FALSE(dt.adjudicatable(10));
         }
 
         SUBCASE("non-CP score does not count") {
             DrawTracker dt(10, 1, 0);
-            dt.update({engine::ScoreType::MATE, 0}, 1);
+            dt.update({ScoreType::MATE, 0}, 1);
             CHECK_FALSE(dt.adjudicatable(10));
         }
 
         SUBCASE("default parameters") {
             DrawTracker dt(0, 1, 0);
-            dt.update({engine::ScoreType::CP, 0}, 1);
-            dt.update({engine::ScoreType::CP, 0}, 1);
+            dt.update({ScoreType::CP, 0}, 1);
+            dt.update({ScoreType::CP, 0}, 1);
             CHECK(dt.adjudicatable(0));
         }
     }
@@ -52,37 +42,37 @@ TEST_SUITE("Match Test") {
     TEST_CASE("ResignTracker") {
         SUBCASE("twosided resigns after move_count") {
             ResignTracker rt(100, 2, true);
-            rt.update({engine::ScoreType::CP, 150}, chess::Color::WHITE);
-            rt.update({engine::ScoreType::CP, -150}, chess::Color::BLACK);
-            rt.update({engine::ScoreType::CP, 150}, chess::Color::WHITE);
-            rt.update({engine::ScoreType::CP, -150}, chess::Color::BLACK);
+            rt.update({ScoreType::CP, 150}, chess::Color::WHITE);
+            rt.update({ScoreType::CP, -150}, chess::Color::BLACK);
+            rt.update({ScoreType::CP, 150}, chess::Color::WHITE);
+            rt.update({ScoreType::CP, -150}, chess::Color::BLACK);
             CHECK(rt.resignable());
         }
 
         SUBCASE("twosided resets on non-qualifying score") {
             ResignTracker rt(100, 2, true);
-            rt.update({engine::ScoreType::CP, 150}, chess::Color::WHITE);
-            rt.update({engine::ScoreType::CP, 50}, chess::Color::BLACK);
+            rt.update({ScoreType::CP, 150}, chess::Color::WHITE);
+            rt.update({ScoreType::CP, 50}, chess::Color::BLACK);
             CHECK_FALSE(rt.resignable());
         }
 
         SUBCASE("non-twosided white resigns") {
             ResignTracker rt(100, 2, false);
-            rt.update({engine::ScoreType::CP, -150}, chess::Color::WHITE);
-            rt.update({engine::ScoreType::CP, -150}, chess::Color::WHITE);
+            rt.update({ScoreType::CP, -150}, chess::Color::WHITE);
+            rt.update({ScoreType::CP, -150}, chess::Color::WHITE);
             CHECK(rt.resignable());
         }
 
         SUBCASE("non-twosided black resigns") {
             ResignTracker rt(100, 2, false);
-            rt.update({engine::ScoreType::CP, -150}, chess::Color::BLACK);
-            rt.update({engine::ScoreType::CP, -150}, chess::Color::BLACK);
+            rt.update({ScoreType::CP, -150}, chess::Color::BLACK);
+            rt.update({ScoreType::CP, -150}, chess::Color::BLACK);
             CHECK(rt.resignable());
         }
 
         SUBCASE("mate score triggers resign") {
             ResignTracker rt(0, 1, false);
-            rt.update({engine::ScoreType::MATE, -1}, chess::Color::WHITE);
+            rt.update({ScoreType::MATE, -1}, chess::Color::WHITE);
             CHECK(rt.resignable());
         }
     }

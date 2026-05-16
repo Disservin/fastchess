@@ -18,17 +18,11 @@
 #include <engine/option/option_factory.hpp>
 #include <engine/option/options.hpp>
 #include <types/engine_config.hpp>
+#include <types/score.hpp>
 
 namespace fastchess::engine {
 
 using ms = std::chrono::milliseconds;
-
-enum class ScoreType { CP, MATE, ERR };
-
-struct Score {
-    ScoreType type;
-    int64_t value;
-};
 
 class UciEngine {
    public:

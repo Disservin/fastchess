@@ -1,6 +1,5 @@
 #pragma once
 
-#include <chrono>
 #include <cstdint>
 #include <string>
 #include <utility>
@@ -11,41 +10,37 @@
 #include <core/time/time.hpp>
 #include <matchmaking/game_pair.hpp>
 #include <types/engine_config.hpp>
+#include <types/score.hpp>
 
 namespace fastchess {
 
 struct MoveData {
     MoveData() = default;
     explicit MoveData(std::string _move) : move(std::move(_move)) {}
-    MoveData(std::string _move, std::string _score_string, int64_t _elapsed_millis, int _depth, int _seldepth,
-             int _score, int _nodes, bool _legal = true, bool _book = false, std::string _pv = "")
+    MoveData(std::string _move, int64_t _elapsed_millis, int64_t _depth, int64_t _seldepth, uint64_t _nodes,
+             bool _legal = true)
         : move(std::move(_move)),
-          score_string(std::move(_score_string)),
-          pv(_pv),
           nodes(_nodes),
           elapsed_millis(_elapsed_millis),
           depth(_depth),
           seldepth(_seldepth),
-          score(_score),
-          legal(_legal),
-          book(_book) {}
+          legal(_legal) {}
 
     std::vector<std::string> additional_lines;
     std::string move;
-    std::string score_string;
     std::string pv = "";
 
     uint64_t nodes  = 0;
     uint64_t nps    = 0;
     uint64_t tbhits = 0;
 
-    int64_t elapsed_millis = 0;
-    int64_t depth          = 0;
-    int64_t seldepth       = 0;
-    int64_t score          = 0;
-    int64_t timeleft       = 0;
-    int64_t latency        = 0;
-    int64_t hashfull       = 0;
+    int64_t elapsed_millis     = 0;
+    int64_t depth              = 0;
+    int64_t seldepth           = 0;
+    std::optional<Score> score = std::nullopt;
+    int64_t timeleft           = 0;
+    int64_t latency            = 0;
+    int64_t hashfull           = 0;
 
     bool legal = true;
     bool book  = false;

@@ -239,27 +239,48 @@ class Process : public IProcess {
     }
 
    private:
-    [[nodiscard]] bool readBytes(const std::array<char, buffer_size>& buffer, DWORD bytes_read,
-                                 std::vector<Line>& lines, std::string_view searchword) {
-        for (DWORD i = 0; i < bytes_read; ++i) {
-            // Check for newline characters; Windows uses \r\n as a line delimiter
-            if (buffer[i] != '\n' && buffer[i] != '\r') {
-                current_line_ += buffer[i];
-                continue;
+    [[nodiscard]] bool readBytes(const std::array<char, buffer_size>& buffer,
+                                DWORD bytes_read,
+                                std::vector<Line>& lines,
+                                std::string_view searchword) {
+        assert(bytes_read <= buffer.size());
+
+        std::string_view data(buffer.data(), static_cast<size_t>(bytes_read));
+        size_t start = 0;
+
+        while (start < data.size()) {
+            const size_t pos = data.find_first_of("\r\n", start);
+
+            if (pos == std::string_view::npos) {
+                current_line_.append(data.substr(start));
+                break;
             }
 
-            if (current_line_.empty()) {
-                continue;
+            assert(pos >= start);
+            assert(pos < data.size());
+
+            current_line_.append(data.substr(start, pos - start));
+
+            if (!current_line_.empty()) {
+                addLine(lines);
+
+                if (!searchword.empty() &&
+                    current_line_.rfind(searchword, 0) == 0) {
+                    current_line_.clear();
+                    return true;
+                }
+
+                current_line_.clear();
             }
 
-            addLine(lines);
-
-            // Check if the current line starts with the search word
-            if (current_line_.rfind(searchword, 0) == 0) {
-                return true;
+            // Treat "\r\n" as one delimiter.
+            if (data[pos] == '\r' && pos + 1 < data.size() && data[pos + 1] == '\n') {
+                start = pos + 2;
+            } else {
+                start = pos + 1;
             }
 
-            current_line_.clear();
+            assert(start <= data.size());
         }
 
         return false;

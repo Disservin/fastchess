@@ -76,31 +76,44 @@ class Stream {
     Result readLine(std::vector<Line>& lines, std::string_view searchword) {
         const ssize_t bytes_read = read(fd_, buffer_.data(), buffer_.size());
 
-        if (bytes_read == -1) return Result::Error("read failed");
+        if (bytes_read == -1) {
+            return Result::Error("read failed");
+        }
 
-        for (ssize_t i = 0; i < bytes_read; ++i) {
-            const char c = buffer_[(size_t)i];
+        if (bytes_read == 0) {
+            return Result::Error("EOF");
+        }
 
-            if (c != '\n') {
-                line_buffer_ += c;
-                continue;
+        std::string_view data(buffer_.data(), static_cast<size_t>(bytes_read));
+        size_t start = 0;
+
+        while (start < data.size()) {
+            const size_t nl = data.find('\n', start);
+
+            if (nl == std::string_view::npos) {
+                line_buffer_.append(data.substr(start));
+                break;
             }
 
-            if (line_buffer_.empty()) continue;
+            line_buffer_.append(data.substr(start, nl - start));
 
-            const auto ts = Logger::should_log_ ? time::datetime_precise() : "";
-            lines.emplace_back(Line{line_buffer_, ts, type_});
+            if (!line_buffer_.empty()) {
+                const auto ts = Logger::should_log_ ? time::datetime_precise() : "";
 
-            if (realtime_logging_) {
-                Logger::readFromEngine(line_buffer_, ts, log_name_, type_ == Standard::ERR);
-            }
+                lines.emplace_back(Line{line_buffer_, ts, type_});
 
-            if (!searchword.empty() && line_buffer_.rfind(searchword, 0) == 0) {
-                line_buffer_.clear();
-                return Result::OK();
+                if (realtime_logging_) {
+                    Logger::readFromEngine(line_buffer_, ts, log_name_, type_ == Standard::ERR);
+                }
+
+                if (!searchword.empty() && line_buffer_.rfind(searchword, 0) == 0) {
+                    line_buffer_.clear();
+                    return Result::OK();
+                }
             }
 
             line_buffer_.clear();
+            start = nl + 1;
         }
 
         return Result{Status::NONE, ""};

@@ -218,8 +218,9 @@ class Process : public IProcess {
                 continue;
             }
 
-            if (line_reader_.consume(std::string_view(buffer.data(), static_cast<size_t>(bytesRead)), lines, last_word,
-                                     true)) {
+            const std::string_view line_view(buffer.data(), static_cast<size_t>(bytesRead));
+
+            if (line_reader_.consume(line_view, lines, last_word, true)) {
                 return Result::OK();
             }
         }

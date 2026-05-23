@@ -218,7 +218,8 @@ class Process : public IProcess {
             auto& out_fd = fds[STDOUT_IDX];
             if (out_fd.revents & (POLLIN | POLLHUP | POLLERR)) {
                 if (out_fd.revents & (POLLHUP | POLLERR)) return Result::Error("Engine crashed (stdout)");
-                if (auto r = readLine(in_pipe_.read_end(), stdout_buffer_, sg_out_, lines, searchword); r.code != Status::NONE)
+                if (auto r = readLine(in_pipe_.read_end(), stdout_buffer_, sg_out_, lines, searchword);
+                    r.code != Status::NONE)
                     return r;
             }
 
@@ -226,7 +227,8 @@ class Process : public IProcess {
             if (STDERR_IDX) {
                 auto& err_fd = fds[*STDERR_IDX];
                 if (err_fd.revents & POLLIN) {
-                    if (auto r = readLine(err_pipe_.read_end(), stderr_buffer_, sg_err_, lines, ""); r.code != Status::NONE)
+                    if (auto r = readLine(err_pipe_.read_end(), stderr_buffer_, sg_err_, lines, "");
+                        r.code != Status::NONE)
                         return r;
                 }
                 if (err_fd.revents & (POLLHUP | POLLERR)) return Result::Error("Engine crashed (stderr)");
@@ -368,11 +370,9 @@ class Process : public IProcess {
             return Result::Error("EOF");
         }
 
-        return accumulator.consume(std::string_view(buffer.data(), static_cast<size_t>(bytes_read)), lines, searchword)
-                   ? Result::OK()
-                   : Result{Status::NONE, ""};
+        const std::string_view line_view(buffer.data(), static_cast<size_t>(bytes_read));
+        return accumulator.consume(line_view, lines, searchword) ? Result::OK() : Result{Status::NONE, ""};
     }
-
 
     [[nodiscard]] pollfd create_pollfd(int fd, short events) const {
         pollfd pfd;

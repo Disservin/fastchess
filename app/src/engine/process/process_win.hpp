@@ -46,8 +46,8 @@ class Process : public IProcess {
         args_     = args;
         log_name_ = log_name;
 
-        line_reader_ = LineAccumulator(realtime_logging_, Standard::OUTPUT, log_name_, thread_id);
-        pi_ = PROCESS_INFORMATION{};
+        line_reader_ = LineAccumulator(realtime_logging_, Standard::OUTPUT, log_name_);
+        pi_          = PROCESS_INFORMATION{};
 
         SECURITY_ATTRIBUTES saAttr;
         saAttr.nLength              = sizeof(SECURITY_ATTRIBUTES);
@@ -274,7 +274,6 @@ class Process : public IProcess {
 
     PROCESS_INFORMATION pi_;
 
-    const std::thread::id thread_id = std::this_thread::get_id();
     LineAccumulator line_reader_;
 };
 

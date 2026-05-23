@@ -25,13 +25,10 @@ extern util::ThreadVector<ProcessInformation> process_list;
 namespace engine::process {
 
 class Process : public IProcess {
-    constexpr static int buffer_size = 4096;
-
     HANDLE hChildStdoutRead  = NULL;
     HANDLE hChildStdoutWrite = NULL;
     HANDLE hChildStdinRead   = NULL;
     HANDLE hChildStdinWrite  = NULL;
-    std::array<char, buffer_size> buffer;
 
    public:
     ~Process() override {
@@ -186,7 +183,8 @@ class Process : public IProcess {
                 return Result::Error("failed to create event for overlapped I/O");
             }
 
-            if (!ReadFile(hChildStdoutRead, buffer.data(), buffer.size(), &bytesRead, &overlapped)) {
+            if (!ReadFile(hChildStdoutRead, line_reader_.bufferData(), static_cast<DWORD>(line_reader_.bufferSize()),
+                          &bytesRead, &overlapped)) {
                 if (GetLastError() != ERROR_IO_PENDING) {
                     CloseHandle(overlapped.hEvent);
                     LOG_FATAL_THREAD("Failed to read from pipe");
@@ -218,7 +216,7 @@ class Process : public IProcess {
                 continue;
             }
 
-            const std::string_view line_view(buffer.data(), static_cast<size_t>(bytesRead));
+            const std::string_view line_view(line_reader_.bufferData(), static_cast<size_t>(bytesRead));
 
             if (line_reader_.consume(line_view, lines, last_word, true)) {
                 return Result::OK();

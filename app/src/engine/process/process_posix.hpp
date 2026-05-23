@@ -218,7 +218,7 @@ class Process : public IProcess {
             auto& out_fd = fds[STDOUT_IDX];
             if (out_fd.revents & (POLLIN | POLLHUP | POLLERR)) {
                 if (out_fd.revents & (POLLHUP | POLLERR)) return Result::Error("Engine crashed (stdout)");
-                if (auto r = readLine(in_pipe_.read_end(), stdout_buffer_, sg_out_, lines, searchword);
+                if (auto r = readLine(in_pipe_.read_end(), sg_out_, lines, searchword);
                     r.code != Status::NONE)
                     return r;
             }
@@ -227,7 +227,7 @@ class Process : public IProcess {
             if (STDERR_IDX) {
                 auto& err_fd = fds[*STDERR_IDX];
                 if (err_fd.revents & POLLIN) {
-                    if (auto r = readLine(err_pipe_.read_end(), stderr_buffer_, sg_err_, lines, "");
+                    if (auto r = readLine(err_pipe_.read_end(), sg_err_, lines, "");
                         r.code != Status::NONE)
                         return r;
                 }
@@ -358,9 +358,8 @@ class Process : public IProcess {
         }
     }
 
-    Result readLine(int fd, std::array<char, 4096>& buffer, LineAccumulator& accumulator, std::vector<Line>& lines,
-                    std::string_view searchword) {
-        const ssize_t bytes_read = read(fd, buffer.data(), buffer.size());
+    Result readLine(int fd, LineAccumulator& accumulator, std::vector<Line>& lines, std::string_view searchword) {
+        const ssize_t bytes_read = read(fd, accumulator.bufferData(), accumulator.bufferSize());
 
         if (bytes_read == -1) {
             return Result::Error("read failed");
@@ -370,7 +369,7 @@ class Process : public IProcess {
             return Result::Error("EOF");
         }
 
-        const std::string_view line_view(buffer.data(), static_cast<size_t>(bytes_read));
+        const std::string_view line_view(accumulator.bufferData(), static_cast<size_t>(bytes_read));
         return accumulator.consume(line_view, lines, searchword) ? Result::OK() : Result{Status::NONE, ""};
     }
 
@@ -390,8 +389,6 @@ class Process : public IProcess {
 
     LineAccumulator sg_out_;
     LineAccumulator sg_err_;
-    std::array<char, 4096> stdout_buffer_{};
-    std::array<char, 4096> stderr_buffer_{};
 
     bool is_initalized_ = false;
     bool startup_error_ = false;

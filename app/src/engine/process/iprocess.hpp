@@ -2,6 +2,7 @@
 
 #include <chrono>
 #include <functional>
+#include <array>
 #include <string>
 #include <string_view>
 #include <thread>
@@ -74,6 +75,8 @@ class IProcess {
    protected:
     class LineAccumulator {
        public:
+        static constexpr size_t buffer_size = 4096;
+
         LineAccumulator() = default;
 
         LineAccumulator(bool realtime_logging, Standard type, std::string log_name)
@@ -85,6 +88,9 @@ class IProcess {
             data_.clear();
             current_line_start_ = 0;
         }
+
+        char* bufferData() { return buffer_.data(); }
+        size_t bufferSize() const { return buffer_.size(); }
 
         bool consume(std::string_view data, std::vector<Line>& lines, std::string_view searchword,
                      bool cr_is_newline = false) {
@@ -144,6 +150,7 @@ class IProcess {
         }
 
         bool realtime_logging_ = true;
+        std::array<char, buffer_size> buffer_{};
         std::string data_;
         std::string log_name_;
         Standard type_                                = Standard::OUTPUT;

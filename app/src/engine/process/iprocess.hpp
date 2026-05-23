@@ -76,10 +76,8 @@ class IProcess {
        public:
         LineAccumulator() = default;
 
-        LineAccumulator(bool realtime_logging, Standard type, std::string log_name,
-                        std::thread::id log_thread_id = std::this_thread::get_id())
-            : realtime_logging_(realtime_logging), log_name_(std::move(log_name)), type_(type),
-              log_thread_id_(log_thread_id) {
+        LineAccumulator(bool realtime_logging, Standard type, std::string log_name)
+            : realtime_logging_(realtime_logging), log_name_(std::move(log_name)), type_(type) {
             data_.reserve(4096);
         }
 
@@ -90,8 +88,6 @@ class IProcess {
 
         bool consume(std::string_view data, std::vector<Line>& lines, std::string_view searchword,
                      bool cr_is_newline = false) {
-            (void)lines;
-
             size_t start = 0;
             while (start < data.size()) {
                 const size_t pos = cr_is_newline ? data.find_first_of("\r\n", start) : data.find('\n', start);
@@ -124,7 +120,7 @@ class IProcess {
 
        private:
         bool emitLine(std::vector<Line>& lines, std::string_view searchword) {
-            const auto timestamp = Logger::should_log_ ? time::datetime_precise() : "";
+            const auto timestamp  = Logger::should_log_ ? time::datetime_precise() : "";
             const size_t line_end = data_.size();
             const std::string_view line_view(data_.data() + current_line_start_, line_end - current_line_start_);
 
@@ -132,7 +128,7 @@ class IProcess {
 
             if (realtime_logging_) {
                 Logger::readFromEngine(std::string(line_view), timestamp, log_name_, type_ == Standard::ERR,
-                                       log_thread_id_);
+                                       log_thread_id_.value());
             }
 
             const bool matched = !searchword.empty() && searchword.size() <= line_view.size() &&
@@ -150,9 +146,9 @@ class IProcess {
         bool realtime_logging_ = true;
         std::string data_;
         std::string log_name_;
-        Standard type_ = Standard::OUTPUT;
-        std::thread::id log_thread_id_ = std::this_thread::get_id();
-        size_t current_line_start_ = 0;
+        Standard type_                                = Standard::OUTPUT;
+        std::optional<std::thread::id> log_thread_id_ = std::this_thread::get_id();
+        size_t current_line_start_                    = 0;
     };
 
     [[nodiscard]] std::string getPath(const std::string& dir, const std::string& cmd) const {

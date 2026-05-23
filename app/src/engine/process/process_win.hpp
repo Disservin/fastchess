@@ -46,7 +46,7 @@ class Process : public IProcess {
         args_     = args;
         log_name_ = log_name;
 
-        current_line_.reserve(300);
+        line_reader_ = LineAccumulator(realtime_logging_, Standard::OUTPUT, log_name_, thread_id);
         pi_ = PROCESS_INFORMATION{};
 
         SECURITY_ATTRIBUTES saAttr;
@@ -152,7 +152,7 @@ class Process : public IProcess {
         is_initialized_ = false;
     }
 
-    void setupRead() override { current_line_.clear(); }
+    void setupRead() override { line_reader_.clear(); }
 
     // Read stdout until the line matches last_word or timeout is reached
     // 0 means no timeout
@@ -218,7 +218,8 @@ class Process : public IProcess {
                 continue;
             }
 
-            if (readBytes(buffer, bytesRead, lines, last_word)) {
+            if (line_reader_.consume(std::string_view(buffer.data(), static_cast<size_t>(bytesRead)), lines, last_word,
+                                     true)) {
                 return Result::OK();
             }
         }
@@ -239,53 +240,6 @@ class Process : public IProcess {
     }
 
    private:
-    [[nodiscard]] bool readBytes(const std::array<char, buffer_size>& buffer,
-                                DWORD bytes_read,
-                                std::vector<Line>& lines,
-                                std::string_view searchword) {
-        assert(bytes_read <= buffer.size());
-
-        std::string_view data(buffer.data(), static_cast<size_t>(bytes_read));
-        size_t start = 0;
-
-        while (start < data.size()) {
-            const size_t pos = data.find_first_of("\r\n", start);
-
-            if (pos == std::string_view::npos) {
-                current_line_.append(data.substr(start));
-                break;
-            }
-
-            assert(pos >= start);
-            assert(pos < data.size());
-
-            current_line_.append(data.substr(start, pos - start));
-
-            if (!current_line_.empty()) {
-                addLine(lines);
-
-                if (!searchword.empty() &&
-                    current_line_.rfind(searchword, 0) == 0) {
-                    current_line_.clear();
-                    return true;
-                }
-
-                current_line_.clear();
-            }
-
-            // Treat "\r\n" as one delimiter.
-            if (data[pos] == '\r' && pos + 1 < data.size() && data[pos + 1] == '\n') {
-                start = pos + 2;
-            } else {
-                start = pos + 1;
-            }
-
-            assert(start <= data.size());
-        }
-
-        return false;
-    }
-
     [[nodiscard]] bool createProcess(STARTUPINFOA& si) {
         const auto cmd = command_ + " " + args_;
 
@@ -307,16 +261,6 @@ class Process : public IProcess {
         return success;
     }
 
-    void addLine(std::vector<Line>& lines) const {
-        const auto timestamp = Logger::should_log_ ? time::datetime_precise() : "";
-
-        lines.emplace_back(Line{current_line_, timestamp});
-
-        if (realtime_logging_) {
-            Logger::readFromEngine(current_line_, timestamp, log_name_, false, thread_id);
-        }
-    }
-
     // The working directory
     std::string wd_;
     // The command to execute
@@ -325,15 +269,13 @@ class Process : public IProcess {
     std::string args_;
     // The name in the log file
     std::string log_name_;
-    // The current line read from the engine, avoids reallocations
-    std::string current_line_;
-
     // True if the process has been initialized
     bool is_initialized_ = false;
 
     PROCESS_INFORMATION pi_;
 
     const std::thread::id thread_id = std::this_thread::get_id();
+    LineAccumulator line_reader_;
 };
 
 }  // namespace engine::process

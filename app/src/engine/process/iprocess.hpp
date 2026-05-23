@@ -2,6 +2,7 @@
 
 #include <chrono>
 #include <functional>
+#include <optional>
 #include <string>
 #include <string_view>
 #include <thread>
@@ -74,39 +75,53 @@ class IProcess {
    protected:
     class LineAccumulator {
        public:
+        struct CompletedLine {
+            size_t start = 0;
+            size_t end = 0;
+            std::string time;
+            size_t sequence = 0;
+        };
+
         LineAccumulator() = default;
 
         LineAccumulator(bool realtime_logging, Standard type, std::string log_name,
-                        std::thread::id log_thread_id = std::this_thread::get_id())
+                        size_t* line_sequence, std::thread::id log_thread_id = std::this_thread::get_id())
             : realtime_logging_(realtime_logging), log_name_(std::move(log_name)), type_(type),
-              log_thread_id_(log_thread_id) {
-            line_buffer_.reserve(300);
+              line_sequence_(line_sequence), log_thread_id_(log_thread_id) {
+            data_.reserve(4096);
+            completed_.reserve(64);
         }
 
-        void clear() { line_buffer_.clear(); }
+        void clear() {
+            data_.clear();
+            completed_.clear();
+            current_line_start_ = 0;
+            next_completed_ = 0;
+        }
 
         bool consume(std::string_view data, std::vector<Line>& lines, std::string_view searchword,
                      bool cr_is_newline = false) {
-            size_t start = 0;
+            (void)lines;
 
+            size_t start = 0;
             while (start < data.size()) {
                 const size_t pos = cr_is_newline ? data.find_first_of("\r\n", start) : data.find('\n', start);
-
                 if (pos == std::string_view::npos) {
-                    line_buffer_.append(data.substr(start));
+                    data_.append(data.data() + start, data.size() - start);
                     break;
                 }
 
-                line_buffer_.append(data.substr(start, pos - start));
+                if (pos > start) {
+                    data_.append(data.data() + start, pos - start);
+                }
 
-                if (!line_buffer_.empty() && emitLine(lines, searchword)) {
+                if (current_line_start_ != data_.size() && finalizeLine(searchword)) {
                     return true;
                 }
 
-                if (cr_is_newline && data[pos] == '\r' && pos + 1 < data.size() && data[pos + 1] == '\n') {
-                    start = pos + 2;
-                } else {
-                    start = pos + 1;
+                start = pos + 1;
+                if (cr_is_newline && data[pos] == '\r' && start < data.size() && data[start] == '\n') {
+                    ++start;
                 }
             }
 
@@ -114,30 +129,69 @@ class IProcess {
         }
 
         void flushPartial(std::vector<Line>& lines) {
-            if (line_buffer_.empty()) return;
-            emitLine(lines, "");
+            (void)lines;
+            if (current_line_start_ == data_.size()) return;
+            finalizeLine("");
+        }
+
+        bool hasCompletedLines() const { return next_completed_ < completed_.size(); }
+
+        std::optional<size_t> nextSequence() const {
+            if (!hasCompletedLines()) return std::nullopt;
+            return completed_[next_completed_].sequence;
+        }
+
+        void drainOne(std::vector<Line>& lines) {
+            const auto& line = completed_[next_completed_++];
+            lines.emplace_back(Line{data_.substr(line.start, line.end - line.start), line.time, type_});
+
+            if (next_completed_ == completed_.size()) {
+                completed_.clear();
+                next_completed_ = 0;
+
+                if (current_line_start_ > 0) {
+                    data_.erase(0, current_line_start_);
+                    current_line_start_ = 0;
+                }
+            }
         }
 
        private:
-        bool emitLine(std::vector<Line>& lines, std::string_view searchword) {
+        bool finalizeLine(std::string_view searchword) {
             const auto timestamp = Logger::should_log_ ? time::datetime_precise() : "";
+            const size_t line_end = data_.size();
 
-            lines.emplace_back(Line{line_buffer_, timestamp, type_});
+            completed_.push_back(CompletedLine{current_line_start_, line_end, timestamp,
+                                               line_sequence_ ? (*line_sequence_)++ : completed_.size()});
 
             if (realtime_logging_) {
-                Logger::readFromEngine(line_buffer_, timestamp, log_name_, type_ == Standard::ERR, log_thread_id_);
+                Logger::readFromEngine(data_.substr(current_line_start_, line_end - current_line_start_), timestamp,
+                                       log_name_, type_ == Standard::ERR, log_thread_id_);
             }
 
-            const bool matched = !searchword.empty() && line_buffer_.rfind(searchword, 0) == 0;
-            line_buffer_.clear();
+            const bool matched = startsWith(current_line_start_, line_end, searchword);
+            current_line_start_ = line_end;
             return matched;
         }
 
+        bool startsWith(size_t start, size_t end, std::string_view searchword) const {
+            if (searchword.empty()) return false;
+
+            const size_t size = end - start;
+            if (searchword.size() > size) return false;
+
+            return std::string_view(data_.data() + start, searchword.size()) == searchword;
+        }
+
         bool realtime_logging_ = true;
-        std::string line_buffer_;
+        std::string data_;
         std::string log_name_;
         Standard type_ = Standard::OUTPUT;
+        size_t* line_sequence_ = nullptr;
         std::thread::id log_thread_id_ = std::this_thread::get_id();
+        size_t current_line_start_ = 0;
+        std::vector<CompletedLine> completed_;
+        size_t next_completed_ = 0;
     };
 
     [[nodiscard]] std::string getPath(const std::string& dir, const std::string& cmd) const {

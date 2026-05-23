@@ -46,7 +46,7 @@ class Process : public IProcess {
         args_     = args;
         log_name_ = log_name;
 
-        line_reader_ = LineAccumulator(realtime_logging_, Standard::OUTPUT, log_name_, thread_id);
+        line_reader_ = LineAccumulator(realtime_logging_, Standard::OUTPUT, log_name_, &line_sequence_, thread_id);
         pi_ = PROCESS_INFORMATION{};
 
         SECURITY_ATTRIBUTES saAttr;
@@ -170,11 +170,11 @@ class Process : public IProcess {
             auto elapsedMs   = std::chrono::duration_cast<std::chrono::milliseconds>(currentTime - startTime).count();
 
             if (elapsedMs >= timeout) {
-                return Result{Status::TIMEOUT, "timeout"};
+                return finish_read(lines, Result{Status::TIMEOUT, "timeout"});
             }
 
             if (atomic::stop) {
-                return Result::Error("stop requested");
+                return finish_read(lines, Result::Error("stop requested"));
             }
 
             DWORD bytesRead;
@@ -183,32 +183,32 @@ class Process : public IProcess {
 
             if (!overlapped.hEvent) {
                 LOG_FATAL_THREAD("Failed to create event for overlapped I/O");
-                return Result::Error("failed to create event for overlapped I/O");
+                return finish_read(lines, Result::Error("failed to create event for overlapped I/O"));
             }
 
             if (!ReadFile(hChildStdoutRead, buffer.data(), buffer.size(), &bytesRead, &overlapped)) {
                 if (GetLastError() != ERROR_IO_PENDING) {
                     CloseHandle(overlapped.hEvent);
                     LOG_FATAL_THREAD("Failed to read from pipe");
-                    return Result::Error("failed to read from pipe");
+                    return finish_read(lines, Result::Error("failed to read from pipe"));
                 }
 
                 DWORD waitResult = WaitForSingleObject(overlapped.hEvent, timeout);
                 if (waitResult == WAIT_TIMEOUT) {
                     CancelIo(hChildStdoutRead);
                     CloseHandle(overlapped.hEvent);
-                    return Result{Status::TIMEOUT, "timeout"};
+                    return finish_read(lines, Result{Status::TIMEOUT, "timeout"});
                 }
                 if (waitResult != WAIT_OBJECT_0) {
                     CloseHandle(overlapped.hEvent);
                     LOG_FATAL_THREAD("Wait failed");
-                    return Result::Error("wait failed");
+                    return finish_read(lines, Result::Error("wait failed"));
                 }
 
                 if (!GetOverlappedResult(hChildStdoutRead, &overlapped, &bytesRead, FALSE)) {
                     CloseHandle(overlapped.hEvent);
                     LOG_FATAL_THREAD("Failed to get overlapped result");
-                    return Result::Error("failed to get overlapped result");
+                    return finish_read(lines, Result::Error("failed to get overlapped result"));
                 }
             }
 
@@ -220,7 +220,7 @@ class Process : public IProcess {
 
             if (line_reader_.consume(std::string_view(buffer.data(), static_cast<size_t>(bytesRead)), lines, last_word,
                                      true)) {
-                return Result::OK();
+                return finish_read(lines, Result::OK());
             }
         }
     }
@@ -240,6 +240,14 @@ class Process : public IProcess {
     }
 
    private:
+    Result finish_read(std::vector<Line>& lines, Result result) {
+        while (line_reader_.hasCompletedLines()) {
+            line_reader_.drainOne(lines);
+        }
+
+        return result;
+    }
+
     [[nodiscard]] bool createProcess(STARTUPINFOA& si) {
         const auto cmd = command_ + " " + args_;
 
@@ -276,6 +284,7 @@ class Process : public IProcess {
 
     const std::thread::id thread_id = std::this_thread::get_id();
     LineAccumulator line_reader_;
+    size_t line_sequence_ = 0;
 };
 
 }  // namespace engine::process

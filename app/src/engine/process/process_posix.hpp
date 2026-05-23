@@ -96,10 +96,10 @@ class Process : public IProcess {
             return Result::Error(success.message);
         }
 
-        sg_out_ = LineAccumulator(realtime_logging_, Standard::OUTPUT, log_name_);
+        sg_out_ = LineAccumulator(realtime_logging_, Standard::OUTPUT, log_name_, &line_sequence_);
 
         if (Logger::should_log_) {
-            sg_err_ = LineAccumulator(realtime_logging_, Standard::ERR, log_name_);
+            sg_err_ = LineAccumulator(realtime_logging_, Standard::ERR, log_name_, &line_sequence_);
         }
 
         // create a control pipe to interrupt polling when terminating
@@ -200,10 +200,10 @@ class Process : public IProcess {
             // which can be a problem when running with a high concurrency
             const int ready = poll(fds.data(), static_cast<nfds_t>(fds_count), poll_timeout_ms);
 
-            if (ready == -1) return Result::Error("poll failed");
+            if (ready == -1) return finish_read(lines, Result::Error("poll failed"));
             if (ready == 0) {
                 flush_partials_on_timeout(lines);
-                return Result{Status::TIMEOUT, "timeout"};
+                return finish_read(lines, Result{Status::TIMEOUT, "timeout"});
             }
 
             // 1. Check Interrupt
@@ -211,15 +211,15 @@ class Process : public IProcess {
                 [[maybe_unused]] uint64_t junk;
                 [[maybe_unused]] auto r = read(fds[INT_IDX].fd, &junk, sizeof(junk));
                 assert(junk > 0);
-                return Result::Error("Interrupted by control pipe");
+                return finish_read(lines, Result::Error("Interrupted by control pipe"));
             }
 
             // 2. Check Stdout
             auto& out_fd = fds[STDOUT_IDX];
             if (out_fd.revents & (POLLIN | POLLHUP | POLLERR)) {
-                if (out_fd.revents & (POLLHUP | POLLERR)) return Result::Error("Engine crashed (stdout)");
+                if (out_fd.revents & (POLLHUP | POLLERR)) return finish_read(lines, Result::Error("Engine crashed (stdout)"));
                 if (auto r = readLine(in_pipe_.read_end(), stdout_buffer_, sg_out_, lines, searchword); r.code != Status::NONE)
-                    return r;
+                    return finish_read(lines, r);
             }
 
             // 3. Check Stderr
@@ -227,13 +227,13 @@ class Process : public IProcess {
                 auto& err_fd = fds[*STDERR_IDX];
                 if (err_fd.revents & POLLIN) {
                     if (auto r = readLine(err_pipe_.read_end(), stderr_buffer_, sg_err_, lines, ""); r.code != Status::NONE)
-                        return r;
+                        return finish_read(lines, r);
                 }
-                if (err_fd.revents & (POLLHUP | POLLERR)) return Result::Error("Engine crashed (stderr)");
+                if (err_fd.revents & (POLLHUP | POLLERR)) return finish_read(lines, Result::Error("Engine crashed (stderr)"));
             }
         }
 
-        return Result::OK();
+        return finish_read(lines, Result::OK());
     }
 
     Result writeInput(const std::string& input) noexcept override {
@@ -373,6 +373,26 @@ class Process : public IProcess {
                    : Result{Status::NONE, ""};
     }
 
+    Result finish_read(std::vector<Line>& lines, Result result) {
+        drain_completed_lines(lines);
+        return result;
+    }
+
+    void drain_completed_lines(std::vector<Line>& lines) {
+        while (true) {
+            const auto out_seq = sg_out_.nextSequence();
+            const auto err_seq = sg_err_.nextSequence();
+
+            if (!out_seq && !err_seq) break;
+
+            if (!err_seq || (out_seq && *out_seq < *err_seq)) {
+                sg_out_.drainOne(lines);
+            } else {
+                sg_err_.drainOne(lines);
+            }
+        }
+    }
+
     [[nodiscard]] pollfd create_pollfd(int fd, short events) const {
         pollfd pfd;
         pfd.fd      = fd;
@@ -401,6 +421,7 @@ class Process : public IProcess {
     InterruptSignaler interrupt_{};
 
     std::optional<int> exit_code_;
+    size_t line_sequence_ = 0;
 };
 
 }  // namespace engine::process

@@ -53,6 +53,7 @@ SRC_FILES_TEST   := \
 	$(TESTDIR)/epd_reader_test.cpp \
 	$(TESTDIR)/fd_limit_test.cpp \
 	$(TESTDIR)/functions_test.cpp \
+	$(TESTDIR)/line_accumulator_bench.cpp \
 	$(TESTDIR)/main.cpp \
 	$(TESTDIR)/match_test.cpp \
 	$(TESTDIR)/opening_test.cpp \

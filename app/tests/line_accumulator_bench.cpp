@@ -72,8 +72,7 @@ BenchmarkSummary run_benchmark(const std::string& input, std::string_view search
     const auto start = std::chrono::steady_clock::now();
 
     for (size_t iter = 0; iter < iterations; ++iter) {
-        size_t sequence = 0;
-        LineAccumulatorHarness::LineAccumulator accumulator(false, Standard::OUTPUT, "bench", &sequence);
+        LineAccumulatorHarness::LineAccumulator accumulator(false, Standard::OUTPUT, "bench");
         bool matched = false;
 
         for (size_t offset = 0; offset < input.size(); offset += chunk_size) {
@@ -82,10 +81,6 @@ BenchmarkSummary run_benchmark(const std::string& input, std::string_view search
                 matched = true;
                 break;
             }
-        }
-
-        while (accumulator.hasCompletedLines()) {
-            accumulator.drainOne(lines);
         }
 
         summary.lines += lines.size();

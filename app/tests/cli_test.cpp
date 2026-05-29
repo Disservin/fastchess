@@ -532,7 +532,6 @@ TEST_SUITE("Option Parsing Tests") {
                                                    "level=trace",
                                                    "append=false",
                                                    "compress=true",
-                                                   "realtime=true",
                                                    "engine=true"})};
 
         const auto &log = parser.getTournamentConfig().log;
@@ -540,7 +539,6 @@ TEST_SUITE("Option Parsing Tests") {
         CHECK(log.level == Logger::Level::TRACE);
         CHECK(!log.append_file);
         CHECK(log.compress);
-        CHECK(log.realtime);
         CHECK(log.engine_coms);
     }
 
@@ -558,7 +556,6 @@ TEST_SUITE("Option Parsing Tests") {
         CHECK(config.rounds == 5);
         CHECK(config.check_mate_pvs);
         CHECK(config.show_latency);
-        CHECK(config.log.realtime);
         CHECK(config.config_name == "custom.json");
 
         const auto engines = parser.getEngineConfigs();

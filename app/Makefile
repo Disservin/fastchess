@@ -24,6 +24,7 @@ SRC_FILES        := \
 	$(SRCDIR)/cli/cli.cpp \
 	$(SRCDIR)/cli/sanitize.cpp \
 	$(SRCDIR)/core/globals/globals.cpp \
+	$(SRCDIR)/core/logger/async_log_sink.cpp \
 	$(SRCDIR)/core/logger/logger.cpp \
 	$(SRCDIR)/core/printing/printing.cpp \
 	$(SRCDIR)/core/time/time.cpp \

@@ -84,7 +84,6 @@
     "append_file": false,
     "level": 2,
     "compress": false,
-    "realtime": true,
     "engine_coms": false
   },
   "engines": [

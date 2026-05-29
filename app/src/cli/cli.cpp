@@ -419,8 +419,6 @@ void parseLog(const KeyValuePairs& params, ArgumentData& argument_data) {
             argument_data.tournament_config.log.append_file = value == "true";
         } else if (key == "compress" && is_bool(value)) {
             argument_data.tournament_config.log.compress = value == "true";
-        } else if (key == "realtime" && is_bool(value)) {
-            argument_data.tournament_config.log.realtime = value == "true";
         } else if (key == "engine" && is_bool(value)) {
             argument_data.tournament_config.log.engine_coms = value == "true";
         } else {

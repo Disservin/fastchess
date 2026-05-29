@@ -56,11 +56,9 @@ CountingSemaphore semaphore(16);
 
 }  // namespace
 
-UciEngine::UciEngine(const EngineConfiguration& config, bool realtime_logging) : realtime_logging_(realtime_logging) {
+UciEngine::UciEngine(const EngineConfiguration& config) {
     loadConfig(config);
     output_.reserve(100);
-
-    process_.setRealtimeLogging(realtime_logging_);
 }
 
 process::Result UciEngine::isready(std::optional<std::chrono::milliseconds> threshold) {
@@ -75,13 +73,6 @@ process::Result UciEngine::isready(std::optional<std::chrono::milliseconds> thre
 
     std::vector<process::Line> output;
     const auto res = process_.readOutput(output, "readyok", threshold.value_or(getPingTime()));
-
-    // print output in case we are using delayed logging
-    if (!realtime_logging_) {
-        for (const auto& line : output) {
-            Logger::readFromEngine(line.line, line.time, config_.name, line.std == process::Standard::ERR);
-        }
-    }
 
     if (!res) {
         if (!atomic::stop) {
@@ -242,12 +233,6 @@ bool UciEngine::uciok(std::optional<ms> threshold) {
     const auto res = readEngine("uciok", threshold.value_or(getPingTime()));
     const auto ok  = res.code == process::Status::OK;
 
-    for (const auto& line : output_) {
-        if (!realtime_logging_) {
-            Logger::readFromEngine(line.line, line.time, config_.name, line.std == process::Standard::ERR);
-        }
-    }
-
     for (const auto& line : getStdoutLines()) {
         auto option = UCIOptionFactory::parseUCIOptionLine(line->line);
 
@@ -386,12 +371,6 @@ process::Result UciEngine::readEngine(std::string_view last_word, std::optional<
     return process_.readOutput(output_, last_word, threshold.value_or(getPingTime()));
 }
 
-void UciEngine::writeLog() const {
-    for (const auto& line : output_) {
-        Logger::readFromEngine(line.line, line.time, config_.name, line.std == process::Standard::ERR);
-    }
-}
-
 std::string UciEngine::lastInfoLine() const {
     std::string fallback;
 
@@ -435,7 +414,9 @@ std::vector<const std::string*> UciEngine::getInfoLines() const {
 }
 
 bool UciEngine::writeEngine(const std::string& input) {
-    Logger::writeToEngine(input, "", config_.name);
+    if (config::TournamentConfig && config::TournamentConfig->log.engine_coms) {
+        Logger::writeToEngine(input, "", config_.name);
+    }
     return process_.writeInput(input + "\n").code == process::Status::OK;
 }
 

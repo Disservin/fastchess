@@ -3,14 +3,17 @@
 #include <atomic>
 #include <fstream>
 #include <iostream>
-#include <mutex>
+#include <memory>
 #include <string>
 #include <thread>
+#include <utility>
 #include <variant>
 
+#include <core/logger/async_log_sink.hpp>
 #include <core/time/time.hpp>
 
 #define FMT_HEADER_ONLY
+#include <fmt/include/fmt/args.h>
 #include <fmt/include/fmt/core.h>
 #include "fmt/include/fmt/std.h"
 
@@ -44,7 +47,7 @@ class Logger {
     static void setLevel(Level level) { Logger::level_ = level; }
     static void setCompress(bool compress) { compress_ = compress; }
     static void openFile(const std::string& file, bool append = true);
-    static void setEngineComs(bool engine_coms) { engine_coms_ = engine_coms; }
+    static void shutdown();
 
     // Direct function calls - no file path
     template <bool thread = false, typename... T>
@@ -98,8 +101,6 @@ class Logger {
             return;
         }
 
-        const auto message = fmt::format(format, std::forward<T>(args)...) + "\n";
-
         if (!should_log_) {
             return;
         }
@@ -126,11 +127,16 @@ class Logger {
         }
 
         auto thread_id_str = thread ? fmt::format("{}", std::this_thread::get_id()) : "";
-        auto prefix        = make_prefix(label, time::datetime_precise(), thread_id_str);
-        auto fmt_message   = fmt::format("{}fastchess --- {}", prefix, message);
+        auto format_str = std::string(format.get().data(), format.get().size());
+        auto arg_store  = std::make_shared<fmt::dynamic_format_arg_store<fmt::format_context>>();
+        (arg_store->push_back(std::forward<T>(args)), ...);
 
-        const std::lock_guard<std::mutex> lock(log_mutex_);
-        std::visit([&](auto&& arg) { arg << fmt_message << std::flush; }, log_);
+        enqueueForFile([label = std::move(label), thread_id_str = std::move(thread_id_str),
+                        format_str = std::move(format_str), arg_store = std::move(arg_store)]() mutable {
+            auto prefix  = make_prefix(label, time::datetime_precise(), thread_id_str);
+            auto message = fmt::vformat(format_str, *arg_store);
+            writeToFile(fmt::format("{}fastchess --- {}\n", prefix, message));
+        });
     }
 
 #ifdef _WIN32
@@ -148,12 +154,13 @@ class Logger {
     }
 
     Logger() {}
+    static void enqueueForFile(AsyncLogSink::Task task);
+    static void writeToFile(const std::string& message);
 
     static Level level_;
     static bool compress_;
-    static bool engine_coms_;
     static log_file_type log_;
-    static std::mutex log_mutex_;
+    static AsyncLogSink async_sink_;
 };
 
 #define LOG_TRACE(...) Logger::trace(__VA_ARGS__)

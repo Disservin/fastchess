@@ -18,9 +18,8 @@ bool Logger::compress_               = false;
 Logger::Level Logger::level_         = Logger::Level::WARN;
 std::atomic_bool Logger::should_log_ = false;
 
-std::mutex Logger::log_mutex_;
 Logger::log_file_type Logger::log_;
-bool Logger::engine_coms_ = false;
+AsyncLogSink Logger::async_sink_;
 
 void Logger::openFile(const std::string& file, bool append) {
     if (file.empty()) {
@@ -56,32 +55,52 @@ void Logger::openFile(const std::string& file, bool append) {
             }
         },
         log_);
+
+    if (Logger::should_log_) {
+        async_sink_.start();
+    }
+}
+
+void Logger::shutdown() {
+    should_log_ = false;
+    async_sink_.shutdown();
 }
 
 void Logger::writeToEngine(const std::string& msg, const std::string& time, const std::string& name) {
-    if (!should_log_ || !engine_coms_) {
+    if (!should_log_.load()) {
         return;
     }
 
-    const auto timestamp   = time.empty() ? time::datetime_precise() : time;
-    const auto id          = std::this_thread::get_id();
-    const auto fmt_message = fmt::format("{} {} <--- {}\n", make_prefix("Engine", timestamp, id), name, msg);
-
-    const std::lock_guard<std::mutex> lock(log_mutex_);
-    std::visit([&](auto&& arg) { arg << fmt_message << std::flush; }, log_);
+    const auto id = std::this_thread::get_id();
+    enqueueForFile([msg, time, name, id] {
+        const auto timestamp = time.empty() ? time::datetime_precise() : time;
+        writeToFile(fmt::format("{} {} <--- {}\n", make_prefix("Engine", timestamp, id), name, msg));
+    });
 }
 
 void Logger::readFromEngine(const std::string& msg, const std::string& time, const std::string& name, bool err,
                             std::thread::id id) {
-    if (!should_log_ || !engine_coms_) {
+    if (!should_log_.load()) {
         return;
     }
 
-    const auto fmt_message =
-        fmt::format("{} {}{} ---> {}\n", make_prefix("Engine", time, id), (err ? "<stderr> " : ""), name, msg);
+    enqueueForFile([msg, time, name, err, id] {
+        const auto timestamp = time.empty() ? time::datetime_precise() : time;
+        writeToFile(fmt::format("{} {}{} ---> {}\n", make_prefix("Engine", timestamp, id), (err ? "<stderr> " : ""),
+                                name, msg));
+    });
+}
 
-    const std::lock_guard<std::mutex> lock(log_mutex_);
-    std::visit([&](auto&& arg) { arg << fmt_message << std::flush; }, log_);
+void Logger::enqueueForFile(AsyncLogSink::Task task) {
+    async_sink_.enqueue(std::move(task));
+}
+
+void Logger::writeToFile(const std::string& message) {
+    std::visit(
+        [&](auto&& arg) {
+            arg << message << std::flush;
+        },
+        log_);
 }
 
 }  // namespace fastchess

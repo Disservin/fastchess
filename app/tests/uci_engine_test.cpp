@@ -20,8 +20,7 @@ const std::string_view path = "./app/tests/mock/engine/dummy_engine";
 
 class MockUciEngine : public engine::UciEngine {
    public:
-    explicit MockUciEngine(const EngineConfiguration& config, bool realtime_logging)
-        : engine::UciEngine(config, realtime_logging) {}
+    explicit MockUciEngine(const EngineConfiguration& config) : engine::UciEngine(config) {}
 };
 
 }  // namespace
@@ -32,7 +31,7 @@ TEST_SUITE("Uci Engine Communication Tests") {
         config.cmd  = path;
         config.args = "arg1 arg2 arg3";
 
-        engine::UciEngine uci_engine = engine::UciEngine(config, false);
+        engine::UciEngine uci_engine = engine::UciEngine(config);
 
         CHECK(uci_engine.start(/*cpus*/ std::nullopt));
 
@@ -61,7 +60,7 @@ TEST_SUITE("Uci Engine Communication Tests") {
             "--weights=lc0/BT4-1024x15x32h-swa-6147500.pb.gz --minibatch-size=132 "
             "--nncache=50000000 --threads=5";
 
-        engine::UciEngine uci_engine = engine::UciEngine(config, false);
+        engine::UciEngine uci_engine = engine::UciEngine(config);
 
         CHECK(uci_engine.start(/*cpus*/ std::nullopt));
 
@@ -84,7 +83,7 @@ TEST_SUITE("Uci Engine Communication Tests") {
         config.cmd  = path;
         config.args = "arg1 arg2 arg3";
 
-        engine::UciEngine uci_engine = engine::UciEngine(config, false);
+        engine::UciEngine uci_engine = engine::UciEngine(config);
 
         CHECK(uci_engine.start(/*cpus*/ std::nullopt));
 
@@ -127,7 +126,7 @@ TEST_SUITE("Uci Engine Communication Tests") {
         EngineConfiguration config;
         config.cmd = path;
 
-        engine::UciEngine uci_engine = engine::UciEngine(config, false);
+        engine::UciEngine uci_engine = engine::UciEngine(config);
 
         CHECK(uci_engine.start(/*cpus*/ std::nullopt));
 
@@ -169,7 +168,7 @@ TEST_SUITE("Uci Engine Communication Tests") {
         EngineConfiguration config;
         config.cmd = path;
 
-        std::unique_ptr<engine::UciEngine> uci_engine = std::make_unique<MockUciEngine>(config, false);
+        std::unique_ptr<engine::UciEngine> uci_engine = std::make_unique<MockUciEngine>(config);
 
         CHECK(uci_engine->start(/*cpus*/ std::nullopt));
 
@@ -188,7 +187,7 @@ TEST_SUITE("Uci Engine Communication Tests") {
         CHECK(uci_engine->getStdoutLines()[7]->line == "line1");
         CHECK(uci_engine->getStdoutLines()[8]->line == "uciok");
 
-        uci_engine = std::make_unique<MockUciEngine>(config, false);
+        uci_engine = std::make_unique<MockUciEngine>(config);
 
         CHECK(uci_engine->start(/*cpus*/ std::nullopt));
 
@@ -212,7 +211,7 @@ TEST_SUITE("Uci Engine Communication Tests") {
         EngineConfiguration config;
         config.cmd = path;
 
-        std::unique_ptr<engine::UciEngine> uci_engine = std::make_unique<MockUciEngine>(config, false);
+        std::unique_ptr<engine::UciEngine> uci_engine = std::make_unique<MockUciEngine>(config);
 
         CHECK(uci_engine->start(/*cpus*/ std::nullopt));
 
@@ -231,7 +230,7 @@ TEST_SUITE("Uci Engine Communication Tests") {
         CHECK(uci_engine->getStdoutLines()[7]->line == "line1");
         CHECK(uci_engine->getStdoutLines()[8]->line == "uciok");
 
-        uci_engine = std::make_unique<MockUciEngine>(config, false);
+        uci_engine = std::make_unique<MockUciEngine>(config);
 
         CHECK(uci_engine->start(/*cpus*/ std::nullopt));
 
@@ -261,7 +260,7 @@ TEST_SUITE("Uci Engine Communication Tests") {
             {"Threads", "4"},
         };
 
-        std::unique_ptr<engine::UciEngine> uci_engine = std::make_unique<MockUciEngine>(config, false);
+        std::unique_ptr<engine::UciEngine> uci_engine = std::make_unique<MockUciEngine>(config);
 
         CHECK(uci_engine->start(/*cpus*/ std::nullopt));
 

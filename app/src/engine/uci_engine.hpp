@@ -26,7 +26,7 @@ using ms = std::chrono::milliseconds;
 
 class UciEngine {
    public:
-    explicit UciEngine(const EngineConfiguration& config, bool realtime_logging);
+    explicit UciEngine(const EngineConfiguration& config);
 
     UciEngine(const UciEngine&)            = delete;
     UciEngine(UciEngine&&)                 = delete;
@@ -75,10 +75,6 @@ class UciEngine {
     }
 
     void setupReadEngine() { process_.setupRead(); }
-
-    // Logs are not written in realtime to avoid slowing down the engine.
-    // This function writes the logs to the logger.
-    void writeLog() const;
 
     void setCpus(const std::vector<int>& cpus) {
         if (cpus.empty()) return;
@@ -131,8 +127,6 @@ class UciEngine {
     [[nodiscard]] const UCIOptions& uciOptions() const noexcept { return uci_options_; }
     UCIOptions& uciOptions() noexcept { return uci_options_; }
 
-    [[nodiscard]] bool isRealtimeLogging() const noexcept { return realtime_logging_; }
-
     [[nodiscard]] static ms getPingTime() { return config::TournamentConfig->ping_time; }
     [[nodiscard]] static ms getUciNewGameTime() { return config::TournamentConfig->ucinewgame_time; }
     [[nodiscard]] static ms getStartupTime() { return config::TournamentConfig->startup_time; }
@@ -163,7 +157,5 @@ class UciEngine {
 
     // init on first use
     bool initialized_ = false;
-
-    const bool realtime_logging_;
 };
 }  // namespace fastchess::engine

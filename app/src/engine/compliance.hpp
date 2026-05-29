@@ -46,7 +46,7 @@ inline bool compliant(int argc, char const* argv[]) {
     config.cmd  = argv[2];
     config.args = argc > 3 ? std::string(argv[3]) : "";
 
-    UciEngine uci_engine(config, false);
+    UciEngine uci_engine(config);
 
     auto executeStep = [&step, &uci_engine](const std::string& description, const std::function<bool()>& action) {
         step++;

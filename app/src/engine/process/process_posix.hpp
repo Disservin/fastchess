@@ -24,6 +24,7 @@
 #    include <unistd.h>
 
 #    include <affinity/affinity.hpp>
+#    include <core/config/config.hpp>
 #    include <argv_split.hpp>
 #    include <core/globals/globals.hpp>
 #    include <core/logger/logger.hpp>
@@ -67,8 +68,7 @@ class Stream {
    public:
     Stream() = default;
 
-    Stream(int fd, bool realtime_logging, Standard type, const std::string& log_name)
-        : fd_(fd), realtime_logging_(realtime_logging), log_name_(log_name), type_(type) {
+    Stream(int fd, Standard type, const std::string& log_name) : fd_(fd), log_name_(log_name), type_(type) {
         line_buffer_.clear();
         line_buffer_.reserve(300);
     }
@@ -98,11 +98,11 @@ class Stream {
             line_buffer_.append(data.substr(start, nl - start));
 
             if (!line_buffer_.empty()) {
-                const auto ts = Logger::should_log_ ? time::datetime_precise() : "";
+                const auto ts = "";
 
                 lines.emplace_back(Line{line_buffer_, ts, type_});
 
-                if (realtime_logging_) {
+                if (config::TournamentConfig && config::TournamentConfig->log.engine_coms) {
                     Logger::readFromEngine(line_buffer_, ts, log_name_, type_ == Standard::ERR);
                 }
 
@@ -126,10 +126,10 @@ class Stream {
     void flushPartial(std::vector<Line>& lines) {
         if (line_buffer_.empty()) return;
 
-        auto ts = time::datetime_precise();
+        const auto ts = "";
         lines.emplace_back(Line{line_buffer_, ts, type_});
 
-        if (realtime_logging_) {
+        if (config::TournamentConfig && config::TournamentConfig->log.engine_coms) {
             Logger::readFromEngine(line_buffer_, ts, log_name_, type_ == Standard::ERR);
         }
 
@@ -138,8 +138,6 @@ class Stream {
 
    private:
     int fd_;
-    bool realtime_logging_;
-
     std::string line_buffer_;
     std::string log_name_;
     Standard type_;
@@ -180,10 +178,10 @@ class Process : public IProcess {
             return Result::Error(success.message);
         }
 
-        sg_out_ = Stream(in_pipe_.read_end(), realtime_logging_, Standard::OUTPUT, log_name_);
+        sg_out_ = Stream(in_pipe_.read_end(), Standard::OUTPUT, log_name_);
 
-        if (Logger::should_log_) {
-            sg_err_ = Stream(err_pipe_.read_end(), realtime_logging_, Standard::ERR, log_name_);
+        if (config::TournamentConfig && config::TournamentConfig->log.engine_coms) {
+            sg_err_ = Stream(err_pipe_.read_end(), Standard::ERR, log_name_);
         }
 
         // create a control pipe to interrupt polling when terminating
@@ -243,7 +241,9 @@ class Process : public IProcess {
         }
 
         // log the status of the process
-        Logger::readFromEngine(signalToString(status), time::datetime_precise(), log_name_, true);
+        if (config::TournamentConfig && config::TournamentConfig->log.engine_coms) {
+            Logger::readFromEngine(signalToString(status), time::datetime_precise(), log_name_, true);
+        }
         is_initalized_ = false;
     }
 
@@ -271,7 +271,7 @@ class Process : public IProcess {
         fds[INT_IDX]         = create_pollfd(interrupt_.get_read_fd(), POLLIN);
 
         std::optional<size_t> STDERR_IDX;
-        if (Logger::should_log_) {
+        if (config::TournamentConfig && config::TournamentConfig->log.engine_coms) {
             STDERR_IDX       = fds_count++;
             fds[*STDERR_IDX] = create_pollfd(err_pipe_.read_end(), POLLIN | POLLERR | POLLHUP);
         }
@@ -372,7 +372,7 @@ class Process : public IProcess {
         out_pipe_ = {};
         in_pipe_  = {};
 
-        if (Logger::should_log_) {
+        if (config::TournamentConfig && config::TournamentConfig->log.engine_coms) {
             err_pipe_ = {};
         } else {
             err_pipe_.close_fds();
@@ -384,7 +384,7 @@ class Process : public IProcess {
             fa.add_dup2(out_pipe_.read_end(), STDIN_FILENO);
             fa.add_dup2(in_pipe_.write_end(), STDOUT_FILENO);
 
-            if (Logger::should_log_) {
+            if (config::TournamentConfig && config::TournamentConfig->log.engine_coms) {
                 fa.add_dup2(err_pipe_.write_end(), STDERR_FILENO);
             }
 
@@ -433,7 +433,7 @@ class Process : public IProcess {
 
     void flush_partials_on_timeout(std::vector<Line>& lines) {
         sg_out_.flushPartial(lines);
-        if (Logger::should_log_) {
+        if (config::TournamentConfig && config::TournamentConfig->log.engine_coms) {
             sg_err_.flushPartial(lines);
         }
     }

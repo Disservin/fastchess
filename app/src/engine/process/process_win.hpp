@@ -13,6 +13,7 @@
 #    include <windows.h>
 
 #    include <affinity/affinity.hpp>
+#    include <core/config/config.hpp>
 #    include <core/globals/globals.hpp>
 #    include <core/logger/logger.hpp>
 #    include <core/threading/thread_vector.hpp>
@@ -308,11 +309,11 @@ class Process : public IProcess {
     }
 
     void addLine(std::vector<Line>& lines) const {
-        const auto timestamp = Logger::should_log_ ? time::datetime_precise() : "";
+        const auto timestamp = "";
 
         lines.emplace_back(Line{current_line_, timestamp});
 
-        if (realtime_logging_) {
+        if (config::TournamentConfig && config::TournamentConfig->log.engine_coms) {
             Logger::readFromEngine(current_line_, timestamp, log_name_, false, thread_id);
         }
     }

@@ -7,13 +7,17 @@
 
 #include <cli/cli.hpp>
 #include <core/config/config.hpp>
+#include <cstdint>
 #include <game/book/opening_book.hpp>
 #include <matchmaking/player.hpp>
 #include <matchmaking/syzygy.hpp>
+#include <string_view>
 #include <types/match_data.hpp>
 
 namespace fastchess {
 std::string formatTimeoutReason(std::string_view color, int64_t overrun_ms);
+
+[[nodiscard]] std::string formatTimeoutReason(std::string_view color, int64_t overrun_ms);
 
 class DrawTracker {
    public:

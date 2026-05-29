@@ -175,7 +175,6 @@ void BaseTournament::playGame(const GamePair<EngineConfiguration, EngineConfigur
                               const start_fn& start, const finish_fn& finish, const book::Opening& opening,
                               std::size_t round_id, std::size_t game_id) {
     const auto& config = *config::TournamentConfig;
-    const auto rl      = config.log.realtime;
 
     // ideally this should be also tied to the lifetime of the tournament
     thread_local static std::optional<std::vector<int>> cpus;
@@ -213,8 +212,8 @@ void BaseTournament::playGame(const GamePair<EngineConfiguration, EngineConfigur
 
     auto& engine_cache_ = getEngineCache();
 
-    auto white_engine = engine_cache_.getEntry(white_name, engine_configs.white, rl);
-    auto black_engine = engine_cache_.getEntry(black_name, engine_configs.black, rl);
+    auto white_engine = engine_cache_.getEntry(white_name, engine_configs.white);
+    auto black_engine = engine_cache_.getEntry(black_name, engine_configs.black);
 
     util::ScopeGuard lock1((*white_engine)->getConfig().restart ? nullptr : &(*white_engine));
     util::ScopeGuard lock2((*black_engine)->getConfig().restart ? nullptr : &(*black_engine));
@@ -324,8 +323,7 @@ int BaseTournament::getMaxAffinity(const std::vector<EngineConfiguration>& confi
 void BaseTournament::restartEngine(std::unique_ptr<engine::UciEngine>& engine) {
     LOG_TRACE_THREAD("Restarting engine {}", engine->getConfig().name);
     auto config = engine->getConfig();
-    auto rl     = engine->isRealtimeLogging();
-    engine      = std::make_unique<engine::UciEngine>(config, rl);
+    engine      = std::make_unique<engine::UciEngine>(config);
 }
 
 std::size_t BaseTournament::setResults(const stats_map& results) {

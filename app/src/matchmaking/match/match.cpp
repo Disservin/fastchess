@@ -21,6 +21,8 @@ using namespace std::literals;
 using namespace chess;
 using clock = chrono::steady_clock;
 
+std::string formatTimeoutReason(std::string_view color, int64_t overrun_ms);
+
 namespace {
 
 std::string to_escaped_string(const std::string& binary_str) {
@@ -392,8 +394,9 @@ bool Match::playMove(Player& us, Player& them) {
     const auto move      = best_move && uci::isUciMove(*best_move) ? uci::uciToMove(board_, *best_move) : Move::NO_MOVE;
     const auto legal     = isLegal(move);
 
-    const auto timeout  = us.hasTimeControl() ? !us.getTimeControl().updateTime(elapsed_ms) : false;
-    const auto timeleft = us.hasTimeControl() ? us.getTimeControl().getTimeLeft() : 0;
+    const auto timeout    = us.hasTimeControl() ? !us.getTimeControl().updateTime(elapsed_ms) : false;
+    const auto timeleft   = us.hasTimeControl() ? us.getTimeControl().getTimeLeft() : 0;
+    const auto overrun_ms = timeleft < 0 ? -timeleft : 0;
 
     if (best_move) {
         addMoveData(us, *best_move, elapsed_ms, latency, timeleft, legal);
@@ -407,7 +410,7 @@ bool Match::playMove(Player& us, Player& them) {
     if (!best_move) {
         // Time forfeit
         if (timeout) {
-            setEngineTimeoutStatus(us, them, best_move);
+            setEngineTimeoutStatus(us, them, best_move, overrun_ms);
         } else {
             setEngineIllegalMoveStatus(us, them, best_move);
         }
@@ -422,7 +425,7 @@ bool Match::playMove(Player& us, Player& them) {
     }
 
     if (timeout) {
-        setEngineTimeoutStatus(us, them, best_move);
+        setEngineTimeoutStatus(us, them, best_move, overrun_ms);
         return false;
     }
 
@@ -502,7 +505,7 @@ void Match::setEngineCrashStatus(Player& loser, Player& winner) {
         data_.reason      = Match::INTERRUPTED_MSG;
     } else {
         data_.termination = MatchTermination::DISCONNECT;
-        data_.reason      = color + Match::DISCONNECT_MSG;
+        data_.reason      = fmt::format(Match::DISCONNECT_MSG, color);
     }
 
     LOG_WARN_THREAD("Engine {} disconnects", name);
@@ -518,12 +521,13 @@ void Match::setEngineStallStatus(Player& loser, Player& winner) {
     const auto color = board_.sideToMove().longStr();
 
     data_.termination = MatchTermination::STALL;
-    data_.reason      = color + Match::STALL_MSG;
+    data_.reason      = fmt::format(Match::STALL_MSG, color);
 
     LOG_WARN_THREAD("Engine {} stalls", name);
 }
 
-void Match::setEngineTimeoutStatus(Player& loser, Player& winner, const std::optional<std::string>& best_move) {
+void Match::setEngineTimeoutStatus(Player& loser, Player& winner, const std::optional<std::string>& best_move,
+                                   int64_t overrun_ms) {
     loser.setLost();
     winner.setWon();
 
@@ -531,9 +535,9 @@ void Match::setEngineTimeoutStatus(Player& loser, Player& winner, const std::opt
     const auto color = board_.sideToMove().longStr();
 
     data_.termination = MatchTermination::TIMEOUT;
-    data_.reason      = color + Match::TIMEOUT_MSG;
+    data_.reason      = formatTimeoutReason(color, overrun_ms);
 
-    LOG_WARN_THREAD("Engine {} loses on time", name);
+    LOG_WARN_THREAD("Engine {} loses on time by {}ms", name, overrun_ms);
 
     // we send a stop command to the engine to prevent it from thinking
     // and wait for a bestmove to appear
@@ -554,7 +558,7 @@ void Match::setEngineIllegalMoveStatus(Player& loser, Player& winner, const std:
     const auto color = board_.sideToMove().longStr();
 
     data_.termination = MatchTermination::ILLEGAL_MOVE;
-    data_.reason      = color + Match::ILLEGAL_MSG;
+    data_.reason      = fmt::format(Match::ILLEGAL_MSG, color);
 
     if (best_move && !uci::isUciMove(*best_move)) {
         Logger::print<Logger::Level::WARN>(
@@ -695,12 +699,12 @@ void Match::verifyPvLines(const Player& us, const std::string& best_move) {
     }
 
     if (best_move != (*pv)[0]) {
-        auto warning   = "Warning; Bestmove does not match beginning of last PV - move {} from {}";
-        auto start_pos = start_position_ == "startpos" ? "startpos" : ("fen " + start_position_);
-        auto out       = fmt::format(fmt::runtime(warning), best_move, us.engine.getConfig().name);
-        auto uci_info  = fmt::format("Info; {}", info);
-        auto position  = fmt::format("Position; {}", start_pos);
-        auto ucimoves  = fmt::format("Moves; {}", str_utils::join(data_.getMoves(), " "));
+        constexpr auto warning = "Warning; Bestmove does not match beginning of last PV - move {} from {}";
+        auto start_pos         = start_position_ == "startpos" ? "startpos" : ("fen " + start_position_);
+        auto out               = fmt::format(warning, best_move, us.engine.getConfig().name);
+        auto uci_info          = fmt::format("Info; {}", info);
+        auto position          = fmt::format("Position; {}", start_pos);
+        auto ucimoves          = fmt::format("Moves; {}", str_utils::join(data_.getMoves(), " "));
 
         auto separator = config::TournamentConfig->test_env ? " :: " : "\n";
 
@@ -731,7 +735,7 @@ bool Match::adjudicate(Player& us, Player& them) noexcept {
                 c = (~board_.sideToMove());
             }
 
-            data_.reason      = c.longStr() + Match::ADJUDICATION_TB_WIN_MSG;
+            data_.reason      = fmt::format(Match::ADJUDICATION_TB_WIN_MSG, c.longStr());
             data_.termination = MatchTermination::ADJUDICATION;
 
             return true;
@@ -757,7 +761,7 @@ bool Match::adjudicate(Player& us, Player& them) noexcept {
         const auto color = board_.sideToMove().longStr();
 
         data_.termination = MatchTermination::ADJUDICATION;
-        data_.reason      = color + Match::ADJUDICATION_WIN_MSG;
+        data_.reason      = fmt::format(Match::ADJUDICATION_WIN_MSG, color);
 
         return true;
     }
@@ -787,7 +791,7 @@ bool Match::adjudicate(Player& us, Player& them) noexcept {
 
 std::string Match::convertChessReason(const std::string& color, GameResultReason reason) noexcept {
     if (reason == GameResultReason::CHECKMATE) {
-        return color + Match::CHECKMATE_MSG;
+        return fmt::format(Match::CHECKMATE_MSG, color);
     }
 
     if (reason == GameResultReason::STALEMATE) {
@@ -808,6 +812,10 @@ std::string Match::convertChessReason(const std::string& color, GameResultReason
 
     assert(false && "Unhandled GameResultReason in convertChessReason");
     return "";
+}
+std::string formatTimeoutReason(std::string_view color, int64_t overrun_ms) {
+    const auto overrun = std::max<int64_t>(0, overrun_ms);
+    return fmt::format(Match::TIMEOUT_MSG, color, overrun);
 }
 
 }  // namespace fastchess

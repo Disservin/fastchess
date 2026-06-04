@@ -2,6 +2,9 @@
 
 #include <chess.hpp>
 
+#include <cstdint>
+#include <string_view>
+
 #include <cli/cli.hpp>
 #include <core/config/config.hpp>
 #include <game/book/opening_book.hpp>
@@ -10,6 +13,7 @@
 #include <types/match_data.hpp>
 
 namespace fastchess {
+std::string formatTimeoutReason(std::string_view color, int64_t overrun_ms);
 
 class DrawTracker {
    public:
@@ -163,7 +167,8 @@ class Match {
 
     void setEngineCrashStatus(Player& loser, Player& winner);
     void setEngineStallStatus(Player& loser, Player& winner);
-    void setEngineTimeoutStatus(Player& loser, Player& winner, const std::optional<std::string>& best_move);
+    void setEngineTimeoutStatus(Player& loser, Player& winner, const std::optional<std::string>& best_move,
+                                int64_t overrun_ms);
     void setEngineIllegalMoveStatus(Player& loser, Player& winner, const std::optional<std::string>& best_move);
 
     void verifyPvLines(const Player& us, const std::string& best_move);
@@ -201,19 +206,21 @@ class Match {
 
     bool stall_or_disconnect_ = false;
 
+    friend std::string formatTimeoutReason(std::string_view color, int64_t overrun_ms);
+
     inline static constexpr char INSUFFICIENT_MSG[]         = "Draw by insufficient mating material";
     inline static constexpr char REPETITION_MSG[]           = "Draw by 3-fold repetition";
-    inline static constexpr char ILLEGAL_MSG[]              = " makes an illegal move";
-    inline static constexpr char ADJUDICATION_WIN_MSG[]     = " wins by adjudication";
-    inline static constexpr char ADJUDICATION_TB_WIN_MSG[]  = " wins by adjudication: SyzygyTB";
+    inline static constexpr char ILLEGAL_MSG[]              = "{} makes an illegal move";
+    inline static constexpr char ADJUDICATION_WIN_MSG[]     = "{} wins by adjudication";
+    inline static constexpr char ADJUDICATION_TB_WIN_MSG[]  = "{} wins by adjudication: SyzygyTB";
     inline static constexpr char ADJUDICATION_MSG[]         = "Draw by adjudication";
     inline static constexpr char ADJUDICATION_TB_DRAW_MSG[] = "Draw by adjudication: SyzygyTB";
     inline static constexpr char FIFTY_MSG[]                = "Draw by fifty moves rule";
     inline static constexpr char STALEMATE_MSG[]            = "Draw by stalemate";
-    inline static constexpr char CHECKMATE_MSG[]            = /*..*/ " mates";
-    inline static constexpr char TIMEOUT_MSG[]              = /*.. */ " loses on time";
-    inline static constexpr char DISCONNECT_MSG[]           = /*.. */ " disconnects";
-    inline static constexpr char STALL_MSG[]                = /*.. */ "'s connection stalls";
+    inline static constexpr char CHECKMATE_MSG[]            = "{} mates";
+    inline static constexpr char TIMEOUT_MSG[]              = "{} loses on time ({}ms overrun)";
+    inline static constexpr char DISCONNECT_MSG[]           = "{} disconnects";
+    inline static constexpr char STALL_MSG[]                = "{}'s connection stalls";
     inline static constexpr char INTERRUPTED_MSG[]          = "Game interrupted";
 };
 }  // namespace fastchess

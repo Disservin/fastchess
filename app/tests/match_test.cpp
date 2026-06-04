@@ -39,6 +39,12 @@ TEST_SUITE("Match Test") {
         }
     }
 
+    TEST_CASE("TimeoutReason") {
+        CHECK(formatTimeoutReason("White", 0) == "White loses on time (0ms overrun)");
+        CHECK(formatTimeoutReason("Black", 1234) == "Black loses on time (1234ms overrun)");
+    }
+
+
     TEST_CASE("ResignTracker") {
         SUBCASE("twosided resigns after move_count") {
             ResignTracker rt(100, 2, true);

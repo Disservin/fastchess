@@ -95,6 +95,8 @@ void RoundRobin::startNext() {
 
 void RoundRobin::createMatch(const Scheduler::Pairing& pairing) {
     const auto opening    = (*book_)[pairing.opening_id];
+    const auto& first     = (*config::EngineConfigs)[pairing.player1];
+    const auto& second    = (*config::EngineConfigs)[pairing.player2];
     const auto assignment = prepareEngineConfigs(pairing);
 
     // callback functions, do not capture by reference
@@ -105,8 +107,8 @@ void RoundRobin::createMatch(const Scheduler::Pairing& pairing) {
     };
 
     // callback functions, do not capture by reference
-    const auto finish = [this, assignment, pairing](const Stats& stats, const std::string& reason,
-                                                    const engines& engines) {
+    const auto finish = [this, assignment, first, second, pairing](const Stats& stats, const std::string& reason,
+                                                                   const engines& engines) {
         const auto& cfg = *config::TournamentConfig;
 
         // lock to avoid chaotic output, i.e.
@@ -124,19 +126,19 @@ void RoundRobin::createMatch(const Scheduler::Pairing& pairing) {
             scoreboard_.updateNonPair(assignment, stats);
         }
 
-        const auto updated_stats = scoreboard_.getStats(assignment.first_name(), assignment.second_name());
+        const auto updated_stats = scoreboard_.getStats(first.name, second.name);
 
         if (shouldPrintScoreInterval() || allMatchesPlayed()) {
-            output_->printResult(updated_stats, assignment.first_name(), assignment.second_name());
+            output_->printResult(updated_stats, first.name, second.name);
         }
 
         if ((shouldPrintRatingInterval(pairing.pairing_id) && scoreboard_.isPairCompleted(pairing.pairing_id)) ||
             allMatchesPlayed()) {
-            output_->printInterval(sprt_, updated_stats, assignment.first_name(), assignment.second_name(), engines,
-                                   cfg.opening.file, scoreboard_);
+            output_->printInterval(sprt_, updated_stats, first.name, second.name, engines, cfg.opening.file,
+                                   scoreboard_);
         }
 
-        updateSprtStatus({assignment.first, assignment.second}, engines);
+        updateSprtStatus({first, second}, engines);
 
         match_count_++;
     };

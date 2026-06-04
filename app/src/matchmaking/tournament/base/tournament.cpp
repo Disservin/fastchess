@@ -26,6 +26,24 @@
 
 namespace fastchess {
 
+namespace {
+
+const char* gameResultToString(chess::GameResult result) noexcept {
+    switch (result) {
+        case chess::GameResult::WIN:
+            return "win";
+        case chess::GameResult::LOSE:
+            return "lose";
+        case chess::GameResult::DRAW:
+            return "draw";
+        default:
+            return "none";
+    }
+}
+
+}  // namespace
+
+
 BaseTournament::BaseTournament(const stats_map& results) {
     const auto& config = *config::TournamentConfig;
     const auto total   = setResults(results);
@@ -208,30 +226,30 @@ void BaseTournament::playGame(const GamePair<EngineConfiguration, EngineConfigur
         }
     }
 
-    const auto white_name = engine_configs.white.name;
-    const auto black_name = engine_configs.black.name;
+    const auto first_name  = engine_configs.first().name;
+    const auto second_name = engine_configs.second().name;
 
     auto& engine_cache_ = getEngineCache();
 
-    auto white_engine = engine_cache_.getEntry(white_name, engine_configs.white, rl);
-    auto black_engine = engine_cache_.getEntry(black_name, engine_configs.black, rl);
+    auto first_engine  = engine_cache_.getEntry(first_name, engine_configs.first(), rl);
+    auto second_engine = engine_cache_.getEntry(second_name, engine_configs.second(), rl);
 
-    util::ScopeGuard lock1((*white_engine)->getConfig().restart ? nullptr : &(*white_engine));
-    util::ScopeGuard lock2((*black_engine)->getConfig().restart ? nullptr : &(*black_engine));
+    util::ScopeGuard lock1((*first_engine)->getConfig().restart ? nullptr : &(*first_engine));
+    util::ScopeGuard lock2((*second_engine)->getConfig().restart ? nullptr : &(*second_engine));
 
     if (atomic::stop.load()) return;
 
-    LOG_TRACE_THREAD("Game {} between {} and {} starting", game_id, white_name, black_name);
+    LOG_TRACE_THREAD("Game {} between {} and {} starting", game_id, first_name, second_name);
 
     start();
 
     auto match = Match(opening);
-    match.start(*white_engine->get(), *black_engine->get(), cpus);
+    match.start(*first_engine->get(), *second_engine->get(), cpus);
 
-    LOG_TRACE_THREAD("Game {} between {} and {} finished", game_id, white_name, black_name);
+    LOG_TRACE_THREAD("Game {} between {} and {} finished", game_id, first_name, second_name);
 
     if (match.isStallOrDisconnect()) {
-        LOG_WARN_THREAD("Game {} between {} and {} stalled / disconnected", game_id, white_name, black_name);
+        LOG_WARN_THREAD("Game {} between {} and {} stalled / disconnected", game_id, first_name, second_name);
 
         if (!config.recover) {
             if (!atomic::stop.exchange(true)) {
@@ -241,7 +259,7 @@ void BaseTournament::playGame(const GamePair<EngineConfiguration, EngineConfigur
 
                 const auto match_data = match.get();
 
-                finish({match_data}, match_data.reason, {*white_engine->get(), *black_engine->get()});
+                finish({match_data}, match_data.reason, {*first_engine->get(), *second_engine->get()});
 
                 atomic::abnormal_termination = true;
             }
@@ -250,11 +268,11 @@ void BaseTournament::playGame(const GamePair<EngineConfiguration, EngineConfigur
 
         // restart the engine when recover is enabled
 
-        if ((*white_engine)->isready().code != engine::process::Status::OK) {
-            restartEngine(white_engine->get());
+        if ((*first_engine)->isready().code != engine::process::Status::OK) {
+            restartEngine(first_engine->get());
         }
-        if ((*black_engine)->isready().code != engine::process::Status::OK) {
-            restartEngine(black_engine->get());
+        if ((*second_engine)->isready().code != engine::process::Status::OK) {
+            restartEngine(second_engine->get());
         }
     }
 
@@ -271,17 +289,19 @@ void BaseTournament::playGame(const GamePair<EngineConfiguration, EngineConfigur
             file_writer_epd_->write(epd::EpdBuilder(config.variant, match_data).get());
         }
 
-        const auto result = pgn::PgnBuilder::getResultFromWhiteMatch(match_data.players.white);
-        LOG_TRACE_THREAD("Game {} finished with result {}", game_id, result);
+        if (const auto first_moved = match_data.getFirstMovedPlayer(); first_moved.has_value()) {
+            LOG_TRACE_THREAD("Game {} finished with first-moved result {}", game_id,
+                             gameResultToString(first_moved->result));
+        }
 
-        finish({match_data}, match_data.reason, {*white_engine->get(), *black_engine->get()});
+        finish({match_data}, match_data.reason, {*first_engine->get(), *second_engine->get()});
 
         startNext();
     }
 
     // remove engines if restart is enabled, frees up memory
-    if (white_engine->get()->getConfig().restart) engine_cache_.deleteFromCache(white_engine);
-    if (black_engine->get()->getConfig().restart) engine_cache_.deleteFromCache(black_engine);
+    if (first_engine->get()->getConfig().restart) engine_cache_.deleteFromCache(first_engine);
+    if (second_engine->get()->getConfig().restart) engine_cache_.deleteFromCache(second_engine);
 
     const auto losing_player = match_data.getLosingPlayer();
     if (!losing_player.has_value()) return;

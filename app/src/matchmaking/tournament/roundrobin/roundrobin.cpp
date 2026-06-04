@@ -16,6 +16,27 @@
 #include <matchmaking/tournament/roundrobin/scheduler.hpp>
 
 namespace fastchess {
+namespace {
+
+GamePair<EngineConfiguration, EngineConfiguration> prepareEngineConfigs(const Scheduler::Pairing& pairing) {
+    const auto& first  = (*config::EngineConfigs)[pairing.player1];
+    const auto& second = (*config::EngineConfigs)[pairing.player2];
+
+    GamePair<EngineConfiguration, EngineConfiguration> configs{first, second};
+
+    if (pairing.game_id % 2 == 0 && !config::TournamentConfig->noswap) {
+        std::swap(configs.white, configs.black);
+    }
+
+    if (config::TournamentConfig->reverse) {
+        std::swap(configs.white, configs.black);
+    }
+
+    return configs;
+}
+
+}  // namespace
+
 
 RoundRobin::RoundRobin(const stats_map& results) : BaseTournament(results) {
     sprt_ = SPRT(config::TournamentConfig->sprt.alpha, config::TournamentConfig->sprt.beta,
@@ -54,8 +75,6 @@ void RoundRobin::start() {
 void RoundRobin::startNext() {
     std::lock_guard<std::mutex> lock(game_gen_mutex_);
 
-    if (atomic::stop) return;
-
     auto match = generator_->next();
 
     if (!match) {
@@ -77,18 +96,10 @@ void RoundRobin::startNext() {
 
 void RoundRobin::createMatch(const Scheduler::Pairing& pairing) {
     const auto opening = (*book_)[pairing.opening_id];
-    const auto first   = (*config::EngineConfigs)[pairing.player1];
-    const auto second  = (*config::EngineConfigs)[pairing.player2];
+    const auto& first  = (*config::EngineConfigs)[pairing.player1];
+    const auto& second = (*config::EngineConfigs)[pairing.player2];
 
-    GamePair<EngineConfiguration, EngineConfiguration> configs = {first, second};
-
-    if (pairing.game_id % 2 == 0 && !config::TournamentConfig->noswap) {
-        std::swap(configs.white, configs.black);
-    }
-
-    if (config::TournamentConfig->reverse) {
-        std::swap(configs.white, configs.black);
-    }
+    const auto configs = prepareEngineConfigs(pairing);
 
     // callback functions, do not capture by reference
     const auto start = [this, configs, pairing]() {

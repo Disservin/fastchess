@@ -36,6 +36,12 @@ struct GamePair {
         std::swap(white, other.white);
         std::swap(black, other.black);
     }
+
+    T& first() noexcept { return white; }
+    const T& first() const noexcept { return white; }
+
+    U& second() noexcept { return black; }
+    const U& second() const noexcept { return black; }
 };
 
 }  // namespace fastchess

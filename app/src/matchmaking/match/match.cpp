@@ -200,29 +200,30 @@ void Match::addMoveData(const Player& player, const std::string& move, int64_t m
     data_.moves.push_back(move_data);
 }
 
-void Match::start(engine::UciEngine& white, engine::UciEngine& black, std::optional<std::vector<int>>& cpus) {
-    Player white_player = Player(white);
-    Player black_player = Player(black);
+void Match::start(engine::UciEngine& first, engine::UciEngine& second, std::optional<std::vector<int>>& cpus) {
+    Player first_player(first);
+    Player second_player(second);
 
-    if (auto ret = white_player.engine.start(cpus); !ret) {
+    if (auto ret = first_player.engine.start(cpus); !ret) {
         if (atomic::stop.load()) return;
 
         atomic::stop                 = true;
         atomic::abnormal_termination = true;
 
         Logger::print<Logger::Level::FATAL>("Fatal; {} engine startup failure: \"{}\"",
-                                            white_player.engine.getConfig().name, ret.error());
+                                            first_player.engine.getConfig().name, ret.error());
 
         return;
     }
 
-    if (auto ret = black_player.engine.start(cpus); !ret) {
+    if (auto ret = second_player.engine.start(cpus); !ret) {
         if (atomic::stop.load()) return;
+
         atomic::stop                 = true;
         atomic::abnormal_termination = true;
 
         Logger::print<Logger::Level::FATAL>("Fatal; {} engine startup failure: \"{}\"",
-                                            black_player.engine.getConfig().name, ret.error());
+                                            second_player.engine.getConfig().name, ret.error());
 
         return;
     }
@@ -231,35 +232,49 @@ void Match::start(engine::UciEngine& white, engine::UciEngine& black, std::optio
         return;
     }
 
-    if (!white_player.engine.refreshUci()) {
-        setEngineCrashStatus(white_player, black_player);
+    if (!first_player.engine.refreshUci()) {
+        setEngineCrashStatus(first_player, second_player);
     }
 
-    if (!black_player.engine.refreshUci()) {
-        setEngineCrashStatus(black_player, white_player);
+    if (!second_player.engine.refreshUci()) {
+        setEngineCrashStatus(second_player, first_player);
     }
 
     // check connection
-    validConnection(white_player, black_player);
+    validConnection(first_player, second_player);
 
-    auto& first  = board_.sideToMove() == Color::WHITE ? white_player : black_player;
-    auto& second = board_.sideToMove() == Color::WHITE ? black_player : white_player;
+    const bool first_played_white = board_.sideToMove() == Color::WHITE;
+
+    if (first_played_white) {
+        first_player.setFirstSide();
+        second_player.setSecondSide();
+    } else {
+        first_player.setSecondSide();
+        second_player.setFirstSide();
+    }
 
     const auto start = clock::now();
 
     if (data_.termination == MatchTermination::None) {
-        gameLoop(first, second);
+        gameLoop(first_player, second_player);
     }
 
     const auto end = clock::now();
 
-    data_.variant = config::TournamentConfig->variant;
-
+    data_.variant  = config::TournamentConfig->variant;
     data_.end_time = time::datetime_iso();
     data_.duration = time::duration(chrono::duration_cast<chrono::seconds>(end - start));
 
-    data_.players = GamePair(MatchData::PlayerInfo{white_player.engine.getConfig(), white_player.getResult()},
-                             MatchData::PlayerInfo{black_player.engine.getConfig(), black_player.getResult()});
+    MatchData::PlayerInfo first_info{first_player.engine.getConfig(), first_player.getResult(),
+                                     first_player.getFirstSide()};
+    MatchData::PlayerInfo second_info{second_player.engine.getConfig(), second_player.getResult(),
+                                      second_player.getFirstSide()};
+
+    if (first_played_white) {
+        data_.players = GamePair(first_info, second_info);
+    } else {
+        data_.players = GamePair(second_info, first_info);
+    }
 }
 
 void Match::gameLoop(Player& first, Player& second) {

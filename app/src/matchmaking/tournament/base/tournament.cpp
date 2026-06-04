@@ -189,9 +189,8 @@ void BaseTournament::saveJson() {
     LOG_TRACE("Saved results to.");
 }
 
-void BaseTournament::playGame(const GamePair<EngineConfiguration, EngineConfiguration>& engine_configs,
-                              const start_fn& start, const finish_fn& finish, const book::Opening& opening,
-                              std::size_t round_id, std::size_t game_id) {
+void BaseTournament::playGame(const GameAssignment& assignment, const start_fn& start, const finish_fn& finish,
+                              const book::Opening& opening, std::size_t round_id, std::size_t game_id) {
     const auto& config = *config::TournamentConfig;
     const auto rl      = config.log.realtime;
 
@@ -226,13 +225,15 @@ void BaseTournament::playGame(const GamePair<EngineConfiguration, EngineConfigur
         }
     }
 
-    const auto first_name  = engine_configs.first().name;
-    const auto second_name = engine_configs.second().name;
+    const auto& first_config  = assignment.first;
+    const auto& second_config = assignment.second;
+    const auto& first_name    = assignment.first_name();
+    const auto& second_name   = assignment.second_name();
 
     auto& engine_cache_ = getEngineCache();
 
-    auto first_engine  = engine_cache_.getEntry(first_name, engine_configs.first(), rl);
-    auto second_engine = engine_cache_.getEntry(second_name, engine_configs.second(), rl);
+    auto first_engine  = engine_cache_.getEntry(first_name, first_config, rl);
+    auto second_engine = engine_cache_.getEntry(second_name, second_config, rl);
 
     util::ScopeGuard lock1((*first_engine)->getConfig().restart ? nullptr : &(*first_engine));
     util::ScopeGuard lock2((*second_engine)->getConfig().restart ? nullptr : &(*second_engine));
@@ -266,8 +267,6 @@ void BaseTournament::playGame(const GamePair<EngineConfiguration, EngineConfigur
             return;
         }
 
-        // restart the engine when recover is enabled
-
         if ((*first_engine)->isready().code != engine::process::Status::OK) {
             restartEngine(first_engine->get());
         }
@@ -278,7 +277,6 @@ void BaseTournament::playGame(const GamePair<EngineConfiguration, EngineConfigur
 
     const auto match_data = match.get();
 
-    // If the game was interrupted(didn't completely finish)
     if (match_data.termination != MatchTermination::INTERRUPT && !atomic::stop) {
         if (!config.pgn.file.empty()) {
             const auto pgn_str = pgn::PgnBuilder(config.pgn, match_data, round_id + 1).get();
@@ -299,7 +297,6 @@ void BaseTournament::playGame(const GamePair<EngineConfiguration, EngineConfigur
         startNext();
     }
 
-    // remove engines if restart is enabled, frees up memory
     if (first_engine->get()->getConfig().restart) engine_cache_.deleteFromCache(first_engine);
     if (second_engine->get()->getConfig().restart) engine_cache_.deleteFromCache(second_engine);
 

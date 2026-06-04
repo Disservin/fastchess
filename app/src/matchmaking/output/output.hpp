@@ -5,6 +5,7 @@
 #include <utility>
 
 #include <cli/cli.hpp>
+#include <matchmaking/game_assignment.hpp>
 #include <matchmaking/sprt/sprt.hpp>
 #include <matchmaking/stats.hpp>
 #include <types/engine_config.hpp>
@@ -44,14 +45,12 @@ class IOutput {
 
     // Print current SPRT stats.
     virtual std::string printSprt(const SPRT& sprt, const Stats& stats) = 0;
-
-    // Print game start.
-    virtual void startGame(const GamePair<EngineConfiguration, EngineConfiguration>& configs,
-                           std::size_t current_game_count, std::size_t max_game_count) = 0;
+    virtual void startGame(const GameAssignment& assignment, std::size_t current_game_count,
+                           std::size_t max_game_count) = 0;
 
     // Print game end.
-    virtual void endGame(const GamePair<EngineConfiguration, EngineConfiguration>& configs, const Stats& stats,
-                         const std::string& annotation, std::size_t id) = 0;
+    virtual void endGame(const GameAssignment& assignment, const Stats& stats, const std::string& annotation,
+                         std::size_t id) = 0;
 
     // Print tournament end.
     virtual void endTournament(std::string_view terminationMessage = "") = 0;

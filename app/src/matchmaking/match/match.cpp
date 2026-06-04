@@ -42,20 +42,14 @@ std::string to_escaped_string(const std::string& binary_str) {
 bool isFen(const std::string& line) { return line.find(';') == std::string::npos; }
 
 [[nodiscard]] std::pair<GameResultReason, GameResult> isGameOverSimple(const Board& board) {
-    if (board.isHalfMoveDraw()) return board.getHalfMoveDrawType();
-    if (board.isRepetition()) return {GameResultReason::THREEFOLD_REPETITION, GameResult::DRAW};
+    const auto [reason, result] = board.isGameOver();
 
-    Movelist movelist;
-    movegen::legalmoves(movelist, board);
-
-    if (movelist.empty()) {
-        if (board.inCheck()) return {GameResultReason::CHECKMATE, GameResult::LOSE};
-        return {GameResultReason::STALEMATE, GameResult::DRAW};
+    if (reason == GameResultReason::INSUFFICIENT_MATERIAL) {
+        return {GameResultReason::NONE, GameResult::NONE};
     }
 
-    return {GameResultReason::NONE, GameResult::NONE};
+    return {reason, result};
 }
-
 // emits a warning if both engines claim to have a proven win (same for loss)
 void checkMateScoreSignMismatch(const Player& them, const Player& us, const Board& board,
                                 const std::string& start_position, const MatchData& data) {
@@ -475,21 +469,7 @@ bool Match::isLegal(Move move) const noexcept {
     return std::find(moves.begin(), moves.end(), move) != moves.end();
 }
 
-std::pair<chess::GameResultReason, chess::GameResult> Match::isGameOver() const {
-    Movelist movelist;
-    movegen::legalmoves(movelist, board_);
-
-    if (movelist.empty()) {
-        if (board_.inCheck()) return {GameResultReason::CHECKMATE, GameResult::LOSE};
-        return {GameResultReason::STALEMATE, GameResult::DRAW};
-    }
-
-    if (board_.isInsufficientMaterial()) return {GameResultReason::INSUFFICIENT_MATERIAL, GameResult::DRAW};
-    if (board_.isHalfMoveDraw()) return board_.getHalfMoveDrawType();
-    if (board_.isRepetition()) return {GameResultReason::THREEFOLD_REPETITION, GameResult::DRAW};
-
-    return {GameResultReason::NONE, GameResult::NONE};
-}
+std::pair<chess::GameResultReason, chess::GameResult> Match::isGameOver() const { return board_.isGameOver(); }
 
 void Match::setEngineCrashStatus(Player& loser, Player& winner) {
     loser.setLost();

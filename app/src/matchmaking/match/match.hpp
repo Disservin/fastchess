@@ -152,8 +152,7 @@ class Match {
     Match(const book::Opening& opening);
 
     // starts the match
-    void start(engine::UciEngine& white, engine::UciEngine& black, std::optional<std::vector<int>>& cpus);
-
+    void start(engine::UciEngine& first, engine::UciEngine& second, std::optional<std::vector<int>>& cpus);
     // returns the match data, only valid after the match has finished
     [[nodiscard]] const MatchData& get() const { return data_; }
 

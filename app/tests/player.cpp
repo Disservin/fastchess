@@ -23,6 +23,34 @@ TEST_SUITE("Player Test") {
         CHECK(player.engine.getConfig().args == config.args);
     }
 
+    TEST_CASE("Test Player Side") {
+        EngineConfiguration config;
+#ifdef _WIN64
+        config.cmd = path + "dummy_engine.exe";
+#else
+        config.cmd = path + "dummy_engine";
+#endif
+        config.args = "arg1 arg2 arg3";
+
+        engine::UciEngine uci_engine = engine::UciEngine(config, false);
+
+        Player player = Player(uci_engine);
+
+        CHECK_FALSE(player.getFirstSide().has_value());
+
+        player.setFirstSide();
+        CHECK(player.isFirstSide());
+        CHECK_FALSE(player.isSecondSide());
+        CHECK(player.getFirstSide().has_value());
+        CHECK(*player.getFirstSide());
+
+        player.setSecondSide();
+        CHECK_FALSE(player.isFirstSide());
+        CHECK(player.isSecondSide());
+        CHECK(player.getFirstSide().has_value());
+        CHECK_FALSE(*player.getFirstSide());
+    }
+
     TEST_CASE("Test Player Fixed Time") {
         EngineConfiguration config;
 #ifdef _WIN64

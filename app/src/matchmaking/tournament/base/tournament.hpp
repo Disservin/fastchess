@@ -14,6 +14,7 @@
 #include <core/threading/threadpool.hpp>
 #include <engine/uci_engine.hpp>
 #include <game/book/opening_book.hpp>
+#include <matchmaking/game_assignment.hpp>
 #include <matchmaking/game_pair.hpp>
 #include <matchmaking/output/output.hpp>
 #include <matchmaking/scoreboard.hpp>
@@ -49,10 +50,8 @@ class BaseTournament {
 
     // Function to save the config file
     void saveJson();
-
-    // play one game and write it to the pgn file
-    void playGame(const GamePair<EngineConfiguration, EngineConfiguration>& configs, const start_fn& start,
-                  const finish_fn& finish, const book::Opening& opening, std::size_t round_id, std::size_t game_id);
+    void playGame(const GameAssignment& assignment, const start_fn& start, const finish_fn& finish,
+                  const book::Opening& opening, std::size_t round_id, std::size_t game_id);
 
     // We keep engines alive after they were used to avoid the overhead of starting them again.
     ScoreBoard scoreboard_ = {};

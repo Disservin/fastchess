@@ -5,9 +5,9 @@
 #include <unordered_map>
 #include <utility>
 
+#include <matchmaking/game_assignment.hpp>
 #include <matchmaking/stats.hpp>
 #include <types/engine_config.hpp>
-
 namespace fastchess {
 
 struct PlayerPairKey {
@@ -63,12 +63,12 @@ inline void from_json(const nlohmann::json& j, stats_map& map) {
 
 class StatsMap {
    public:
-    [[nodiscard]] Stats& operator[](const GamePair<EngineConfiguration, EngineConfiguration>& configs) {
-        return results_[PlayerPairKey(configs.white.name, configs.black.name)];
+    [[nodiscard]] Stats& operator[](const GameAssignment& assignment) {
+        return results_[PlayerPairKey(assignment.first.name, assignment.second.name)];
     }
 
-    [[nodiscard]] const Stats& operator[](const GamePair<EngineConfiguration, EngineConfiguration>& configs) const {
-        return results_.at(PlayerPairKey(configs.white.name, configs.black.name));
+    [[nodiscard]] const Stats& operator[](const GameAssignment& assignment) const {
+        return results_.at(PlayerPairKey(assignment.first.name, assignment.second.name));
     }
 
     [[nodiscard]] Stats& operator[](const std::pair<std::string, std::string>& players) {
@@ -82,7 +82,6 @@ class StatsMap {
     [[nodiscard]] stats_map::iterator begin() { return results_.begin(); }
     [[nodiscard]] stats_map::iterator end() { return results_.end(); }
     [[nodiscard]] stats_map::const_iterator begin() const { return results_.begin(); }
-
     [[nodiscard]] stats_map::const_iterator end() const { return results_.end(); }
     [[nodiscard]] stats_map::const_iterator cbegin() const { return results_.cbegin(); }
     [[nodiscard]] stats_map::const_iterator cend() const { return results_.cend(); }
@@ -104,17 +103,16 @@ class ScoreBoard {
 
     // Updates the stats of engine1 vs engine2
     // Always returns true because it was immediately updated
-    bool updateNonPair(const GamePair<EngineConfiguration, EngineConfiguration>& configs, const Stats& stats) {
+    bool updateNonPair(const GameAssignment& assignment, const Stats& stats) {
         std::lock_guard<std::mutex> lock(results_mutex_);
-        results_[configs] += stats;
+        results_[assignment] += stats;
 
         return true;
     }
 
     // Update the stats in pair batches to keep track of pentanomial stats.
     // Returns true if the pair was completed, false otherwise.
-    bool updatePair(const GamePair<EngineConfiguration, EngineConfiguration>& configs, const Stats& stats,
-                    uint64_t round_id) {
+    bool updatePair(const GameAssignment& assignment, const Stats& stats, uint64_t round_id) {
         std::lock_guard<std::mutex> lock(game_pair_cache_mutex_);
 
         const auto is_first_game = game_pair_cache_.find(round_id) == game_pair_cache_.end();
@@ -135,7 +133,7 @@ class ScoreBoard {
         lookup.penta_LD += lookup.losses == 1 && lookup.draws == 1;
         lookup.penta_LL += lookup.losses == 2;
 
-        updateNonPair(configs, lookup);
+        updateNonPair(assignment, lookup);
 
         game_pair_cache_.erase(round_id);
 

@@ -352,10 +352,6 @@ bool Match::playMove(Player& us, Player& them) {
 
     LOG_TRACE_THREAD("Engine {} is done thinking", name);
 
-    if (!config::TournamentConfig->log.realtime) {
-        us.engine.writeLog();
-    }
-
     if (atomic::stop) {
         data_.termination = MatchTermination::INTERRUPT;
 

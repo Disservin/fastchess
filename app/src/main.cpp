@@ -1,6 +1,7 @@
 #include <cstdlib>
 
 #include <core/printing/printing.h>
+#include <core/logger/logger.hpp>
 #include <cli/cli.hpp>
 #include <cli/cli_args.hpp>
 #include <core/config/config.hpp>
@@ -18,6 +19,14 @@ using namespace fastchess;
 
 int main(int argc, char const* argv[]) {
     setCtrlCHandler();
+
+    [[maybe_unused]] const auto logger_shutdown_guard = [] {
+        struct Guard {
+            ~Guard() { Logger::shutdown(); }
+        };
+
+        return Guard{};
+    }();
 
     if (argc >= 3 && std::string(argv[1]) == "--compliance") {
         setTerminalOutput();

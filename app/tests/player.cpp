@@ -15,7 +15,7 @@ TEST_SUITE("Player Test") {
 #endif
         config.args = "arg1 arg2 arg3";
 
-        engine::UciEngine uci_engine = engine::UciEngine(config, false);
+        engine::UciEngine uci_engine = engine::UciEngine(config);
 
         Player player = Player(uci_engine);
 
@@ -40,7 +40,7 @@ TEST_SUITE("Player Test") {
         config.limit.tc.moves      = 0;
         config.limit.tc.timemargin = 0;
 
-        engine::UciEngine uci_engine = engine::UciEngine(config, false);
+        engine::UciEngine uci_engine = engine::UciEngine(config);
 
         Player player = Player(uci_engine);
 
@@ -71,7 +71,7 @@ TEST_SUITE("Player Test") {
         config.limit.tc.moves      = 0;
         config.limit.tc.timemargin = 0;
 
-        engine::UciEngine uci_engine = engine::UciEngine(config, false);
+        engine::UciEngine uci_engine = engine::UciEngine(config);
 
         Player player = Player(uci_engine);
 

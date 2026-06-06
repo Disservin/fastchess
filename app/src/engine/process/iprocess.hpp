@@ -46,8 +46,6 @@ class IProcess {
     IProcess& operator=(const IProcess&) = delete;
     IProcess& operator=(IProcess&&)      = delete;
 
-    void setRealtimeLogging(bool realtime_logging) noexcept { realtime_logging_ = realtime_logging; }
-
     virtual void setupRead() = 0;
 
     // Initialize the process
@@ -80,7 +78,6 @@ class IProcess {
         return path;
     }
 
-    bool realtime_logging_ = true;
 };
 
 }  // namespace fastchess::engine::process

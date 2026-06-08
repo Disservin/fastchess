@@ -2,11 +2,14 @@
 
 #include <chrono>
 #include <functional>
+#include <array>
 #include <string>
 #include <string_view>
+#include <thread>
 #include <vector>
 
 #include <core/filesystem/file_system.hpp>
+#include <core/logger/logger.hpp>
 
 namespace fastchess::engine::process {
 
@@ -70,6 +73,91 @@ class IProcess {
     constexpr static std::chrono::seconds kill_timeout{60};
 
    protected:
+    class LineAccumulator {
+       public:
+        static constexpr size_t buffer_size = 4096;
+
+        LineAccumulator() = default;
+
+        LineAccumulator(bool realtime_logging, Standard type, std::string log_name)
+            : realtime_logging_(realtime_logging), log_name_(std::move(log_name)), type_(type) {
+            data_.reserve(4096);
+        }
+
+        void clear() {
+            data_.clear();
+            current_line_start_ = 0;
+        }
+
+        char* bufferData() { return buffer_.data(); }
+        size_t bufferSize() const { return buffer_.size(); }
+
+        bool consume(std::string_view data, std::vector<Line>& lines, std::string_view searchword,
+                     bool cr_is_newline = false) {
+            size_t start = 0;
+            while (start < data.size()) {
+                const size_t pos = cr_is_newline ? data.find_first_of("\r\n", start) : data.find('\n', start);
+                if (pos == std::string_view::npos) {
+                    data_.append(data.data() + start, data.size() - start);
+                    break;
+                }
+
+                if (pos > start) {
+                    data_.append(data.data() + start, pos - start);
+                }
+
+                if (current_line_start_ != data_.size() && emitLine(lines, searchword)) {
+                    return true;
+                }
+
+                start = pos + 1;
+                if (cr_is_newline && data[pos] == '\r' && start < data.size() && data[start] == '\n') {
+                    ++start;
+                }
+            }
+
+            return false;
+        }
+
+        void flushPartial(std::vector<Line>& lines) {
+            if (current_line_start_ == data_.size()) return;
+            emitLine(lines, "");
+        }
+
+       private:
+        bool emitLine(std::vector<Line>& lines, std::string_view searchword) {
+            const auto timestamp  = Logger::should_log_ ? time::datetime_precise() : "";
+            const size_t line_end = data_.size();
+            const std::string_view line_view(data_.data() + current_line_start_, line_end - current_line_start_);
+
+            lines.emplace_back(Line{std::string(line_view), timestamp, type_});
+
+            if (realtime_logging_) {
+                Logger::readFromEngine(std::string(line_view), timestamp, log_name_, type_ == Standard::ERR,
+                                       log_thread_id_.value());
+            }
+
+            const bool matched = !searchword.empty() && searchword.size() <= line_view.size() &&
+                                 line_view.substr(0, searchword.size()) == searchword;
+
+            current_line_start_ = line_end;
+            if (current_line_start_ > 0) {
+                data_.erase(0, current_line_start_);
+                current_line_start_ = 0;
+            }
+
+            return matched;
+        }
+
+        bool realtime_logging_ = true;
+        std::array<char, buffer_size> buffer_{};
+        std::string data_;
+        std::string log_name_;
+        Standard type_                                = Standard::OUTPUT;
+        std::optional<std::thread::id> log_thread_id_ = std::this_thread::get_id();
+        size_t current_line_start_                    = 0;
+    };
+
     [[nodiscard]] std::string getPath(const std::string& dir, const std::string& cmd) const {
         std::string path = (dir == "." ? "" : dir) + cmd;
 #ifndef NO_STD_FILESYSTEM

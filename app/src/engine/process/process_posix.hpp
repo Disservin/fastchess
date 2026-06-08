@@ -63,90 +63,6 @@ extern util::ThreadVector<ProcessInformation> process_list;
 
 namespace engine::process {
 
-class Stream {
-   public:
-    Stream() = default;
-
-    Stream(int fd, bool realtime_logging, Standard type, const std::string& log_name)
-        : fd_(fd), realtime_logging_(realtime_logging), log_name_(log_name), type_(type) {
-        line_buffer_.clear();
-        line_buffer_.reserve(300);
-    }
-
-    Result readLine(std::vector<Line>& lines, std::string_view searchword) {
-        const ssize_t bytes_read = read(fd_, buffer_.data(), buffer_.size());
-
-        if (bytes_read == -1) {
-            return Result::Error("read failed");
-        }
-
-        if (bytes_read == 0) {
-            return Result::Error("EOF");
-        }
-
-        std::string_view data(buffer_.data(), static_cast<size_t>(bytes_read));
-        size_t start = 0;
-
-        while (start < data.size()) {
-            const size_t nl = data.find('\n', start);
-
-            if (nl == std::string_view::npos) {
-                line_buffer_.append(data.substr(start));
-                break;
-            }
-
-            line_buffer_.append(data.substr(start, nl - start));
-
-            if (!line_buffer_.empty()) {
-                const auto ts = Logger::should_log_ ? time::datetime_precise() : "";
-
-                lines.emplace_back(Line{line_buffer_, ts, type_});
-
-                if (realtime_logging_) {
-                    Logger::readFromEngine(line_buffer_, ts, log_name_, type_ == Standard::ERR);
-                }
-
-                if (!searchword.empty() && line_buffer_.rfind(searchword, 0) == 0) {
-                    line_buffer_.clear();
-                    return Result::OK();
-                }
-            }
-
-            line_buffer_.clear();
-            start = nl + 1;
-        }
-
-        return Result{Status::NONE, ""};
-    }
-
-    void setup() { line_buffer_.clear(); }
-
-    bool hasPartial() const { return !line_buffer_.empty(); }
-
-    void flushPartial(std::vector<Line>& lines) {
-        if (line_buffer_.empty()) return;
-
-        auto ts = time::datetime_precise();
-        lines.emplace_back(Line{line_buffer_, ts, type_});
-
-        if (realtime_logging_) {
-            Logger::readFromEngine(line_buffer_, ts, log_name_, type_ == Standard::ERR);
-        }
-
-        line_buffer_.clear();
-    }
-
-   private:
-    int fd_;
-    bool realtime_logging_;
-
-    std::string line_buffer_;
-    std::string log_name_;
-    Standard type_;
-
-    std::array<char, 4096> buffer_{};
-};
-
 class Process : public IProcess {
    public:
     virtual ~Process() override { terminate(); }
@@ -180,10 +96,10 @@ class Process : public IProcess {
             return Result::Error(success.message);
         }
 
-        sg_out_ = Stream(in_pipe_.read_end(), realtime_logging_, Standard::OUTPUT, log_name_);
+        sg_out_ = LineAccumulator(realtime_logging_, Standard::OUTPUT, log_name_);
 
         if (Logger::should_log_) {
-            sg_err_ = Stream(err_pipe_.read_end(), realtime_logging_, Standard::ERR, log_name_);
+            sg_err_ = LineAccumulator(realtime_logging_, Standard::ERR, log_name_);
         }
 
         // create a control pipe to interrupt polling when terminating
@@ -248,8 +164,8 @@ class Process : public IProcess {
     }
 
     void setupRead() override {
-        sg_out_.setup();
-        sg_err_.setup();
+        sg_out_.clear();
+        sg_err_.clear();
     }
 
     // Read stdout until the line matches searchword or timeout is reached
@@ -302,14 +218,18 @@ class Process : public IProcess {
             auto& out_fd = fds[STDOUT_IDX];
             if (out_fd.revents & (POLLIN | POLLHUP | POLLERR)) {
                 if (out_fd.revents & (POLLHUP | POLLERR)) return Result::Error("Engine crashed (stdout)");
-                if (auto r = sg_out_.readLine(lines, searchword); r.code != Status::NONE) return r;
+                if (auto r = readLine(in_pipe_.read_end(), sg_out_, lines, searchword);
+                    r.code != Status::NONE)
+                    return r;
             }
 
             // 3. Check Stderr
             if (STDERR_IDX) {
                 auto& err_fd = fds[*STDERR_IDX];
                 if (err_fd.revents & POLLIN) {
-                    if (auto r = sg_err_.readLine(lines, ""); r.code != Status::NONE) return r;
+                    if (auto r = readLine(err_pipe_.read_end(), sg_err_, lines, "");
+                        r.code != Status::NONE)
+                        return r;
                 }
                 if (err_fd.revents & (POLLHUP | POLLERR)) return Result::Error("Engine crashed (stderr)");
             }
@@ -438,6 +358,21 @@ class Process : public IProcess {
         }
     }
 
+    Result readLine(int fd, LineAccumulator& accumulator, std::vector<Line>& lines, std::string_view searchword) {
+        const ssize_t bytes_read = read(fd, accumulator.bufferData(), accumulator.bufferSize());
+
+        if (bytes_read == -1) {
+            return Result::Error("read failed");
+        }
+
+        if (bytes_read == 0) {
+            return Result::Error("EOF");
+        }
+
+        const std::string_view line_view(accumulator.bufferData(), static_cast<size_t>(bytes_read));
+        return accumulator.consume(line_view, lines, searchword) ? Result::OK() : Result{Status::NONE, ""};
+    }
+
     [[nodiscard]] pollfd create_pollfd(int fd, short events) const {
         pollfd pfd;
         pfd.fd      = fd;
@@ -452,8 +387,8 @@ class Process : public IProcess {
     std::string args_;
     std::string log_name_;
 
-    Stream sg_out_;
-    Stream sg_err_;
+    LineAccumulator sg_out_;
+    LineAccumulator sg_err_;
 
     bool is_initalized_ = false;
     bool startup_error_ = false;

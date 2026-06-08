@@ -227,6 +227,9 @@ The default values are the first value in parentheses.
 - `-testEnv`
     Specifies that the program is running in a test environment (OpenBench/Fishtest). This will change some outputs/settings.
 
+- `-strict`
+    Makes fastchess exit and return 1 on any warning.
+
 - `-log file=NAME level=(warn|trace|info|err|fatal) append=(true|false) compress=(false|true) realtime=(true|false) engine=(false|true)`
     Specify a log file with a specific log level.
     Set append to false to overwrite existing file. Default is true.

@@ -9,6 +9,7 @@
 #include <variant>
 
 #include <core/time/time.hpp>
+#include <types/exception.hpp>
 
 #define FMT_HEADER_ONLY
 #include <fmt/include/fmt/core.h>
@@ -36,11 +37,12 @@ class Logger {
     using log_file_type = std::variant<std::ofstream>;
 #endif
 
-    enum class Level { ALL, TRACE, WARN, INFO, ERR, FATAL };
+    enum class Level { ALL, TRACE, INFO, WARN, ERR, FATAL };
 
     Logger(Logger const&)         = delete;
     void operator=(Logger const&) = delete;
 
+    static void setStrict(bool strict) { strict_ = strict; }
     static void setLevel(Level level) { Logger::level_ = level; }
     static void setCompress(bool compress) { compress_ = compress; }
     static void openFile(const std::string& file, bool append = true);
@@ -79,6 +81,8 @@ class Logger {
         std::cout << msg << std::flush;
 
         if (!should_log_) {
+           if (strict_ && LEVEL >= Level::WARN)
+                std::exit(1);
             return;
         }
 
@@ -101,6 +105,8 @@ class Logger {
         const auto message = fmt::format(format, std::forward<T>(args)...) + "\n";
 
         if (!should_log_) {
+            if (strict_ && level >= Level::WARN)
+                std::exit(1);
             return;
         }
 
@@ -109,11 +115,11 @@ class Logger {
             case Level::TRACE:
                 label = "TRACE";
                 break;
-            case Level::WARN:
-                label = "WARN";
-                break;
             case Level::INFO:
                 label = "INFO";
+                break;
+            case Level::WARN:
+                label = "WARN";
                 break;
             case Level::ERR:
                 label = "ERR";
@@ -131,6 +137,9 @@ class Logger {
 
         const std::lock_guard<std::mutex> lock(log_mutex_);
         std::visit([&](auto&& arg) { arg << fmt_message << std::flush; }, log_);
+
+        if (strict_ && level >= Level::WARN)
+            std::exit(1);
     }
 
 #ifdef _WIN32
@@ -154,6 +163,7 @@ class Logger {
     static bool engine_coms_;
     static log_file_type log_;
     static std::mutex log_mutex_;
+    static bool strict_;
 };
 
 #define LOG_TRACE(...) Logger::trace(__VA_ARGS__)

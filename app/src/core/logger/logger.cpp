@@ -16,6 +16,7 @@ namespace fastchess {
 
 bool Logger::compress_               = false;
 Logger::Level Logger::level_         = Logger::Level::WARN;
+bool Logger::strict_                 = false;
 std::atomic_bool Logger::should_log_ = false;
 
 std::mutex Logger::log_mutex_;

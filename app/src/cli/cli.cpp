@@ -686,6 +686,8 @@ void parseDebug(ArgumentData&) {
 
 void parseTestEnv(ArgumentData& argument_data) { argument_data.tournament_config.test_env = true; }
 
+void parseStrict(ArgumentData& argument_data) { argument_data.tournament_config.strict = true; }
+
 void parseStartupTime(std::string_view value, ArgumentData& argument_data) {
     argument_data.tournament_config.startup_time = std::chrono::milliseconds(parseScalar<uint64_t>(value));
 }
@@ -767,6 +769,7 @@ void OptionsParser::registerOptions() {
     addOption<ParamStyle::None>("show-latency", parseLatency);
     addOption<ParamStyle::None>("debug", parseDebug);
     addOption<ParamStyle::None>("testEnv", parseTestEnv);
+    addOption<ParamStyle::None>("strict", parseStrict);
 
     addOption<ParamStyle::Single>("startup-ms", parseStartupTime);
     addOption<ParamStyle::Single>("ucinewgame-ms", parseUciNewGameTime);

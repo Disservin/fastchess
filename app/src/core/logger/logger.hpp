@@ -9,7 +9,7 @@
 #include <variant>
 
 #include <core/time/time.hpp>
-#include <types/exception.hpp>
+#include <core/globals/globals.hpp>
 
 #define FMT_HEADER_ONLY
 #include <fmt/include/fmt/core.h>
@@ -79,10 +79,12 @@ class Logger {
         const auto msg = fmt::format(format, std::forward<T>(args)...) + "\n";
 
         std::cout << msg << std::flush;
+        if (strict_ && LEVEL >= Level::WARN) {
+            atomic::abnormal_termination = true;
+            atomic::stop = true;
+        }
 
         if (!should_log_) {
-           if (strict_ && LEVEL >= Level::WARN)
-                std::exit(1);
             return;
         }
 
@@ -103,10 +105,12 @@ class Logger {
         }
 
         const auto message = fmt::format(format, std::forward<T>(args)...) + "\n";
+        if (strict_ && level >= Level::WARN) {
+            atomic::abnormal_termination = true;
+            atomic::stop = true;
+        }
 
         if (!should_log_) {
-            if (strict_ && level >= Level::WARN)
-                std::exit(1);
             return;
         }
 
@@ -137,9 +141,6 @@ class Logger {
 
         const std::lock_guard<std::mutex> lock(log_mutex_);
         std::visit([&](auto&& arg) { arg << fmt_message << std::flush; }, log_);
-
-        if (strict_ && level >= Level::WARN)
-            std::exit(1);
     }
 
 #ifdef _WIN32

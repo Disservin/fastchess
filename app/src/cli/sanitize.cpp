@@ -166,16 +166,12 @@ void sanitize(std::vector<EngineConfiguration>& configs) {
         validateEngine(configs[i]);
     }
 
-    std::unordered_map<std::string, int> count;
-    for (auto& config : configs) {
-        count[config.name]++;
-    }
-
     std::unordered_map<std::string, int> seen;
     for (auto& config : configs) {
-        if (count[config.name] > 1) {
-            seen[config.name]++;
-            config.name += "_" + std::to_string(seen[config.name]);
+        int& n = seen[config.name];
+    
+        if (n++ > 0) {
+            config.name += "_" + std::to_string(n);
         }
     }
 }

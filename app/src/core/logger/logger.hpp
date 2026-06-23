@@ -9,6 +9,7 @@
 #include <variant>
 
 #include <core/time/time.hpp>
+#include <core/globals/globals.hpp>
 
 #define FMT_HEADER_ONLY
 #include <fmt/include/fmt/core.h>
@@ -36,11 +37,12 @@ class Logger {
     using log_file_type = std::variant<std::ofstream>;
 #endif
 
-    enum class Level { ALL, TRACE, WARN, INFO, ERR, FATAL };
+    enum class Level { ALL, TRACE, INFO, WARN, ERR, FATAL };
 
     Logger(Logger const&)         = delete;
     void operator=(Logger const&) = delete;
 
+    static void setStrict(bool strict) { strict_ = strict; }
     static void setLevel(Level level) { Logger::level_ = level; }
     static void setCompress(bool compress) { compress_ = compress; }
     static void openFile(const std::string& file, bool append = true);
@@ -77,6 +79,10 @@ class Logger {
         const auto msg = fmt::format(format, std::forward<T>(args)...) + "\n";
 
         std::cout << msg << std::flush;
+        if (strict_ && LEVEL >= Level::WARN) {
+            atomic::abnormal_termination = true;
+            atomic::stop = true;
+        }
 
         if (!should_log_) {
             return;
@@ -99,6 +105,10 @@ class Logger {
         }
 
         const auto message = fmt::format(format, std::forward<T>(args)...) + "\n";
+        if (strict_ && level >= Level::WARN) {
+            atomic::abnormal_termination = true;
+            atomic::stop = true;
+        }
 
         if (!should_log_) {
             return;
@@ -109,11 +119,11 @@ class Logger {
             case Level::TRACE:
                 label = "TRACE";
                 break;
-            case Level::WARN:
-                label = "WARN";
-                break;
             case Level::INFO:
                 label = "INFO";
+                break;
+            case Level::WARN:
+                label = "WARN";
                 break;
             case Level::ERR:
                 label = "ERR";
@@ -154,6 +164,7 @@ class Logger {
     static bool engine_coms_;
     static log_file_type log_;
     static std::mutex log_mutex_;
+    static bool strict_;
 };
 
 #define LOG_TRACE(...) Logger::trace(__VA_ARGS__)

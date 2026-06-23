@@ -72,6 +72,7 @@ struct Tournament {
     bool check_mate_pvs = false;
     bool show_latency   = false;
     bool test_env       = false;
+    bool strict         = false;
 
     std::chrono::milliseconds startup_time    = std::chrono::seconds(10);
     std::chrono::milliseconds ucinewgame_time = std::chrono::seconds(60);

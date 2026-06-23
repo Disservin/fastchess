@@ -33,6 +33,7 @@ void TournamentManager::start(const cli::Args& args) {
     config::EngineConfigs = std::make_unique<std::vector<EngineConfiguration>>(options.getEngineConfigs());
 
     Logger::setLevel(config::TournamentConfig->log.level);
+    Logger::setStrict(config::TournamentConfig->strict);
     Logger::setCompress(config::TournamentConfig->log.compress);
     Logger::openFile(config::TournamentConfig->log.file, config::TournamentConfig->log.append_file);
     Logger::setEngineComs(config::TournamentConfig->log.engine_coms);

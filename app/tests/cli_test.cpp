@@ -160,17 +160,6 @@ TEST_SUITE("Option Parsing Tests") {
                              fastchess_exception);
     }
 
-    TEST_CASE("Should throw no engine name") {
-        const auto args = cli::Args{
-            "fastchess.exe",    "-engine", "dir=./", "cmd=app/tests/mock/engine/dummy_engine",
-            "depth=5",          "-engine", "dir=./", "cmd=app/tests/mock/engine/dummy_engine",
-            "tc=40/1:9.65+0.1",
-        };
-
-        CHECK_THROWS_WITH_AS(cli::OptionsParser{args}, "Error; please specify a name for each engine!",
-                             fastchess_exception);
-    }
-
     TEST_CASE("Should throw invalid tc") {
         const auto args = cli::Args{
             "fastchess.exe",
@@ -188,25 +177,6 @@ TEST_SUITE("Option Parsing Tests") {
         CHECK_THROWS_WITH_AS(cli::OptionsParser{args}, "Error; no TimeControl specified!", fastchess_exception);
     }
 
-    TEST_CASE("Should throw engine with same name") {
-        const auto args = cli::Args{
-            "fastchess.exe",
-            "-engine",
-            "dir=./",
-            "cmd=app/tests/mock/engine/dummy_engine",
-            "tc=10/1+0",
-            "name=Alexandria-EA649FED",
-            "-engine",
-            "dir=./",
-            "cmd=app/tests/mock/engine/dummy_engine",
-            "name=Alexandria-EA649FED",
-            "tc=10/1+0",
-        };
-
-        CHECK_THROWS_WITH_AS(cli::OptionsParser{args},
-                             "Error: Engine with the same name are not allowed!: Alexandria-EA649FED",
-                             fastchess_exception);
-    }
 
     TEST_CASE("Should throw engine with invalid restart") {
         const auto args = cli::Args{
@@ -565,6 +535,20 @@ TEST_SUITE("Option Parsing Tests") {
         REQUIRE(engines.size() == 2);
         CHECK(engines[0].name == "engine1");
         CHECK(engines[1].name == "engine2");
+    }
+
+    TEST_CASE("Engine name should be auto-assigned and suffixed") {
+        const auto args = cli::Args{
+            "fastchess.exe",    "-engine", "dir=./", "cmd=app/tests/mock/engine/dummy_engine",
+            "depth=5",          "-engine", "dir=./", "cmd=app/tests/mock/engine/dummy_engine",
+            "tc=40/1:9.65+0.1",
+        };
+
+        cli::OptionsParser options = cli::OptionsParser(args);
+        auto configs = options.getEngineConfigs();
+
+        CHECK(configs[0].name == "dummy_engine");
+        CHECK(configs[1].name == "dummy_engine_2");
     }
 
     TEST_CASE("Quick option creates two engines and presets tournament") {

@@ -164,12 +164,18 @@ void sanitize(std::vector<EngineConfiguration>& configs) {
 
     for (std::size_t i = 0; i < configs.size(); i++) {
         validateEngine(configs[i]);
+    }
 
-        int suffix = 2;
-        for (std::size_t j = 0; j < i; j++) {
-            if (configs[i].name == configs[j].name) {
-                configs[i].name += "_" + std::to_string(suffix++);
-            }
+    std::unordered_map<std::string, int> count;
+    for (auto& config : configs) {
+        count[config.name]++;
+    }
+
+    std::unordered_map<std::string, int> seen;
+    for (auto& config : configs) {
+        if (count[config.name] > 1) {
+            seen[config.name]++;
+            config.name += "_" + std::to_string(seen[config.name]);
         }
     }
 }

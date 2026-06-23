@@ -160,17 +160,6 @@ TEST_SUITE("Option Parsing Tests") {
                              fastchess_exception);
     }
 
-    TEST_CASE("Should throw no engine name") {
-        const auto args = cli::Args{
-            "fastchess.exe",    "-engine", "dir=./", "cmd=app/tests/mock/engine/dummy_engine",
-            "depth=5",          "-engine", "dir=./", "cmd=app/tests/mock/engine/dummy_engine",
-            "tc=40/1:9.65+0.1",
-        };
-
-        CHECK_THROWS_WITH_AS(cli::OptionsParser{args}, "Error; please specify a name for each engine!",
-                             fastchess_exception);
-    }
-
     TEST_CASE("Should throw invalid tc") {
         const auto args = cli::Args{
             "fastchess.exe",

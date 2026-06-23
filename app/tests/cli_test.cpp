@@ -548,7 +548,7 @@ TEST_SUITE("Option Parsing Tests") {
         cli::OptionsParser options = cli::OptionsParser(args);
         auto configs = options.getEngineConfigs();
 
-        CHECK(configs[0].name == "dummy_engine_1");
+        CHECK(configs[0].name == "dummy_engine");
         CHECK(configs[1].name == "dummy_engine_2");
         CHECK(configs[2].name == "dummy_engine_3");
     }

@@ -165,9 +165,10 @@ void sanitize(std::vector<EngineConfiguration>& configs) {
     for (std::size_t i = 0; i < configs.size(); i++) {
         validateEngine(configs[i]);
 
+        int suffix = 2;
         for (std::size_t j = 0; j < i; j++) {
             if (configs[i].name == configs[j].name) {
-                configs[i].name += "_" + std::to_string(i);
+                configs[i].name += "_" + std::to_string(suffix++);
             }
         }
     }

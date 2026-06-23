@@ -541,14 +541,16 @@ TEST_SUITE("Option Parsing Tests") {
         const auto args = cli::Args{
             "fastchess.exe",    "-engine", "dir=./", "cmd=app/tests/mock/engine/dummy_engine",
             "depth=5",          "-engine", "dir=./", "cmd=app/tests/mock/engine/dummy_engine",
-            "tc=40/1:9.65+0.1",
+            "tc=40/1:9.65+0.1", "-engine", "dir=./", "cmd=app/tests/mock/engine/dummy_engine",
+            "tc=40/1:9.65+0.1"
         };
 
         cli::OptionsParser options = cli::OptionsParser(args);
         auto configs = options.getEngineConfigs();
 
-        CHECK(configs[0].name == "dummy_engine");
+        CHECK(configs[0].name == "dummy_engine_1");
         CHECK(configs[1].name == "dummy_engine_2");
+        CHECK(configs[2].name == "dummy_engine_3");
     }
 
     TEST_CASE("Quick option creates two engines and presets tournament") {

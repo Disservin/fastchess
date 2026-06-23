@@ -5,7 +5,6 @@
 #include <thread>
 #include <utility>
 #include <vector>
-#include <filesystem>
 
 #include <core/filesystem/fd_limit.hpp>
 #include <core/filesystem/file_system.hpp>
@@ -116,16 +115,6 @@ void validateEngine(EngineConfiguration& config) {
     }
 #endif
 
-    if (config.name.empty()) {
-        // strip directory and extension
-        std::filesystem::path p(config.cmd);
-        config.name = p.stem().string();
-    }
-    
-    if (config.name.empty()) {
-        throw fastchess_exception("Error; please specify a name for each engine!");
-    }
-
     if ((config.limit.tc.time + config.limit.tc.increment) == 0 && config.limit.tc.fixed_time == 0 &&
         config.limit.nodes == 0 && config.limit.plies == 0) {
         throw fastchess_exception("Error; no TimeControl specified!");
@@ -146,7 +135,17 @@ void validateEngine(EngineConfiguration& config) {
             throw fastchess_exception("Engine binary does not exist: " + enginePath.string());
         }
     }
+
+    if (config.name.empty()) {
+        // strip directory and extension
+        std::filesystem::path p(config.cmd);
+        config.name = p.stem().string();
+    }
 #endif
+    
+    if (config.name.empty()) {
+        throw fastchess_exception("Error; please specify a name for each engine!");
+    }
 }
 
 }  // namespace
@@ -168,7 +167,7 @@ void sanitize(std::vector<EngineConfiguration>& configs) {
 
         for (std::size_t j = 0; j < i; j++) {
             if (configs[i].name == configs[j].name) {
-                throw fastchess_exception("Error: Engine with the same name are not allowed!: " + configs[i].name);
+                configs[i].name += "_" + std::to_string(i);
             }
         }
     }

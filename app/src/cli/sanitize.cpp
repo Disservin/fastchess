@@ -5,6 +5,7 @@
 #include <thread>
 #include <utility>
 #include <vector>
+#include <filesystem>
 
 #include <core/filesystem/fd_limit.hpp>
 #include <core/filesystem/file_system.hpp>
@@ -115,6 +116,12 @@ void validateEngine(EngineConfiguration& config) {
     }
 #endif
 
+    if (config.name.empty()) {
+        // strip directory and extension
+        std::filesystem::path p(config.cmd);
+        config.name = p.stem().string();
+    }
+    
     if (config.name.empty()) {
         throw fastchess_exception("Error; please specify a name for each engine!");
     }

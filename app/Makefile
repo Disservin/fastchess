@@ -109,6 +109,7 @@ else
 	SUFFIX  :=
 	LDFLAGS := -pthread -lstdc++fs
 	uname_S := $(shell uname -s)
+	uname_M := $(shell uname -m)
 endif
 endif
 
@@ -130,6 +131,11 @@ ifeq ($(build), release)
 	endif
 
 	LDFLAGS += -lpthread -static -static-libgcc -static-libstdc++
+else
+# Not all architectures support -march=native
+ifeq (,$(findstring $(uname_M),aarch64 arm arm64 x86 x86_64 i386 i686))
+	NATIVE =
+endif
 endif
 
 # Different native flag for macOS

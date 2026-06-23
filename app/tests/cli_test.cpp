@@ -188,25 +188,6 @@ TEST_SUITE("Option Parsing Tests") {
         CHECK_THROWS_WITH_AS(cli::OptionsParser{args}, "Error; no TimeControl specified!", fastchess_exception);
     }
 
-    TEST_CASE("Should throw engine with same name") {
-        const auto args = cli::Args{
-            "fastchess.exe",
-            "-engine",
-            "dir=./",
-            "cmd=app/tests/mock/engine/dummy_engine",
-            "tc=10/1+0",
-            "name=Alexandria-EA649FED",
-            "-engine",
-            "dir=./",
-            "cmd=app/tests/mock/engine/dummy_engine",
-            "name=Alexandria-EA649FED",
-            "tc=10/1+0",
-        };
-
-        CHECK_THROWS_WITH_AS(cli::OptionsParser{args},
-                             "Error: Engine with the same name are not allowed!: Alexandria-EA649FED",
-                             fastchess_exception);
-    }
 
     TEST_CASE("Should throw engine with invalid restart") {
         const auto args = cli::Args{

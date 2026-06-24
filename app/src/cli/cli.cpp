@@ -733,8 +733,8 @@ OptionsParser::OptionsParser(const cli::Args& args) {
 void OptionsParser::registerOptions() {
     addOption<ParamStyle::KeyValue>("engine", engine::parseEngine);
     addOption<ParamStyle::KeyValue, Dispatch::Deferred>("each", parseEach);
-    addOption<ParamStyle::KeyValue>("pgnout", parsePgnOut);
-    addOption<ParamStyle::KeyValue>("epdout", parseEpdOut);
+    addOption<ParamStyle::KeyValueOptional>("pgnout", parsePgnOut);
+    addOption<ParamStyle::KeyValueOptional>("epdout", parseEpdOut);
     addOption<ParamStyle::KeyValue>("openings", parseOpening);
     addOption<ParamStyle::KeyValue>("sprt", parseSprt);
     addOption<ParamStyle::KeyValue>("draw", parseDraw);

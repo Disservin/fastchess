@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <iterator>
 #include <vector>
+#include <regex>
 
 #include <doctest/doctest.hpp>
 
@@ -412,6 +413,37 @@ TEST_SUITE("Option Parsing Tests") {
         };
         CHECK(hasHash(engines[0]));
         CHECK(hasHash(engines[1]));
+    }
+
+    TEST_CASE("Default filename for pgnout and epdout") {
+        const auto args = cli::Args{"fastchess.exe",
+                                    "-engine",
+                                    "dir=./",
+                                    "cmd=app/tests/mock/engine/dummy_engine",
+                                    "depth=5",
+                                    "st=5",
+                                    "name=Alexandria-EA649FED",
+                                    "-engine",
+                                    "dir=./",
+                                    "cmd=app/tests/mock/engine/dummy_engine",
+                                    "tc=40/1:9.65+0.1",
+                                    "name=Alexandria-27E42728",
+                                    "-openings",
+                                    "file=./app/tests/data/test.epd",
+                                    "-rounds",
+                                    "50",
+                                    "-games",
+                                    "2",
+                                    "-pgnout",
+                                    "-epdout"};
+
+        cli::OptionsParser options = cli::OptionsParser(args);
+
+        const std::regex epd_pattern(R"(fastchess_\d{8}_\d{6}\.epd)");
+        const std::regex pgn_pattern(R"(fastchess_\d{8}_\d{6}\.pgn)");
+
+        CHECK(std::regex_match(options.getTournamentConfig().pgn.file, pgn_pattern));
+        CHECK(std::regex_match(options.getTournamentConfig().epd.file, epd_pattern));
     }
 
     TEST_CASE("Scalar options update tournament config") {

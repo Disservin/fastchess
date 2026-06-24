@@ -46,7 +46,7 @@ struct ArgumentData {
 class OptionsParser {
     using parseFunc = std::function<void(const std::vector<std::string>&, ArgumentData&)>;
 
-    enum class ParamStyle { Free, None, Single, KeyValue };
+    enum class ParamStyle { Free, None, Single, KeyValue, KeyValueOptional };
 
     struct OptionEntry {
         parseFunc func;
@@ -250,6 +250,27 @@ class OptionsParser {
                 if (params.empty()) {
                     throw fastchess_exception("Option \"" + flag + "\" expects key=value parameters.");
                 }
+
+                std::vector<std::pair<std::string, std::string>> kv;
+                kv.reserve(params.size());
+                for (const auto& param : params) {
+                    const auto pos = param.find('=');
+                    if (pos == std::string::npos || pos == 0 || pos + 1 == param.size()) {
+                        throw fastchess_exception("Option \"" + flag + "\" expects key=value pairs, got \"" + param +
+                                                  "\".");
+                    }
+                    kv.emplace_back(param.substr(0, pos), param.substr(pos + 1));
+                }
+
+                fn(kv, data);
+            };
+        } else if constexpr (Style == ParamStyle::KeyValueOptional) {
+            static_assert(std::is_invocable_r_v<void, Handler, const std::vector<std::pair<std::string, std::string>>&,
+                                                ArgumentData&>,
+                          "Handler must accept (key/value list, ArgumentData&)");
+            std::function<void(const std::vector<std::pair<std::string, std::string>>&, ArgumentData&)> fn =
+                std::forward<Handler>(handler);
+            return [flag, fn](const std::vector<std::string>& params, ArgumentData& data) {
 
                 std::vector<std::pair<std::string, std::string>> kv;
                 kv.reserve(params.size());

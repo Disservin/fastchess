@@ -202,7 +202,7 @@ void parseEach(const KeyValuePairs& params, ArgumentData& argument_data) {
 }
 
 void parsePgnOut(const KeyValuePairs& params, ArgumentData& argument_data) {
-    argument_data.tournament_config.pgn.file = "fastchess_" + getCurrentTimestampString() + ".pgn";
+    argument_data.tournament_config.pgn.file = "fastchess_" + time::datetime("%Y%m%d_%H%M%S") + ".pgn";
     
     for (const auto& [key, value] : params) {
         if (key == "file") {
@@ -246,7 +246,7 @@ void parsePgnOut(const KeyValuePairs& params, ArgumentData& argument_data) {
 }
 
 void parseEpdOut(const KeyValuePairs& params, ArgumentData& argument_data) {
-    argument_data.tournament_config.epd.file = "fastchess_" + getCurrentTimestampString() + ".epd";
+    argument_data.tournament_config.epd.file = "fastchess_" + time::datetime("%Y%m%d_%H%M%S") + ".epd";
         
     for (const auto& [key, value] : params) {
         if (key == "file") {

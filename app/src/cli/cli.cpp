@@ -79,16 +79,6 @@ std::string concat(const std::vector<std::string>& params) {
     return str;
 }
 
-std::string getCurrentTimestampString() {
-    const auto now = std::chrono::system_clock::now();
-    const std::time_t t = std::chrono::system_clock::to_time_t(now);
-
-    std::ostringstream oss;
-    oss << std::put_time(std::localtime(&t), "%Y%m%d_%H%M%S");
-
-    return oss.str();
-}
-
 bool is_number(const std::string& s) {
     static const auto is_digit = [](unsigned char c) { return !std::isdigit(c); };
     return !s.empty() && std::find_if(s.begin(), s.end(), is_digit) == s.end();

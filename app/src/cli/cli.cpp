@@ -79,6 +79,16 @@ std::string concat(const std::vector<std::string>& params) {
     return str;
 }
 
+std::string getCurrentTimestampString() {
+    const auto now = std::chrono::system_clock::now();
+    const std::time_t t = std::chrono::system_clock::to_time_t(now);
+
+    std::ostringstream oss;
+    oss << std::put_time(std::localtime(&t), "%Y%m%d_%H%M%S");
+
+    return oss.str();
+}
+
 bool is_number(const std::string& s) {
     static const auto is_digit = [](unsigned char c) { return !std::isdigit(c); };
     return !s.empty() && std::find_if(s.begin(), s.end(), is_digit) == s.end();
@@ -192,6 +202,8 @@ void parseEach(const KeyValuePairs& params, ArgumentData& argument_data) {
 }
 
 void parsePgnOut(const KeyValuePairs& params, ArgumentData& argument_data) {
+    argument_data.tournament_config.pgn.file = "fastchess_" + getCurrentTimestampString() + ".pgn";
+    
     for (const auto& [key, value] : params) {
         if (key == "file") {
             argument_data.tournament_config.pgn.file = value;
@@ -231,11 +243,11 @@ void parsePgnOut(const KeyValuePairs& params, ArgumentData& argument_data) {
             OptionsParser::throwMissing("pgnout", key, value);
         }
     }
-    if (argument_data.tournament_config.pgn.file.empty())
-        throw fastchess_exception("Please specify filename for pgn output.");
 }
 
 void parseEpdOut(const KeyValuePairs& params, ArgumentData& argument_data) {
+    argument_data.tournament_config.epd.file = "fastchess_" + getCurrentTimestampString() + ".epd";
+        
     for (const auto& [key, value] : params) {
         if (key == "file") {
             argument_data.tournament_config.epd.file = value;
@@ -245,8 +257,6 @@ void parseEpdOut(const KeyValuePairs& params, ArgumentData& argument_data) {
             OptionsParser::throwMissing("epdout", key, value);
         }
     }
-    if (argument_data.tournament_config.epd.file.empty())
-        throw fastchess_exception("Please specify filename for epd output.");
 }
 
 void parseOpening(const KeyValuePairs& params, ArgumentData& argument_data) {

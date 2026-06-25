@@ -20,6 +20,7 @@ struct MoveData {
     MoveData(std::string _move, Score _score, int64_t _elapsed_millis, int64_t _depth, int64_t _seldepth,
              uint64_t _nodes, bool _legal = true)
         : move(std::move(_move)),
+          ponder(""),
           nodes(_nodes),
           elapsed_millis(_elapsed_millis),
           depth(_depth),
@@ -29,6 +30,7 @@ struct MoveData {
 
     std::vector<std::string> additional_lines;
     std::string move;
+    std::string ponder;
     std::string pv = "";
 
     uint64_t nodes  = 0;

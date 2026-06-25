@@ -439,7 +439,7 @@ bool UciEngine::writeEngine(const std::string& input) {
     return process_.writeInput(input + "\n").code == process::Status::OK;
 }
 
-std::optional<std::string> UciEngine::bestmove(bool warn_on_error) const {
+std::pair<std::optional<std::string>, std::optional<std::string>> UciEngine::bestmove(bool warn_on_error) const {
     const auto warn = [&](std::string_view reason, std::string_view last_line = {}) {
         if (!warn_on_error) {
             return;
@@ -457,24 +457,27 @@ std::optional<std::string> UciEngine::bestmove(bool warn_on_error) const {
 
     if (lines.empty()) {
         warn("No output");
-        return std::nullopt;
+        return {std::nullopt, std::nullopt};
     }
 
     const auto& last_line = lines.back()->line;
 
     if (last_line.rfind("bestmove", 0) != 0) {
         warn("Line does not start with 'bestmove'", last_line);
-        return std::nullopt;
+        return {std::nullopt, std::nullopt};
     }
 
-    const auto bm = str_utils::findElement<std::string>(str_utils::splitString(last_line, ' '), "bestmove");
+    const auto last_info = str_utils::splitString(last_line, ' ');
+    const auto bm = str_utils::findElement<std::string>(last_info, "bestmove");
 
     if (!bm.has_value()) {
         warn(bm.error(), last_line);
-        return std::nullopt;
+        return {std::nullopt, std::nullopt};
     }
 
-    return *bm;
+    const auto pm = str_utils::findElement<std::string>(last_info, "ponder");
+
+    return {bm.value(), pm.has_value() ? std::optional<std::string>{pm.value()} : std::nullopt};
 }
 
 std::chrono::milliseconds UciEngine::lastTime() const {

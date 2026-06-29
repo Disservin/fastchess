@@ -1,6 +1,7 @@
 #pragma once
 
 #include <chrono>
+#include <optional>
 
 #include <engine/uci_engine.hpp>
 
@@ -33,6 +34,13 @@ class Player {
     void setDraw() noexcept { result = chess::GameResult::DRAW; }
     void setWon() noexcept { result = chess::GameResult::WIN; }
 
+    void setFirstSide() noexcept { first_side_ = true; }
+    void setSecondSide() noexcept { first_side_ = false; }
+
+    [[nodiscard]] bool isFirstSide() const noexcept { return first_side_.value_or(false); }
+    [[nodiscard]] bool isSecondSide() const noexcept { return first_side_.has_value() && !*first_side_; }
+    [[nodiscard]] std::optional<bool> getFirstSide() const noexcept { return first_side_; }
+
     [[nodiscard]] chess::GameResult getResult() const noexcept { return result; }
 
     engine::UciEngine& engine;
@@ -40,6 +48,7 @@ class Player {
    private:
     chess::GameResult result = chess::GameResult::NONE;
     TimeControl time_control_;
+    std::optional<bool> first_side_;
 };
 
 }  // namespace fastchess

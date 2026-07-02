@@ -193,7 +193,7 @@ void parseEach(const KeyValuePairs& params, ArgumentData& argument_data) {
 
 void parsePgnOut(const KeyValuePairs& params, ArgumentData& argument_data) {
     argument_data.tournament_config.pgn.file = "fastchess_" + time::datetime("%Y%m%d_%H%M%S").value_or("") + ".pgn";
-    
+
     for (const auto& [key, value] : params) {
         if (key == "file") {
             argument_data.tournament_config.pgn.file = value;
@@ -237,7 +237,7 @@ void parsePgnOut(const KeyValuePairs& params, ArgumentData& argument_data) {
 
 void parseEpdOut(const KeyValuePairs& params, ArgumentData& argument_data) {
     argument_data.tournament_config.epd.file = "fastchess_" + time::datetime("%Y%m%d_%H%M%S").value_or("") + ".epd";
-        
+
     for (const auto& [key, value] : params) {
         if (key == "file") {
             argument_data.tournament_config.epd.file = value;
@@ -277,6 +277,8 @@ void parseOpening(const KeyValuePairs& params, ArgumentData& argument_data) {
                 argument_data.tournament_config.opening.order = OrderType::SEQUENTIAL;
             } else if (value == "random") {
                 argument_data.tournament_config.opening.order = OrderType::RANDOM;
+            } else if (value == "iid") {
+                argument_data.tournament_config.opening.order = OrderType::RANDOM_IID;
             } else {
                 OptionsParser::throwMissing("openings order", key, value);
             }

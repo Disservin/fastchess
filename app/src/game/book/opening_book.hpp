@@ -4,6 +4,7 @@
 #include <string>
 #include <variant>
 #include <vector>
+#include <random>
 
 #include <core/config/config.hpp>
 #include <core/helper.hpp>
@@ -23,6 +24,21 @@ struct Openings {
             auto rand     = random::mersenne_rand();
             std::size_t j = i + (rand % (vec.size() - i));
             std::swap(vec[i], vec[j]);
+        }
+    }
+
+    // Resampling with replacement
+    template <typename T>
+    static void resample(T& vec, std::size_t num_games) {
+        if (vec.empty())
+            return;
+
+        T original = vec;
+        vec.resize(num_games);
+
+        std::uniform_int_distribution<uint64_t> dist(0, original.size() - 1);
+        for (std::size_t i = 0; i < num_games; ++i) {
+            vec[i] = original[dist(random::mersenne_rand)];
         }
     }
 

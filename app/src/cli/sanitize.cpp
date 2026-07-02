@@ -124,11 +124,7 @@ void validateEngine(EngineConfiguration& config) {
         throw fastchess_exception("Error; cannot use tc and st together!");
     }
 
-#ifndef NO_STD_FILESYSTEM
-    std::filesystem::path enginePath = config.cmd;
-    if (!config.dir.empty()) {
-        enginePath = (std::filesystem::path(config.dir) / config.cmd);
-    }
+    auto enginePath = config.getEnginePath();
 
     if (!config.dir.empty() || enginePath.is_absolute()) {
         if (!std::filesystem::is_regular_file(enginePath)) {
@@ -141,8 +137,7 @@ void validateEngine(EngineConfiguration& config) {
         std::filesystem::path p(config.cmd);
         config.name = p.stem().string();
     }
-#endif
-    
+
     if (config.name.empty()) {
         throw fastchess_exception("Error; please specify a name for each engine!");
     }
@@ -169,7 +164,7 @@ void sanitize(std::vector<EngineConfiguration>& configs) {
     std::unordered_map<std::string, int> seen;
     for (auto& config : configs) {
         int& n = seen[config.name];
-    
+
         if (n++ > 0) {
             config.name += "_" + std::to_string(n);
         }

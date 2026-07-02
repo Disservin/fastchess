@@ -1,13 +1,13 @@
 #include <cli/cli.hpp>
 
 #include <algorithm>
+#include <filesystem>
 #include <sstream>
 #include <string_view>
 #include <type_traits>
 
 #include <cli/cli_args.hpp>
 #include <cli/sanitize.hpp>
-#include <core/filesystem/file_system.hpp>
 #include <core/logger/logger.hpp>
 #include <core/rand.hpp>
 #include <matchmaking/output/output_factory.hpp>
@@ -123,7 +123,7 @@ TimeControl::Limits parseTc(const std::string& tcString) {
     if (has_minutes) {
         const auto clock_vector = str_utils::splitString(remainingStringVector, ':');
         tc.time                 = static_cast<int64_t>(std::stod(clock_vector[0]) * 1000 * 60) +
-                  static_cast<int64_t>(std::stod(clock_vector[1]) * 1000);
+                                  static_cast<int64_t>(std::stod(clock_vector[1]) * 1000);
     } else {
         tc.time = static_cast<int64_t>(std::stod(remainingStringVector) * 1000);
     }
@@ -259,11 +259,9 @@ void parseOpening(const KeyValuePairs& params, ArgumentData& argument_data) {
                 argument_data.tournament_config.opening.format = FormatType::PGN;
             }
 
-#ifndef NO_STD_FILESYSTEM
             if (!std::filesystem::exists(value)) {
                 throw fastchess_exception("Opening file does not exist: " + value);
             }
-#endif
         } else if (key == "format") {
             if (value == "epd") {
                 argument_data.tournament_config.opening.format = FormatType::EPD;

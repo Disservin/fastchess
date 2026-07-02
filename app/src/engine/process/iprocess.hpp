@@ -1,12 +1,11 @@
 #pragma once
 
 #include <chrono>
+#include <filesystem>
 #include <functional>
 #include <string>
 #include <string_view>
 #include <vector>
-
-#include <core/filesystem/file_system.hpp>
 
 namespace fastchess::engine::process {
 
@@ -71,13 +70,9 @@ class IProcess {
 
    protected:
     [[nodiscard]] std::string getPath(const std::string& dir, const std::string& cmd) const {
-        std::string path = (dir == "." ? "" : dir) + cmd;
-#ifndef NO_STD_FILESYSTEM
         // convert path to a filesystem path
         auto p = std::filesystem::path(dir) / std::filesystem::path(cmd);
-        path   = p.string();
-#endif
-        return path;
+        return p.string();
     }
 
     bool realtime_logging_ = true;

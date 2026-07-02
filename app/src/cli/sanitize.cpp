@@ -7,7 +7,6 @@
 #include <vector>
 
 #include <core/filesystem/fd_limit.hpp>
-#include <core/filesystem/file_system.hpp>
 #include <core/logger/logger.hpp>
 #include <matchmaking/sprt/sprt.hpp>
 #include <types/exception.hpp>

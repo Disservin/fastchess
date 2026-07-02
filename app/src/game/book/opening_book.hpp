@@ -29,15 +29,15 @@ struct Openings {
 
     // Resampling with replacement
     template <typename T>
-    static void resample(T& vec, std::size_t num_matches) {
+    static void resample(T& vec, std::size_t num_rounds) {
         if (vec.empty())
             return;
 
         T original = vec;
-        vec.resize(num_matches);
+        vec.resize(num_rounds);
 
         std::uniform_int_distribution<uint64_t> dist(0, original.size() - 1);
-        for (std::size_t i = 0; i < num_matches; ++i) {
+        for (std::size_t i = 0; i < num_rounds; ++i) {
             vec[i] = original[dist(random::mersenne_rand)];
         }
     }

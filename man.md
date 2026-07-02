@@ -133,11 +133,11 @@ The default values are the first value in parentheses.
 
 ## Opening Book Management
 
-- `-openings file=NAME format=(epd|pgn) [order=(sequential|random)] [plies=(Max plies|N)] [start=(1|N)]`  
+- `-openings file=NAME format=(epd|pgn) [order=(sequential|random|iid)] [plies=(Max plies|N)] [start=(1|N)]`  
     Specifies an opening book file and its format for game starting positions.
 
     - `format` - file format, either epd or pgn.
-    - `order` - order of openings (`random` or `sequential`). Default is `sequential`.
+    - `order` - order of openings (`random`, `iid` or `sequential`). Default is `sequential`.
     - `plies` - number of plies for pgn. Defaults to max available plies.
     - `start` - starting index of the opening book. Default is 1.
 

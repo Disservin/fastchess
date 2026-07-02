@@ -44,7 +44,7 @@ void OpeningBook::setup(const std::string& file, FormatType type, VariantType vt
 
     if (order_ == OrderType::RANDOM_IID) {
         Logger::print("Indexing opening suite...");
-        std::visit([](auto& arg) { Openings::resample(arg.get(), rounds_ * games_); }, openings_);
+        std::visit([num_matches = rounds_ * games_](auto& arg) { Openings::resample(arg.get(), num_matches); }, openings_);
     }
 
     if (offset_ > 0) {

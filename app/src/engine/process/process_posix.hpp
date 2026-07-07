@@ -194,11 +194,15 @@ class Process : public IProcess {
         // which are killed when the program exits, as a last resort
         process_list.push(ProcessInformation{process_pid_, interrupt_.get_write_fd()});
 
+        // Close the parent's duplicates of the child-owned pipe ends so EOF/HUP
+        // is observable when the child exits. macOS uses a pipe-based interrupt
+        // fallback, so this cannot depend on eventfd availability.
+        in_pipe_.close_write_end();
+        err_pipe_.close_write_end();
+        out_pipe_.close_read_end();
+
         if (interrupt_.has_eventfd()) {
             LOG_TRACE("Using eventfd for process interrupt signaling");
-            in_pipe_.close_write_end();
-            err_pipe_.close_write_end();
-            out_pipe_.close_read_end();
         }
 
         return Result::OK();

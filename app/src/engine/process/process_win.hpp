@@ -189,16 +189,34 @@ class Process : public IProcess {
             if (!ReadFile(hChildStdoutRead, buffer.data(), buffer.size(), &bytesRead, &overlapped)) {
                 if (GetLastError() != ERROR_IO_PENDING) {
                     CloseHandle(overlapped.hEvent);
+
+                    if (!alive()) {
+                        return Result::Error("process terminated");
+                    }
+
                     LOG_FATAL_THREAD("Failed to read from pipe");
                     return Result::Error("failed to read from pipe");
                 }
 
-                DWORD waitResult = WaitForSingleObject(overlapped.hEvent, timeout);
+                HANDLE wait_handles[] = {overlapped.hEvent, pi_.hProcess};
+                DWORD waitResult = WaitForMultipleObjects(2, wait_handles, FALSE, timeout);
                 if (waitResult == WAIT_TIMEOUT) {
                     CancelIo(hChildStdoutRead);
                     CloseHandle(overlapped.hEvent);
                     return Result{Status::TIMEOUT, "timeout"};
                 }
+
+                if (waitResult == WAIT_OBJECT_0 + 1) {
+                    CloseHandle(overlapped.hEvent);
+
+                    if (!alive()) {
+                        return Result::Error("process terminated");
+                    }
+
+                    LOG_FATAL_THREAD("Process handle signaled but process is still alive");
+                    return Result::Error("wait failed");
+                }
+
                 if (waitResult != WAIT_OBJECT_0) {
                     CloseHandle(overlapped.hEvent);
                     LOG_FATAL_THREAD("Wait failed");
@@ -207,6 +225,11 @@ class Process : public IProcess {
 
                 if (!GetOverlappedResult(hChildStdoutRead, &overlapped, &bytesRead, FALSE)) {
                     CloseHandle(overlapped.hEvent);
+
+                    if (!alive()) {
+                        return Result::Error("process terminated");
+                    }
+
                     LOG_FATAL_THREAD("Failed to get overlapped result");
                     return Result::Error("failed to get overlapped result");
                 }
@@ -215,6 +238,10 @@ class Process : public IProcess {
             CloseHandle(overlapped.hEvent);
 
             if (bytesRead == 0) {
+                if (!alive()) {
+                    return Result::Error("process terminated");
+                }
+
                 continue;
             }
 

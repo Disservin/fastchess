@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdlib>
 #include <fcntl.h>
 #include <unistd.h>
 
@@ -48,11 +49,13 @@ class InterruptSignaler {
 
     void setup() {
 #if CAN_USE_EVENTFD_FLAGS
-        fd_read_ = eventfd(0, EFD_CLOEXEC);
-        if (fd_read_ != -1) {
-            // eventfd uses same FD for both
-            fd_write_ = fd_read_;
-            return;
+        if (!force_pipe_fallback()) {
+            fd_read_ = eventfd(0, EFD_CLOEXEC);
+            if (fd_read_ != -1) {
+                // eventfd uses same FD for both
+                fd_write_ = fd_read_;
+                return;
+            }
         }
 #endif
         int pipefds[2];
@@ -87,6 +90,11 @@ class InterruptSignaler {
     }
 
    private:
+    static bool force_pipe_fallback() {
+        const char* value = std::getenv("FASTCHESS_FORCE_PIPE_INTERRUPT");
+        return value != nullptr && *value != '\0' && value[0] != '0';
+    }
+
     int fd_read_  = -1;
     int fd_write_ = -1;
 };

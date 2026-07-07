@@ -70,6 +70,13 @@ jobs:
           ${{ runner.os == 'Windows' && format('make -j2 tests CXX={0}', matrix.config.cxx) || 'make -j2 tests' }}
           ./fastchess-tests*
 
+      - name: Running pipe interrupt fallback regression
+        if: runner.os == 'Linux'
+        env:
+          FASTCHESS_FORCE_PIPE_INTERRUPT: 1
+        run: |
+          ./fastchess-tests*
+
   # AddressSanitizer tests (Unix only)
   asan-tests:
     name: AddressSanitizer Tests - ${{matrix.config.name}}

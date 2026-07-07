@@ -275,4 +275,19 @@ TEST_SUITE("Uci Engine Communication Tests") {
         CHECK(uci_engine->getStdoutLines()[2]->line == "option set: setoption name MultiPV value 3");
         CHECK(uci_engine->getStdoutLines()[3]->line == "option set: setoption name UCI_Chess960 value true");
     }
+
+    TEST_CASE("Detect crashed engine while waiting for bestmove with fixed nodes") {
+        engine::process::Process process;
+        std::vector<engine::process::Line> output;
+
+        process.setRealtimeLogging(false);
+
+        CHECK(process.init(".", std::string(path), "--crash-on-go-nodes", "dummy").code ==
+              engine::process::Status::OK);
+        CHECK(process.writeInput("go nodes 1\n").code == engine::process::Status::OK);
+
+        const auto res = process.readOutput(output, "bestmove", std::chrono::milliseconds(0));
+
+        CHECK(res.code == engine::process::Status::ERR);
+    }
 }

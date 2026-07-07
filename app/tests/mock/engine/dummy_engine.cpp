@@ -11,9 +11,14 @@ using namespace std;
 int main(int argc, char const *argv[]) {
     std::vector<std::string> moves = {"f2f3", "e7e5", "g2g4", "d8h4"};
     int moveIndex                  = 0;
+    bool crash_on_go_nodes         = false;
 
     if (argc > 1) {
         for (int i = 1; i < argc; i++) {
+            if (std::string_view(argv[i]) == "--crash-on-go-nodes") {
+                crash_on_go_nodes = true;
+            }
+
             std::cout << "argv[" << i << "]: " << argv[i] << std::endl;
         }
     }
@@ -81,6 +86,10 @@ int main(int argc, char const *argv[]) {
                 }
             }
         } else if (contains(cmd, "go")) {
+            if (crash_on_go_nodes && contains(cmd, " nodes ")) {
+                return 1;
+            }
+
             std::cout << "bestmove " << moves[moveIndex] << std::endl;
         } else if (contains(cmd, "setoption")) {
             // Simulate setting an option

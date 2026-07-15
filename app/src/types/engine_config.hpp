@@ -1,9 +1,11 @@
 #pragma once
 
 #include <cstdint>
+#include <filesystem>
 #include <optional>
 #include <string>
 #include <vector>
+#include <filesystem>
 
 #include <core/helper.hpp>
 #include <game/timecontrol/timecontrol.hpp>
@@ -56,6 +58,14 @@ struct EngineConfiguration {
         }
 
         return std::nullopt;
+    }
+
+    std::filesystem::path getEnginePath() const {
+        if (!dir.empty()) {
+            return std::filesystem::path(dir) / cmd;
+        }
+
+        return std::filesystem::path(cmd);
     }
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(EngineConfiguration, name, dir, cmd, args, restart, options, limit, variant)

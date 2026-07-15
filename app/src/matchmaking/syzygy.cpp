@@ -1,7 +1,5 @@
 #include <matchmaking/syzygy.hpp>
 
-#include <core/filesystem/file_system.hpp>
-
 #include <pyrrhic/tbprobe.h>
 
 #include <cassert>

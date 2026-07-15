@@ -54,6 +54,23 @@ TEST_SUITE("ScoreBoard") {
         CHECK(scoreboard.getStats(engine2.name, engine1.name) == Stats(3, 3, 6));
     }
 
+    TEST_CASE("Update with black-to-move opening records assignment perspective") {
+        EngineConfiguration engine1 = {};
+        EngineConfiguration engine2 = {};
+
+        engine1.name = "engine1";
+        engine2.name = "engine2";
+
+        MatchData match_data;
+        match_data.players.white = {engine2, chess::GameResult::LOSE};
+        match_data.players.black = {engine1, chess::GameResult::WIN};
+
+        ScoreBoard scoreboard;
+        scoreboard.updateNonPair({engine2, engine1}, Stats(match_data));
+
+        CHECK(scoreboard.getStats(engine1.name, engine2.name) == Stats(1, 0, 0));
+    }
+
     // TEST_CASE("SetResults") {
     //     EngineConfiguration engine1 = {};
     //     EngineConfiguration engine2 = {};

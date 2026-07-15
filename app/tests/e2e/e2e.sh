@@ -4,6 +4,7 @@ set -x
 
 # Compile the random_mover
 g++ -O3 -std=c++17 app/tests/mock/engine/random_mover.cpp -o random_mover
+g++ -O3 -std=c++17 app/tests/mock/engine/scripted_result.cpp -o scripted_result
 
 # Compile fastchess
 make -j build=debug $1
@@ -562,3 +563,34 @@ if [ "$fens_run1" = "$fens_run2" ]; then
 fi
 
 echo "Random order test passed - openings were shuffled differently in each run."
+
+# Black-to-move scoring test
+# The opening starts with Black to move, so the black-side engine moves first.
+# black_winner is still assigned White and must be credited with a win when Black makes an illegal move.
+
+OUTPUT_FILE_11=$(mktemp)
+./fastchess -engine cmd=./scripted_result name=black_winner -engine cmd=./scripted_result args=--illegal name=white_loser \
+    -each nodes=1 -rounds 1 -games 1 -concurrency 1 -ratinginterval 1 -report penta=false \
+    -openings file=./app/tests/data/black-to-move.epd format=epd order=sequential -log file=log.txt level=info 2>&1 | tee $OUTPUT_FILE_11
+
+if grep -q "WARNING: ThreadSanitizer:" $OUTPUT_FILE_11; then
+    echo "Data races detected."
+    exit 1
+fi
+
+if ! grep -q "Finished game 1 (black_winner vs white_loser): 1-0 {Black makes an illegal move}" $OUTPUT_FILE_11; then
+    echo "Black-to-move game did not finish with the expected black loss."
+    exit 1
+fi
+
+if ! grep -q "Results of black_winner vs white_loser" $OUTPUT_FILE_11; then
+    echo "Black-to-move result report was not printed."
+    exit 1
+fi
+
+if ! grep -q "Games: 1, Wins: 1, Losses: 0, Draws: 0" $OUTPUT_FILE_11; then
+    echo "Black-to-move win was not credited to the assignment-first engine."
+    exit 1
+fi
+
+echo "Black-to-move scoring test passed."

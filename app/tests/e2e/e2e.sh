@@ -565,8 +565,8 @@ fi
 echo "Random order test passed - openings were shuffled differently in each run."
 
 # Black-to-move scoring test
-# The opening starts with Black to move, so black_winner is assignment.first and plays Black.
-# white_loser then makes an illegal move, so black_winner must be credited with one win.
+# The opening starts with Black to move, so the black-side engine moves first.
+# black_winner is still assigned White and must be credited with a win when Black makes an illegal move.
 
 OUTPUT_FILE_11=$(mktemp)
 ./fastchess -engine cmd=./scripted_result name=black_winner -engine cmd=./scripted_result args=--illegal name=white_loser \
@@ -578,8 +578,8 @@ if grep -q "WARNING: ThreadSanitizer:" $OUTPUT_FILE_11; then
     exit 1
 fi
 
-if ! grep -q "Finished game 1 (black_winner vs white_loser): 0-1 {White makes an illegal move}" $OUTPUT_FILE_11; then
-    echo "Black-to-move game did not finish with the expected white loss."
+if ! grep -q "Finished game 1 (black_winner vs white_loser): 1-0 {Black makes an illegal move}" $OUTPUT_FILE_11; then
+    echo "Black-to-move game did not finish with the expected black loss."
     exit 1
 fi
 

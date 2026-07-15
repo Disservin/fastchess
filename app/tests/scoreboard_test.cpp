@@ -62,11 +62,11 @@ TEST_SUITE("ScoreBoard") {
         engine2.name = "engine2";
 
         MatchData match_data;
-        match_data.players.white = {engine2, chess::GameResult::LOSE, false};
-        match_data.players.black = {engine1, chess::GameResult::WIN, true};
+        match_data.players.white = {engine2, chess::GameResult::LOSE};
+        match_data.players.black = {engine1, chess::GameResult::WIN};
 
         ScoreBoard scoreboard;
-        scoreboard.updateNonPair({engine1, engine2}, Stats(match_data));
+        scoreboard.updateNonPair({engine2, engine1}, Stats(match_data));
 
         CHECK(scoreboard.getStats(engine1.name, engine2.name) == Stats(1, 0, 0));
     }

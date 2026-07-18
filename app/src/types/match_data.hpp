@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <optional>
 #include <string>
 #include <utility>
 #include <vector>
@@ -11,7 +12,6 @@
 #include <matchmaking/game_pair.hpp>
 #include <types/engine_config.hpp>
 #include <types/score.hpp>
-
 namespace fastchess {
 
 struct MoveData {
@@ -62,6 +62,7 @@ struct MatchData {
     struct PlayerInfo {
         EngineConfiguration config;
         chess::GameResult result = chess::GameResult::NONE;
+        std::optional<bool> first_move;
     };
 
     MatchData() {}
@@ -73,7 +74,7 @@ struct MatchData {
 
     GamePair<PlayerInfo, PlayerInfo> players;
 
-    std::optional<PlayerInfo> getLosingPlayer() const {
+    [[nodiscard]] std::optional<PlayerInfo> getLosingPlayer() const {
         const auto check = [&](const PlayerInfo& player) { return player.result == chess::GameResult::LOSE; };
 
         if (check(players.white)) return players.white;
@@ -81,11 +82,25 @@ struct MatchData {
         return std::nullopt;
     }
 
-    std::optional<PlayerInfo> getWinningPlayer() const {
+    [[nodiscard]] std::optional<PlayerInfo> getWinningPlayer() const {
         const auto check = [&](const PlayerInfo& player) { return player.result == chess::GameResult::WIN; };
 
         if (check(players.white)) return players.white;
         if (check(players.black)) return players.black;
+        return std::nullopt;
+    }
+
+    [[nodiscard]] std::optional<PlayerInfo> getFirstMovedPlayer() const {
+        if (players.white.first_move.has_value()) {
+            return *players.white.first_move ? std::optional<PlayerInfo>(players.white)
+                                             : std::optional<PlayerInfo>(players.black);
+        }
+
+        if (players.black.first_move.has_value()) {
+            return *players.black.first_move ? std::optional<PlayerInfo>(players.black)
+                                             : std::optional<PlayerInfo>(players.white);
+        }
+
         return std::nullopt;
     }
 

@@ -16,6 +16,26 @@
 #include <matchmaking/tournament/roundrobin/scheduler.hpp>
 
 namespace fastchess {
+namespace {
+
+GameAssignment prepareEngineConfigs(const Scheduler::Pairing& pairing) {
+    const auto& first  = (*config::EngineConfigs)[pairing.player1];
+    const auto& second = (*config::EngineConfigs)[pairing.player2];
+
+    GameAssignment assignment{first, second};
+
+    if (pairing.game_id % 2 == 0 && !config::TournamentConfig->noswap) {
+        std::swap(assignment.first, assignment.second);
+    }
+
+    if (config::TournamentConfig->reverse) {
+        std::swap(assignment.first, assignment.second);
+    }
+
+    return assignment;
+}
+
+}  // namespace
 
 RoundRobin::RoundRobin(const stats_map& results) : BaseTournament(results) {
     sprt_ = SPRT(config::TournamentConfig->sprt.alpha, config::TournamentConfig->sprt.beta,
@@ -76,30 +96,21 @@ void RoundRobin::startNext() {
 }
 
 void RoundRobin::createMatch(const Scheduler::Pairing& pairing) {
-    const auto opening = (*book_)[pairing.opening_id];
-    const auto first   = (*config::EngineConfigs)[pairing.player1];
-    const auto second  = (*config::EngineConfigs)[pairing.player2];
-
-    GamePair<EngineConfiguration, EngineConfiguration> configs = {first, second};
-
-    if (pairing.game_id % 2 == 0 && !config::TournamentConfig->noswap) {
-        std::swap(configs.white, configs.black);
-    }
-
-    if (config::TournamentConfig->reverse) {
-        std::swap(configs.white, configs.black);
-    }
+    const auto opening    = (*book_)[pairing.opening_id];
+    const auto& first     = (*config::EngineConfigs)[pairing.player1];
+    const auto& second    = (*config::EngineConfigs)[pairing.player2];
+    const auto assignment = prepareEngineConfigs(pairing);
 
     // callback functions, do not capture by reference
-    const auto start = [this, configs, pairing]() {
+    const auto start = [this, assignment, pairing]() {
         std::lock_guard<std::mutex> lock(output_mutex_);
 
-        output_->startGame(configs, pairing.game_id, final_matchcount_);
+        output_->startGame(assignment, pairing.game_id, final_matchcount_);
     };
 
     // callback functions, do not capture by reference
-    const auto finish = [this, configs, first, second, pairing](const Stats& stats, const std::string& reason,
-                                                                const engines& engines) {
+    const auto finish = [this, assignment, first, second, pairing](const Stats& stats, const std::string& reason,
+                                                                   const engines& engines) {
         const auto& cfg = *config::TournamentConfig;
 
         // lock to avoid chaotic output, i.e.
@@ -109,12 +120,12 @@ void RoundRobin::createMatch(const Scheduler::Pairing& pairing) {
         // Score of Engine1 vs Engine2: 94 - 92 - 0  [0.505] 186
         std::lock_guard<std::mutex> lock(output_mutex_);
 
-        output_->endGame(configs, stats, reason, pairing.game_id);
+        output_->endGame(assignment, stats, reason, pairing.game_id);
 
         if (cfg.report_penta) {
-            scoreboard_.updatePair(configs, stats, pairing.pairing_id);
+            scoreboard_.updatePair(assignment, stats, pairing.pairing_id);
         } else {
-            scoreboard_.updateNonPair(configs, stats);
+            scoreboard_.updateNonPair(assignment, stats);
         }
 
         const auto updated_stats = scoreboard_.getStats(first.name, second.name);
@@ -134,7 +145,7 @@ void RoundRobin::createMatch(const Scheduler::Pairing& pairing) {
         match_count_++;
     };
 
-    playGame(configs, start, finish, opening, pairing.pairing_id, pairing.game_id);
+    playGame(assignment, start, finish, opening, pairing.pairing_id, pairing.game_id);
 
     if (config::TournamentConfig->wait > 0)
         std::this_thread::sleep_for(std::chrono::milliseconds(config::TournamentConfig->wait));

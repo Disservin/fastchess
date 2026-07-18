@@ -23,6 +23,30 @@ TEST_SUITE("Player Test") {
         CHECK(player.engine.getConfig().args == config.args);
     }
 
+    TEST_CASE("Test Player Move Order") {
+        EngineConfiguration config;
+#ifdef _WIN64
+        config.cmd = path + "dummy_engine.exe";
+#else
+        config.cmd = path + "dummy_engine";
+#endif
+        config.args = "arg1 arg2 arg3";
+
+        engine::UciEngine uci_engine = engine::UciEngine(config, false);
+
+        Player player = Player(uci_engine);
+
+        CHECK_FALSE(player.getMovesFirst().has_value());
+
+        player.setMovesFirst();
+        CHECK(player.getMovesFirst().has_value());
+        CHECK(*player.getMovesFirst());
+
+        player.setMovesSecond();
+        CHECK(player.getMovesFirst().has_value());
+        CHECK_FALSE(*player.getMovesFirst());
+    }
+
     TEST_CASE("Test Player Fixed Time") {
         EngineConfiguration config;
 #ifdef _WIN64

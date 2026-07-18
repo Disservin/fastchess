@@ -1,6 +1,7 @@
 #pragma once
 
 #include <chrono>
+#include <optional>
 
 #include <engine/uci_engine.hpp>
 
@@ -33,6 +34,11 @@ class Player {
     void setDraw() noexcept { result = chess::GameResult::DRAW; }
     void setWon() noexcept { result = chess::GameResult::WIN; }
 
+    void setMovesFirst() noexcept { moves_first_ = true; }
+    void setMovesSecond() noexcept { moves_first_ = false; }
+
+    [[nodiscard]] std::optional<bool> getMovesFirst() const noexcept { return moves_first_; }
+
     [[nodiscard]] chess::GameResult getResult() const noexcept { return result; }
 
     engine::UciEngine& engine;
@@ -40,6 +46,7 @@ class Player {
    private:
     chess::GameResult result = chess::GameResult::NONE;
     TimeControl time_control_;
+    std::optional<bool> moves_first_;
 };
 
 }  // namespace fastchess

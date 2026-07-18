@@ -87,17 +87,17 @@ class Fastchess : public IOutput {
         return "";
     }
 
-    void startGame(const GamePair<EngineConfiguration, EngineConfiguration>& configs, std::size_t current_game_count,
+    void startGame(const GameAssignment& assignment, std::size_t current_game_count,
                    std::size_t max_game_count) override {
         std::cout << fmt::format("Started game {} of {} ({} vs {})\n", current_game_count, max_game_count,
-                                 configs.white.name, configs.black.name)
+                                 assignment.first.name, assignment.second.name)
                   << std::flush;
     }
 
-    void endGame(const GamePair<EngineConfiguration, EngineConfiguration>& configs, const Stats& stats,
-                 const std::string& annotation, std::size_t id) override {
-        std::cout << fmt::format("Finished game {} ({} vs {}): {} {{{}}}\n", id, configs.white.name, configs.black.name,
-                                 formatStats(stats), annotation)
+    void endGame(const GameAssignment& assignment, const Stats& stats, const std::string& annotation,
+                 std::size_t id) override {
+        std::cout << fmt::format("Finished game {} ({} vs {}): {} {{{}}}\n", id, assignment.first.name,
+                                 assignment.second.name, formatStats(stats), annotation)
                   << std::flush;
     }
 

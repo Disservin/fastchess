@@ -44,6 +44,22 @@ TEST_SUITE("Match Test") {
         CHECK(formatTimeoutReason("Black", 1234) == "Black loses on time (1234ms overrun)");
     }
 
+    TEST_CASE("MatchData first moved player") {
+        MatchData data;
+
+        EngineConfiguration first;
+        EngineConfiguration second;
+        first.name  = "first";
+        second.name = "second";
+
+        data.players.white = {first, chess::GameResult::WIN, true};
+        data.players.black = {second, chess::GameResult::LOSE, false};
+
+        CHECK(data.getFirstMovedPlayer().has_value());
+        CHECK(data.getFirstMovedPlayer()->config.name == "first");
+        CHECK(data.getFirstMovedPlayer()->result == chess::GameResult::WIN);
+    }
+
 
     TEST_CASE("ResignTracker") {
         SUBCASE("twosided resigns after move_count") {

@@ -243,20 +243,17 @@ void Match::start(engine::UciEngine& first, engine::UciEngine& second, std::opti
     // check connection
     validConnection(first_player, second_player);
 
-    const bool first_played_white = board_.sideToMove() == Color::WHITE;
+    const bool opening_starts_with_first_player = board_.sideToMove() == Color::WHITE;
+    Player& first_to_move                       = opening_starts_with_first_player ? first_player : second_player;
+    Player& second_to_move                      = opening_starts_with_first_player ? second_player : first_player;
 
-    if (first_played_white) {
-        first_player.setFirstSide();
-        second_player.setSecondSide();
-    } else {
-        first_player.setSecondSide();
-        second_player.setFirstSide();
-    }
+    first_to_move.setMovesFirst();
+    second_to_move.setMovesSecond();
 
     const auto start = clock::now();
 
     if (data_.termination == MatchTermination::None) {
-        gameLoop(first_player, second_player);
+        gameLoop(first_to_move, second_to_move);
     }
 
     const auto end = clock::now();
@@ -266,15 +263,11 @@ void Match::start(engine::UciEngine& first, engine::UciEngine& second, std::opti
     data_.duration = time::duration(chrono::duration_cast<chrono::seconds>(end - start));
 
     MatchData::PlayerInfo first_info{first_player.engine.getConfig(), first_player.getResult(),
-                                     first_player.getFirstSide()};
+                                     first_player.getMovesFirst()};
     MatchData::PlayerInfo second_info{second_player.engine.getConfig(), second_player.getResult(),
-                                      second_player.getFirstSide()};
+                                      second_player.getMovesFirst()};
 
-    if (first_played_white) {
-        data_.players = GamePair(first_info, second_info);
-    } else {
-        data_.players = GamePair(second_info, first_info);
-    }
+    data_.players = GamePair(first_info, second_info);
 }
 
 void Match::gameLoop(Player& first, Player& second) {

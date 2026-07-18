@@ -34,12 +34,10 @@ class Player {
     void setDraw() noexcept { result = chess::GameResult::DRAW; }
     void setWon() noexcept { result = chess::GameResult::WIN; }
 
-    void setFirstSide() noexcept { first_side_ = true; }
-    void setSecondSide() noexcept { first_side_ = false; }
+    void setMovesFirst() noexcept { moves_first_ = true; }
+    void setMovesSecond() noexcept { moves_first_ = false; }
 
-    [[nodiscard]] bool isFirstSide() const noexcept { return first_side_.value_or(false); }
-    [[nodiscard]] bool isSecondSide() const noexcept { return first_side_.has_value() && !*first_side_; }
-    [[nodiscard]] std::optional<bool> getFirstSide() const noexcept { return first_side_; }
+    [[nodiscard]] std::optional<bool> getMovesFirst() const noexcept { return moves_first_; }
 
     [[nodiscard]] chess::GameResult getResult() const noexcept { return result; }
 
@@ -48,7 +46,7 @@ class Player {
    private:
     chess::GameResult result = chess::GameResult::NONE;
     TimeControl time_control_;
-    std::optional<bool> first_side_;
+    std::optional<bool> moves_first_;
 };
 
 }  // namespace fastchess

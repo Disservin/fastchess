@@ -23,7 +23,7 @@ TEST_SUITE("Player Test") {
         CHECK(player.engine.getConfig().args == config.args);
     }
 
-    TEST_CASE("Test Player Side") {
+    TEST_CASE("Test Player Move Order") {
         EngineConfiguration config;
 #ifdef _WIN64
         config.cmd = path + "dummy_engine.exe";
@@ -36,19 +36,15 @@ TEST_SUITE("Player Test") {
 
         Player player = Player(uci_engine);
 
-        CHECK_FALSE(player.getFirstSide().has_value());
+        CHECK_FALSE(player.getMovesFirst().has_value());
 
-        player.setFirstSide();
-        CHECK(player.isFirstSide());
-        CHECK_FALSE(player.isSecondSide());
-        CHECK(player.getFirstSide().has_value());
-        CHECK(*player.getFirstSide());
+        player.setMovesFirst();
+        CHECK(player.getMovesFirst().has_value());
+        CHECK(*player.getMovesFirst());
 
-        player.setSecondSide();
-        CHECK_FALSE(player.isFirstSide());
-        CHECK(player.isSecondSide());
-        CHECK(player.getFirstSide().has_value());
-        CHECK_FALSE(*player.getFirstSide());
+        player.setMovesSecond();
+        CHECK(player.getMovesFirst().has_value());
+        CHECK_FALSE(*player.getMovesFirst());
     }
 
     TEST_CASE("Test Player Fixed Time") {

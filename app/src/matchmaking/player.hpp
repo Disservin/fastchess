@@ -25,9 +25,7 @@ class Player {
     [[nodiscard]] const TimeControl& getTimeControl() const noexcept { return time_control_; }
     [[nodiscard]] TimeControl& getTimeControl() noexcept { return time_control_; }
 
-    bool hasTimeControl() const noexcept {
-        return time_control_.isTimed() || time_control_.isFixedTime();
-    }
+    bool hasTimeControl() const noexcept { return time_control_.isTimed() || time_control_.isFixedTime(); }
 
     void setLost() noexcept { result = chess::GameResult::LOSE; }
     void setDraw() noexcept { result = chess::GameResult::DRAW; }

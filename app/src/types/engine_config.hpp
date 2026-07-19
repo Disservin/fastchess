@@ -5,7 +5,6 @@
 #include <optional>
 #include <string>
 #include <vector>
-#include <filesystem>
 
 #include <core/helper.hpp>
 #include <game/timecontrol/timecontrol.hpp>

@@ -1,8 +1,8 @@
 #pragma once
 
-#include <cstdlib>
 #include <fcntl.h>
 #include <unistd.h>
+#include <cstdlib>
 
 #ifdef __linux
 #    include <features.h>  // Required for __GLIBC__

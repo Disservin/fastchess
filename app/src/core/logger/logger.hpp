@@ -8,8 +8,8 @@
 #include <thread>
 #include <variant>
 
-#include <core/time/time.hpp>
 #include <core/globals/globals.hpp>
+#include <core/time/time.hpp>
 
 #define FMT_HEADER_ONLY
 #include <fmt/include/fmt/core.h>
@@ -81,7 +81,7 @@ class Logger {
         std::cout << msg << std::flush;
         if (strict_ && LEVEL >= Level::WARN) {
             atomic::abnormal_termination = true;
-            atomic::stop = true;
+            atomic::stop                 = true;
         }
 
         if (!should_log_) {
@@ -107,7 +107,7 @@ class Logger {
         const auto message = fmt::format(format, std::forward<T>(args)...) + "\n";
         if (strict_ && level >= Level::WARN) {
             atomic::abnormal_termination = true;
-            atomic::stop = true;
+            atomic::stop                 = true;
         }
 
         if (!should_log_) {

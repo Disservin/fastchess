@@ -199,7 +199,7 @@ class Process : public IProcess {
                 }
 
                 HANDLE wait_handles[] = {overlapped.hEvent, pi_.hProcess};
-                DWORD waitResult = WaitForMultipleObjects(2, wait_handles, FALSE, timeout);
+                DWORD waitResult      = WaitForMultipleObjects(2, wait_handles, FALSE, timeout);
                 if (waitResult == WAIT_TIMEOUT) {
                     CancelIo(hChildStdoutRead);
                     CloseHandle(overlapped.hEvent);
@@ -266,10 +266,8 @@ class Process : public IProcess {
     }
 
    private:
-    [[nodiscard]] bool readBytes(const std::array<char, buffer_size>& buffer,
-                                DWORD bytes_read,
-                                std::vector<Line>& lines,
-                                std::string_view searchword) {
+    [[nodiscard]] bool readBytes(const std::array<char, buffer_size>& buffer, DWORD bytes_read,
+                                 std::vector<Line>& lines, std::string_view searchword) {
         assert(bytes_read <= buffer.size());
 
         std::string_view data(buffer.data(), static_cast<size_t>(bytes_read));
@@ -291,8 +289,7 @@ class Process : public IProcess {
             if (!current_line_.empty()) {
                 addLine(lines);
 
-                if (!searchword.empty() &&
-                    current_line_.rfind(searchword, 0) == 0) {
+                if (!searchword.empty() && current_line_.rfind(searchword, 0) == 0) {
                     current_line_.clear();
                     return true;
                 }

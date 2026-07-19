@@ -271,7 +271,6 @@ class OptionsParser {
             std::function<void(const std::vector<std::pair<std::string, std::string>>&, ArgumentData&)> fn =
                 std::forward<Handler>(handler);
             return [flag, fn](const std::vector<std::string>& params, ArgumentData& data) {
-
                 std::vector<std::pair<std::string, std::string>> kv;
                 kv.reserve(params.size());
                 for (const auto& param : params) {

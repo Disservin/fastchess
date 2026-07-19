@@ -3,6 +3,7 @@
 #include <chrono>
 #include <optional>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include <chess.hpp>
@@ -113,7 +114,7 @@ class UciEngine {
     [[nodiscard]] std::vector<const std::string*> getInfoLines() const;
 
     // Get the score from an info line.
-    [[nodiscard]] static tl::expected<Score, std::string> getScore(const std::string& info_line);
+    [[nodiscard]] static tl::expected<Score, std::string> getScore(std::string_view info_line);
 
     // Get the last score from the last output.
     [[nodiscard]] tl::expected<Score, std::string> lastScore() const;
@@ -137,7 +138,7 @@ class UciEngine {
     [[nodiscard]] static ms getUciNewGameTime() { return config::TournamentConfig->ucinewgame_time; }
     [[nodiscard]] static ms getStartupTime() { return config::TournamentConfig->startup_time; }
 
-    [[nodiscard]] static bool isBound(const std::string& info_line) {
+    [[nodiscard]] static bool isBound(std::string_view info_line) {
         return (info_line.find("lowerbound") != std::string::npos || info_line.find("upperbound") != std::string::npos);
     }
 

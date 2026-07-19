@@ -193,9 +193,8 @@ std::optional<PvCheckResult> checkPvLine(Board board, std::string_view info, boo
         return std::nullopt;
     }
 
-    const auto info_str = std::string(info);
-    const auto score    = engine::UciEngine::getScore(info_str);
-    const bool isBound  = engine::UciEngine::isBound(info_str);
+    const auto score   = engine::UciEngine::getScore(info);
+    const bool isBound = engine::UciEngine::isBound(info);
 
     if (!score.has_value() || !score.value().isMate() || isBound) {
         return std::nullopt;
@@ -220,9 +219,8 @@ std::optional<PvCheckResult> checkPvLine(Board board, std::string_view info, boo
 }
 
 std::optional<PvCheckResult> checkBestmovePv(std::string_view info, std::string_view best_move) {
-    const auto info_str = std::string(info);
-    const auto isBound  = engine::UciEngine::isBound(info_str);
-    const auto pv       = engine::UciEngine::getPv(info);
+    const auto isBound = engine::UciEngine::isBound(info);
+    const auto pv      = engine::UciEngine::getPv(info);
 
     if (best_move.empty() || isBound || !pv.has_value() || pv->empty() || best_move == (*pv)[0]) {
         return std::nullopt;

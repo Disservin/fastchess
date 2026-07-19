@@ -50,6 +50,52 @@ bool isFen(const std::string& line) { return line.find(';') == std::string::npos
 
     return {reason, result};
 }
+
+std::string pvWarningFormat(PvWarning warning) {
+    switch (warning) {
+        case PvWarning::IllegalMove:
+            return "Warning; Illegal PV move - move {} from {}";
+        case PvWarning::ContinuesAfterThreefoldRepetition:
+            return "Warning; PV continues after threefold repetition - move {} from {}";
+        case PvWarning::ContinuesAfterFiftyMoveRule:
+            return "Warning; PV continues after fifty-move rule - move {} from {}";
+        case PvWarning::ContinuesAfterCheckmate:
+            return "Warning; PV continues after checkmate - move {} from {}";
+        case PvWarning::ContinuesAfterStalemate:
+            return "Warning; PV continues after stalemate - move {} from {}";
+        case PvWarning::IncompleteMatingPv:
+            return "Warning; Incomplete mating PV - from {}";
+        case PvWarning::TooLongMatingPv:
+            return "Warning; Too long mating PV - from {}";
+        case PvWarning::MatingPvDoesNotEndWithCheckmate:
+            return "Warning; Mating PV does not end with checkmate - from {}";
+        case PvWarning::BestmoveMismatch:
+            return "Warning; Bestmove does not match beginning of last PV - move {} from {}";
+    }
+
+    assert(false);
+    return {};
+}
+
+bool pvWarningHasMove(PvWarning warning) {
+    switch (warning) {
+        case PvWarning::IllegalMove:
+        case PvWarning::ContinuesAfterThreefoldRepetition:
+        case PvWarning::ContinuesAfterFiftyMoveRule:
+        case PvWarning::ContinuesAfterCheckmate:
+        case PvWarning::ContinuesAfterStalemate:
+        case PvWarning::BestmoveMismatch:
+            return true;
+        case PvWarning::IncompleteMatingPv:
+        case PvWarning::TooLongMatingPv:
+        case PvWarning::MatingPvDoesNotEndWithCheckmate:
+            return false;
+    }
+
+    assert(false);
+    return false;
+}
+
 // emits a warning if both engines claim to have a proven win (same for loss)
 void checkMateScoreSignMismatch(const Player& them, const Player& us, const Board& board,
                                 const std::string& start_position, const MatchData& data) {
@@ -99,6 +145,89 @@ void checkMateScoreSignMismatch(const Player& them, const Player& us, const Boar
 }
 
 }  // namespace
+
+std::optional<PvCheckResult> checkPvLine(Board board, std::string_view info, bool check_mate_pvs) {
+    const auto pv = engine::UciEngine::getPv(info);
+
+    if (!pv.has_value() || pv->empty()) {
+        return std::nullopt;
+    }
+
+    Movelist moves;
+
+    for (const auto& move : *pv) {
+        moves.clear();
+
+        const auto gameoverResult = isGameOverSimple(board);
+        const auto gameover       = gameoverResult.second != GameResult::NONE;
+
+        if (gameover) {
+            if (gameoverResult.first == GameResultReason::THREEFOLD_REPETITION) {
+                return PvCheckResult{PvWarning::ContinuesAfterThreefoldRepetition, move};
+            }
+            if (gameoverResult.first == GameResultReason::FIFTY_MOVE_RULE) {
+                return PvCheckResult{PvWarning::ContinuesAfterFiftyMoveRule, move};
+            }
+            if (gameoverResult.first == GameResultReason::CHECKMATE) {
+                return PvCheckResult{PvWarning::ContinuesAfterCheckmate, move};
+            }
+            if (gameoverResult.first == GameResultReason::STALEMATE) {
+                return PvCheckResult{PvWarning::ContinuesAfterStalemate, move};
+            }
+
+            return PvCheckResult{PvWarning::IllegalMove, move};
+        }
+
+        movegen::legalmoves(moves, board);
+        const auto uci_move     = uci::uciToMove(board, move);
+        const auto illegal_move = std::find(moves.begin(), moves.end(), uci_move) == moves.end();
+
+        if (illegal_move) {
+            return PvCheckResult{PvWarning::IllegalMove, move};
+        }
+
+        board.makeMove<true>(uci_move);
+    }
+
+    if (!check_mate_pvs) {
+        return std::nullopt;
+    }
+
+    const auto score   = engine::UciEngine::getScore(info);
+    const bool isBound = engine::UciEngine::isBound(info);
+
+    if (!score.has_value() || !score.value().isMate() || isBound) {
+        return std::nullopt;
+    }
+
+    const auto score_value = score.value().value;
+    const uint64_t plies   = score_value > 0 ? score_value * 2 - 1 : score_value * -2;
+
+    if (pv->size() < plies) {
+        return PvCheckResult{PvWarning::IncompleteMatingPv, {}};
+    }
+    if (pv->size() > plies) {
+        return PvCheckResult{PvWarning::TooLongMatingPv, {}};
+    }
+
+    movegen::legalmoves(moves, board);
+    if (!moves.empty() || !board.inCheck()) {
+        return PvCheckResult{PvWarning::MatingPvDoesNotEndWithCheckmate, {}};
+    }
+
+    return std::nullopt;
+}
+
+std::optional<PvCheckResult> checkBestmovePv(std::string_view info, std::string_view best_move) {
+    const auto isBound = engine::UciEngine::isBound(info);
+    const auto pv      = engine::UciEngine::getPv(info);
+
+    if (best_move.empty() || isBound || !pv.has_value() || pv->empty() || best_move == (*pv)[0]) {
+        return std::nullopt;
+    }
+
+    return PvCheckResult{PvWarning::BestmoveMismatch, std::string(best_move)};
+}
 
 Match::Match(const book::Opening& opening)
     : opening_(opening),
@@ -550,111 +679,27 @@ void Match::setEngineIllegalMoveStatus(Player& loser, Player& winner, const std:
 }
 
 void Match::verifyPvLines(const Player& us, const std::string& best_move) {
-    const static auto verifyPv = [](Board board, const std::string& startpos,
-                                    const std::vector<std::string_view>& uci_moves, const std::string& info,
-                                    std::string_view name) {
-        // skip lines without pv
-        const auto pv = engine::UciEngine::getPv(info);
-
-        if (!pv.has_value() || pv->empty()) {
-            return;
-        }
-
-        Movelist moves;
-
-        for (const auto& move : *pv) {
-            moves.clear();
-
-            const auto gameoverResult = isGameOverSimple(board);
-            const auto gameover       = gameoverResult.second != GameResult::NONE;
-
-            if (gameoverResult.first != GameResultReason::CHECKMATE &&
-                gameoverResult.first != GameResultReason::STALEMATE) {
-                movegen::legalmoves(moves, board);
-            }
-
-            const auto illegal_move = std::find(moves.begin(), moves.end(), uci::uciToMove(board, move)) == moves.end();
-
-            if (!gameover && !illegal_move) {
-                board.makeMove<true>(uci::uciToMove(board, move));
-                continue;
-            }
-
-            // illegal move or gameover reached
-
-            std::string warning;
-
-            if (illegal_move) {
-                warning = "Warning; Illegal PV move - move {} from {}";
-            } else if (gameoverResult.first == GameResultReason::THREEFOLD_REPETITION) {
-                warning = "Warning; PV continues after threefold repetition - move {} from {}";
-            } else if (gameoverResult.first == GameResultReason::FIFTY_MOVE_RULE) {
-                warning = "Warning; PV continues after fifty-move rule - move {} from {}";
-            } else if (gameoverResult.first == GameResultReason::CHECKMATE) {
-                warning = "Warning; PV continues after checkmate - move {} from {}";
-            } else if (gameoverResult.first == GameResultReason::STALEMATE) {
-                warning = "Warning; PV continues after stalemate - move {} from {}";
-            }
-
-            assert(!warning.empty());
-
-            auto out      = fmt::format(fmt::runtime(warning), move, name);
-            auto uci_info = fmt::format("Info; {}", info);
-            auto position = fmt::format("Position; {}", startpos == "startpos" ? "startpos" : ("fen " + startpos));
-            auto moves    = fmt::format("Moves; {}", str_utils::join(uci_moves, " "));
-
-            auto separator = config::TournamentConfig->test_env ? " :: " : "\n";
-
-            Logger::print<Logger::Level::WARN>("{1}{0}{2}{0}{3}{0}{4}", separator, out, uci_info, position, moves);
-
-            return;
-        }
-
-        if (!config::TournamentConfig->check_mate_pvs) {
-            return;
-        }
-
-        // for mate scores check correct length of PV
-        const auto score   = engine::UciEngine::getScore(info);
-        const bool isBound = engine::UciEngine::isBound(info);
-
-        if (!score.has_value() || !score.value().isMate() || isBound) {
-            return;
-        }
-
-        const auto score_value = score.value().value;
-        uint64_t plies         = score_value > 0 ? score_value * 2 - 1 : score_value * -2;
-        std::string warning;
-
-        if (pv->size() < plies) {
-            warning = "Warning; Incomplete mating PV - from {}";
-        } else if (pv->size() > plies) {
-            warning = "Warning; Too long mating PV - from {}";
-        } else {
-            movegen::legalmoves(moves, board);
-            if (!moves.empty() || !board.inCheck()) {
-                warning = "Warning; Mating PV does not end with checkmate - from {}";
-            }
-        }
-
-        if (warning.empty()) {
-            return;
-        }
-
-        auto out      = fmt::format(fmt::runtime(warning), name);
-        auto uci_info = fmt::format("Info; {}", info);
-        auto position = fmt::format("Position; {}", startpos == "startpos" ? "startpos" : ("fen " + startpos));
-        auto ucimoves = fmt::format("Moves; {}", str_utils::join(uci_moves, " "));
-
-        auto separator = config::TournamentConfig->test_env ? " :: " : "\n";
-
-        Logger::print<Logger::Level::WARN>("{1}{0}{2}{0}{3}{0}{4}", separator, out, uci_info, position, ucimoves);
-    };
-
     const auto info_lines = us.engine.getInfoLines();
 
     for (const auto info : info_lines) {
-        verifyPv(board_, start_position_, data_.getMoves(), *info, us.engine.getConfig().name);
+        const auto result = checkPvLine(board_, *info, config::TournamentConfig->check_mate_pvs);
+
+        if (!result.has_value()) {
+            continue;
+        }
+
+        const auto warning = pvWarningFormat(result->warning);
+        const auto out     = pvWarningHasMove(result->warning)
+                                 ? fmt::format(fmt::runtime(warning), result->move, us.engine.getConfig().name)
+                                 : fmt::format(fmt::runtime(warning), us.engine.getConfig().name);
+        auto uci_info      = fmt::format("Info; {}", *info);
+        auto position =
+            fmt::format("Position; {}", start_position_ == "startpos" ? "startpos" : ("fen " + start_position_));
+        auto moves = fmt::format("Moves; {}", str_utils::join(data_.getMoves(), " "));
+
+        auto separator = config::TournamentConfig->test_env ? " :: " : "\n";
+
+        Logger::print<Logger::Level::WARN>("{1}{0}{2}{0}{3}{0}{4}", separator, out, uci_info, position, moves);
     }
 
     // finally check if the final PV matches bestmove
@@ -671,20 +716,15 @@ void Match::verifyPvLines(const Player& us, const std::string& best_move) {
         return;
     }
 
-    const auto& info   = **it;
-    const auto isBound = engine::UciEngine::isBound(info);
-    const auto pv      = engine::UciEngine::getPv(info);
-    if (isBound || !pv.has_value() || pv->empty()) {
-        return;
-    }
-
-    if (best_move != (*pv)[0]) {
-        constexpr auto warning = "Warning; Bestmove does not match beginning of last PV - move {} from {}";
-        auto start_pos         = start_position_ == "startpos" ? "startpos" : ("fen " + start_position_);
-        auto out               = fmt::format(warning, best_move, us.engine.getConfig().name);
-        auto uci_info          = fmt::format("Info; {}", info);
-        auto position          = fmt::format("Position; {}", start_pos);
-        auto ucimoves          = fmt::format("Moves; {}", str_utils::join(data_.getMoves(), " "));
+    const auto& info  = **it;
+    const auto result = checkBestmovePv(info, best_move);
+    if (result.has_value()) {
+        const auto warning = pvWarningFormat(result->warning);
+        auto start_pos     = start_position_ == "startpos" ? "startpos" : ("fen " + start_position_);
+        auto out           = fmt::format(fmt::runtime(warning), result->move, us.engine.getConfig().name);
+        auto uci_info      = fmt::format("Info; {}", info);
+        auto position      = fmt::format("Position; {}", start_pos);
+        auto ucimoves      = fmt::format("Moves; {}", str_utils::join(data_.getMoves(), " "));
 
         auto separator = config::TournamentConfig->test_env ? " :: " : "\n";
 

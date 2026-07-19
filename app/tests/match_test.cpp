@@ -44,6 +44,75 @@ TEST_SUITE("Match Test") {
         CHECK(formatTimeoutReason("Black", 1234) == "Black loses on time (1234ms overrun)");
     }
 
+    TEST_CASE("PV checks") {
+        SUBCASE("ignores info without pv") {
+            CHECK_FALSE(checkPvLine(chess::Board(), "info depth 1 score cp 10", true).has_value());
+        }
+
+        SUBCASE("accepts legal pv") {
+            CHECK_FALSE(checkPvLine(chess::Board(), "info depth 1 score cp 10 pv e2e4 e7e5", true).has_value());
+        }
+
+        SUBCASE("reports illegal pv move") {
+            const auto result = checkPvLine(chess::Board(), "info depth 1 score cp 10 pv e2e5", true);
+
+            REQUIRE(result.has_value());
+            CHECK(result->warning == PvWarning::IllegalMove);
+            CHECK(result->move == "e2e5");
+        }
+
+        SUBCASE("skips mate pv checks when disabled") {
+            CHECK_FALSE(checkPvLine(chess::Board(), "info depth 1 score mate 3 pv e2e4", false).has_value());
+        }
+
+        SUBCASE("reports incomplete mating pv") {
+            const auto result = checkPvLine(chess::Board(), "info depth 1 score mate 3 pv e2e4", true);
+
+            REQUIRE(result.has_value());
+            CHECK(result->warning == PvWarning::IncompleteMatingPv);
+        }
+
+        SUBCASE("reports too long mating pv") {
+            const auto result = checkPvLine(chess::Board(), "info depth 1 score mate -1 pv f2f3 e7e5 g2g4", true);
+
+            REQUIRE(result.has_value());
+            CHECK(result->warning == PvWarning::TooLongMatingPv);
+        }
+
+        SUBCASE("reports mating pv that does not end in mate") {
+            const auto result = checkPvLine(chess::Board(), "info depth 1 score mate -1 pv f2f3 e7e5", true);
+
+            REQUIRE(result.has_value());
+            CHECK(result->warning == PvWarning::MatingPvDoesNotEndWithCheckmate);
+        }
+
+        SUBCASE("accepts complete mating pv") {
+            const auto result = checkPvLine(chess::Board(), "info depth 1 score mate -2 pv f2f3 e7e5 g2g4 d8h4", true);
+
+            CHECK_FALSE(result.has_value());
+        }
+
+        SUBCASE("reports pv continuing after checkmate") {
+            const auto result =
+                checkPvLine(chess::Board(), "info depth 1 score cp 10 pv f2f3 e7e5 g2g4 d8h4 a2a3", true);
+
+            REQUIRE(result.has_value());
+            CHECK(result->warning == PvWarning::ContinuesAfterCheckmate);
+            CHECK(result->move == "a2a3");
+        }
+    }
+
+    TEST_CASE("Bestmove PV check") {
+        CHECK_FALSE(checkBestmovePv("info depth 1 score cp 10 pv e2e4 e7e5", "e2e4").has_value());
+        CHECK_FALSE(checkBestmovePv("info depth 1 score cp 10 lowerbound pv e2e4", "d2d4").has_value());
+        CHECK_FALSE(checkBestmovePv("info depth 1 score cp 10", "e2e4").has_value());
+
+        const auto result = checkBestmovePv("info depth 1 score cp 10 pv e2e4 e7e5", "d2d4");
+
+        REQUIRE(result.has_value());
+        CHECK(result->warning == PvWarning::BestmoveMismatch);
+        CHECK(result->move == "d2d4");
+    }
 
     TEST_CASE("ResignTracker") {
         SUBCASE("twosided resigns after move_count") {

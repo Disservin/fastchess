@@ -503,9 +503,9 @@ std::chrono::milliseconds UciEngine::lastTime() const {
     return std::chrono::milliseconds(time);
 }
 
-tl::expected<Score, std::string> UciEngine::getScore(const std::string& info_line) {
+tl::expected<Score, std::string> UciEngine::getScore(std::string_view info_line) {
     if (info_line.empty()) {
-        return tl::make_unexpected("No info line available to extract score from: " + info_line);
+        return tl::make_unexpected("No info line available to extract score from: " + std::string(info_line));
     }
 
     auto info = str_utils::splitString(info_line, ' ');
@@ -520,7 +520,7 @@ tl::expected<Score, std::string> UciEngine::getScore(const std::string& info_lin
 
     score.type = ScoreType::fromString(type_str.value());
 
-    if (score.isErr()) return tl::make_unexpected("Unexpected score type: " + info_line);
+    if (score.isErr()) return tl::make_unexpected("Unexpected score type: " + std::string(info_line));
 
     auto value = str_utils::findElement<int64_t>(info, static_cast<std::string_view>(score.type));
 

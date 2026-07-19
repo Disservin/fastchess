@@ -3,6 +3,8 @@
 #include <chess.hpp>
 
 #include <cstdint>
+#include <optional>
+#include <string>
 #include <string_view>
 
 #include <cli/cli.hpp>
@@ -14,6 +16,26 @@
 
 namespace fastchess {
 std::string formatTimeoutReason(std::string_view color, int64_t overrun_ms);
+
+enum class PvWarning {
+    IllegalMove,
+    ContinuesAfterThreefoldRepetition,
+    ContinuesAfterFiftyMoveRule,
+    ContinuesAfterCheckmate,
+    ContinuesAfterStalemate,
+    IncompleteMatingPv,
+    TooLongMatingPv,
+    MatingPvDoesNotEndWithCheckmate,
+    BestmoveMismatch,
+};
+
+struct PvCheckResult {
+    PvWarning warning;
+    std::string move;
+};
+
+[[nodiscard]] std::optional<PvCheckResult> checkPvLine(chess::Board board, std::string_view info, bool check_mate_pvs);
+[[nodiscard]] std::optional<PvCheckResult> checkBestmovePv(std::string_view info, std::string_view best_move);
 
 class DrawTracker {
    public:

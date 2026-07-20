@@ -1,0 +1,10 @@
+Started game 1 of 1 (black_winner vs white_loser)
+Warning; Illegal PV move - move a1a1 from white_loser
+Info; info depth 1 pv a1a1 score cp 0
+Position; fen rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR b KQkq - 0 1
+Moves;
+Warning; Illegal move a1a1 played by white_loser
+Finished game 1 (black_winner vs white_loser): 1-0 {Black makes an illegal move}
+Results of black_winner vs white_loser (1 nodes, NULL, 16MB, black-to-move.epd):
+Games: 1, Wins: 1, Losses: 0, Draws: 0, Points: 1.0 (100.00 %)
+Finished match

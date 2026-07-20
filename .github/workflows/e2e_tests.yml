@@ -61,7 +61,44 @@ jobs:
           make clean
           bash app/tests/e2e/e2e.sh san=asan
 
-      - name: Normal E2E
+      - name: Normal E2E Setup
         run: |
           make clean
-          bash app/tests/e2e/e2e.sh
+          g++ -O3 -std=c++17 app/tests/mock/engine/random_mover.cpp -o random_mover
+          g++ -O3 -std=c++17 app/tests/mock/engine/scripted_result.cpp -o scripted_result
+          make -j build=debug
+
+      - name: Opening Book E2E
+        env:
+          E2E_SKIP_BUILD: 1
+        run: bash app/tests/e2e/opening_books.sh
+
+      - name: Engine Diagnostics E2E
+        env:
+          E2E_SKIP_BUILD: 1
+        run: bash app/tests/e2e/engine_diagnostics.sh
+
+      - name: Rating Interval E2E
+        env:
+          E2E_SKIP_BUILD: 1
+        run: bash app/tests/e2e/rating_interval.sh
+
+      - name: PGN Book Plies E2E
+        env:
+          E2E_SKIP_BUILD: 1
+        run: bash app/tests/e2e/pgn_book_plies.sh
+
+      - name: Random Order E2E
+        env:
+          E2E_SKIP_BUILD: 1
+        run: bash app/tests/e2e/random_order.sh
+
+      - name: Black-To-Move E2E
+        env:
+          E2E_SKIP_BUILD: 1
+        run: bash app/tests/e2e/black_to_move.sh
+
+      - name: CLI Snapshot Tests
+        env:
+          E2E_SKIP_BUILD: 1
+        run: bash app/tests/snapshots/cli/snapshot.sh

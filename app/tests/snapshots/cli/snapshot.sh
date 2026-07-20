@@ -12,8 +12,15 @@ fi
 assert_snapshot() {
     local actual_file=$1
     local expected_file=$2
+    local normalized_actual
+    local normalized_expected
 
-    if ! diff -u "$expected_file" "$actual_file"; then
+    normalized_actual=$(mktemp)
+    normalized_expected=$(mktemp)
+    tr -d '\r' < "$actual_file" > "$normalized_actual"
+    tr -d '\r' < "$expected_file" > "$normalized_expected"
+
+    if ! diff -u "$normalized_expected" "$normalized_actual"; then
         echo "Snapshot mismatch: $expected_file"
         exit 1
     fi

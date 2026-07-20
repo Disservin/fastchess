@@ -2,6 +2,7 @@
 
 #include <functional>
 #include <iostream>
+#include <optional>
 #include <sstream>
 #include <string>
 #include <string_view>
@@ -106,10 +107,9 @@ class OptionsParser {
                                   "\" with value \"" + std::string(value) + "\".");
     }
 
-    int levenshtein(std::string_view a, std::string_view b) {
+    static int levenshtein(std::string_view a, std::string_view b) {
         // Always use the shorter string for the DP rows.
-        if (a.size() > b.size())
-            std::swap(a, b);
+        if (a.size() > b.size()) std::swap(a, b);
 
         std::vector<int> prev(a.size() + 1);
         std::vector<int> curr(a.size() + 1);
@@ -133,22 +133,24 @@ class OptionsParser {
         return prev.back();
     }
 
-    std::string findSuggestion(const std::string& arg) {
-        std::string best;
-        int bestDistance = INT_MAX;
+    std::optional<std::string_view> findSuggestion(std::string_view arg) const {
+        std::optional<std::string_view> best;
+        int bestDistance = std::numeric_limits<int>::max();
 
-        for (const auto& [option, _] : options_) {
-            int d = levenshtein(arg, option);
-            if (d < bestDistance) {
-                bestDistance = d;
-                best = option;
+        for (const auto& [option, value] : options_) {
+            const int distance = levenshtein(arg, option);
+
+            if (distance < bestDistance) {
+                bestDistance = distance;
+                best         = option;
             }
         }
 
-        if (bestDistance <= 2)
+        if (bestDistance <= 2) {
             return best;
+        }
 
-        return {};
+        return std::nullopt;
     }
 
     static void printHelp() {
@@ -213,11 +215,12 @@ class OptionsParser {
         for (int i = 1; i < args.argc(); i++) {
             const std::string arg = args[i];
             if (options_.count(arg) == 0) {
-                auto suggestion = findSuggestion(arg);
-                if (!suggestion.empty())
-                    throw fastchess_exception("Unrecognized option: " + arg + " parsing failed." +
-                        " Did you mean '" + suggestion + "'?");
-                throw fastchess_exception("Unrecognized option: " + arg + " parsing failed.");
+                auto f = fmt::format("Unrecognized option: {} parsing failed.", arg);
+
+                if (auto suggestion = findSuggestion(arg))
+                    throw fastchess_exception(fmt::format("{}: Did you mean \"{}\"?", f, *suggestion));
+
+                throw fastchess_exception(f);
             }
 
             try {

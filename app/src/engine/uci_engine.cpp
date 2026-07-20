@@ -347,11 +347,6 @@ tl::expected<bool, std::string> UciEngine::start(const std::optional<std::vector
 bool UciEngine::refreshUci() {
     LOG_TRACE_THREAD("Refreshing engine {}", config_.name);
 
-    if (!ucinewgame()) {
-        LOG_WARN_THREAD("Engine {} failed to start/refresh (ucinewgame).", config_.name);
-        return false;
-    }
-
     // Reorder to send Threads option first, to help multi-threaded configurations
 
     auto options = config_.options;
@@ -374,6 +369,11 @@ bool UciEngine::refreshUci() {
             Logger::print<Logger::Level::WARN>("Warning; Failed to set UCI_Chess960 option for engine {}: {}",
                                                config_.name, e.what());
         }
+    }
+
+    if (!ucinewgame()) {
+        LOG_WARN_THREAD("Engine {} failed to start/refresh (ucinewgame).", config_.name);
+        return false;
     }
 
     LOG_TRACE_THREAD("Engine {} refreshed.", config_.name);

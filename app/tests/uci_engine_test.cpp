@@ -3,6 +3,7 @@
 #include <types/engine_config.hpp>
 
 #include <chrono>
+#include <string>
 #include <string_view>
 #include <thread>
 
@@ -251,7 +252,7 @@ TEST_SUITE("Uci Engine Communication Tests") {
         CHECK(uci_engine->getStdoutLines()[8]->line == "uciok");
     }
 
-    TEST_CASE("Sending uci options and expect Threads to be first") {
+    TEST_CASE("Sending uci options before ucinewgame and expect Threads to be first") {
         EngineConfiguration config;
         config.cmd     = path;
         config.options = {
@@ -266,14 +267,20 @@ TEST_SUITE("Uci Engine Communication Tests") {
         CHECK(uci_engine->start(/*cpus*/ std::nullopt));
 
         CHECK(uci_engine->refreshUci());
-        const auto res = uci_engine->readEngine("option set: setoption name UCI_Chess960");
+
+        CHECK(uci_engine->writeEngine("dump_commands"));
+        const auto res = uci_engine->readEngine("commands done");
 
         CHECK(res.code == engine::process::Status::OK);
-        CHECK(uci_engine->getStdoutLines().size() == 4);
-        CHECK(uci_engine->getStdoutLines()[0]->line == "option set: setoption name Threads value 4");
-        CHECK(uci_engine->getStdoutLines()[1]->line == "option set: setoption name Hash value 1600");
-        CHECK(uci_engine->getStdoutLines()[2]->line == "option set: setoption name MultiPV value 3");
-        CHECK(uci_engine->getStdoutLines()[3]->line == "option set: setoption name UCI_Chess960 value true");
+        REQUIRE(uci_engine->getStdoutLines().size() >= 8);
+        CHECK(uci_engine->getStdoutLines()[0]->line == "command: uci");
+        CHECK(uci_engine->getStdoutLines()[1]->line == "command: setoption name Threads value 4");
+        CHECK(uci_engine->getStdoutLines()[2]->line == "command: setoption name Hash value 1600");
+        CHECK(uci_engine->getStdoutLines()[3]->line == "command: setoption name MultiPV value 3");
+        CHECK(uci_engine->getStdoutLines()[4]->line == "command: setoption name UCI_Chess960 value true");
+        CHECK(uci_engine->getStdoutLines()[5]->line == "command: ucinewgame");
+        CHECK(uci_engine->getStdoutLines()[6]->line == "command: isready");
+        CHECK(uci_engine->getStdoutLines()[7]->line == "command: dump_commands");
     }
 
     TEST_CASE("Detect crashed engine while waiting for bestmove with fixed nodes") {

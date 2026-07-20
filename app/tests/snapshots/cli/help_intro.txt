@@ -1,0 +1,34 @@
+NAME
+
+fastchess - a command-line tool for managing chess games with
+engines
+
+SYNOPSIS
+
+fastchess [OPTIONS]
+
+DESCRIPTION
+
+Fastchess is a command-line tool designed to manage and orchestrate
+chess games between engines. It provides a range of options to
+configure game settings, engine parameters, concurrency, and output
+formats.
+
+OPTIONS
+
+The following options are available. Options are grouped by their
+primary function for easier navigation. The default values are the
+first value in parentheses.
+
+## General & Help
+
+  - -version
+    Print fastchess version number and exit.
+  - -help
+    Print this help message and exit.
+
+## Tournament Setup
+
+  - -quick cmd=ENGINE1 cmd=ENGINE2 book=BOOK
+    Shortcut for predefined game settings involving two engines,
+    time controls, rounds, and concurrency.

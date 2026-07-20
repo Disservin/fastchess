@@ -41,7 +41,7 @@ jobs:
         uses: msys2/setup-msys2@v2
         with:
           msystem: ${{matrix.config.msys_sys}}
-          install: mingw-w64-${{matrix.config.msys_env}} make git expect
+          install: mingw-w64-${{matrix.config.msys_env}} make git expect diffutils
 
       - name: Macos clang version
         if: runner.os == 'Macos'

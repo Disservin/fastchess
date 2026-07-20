@@ -50,6 +50,18 @@ UNKNOWN_OPTION_OUTPUT=$(mktemp)
 ./fastchess -engne > "$UNKNOWN_OPTION_OUTPUT" 2>&1 || true
 assert_snapshot "$UNKNOWN_OPTION_OUTPUT" "$SNAPSHOT_DIR/unknown_option.txt"
 
+MISSING_VALUE_OUTPUT=$(mktemp)
+./fastchess -concurrency > "$MISSING_VALUE_OUTPUT" 2>&1 || true
+assert_snapshot "$MISSING_VALUE_OUTPUT" "$SNAPSHOT_DIR/missing_value.txt"
+
+UNEXPECTED_VALUE_OUTPUT=$(mktemp)
+./fastchess -recover true > "$UNEXPECTED_VALUE_OUTPUT" 2>&1 || true
+assert_snapshot "$UNEXPECTED_VALUE_OUTPUT" "$SNAPSHOT_DIR/unexpected_value.txt"
+
+INVALID_KEY_VALUE_OUTPUT=$(mktemp)
+./fastchess -log level > "$INVALID_KEY_VALUE_OUTPUT" 2>&1 || true
+assert_snapshot "$INVALID_KEY_VALUE_OUTPUT" "$SNAPSHOT_DIR/invalid_key_value.txt"
+
 ACTUAL_GAME_OUTPUT=$(mktemp)
 ./fastchess -engine cmd=./scripted_result name=black_winner -engine cmd=./scripted_result args=--illegal name=white_loser \
     -each nodes=1 -rounds 1 -games 1 -concurrency 1 -ratinginterval 1 -report penta=false \

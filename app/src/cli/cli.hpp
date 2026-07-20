@@ -106,6 +106,51 @@ class OptionsParser {
                                   "\" with value \"" + std::string(value) + "\".");
     }
 
+    int levenshtein(std::string_view a, std::string_view b) {
+        // Always use the shorter string for the DP rows.
+        if (a.size() > b.size())
+            std::swap(a, b);
+
+        std::vector<int> prev(a.size() + 1);
+        std::vector<int> curr(a.size() + 1);
+
+        std::iota(prev.begin(), prev.end(), 0);
+
+        for (std::size_t j = 1; j <= b.size(); ++j) {
+            curr[0] = static_cast<int>(j);
+
+            for (std::size_t i = 1; i <= a.size(); ++i) {
+                const int substitution = prev[i - 1] + (a[i - 1] != b[j - 1]);
+                const int insertion    = curr[i - 1] + 1;
+                const int deletion     = prev[i] + 1;
+
+                curr[i] = std::min({substitution, insertion, deletion});
+            }
+
+            std::swap(prev, curr);
+        }
+
+        return prev.back();
+    }
+
+    std::string findSuggestion(const std::string& arg) {
+        std::string best;
+        int bestDistance = INT_MAX;
+
+        for (const auto& [option, _] : options_) {
+            int d = levenshtein(arg, option);
+            if (d < bestDistance) {
+                bestDistance = d;
+                best = option;
+            }
+        }
+
+        if (bestDistance <= 2)
+            return best;
+
+        return {};
+    }
+
     static void printHelp() {
         setTerminalOutput();
 
@@ -168,6 +213,10 @@ class OptionsParser {
         for (int i = 1; i < args.argc(); i++) {
             const std::string arg = args[i];
             if (options_.count(arg) == 0) {
+                auto suggestion = findSuggestion(arg);
+                if (!suggestion.empty())
+                    throw fastchess_exception("Unrecognized option: " + arg + " parsing failed." +
+                        " Did you mean '" + suggestion + "'?");
                 throw fastchess_exception("Unrecognized option: " + arg + " parsing failed.");
             }
 

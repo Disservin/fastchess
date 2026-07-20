@@ -78,6 +78,11 @@ jobs:
           E2E_SKIP_BUILD: 1
         run: bash app/tests/e2e/engine_diagnostics.sh
 
+      - name: Engine Recovery E2E
+        env:
+          E2E_SKIP_BUILD: 1
+        run: bash app/tests/e2e/engine_recovery.sh
+
       - name: Rating Interval E2E
         env:
           E2E_SKIP_BUILD: 1

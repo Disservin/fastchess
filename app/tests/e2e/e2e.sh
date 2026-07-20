@@ -11,6 +11,7 @@ export E2E_SKIP_BUILD=1
 
 bash app/tests/e2e/opening_books.sh
 bash app/tests/e2e/engine_diagnostics.sh
+bash app/tests/e2e/engine_recovery.sh
 bash app/tests/e2e/rating_interval.sh
 bash app/tests/e2e/pgn_book_plies.sh
 bash app/tests/e2e/random_order.sh

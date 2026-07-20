@@ -24,11 +24,11 @@ normalize_version() {
 }
 
 normalize_help_intro() {
-    perl -CS -pe 's/\e\[[0-9;]*m//g; s/^    //; s/\x{00b7}/-/g; s/[ \t]+$//g' | awk 'NR <= 34 { print }'
+    perl -CS -pe 's/\r$//g; s/\e\[[0-9;]*m//g; s/^    //; s/\x{00b7}/-/g; s/[ \t]+$//g' | awk 'NR <= 34 { print }'
 }
 
 normalize_actual_game() {
-    perl -pe 's/[ \t]+$//g' | awk '/^Started game / || /^Warning; Illegal PV move/ || /^Info; / || /^Position; / || /^Moves;$/ || /^Warning; Illegal move/ || /^Finished game / || /^Results of / || /^Games: / || /^Finished match$/ { print }'
+    perl -pe 's/\r$//g; s/[ \t]+$//g' | awk '/^Started game / || /^Warning; Illegal PV move/ || /^Info; / || /^Position; / || /^Moves;$/ || /^Warning; Illegal move/ || /^Finished game / || /^Results of / || /^Games: / || /^Finished match$/ { print }'
 }
 
 VERSION_OUTPUT=$(mktemp)

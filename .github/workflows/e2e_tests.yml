@@ -41,7 +41,7 @@ jobs:
         uses: msys2/setup-msys2@v2
         with:
           msystem: ${{matrix.config.msys_sys}}
-          install: mingw-w64-${{matrix.config.msys_env}} make git expect diffutils
+          install: mingw-w64-${{matrix.config.msys_env}} make git expect
 
       - name: Macos clang version
         if: runner.os == 'Macos'
@@ -97,8 +97,3 @@ jobs:
         env:
           E2E_SKIP_BUILD: 1
         run: bash app/tests/e2e/black_to_move.sh
-
-      - name: CLI Snapshot Tests
-        env:
-          E2E_SKIP_BUILD: 1
-        run: bash app/tests/snapshots/cli/snapshot.sh

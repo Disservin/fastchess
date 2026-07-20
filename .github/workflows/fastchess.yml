@@ -40,6 +40,9 @@ jobs:
   E2E-Tests:
     if: github.ref_type != 'tag'
     uses: ./.github/workflows/e2e_tests.yml
+  Snapshot-Tests:
+    if: github.ref_type != 'tag'
+    uses: ./.github/workflows/snapshot_tests.yml
   Unit-Tests:
     if: github.ref_type != 'tag'
     uses: ./.github/workflows/unit_tests.yml

@@ -12,10 +12,12 @@ int main(int argc, char const *argv[]) {
     std::vector<std::string> moves = {"f2f3", "e7e5", "g2g4", "d8h4"};
     int moveIndex                  = 0;
     bool crash_on_go_nodes         = false;
+    std::vector<std::string> commands;
 
     if (argc > 1) {
         for (int i = 1; i < argc; i++) {
-            if (std::string_view(argv[i]) == "--crash-on-go-nodes") {
+            const std::string_view arg(argv[i]);
+            if (arg == "--crash-on-go-nodes") {
                 crash_on_go_nodes = true;
             }
 
@@ -26,11 +28,19 @@ int main(int argc, char const *argv[]) {
     while (true) {
         string cmd;
         getline(cin, cmd);
+        commands.push_back(cmd);
 
         if (cmd == "quit") {
             break;
+        } else if (cmd == "dump_commands") {
+            for (const auto& command : commands) {
+                std::cout << "command: " << command << std::endl;
+            }
+            std::cout << "commands done" << std::endl;
         } else if (cmd == "isready") {
             cout << "readyok" << endl;
+        } else if (cmd == "ucinewgame") {
+            cout << "new game" << endl;
         } else if (cmd == "uci") {
             cout << "id name Dummy Engine" << endl;
             cout << "id author Fastchess" << endl;

@@ -29,5 +29,5 @@ first value in parentheses.
 ## Tournament Setup
 
   - -quick cmd=ENGINE1 cmd=ENGINE2 book=BOOK
-    Shortcut for predefined game settings involving two engines,
-    time controls, rounds, and concurrency.
+    Shortcut for predefined game settings involving two engines, time 
+    controls, rounds, and concurrency.

@@ -1,7 +1,6 @@
 NAME
 
-fastchess - a command-line tool for managing chess games with
-engines
+fastchess - a command-line tool for managing chess games with engines
 
 SYNOPSIS
 

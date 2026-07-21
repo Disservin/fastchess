@@ -83,7 +83,7 @@ The default values are the first value in parentheses.
     Apply specified OPTIONS to the next engine.
 
     - `cmd=COMMAND` - Specify engine command.
-    - `name=NAME` - Set engine name (must be unique).
+    - `name=NAME` - Set engine name. If not specified, the executable's filename would be used.
     - `args="ARGS"` - Pass multiple arguments using args="ARG1 ARG2".
     - `tc=moves/minutes:seconds+increment` - Time control in Cute-Chess format.
     - `timemargin=N` - Time margin for exceeding time limit.
@@ -149,15 +149,16 @@ The default values are the first value in parentheses.
 - `-output format=(fastchess|cutechess)`  
     Choose the output format for game results (`fastchess` or `cutechess`). Default is `fastchess`.
 
-- `-pgnout file=NAME notation=(san|lan|uci) [append=(true|false)] [nodes=(false|true)] [seldepth=(false|true)] [nps=(false|true)] [hashfull=(false|true)] [tbhits=(false|true)] [pv=(false|true)] [timeleft=(false|true)] [latency=(false|true)] [min=(false|true)] [match_line=REGEX]`
+- `-pgnout [file=NAME] [notation=(san|lan|uci)] [append=(true|false)] [nodes=(false|true)] [seldepth=(false|true)] [nps=(false|true)] [hashfull=(false|true)] [tbhits=(false|true)] [pv=(false|true)] [timeleft=(false|true)] [latency=(false|true)] [min=(false|true)] [match_line=REGEX]`
     Export games in PGN format with specified notations and optional tracking of nodes, seldepth, and others.
 
-    - notation:
+    - `notation`:
 
         - `san` - Standard Algebraic Notation (default)
         - `lan` - Long Algebraic Notation
         - `uci` - Universal Chess Interface
 
+    - `file` - Specify filename. Default is `fastchess_(date)_(time).pgn`.
     - `append` - Append to file. Default is true.
     - `nodes` - Track node count. Default is false.
     - `seldepth` - Track seldepth. Default is false.
@@ -170,9 +171,10 @@ The default values are the first value in parentheses.
     - `min` - Minimal PGN format. Default is false.
     - `match_line` - Add lines to the PGN that match the given regex.
 
-- `-epdout file=NAME [append=(true|false)]`
+- `-epdout [file=NAME] [append=(true|false)]`
     Export the final position of each game in EPD format.
 
+    - `file` - Specify filename. Default is `fastchess_(date)_(time).epd`.
     - `append` - Append to file. Default is true.
 
 - `-event NAME`  

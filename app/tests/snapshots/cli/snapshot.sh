@@ -16,8 +16,15 @@ assert_snapshot() {
     local normalized_expected
 
     normalized_actual=$(mktemp)
-    normalized_expected=$(mktemp)
     tr -d '\r' < "$actual_file" > "$normalized_actual"
+
+    if [ "${UPDATE_SNAPSHOTS:-0}" = "1" ]; then
+        cp "$normalized_actual" "$expected_file"
+        echo "Updated snapshot: $expected_file"
+        return
+    fi
+
+    normalized_expected=$(mktemp)
     tr -d '\r' < "$expected_file" > "$normalized_expected"
 
     if ! diff -u "$normalized_expected" "$normalized_actual"; then

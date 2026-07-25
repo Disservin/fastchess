@@ -37,8 +37,8 @@ normalize_version() {
     perl -pe 's/[0-9]{8}-[0-9a-f]+/<build>/g'
 }
 
-normalize_help_intro() {
-    perl -CS -pe 's/\r$//g; s/\e\[[0-9;]*m//g; s/^    //; s/\x{00b7}/-/g; s/[ \t]+$//g' | awk 'NR <= 34 { print }'
+normalize_help() {
+    perl -CS -pe 's/\r$//g; s/\e\[[0-9;]*m//g; s/^    //; s/\x{00b7}/-/g; s/[ \t]+$//g'
 }
 
 normalize_actual_game() {
@@ -50,8 +50,8 @@ VERSION_OUTPUT=$(mktemp)
 assert_snapshot "$VERSION_OUTPUT" "$SNAPSHOT_DIR/version.txt"
 
 HELP_OUTPUT=$(mktemp)
-./fastchess -help | normalize_help_intro > "$HELP_OUTPUT"
-assert_snapshot "$HELP_OUTPUT" "$SNAPSHOT_DIR/help_intro.txt"
+./fastchess -help | normalize_help > "$HELP_OUTPUT"
+assert_snapshot "$HELP_OUTPUT" "$SNAPSHOT_DIR/help.txt"
 
 UNKNOWN_OPTION_OUTPUT=$(mktemp)
 ./fastchess -engne > "$UNKNOWN_OPTION_OUTPUT" 2>&1 || true

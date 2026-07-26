@@ -6,6 +6,7 @@
 #include <string>
 #include <string_view>
 #include <thread>
+#include <vector>
 
 #include <doctest/doctest.hpp>
 
@@ -25,9 +26,115 @@ class MockUciEngine : public engine::UciEngine {
         : engine::UciEngine(config, realtime_logging) {}
 };
 
+std::vector<std::string> dumpCommands(engine::UciEngine& uci_engine) {
+    CHECK(uci_engine.writeEngine("dump_commands"));
+    const auto result = uci_engine.readEngine("commands done");
+    CHECK(result.code == engine::process::Status::OK);
+
+    std::vector<std::string> commands;
+    for (const auto* line : uci_engine.getStdoutLines()) {
+        constexpr std::string_view prefix = "command: ";
+        if (line->line.rfind(prefix, 0) == 0) {
+            commands.push_back(line->line.substr(prefix.size()));
+        }
+    }
+
+    if (!commands.empty() && commands.front() == "uci") commands.erase(commands.begin());
+    if (!commands.empty() && commands.back() == "dump_commands") commands.pop_back();
+
+    return commands;
+}
+
+auto startTestEngine(engine::UciEngine& uci_engine) {
+    if (!config::TournamentConfig) {
+        config::TournamentConfig = std::make_unique<config::Tournament>();
+    }
+    return uci_engine.start(/*cpus*/ std::nullopt);
+}
+
 }  // namespace
 
 TEST_SUITE("Uci Engine Communication Tests") {
+    TEST_CASE("Generate exact position commands") {
+        EngineConfiguration config;
+        config.cmd = path;
+
+        engine::UciEngine uci_engine(config, false);
+        REQUIRE(startTestEngine(uci_engine));
+
+        CHECK(uci_engine.position({}, "startpos"));
+
+        const std::vector<std::string_view> startpos_moves = {"e2e4", "e7e5"};
+        CHECK(uci_engine.position(startpos_moves, "startpos"));
+
+        const std::string fen = "r1bqkbnr/pppp1ppp/2n5/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 2 3";
+        const std::vector<std::string_view> fen_moves = {"f1b5", "a7a6"};
+        CHECK(uci_engine.position(fen_moves, fen));
+
+        CHECK(dumpCommands(uci_engine) ==
+              std::vector<std::string>{"position startpos", "position startpos moves e2e4 e7e5",
+                                       "position fen " + fen + " moves f1b5 a7a6"});
+    }
+
+    TEST_CASE("Generate exact fixed-limit go command") {
+        EngineConfiguration config;
+        config.cmd         = path;
+        config.limit.nodes = 123456;
+        config.limit.plies = 17;
+
+        engine::UciEngine uci_engine(config, false);
+        REQUIRE(startTestEngine(uci_engine));
+
+        TimeControl::Limits limits;
+        limits.fixed_time = 2500;
+        CHECK(uci_engine.go(TimeControl(limits), TimeControl(), chess::Color::WHITE));
+
+        CHECK(dumpCommands(uci_engine) == std::vector<std::string>{"go nodes 123456 depth 17 movetime 2500"});
+    }
+
+    TEST_CASE("Generate exact clock go command") {
+        EngineConfiguration config;
+        config.cmd = path;
+
+        engine::UciEngine uci_engine(config, false);
+        REQUIRE(startTestEngine(uci_engine));
+
+        TimeControl::Limits our_limits;
+        our_limits.time      = 10000;
+        our_limits.increment = 100;
+        our_limits.moves     = 40;
+
+        TimeControl::Limits enemy_limits;
+        enemy_limits.time      = 20000;
+        enemy_limits.increment = 250;
+
+        CHECK(uci_engine.go(TimeControl(our_limits), TimeControl(enemy_limits), chess::Color::WHITE));
+        CHECK(uci_engine.go(TimeControl(our_limits), TimeControl(enemy_limits), chess::Color::BLACK));
+
+        CHECK(dumpCommands(uci_engine) ==
+              std::vector<std::string>{"go wtime 10100 btime 20250 winc 100 binc 250 movestogo 40",
+                                       "go wtime 20250 btime 10100 winc 250 binc 100 movestogo 40"});
+    }
+
+    TEST_CASE("Generate enemy increment when our clock has no increment") {
+        EngineConfiguration config;
+        config.cmd = path;
+
+        engine::UciEngine uci_engine(config, false);
+        REQUIRE(startTestEngine(uci_engine));
+
+        TimeControl::Limits our_limits;
+        our_limits.time = 30000;
+
+        TimeControl::Limits enemy_limits;
+        enemy_limits.time      = 45000;
+        enemy_limits.increment = 500;
+
+        CHECK(uci_engine.go(TimeControl(our_limits), TimeControl(enemy_limits), chess::Color::WHITE));
+
+        CHECK(dumpCommands(uci_engine) == std::vector<std::string>{"go wtime 30000 btime 45500 binc 500"});
+    }
+
     TEST_CASE("Test engine::UciEngine Args Simple") {
         EngineConfiguration config;
         config.cmd  = path;

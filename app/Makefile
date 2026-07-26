@@ -10,10 +10,12 @@ THIRDPARTYDIR    := third_party
 TESTDIR          := tests
 BUILDDIR         := tmp
 INCDIR           := src
+RANDOM_MOVER      = $(TESTDIR)/mock/engine/random_mover$(SUFFIX)
+DUMMY_ENGINE      = $(TESTDIR)/mock/engine/dummy_engine$(SUFFIX)
 
 #Flags, Libraries and Includes
 CXXFLAGS         := -O3 -std=c++17 -Wall -Wextra -DNDEBUG
-CXXFLAGS_TEST    := -O2 -std=c++17 -Wall -Wextra -pedantic -Wuninitialized -fno-omit-frame-pointer
+CXXFLAGS_TEST    := -O0 -std=c++17 -Wall -Wextra -pedantic -Wuninitialized -fno-omit-frame-pointer
 CXXFLAGS_COV     := -O0 --coverage -g -std=c++17 -Wall -Wextra -pedantic -Wuninitialized -g3 -fno-omit-frame-pointer
 INC              := -I$(INCDIR) -Ithird_party
 
@@ -211,8 +213,7 @@ coverage: tests
 	cd .. && ./fastchess-tests
 	mkdir -p coverage && cd coverage &&  gcovr --html-details coverage.html --gcov-ignore-errors=no_working_dir_found --gcov-ignore-parse-errors -f "../src" -r ../. ..
 
-tests: $(TARGET) compile-random-mover
-	$(CXX) $(CXXFLAGS) ./tests/mock/engine/dummy_engine.cpp -o ./tests/mock/engine/dummy_engine$(SUFFIX) $(LDFLAGS) $(EXTRA_LDFLAGS)
+tests: $(TARGET) $(RANDOM_MOVER) $(DUMMY_ENGINE)
 
 format: $(SRC_FILES) $(HEADERS)
 	clang-format -i $^
@@ -220,8 +221,11 @@ format: $(SRC_FILES) $(HEADERS)
 tidy: $(SRC_FILES) $(HEADERS)
 	clang-tidy $^
 
-compile-random-mover: $(TARGET)
-	$(CXX) -O3 -std=c++17 ./tests/mock/engine/random_mover.cpp -o ./tests/mock/engine/random_mover
+$(RANDOM_MOVER): $(TESTDIR)/mock/engine/random_mover.cpp
+	$(CXX) -O3 -std=c++17 $< -o $@
+
+$(DUMMY_ENGINE): $(TESTDIR)/mock/engine/dummy_engine.cpp
+	$(CXX) $(CXXFLAGS) $< -o $@ $(LDFLAGS) $(EXTRA_LDFLAGS)
 
 $(TARGET): $(OBJECTS)
 	$(CXX) $(CXXFLAGS) $(NATIVE) $(INC) $(DEPFLAGS) -o $@ $^ $(LDFLAGS) $(EXTRA_LDFLAGS)
@@ -233,6 +237,6 @@ build_directories:
 	@$(shell mkdir -p $(dir $(OBJECTS)))
 
 clean:
-	rm -rf $(BUILDDIR) $(TARGET) $(TARGET)-tests $(TARGET)-tests.exe $(TARGET).exe ../random_mover ./tests/mock/engine/random_mover
+	rm -rf $(BUILDDIR) $(TARGET) $(TARGET)-tests $(TARGET)-tests.exe $(TARGET).exe ../random_mover $(RANDOM_MOVER) $(DUMMY_ENGINE)
 
 -include $(DEPENDS)

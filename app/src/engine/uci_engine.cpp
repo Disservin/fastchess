@@ -297,6 +297,7 @@ void UciEngine::sendSetoption(const std::string& name, const std::string& value)
         }
 
         option.value()->setValue(value);
+        return;
     }
 
     if (!writeEngine(fmt::format("setoption name {} value {}", name, value))) {

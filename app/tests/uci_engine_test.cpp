@@ -284,6 +284,29 @@ TEST_SUITE("Uci Engine Communication Tests") {
         CHECK(uci_engine->getStdoutLines()[7]->line == "command: dump_commands");
     }
 
+    TEST_CASE("Sending a button option once without a value") {
+        EngineConfiguration config;
+        config.cmd     = path;
+        config.args    = "--button-option";
+        config.options = {{"Clear Hash", "true"}};
+
+        MockUciEngine uci_engine(config, false);
+
+        CHECK(uci_engine.start(/*cpus*/ std::nullopt));
+        CHECK(uci_engine.refreshUci());
+        CHECK(uci_engine.writeEngine("dump_commands"));
+
+        const auto res = uci_engine.readEngine("commands done");
+        CHECK(res.code == engine::process::Status::OK);
+        REQUIRE(uci_engine.getStdoutLines().size() == 6);
+        CHECK(uci_engine.getStdoutLines()[0]->line == "command: uci");
+        CHECK(uci_engine.getStdoutLines()[1]->line == "command: setoption name Clear Hash");
+        CHECK(uci_engine.getStdoutLines()[2]->line == "command: ucinewgame");
+        CHECK(uci_engine.getStdoutLines()[3]->line == "command: isready");
+        CHECK(uci_engine.getStdoutLines()[4]->line == "command: dump_commands");
+        CHECK(uci_engine.getStdoutLines()[5]->line == "commands done");
+    }
+
     TEST_CASE("Detect crashed engine while waiting for bestmove with fixed nodes") {
         engine::process::Process process;
         std::vector<engine::process::Line> output;

@@ -12,6 +12,7 @@ int main(int argc, char const *argv[]) {
     std::vector<std::string> moves = {"f2f3", "e7e5", "g2g4", "d8h4"};
     int moveIndex                  = 0;
     bool crash_on_go_nodes         = false;
+    bool advertise_button          = false;
     std::vector<std::string> commands;
 
     if (argc > 1) {
@@ -19,6 +20,8 @@ int main(int argc, char const *argv[]) {
             const std::string_view arg(argv[i]);
             if (arg == "--crash-on-go-nodes") {
                 crash_on_go_nodes = true;
+            } else if (arg == "--button-option") {
+                advertise_button = true;
             }
 
             std::cout << "argv[" << i << "]: " << argv[i] << std::endl;
@@ -48,6 +51,9 @@ int main(int argc, char const *argv[]) {
             cout << "option name Hash type spin default 1 min 1 max 500000" << endl;
             cout << "option name MultiPV type spin default 1 min 1 max 256" << endl;
             cout << "option name UCI_Chess960 type check default false" << endl;
+            if (advertise_button) {
+                cout << "option name Clear Hash type button" << endl;
+            }
             cout << "line0" << endl;
             cout << "line1" << endl;
             cout << "uciok" << endl;

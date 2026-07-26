@@ -34,7 +34,7 @@ class TimeControl {
         NLOHMANN_DEFINE_TYPE_INTRUSIVE(Limits, increment, fixed_time, time, moves, timemargin)
     };
 
-    TimeControl() = default;
+    TimeControl() : TimeControl(Limits{}) {}
 
     TimeControl(const Limits& limits);
 

@@ -255,7 +255,6 @@ class Process : public IProcess {
         assert(is_initialized_);
 
         if (!alive()) {
-            terminate();
             return Result::Error("process not alive");
         }
 

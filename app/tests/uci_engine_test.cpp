@@ -297,5 +297,7 @@ TEST_SUITE("Uci Engine Communication Tests") {
         const auto res = process.readOutput(output, "bestmove", std::chrono::milliseconds(0));
 
         CHECK(res.code == engine::process::Status::ERR);
+        CHECK(process.writeInput("stop\n").code == engine::process::Status::ERR);
+        CHECK(process.writeInput("quit\n").code == engine::process::Status::ERR);
     }
 }

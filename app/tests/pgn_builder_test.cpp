@@ -7,11 +7,15 @@ namespace fastchess {
 TEST_SUITE("PGN Builder Tests") {
     TEST_CASE("PGN Creation") {
         MatchData match_data;
-        match_data.players.white.config.name = "engine1";
-        match_data.players.white.result      = chess::GameResult::WIN;
+        match_data.players.white.config.name   = "engine1";
+        match_data.players.white.result        = chess::GameResult::WIN;
+        match_data.players.white.uci_name      = "Engine One 1.0";
+        match_data.players.white.uci_author    = "Author One";
 
-        match_data.players.black.config.name = "engine2";
-        match_data.players.black.result      = chess::GameResult::LOSE;
+        match_data.players.black.config.name   = "engine2";
+        match_data.players.black.result        = chess::GameResult::LOSE;
+        match_data.players.black.uci_name      = "Engine Two 2.0";
+        match_data.players.black.uci_author    = "Author Two";
 
         match_data.moves = {MoveData("e2e4", {ScoreType::CP, 100}, 1321, 15, 4, 0),
                             MoveData("e7e5", {ScoreType::CP, 123}, 430, 15, 3, 0),
@@ -33,6 +37,10 @@ TEST_SUITE("PGN Builder Tests") {
 [White "engine1"]
 [Black "engine2"]
 [Result "1-0"]
+[EngineWhiteName "Engine One 1.0"]
+[EngineWhiteAuthor "Author One"]
+[EngineBlackName "Engine Two 2.0"]
+[EngineBlackAuthor "Author Two"]
 [PlyCount "4"]
 [Termination "normal"]
 [TimeControl "-"]

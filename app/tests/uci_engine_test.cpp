@@ -51,6 +51,7 @@ TEST_SUITE("Uci Engine Communication Tests") {
 
         CHECK(uci_engine.idAuthor().has_value());
         CHECK(uci_engine.idAuthor().value() == "Fastchess");
+        CHECK(uci_engine.getStdoutLines().size() == 12);
     }
 
     TEST_CASE("Test engine::UciEngine Args Complex") {

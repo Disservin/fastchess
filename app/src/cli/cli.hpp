@@ -96,6 +96,10 @@ class OptionsParser {
         ss << " (compiled with cutechess output)";
 #endif
 
+#ifndef NDEBUG
+        ss << " (assertions)";
+#endif
+
         return ss.str();
     }
 

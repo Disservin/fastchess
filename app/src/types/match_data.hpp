@@ -62,6 +62,8 @@ enum class MatchTermination {
 struct MatchData {
     struct PlayerInfo {
         PlayerInfo() = default;
+        PlayerInfo(EngineConfiguration engine_config, chess::GameResult game_result)
+            : config(std::move(engine_config)), result(game_result) {}
         PlayerInfo(const Player& player)
             : config(player.engine.getConfig()),
               result(player.getResult()),

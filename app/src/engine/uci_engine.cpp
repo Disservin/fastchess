@@ -146,9 +146,7 @@ bool UciEngine::go(const TimeControl& our_tc, const TimeControl& enemy_tc, chess
         if (black.isTimed() || black.isIncrement()) {
             input << " btime " << black.getTimeLeft();
         }
-    }
 
-    if (our_tc.isIncrement()) {
         if (white.isIncrement()) {
             input << " winc " << white.getIncrement();
         }

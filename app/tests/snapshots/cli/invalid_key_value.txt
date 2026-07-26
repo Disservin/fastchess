@@ -1,0 +1,2 @@
+Error while reading option "-log" with value "level"
+Reason: Option "-log" expects key=value pairs, got "level".

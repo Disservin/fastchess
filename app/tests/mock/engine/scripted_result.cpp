@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string>
+#include <thread>
 
 #include "../../../third_party/chess.hpp"
 
@@ -53,8 +54,19 @@ std::string firstLegalMove(const chess::Board& board) {
 }  // namespace
 
 int main(int argc, char* argv[]) {
-    const bool play_illegal = argc > 1 && std::string_view(argv[1]) == "--illegal";
+    bool play_illegal   = false;
+    bool crash_on_go    = false;
+    bool stall_after_go = false;
+
+    for (int i = 1; i < argc; ++i) {
+        const std::string_view arg(argv[i]);
+        play_illegal |= arg == "--illegal";
+        crash_on_go |= arg == "--crash-on-go";
+        stall_after_go |= arg == "--stall-after-go";
+    }
+
     chess::Board board;
+    bool stalled = false;
 
     std::string line;
     while (std::getline(std::cin, line)) {
@@ -68,15 +80,22 @@ int main(int argc, char* argv[]) {
             std::cout << "option name Hash type spin default 16 min 1 max 33554432" << std::endl;
             std::cout << "uciok" << std::endl;
         } else if (line == "isready") {
+            if (stalled) {
+                std::this_thread::sleep_for(std::chrono::milliseconds(200));
+            }
+
             std::cout << "readyok" << std::endl;
         } else if (line == "ucinewgame") {
             board = chess::Board();
         } else if (contains(line, "position")) {
             updatePosition(board, line);
         } else if (contains(line, "go")) {
+            if (crash_on_go) return 1;
+
             const auto move = play_illegal ? "a1a1" : firstLegalMove(board);
             std::cout << "info depth 1 pv " << move << " score cp 0" << std::endl;
             std::cout << "bestmove " << move << std::endl;
+            stalled = stall_after_go;
         }
     }
 

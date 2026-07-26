@@ -56,6 +56,22 @@ Nf6 {+10.15/18 1.821s, engine2 got checkmated} 1-0
         CHECK(pgn_builder.get() == expected);
     }
 
+    TEST_CASE("PGN omits empty UCI identity tags") {
+        MatchData match_data;
+        match_data.players.white.config.name = "engine1";
+        match_data.players.white.uci_name    = "Engine One";
+        match_data.players.black.config.name = "engine2";
+        match_data.players.black.uci_author  = "Author Two";
+        match_data.fen                       = chess::constants::STARTPOS;
+
+        const auto pgn = pgn::PgnBuilder(config::Pgn{}, match_data, 1).get();
+
+        CHECK(pgn.find("[EngineWhiteName \"Engine One\"]") != std::string::npos);
+        CHECK(pgn.find("EngineWhiteAuthor") == std::string::npos);
+        CHECK(pgn.find("EngineBlackName") == std::string::npos);
+        CHECK(pgn.find("[EngineBlackAuthor \"Author Two\"]") != std::string::npos);
+    }
+
     TEST_CASE("PGN Creation Black Win") {
         MatchData match_data;
         match_data.players.white.config.name = "engine1";

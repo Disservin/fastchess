@@ -34,10 +34,18 @@ PgnBuilder::PgnBuilder(const config::Pgn& pgn_config, const MatchData& match, st
     pgn_generator_.addHeader("Result", getResultFromWhiteMatch(white_player));
 
     if (!pgn_config_.min) {
-        pgn_generator_.addHeader("EngineWhiteName", white_player.uci_name);
-        pgn_generator_.addHeader("EngineWhiteAuthor", white_player.uci_author);
-        pgn_generator_.addHeader("EngineBlackName", black_player.uci_name);
-        pgn_generator_.addHeader("EngineBlackAuthor", black_player.uci_author);
+        if (!white_player.uci_name.empty()) {
+            pgn_generator_.addHeader("EngineWhiteName", white_player.uci_name);
+        }
+        if (!white_player.uci_author.empty()) {
+            pgn_generator_.addHeader("EngineWhiteAuthor", white_player.uci_author);
+        }
+        if (!black_player.uci_name.empty()) {
+            pgn_generator_.addHeader("EngineBlackName", black_player.uci_name);
+        }
+        if (!black_player.uci_author.empty()) {
+            pgn_generator_.addHeader("EngineBlackAuthor", black_player.uci_author);
+        }
     }
 
     if (match_.fen != chess::constants::STARTPOS || is_frc_variant) {

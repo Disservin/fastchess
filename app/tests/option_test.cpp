@@ -172,6 +172,15 @@ TEST_SUITE("Uci Options") {
 
         CHECK(option->getValue() == "nalimov");
     }
+
+    TEST_CASE("Parse String Option Default With Spaces") {
+        std::string line = "name Book Path type string default /tmp/My Books/book.bin";
+        auto option      = UCIOptionFactory::parseUCIOptionLine(line);
+
+        CHECK(option->getName() == "Book Path");
+        CHECK(option->getType() == UCIOption::Type::String);
+        CHECK(option->getValue() == "/tmp/My Books/book.bin");
+    }
 }
 
 }  // namespace fastchess

@@ -36,7 +36,11 @@ class UCIOptionFactory {
             if (token == "type") {
                 ss >> type;
             } else if (token == "default") {
-                ss >> params["default"];
+                if (type == "string") {
+                    std::getline(ss >> std::ws, params["default"]);
+                } else {
+                    ss >> params["default"];
+                }
             } else if (token == "min") {
                 ss >> params["min"];
             } else if (token == "max") {

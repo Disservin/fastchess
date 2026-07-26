@@ -160,6 +160,9 @@ class UciEngine {
     UCIOptions uci_options_   = {};
     EngineConfiguration config_;
 
+    std::optional<std::string> id_name_;
+    std::optional<std::string> id_author_;
+
     std::vector<process::Line> output_;
 
     // init on first use

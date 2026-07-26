@@ -387,8 +387,7 @@ void Match::start(engine::UciEngine& white, engine::UciEngine& black, std::optio
     data_.end_time = time::datetime_iso();
     data_.duration = time::duration(chrono::duration_cast<chrono::seconds>(end - start));
 
-    data_.players = GamePair(MatchData::PlayerInfo{white_player.engine.getConfig(), white_player.getResult()},
-                             MatchData::PlayerInfo{black_player.engine.getConfig(), black_player.getResult()});
+    data_.players = GamePair(MatchData::PlayerInfo{white_player}, MatchData::PlayerInfo{black_player});
 }
 
 void Match::gameLoop(Player& first, Player& second) {

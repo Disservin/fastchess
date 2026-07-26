@@ -178,6 +178,8 @@ bool UciEngine::ucinewgame() {
 }
 
 std::optional<std::string> UciEngine::idName() {
+    if (initialized_) return id_name_;
+
     if (!uci()) {
         Logger::print<Logger::Level::WARN>("Warning; Engine {} didn't respond to uci.", config_.name);
 
@@ -189,18 +191,12 @@ std::optional<std::string> UciEngine::idName() {
         return std::nullopt;
     }
 
-    // get id name
-    for (const auto& line : getStdoutLines()) {
-        if (line->line.find("id name") != std::string::npos) {
-            // everything after id name
-            return line->line.substr(line->line.find("id name") + 8);
-        }
-    }
-
-    return std::nullopt;
+    return id_name_;
 }
 
 std::optional<std::string> UciEngine::idAuthor() {
+    if (initialized_) return id_author_;
+
     if (!uci()) {
         Logger::print<Logger::Level::WARN>("Warning; Engine {} didn't respond to uci.", config_.name);
 
@@ -213,15 +209,7 @@ std::optional<std::string> UciEngine::idAuthor() {
         return std::nullopt;
     }
 
-    // get id author
-    for (const auto& line : getStdoutLines()) {
-        if (line->line.find("id author") != std::string::npos) {
-            // everything after id author
-            return line->line.substr(line->line.find("id author") + 10);
-        }
-    }
-
-    return std::nullopt;
+    return id_author_;
 }
 
 bool UciEngine::uci() {
@@ -249,6 +237,12 @@ bool UciEngine::uciok(std::optional<ms> threshold) {
     }
 
     for (const auto& line : getStdoutLines()) {
+        if (line->line.compare(0, 8, "id name ") == 0) {
+            id_name_ = line->line.substr(8);
+        } else if (line->line.compare(0, 10, "id author ") == 0) {
+            id_author_ = line->line.substr(10);
+        }
+
         auto option = UCIOptionFactory::parseUCIOptionLine(line->line);
 
         if (option != nullptr) {

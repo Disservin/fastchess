@@ -9,6 +9,7 @@
 
 #include <core/time/time.hpp>
 #include <matchmaking/game_pair.hpp>
+#include <matchmaking/player.hpp>
 #include <types/engine_config.hpp>
 #include <types/score.hpp>
 
@@ -60,8 +61,19 @@ enum class MatchTermination {
 
 struct MatchData {
     struct PlayerInfo {
+        PlayerInfo() = default;
+        PlayerInfo(EngineConfiguration engine_config, chess::GameResult game_result)
+            : config(std::move(engine_config)), result(game_result) {}
+        PlayerInfo(const Player& player)
+            : config(player.engine.getConfig()),
+              result(player.getResult()),
+              uci_name(player.engine.idName().value_or("")),
+              uci_author(player.engine.idAuthor().value_or("")) {}
+
         EngineConfiguration config;
         chess::GameResult result = chess::GameResult::NONE;
+        std::string uci_name;
+        std::string uci_author;
     };
 
     MatchData() {}

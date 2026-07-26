@@ -99,6 +99,8 @@ verify your changes pass the tests.
 You can format the code with clang-format by running `make format`.
 After making changes to the man file, you need to run `make update-man`.
 
+Maintainers can find the release procedure in [RELEASE.md](RELEASE.md).
+
 ## Maintainers & contributors
 
 The following people have push access to the repository:

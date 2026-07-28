@@ -193,10 +193,20 @@ TEST_SUITE("Option Parsing Tests") {
     }
 
     TEST_CASE("Malformed time controls should throw") {
-        for (const auto& tc : {"40/", "10+", "1:", "1:2:3", "10/1junk", "10/-1", "0/1"}) {
+        for (const auto& tc : {"40/", "10+", "1:", "1:2:3", "10/1junk", "10/1ss", "10/-1", "0/1"}) {
             CAPTURE(tc);
             CHECK_THROWS_AS(cli::OptionsParser{engineArgsWithTc(tc)}, fastchess_exception);
         }
+    }
+
+    TEST_CASE("Time controls should accept a seconds suffix") {
+        const auto short_tc = cli::OptionsParser{engineArgsWithTc("0.02s")}.getEngineConfigs().front().limit.tc;
+        CHECK(short_tc.time == 20);
+
+        const auto increment_tc =
+            cli::OptionsParser{engineArgsWithTc("0.2+0.002s")}.getEngineConfigs().front().limit.tc;
+        CHECK(increment_tc.time == 200);
+        CHECK(increment_tc.increment == 2);
     }
 
     TEST_CASE("Numeric options should reject trailing characters and invalid ranges") {

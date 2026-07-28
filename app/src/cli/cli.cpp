@@ -84,8 +84,12 @@ std::pair<std::string_view, std::string_view> splitTimeControl(std::string_view 
 }
 
 int64_t parseDuration(std::string_view value, int64_t multiplier) {
-    const auto duration = parseScalar<long double>(value);
-    const auto scaled   = duration * multiplier;
+    if (value.size() > 1 && value.back() == 's' && multiplier == 1000) {
+        value.remove_suffix(1);
+    }
+
+    const auto duration = parseScalar<double>(value);
+    const auto scaled   = static_cast<long double>(duration) * multiplier;
 
     if (duration < 0 || scaled > std::numeric_limits<int64_t>::max()) {
         throw fastchess::fastchess_exception::format("Invalid time control duration: \"{}\"", value);

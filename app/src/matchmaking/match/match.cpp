@@ -147,16 +147,14 @@ void checkMateScoreSignMismatch(const Player& them, const Player& us, const Boar
 
 }  // namespace
 
-std::optional<PvCheckResult> checkPvLine(Board board, std::string_view info, bool check_mate_pvs) {
-    const auto pv = engine::UciEngine::getPv(info);
-
-    if (!pv.has_value() || pv->empty()) {
+std::optional<PvCheckResult> checkParsedPvLine(Board board, const engine::UciInfo& info, bool check_mate_pvs) {
+    if (info.pv.empty()) {
         return std::nullopt;
     }
 
     Movelist moves;
 
-    for (const auto& move : *pv) {
+    for (const auto& move : info.pv) {
         moves.clear();
 
         const auto gameoverResult = isGameOverSimple(board);
@@ -194,20 +192,17 @@ std::optional<PvCheckResult> checkPvLine(Board board, std::string_view info, boo
         return std::nullopt;
     }
 
-    const auto score   = engine::UciEngine::getScore(info);
-    const bool isBound = engine::UciEngine::isBound(info);
-
-    if (!score.has_value() || !score.value().isMate() || isBound) {
+    if (!info.score.has_value() || !info.score->isMate() || info.isBound()) {
         return std::nullopt;
     }
 
-    const auto score_value = score.value().value;
+    const auto score_value = info.score->value;
     const uint64_t plies   = score_value > 0 ? score_value * 2 - 1 : score_value * -2;
 
-    if (pv->size() < plies) {
+    if (info.pv.size() < plies) {
         return PvCheckResult{PvWarning::IncompleteMatingPv, {}};
     }
-    if (pv->size() > plies) {
+    if (info.pv.size() > plies) {
         return PvCheckResult{PvWarning::TooLongMatingPv, {}};
     }
 
@@ -219,15 +214,20 @@ std::optional<PvCheckResult> checkPvLine(Board board, std::string_view info, boo
     return std::nullopt;
 }
 
-std::optional<PvCheckResult> checkBestmovePv(std::string_view info, std::string_view best_move) {
-    const auto isBound = engine::UciEngine::isBound(info);
-    const auto pv      = engine::UciEngine::getPv(info);
-
-    if (best_move.empty() || isBound || !pv.has_value() || pv->empty() || best_move == (*pv)[0]) {
+std::optional<PvCheckResult> checkParsedBestmovePv(const engine::UciInfo& info, std::string_view best_move) {
+    if (best_move.empty() || info.isBound() || info.pv.empty() || best_move == info.pv[0]) {
         return std::nullopt;
     }
 
     return PvCheckResult{PvWarning::BestmoveMismatch, std::string(best_move)};
+}
+
+std::optional<PvCheckResult> checkPvLine(Board board, std::string_view info, bool check_mate_pvs) {
+    return checkParsedPvLine(std::move(board), engine::UciEngine::parseInfo(info), check_mate_pvs);
+}
+
+std::optional<PvCheckResult> checkBestmovePv(std::string_view info, std::string_view best_move) {
+    return checkParsedBestmovePv(engine::UciEngine::parseInfo(info), best_move);
 }
 
 Match::Match(const book::Opening& opening)
@@ -291,23 +291,22 @@ void Match::addMoveData(const Player& player, const std::string& move, int64_t m
                                            player.engine.getConfig().name);
     }
 
-    const auto info = str_utils::splitString(info_line, ' ');
+    const auto info = engine::UciEngine::parseInfo(info_line);
 
-    const auto score = player.engine.lastScore();
-
-    if (!info_line.empty() && !score.has_value()) {
+    if (!info_line.empty() && !info.score.has_value()) {
         Logger::print<Logger::Level::WARN>("Warning; Could not extract score from engine {}: {}",
-                                           player.engine.getConfig().name, score.error());
+                                           player.engine.getConfig().name, info.score.error());
     }
 
-    move_data.nps      = str_utils::findElement<uint64_t>(info, "nps").value_or(0);
-    move_data.hashfull = str_utils::findElement<int64_t>(info, "hashfull").value_or(0);
-    move_data.tbhits   = str_utils::findElement<uint64_t>(info, "tbhits").value_or(0);
-    move_data.depth    = str_utils::findElement<int64_t>(info, "depth").value_or(0);
-    move_data.seldepth = str_utils::findElement<int64_t>(info, "seldepth").value_or(0);
-    move_data.nodes    = str_utils::findElement<uint64_t>(info, "nodes").value_or(0);
-    move_data.pv       = str_utils::join(engine::UciEngine::getPv(info_line).value_or(std::vector<std::string>{}), " ");
-    move_data.score    = score.has_value() ? std::make_optional(Score{score->type, score->value}) : std::nullopt;
+    move_data.nps      = info.nps.value_or(0);
+    move_data.hashfull = info.hashfull.value_or(0);
+    move_data.tbhits   = info.tbhits.value_or(0);
+    move_data.depth    = info.depth.value_or(0);
+    move_data.seldepth = info.seldepth.value_or(0);
+    move_data.nodes    = info.nodes.value_or(0);
+    move_data.pv       = str_utils::join(info.pv, " ");
+    move_data.score =
+        info.score.has_value() ? std::make_optional(Score{info.score->type, info.score->value}) : std::nullopt;
     move_data.timeleft = timeleft;
     move_data.latency  = latency;
 
@@ -680,9 +679,13 @@ void Match::setEngineIllegalMoveStatus(Player& loser, Player& winner, const std:
 
 void Match::verifyPvLines(const Player& us, const std::string& best_move) {
     const auto info_lines = us.engine.getInfoLines();
+    std::vector<std::pair<const std::string*, engine::UciInfo>> parsed_lines;
+    parsed_lines.reserve(info_lines.size());
 
     for (const auto info : info_lines) {
-        const auto result = checkPvLine(board_, *info, config::TournamentConfig->check_mate_pvs);
+        parsed_lines.emplace_back(info, engine::UciEngine::parseInfo(*info));
+        const auto result =
+            checkParsedPvLine(board_, parsed_lines.back().second, config::TournamentConfig->check_mate_pvs);
 
         if (!result.has_value()) {
             continue;
@@ -707,16 +710,16 @@ void Match::verifyPvLines(const Player& us, const std::string& best_move) {
     }
 
     // find the correct info line: search backwards for multipv 1 or no multipv
-    const auto it = std::find_if(info_lines.rbegin(), info_lines.rend(), [](const auto* line) {
-        return line->find(" multipv ") == std::string::npos || line->find(" multipv 1 ") != std::string::npos;
+    const auto it = std::find_if(parsed_lines.rbegin(), parsed_lines.rend(), [](const auto& line) {
+        return !line.second.multipv.has_value() || line.second.multipv == 1;
     });
 
-    if (it == info_lines.rend()) {
+    if (it == parsed_lines.rend()) {
         return;
     }
 
-    const auto& info  = **it;
-    const auto result = checkBestmovePv(info, best_move);
+    const auto& info  = *it->first;
+    const auto result = checkParsedBestmovePv(it->second, best_move);
     if (result.has_value()) {
         const auto warning = pvWarningFormat(result->warning);
         auto start_pos     = start_position_ == "startpos" ? start_position_ : fmt::format("fen {}", start_position_);

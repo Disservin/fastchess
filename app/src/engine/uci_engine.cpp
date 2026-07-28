@@ -6,6 +6,7 @@
 #include <mutex>
 #include <optional>
 #include <string>
+#include <type_traits>
 #include <vector>
 
 #include <chess.hpp>
@@ -471,8 +472,6 @@ std::optional<std::string> UciEngine::bestmove(bool warn_on_error) const {
 }
 
 std::chrono::milliseconds UciEngine::lastTime() const {
-    std::vector<std::string> last_reported_time_info;
-
     const auto lines = getStdoutLines();
 
     for (auto it = lines.rbegin(); it != lines.rend(); ++it) {
@@ -487,41 +486,93 @@ std::chrono::milliseconds UciEngine::lastTime() const {
             continue;
         }
 
-        last_reported_time_info = str_utils::splitString(line, ' ');
-        break;
+        return std::chrono::milliseconds(parseInfo(line).time.value_or(0));
     }
 
-    const auto time = str_utils::findElement<int64_t>(last_reported_time_info, "time").value_or(0);
+    return std::chrono::milliseconds(0);
+}
 
-    return std::chrono::milliseconds(time);
+UciInfo UciEngine::parseInfo(std::string_view info_line) {
+    UciInfo result;
+    const auto tokens = str_utils::splitString(info_line, ' ');
+
+    const auto parse_integer = [&](auto& value, size_t index) {
+        if (index >= tokens.size()) return;
+
+        using Value       = typename std::decay_t<decltype(value)>::value_type;
+        const auto& token = tokens[index];
+        size_t parsed     = 0;
+
+        try {
+            if constexpr (std::is_unsigned_v<Value>) {
+                const auto converted = std::stoull(token, &parsed);
+                if (parsed == token.size()) value = static_cast<Value>(converted);
+            } else {
+                const auto converted = std::stoll(token, &parsed);
+                if (parsed == token.size()) value = static_cast<Value>(converted);
+            }
+        } catch (const std::exception&) {
+        }
+    };
+
+    for (size_t i = 0; i < tokens.size(); ++i) {
+        const auto& token = tokens[i];
+
+        if (token == "score") {
+            if (i + 2 >= tokens.size()) {
+                result.score = tl::make_unexpected(std::string("Element 'score' has no type or value"));
+                continue;
+            }
+
+            Score score;
+            score.type = ScoreType::fromString(tokens[i + 1]);
+            if (score.isErr()) {
+                result.score = tl::make_unexpected(fmt::format("Unexpected score type: {}", info_line));
+                continue;
+            }
+
+            std::optional<int64_t> value;
+            parse_integer(value, i + 2);
+            if (!value.has_value()) {
+                result.score = tl::make_unexpected(fmt::format("Invalid score value: {}", tokens[i + 2]));
+                continue;
+            }
+            score.value  = *value;
+            result.score = score;
+        } else if (token == "time") {
+            parse_integer(result.time, i + 1);
+        } else if (token == "depth") {
+            parse_integer(result.depth, i + 1);
+        } else if (token == "seldepth") {
+            parse_integer(result.seldepth, i + 1);
+        } else if (token == "nodes") {
+            parse_integer(result.nodes, i + 1);
+        } else if (token == "nps") {
+            parse_integer(result.nps, i + 1);
+        } else if (token == "tbhits") {
+            parse_integer(result.tbhits, i + 1);
+        } else if (token == "hashfull") {
+            parse_integer(result.hashfull, i + 1);
+        } else if (token == "multipv") {
+            parse_integer(result.multipv, i + 1);
+        } else if (token == "lowerbound") {
+            result.lowerbound = true;
+        } else if (token == "upperbound") {
+            result.upperbound = true;
+        } else if (token == "pv") {
+            for (++i; i < tokens.size() && chess::uci::isUciMove(tokens[i]); ++i) result.pv.push_back(tokens[i]);
+            break;
+        }
+    }
+
+    return result;
 }
 
 tl::expected<Score, std::string> UciEngine::getScore(std::string_view info_line) {
     if (info_line.empty()) {
         return tl::make_unexpected(fmt::format("No info line available to extract score from: {}", info_line));
     }
-
-    auto info = str_utils::splitString(info_line, ' ');
-
-    Score score;
-
-    const auto type_str = str_utils::findElement<std::string>(info, "score");
-
-    score.value = 0;
-
-    if (!type_str.has_value()) return tl::make_unexpected(type_str.error());
-
-    score.type = ScoreType::fromString(type_str.value());
-
-    if (score.isErr()) return tl::make_unexpected(fmt::format("Unexpected score type: {}", info_line));
-
-    auto value = str_utils::findElement<int64_t>(info, static_cast<std::string_view>(score.type));
-
-    if (!value.has_value()) return tl::make_unexpected(value.error());
-
-    score.value = value.value();
-
-    return score;
+    return parseInfo(info_line).score;
 }
 
 tl::expected<Score, std::string> UciEngine::lastScore() const { return getScore(lastInfoLine()); }
@@ -529,14 +580,9 @@ tl::expected<Score, std::string> UciEngine::lastScore() const { return getScore(
 std::optional<std::vector<std::string>> UciEngine::getPv(std::string_view info_line) {
     if (info_line.empty()) return std::nullopt;
 
-    auto info = str_utils::splitString(info_line, ' ');
-
-    if (!str_utils::contains(info, "pv")) return std::nullopt;
-
-    auto it_start = std::find(info.begin(), info.end(), "pv") + 1;
-    auto it_end   = std::find_if(it_start, info.end(), [](const auto& token) { return !chess::uci::isUciMove(token); });
-
-    return std::vector<std::string>(it_start, it_end);
+    auto info = parseInfo(info_line);
+    if (info.pv.empty()) return std::nullopt;
+    return std::move(info.pv);
 }
 
 }  // namespace fastchess::engine

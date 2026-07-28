@@ -40,6 +40,20 @@ cli::Args baseArgs(std::vector<std::string> extras = {}) {
     return buildArgs(std::move(args));
 }
 
+cli::Args engineArgsWithTc(std::string tc) {
+    return buildArgs({
+        "fastchess.exe",
+        "-engine",
+        "cmd=app/tests/mock/engine/dummy_engine",
+        "name=Alpha",
+        "tc=" + tc,
+        "-engine",
+        "cmd=app/tests/mock/engine/dummy_engine",
+        "name=Beta",
+        "tc=10/1+0",
+    });
+}
+
 }  // namespace
 
 TEST_SUITE("Option Parsing Tests") {
@@ -178,6 +192,20 @@ TEST_SUITE("Option Parsing Tests") {
         CHECK_THROWS_WITH_AS(cli::OptionsParser{args}, "Error; no TimeControl specified!", fastchess_exception);
     }
 
+    TEST_CASE("Malformed time controls should throw") {
+        for (const auto& tc : {"40/", "10+", "1:", "1:2:3", "10/1junk", "10/-1", "0/1"}) {
+            CAPTURE(tc);
+            CHECK_THROWS_AS(cli::OptionsParser{engineArgsWithTc(tc)}, fastchess_exception);
+        }
+    }
+
+    TEST_CASE("Numeric options should reject trailing characters and invalid ranges") {
+        CHECK_THROWS_AS(cli::OptionsParser{baseArgs({"-rounds", "10junk"})}, fastchess_exception);
+        CHECK_THROWS_AS(cli::OptionsParser{baseArgs({"-srand", "-1"})}, fastchess_exception);
+        CHECK_THROWS_AS(cli::OptionsParser{baseArgs({"-rounds", "999999999999999999999"})}, fastchess_exception);
+        CHECK_THROWS_AS(cli::OptionsParser{baseArgs({"-sprt", "alpha=nan", "beta=0.05", "elo0=0", "elo1=1"})},
+                        fastchess_exception);
+    }
 
     TEST_CASE("Should throw engine with invalid restart") {
         const auto args = cli::Args{

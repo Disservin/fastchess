@@ -1,7 +1,10 @@
 #include <cli/cli.hpp>
 
 #include <algorithm>
+#include <cctype>
+#include <cmath>
 #include <filesystem>
+#include <limits>
 #include <sstream>
 #include <string_view>
 #include <type_traits>
@@ -21,25 +24,74 @@ template <typename T>
 T parseScalar(std::string_view value) {
     std::string str(value);
 
-    if constexpr (std::is_same_v<T, int>) {
-        return std::stoi(str);
-    } else if constexpr (std::is_same_v<T, uint32_t>) {
-        return static_cast<uint32_t>(std::stoul(str));
-    } else if constexpr (std::is_same_v<T, uint64_t>) {
-        return std::stoull(str);
-    } else if constexpr (std::is_same_v<T, float>) {
-        return std::stof(str);
-    } else if constexpr (std::is_same_v<T, double>) {
-        return std::stod(str);
-    } else if constexpr (std::is_same_v<T, bool>) {
+    if constexpr (std::is_same_v<T, bool>) {
         if (str == "true") return true;
         if (str == "false") return false;
         throw fastchess::fastchess_exception::format("Expected boolean value (true/false), got: {}", str);
-    } else if constexpr (std::is_same_v<T, std::size_t>) {
-        return static_cast<std::size_t>(std::stoull(str));
-    } else {
+    } else if constexpr (std::is_same_v<T, std::string>) {
         return str;
+    } else {
+        static_assert(std::is_arithmetic_v<T>, "parseScalar only supports arithmetic and string types");
+
+        if (str.empty() || std::any_of(str.begin(), str.end(), [](unsigned char c) { return std::isspace(c); })) {
+            throw fastchess::fastchess_exception::format("Invalid numeric value: \"{}\"", str);
+        }
+
+        std::size_t parsed_length = 0;
+
+        try {
+            if constexpr (std::is_floating_point_v<T>) {
+                const auto parsed = std::stold(str, &parsed_length);
+                if (parsed_length != str.size() || !std::isfinite(parsed) ||
+                    parsed < std::numeric_limits<T>::lowest() || parsed > std::numeric_limits<T>::max()) {
+                    throw fastchess::fastchess_exception::format("Invalid numeric value: \"{}\"", str);
+                }
+                return static_cast<T>(parsed);
+            } else if constexpr (std::is_signed_v<T>) {
+                const auto parsed = std::stoll(str, &parsed_length);
+                if (parsed_length != str.size() || parsed < std::numeric_limits<T>::min() ||
+                    parsed > std::numeric_limits<T>::max()) {
+                    throw fastchess::fastchess_exception::format("Invalid numeric value: \"{}\"", str);
+                }
+                return static_cast<T>(parsed);
+            } else {
+                if (str.front() == '-') {
+                    throw fastchess::fastchess_exception::format("Invalid numeric value: \"{}\"", str);
+                }
+
+                const auto parsed = std::stoull(str, &parsed_length);
+                if (parsed_length != str.size() || parsed > std::numeric_limits<T>::max()) {
+                    throw fastchess::fastchess_exception::format("Invalid numeric value: \"{}\"", str);
+                }
+                return static_cast<T>(parsed);
+            }
+        } catch (const fastchess::fastchess_exception&) {
+            throw;
+        } catch (const std::exception&) {
+            throw fastchess::fastchess_exception::format("Invalid numeric value: \"{}\"", str);
+        }
     }
+}
+
+std::pair<std::string_view, std::string_view> splitTimeControl(std::string_view value, char delimiter) {
+    const auto separator = value.find(delimiter);
+    if (separator == std::string_view::npos || separator == 0 || separator + 1 == value.size() ||
+        value.find(delimiter, separator + 1) != std::string_view::npos) {
+        throw fastchess::fastchess_exception::format("Invalid time control: \"{}\"", value);
+    }
+
+    return {value.substr(0, separator), value.substr(separator + 1)};
+}
+
+int64_t parseDuration(std::string_view value, int64_t multiplier) {
+    const auto duration = parseScalar<long double>(value);
+    const auto scaled   = duration * multiplier;
+
+    if (duration < 0 || scaled > std::numeric_limits<int64_t>::max()) {
+        throw fastchess::fastchess_exception::format("Invalid time control duration: \"{}\"", value);
+    }
+
+    return static_cast<int64_t>(scaled);
 }
 
 // Parse a list of integers on the form 5,10,13-17,23 -> 5,10,13,14,15,16,17,23
@@ -96,36 +148,40 @@ namespace engine {
 TimeControl::Limits parseTc(const std::string& tcString) {
     if (str_utils::contains(tcString, "hg")) throw fastchess_exception("Hourglass time control not supported.");
     if (tcString == "infinite" || tcString == "inf") return {};
+    if (tcString.empty()) throw fastchess_exception("Invalid time control: empty value");
 
     TimeControl::Limits tc;
 
-    std::string remainingStringVector = tcString;
-    const bool has_moves              = str_utils::contains(tcString, "/");
-    const bool has_inc                = str_utils::contains(tcString, "+");
-    const bool has_minutes            = str_utils::contains(tcString, ":");
+    std::string_view remaining = tcString;
 
-    if (has_moves) {
-        const auto moves = str_utils::splitString(tcString, '/');
-        if (moves[0] == "inf" || moves[0] == "infinite") {
+    if (remaining.find('/') != std::string_view::npos) {
+        const auto [moves, rest] = splitTimeControl(remaining, '/');
+        if (moves == "inf" || moves == "infinite") {
             tc.moves = 0;
         } else {
-            tc.moves = std::stoi(moves[0]);
+            tc.moves = parseScalar<int64_t>(moves);
+            if (tc.moves <= 0) throw fastchess_exception("Time control move count must be positive");
         }
-        remainingStringVector = moves[1];
+        remaining = rest;
     }
 
-    if (has_inc) {
-        const auto inc        = str_utils::splitString(remainingStringVector, '+');
-        tc.increment          = static_cast<uint64_t>(std::stod(inc[1]) * 1000);
-        remainingStringVector = inc[0];
+    if (remaining.find('+') != std::string_view::npos) {
+        const auto [time, increment] = splitTimeControl(remaining, '+');
+        tc.increment                 = parseDuration(increment, 1000);
+        remaining                    = time;
     }
 
-    if (has_minutes) {
-        const auto clock_vector = str_utils::splitString(remainingStringVector, ':');
-        tc.time                 = static_cast<int64_t>(std::stod(clock_vector[0]) * 1000 * 60) +
-                                  static_cast<int64_t>(std::stod(clock_vector[1]) * 1000);
+    if (remaining.find(':') != std::string_view::npos) {
+        const auto [minutes, seconds] = splitTimeControl(remaining, ':');
+        const auto minute_duration    = parseDuration(minutes, 60 * 1000);
+        const auto second_duration    = parseDuration(seconds, 1000);
+
+        if (second_duration > std::numeric_limits<int64_t>::max() - minute_duration) {
+            throw fastchess_exception::format("Invalid time control duration: \"{}\"", remaining);
+        }
+        tc.time = minute_duration + second_duration;
     } else {
-        tc.time = static_cast<int64_t>(std::stod(remainingStringVector) * 1000);
+        tc.time = parseDuration(remaining, 1000);
     }
 
     return tc;
@@ -141,16 +197,16 @@ void parseEngineKeyValues(EngineConfiguration& engineConfig, const std::string& 
     else if (key == "tc")
         engineConfig.limit.tc = parseTc(value);
     else if (key == "st")
-        engineConfig.limit.tc.fixed_time = static_cast<int64_t>(std::stod(value) * 1000);
+        engineConfig.limit.tc.fixed_time = parseDuration(value, 1000);
     else if (key == "timemargin") {
-        engineConfig.limit.tc.timemargin = std::stoi(value);
+        engineConfig.limit.tc.timemargin = parseScalar<int64_t>(value);
         if (engineConfig.limit.tc.timemargin < 0) {
             throw fastchess_exception("The value for timemargin cannot be a negative number.");
         }
     } else if (key == "nodes")
-        engineConfig.limit.nodes = std::stoll(value);
+        engineConfig.limit.nodes = parseScalar<int64_t>(value);
     else if (key == "plies" || key == "depth")
-        engineConfig.limit.plies = std::stoll(value);
+        engineConfig.limit.plies = parseScalar<int64_t>(value);
     else if (key == "dir")
         engineConfig.dir = value;
     else if (key == "args")
@@ -281,9 +337,9 @@ void parseOpening(const KeyValuePairs& params, ArgumentData& argument_data) {
                 OptionsParser::throwMissing("openings order", key, value);
             }
         } else if (key == "plies") {
-            argument_data.tournament_config.opening.plies = std::stoi(value);
+            argument_data.tournament_config.opening.plies = parseScalar<int>(value);
         } else if (key == "start") {
-            argument_data.tournament_config.opening.start = std::stoi(value);
+            argument_data.tournament_config.opening.start = parseScalar<int>(value);
             if (argument_data.tournament_config.opening.start < 1)
                 throw fastchess_exception("Starting offset must be at least 1!");
         } else if (key == "policy") {
@@ -303,13 +359,13 @@ void parseSprt(const KeyValuePairs& params, ArgumentData& argument_data) {
 
     for (const auto& [key, value] : params) {
         if (key == "elo0") {
-            argument_data.tournament_config.sprt.elo0 = std::stod(value);
+            argument_data.tournament_config.sprt.elo0 = parseScalar<double>(value);
         } else if (key == "elo1") {
-            argument_data.tournament_config.sprt.elo1 = std::stod(value);
+            argument_data.tournament_config.sprt.elo1 = parseScalar<double>(value);
         } else if (key == "alpha") {
-            argument_data.tournament_config.sprt.alpha = std::stod(value);
+            argument_data.tournament_config.sprt.alpha = parseScalar<double>(value);
         } else if (key == "beta") {
-            argument_data.tournament_config.sprt.beta = std::stod(value);
+            argument_data.tournament_config.sprt.beta = parseScalar<double>(value);
         } else if (key == "model") {
             argument_data.tournament_config.sprt.model = value;
         } else {
@@ -323,12 +379,13 @@ void parseDraw(const KeyValuePairs& params, ArgumentData& argument_data) {
 
     for (const auto& [key, value] : params) {
         if (key == "movenumber") {
-            argument_data.tournament_config.draw.move_number = std::stoi(value);
+            argument_data.tournament_config.draw.move_number = parseScalar<int>(value);
         } else if (key == "movecount") {
-            argument_data.tournament_config.draw.move_count = std::stoi(value);
+            argument_data.tournament_config.draw.move_count = parseScalar<int>(value);
         } else if (key == "score") {
-            if (std::stoi(value) >= 0) {
-                argument_data.tournament_config.draw.score = std::stoi(value);
+            const auto score = parseScalar<int>(value);
+            if (score >= 0) {
+                argument_data.tournament_config.draw.score = score;
             } else {
                 throw fastchess_exception("Score cannot be negative.");
             }
@@ -343,12 +400,13 @@ void parseResign(const KeyValuePairs& params, ArgumentData& argument_data) {
 
     for (const auto& [key, value] : params) {
         if (key == "movecount") {
-            argument_data.tournament_config.resign.move_count = std::stoi(value);
+            argument_data.tournament_config.resign.move_count = parseScalar<int>(value);
         } else if (key == "twosided" && is_bool(value)) {
             argument_data.tournament_config.resign.twosided = value == "true";
         } else if (key == "score") {
-            if (std::stoi(value) >= 0) {
-                argument_data.tournament_config.resign.score = std::stoi(value);
+            const auto score = parseScalar<int>(value);
+            if (score >= 0) {
+                argument_data.tournament_config.resign.score = score;
             } else {
                 throw fastchess_exception("Score cannot be negative.");
             }

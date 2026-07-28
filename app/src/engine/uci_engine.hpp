@@ -1,6 +1,7 @@
 #pragma once
 
 #include <chrono>
+#include <cstdint>
 #include <iterator>
 #include <optional>
 #include <string>
@@ -25,6 +26,23 @@
 namespace fastchess::engine {
 
 using ms = std::chrono::milliseconds;
+
+struct UciInfo {
+    tl::expected<Score, std::string> score = tl::make_unexpected(std::string("Element 'score' not found"));
+    std::optional<int64_t> time;
+    std::optional<int64_t> depth;
+    std::optional<int64_t> seldepth;
+    std::optional<uint64_t> nodes;
+    std::optional<uint64_t> nps;
+    std::optional<uint64_t> tbhits;
+    std::optional<int64_t> hashfull;
+    std::optional<int64_t> multipv;
+    std::vector<std::string> pv;
+    bool lowerbound = false;
+    bool upperbound = false;
+
+    [[nodiscard]] bool isBound() const noexcept { return lowerbound || upperbound; }
+};
 
 class UciEngine {
    public:
@@ -113,6 +131,9 @@ class UciEngine {
 
     // Get all the info lines from the last output.
     [[nodiscard]] std::vector<const std::string*> getInfoLines() const;
+
+    // Parse an info line in one pass.
+    [[nodiscard]] static UciInfo parseInfo(std::string_view info_line);
 
     // Get the score from an info line.
     [[nodiscard]] static tl::expected<Score, std::string> getScore(std::string_view info_line);

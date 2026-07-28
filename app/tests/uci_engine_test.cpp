@@ -55,6 +55,27 @@ auto startTestEngine(engine::UciEngine& uci_engine) {
 }  // namespace
 
 TEST_SUITE("Uci Engine Communication Tests") {
+    TEST_CASE("Parse UCI info") {
+        const auto info = engine::UciEngine::parseInfo(
+            "info depth 18 seldepth 27 multipv 2 score cp -31 upperbound nodes 123456 nps 789000 time 156 "
+            "hashfull 42 tbhits 7 pv e2e4 e7e5 g1f3 string ignored");
+
+        REQUIRE(info.score.has_value());
+        CHECK(info.score->isCp());
+        CHECK(info.score->value == -31);
+        CHECK(info.depth == 18);
+        CHECK(info.seldepth == 27);
+        CHECK(info.multipv == 2);
+        CHECK(info.nodes == 123456);
+        CHECK(info.nps == 789000);
+        CHECK(info.time == 156);
+        CHECK(info.hashfull == 42);
+        CHECK(info.tbhits == 7);
+        CHECK_FALSE(info.lowerbound);
+        CHECK(info.upperbound);
+        CHECK(info.pv == std::vector<std::string>{"e2e4", "e7e5", "g1f3"});
+    }
+
     TEST_CASE("Generate exact position commands") {
         EngineConfiguration config;
         config.cmd = path;
@@ -71,9 +92,9 @@ TEST_SUITE("Uci Engine Communication Tests") {
         const std::vector<std::string_view> fen_moves = {"f1b5", "a7a6"};
         CHECK(uci_engine.position(fen_moves, fen));
 
-        CHECK(dumpCommands(uci_engine) ==
-              std::vector<std::string>{"position startpos", "position startpos moves e2e4 e7e5",
-                                       "position fen " + fen + " moves f1b5 a7a6"});
+        CHECK(dumpCommands(uci_engine) == std::vector<std::string>{"position startpos",
+                                                                   "position startpos moves e2e4 e7e5",
+                                                                   "position fen " + fen + " moves f1b5 a7a6"});
     }
 
     TEST_CASE("Generate exact fixed-limit go command") {
@@ -420,8 +441,7 @@ TEST_SUITE("Uci Engine Communication Tests") {
 
         process.setRealtimeLogging(false);
 
-        CHECK(process.init(".", std::string(path), "--crash-on-go-nodes", "dummy").code ==
-              engine::process::Status::OK);
+        CHECK(process.init(".", std::string(path), "--crash-on-go-nodes", "dummy").code == engine::process::Status::OK);
         CHECK(process.writeInput("go nodes 1\n").code == engine::process::Status::OK);
 
         const auto res = process.readOutput(output, "bestmove", std::chrono::milliseconds(0));

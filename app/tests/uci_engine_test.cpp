@@ -76,6 +76,30 @@ TEST_SUITE("Uci Engine Communication Tests") {
         CHECK(info.pv == std::vector<std::string>{"e2e4", "e7e5", "g1f3"});
     }
 
+    TEST_CASE("Parse lowerbound UCI info updates") {
+        const auto lowerbound = engine::UciEngine::parseInfo(
+            "info depth 20 score cp 42 lowerbound nodes 234567 nps 890000 time 200 pv d2d4 d7d5");
+
+        REQUIRE(lowerbound.score.has_value());
+        CHECK(lowerbound.score->value == 42);
+        CHECK(lowerbound.lowerbound);
+        CHECK_FALSE(lowerbound.upperbound);
+        CHECK(lowerbound.isBound());
+        CHECK(lowerbound.pv == std::vector<std::string>{"d2d4", "d7d5"});
+
+        const auto partial = engine::UciEngine::parseInfo("info depth 21 score cp 51 lowerbound");
+
+        REQUIRE(partial.score.has_value());
+        CHECK(partial.score->value == 51);
+        CHECK(partial.depth == 21);
+        CHECK(partial.lowerbound);
+        CHECK(partial.isBound());
+        CHECK_FALSE(partial.nodes.has_value());
+        CHECK_FALSE(partial.nps.has_value());
+        CHECK_FALSE(partial.time.has_value());
+        CHECK(partial.pv.empty());
+    }
+
     TEST_CASE("Generate exact position commands") {
         EngineConfiguration config;
         config.cmd = path;

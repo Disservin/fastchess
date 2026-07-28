@@ -132,7 +132,7 @@ class Fastchess : public IOutput {
             result += fmt::format("\nPtnml(0-2): {}, {}", formatPentaStats(stats), formatWLDDRatio(stats));
         }
 
-        return result + "\n";
+        return fmt::format("{}\n", result);
     }
 
     std::string getTime(const EngineConfiguration& config) const {

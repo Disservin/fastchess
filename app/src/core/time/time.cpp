@@ -74,7 +74,7 @@ std::string datetime_iso() {
 
     std::string timezone = fmt::format("{}{:02d}{:02d}", (hour_diff >= 0 ? "+" : "-"), std::abs(hour_diff), min_diff);
 
-    return datetime + " " + timezone;
+    return fmt::format("{} {}", datetime, timezone);
 }
 
 // Formats a duration in seconds to a string in the format HH:MM:SS.
@@ -85,10 +85,7 @@ std::string duration(sc::seconds duration) {
     duration -= minutes;
     const auto seconds = duration;
 
-    std::stringstream ss;
-    ss << std::setfill('0') << std::setw(2) << hours.count() << ":" << std::setfill('0') << std::setw(2)
-       << minutes.count() << ":" << std::setfill('0') << std::setw(2) << seconds.count();
-    return ss.str();
+    return fmt::format("{:02}:{:02}:{:02}", hours.count(), minutes.count(), seconds.count());
 }
 
 std::string datetime_precise() {
@@ -97,9 +94,7 @@ std::string datetime_precise() {
     const auto elapsed_ms = ms % sc::seconds(1);
     const auto str        = datetime("%H:%M:%S");
 
-    std::stringstream ss;
-    ss << str.value_or("") << "." << std::setfill('0') << std::setw(6) << elapsed_ms.count();
-    return ss.str();
+    return fmt::format("{}.{:06}", str.value_or(""), elapsed_ms.count());
 }
 
 }  // namespace fastchess::time

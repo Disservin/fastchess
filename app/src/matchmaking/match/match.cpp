@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <iterator>
 #include <regex>
 #include <string_view>
 
@@ -26,17 +27,17 @@ std::string formatTimeoutReason(std::string_view color, int64_t overrun_ms);
 namespace {
 
 std::string to_escaped_string(const std::string& binary_str) {
-    std::stringstream ss;
+    std::string result;
 
     for (unsigned char c : binary_str) {
         if (c >= 32 && c <= 126) {
-            ss << c;
+            result.push_back(static_cast<char>(c));
         } else {
-            ss << "\\x" << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(c);
+            fmt::format_to(std::back_inserter(result), "\\x{:02x}", c);
         }
     }
 
-    return ss.str();
+    return result;
 }
 
 bool isFen(const std::string& line) { return line.find(';') == std::string::npos; }
@@ -128,7 +129,7 @@ void checkMateScoreSignMismatch(const Player& them, const Player& us, const Boar
     const auto themColor = whiteToMove ? "White" : "Black";
     const auto usColor   = whiteToMove ? "Black" : "White";
 
-    const auto startPos = start_position == "startpos" ? "startpos" : "fen " + start_position;
+    const auto startPos = start_position == "startpos" ? start_position : fmt::format("fen {}", start_position);
 
     const auto warning =
         fmt::format("Warning; Sign mismatch in mate scores {} and {} from {} ({}) and {} ({})", themMate, usMate,
@@ -246,7 +247,7 @@ Match::Match(const book::Opening& opening)
         auto fen                     = to_escaped_string(opening_.fen_epd);
 
         Logger::print<Logger::Level::FATAL>("Failed to set position from opening book, invalid FEN or EPD: {}", fen);
-        throw fastchess_exception("Failed to set position from opening book, invalid FEN or EPD: " + fen);
+        throw fastchess_exception::format("Failed to set position from opening book, invalid FEN or EPD: {}", fen);
     }
 
     const auto fen = board_.getFen();
@@ -692,9 +693,8 @@ void Match::verifyPvLines(const Player& us, const std::string& best_move) {
                                  ? fmt::format(fmt::runtime(warning), result->move, us.engine.getConfig().name)
                                  : fmt::format(fmt::runtime(warning), us.engine.getConfig().name);
         auto uci_info      = fmt::format("Info; {}", *info);
-        auto position =
-            fmt::format("Position; {}", start_position_ == "startpos" ? "startpos" : ("fen " + start_position_));
-        auto moves = fmt::format("Moves; {}", str_utils::join(data_.getMoves(), " "));
+        auto position = fmt::format("Position; {}{}", start_position_ == "startpos" ? "" : "fen ", start_position_);
+        auto moves    = fmt::format("Moves; {}", str_utils::join(data_.getMoves(), " "));
 
         auto separator = config::TournamentConfig->test_env ? " :: " : "\n";
 
@@ -719,7 +719,7 @@ void Match::verifyPvLines(const Player& us, const std::string& best_move) {
     const auto result = checkBestmovePv(info, best_move);
     if (result.has_value()) {
         const auto warning = pvWarningFormat(result->warning);
-        auto start_pos     = start_position_ == "startpos" ? "startpos" : ("fen " + start_position_);
+        auto start_pos     = start_position_ == "startpos" ? start_position_ : fmt::format("fen {}", start_position_);
         auto out           = fmt::format(fmt::runtime(warning), result->move, us.engine.getConfig().name);
         auto uci_info      = fmt::format("Info; {}", info);
         auto position      = fmt::format("Position; {}", start_pos);

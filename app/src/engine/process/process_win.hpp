@@ -310,7 +310,7 @@ class Process : public IProcess {
     }
 
     [[nodiscard]] bool createProcess(STARTUPINFOA& si) {
-        const auto cmd = command_ + " " + args_;
+        const auto cmd = fmt::format("{} {}", command_, args_);
 
         const auto success = CreateProcessA(      //
             nullptr,                              //

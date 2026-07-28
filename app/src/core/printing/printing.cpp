@@ -2,6 +2,9 @@
 
 #include <iostream>
 
+#define FMT_HEADER_ONLY
+#include <fmt/include/fmt/core.h>
+
 #ifdef _WIN64
 #    include <windows.h>
 #endif
@@ -17,13 +20,13 @@ void setTerminalOutput() {
 
     if (!SetConsoleOutputCP(65001)) {
         DWORD error = GetLastError();
-        std::cerr << "Failed to set console output code page. Error code: " << error << std::endl;
+        std::cerr << fmt::format("Failed to set console output code page. Error code: {}\n", error) << std::flush;
         return;
     }
 
     if (!SetConsoleCP(65001)) {
         DWORD error = GetLastError();
-        std::cerr << "Failed to set console input code page. Error code: " << error << std::endl;
+        std::cerr << fmt::format("Failed to set console input code page. Error code: {}\n", error) << std::flush;
         return;
     }
 
@@ -36,7 +39,7 @@ void setTerminalOutput() {
     DWORD consoleMode;
     if (!GetConsoleMode(hConsole, &consoleMode)) {
         DWORD error = GetLastError();
-        std::cerr << "Failed to get console mode. Error code: " << error << std::endl;
+        std::cerr << fmt::format("Failed to get console mode. Error code: {}\n", error) << std::flush;
         return;
     }
 
@@ -44,7 +47,7 @@ void setTerminalOutput() {
     consoleMode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
     if (!SetConsoleMode(hConsole, consoleMode)) {
         DWORD error = GetLastError();
-        std::cerr << "Failed to set console mode. Error code: " << error << std::endl;
+        std::cerr << fmt::format("Failed to set console mode. Error code: {}\n", error) << std::flush;
         return;
     }
 #endif

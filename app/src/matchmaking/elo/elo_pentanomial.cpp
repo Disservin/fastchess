@@ -1,8 +1,9 @@
 #include <matchmaking/elo/elo_pentanomial.hpp>
 
 #include <cmath>
-#include <iomanip>
-#include <sstream>
+
+#define FMT_HEADER_ONLY
+#include <fmt/include/fmt/core.h>
 
 namespace fastchess::elo {
 
@@ -49,24 +50,12 @@ double EloPentanomial::calcVariance(const Stats& stats) const noexcept {
     return WW_dev + WD_dev + WLDD_dev + LD_dev + LL_dev;
 }
 
-std::string EloPentanomial::nElo() const noexcept {
-    std::stringstream ss;
-
-    ss << std::fixed << std::setprecision(2) << nelodiff_;
-    ss << " +/- ";
-    ss << std::fixed << std::setprecision(2) << neloerror_;
-
-    return ss.str();
-}
+std::string EloPentanomial::nElo() const noexcept { return fmt::format("{:.2f} +/- {:.2f}", nelodiff_, neloerror_); }
 
 std::string EloPentanomial::los() const noexcept {
     const double los = (1 - std::erf(-(score_ - 0.5) / std::sqrt(2.0 * variance_per_pair_))) / 2.0;
 
-    std::stringstream ss;
-
-    ss << std::fixed << std::setprecision(2) << los * 100.0 << " %";
-
-    return ss.str();
+    return fmt::format("{:.2f} %", los * 100.0);
 }
 
 double EloPentanomial::getScore() const noexcept { return score_; }

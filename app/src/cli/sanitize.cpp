@@ -11,6 +11,9 @@
 #include <matchmaking/sprt/sprt.hpp>
 #include <types/exception.hpp>
 
+#define FMT_HEADER_ONLY
+#include <fmt/include/fmt/core.h>
+
 namespace fastchess::cli {
 
 namespace {
@@ -127,7 +130,7 @@ void validateEngine(EngineConfiguration& config) {
 
     if (!config.dir.empty() || enginePath.is_absolute()) {
         if (!std::filesystem::is_regular_file(enginePath)) {
-            throw fastchess_exception("Engine binary does not exist: " + enginePath.string());
+            throw fastchess_exception::format("Engine binary does not exist: {}", enginePath.string());
         }
     }
 
@@ -165,7 +168,7 @@ void sanitize(std::vector<EngineConfiguration>& configs) {
         int& n = seen[config.name];
 
         if (n++ > 0) {
-            config.name += "_" + std::to_string(n);
+            config.name = fmt::format("{}_{}", config.name, n);
         }
     }
 }

@@ -1,7 +1,6 @@
 #pragma once
 
 #include <cassert>
-#include <sstream>
 #include <string>
 
 #include <fcntl.h>  // fcntl
@@ -12,6 +11,9 @@
 #include <sys/wait.h>
 
 #include <types/exception.hpp>
+
+#define FMT_HEADER_ONLY
+#include <fmt/include/fmt/core.h>
 
 namespace fastchess::engine::process {
 
@@ -99,35 +101,29 @@ inline std::string stopSignalToString(int sig) {
 }  // namespace detail
 
 inline std::string signalToString(int status) {
-    std::stringstream result;
-
     if (WIFEXITED(status)) {
-        result << "Process exited normally with status " << WEXITSTATUS(status);
+        return fmt::format("Process exited normally with status {}", WEXITSTATUS(status));
     } else if (WIFSIGNALED(status)) {
-        result << "Process terminated by signal " << WTERMSIG(status) << " (";
-        result << detail::termSignalToString(WTERMSIG(status));
-        result << ")";
-
 #ifdef WCOREDUMP
-        if (WCOREDUMP(status)) {
-            result << " - Core dumped";
-        }
+        const auto core_dumped = WCOREDUMP(status) ? " - Core dumped" : "";
+#else
+        const auto core_dumped = "";
 #endif
+        return fmt::format("Process terminated by signal {} ({}){}", WTERMSIG(status),
+                           detail::termSignalToString(WTERMSIG(status)), core_dumped);
     } else if (WIFSTOPPED(status)) {
-        result << "Process stopped by signal " << WSTOPSIG(status);
-        result << " (" << detail::stopSignalToString(WSTOPSIG(status)) << ")";
+        return fmt::format("Process stopped by signal {} ({})", WSTOPSIG(status),
+                           detail::stopSignalToString(WSTOPSIG(status)));
     }
     // Not all systems define this
 #ifdef WIFCONTINUED
     else if (WIFCONTINUED(status)) {
-        result << "Process continued";
+        return "Process continued";
     }
 #endif
     else {
-        result << "Unknown status " << status;
+        return fmt::format("Unknown status {}", status);
     }
-
-    return result.str();
 }
 
 }  // namespace fastchess::engine::process

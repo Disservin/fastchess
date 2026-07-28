@@ -1,6 +1,7 @@
 #pragma once
 
 #include <chrono>
+#include <iterator>
 #include <optional>
 #include <string>
 #include <string_view>
@@ -95,7 +96,7 @@ class UciEngine {
         std::string cpu_str;
         for (const auto& cpu : cpus) {
             if (!cpu_str.empty()) cpu_str += ", ";
-            cpu_str += std::to_string(cpu);
+            fmt::format_to(std::back_inserter(cpu_str), "{}", cpu);
         }
 
         Logger::print<Logger::Level::WARN>(

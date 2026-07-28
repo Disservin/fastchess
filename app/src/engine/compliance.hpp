@@ -9,6 +9,9 @@
 #include <core/config/config.hpp>
 #include <engine/uci_engine.hpp>
 
+#define FMT_HEADER_ONLY
+#include <fmt/include/fmt/core.h>
+
 namespace fastchess::engine {
 
 inline bool isValidInfoLine(const std::string& infoLine) {
@@ -16,19 +19,19 @@ inline bool isValidInfoLine(const std::string& infoLine) {
     std::string token;
 
     if (!(iss >> token) || token != "info") {
-        std::cerr << "\r\nInvalid info line format: " << infoLine << std::endl;
+        std::cerr << fmt::format("\r\nInvalid info line format: {}\n", infoLine) << std::flush;
         return false;
     }
 
     while (iss >> token) {
         if (token == "time" || token == "nps" || token == "score") {
             if (!(iss >> token)) {
-                std::cerr << "\r\nNo value after token: " << token << std::endl;
+                std::cerr << fmt::format("\r\nNo value after token: {}\n", token) << std::flush;
                 return false;
             }
 
             if (token.find('.') != std::string::npos) {
-                std::cerr << "\r\nTime/NPS/Score value is not an integer: " << token << std::endl;
+                std::cerr << fmt::format("\r\nTime/NPS/Score value is not an integer: {}\n", token) << std::flush;
                 return false;
             }
         }
@@ -51,23 +54,25 @@ inline bool compliant(int argc, char const* argv[]) {
     auto executeStep = [&step, &uci_engine](const std::string& description, const std::function<bool()>& action) {
         step++;
 
-        std::cout << "Step " << step << ": " << description << "..." << std::flush;
+        std::cout << fmt::format("Step {}: {}...", step, description) << std::flush;
 
         if (!action()) {
-            std::cerr << "\r\033[1;31m Failed\033[0m Step " << step << ": " << description << std::endl;
+            std::cerr << fmt::format("\r\033[1;31m Failed\033[0m Step {}: {}\n", step, description) << std::flush;
 
             std::cerr << "\033[1;33m Your engine's stdout output was:\033[0m" << std::endl;
-            for (const auto& line : uci_engine.getStdoutLines()) std::cerr << " " << line->line << std::endl;
+            for (const auto& line : uci_engine.getStdoutLines())
+                std::cerr << fmt::format(" {}\n", line->line) << std::flush;
 
             if (uci_engine.getStderrLines().size()) {
                 std::cerr << "\033[1;33m Your engine's stderr output was:\033[0m" << std::endl;
-                for (const auto& line : uci_engine.getStderrLines()) std::cerr << " " << line->line << std::endl;
+                for (const auto& line : uci_engine.getStderrLines())
+                    std::cerr << fmt::format(" {}\n", line->line) << std::flush;
             }
 
             return false;
         }
 
-        std::cout << "\r" << "\033[1;32m Passed\033[0m Step " << step << ": " << description << std::endl;
+        std::cout << fmt::format("\r\033[1;32m Passed\033[0m Step {}: {}\n", step, description) << std::flush;
 
         return true;
     };

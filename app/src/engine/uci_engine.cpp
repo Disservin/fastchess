@@ -1,7 +1,6 @@
 #include <engine/uci_engine.hpp>
 
 #include <algorithm>
-#include <charconv>
 #include <condition_variable>
 #include <iterator>
 #include <mutex>
@@ -500,10 +499,20 @@ UciInfo UciEngine::parseInfo(std::string_view info_line) {
     const auto parse_integer = [&](auto& value, size_t index) {
         if (index >= tokens.size()) return;
 
-        typename std::decay_t<decltype(value)>::value_type parsed{};
-        const auto& token     = tokens[index];
-        const auto conversion = std::from_chars(token.data(), token.data() + token.size(), parsed);
-        if (conversion.ec == std::errc() && conversion.ptr == token.data() + token.size()) value = parsed;
+        using Value       = typename std::decay_t<decltype(value)>::value_type;
+        const auto& token = tokens[index];
+        size_t parsed     = 0;
+
+        try {
+            if constexpr (std::is_unsigned_v<Value>) {
+                const auto converted = std::stoull(token, &parsed);
+                if (parsed == token.size()) value = static_cast<Value>(converted);
+            } else {
+                const auto converted = std::stoll(token, &parsed);
+                if (parsed == token.size()) value = static_cast<Value>(converted);
+            }
+        } catch (const std::exception&) {
+        }
     };
 
     for (size_t i = 0; i < tokens.size(); ++i) {
@@ -522,12 +531,13 @@ UciInfo UciEngine::parseInfo(std::string_view info_line) {
                 continue;
             }
 
-            const auto& value     = tokens[i + 2];
-            const auto conversion = std::from_chars(value.data(), value.data() + value.size(), score.value);
-            if (conversion.ec != std::errc() || conversion.ptr != value.data() + value.size()) {
-                result.score = tl::make_unexpected(fmt::format("Invalid score value: {}", value));
+            std::optional<int64_t> value;
+            parse_integer(value, i + 2);
+            if (!value.has_value()) {
+                result.score = tl::make_unexpected(fmt::format("Invalid score value: {}", tokens[i + 2]));
                 continue;
             }
+            score.value  = *value;
             result.score = score;
         } else if (token == "time") {
             parse_integer(result.time, i + 1);

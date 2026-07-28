@@ -1,8 +1,6 @@
 #include <matchmaking/elo/elo_wdl.hpp>
 
 #include <cmath>
-#include <iomanip>
-#include <sstream>
 
 #define FMT_HEADER_ONLY
 #include <fmt/include/fmt/core.h>
@@ -10,15 +8,7 @@
 
 namespace fastchess::elo {
 
-std::string EloBase::getElo() const noexcept {
-    std::stringstream ss;
-
-    ss << std::fixed << std::setprecision(2) << diff_;
-    ss << " +/- ";
-    ss << std::fixed << std::setprecision(2) << error_;
-
-    return ss.str();
-}
+std::string EloBase::getElo() const noexcept { return fmt::format("{:.2f} +/- {:.2f}", diff_, error_); }
 
 EloWDL::EloWDL(const Stats& stats) {
     games_             = stats.sum();
@@ -55,23 +45,12 @@ double EloWDL::calcVariance(const Stats& stats) const noexcept {
     return W_dev + D_dev + L_dev;
 }
 
-std::string EloWDL::nElo() const noexcept {
-    std::stringstream ss;
-
-    ss << std::fixed << std::setprecision(2) << nelodiff_;
-    ss << " +/- ";
-    ss << std::fixed << std::setprecision(2) << neloerror_;
-
-    return ss.str();
-}
+std::string EloWDL::nElo() const noexcept { return fmt::format("{:.2f} +/- {:.2f}", nelodiff_, neloerror_); }
 
 std::string EloWDL::los() const noexcept {
     const double los = (1 - std::erf(-(score_ - 0.5) / std::sqrt(2.0 * variance_per_game_))) / 2.0;
 
-    std::stringstream ss;
-    ss << std::fixed << std::setprecision(2) << los * 100.0 << " %";
-
-    return ss.str();
+    return fmt::format("{:.2f} %", los * 100.0);
 }
 
 double EloWDL::getScore() const noexcept { return score_; }

@@ -34,7 +34,7 @@ T parseScalar(std::string_view value) {
     } else if constexpr (std::is_same_v<T, bool>) {
         if (str == "true") return true;
         if (str == "false") return false;
-        throw fastchess::fastchess_exception("Expected boolean value (true/false), got: " + str);
+        throw fastchess::fastchess_exception::format("Expected boolean value (true/false), got: {}", str);
     } else if constexpr (std::is_same_v<T, std::size_t>) {
         return static_cast<std::size_t>(std::stoull(str));
     } else {
@@ -157,7 +157,7 @@ void parseEngineKeyValues(EngineConfiguration& engineConfig, const std::string& 
         engineConfig.args = value;
     else if (key == "restart") {
         if (value != "on" && value != "off") {
-            throw fastchess_exception("Invalid parameter (must be either \"on\" or \"off\"): " + value);
+            throw fastchess_exception::format("Invalid parameter (must be either \"on\" or \"off\"): {}", value);
         }
         engineConfig.restart = value == "on";
     } else if (isEngineSettableOption(key)) {
@@ -192,7 +192,8 @@ void parseEach(const KeyValuePairs& params, ArgumentData& argument_data) {
 }
 
 void parsePgnOut(const KeyValuePairs& params, ArgumentData& argument_data) {
-    argument_data.tournament_config.pgn.file = "fastchess_" + time::datetime("%Y%m%d_%H%M%S").value_or("") + ".pgn";
+    argument_data.tournament_config.pgn.file =
+        fmt::format("fastchess_{}.pgn", time::datetime("%Y%m%d_%H%M%S").value_or(""));
 
     for (const auto& [key, value] : params) {
         if (key == "file") {
@@ -236,7 +237,8 @@ void parsePgnOut(const KeyValuePairs& params, ArgumentData& argument_data) {
 }
 
 void parseEpdOut(const KeyValuePairs& params, ArgumentData& argument_data) {
-    argument_data.tournament_config.epd.file = "fastchess_" + time::datetime("%Y%m%d_%H%M%S").value_or("") + ".epd";
+    argument_data.tournament_config.epd.file =
+        fmt::format("fastchess_{}.epd", time::datetime("%Y%m%d_%H%M%S").value_or(""));
 
     for (const auto& [key, value] : params) {
         if (key == "file") {
@@ -260,7 +262,7 @@ void parseOpening(const KeyValuePairs& params, ArgumentData& argument_data) {
             }
 
             if (!std::filesystem::exists(value)) {
-                throw fastchess_exception("Opening file does not exist: " + value);
+                throw fastchess_exception::format("Opening file does not exist: {}", value);
             }
         } else if (key == "format") {
             if (value == "epd") {
@@ -383,7 +385,7 @@ void parseTbAdjudicate(std::string_view value, ArgumentData& argument_data) {
     } else if (type == "BOTH") {
         argument_data.tournament_config.tb_adjudication.result_type = config::TbAdjudication::ResultType::BOTH;
     } else {
-        throw fastchess_exception("Invalid tb adjudication type: " + type);
+        throw fastchess_exception::format("Invalid tb adjudication type: {}", type);
     }
 }
 
@@ -434,7 +436,7 @@ void loadJson(ArgumentData& argument_data, const std::string& filename) {
     std::ifstream f(filename);
 
     if (!f.is_open()) {
-        throw fastchess_exception("File not found: " + filename);
+        throw fastchess_exception::format("File not found: {}", filename);
     }
 
     json jsonfile = json::parse(f);

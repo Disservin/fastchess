@@ -1,7 +1,5 @@
 #pragma once
 
-#include <iomanip>
-#include <sstream>
 #include <string>
 #include <string_view>
 
@@ -14,6 +12,9 @@
 #include <game/pgn/openings_data.hpp>
 #include <game/pgn/pgn_gen.hpp>
 
+#define FMT_HEADER_ONLY
+#include <fmt/include/fmt/core.h>
+
 namespace fastchess::pgn {
 
 class PgnBuilder {
@@ -21,7 +22,7 @@ class PgnBuilder {
     PgnBuilder(const config::Pgn& pgn_config, const MatchData& match, std::size_t round_id);
 
     // Get the newly created pgn
-    [[nodiscard]] std::string get() const noexcept { return pgn_generator_.generate() + "\n\n"; }
+    [[nodiscard]] std::string get() const noexcept { return fmt::format("{}\n\n", pgn_generator_.generate()); }
 
     static constexpr int LINE_LENGTH = 80;
 
@@ -40,20 +41,13 @@ class PgnBuilder {
     // Adds a comment to the pgn. The comment is formatted as {first, args}
     template <typename First, typename... Args>
     [[nodiscard]] static std::string addComment(First&& first, Args&&... args) {
-        std::stringstream ss;
-
-        ss << std::forward<First>(first);
-        ((ss << (std::string(args).empty() ? "" : ", ") << std::forward<Args>(args)), ...);
-
-        return ss.str();
+        std::string result = fmt::format("{}", std::forward<First>(first));
+        ((result += std::string(args).empty() ? "" : fmt::format(", {}", std::forward<Args>(args))), ...);
+        return result;
     }
 
     // Formats a time in milliseconds to seconds with 3 decimals
-    [[nodiscard]] static std::string formatTime(int64_t millis) {
-        std::stringstream ss;
-        ss << std::setprecision(3) << std::fixed << millis / 1000.0 << "s";
-        return ss.str();
-    }
+    [[nodiscard]] static std::string formatTime(int64_t millis) { return fmt::format("{:.3f}s", millis / 1000.0); }
 
     const config::Pgn& pgn_config_;
     const MatchData& match_;

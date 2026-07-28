@@ -6,6 +6,8 @@
 #include <string>
 #include <vector>
 
+#define FMT_HEADER_ONLY
+#include <fmt/include/fmt/core.h>
 #include <expected.hpp>
 #include <json.hpp>
 
@@ -52,7 +54,7 @@ template <typename T>
     auto it = std::find(haystack.begin(), haystack.end(), needle);
 
     if (it == haystack.end() || std::next(it) == haystack.end()) {
-        return tl::make_unexpected(std::string("Element '") + std::string(needle) + "' not found");
+        return tl::make_unexpected(fmt::format("Element '{}' not found", needle));
     }
 
     const std::string& target = *std::next(it);
@@ -69,11 +71,10 @@ template <typename T>
         } else if constexpr (std::is_same_v<T, std::string>) {
             return target;
         } else {
-            return tl::make_unexpected(std::string("Unsupported target type for element '") + target + "'");
+            return tl::make_unexpected(fmt::format("Unsupported target type for element '{}'", target));
         }
     } catch (const std::exception& e) {
-        return tl::make_unexpected(std::string("Error converting element '") + target +
-                                   "' to target type: " + e.what());
+        return tl::make_unexpected(fmt::format("Error converting element '{}' to target type: {}", target, e.what()));
     }
 }
 

@@ -9,6 +9,9 @@
 
 #include <json.hpp>
 
+#define FMT_HEADER_ONLY
+#include <fmt/include/fmt/core.h>
+
 namespace fastchess {
 
 TimeControl::TimeControl(const Limits& limits) : limits_(limits) {
@@ -58,7 +61,7 @@ bool TimeControl::updateTime(const int64_t elapsed_millis) noexcept {
 
 std::ostream& operator<<(std::ostream& os, const TimeControl& tc) {
     if (tc.limits_.fixed_time > 0) {
-        os << std::setprecision(8) << std::noshowpoint << tc.limits_.fixed_time / 1000.0 << "/move";
+        os << fmt::format("{:.8g}/move", tc.limits_.fixed_time / 1000.0);
         return os;
     }
 
@@ -66,11 +69,11 @@ std::ostream& operator<<(std::ostream& os, const TimeControl& tc) {
         os << "-";
     }
 
-    if (tc.limits_.moves > 0) os << tc.limits_.moves << "/";
+    if (tc.limits_.moves > 0) os << fmt::format("{}/", tc.limits_.moves);
 
-    if (tc.limits_.time + tc.limits_.increment > 0) os << (tc.limits_.time / 1000.0);
+    if (tc.limits_.time + tc.limits_.increment > 0) os << fmt::format("{:.6g}", tc.limits_.time / 1000.0);
 
-    if (tc.limits_.increment > 0) os << "+" << (tc.limits_.increment / 1000.0);
+    if (tc.limits_.increment > 0) os << fmt::format("+{:.6g}", tc.limits_.increment / 1000.0);
 
     return os;
 }

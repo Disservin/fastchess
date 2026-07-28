@@ -2,6 +2,7 @@
 
 #include <functional>
 #include <iostream>
+#include <iterator>
 #include <optional>
 #include <sstream>
 #include <string>
@@ -70,45 +71,42 @@ class OptionsParser {
              {"Dec", "12"}});
 
         std::string month, day, year;
-        std::stringstream ss, date(__DATE__);  // {month} {date} {year}
-
-        ss << "fastchess " << version;
+        std::stringstream date(__DATE__);  // {month} {date} {year}
+        std::string result = fmt::format("fastchess {}", version);
 
 #ifdef COMPILE_MSG
-        ss << COMPILE_MSG << " ";
+        fmt::format_to(std::back_inserter(result), "{} ", COMPILE_MSG);
 #endif
 
 #ifndef RELEASE
 #    ifdef GIT_DATE
-        ss << GIT_DATE;
+        fmt::format_to(std::back_inserter(result), "{}", GIT_DATE);
 #    else
         date >> month >> day >> year;
-        if (day.length() == 1) day = "0" + day;
-        ss << year.substr(2) << months.at(month) << day;
+        fmt::format_to(std::back_inserter(result), "{}{}{:0>2}", year.substr(2), months.at(month), day);
 #    endif
 
 #    ifdef GIT_SHA
-        ss << "-" << GIT_SHA;
+        fmt::format_to(std::back_inserter(result), "-{}", GIT_SHA);
 #    endif
 #endif
 
 #ifdef USE_CUTE
-        ss << " (compiled with cutechess output)";
+        result += " (compiled with cutechess output)";
 #endif
 
 #ifndef NDEBUG
-        ss << " (assertions)";
+        result += " (assertions)";
 #endif
 
-        return ss.str();
+        return result;
     }
 
    public:
     OptionsParser(const cli::Args& args);
 
     static void throwMissing(std::string_view name, std::string_view key, std::string_view value) {
-        throw fastchess_exception("Unrecognized " + std::string(name) + " option \"" + std::string(key) +
-                                  "\" with value \"" + std::string(value) + "\".");
+        throw fastchess_exception::format("Unrecognized {} option \"{}\" with value \"{}\".", name, key, value);
     }
 
     static int levenshtein(std::string_view a, std::string_view b) {
@@ -208,12 +206,11 @@ class OptionsParser {
 
         const auto joinParams = [](const std::vector<std::string>& params) -> std::string {
             if (params.empty()) return std::string("<none>");
-            std::ostringstream oss;
+            std::string result;
             for (std::size_t i = 0; i < params.size(); ++i) {
-                if (i != 0) oss << ' ';
-                oss << params[i];
+                fmt::format_to(std::back_inserter(result), "{}{}", i == 0 ? "" : " ", params[i]);
             }
-            return oss.str();
+            return result;
         };
 
         for (int i = 1; i < args.argc(); i++) {
@@ -222,7 +219,7 @@ class OptionsParser {
                 auto f = fmt::format("Unrecognized option: {} parsing failed.", arg);
 
                 if (auto suggestion = findSuggestion(arg))
-                    throw fastchess_exception(fmt::format("{}: Did you mean \"{}\"?", f, *suggestion));
+                    throw fastchess_exception::format("{}: Did you mean \"{}\"?", f, *suggestion);
 
                 throw fastchess_exception(f);
             }
@@ -258,7 +255,7 @@ class OptionsParser {
                     fmt::format("Error while reading option \"{}\" with value \"{}\"", arg, std::string(args[i]));
                 auto msg = fmt::format("Reason: {}", e.what());
 
-                throw fastchess_exception(err + "\n" + msg);
+                throw fastchess_exception::format("{}\n{}", err, msg);
             }
         }
 
@@ -270,7 +267,7 @@ class OptionsParser {
                 auto err = fmt::format("Error while reading option \"{}\" with value \"{}\"", flag, joinParams(params));
                 auto msg = fmt::format("Reason: {}", e.what());
 
-                throw fastchess_exception(err + "\n" + msg);
+                throw fastchess_exception::format("{}\n{}", err, msg);
             }
         }
     }
@@ -282,7 +279,7 @@ class OptionsParser {
             std::function<void(ArgumentData&)> fn = std::forward<Handler>(handler);
             return [flag, fn](const std::vector<std::string>& params, ArgumentData& data) {
                 if (!params.empty()) {
-                    throw fastchess_exception("Option \"" + flag + "\" does not accept parameters.");
+                    throw fastchess_exception::format("Option \"{}\" does not accept parameters.", flag);
                 }
                 fn(data);
             };
@@ -292,7 +289,7 @@ class OptionsParser {
             std::function<void(std::string_view, ArgumentData&)> fn = std::forward<Handler>(handler);
             return [flag, fn](const std::vector<std::string>& params, ArgumentData& data) {
                 if (params.size() != 1) {
-                    throw fastchess_exception("Option \"" + flag + "\" expects exactly one value.");
+                    throw fastchess_exception::format("Option \"{}\" expects exactly one value.", flag);
                 }
                 fn(params.front(), data);
             };
@@ -304,7 +301,7 @@ class OptionsParser {
                 std::forward<Handler>(handler);
             return [flag, fn](const std::vector<std::string>& params, ArgumentData& data) {
                 if (params.empty()) {
-                    throw fastchess_exception("Option \"" + flag + "\" expects key=value parameters.");
+                    throw fastchess_exception::format("Option \"{}\" expects key=value parameters.", flag);
                 }
 
                 std::vector<std::pair<std::string, std::string>> kv;
@@ -312,8 +309,8 @@ class OptionsParser {
                 for (const auto& param : params) {
                     const auto pos = param.find('=');
                     if (pos == std::string::npos || pos == 0 || pos + 1 == param.size()) {
-                        throw fastchess_exception("Option \"" + flag + "\" expects key=value pairs, got \"" + param +
-                                                  "\".");
+                        throw fastchess_exception::format("Option \"{}\" expects key=value pairs, got \"{}\".", flag,
+                                                          param);
                     }
                     kv.emplace_back(param.substr(0, pos), param.substr(pos + 1));
                 }
@@ -332,8 +329,8 @@ class OptionsParser {
                 for (const auto& param : params) {
                     const auto pos = param.find('=');
                     if (pos == std::string::npos || pos == 0 || pos + 1 == param.size()) {
-                        throw fastchess_exception("Option \"" + flag + "\" expects key=value pairs, got \"" + param +
-                                                  "\".");
+                        throw fastchess_exception::format("Option \"{}\" expects key=value pairs, got \"{}\".", flag,
+                                                          param);
                     }
                     kv.emplace_back(param.substr(0, pos), param.substr(pos + 1));
                 }

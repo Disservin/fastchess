@@ -1,20 +1,20 @@
 #include <game/pgn/pgn_builder.hpp>
 
-#include <sstream>
+#include <iterator>
 #include <string>
 #include <string_view>
 #include <vector>
 
 #include <matchmaking/output/output.hpp>
 
+#include <fmt/include/fmt/ostream.h>
+
 namespace fastchess::pgn {
 
 namespace str {
 template <typename T>
 std::string to_string(const T& obj) {
-    std::stringstream ss;
-    ss << obj;
-    return ss.str();
+    return fmt::format("{}", fmt::streamed(obj));
 }
 }  // namespace str
 
@@ -28,7 +28,7 @@ PgnBuilder::PgnBuilder(const config::Pgn& pgn_config, const MatchData& match, st
     pgn_generator_.addHeader("Event", pgn_config_.event_name);
     pgn_generator_.addHeader("Site", pgn_config_.site);
     pgn_generator_.addHeader("Date", match_.date);
-    pgn_generator_.addHeader("Round", std::to_string(round_id));
+    pgn_generator_.addHeader("Round", fmt::format("{}", round_id));
     pgn_generator_.addHeader("White", white_player.config.name);
     pgn_generator_.addHeader("Black", black_player.config.name);
     pgn_generator_.addHeader("Result", getResultFromWhiteMatch(white_player));
@@ -65,7 +65,7 @@ PgnBuilder::PgnBuilder(const config::Pgn& pgn_config, const MatchData& match, st
         pgn_generator_.addHeader("GameDuration", match_.duration);
         pgn_generator_.addHeader("GameStartTime", match_.start_time);
         pgn_generator_.addHeader("GameEndTime", match_.end_time);
-        pgn_generator_.addHeader("PlyCount", std::to_string(match_.moves.size()));
+        pgn_generator_.addHeader("PlyCount", fmt::format("{}", match_.moves.size()));
         pgn_generator_.addHeader("Termination", convertMatchTermination(match_.termination));
 
         if (white_player.config.limit.tc == black_player.config.limit.tc) {
@@ -88,7 +88,7 @@ PgnBuilder::PgnBuilder(const config::Pgn& pgn_config, const MatchData& match, st
     const auto firstIllegal = match_.moves.begin() != match_.moves.end() && !match_.moves.begin()->legal;
 
     if (firstIllegal) {
-        pgn_generator_.addMove("", match_.reason + ": " + match_.moves.begin()->move);
+        pgn_generator_.addMove("", fmt::format("{}: {}", match_.reason, match_.moves.begin()->move));
         return;
     }
 
@@ -166,7 +166,7 @@ std::string PgnBuilder::createComment(const MoveData& move, const MoveData& next
     if (!move.additional_lines.empty()) {
         for (const auto& line : move.additional_lines) {
             info_lines += info_lines.empty() ? "" : ", ";
-            info_lines += "line=\"" + line + "\"";
+            fmt::format_to(std::back_inserter(info_lines), "line=\"{}\"", line);
         }
     }
 
@@ -175,20 +175,20 @@ std::string PgnBuilder::createComment(const MoveData& move, const MoveData& next
             return addComment("book");
         }
 
-        const auto match_str = illegal ? match_.reason + ": " + next_move.move : match_.reason;
+        const auto match_str = illegal ? fmt::format("{}: {}", match_.reason, next_move.move) : match_.reason;
         const auto score     = move.score ? static_cast<std::string>(*move.score) : "";
 
-        return addComment((score + "/" + std::to_string(move.depth)) + " " + formatTime(move.elapsed_millis),
-                          pgn_config_.track_timeleft ? "tl=" + formatTime(move.timeleft) : "",            //
-                          pgn_config_.track_latency ? "latency=" + formatTime(move.latency) : "",         //
-                          pgn_config_.track_nodes ? "n=" + std::to_string(move.nodes) : "",               //
-                          pgn_config_.track_seldepth ? "sd=" + std::to_string(move.seldepth) : "",        //
-                          pgn_config_.track_nps ? "nps=" + std::to_string(move.nps) : "",                 //
-                          pgn_config_.track_hashfull ? "hashfull=" + std::to_string(move.hashfull) : "",  //
-                          pgn_config_.track_tbhits ? "tbhits=" + std::to_string(move.tbhits) : "",        //
-                          pgn_config_.track_pv ? "pv=\"" + move.pv + "\"" : "",                           //
-                          info_lines.empty() ? "" : info_lines,                                           //
-                          last ? match_str : ""                                                           //
+        return addComment(fmt::format("{}/{} {}", score, move.depth, formatTime(move.elapsed_millis)),
+                          pgn_config_.track_timeleft ? fmt::format("tl={}", formatTime(move.timeleft)) : "",
+                          pgn_config_.track_latency ? fmt::format("latency={}", formatTime(move.latency)) : "",
+                          pgn_config_.track_nodes ? fmt::format("n={}", move.nodes) : "",
+                          pgn_config_.track_seldepth ? fmt::format("sd={}", move.seldepth) : "",
+                          pgn_config_.track_nps ? fmt::format("nps={}", move.nps) : "",
+                          pgn_config_.track_hashfull ? fmt::format("hashfull={}", move.hashfull) : "",
+                          pgn_config_.track_tbhits ? fmt::format("tbhits={}", move.tbhits) : "",
+                          pgn_config_.track_pv ? fmt::format("pv=\"{}\"", move.pv) : "",
+                          info_lines.empty() ? "" : info_lines,  //
+                          last ? match_str : ""                  //
         );
     }
 

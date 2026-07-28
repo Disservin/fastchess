@@ -1,6 +1,5 @@
 #pragma once
 
-#include <sstream>
 #include <string>
 
 #include <chess.hpp>
@@ -8,6 +7,9 @@
 #include <core/config/config.hpp>
 #include <matchmaking/match/match.hpp>
 #include <types/tournament.hpp>
+
+#define FMT_HEADER_ONLY
+#include <fmt/include/fmt/core.h>
 
 namespace fastchess::epd {
 
@@ -26,14 +28,14 @@ class EpdBuilder {
             board.makeMove<true>(chess::uci::uciToMove(board, move.move));
         }
 
-        epd << board.getEpd() << "\n";
+        epd = fmt::format("{}\n", board.getEpd());
     }
 
     // Get the newly created epd
-    [[nodiscard]] std::string get() const noexcept { return epd.str(); }
+    [[nodiscard]] std::string get() const noexcept { return epd; }
 
    private:
-    std::stringstream epd;
+    std::string epd;
 };
 
 }  // namespace fastchess::epd

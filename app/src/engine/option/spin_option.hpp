@@ -7,6 +7,9 @@
 
 #include <types/exception.hpp>
 
+#define FMT_HEADER_ONLY
+#include <fmt/include/fmt/core.h>
+
 namespace fastchess {
 
 template <typename T>
@@ -35,7 +38,13 @@ class SpinOption : public UCIOption {
         }
     }
 
-    std::string getValue() const override { return std::to_string(value); }
+    std::string getValue() const override {
+        if constexpr (std::is_floating_point_v<T>) {
+            return fmt::format("{:.6f}", value);
+        } else {
+            return fmt::format("{}", value);
+        }
+    }
 
     bool isValid(const std::string& value) const override {
         T parsedValue = parseValue(value);

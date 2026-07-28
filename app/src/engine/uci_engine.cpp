@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <condition_variable>
+#include <iterator>
 #include <mutex>
 #include <optional>
 #include <string>
@@ -118,21 +119,20 @@ bool UciEngine::position(const std::vector<std::string_view>& moves, const std::
 }
 
 bool UciEngine::go(const TimeControl& our_tc, const TimeControl& enemy_tc, chess::Color stm) {
-    std::stringstream input;
-    input << "go";
+    std::string input = "go";
 
     if (config_.limit.nodes) {
-        input << " nodes " << config_.limit.nodes;
+        fmt::format_to(std::back_inserter(input), " nodes {}", config_.limit.nodes);
     }
 
     if (config_.limit.plies) {
-        input << " depth " << config_.limit.plies;
+        fmt::format_to(std::back_inserter(input), " depth {}", config_.limit.plies);
     }
 
     // We cannot use st and tc together
     if (our_tc.isFixedTime()) {
-        input << " movetime " << our_tc.getFixedTime();
-        return writeEngine(input.str());
+        fmt::format_to(std::back_inserter(input), " movetime {}", our_tc.getFixedTime());
+        return writeEngine(input);
     }
 
     const auto& white = stm == chess::Color::WHITE ? our_tc : enemy_tc;
@@ -140,27 +140,27 @@ bool UciEngine::go(const TimeControl& our_tc, const TimeControl& enemy_tc, chess
 
     if (our_tc.isTimed() || our_tc.isIncrement()) {
         if (white.isTimed() || white.isIncrement()) {
-            input << " wtime " << white.getTimeLeft();
+            fmt::format_to(std::back_inserter(input), " wtime {}", white.getTimeLeft());
         }
 
         if (black.isTimed() || black.isIncrement()) {
-            input << " btime " << black.getTimeLeft();
+            fmt::format_to(std::back_inserter(input), " btime {}", black.getTimeLeft());
         }
 
         if (white.isIncrement()) {
-            input << " winc " << white.getIncrement();
+            fmt::format_to(std::back_inserter(input), " winc {}", white.getIncrement());
         }
 
         if (black.isIncrement()) {
-            input << " binc " << black.getIncrement();
+            fmt::format_to(std::back_inserter(input), " binc {}", black.getIncrement());
         }
     }
 
     if (our_tc.isMoves()) {
-        input << " movestogo " << our_tc.getMovesLeft();
+        fmt::format_to(std::back_inserter(input), " movestogo {}", our_tc.getMovesLeft());
     }
 
-    return writeEngine(input.str());
+    return writeEngine(input);
 }
 
 bool UciEngine::ucinewgame() {
@@ -429,7 +429,7 @@ std::vector<const std::string*> UciEngine::getInfoLines() const {
 
 bool UciEngine::writeEngine(const std::string& input) {
     Logger::writeToEngine(input, "", config_.name);
-    return process_.writeInput(input + "\n").code == process::Status::OK;
+    return process_.writeInput(fmt::format("{}\n", input)).code == process::Status::OK;
 }
 
 std::optional<std::string> UciEngine::bestmove(bool warn_on_error) const {
@@ -498,7 +498,7 @@ std::chrono::milliseconds UciEngine::lastTime() const {
 
 tl::expected<Score, std::string> UciEngine::getScore(std::string_view info_line) {
     if (info_line.empty()) {
-        return tl::make_unexpected("No info line available to extract score from: " + std::string(info_line));
+        return tl::make_unexpected(fmt::format("No info line available to extract score from: {}", info_line));
     }
 
     auto info = str_utils::splitString(info_line, ' ');
@@ -513,7 +513,7 @@ tl::expected<Score, std::string> UciEngine::getScore(std::string_view info_line)
 
     score.type = ScoreType::fromString(type_str.value());
 
-    if (score.isErr()) return tl::make_unexpected("Unexpected score type: " + std::string(info_line));
+    if (score.isErr()) return tl::make_unexpected(fmt::format("Unexpected score type: {}", info_line));
 
     auto value = str_utils::findElement<int64_t>(info, static_cast<std::string_view>(score.type));
 

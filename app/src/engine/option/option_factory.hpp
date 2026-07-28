@@ -1,6 +1,7 @@
 #pragma once
 
 #include <iostream>
+#include <iterator>
 #include <memory>
 #include <sstream>
 #include <string>
@@ -30,7 +31,7 @@ class UCIOptionFactory {
             if (token == "name") {
                 ss >> name;
                 while (ss >> token && token != "type") {
-                    name += " " + token;
+                    fmt::format_to(std::back_inserter(name), " {}", token);
                 }
             }
             if (token == "type") {
@@ -53,7 +54,7 @@ class UCIOptionFactory {
                         continue;
                     }
 
-                    params["var"] += var + " ";
+                    fmt::format_to(std::back_inserter(params["var"]), "{} ", var);
                 }
             }
         }

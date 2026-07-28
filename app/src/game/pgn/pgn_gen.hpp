@@ -1,11 +1,13 @@
 #pragma once
 
 #include <fstream>
-#include <iomanip>
 #include <iostream>
-#include <sstream>
+#include <iterator>
 #include <string>
 #include <vector>
+
+#define FMT_HEADER_ONLY
+#include <fmt/include/fmt/core.h>
 
 namespace fastchess::pgn {
 
@@ -54,15 +56,15 @@ class PGNGenerator {
     }
 
     std::string generate() const {
-        std::stringstream ss;
+        std::string output;
 
         // Append Headers
         for (const auto& header : headers) {
-            ss << "[" << header.first << " \"" << header.second << "\"]\n";
+            fmt::format_to(std::back_inserter(output), "[{} \"{}\"]\n", header.first, header.second);
         }
 
         if (!headers.empty()) {
-            ss << "\n";
+            output += "\n";
         }
 
         // Append Moves
@@ -72,16 +74,16 @@ class PGNGenerator {
             // Check if adding this text exceeds 80 chars
             // +1 accounts for the space we might add
             if (currentLineLength > 0 && currentLineLength + text.length() + 1 > 80) {
-                ss << "\n";
+                output += "\n";
                 currentLineLength = 0;
             }
 
             if (currentLineLength > 0) {
-                ss << " ";
+                output += " ";
                 currentLineLength++;
             }
 
-            ss << text;
+            output += text;
             currentLineLength += text.length();
         };
 
@@ -94,14 +96,12 @@ class PGNGenerator {
             if (!moves[i].move.empty()) {
                 const auto curr = (moveCounter + 1) / 2;
                 if (isWhite) {
-                    std::string moveStr = std::to_string(curr) + ". " + moves[i].move;
-                    pair                = moveStr;
+                    pair = fmt::format("{}. {}", curr, moves[i].move);
                 } else {
                     // Black's turn
                     if (i == 0) {
                         // Special case: Start with Black (e.g. 1... e5)
-                        std::string moveStr = std::to_string(curr) + "... " + moves[i].move;
-                        pair                = moveStr;
+                        pair = fmt::format("{}... {}", curr, moves[i].move);
                     } else {
                         pair = moves[i].move;
                     }
@@ -112,8 +112,7 @@ class PGNGenerator {
 
             // Append Comment if exists
             if (!moves[i].comment.empty()) {
-                pair += !moves[i].move.empty() ? " " : "";
-                pair += "{" + moves[i].comment + "}";
+                pair += fmt::format("{}{{{}}}", moves[i].move.empty() ? "" : " ", moves[i].comment);
             }
 
             appendText(pair);
@@ -122,7 +121,7 @@ class PGNGenerator {
         // Append Result Terminator
         appendText(result);
 
-        return ss.str();
+        return output;
     }
 };
 

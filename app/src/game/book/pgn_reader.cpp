@@ -90,7 +90,7 @@ PgnReader::PgnReader(const std::string& pgn_file_path, int plies_limit, bool is_
         input_stream = std::make_unique<igzstream>(file_name_.c_str());
 
         if (dynamic_cast<igzstream*>(input_stream.get())->rdbuf()->is_open() == false) {
-            throw fastchess_exception("Failed to open file: " + file_name_);
+            throw fastchess_exception::format("Failed to open file: {}", file_name_);
         }
 #else
         throw fastchess_exception("Compressed book is provided but program wasn't compiled with zlib.");
@@ -99,14 +99,14 @@ PgnReader::PgnReader(const std::string& pgn_file_path, int plies_limit, bool is_
         input_stream = std::make_unique<std::ifstream>(file_name_);
 
         if (dynamic_cast<std::ifstream*>(input_stream.get())->is_open() == false) {
-            throw fastchess_exception("Failed to open file: " + file_name_);
+            throw fastchess_exception::format("Failed to open file: {}", file_name_);
         }
     }
 
     chess::pgn::StreamParser parser(*input_stream);
     parser.readGames(*vis);
     if (pgns_.empty()) {
-        throw fastchess_exception("No openings found in file: " + file_name_);
+        throw fastchess_exception::format("No openings found in file: {}", file_name_);
     }
 }
 

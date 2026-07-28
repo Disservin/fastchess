@@ -338,8 +338,7 @@ class Process : public IProcess {
         posix_spawn_file_actions_t actions{};
         SpawnFileActions() {
             const int rc = posix_spawn_file_actions_init(&actions);
-            if (rc != 0)
-                throw fastchess_exception(std::string("posix_spawn_file_actions_init failed: ") + strerror(rc));
+            if (rc != 0) throw fastchess_exception::format("posix_spawn_file_actions_init failed: {}", strerror(rc));
         }
 
         ~SpawnFileActions() { posix_spawn_file_actions_destroy(&actions); }
@@ -396,7 +395,7 @@ class Process : public IProcess {
 
             const int rc = spawn_func(&process_pid_, command_.c_str(), &fa.actions, nullptr, execv_argv, environ);
             if (rc != 0) {
-                throw fastchess_exception(std::string("posix_spawn failed: ") + std::strerror(rc));
+                throw fastchess_exception::format("posix_spawn failed: {}", std::strerror(rc));
             }
         } catch (const std::exception& e) {
             return Result::Error(e.what());

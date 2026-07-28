@@ -320,23 +320,9 @@ SPRTResult SPRT::getResult(double llr) const noexcept {
     return SPRT_CONTINUE;
 }
 
-std::string SPRT::getBounds() const noexcept {
-    std::stringstream ss;
+std::string SPRT::getBounds() const noexcept { return fmt::format("({:.2f}, {:.2f})", lower_, upper_); }
 
-    ss << "(" << std::fixed << std::setprecision(2) << lower_ << ", " << std::fixed << std::setprecision(2) << upper_
-       << ")";
-
-    return ss.str();
-}
-
-std::string SPRT::getElo() const noexcept {
-    std::stringstream ss;
-
-    ss << "[" << std::fixed << std::setprecision(2) << elo0_ << ", " << std::fixed << std::setprecision(2) << elo1_
-       << "]";
-
-    return ss.str();
-}
+std::string SPRT::getElo() const noexcept { return fmt::format("[{:.2f}, {:.2f}]", elo0_, elo1_); }
 
 double SPRT::getLowerBound() const noexcept { return lower_; }
 

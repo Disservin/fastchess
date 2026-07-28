@@ -8,6 +8,9 @@
 #include <matchmaking/stats.hpp>
 #include <types/engine_config.hpp>
 
+#define FMT_HEADER_ONLY
+#include <fmt/include/fmt/core.h>
+
 namespace fastchess {
 
 struct PlayerPairKey {
@@ -46,7 +49,7 @@ inline void to_json(nlohmann::ordered_json& j, const stats_map& map) {
     for (const auto& item : map) {
         nlohmann::ordered_json obj = item.second;
 
-        jtmp[item.first.first + " vs " + item.first.second] = obj;
+        jtmp[fmt::format("{} vs {}", item.first.first, item.first.second)] = obj;
     }
 
     j = jtmp;

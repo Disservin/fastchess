@@ -189,7 +189,6 @@ endif
 
 ifeq ($(ZLIB), true)
 	CXXFLAGS += -DUSE_ZLIB
-	SRC_FILES += third_party/gzip/gzstream.cpp
 	LDFLAGS += -lz
 endif
 

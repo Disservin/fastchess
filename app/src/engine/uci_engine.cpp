@@ -499,20 +499,8 @@ UciInfo UciEngine::parseInfo(std::string_view info_line) {
     const auto parse_integer = [&](auto& value, size_t index) {
         if (index >= tokens.size()) return;
 
-        using Value       = typename std::decay_t<decltype(value)>::value_type;
-        const auto& token = tokens[index];
-        size_t parsed     = 0;
-
-        try {
-            if constexpr (std::is_unsigned_v<Value>) {
-                const auto converted = std::stoull(token, &parsed);
-                if (parsed == token.size()) value = static_cast<Value>(converted);
-            } else {
-                const auto converted = std::stoll(token, &parsed);
-                if (parsed == token.size()) value = static_cast<Value>(converted);
-            }
-        } catch (const std::exception&) {
-        }
+        using Value = typename std::decay_t<decltype(value)>::value_type;
+        value       = str_utils::parseInteger<Value>(tokens[index]);
     };
 
     for (size_t i = 0; i < tokens.size(); ++i) {

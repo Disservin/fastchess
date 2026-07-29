@@ -11,6 +11,7 @@
 
 #include <cli/cli_args.hpp>
 #include <cli/sanitize.hpp>
+#include <core/helper.hpp>
 #include <core/logger/logger.hpp>
 #include <core/rand.hpp>
 #include <matchmaking/output/output_factory.hpp>
@@ -37,33 +38,21 @@ T parseScalar(std::string_view value) {
             throw fastchess::fastchess_exception::format("Invalid numeric value: \"{}\"", str);
         }
 
-        std::size_t parsed_length = 0;
-
         try {
             if constexpr (std::is_floating_point_v<T>) {
+                std::size_t parsed_length = 0;
                 const auto parsed = std::stold(str, &parsed_length);
                 if (parsed_length != str.size() || !std::isfinite(parsed) ||
                     parsed < std::numeric_limits<T>::lowest() || parsed > std::numeric_limits<T>::max()) {
                     throw fastchess::fastchess_exception::format("Invalid numeric value: \"{}\"", str);
                 }
                 return static_cast<T>(parsed);
-            } else if constexpr (std::is_signed_v<T>) {
-                const auto parsed = std::stoll(str, &parsed_length);
-                if (parsed_length != str.size() || parsed < std::numeric_limits<T>::min() ||
-                    parsed > std::numeric_limits<T>::max()) {
-                    throw fastchess::fastchess_exception::format("Invalid numeric value: \"{}\"", str);
-                }
-                return static_cast<T>(parsed);
             } else {
-                if (str.front() == '-') {
+                const auto parsed = fastchess::str_utils::parseInteger<T>(value);
+                if (!parsed.has_value()) {
                     throw fastchess::fastchess_exception::format("Invalid numeric value: \"{}\"", str);
                 }
-
-                const auto parsed = std::stoull(str, &parsed_length);
-                if (parsed_length != str.size() || parsed > std::numeric_limits<T>::max()) {
-                    throw fastchess::fastchess_exception::format("Invalid numeric value: \"{}\"", str);
-                }
-                return static_cast<T>(parsed);
+                return *parsed;
             }
         } catch (const fastchess::fastchess_exception&) {
             throw;

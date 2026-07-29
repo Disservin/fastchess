@@ -1,9 +1,14 @@
 #pragma once
 
 #include <algorithm>
+#include <cctype>
+#include <exception>
+#include <limits>
 #include <optional>
 #include <sstream>
 #include <string>
+#include <string_view>
+#include <type_traits>
 #include <vector>
 
 #define FMT_HEADER_ONLY
@@ -12,6 +17,37 @@
 #include <json.hpp>
 
 namespace fastchess::str_utils {
+
+template <typename T>
+[[nodiscard]] std::optional<T> parseInteger(std::string_view value) noexcept {
+    static_assert(std::is_integral_v<T> && !std::is_same_v<T, bool>, "parseInteger requires an integer type");
+
+    const std::string str(value);
+    if (str.empty() || std::any_of(str.begin(), str.end(), [](unsigned char c) { return std::isspace(c); })) {
+        return std::nullopt;
+    }
+
+    std::size_t parsed_length = 0;
+
+    try {
+        if constexpr (std::is_unsigned_v<T>) {
+            if (str.front() == '-') return std::nullopt;
+
+            const auto parsed = std::stoull(str, &parsed_length);
+            if (parsed_length != str.size() || parsed > std::numeric_limits<T>::max()) return std::nullopt;
+            return static_cast<T>(parsed);
+        } else {
+            const auto parsed = std::stoll(str, &parsed_length);
+            if (parsed_length != str.size() || parsed < std::numeric_limits<T>::min() ||
+                parsed > std::numeric_limits<T>::max()) {
+                return std::nullopt;
+            }
+            return static_cast<T>(parsed);
+        }
+    } catch (const std::exception&) {
+        return std::nullopt;
+    }
+}
 
 // @todo unnecessary with c++20
 [[nodiscard]] inline bool startsWith(std::string_view haystack, std::string_view needle) noexcept {

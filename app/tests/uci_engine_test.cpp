@@ -100,6 +100,16 @@ TEST_SUITE("Uci Engine Communication Tests") {
         CHECK(partial.pv.empty());
     }
 
+    TEST_CASE("Reject invalid UCI info integers") {
+        const auto info = engine::UciEngine::parseInfo(
+            "info depth 12x nodes -1 nps 18446744073709551616 score cp 9223372036854775808");
+
+        CHECK_FALSE(info.depth.has_value());
+        CHECK_FALSE(info.nodes.has_value());
+        CHECK_FALSE(info.nps.has_value());
+        CHECK_FALSE(info.score.has_value());
+    }
+
     TEST_CASE("Generate exact position commands") {
         EngineConfiguration config;
         config.cmd = path;

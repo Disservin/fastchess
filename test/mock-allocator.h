@@ -1,6 +1,6 @@
 // Formatting library for C++ - mock allocator
 //
-// Copyright (c) 2012 - present, Victor Zverovich
+// Copyright (c) 2012 - present, Victor Zverovich and {fmt} contributors
 // All rights reserved.
 //
 // For the license information refer to format.h.
@@ -37,7 +37,7 @@ template <typename T> class mock_allocator {
   MOCK_METHOD(void, deallocate, (T*, size_t));
 };
 
-template <typename Allocator> class allocator_ref {
+template <typename Allocator, bool PropagateOnMove = true> class allocator_ref {
  private:
   Allocator* alloc_;
 
@@ -48,6 +48,8 @@ template <typename Allocator> class allocator_ref {
 
  public:
   using value_type = typename Allocator::value_type;
+  using propagate_on_container_move_assignment =
+      fmt::bool_constant<PropagateOnMove>;
 
   explicit allocator_ref(Allocator* alloc = nullptr) : alloc_(alloc) {}
 
@@ -66,12 +68,21 @@ template <typename Allocator> class allocator_ref {
   }
 
  public:
-  Allocator* get() const { return alloc_; }
+  auto get() const -> Allocator* { return alloc_; }
 
-  value_type* allocate(size_t n) {
+  auto allocate(size_t n) -> value_type* {
     return std::allocator_traits<Allocator>::allocate(*alloc_, n);
   }
   void deallocate(value_type* p, size_t n) { alloc_->deallocate(p, n); }
+
+  friend auto operator==(allocator_ref a, allocator_ref b) noexcept -> bool {
+    if (a.alloc_ == b.alloc_) return true;
+    return a.alloc_ && b.alloc_ && *a.alloc_ == *b.alloc_;
+  }
+
+  friend auto operator!=(allocator_ref a, allocator_ref b) noexcept -> bool {
+    return !(a == b);
+  }
 };
 
 #endif  // FMT_MOCK_ALLOCATOR_H_

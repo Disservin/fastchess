@@ -1,13 +1,12 @@
 // Formatting library for C++ - time formatting tests
 //
-// Copyright (c) 2012 - present, Victor Zverovich
+// Copyright (c) 2012 - present, Victor Zverovich and {fmt} contributors
 // All rights reserved.
 //
 // For the license information refer to format.h.
 
 #include "fmt/chrono.h"
 
-#include <algorithm>
 #include <ctime>
 #include <vector>
 
@@ -55,8 +54,8 @@ auto make_second(int s) -> std::tm {
   return time;
 }
 
-std::string system_strftime(const std::string& format, const std::tm* timeptr,
-                            std::locale* locptr = nullptr) {
+auto system_strftime(const std::string& format, const std::tm* timeptr,
+                     std::locale* locptr = nullptr) -> std::string {
   auto loc = locptr ? *locptr : std::locale::classic();
   auto& facet = std::use_facet<std::time_put<char>>(loc);
   std::ostringstream os;
@@ -73,8 +72,8 @@ std::string system_strftime(const std::string& format, const std::tm* timeptr,
 #endif
 }
 
-FMT_CONSTEXPR std::tm make_tm(int year, int mon, int mday, int hour, int min,
-                              int sec) {
+FMT_CONSTEXPR auto make_tm(int year, int mon, int mday, int hour, int min,
+                           int sec) -> std::tm {
   auto tm = std::tm();
   tm.tm_sec = sec;
   tm.tm_min = min;
@@ -336,12 +335,12 @@ TEST(chrono_test, local_time) {
 }
 
 template <typename T, FMT_ENABLE_IF(fmt::detail::has_tm_gmtoff<T>::value)>
-bool set_tm_gmtoff(T& time, long offset) {
+auto set_tm_gmtoff(T& time, long offset) -> bool {
   time.tm_gmtoff = offset;
   return true;
 }
 template <typename T, FMT_ENABLE_IF(!fmt::detail::has_tm_gmtoff<T>::value)>
-bool set_tm_gmtoff(T&, long) {
+auto set_tm_gmtoff(T&, long) -> bool {
   return false;
 }
 
@@ -359,6 +358,9 @@ TEST(chrono_test, tm) {
   char tz[] = "EET";
   if (fmt::detail::set_tm_zone(time, tz)) {
     EXPECT_EQ(fmt::format(fmt::runtime("{:%Z}"), time), "EET");
+    fmt::detail::set_tm_zone(time, nullptr);
+    EXPECT_THROW_MSG((void)fmt::format(fmt::runtime("{:%Z}"), time),
+                     fmt::format_error, "no timezone");
   } else {
     EXPECT_THROW_MSG((void)fmt::format(fmt::runtime("{:%Z}"), time),
                      fmt::format_error, "no timezone");
@@ -715,6 +717,9 @@ TEST(chrono_test, weekday) {
     EXPECT_THAT(saturdays, Contains(fmt::format(loc, "{:L}", sat)));
     EXPECT_THAT(saturdays, Contains(fmt::format(loc, "{:L%a}", sat)));
     EXPECT_THAT(saturdays, Contains(fmt::format(loc, "{:L%a}", tm)));
+    // Without an explicit locale the global one is used.
+    EXPECT_THAT(saturdays, Contains(fmt::format("{:L}", sat)));
+    EXPECT_THAT(saturdays, Contains(fmt::format("{:L%a}", tm)));
   }
 }
 
@@ -987,6 +992,23 @@ TEST(chrono_test, glibc_extensions) {
 TEST(chrono_test, out_of_range) {
   auto d = std::chrono::duration<unsigned long, std::giga>(538976288);
   EXPECT_THROW((void)fmt::format("{:%j}", d), fmt::format_error);
+  // A floating-point day count that doesn't fit in int.
+  auto fd = std::chrono::duration<double>(1e300);
+  EXPECT_THROW((void)fmt::format("{:%j}", fd), fmt::format_error);
+}
+
+TEST(chrono_test, calendar_padding) {
+  EXPECT_EQ("05   ", fmt::format("{:5}", fmt::day(5)));
+  EXPECT_EQ("  Jan", fmt::format("{:>5}", fmt::month(1)));
+  EXPECT_EQ("2024 ", fmt::format("{:5}", fmt::year(2024)));
+  EXPECT_EQ("  Sat", fmt::format("{:>5}", fmt::weekday(6)));
+  EXPECT_EQ(" 2024-01-05",
+            fmt::format("{:>11}",
+                        fmt::year_month_day(fmt::year(2024), fmt::month(1),
+                                            fmt::day(5))));
+
+  // An explicit chrono format still overrides the default.
+  EXPECT_EQ("January", fmt::format("{:%B}", fmt::month(1)));
 }
 
 TEST(chrono_test, year_month_day) {
@@ -1019,5 +1041,6 @@ TEST(chrono_test, year_month_day) {
     auto months = std::vector<std::string>{"ene.", "ene"};
     EXPECT_THAT(months, Contains(fmt::format(loc, "{:L}", month)));
     EXPECT_THAT(months, Contains(fmt::format(loc, "{:L%b}", month)));
+    EXPECT_THAT(months, Contains(fmt::format("{:L}", month)));
   }
 }

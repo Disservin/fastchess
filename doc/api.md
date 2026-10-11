@@ -2,13 +2,14 @@
 
 The {fmt} library API consists of the following components:
 
-- [`fmt/base.h`](#base-api): the base API providing main formatting functions
+- [`fmt/core.h`](#core-api): the core API providing main formatting functions
   for `char`/UTF-8 with C++20 compile-time checks and minimal dependencies
 - [`fmt/format.h`](#format-api): `fmt::format` and other formatting functions
   as well as locale support
 - [`fmt/ranges.h`](#ranges-api): formatting of ranges and tuples
 - [`fmt/chrono.h`](#chrono-api): date and time formatting
 - [`fmt/std.h`](#std-api): formatters for standard library types
+- [`fmt/enum.h`](#enum-api): formatting of annotated enums
 - [`fmt/compile.h`](#compile-api): format string compilation
 - [`fmt/color.h`](#color-api): terminal colors and text styles
 - [`fmt/os.h`](#os-api): system APIs
@@ -20,15 +21,21 @@ The {fmt} library API consists of the following components:
 All functions and types provided by the library reside in namespace `fmt`
 and macros have prefix `FMT_`.
 
-## Base API
+## C++ Module API
 
-`fmt/base.h` defines the base API which provides main formatting functions
+With the C++ module API, the headers listed above don't need to be included.
+You can use the `import fmt;` statement instead. All other functionality,
+listed below, remains the same.
+
+## Core API
+
+`fmt/core.h` defines the core API which provides main formatting functions
 for `char`/UTF-8 with C++20 compile-time checks. It has minimal include
 dependencies for better compile times. This header is only beneficial when
 using {fmt} as a library (the default) and not in the header-only mode.
 It also provides `formatter` specializations for the following types:
 
-- `int`, `long long`,
+- `int`, `long long`
 - `unsigned`, `unsigned long long`
 - `float`, `double`, `long double`
 - `bool`
@@ -79,11 +86,17 @@ time formatting and [`fmt/std.h`](#std-api) for other standard library types.
 
 There are two ways to make a user-defined type formattable: providing a
 `format_as` function or specializing the `formatter` struct template.
+Formatting of non-void pointer types is intentionally disallowed and they
+cannot be made formattable via either extension API.
 
 Use `format_as` if you want to make your type formattable as some other
 type with the same format specifiers. The `format_as` function should
 take an object of your type and return an object of a formattable type.
 It should be defined in the same namespace as your type.
+`format_as` cannot be used when a type also matches another `formatter`
+specialization, such as the range `formatter`, because the specializations
+would be ambiguous. Disable the conflicting specialization, if possible,
+or provide an explicit `formatter` specialization instead.
 
 Example ([run](https://godbolt.org/z/nvME4arz8)):
 
@@ -103,8 +116,8 @@ Example ([run](https://godbolt.org/z/nvME4arz8)):
       fmt::print("{}\n", kevin_namespacy::film::se7en); // Output: 7
     }
 
-Using specialization is more complex but gives you full control over
-parsing and formatting. To use this method specialize the `formatter`
+Using a specialization is more complex, but gives you full control over
+parsing and formatting. To use this method, specialize the `formatter`
 struct template for your type and implement `parse` and `format`
 methods.
 
@@ -114,7 +127,7 @@ format specifiers without implementing them yourself. For example:
 
 ```c++
 // color.h:
-#include <fmt/base.h>
+#include <fmt/core.h>
 
 enum class color {red, green, blue};
 
@@ -168,10 +181,7 @@ For example:
     template <>
     struct fmt::formatter<point> : nested_formatter<double> {
       auto format(point p, format_context& ctx) const {
-        return write_padded(ctx, [=](auto out) {
-          return format_to(out, "({}, {})", this->nested(p.x),
-                           this->nested(p.y));
-        });
+        return write(ctx, "(", nested(p.x), ", ", nested(p.y), ")");
       }
     };
 
@@ -220,7 +230,7 @@ You can also write a formatter for a hierarchy of classes:
 ```c++
 // demo.h:
 #include <type_traits>
-#include <fmt/core.h>
+#include <fmt/format.h>
 
 struct A {
   virtual ~A() {}
@@ -317,9 +327,7 @@ parameterized version.
 
 ### Named Arguments
 
-::: arg(const Char*, const T&)
-
-Named arguments are not supported in compile-time checks at the moment.
+::: arg(const char*, const T&)
 
 ### Compatibility
 
@@ -403,7 +411,7 @@ All formatting is locale-independent by default. Use the `'L'` format
 specifier to insert the appropriate number separator characters from the
 locale:
 
-    #include <fmt/core.h>
+    #include <fmt/format.h>
     #include <locale>
 
     std::locale::global(std::locale("en_US.UTF-8"));
@@ -413,11 +421,11 @@ locale:
 that take `std::locale` as a parameter. The locale type is a template
 parameter to avoid the expensive `<locale>` include.
 
-::: format(const Locale&, format_string<T...>, T&&...)
+::: format(locale_ref, format_string<T...>, T&&...)
 
-::: format_to(OutputIt, const Locale&, format_string<T...>, T&&...)
+::: format_to(OutputIt, locale_ref, format_string<T...>, T&&...)
 
-::: formatted_size(const Locale&, format_string<T...>, T&&...)
+::: formatted_size(locale_ref, format_string<T...>, T&&...)
 
 <a id="legacy-checks"></a>
 ### Legacy Compile-Time Checks
@@ -466,16 +474,16 @@ Using `fmt::join`, you can separate tuple elements with a custom separator:
 - [`std::tm`](https://en.cppreference.com/w/cpp/chrono/c/tm)
 
 The format syntax is described in [Chrono Format Specifications](syntax.md#
-chrono-format-specifications).
+chrono-format-spec).
 
 **Example**:
 
     #include <fmt/chrono.h>
 
     int main() {
-      std::time_t t = std::time(nullptr);
+      auto now = std::chrono::system_clock::now();
 
-      fmt::print("The date is {:%Y-%m-%d}.", fmt::localtime(t));
+      fmt::print("The date is {:%Y-%m-%d}.\n", now);
       // Output: The date is 2020-11-07.
       // (with 2020-11-07 replaced by the current date)
 
@@ -487,8 +495,6 @@ chrono-format-specifications).
       fmt::print("strftime-like format: {:%H:%M:%S}\n", 3h + 15min + 30s);
       // Output: strftime-like format: 03:15:30
     }
-
-::: localtime(std::time_t)
 
 ::: gmtime(std::time_t)
 
@@ -517,7 +523,7 @@ chrono-format-specifications).
 
 ### Variants
 
-A `std::variant` is only formattable if every variant alternative is
+A `std::variant` can be formatted only if every alternative is
 formattable, and requires the `__cpp_lib_variant` [library
 feature](https://en.cppreference.com/w/cpp/feature_test).
 
@@ -548,32 +554,125 @@ fmt::print("{}", +s.bit);
 
 This is a known limitation of "perfect" forwarding in C++.
 
+<a id="enum-api"></a>
+## Enum Formatting
+
+`fmt/enum.h` provides formatting of enums annotated with
+`fmt::as_identifiers`. Such an enum is formatted as the identifier of the
+enumerator matching the formatted value:
+
+    #include <fmt/enum.h>
+
+    enum class [[=fmt::as_identifiers]] color { red, green, blue };
+
+    fmt::print("{}", color::green);
+    // Output: green
+
+Such enums are formatted using the string [Format Specification](
+syntax.md#format-specification), for example:
+
+    fmt::print("[{:>7}]", color::red);
+    // Output: [    red]
+
+Identifiers are only available as `char` strings so annotated enums are not
+formattable with other character types.
+
+If several enumerators have the same value, the first one in the order of
+declaration is used. A value that doesn't match any enumerator is represented
+as its underlying value in decimal before applying string formatting:
+
+    fmt::print("{}", static_cast<color>(42));
+    // Output: 42
+
+An enum annotated with `fmt::as_underlying` is instead formatted as its
+underlying value using the integer [Format Specification](
+syntax.md#format-specification):
+
+    enum class [[=fmt::as_underlying]] color { red = 1, green = 2, blue = 4 };
+
+    fmt::print("{:04x}", color::blue);
+    // Output: 0004
+
+Such an enum is mapped to its underlying type before type erasure, so it can
+also be used as dynamic width or precision. Unlike `fmt::as_identifiers`, it
+works with all character types. The two annotations specify different
+representations and cannot be combined.
+
+Enums without an annotation are not affected and are formatted as before, i.e.
+scoped enums require `format_as` or a `formatter` specialization, see
+[Formatting User-Defined Types](#udt).
+
+This uses two C++26 features:
+[reflection](https://en.cppreference.com/w/cpp/language/operator_reflection) to
+retrieve the enumerator identifiers and
+[annotations](https://en.cppreference.com/w/cpp/language/annotations) to opt an
+enum in via `fmt::as_identifiers`. It therefore requires a compiler with
+reflection support,
+which may need an extra flag such as `-freflection` in GCC. The macro
+`FMT_USE_REFLECTION` is set to 1 if reflection is available and to 0 otherwise.
+It can also be defined by the user to disable the use of reflection.
+
+When {fmt} is built as a module, reflection support is detected when the module
+itself is compiled, so this API is only available to importers if the module was
+built with reflection enabled.
+
 <a id="compile-api"></a>
-## Format String Compilation
+## Compile-Time Support
 
 `fmt/compile.h` provides format string compilation and compile-time
 (`constexpr`) formatting enabled via the `FMT_COMPILE` macro or the `_cf`
 user-defined literal defined in namespace `fmt::literals`. Format strings
 marked with `FMT_COMPILE` or `_cf` are parsed, checked and converted into
 efficient formatting code at compile-time. This supports arguments of built-in
-and string types as well as user-defined types with `format` functions taking
+and string types as well as user-defined types with `format` methods taking
 the format context type as a template parameter in their `formatter`
-specializations. For example:
+specializations. For example ([run](https://www.godbolt.org/z/3c13erEoq)):
+
+    struct point {
+      double x;
+      double y;
+    };
 
     template <> struct fmt::formatter<point> {
-      constexpr auto parse(format_parse_context& ctx);
+      constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
 
       template <typename FormatContext>
-      auto format(const point& p, FormatContext& ctx) const;
+      auto format(const point& p, FormatContext& ctx) const {
+        return format_to(ctx.out(), "({}, {})"_cf, p.x, p.y);
+      }
     };
+
+    using namespace fmt::literals;
+    std::string s = fmt::format("{}"_cf, point(4, 2));
 
 Format string compilation can generate more binary code compared to the
 default API and is only recommended in places where formatting is a
 performance bottleneck.
 
-::: FMT_COMPILE
+The same APIs support formatting at compile time e.g. in `constexpr`
+and `consteval` functions. Additionally there is an experimental
+`FMT_STATIC_FORMAT` that allows formatting into a string of the exact
+required size at compile time. Compile-time formatting works with built-in
+and user-defined formatters that have `constexpr` `format` methods.
+Example:
+
+    template <> struct fmt::formatter<point> {
+      constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+
+      template <typename FormatContext>
+      constexpr auto format(const point& p, FormatContext& ctx) const {
+        return format_to(ctx.out(), "({}, {})"_cf, p.x, p.y);
+      }
+    };
+
+    constexpr auto s = FMT_STATIC_FORMAT("{}", point(4, 2));
+    const char* cstr = s.c_str(); // Points the static string "(4, 2)".
 
 ::: operator""_cf
+
+::: FMT_COMPILE
+
+::: FMT_STATIC_FORMAT
 
 <a id="color-api"></a>
 ## Terminal Colors and Text Styles
@@ -592,6 +691,8 @@ performance bottleneck.
 ## System APIs
 
 ::: ostream
+
+::: output_file(cstring_view, T...)
 
 ::: windows_error
 
@@ -643,17 +744,15 @@ if an argument type doesn't match its format specification.
 
 ::: printf(string_view, const T&...)
 
-::: fprintf(std::FILE*, const S&, const T&...)
+::: fprintf(std::FILE*, string_view, const T&...)
 
-::: sprintf(const S&, const T&...)
+::: sprintf(string_view, const T&...)
 
 <a id="xchar-api"></a>
 ## Wide Strings
 
 The optional header `fmt/xchar.h` provides support for `wchar_t` and
 exotic character types.
-
-::: is_char
 
 ::: wstring_view
 
@@ -677,5 +776,55 @@ following differences:
   precision that provides round-trip guarantees similarly to other languages
   like Java and Python. `std::format` is currently specified in terms of
   `std::to_chars` which tries to generate the smallest number of characters
-  (ignoring redundant digits and sign in exponent) and may procude more
+  (ignoring redundant digits and sign in exponent) and may produce more
   decimal digits than necessary.
+
+## Configuration Options
+
+{fmt} provides configuration via CMake options and preprocessor macros to
+enable or disable features and to optimize for binary size. For example, you
+can disable OS-specific APIs defined in `fmt/os.h` with `-DFMT_OS=OFF` when
+configuring CMake.
+
+### CMake Options
+
+- **`FMT_OS`**: When set to `OFF`, disables OS-specific APIs (`fmt/os.h`).
+- **`FMT_UNICODE`**: When set to `OFF`, disables Unicode support on
+  Windows/MSVC. Unicode support is always enabled on other platforms.
+
+### Macros
+
+- **`FMT_HEADER_ONLY`**: Enables the header-only mode when defined. It is an
+  alternative to using the `fmt::fmt-header-only` CMake target.
+  Default: not defined.
+
+- **`FMT_USE_EXCEPTIONS`**: Disables the use of exceptions when set to `0`.
+  Default: `1` (`0` if compiled with `-fno-exceptions`).
+
+- **`FMT_USE_LOCALE`**: When set to `0`, disables locale support.
+  Default: `1` (`0` when `FMT_OPTIMIZE_SIZE > 1`).
+
+- **`FMT_CUSTOM_ASSERT_FAIL`**: When set to `1`, allows users to provide a
+  custom `fmt::assert_fail` function which is called on assertion failures and,
+  if exceptions are disabled, on runtime errors. Default: `0`.
+
+- **`FMT_BUILTIN_TYPES`**: When set to `0`, disables built-in handling of
+  arithmetic and string types other than `int`. This reduces library size at
+  the cost of per-call overhead. Default: `1`.
+
+- **`FMT_OPTIMIZE_SIZE`**: Controls binary size optimizations:
+    - `0` - off (default)
+    - `1` - applies some optimizations
+    - `2` - disables locale support by default, some Unicode features, and
+      named arguments, and applies more aggressive optimizations
+
+### Binary Size Optimization
+
+To minimize the binary footprint of {fmt} as much as possible at the cost of
+some features, you can use the following configuration:
+
+- CMake options:
+    - `FMT_OS=OFF`
+- Macros:
+    - `FMT_BUILTIN_TYPES=0`
+    - `FMT_OPTIMIZE_SIZE=2`

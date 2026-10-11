@@ -12,7 +12,7 @@
 
 #include <types/exception.hpp>
 
-#include <fmt/include/fmt/core.h>
+#include <fmt/include/fmt/format.h>
 
 namespace fastchess::engine::process {
 

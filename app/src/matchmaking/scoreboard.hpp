@@ -8,7 +8,7 @@
 #include <matchmaking/stats.hpp>
 #include <types/engine_config.hpp>
 
-#include <fmt/include/fmt/core.h>
+#include <fmt/include/fmt/format.h>
 
 namespace fastchess {
 

@@ -2,7 +2,7 @@
 
 #include <iostream>
 
-#include <fmt/include/fmt/core.h>
+#include <fmt/include/fmt/format.h>
 
 #ifdef _WIN64
 #    include <windows.h>

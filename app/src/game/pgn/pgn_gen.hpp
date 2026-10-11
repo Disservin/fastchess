@@ -6,7 +6,7 @@
 #include <string>
 #include <vector>
 
-#include <fmt/include/fmt/core.h>
+#include <fmt/include/fmt/format.h>
 
 namespace fastchess::pgn {
 

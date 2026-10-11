@@ -1,6 +1,6 @@
 // Formatting library for C++ - color support
 //
-// Copyright (c) 2018 - present, Victor Zverovich and fmt contributors
+// Copyright (c) 2018 - present, Victor Zverovich and {fmt} contributors
 // All rights reserved.
 //
 // For the license information refer to format.h.
@@ -155,7 +155,7 @@ enum class color : uint32_t {
   white_smoke = 0xF5F5F5,              // rgb(245,245,245)
   yellow = 0xFFFF00,                   // rgb(255,255,0)
   yellow_green = 0x9ACD32              // rgb(154,205,50)
-};                                     // enum class color
+};  // enum class color
 
 enum class terminal_color : uint8_t {
   black = 30,
@@ -375,19 +375,17 @@ template <typename Char> struct ansi_color_escape {
       // 10 more.
       if (is_background) value += 10u;
 
-      size_t index = 0;
-      buffer[index++] = static_cast<Char>('\x1b');
-      buffer[index++] = static_cast<Char>('[');
+      buffer[size++] = static_cast<Char>('\x1b');
+      buffer[size++] = static_cast<Char>('[');
 
       if (value >= 100u) {
-        buffer[index++] = static_cast<Char>('1');
+        buffer[size++] = static_cast<Char>('1');
         value %= 100u;
       }
-      buffer[index++] = static_cast<Char>('0' + value / 10u);
-      buffer[index++] = static_cast<Char>('0' + value % 10u);
+      buffer[size++] = static_cast<Char>('0' + value / 10u);
+      buffer[size++] = static_cast<Char>('0' + value % 10u);
 
-      buffer[index++] = static_cast<Char>('m');
-      buffer[index++] = static_cast<Char>('\0');
+      buffer[size++] = static_cast<Char>('m');
       return;
     }
 
@@ -398,7 +396,7 @@ template <typename Char> struct ansi_color_escape {
     to_esc(color.r, buffer + 7, ';');
     to_esc(color.g, buffer + 11, ';');
     to_esc(color.b, buffer + 15, 'm');
-    buffer[19] = static_cast<Char>(0);
+    size = 19;
   }
   FMT_CONSTEXPR ansi_color_escape(emphasis em) noexcept {
     uint8_t em_codes[num_emphases] = {};
@@ -411,26 +409,28 @@ template <typename Char> struct ansi_color_escape {
     if (has_emphasis(em, emphasis::conceal)) em_codes[6] = 8;
     if (has_emphasis(em, emphasis::strikethrough)) em_codes[7] = 9;
 
-    size_t index = 0;
+    buffer[size++] = static_cast<Char>('\x1b');
+    buffer[size++] = static_cast<Char>('[');
+
     for (size_t i = 0; i < num_emphases; ++i) {
       if (!em_codes[i]) continue;
-      buffer[index++] = static_cast<Char>('\x1b');
-      buffer[index++] = static_cast<Char>('[');
-      buffer[index++] = static_cast<Char>('0' + em_codes[i]);
-      buffer[index++] = static_cast<Char>('m');
+      buffer[size++] = static_cast<Char>('0' + em_codes[i]);
+      buffer[size++] = static_cast<Char>(';');
     }
-    buffer[index++] = static_cast<Char>(0);
+
+    buffer[size - 1] = static_cast<Char>('m');
   }
   FMT_CONSTEXPR operator const Char*() const noexcept { return buffer; }
 
   FMT_CONSTEXPR auto begin() const noexcept -> const Char* { return buffer; }
-  FMT_CONSTEXPR20 auto end() const noexcept -> const Char* {
-    return buffer + basic_string_view<Char>(buffer).size();
+  FMT_CONSTEXPR auto end() const noexcept -> const Char* {
+    return buffer + size;
   }
 
  private:
   static constexpr size_t num_emphases = 8;
-  Char buffer[7u + 3u * num_emphases + 1u];
+  Char buffer[7u + 4u * num_emphases] = {};
+  size_t size = 0;
 
   static FMT_CONSTEXPR void to_esc(uint8_t c, Char* out,
                                    char delimiter) noexcept {
@@ -471,7 +471,7 @@ template <typename Char> inline void reset_color(buffer<Char>& buffer) {
 template <typename T> struct styled_arg : view {
   const T& value;
   text_style style;
-  styled_arg(const T& v, text_style s) : value(v), style(s) {}
+  FMT_CONSTEXPR styled_arg(const T& v, text_style s) : value(v), style(s) {}
 };
 
 template <typename Char>
@@ -526,6 +526,42 @@ void print(FILE* f, text_style ts, format_string<T...> fmt, T&&... args) {
 template <typename... T>
 void print(text_style ts, format_string<T...> fmt, T&&... args) {
   return print(stdout, ts, fmt, std::forward<T>(args)...);
+}
+
+inline void vprintln(FILE* f, text_style ts, string_view fmt,
+                     format_args args) {
+  auto buf = memory_buffer();
+  detail::vformat_to(buf, ts, fmt, args);
+  buf.push_back('\n');
+  print(f, FMT_STRING("{}"), string_view(buf.begin(), buf.size()));
+}
+
+/**
+ * Formats a string and prints it to the specified file stream followed by a
+ * newline, using ANSI escape sequences to specify text formatting.
+ *
+ * **Example**:
+ *
+ *     fmt::println(fmt::emphasis::bold | fg(fmt::color::red),
+ *                  "Elapsed time: {0:.2f} seconds", 1.23);
+ */
+template <typename... T>
+void println(FILE* f, text_style ts, format_string<T...> fmt, T&&... args) {
+  vprintln(f, ts, fmt.str, vargs<T...>{{args...}});
+}
+
+/**
+ * Formats a string and prints it to stdout followed by a newline, using ANSI
+ * escape sequences to specify text formatting.
+ *
+ * **Example**:
+ *
+ *     fmt::println(fmt::emphasis::bold | fg(fmt::color::red),
+ *                  "Elapsed time: {0:.2f} seconds", 1.23);
+ */
+template <typename... T>
+void println(text_style ts, format_string<T...> fmt, T&&... args) {
+  return println(stdout, ts, fmt, std::forward<T>(args)...);
 }
 
 inline auto vformat(text_style ts, string_view fmt, format_args args)
@@ -583,8 +619,8 @@ inline auto format_to(OutputIt out, text_style ts, format_string<T...> fmt,
 template <typename T, typename Char>
 struct formatter<detail::styled_arg<T>, Char> : formatter<T, Char> {
   template <typename FormatContext>
-  auto format(const detail::styled_arg<T>& arg, FormatContext& ctx) const
-      -> decltype(ctx.out()) {
+  FMT_CONSTEXPR auto format(const detail::styled_arg<T>& arg,
+                            FormatContext& ctx) const -> decltype(ctx.out()) {
     const auto& ts = arg.style;
     auto out = ctx.out();
 

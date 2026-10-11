@@ -1,6 +1,6 @@
 // Formatting library for C++ - color tests
 //
-// Copyright (c) 2012 - present, Victor Zverovich
+// Copyright (c) 2012 - present, Victor Zverovich and {fmt} contributors
 // All rights reserved.
 //
 // For the license information refer to format.h.
@@ -113,6 +113,15 @@ TEST(color_test, format) {
   EXPECT_EQ(fmt::format("{}", fmt::styled("bar", fg(fmt::color::blue) |
                                                      fmt::emphasis::underline)),
             "\x1b[4m\x1b[38;2;000;000;255mbar\x1b[0m");
+  EXPECT_EQ(
+      fmt::format(
+          "{}", fmt::styled(
+                    "all", fmt::emphasis::bold | fmt::emphasis::faint |
+                               fmt::emphasis::italic |
+                               fmt::emphasis::underline | fmt::emphasis::blink |
+                               fmt::emphasis::reverse | fmt::emphasis::conceal |
+                               fmt::emphasis::strikethrough)),
+      "\x1b[1;2;3;4;5;7;8;9mall\x1b[0m");
 }
 
 TEST(color_test, format_to) {
@@ -126,4 +135,16 @@ TEST(color_test, format_to) {
 TEST(color_test, print) {
   EXPECT_WRITE(stdout, fmt::print(fg(fmt::rgb(255, 20, 30)), "rgb(255,20,30)"),
                "\x1b[38;2;255;020;030mrgb(255,20,30)\x1b[0m");
+}
+
+TEST(color_test, println) {
+  EXPECT_WRITE(stdout,
+               fmt::println(fg(fmt::rgb(255, 20, 30)), "rgb(255,20,30)"),
+               "\x1b[38;2;255;020;030mrgb(255,20,30)\x1b[0m\n");
+  EXPECT_WRITE(stdout, fmt::println(fmt::emphasis::bold, "bold"),
+               "\x1b[1mbold\x1b[0m\n");
+  EXPECT_WRITE(
+      stdout,
+      fmt::println(fg(fmt::color::blue) | fmt::emphasis::bold, "blue/bold"),
+      "\x1b[1m\x1b[38;2;000;000;255mblue/bold\x1b[0m\n");
 }

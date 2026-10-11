@@ -1,21 +1,16 @@
 // Formatting library for C++ - printf tests
 //
-// Copyright (c) 2012 - present, Victor Zverovich
+// Copyright (c) 2012 - present, Victor Zverovich and {fmt} contributors
 // All rights reserved.
 //
 // For the license information refer to format.h.
 
 #include "fmt/printf.h"
-// include <format> if possible for https://github.com/fmtlib/fmt/pull/4042
-#if FMT_HAS_INCLUDE(<format>) && FMT_CPLUSPLUS > 201703L
-#  include <format>
-#endif
 
 #include <cctype>
 #include <climits>
-#include <cstring>
 
-#include "fmt/xchar.h"
+#include "fmt/xchar.h"  // DEPRECATED!
 #include "gtest-extra.h"
 #include "util.h"
 
@@ -26,27 +21,21 @@ using fmt::detail::max_value;
 const unsigned big_num = INT_MAX + 1u;
 
 // Makes format string argument positional.
-static std::string make_positional(fmt::string_view format) {
+static auto make_positional(fmt::string_view format) -> std::string {
   std::string s(format.data(), format.size());
   s.replace(s.find('%'), 1, "%1$");
-  return s;
-}
-
-static std::wstring make_positional(fmt::basic_string_view<wchar_t> format) {
-  std::wstring s(format.data(), format.size());
-  s.replace(s.find(L'%'), 1, L"%1$");
   return s;
 }
 
 // A wrapper around fmt::sprintf to workaround bogus warnings about invalid
 // format strings in MSVC.
 template <typename... Args>
-std::string test_sprintf(fmt::string_view format, const Args&... args) {
+auto test_sprintf(fmt::string_view format, const Args&... args) -> std::string {
   return fmt::sprintf(format, args...);
 }
 template <typename... Args>
-std::wstring test_sprintf(fmt::basic_string_view<wchar_t> format,
-                          const Args&... args) {
+auto test_sprintf(fmt::basic_string_view<wchar_t> format, const Args&... args)
+    -> std::wstring {
   return fmt::sprintf(format, args...);
 }
 
@@ -55,9 +44,14 @@ std::wstring test_sprintf(fmt::basic_string_view<wchar_t> format,
       << "format: " << format;                          \
   EXPECT_EQ(expected_output, fmt::sprintf(make_positional(format), arg))
 
-TEST(printf_test, no_args) {
-  EXPECT_EQ("test", test_sprintf("test"));
-  EXPECT_EQ(L"test", fmt::sprintf(L"test"));
+TEST(printf_test, no_args) { EXPECT_EQ("test", test_sprintf("test")); }
+
+TEST(printf_test, trailing_percent) {
+  EXPECT_THROW_MSG(test_sprintf("%"), format_error, "invalid format string");
+  EXPECT_THROW_MSG(test_sprintf("hello%"), format_error,
+                   "invalid format string");
+  EXPECT_THROW_MSG(test_sprintf("%1$d%", 1, 2), format_error,
+                   "invalid format string");
 }
 
 TEST(printf_test, escape) {
@@ -66,11 +60,6 @@ TEST(printf_test, escape) {
   EXPECT_EQ("% after", test_sprintf("%% after"));
   EXPECT_EQ("before % after", test_sprintf("before %% after"));
   EXPECT_EQ("%s", test_sprintf("%%s"));
-  EXPECT_EQ(L"%", fmt::sprintf(L"%%"));
-  EXPECT_EQ(L"before %", fmt::sprintf(L"before %%"));
-  EXPECT_EQ(L"% after", fmt::sprintf(L"%% after"));
-  EXPECT_EQ(L"before % after", fmt::sprintf(L"before %% after"));
-  EXPECT_EQ(L"%s", fmt::sprintf(L"%%s"));
 }
 
 TEST(printf_test, positional_args) {
@@ -95,8 +84,6 @@ TEST(printf_test, number_is_too_big_in_arg_index) {
 }
 
 TEST(printf_test, switch_arg_indexing) {
-  EXPECT_THROW_MSG(test_sprintf("%1$d%", 1, 2), format_error,
-                   "cannot switch from manual to automatic argument indexing");
   EXPECT_THROW_MSG(test_sprintf(format("%1$d%{}d", big_num), 1, 2),
                    format_error, "number is too big");
   EXPECT_THROW_MSG(test_sprintf("%1$d%d", 1, 2), format_error,
@@ -127,6 +114,17 @@ TEST(printf_test, invalid_arg_index) {
   EXPECT_THROW_MSG(test_sprintf("%2$", 42), format_error, "argument not found");
   EXPECT_THROW_MSG(test_sprintf(format("%{}$d", big_num), 42), format_error,
                    "argument not found");
+}
+
+TEST(printf_test, zero_positional_width_precision) {
+  // A '0' positional index for a '*' width or precision must be rejected. Use
+  // enough arguments to exercise the unpacked argument storage path.
+  EXPECT_THROW_MSG(test_sprintf("%*0$d", 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12,
+                                13, 14, 15, 16),
+                   format_error, "argument not found");
+  EXPECT_THROW_MSG(test_sprintf("%.*0$d", 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12,
+                                13, 14, 15, 16),
+                   format_error, "argument not found");
 }
 
 TEST(printf_test, default_align_right) {
@@ -280,6 +278,32 @@ TEST(printf_test, int_precision) {
   EXPECT_PRINTF("00042     ", "%-#10.5o", 042);
 }
 
+// C99 7.21.6.1: the result of converting a zero value with a precision of zero
+// is no characters.
+TEST(printf_test, zero_int_with_zero_precision) {
+  EXPECT_PRINTF("", "%.0d", 0);
+  EXPECT_PRINTF("", "%.d", 0);
+  EXPECT_PRINTF("", "%.0o", 0);
+  EXPECT_PRINTF("", "%.0x", 0);
+
+  // '#' forces a single '0' for octal, but has no effect on other conversions.
+  EXPECT_PRINTF("0", "%#.0o", 0);
+  EXPECT_PRINTF("0", "%#.0hho", 256);
+  EXPECT_PRINTF("", "%#.0x", 0);
+
+  // The sign, space and width still apply.
+  EXPECT_PRINTF("+", "%+.0d", 0);
+  EXPECT_PRINTF(" ", "% .0d", 0);
+  EXPECT_PRINTF("     ", "%5.0d", 0);
+  EXPECT_PRINTF("     ", "%05.0d", 0);
+  EXPECT_PRINTF("    0", "%#5.0o", 0);
+  EXPECT_PRINTF("0    ", "%#-5.0o", 0);
+
+  // A nonzero value or a nonzero precision is unaffected.
+  EXPECT_PRINTF("-42", "%.0d", -42);
+  EXPECT_PRINTF("0", "%.1d", 0);
+}
+
 TEST(printf_test, float_precision) {
   char buffer[256];
   safe_sprintf(buffer, "%.3e", 1234.5678);
@@ -302,6 +326,8 @@ TEST(printf_test, ignore_precision_for_non_numeric_arg) {
 TEST(printf_test, dynamic_precision) {
   EXPECT_EQ("00042", test_sprintf("%.*d", 5, 42));
   EXPECT_EQ("42", test_sprintf("%.*d", -5, 42));
+  EXPECT_EQ("0", test_sprintf("%.*d", -1, 0));
+  EXPECT_EQ("+0", test_sprintf("%+.*d", -1, 0));
   EXPECT_THROW_MSG(test_sprintf("%.*d", 5.0, 42), format_error,
                    "precision is not integer");
   EXPECT_THROW_MSG(test_sprintf("%.*d"), format_error, "argument not found");
@@ -312,6 +338,39 @@ TEST(printf_test, dynamic_precision) {
     EXPECT_THROW_MSG(test_sprintf("%.*d", prec, 42), format_error,
                      "number is too big");
   }
+}
+
+TEST(printf_test, positional_width) {
+  EXPECT_EQ("   42", test_sprintf("%2$*1$d", 5, 42));
+  EXPECT_EQ("42   ", test_sprintf("%2$*1$d", -5, 42));
+  EXPECT_EQ("  abc", test_sprintf("%2$*1$s", 5, "abc"));
+  EXPECT_THROW_MSG(test_sprintf("%2$*1$d", 5.0, 42), format_error,
+                   "width is not integer");
+  EXPECT_THROW_MSG(test_sprintf("%2$*1$d"), format_error, "argument not found");
+  EXPECT_THROW_MSG(test_sprintf("%2$*1$d", big_num, 42), format_error,
+                   "number is too big");
+}
+
+TEST(printf_test, positional_precision) {
+  EXPECT_EQ("00042", test_sprintf("%2$.*1$d", 5, 42));
+  EXPECT_EQ("42", test_sprintf("%2$.*1$d", -5, 42));
+  EXPECT_EQ("0", test_sprintf("%2$.*1$d", -1, 0));
+  EXPECT_EQ("+0", test_sprintf("%2$+.*1$d", -1, 0));
+  EXPECT_EQ("Hell", test_sprintf("%2$.*1$s", 4, "Hello"));
+  EXPECT_THROW_MSG(test_sprintf("%2$.*1$d", 5.0, 42), format_error,
+                   "precision is not integer");
+  EXPECT_THROW_MSG(test_sprintf("%2$.*1$d"), format_error,
+                   "argument not found");
+  EXPECT_THROW_MSG(test_sprintf("%2$.*1$d", big_num, 42), format_error,
+                   "number is too big");
+}
+
+TEST(printf_test, positional_width_and_precision) {
+  EXPECT_EQ("  00042", test_sprintf("%3$*1$.*2$d", 7, 5, 42));
+  EXPECT_EQ("     ab", test_sprintf("%3$*1$.*2$s", 7, 2, "abcdef"));
+  EXPECT_EQ("  00042", test_sprintf("%3$*1$.*2$x", 7, 5, 0x42));
+  EXPECT_EQ("100.4400000",
+            test_sprintf("%6$-*5$.*4$f%3$s%2$s%1$s", "", "", "", 7, 4, 100.44));
 }
 
 template <typename T> struct make_signed {
@@ -337,11 +396,10 @@ void test_length(const char* length_spec, U value) {
   unsigned long long unsigned_value = 0;
   // Apply integer promotion to the argument.
   unsigned long long max = max_value<U>();
-  using fmt::detail::const_check;
-  if (const_check(max <= static_cast<unsigned>(max_value<int>()))) {
+  if (max <= static_cast<unsigned>(max_value<int>())) {
     signed_value = static_cast<int>(value);
     unsigned_value = static_cast<unsigned long long>(value);
-  } else if (const_check(max <= max_value<unsigned>())) {
+  } else if (max <= max_value<unsigned>()) {
     signed_value = static_cast<unsigned>(value);
     unsigned_value = static_cast<unsigned long long>(value);
   }
@@ -467,9 +525,6 @@ TEST(printf_test, char) {
   EXPECT_PRINTF("x", "%c", 'x');
   int max = max_value<int>();
   EXPECT_PRINTF(fmt::format("{}", static_cast<char>(max)), "%c", max);
-  // EXPECT_PRINTF("x", "%lc", L'x');
-  EXPECT_PRINTF(L"x", L"%c", L'x');
-  EXPECT_PRINTF(fmt::format(L"{}", static_cast<wchar_t>(max)), L"%c", max);
 }
 
 TEST(printf_test, string) {
@@ -477,10 +532,6 @@ TEST(printf_test, string) {
   const char* null_str = nullptr;
   EXPECT_PRINTF("(null)", "%s", null_str);
   EXPECT_PRINTF("    (null)", "%10s", null_str);
-  EXPECT_PRINTF(L"abc", L"%s", L"abc");
-  const wchar_t* null_wstr = nullptr;
-  EXPECT_PRINTF(L"(null)", L"%s", null_wstr);
-  EXPECT_PRINTF(L"    (null)", L"%10s", null_wstr);
 }
 
 TEST(printf_test, pointer) {
@@ -494,16 +545,6 @@ TEST(printf_test, pointer) {
   EXPECT_PRINTF(fmt::format("{:p}", s), "%p", s);
   const char* null_str = nullptr;
   EXPECT_PRINTF("(nil)", "%p", null_str);
-
-  p = &n;
-  EXPECT_PRINTF(fmt::format(L"{}", p), L"%p", p);
-  p = nullptr;
-  EXPECT_PRINTF(L"(nil)", L"%p", p);
-  EXPECT_PRINTF(L"     (nil)", L"%10p", p);
-  const wchar_t* w = L"test";
-  EXPECT_PRINTF(fmt::format(L"{:p}", w), L"%p", w);
-  const wchar_t* null_wstr = nullptr;
-  EXPECT_PRINTF(L"(nil)", L"%p", null_wstr);
 }
 
 enum test_enum { answer = 42 };
@@ -531,10 +572,6 @@ TEST(printf_test, printf_error) {
 }
 #endif
 
-TEST(printf_test, wide_string) {
-  EXPECT_EQ(L"abc", fmt::sprintf(L"%s", L"abc"));
-}
-
 TEST(printf_test, vprintf) {
   int n = 42;
   auto store = fmt::make_format_args<fmt::printf_context>(n);
@@ -554,7 +591,7 @@ TEST(printf_test, check_format_string_regression) {
 }
 
 TEST(printf_test, fixed_large_exponent) {
-  EXPECT_EQ("1000000000000000000000", fmt::sprintf("%.*f", -13, 1e21));
+  EXPECT_EQ("1000000000000000000000.000000", fmt::sprintf("%.*f", -13, 1e21));
 }
 
 TEST(printf_test, make_printf_args) {
@@ -565,4 +602,9 @@ TEST(printf_test, make_printf_args) {
   EXPECT_EQ(L"[42] something happened",
             fmt::vsprintf(fmt::basic_string_view<wchar_t>(L"[%d] %s happened"),
                           {fmt::make_printf_args<wchar_t>(n, L"something")}));
+}
+
+TEST(printf_test, trailing_percent_non_nul_terminated) {
+  auto p = std::unique_ptr<char>(new char('%'));
+  EXPECT_THROW(fmt::sprintf(fmt::string_view(p.get(), 1)), format_error);
 }

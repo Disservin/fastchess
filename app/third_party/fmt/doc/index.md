@@ -76,7 +76,7 @@ hide:
 <p>
   The default is <b>locale-independent</b>, but you can opt into localized
   formatting and {fmt} makes it work with Unicode, addressing issues in the
-  standard libary.
+  standard library.
 </p>
 </div>
 
@@ -84,7 +84,7 @@ hide:
 <h2>Fast compilation</h2>
 <p>
   The library makes extensive use of <b>type erasure</b> to achieve fast
-  compilation. <code>fmt/base.h</code> provides a subset of the API with
+  compilation. <code>fmt/core.h</code> provides a subset of the API with
   <b>minimal include dependencies</b> and enough functionality to replace
   all uses of <code>*printf</code>.
 </p>
@@ -129,7 +129,6 @@ hide:
 <p>
   Where possible, the output of formatting functions is <b>consistent across
   platforms</b>.
-</p>
 </p>
 </div>
 

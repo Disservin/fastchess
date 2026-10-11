@@ -10,8 +10,8 @@
 #include <array>
 #include <list>
 #include <map>
-#include <numeric>
 #include <queue>
+#include <set>
 #include <stack>
 #include <string>
 #include <utility>
@@ -128,7 +128,7 @@ TEST(ranges_test, format_set) {
 
 // Models std::flat_set close enough to test if no ambiguous lookup of a
 // formatter happens due to the flat_set type matching is_set and
-// is_container_adaptor_like.
+// is_container_adaptor.
 template <typename T> class flat_set {
  public:
   using key_type = T;
@@ -168,6 +168,40 @@ auto end(const box& b) -> const int* { return &b.value + 1; }
 TEST(ranges_test, format_adl_begin_end) {
   auto b = adl::box{42};
   EXPECT_EQ(fmt::format("{}", b), "[42]");
+}
+
+TEST(ranges_test, format_width) {
+  auto v = std::vector<int>{1, 2, 3};
+  EXPECT_EQ(fmt::format("{:20}", v), "[1, 2, 3]           ");
+  EXPECT_EQ(fmt::format("{:<20}", v), "[1, 2, 3]           ");
+  EXPECT_EQ(fmt::format("{:>20}", v), "           [1, 2, 3]");
+  EXPECT_EQ(fmt::format("{:^20}", v), "     [1, 2, 3]      ");
+  EXPECT_EQ(fmt::format("{:*>20}", v), "***********[1, 2, 3]");
+  EXPECT_EQ(fmt::format("{:*>{}}", v, 20), "***********[1, 2, 3]");
+  // The width applies to the composed output, not to the elements.
+  EXPECT_EQ(fmt::format("{:*>20n}", v), "*************1, 2, 3");
+  EXPECT_EQ(fmt::format("{:*>20:03}", v), "*****[001, 002, 003]");
+  // A leading ':' introduces the underlying spec and is not a fill character.
+  EXPECT_EQ(fmt::format("{::>5}", v), "[    1,     2,     3]");
+  // Output longer than the width is not truncated.
+  EXPECT_EQ(fmt::format("{:*>3}", v), "[1, 2, 3]");
+
+  auto s = std::set<int>{1, 2};
+  EXPECT_EQ(fmt::format("{:*>20}", s), "**************{1, 2}");
+
+  auto m = std::map<int, int>{{1, 2}};
+  EXPECT_EQ(fmt::format("{:*>20}", m), "**************{1: 2}");
+  EXPECT_EQ(fmt::format("{:*>10n}", m), "******1: 2");
+
+  auto vs = std::vector<std::string>{"a", "b"};
+  EXPECT_EQ(fmt::format("{:*>20}", vs), "**********[\"a\", \"b\"]");
+
+  EXPECT_EQ(fmt::format("{:*>20}", std::tuple<int, int>(1, 2)),
+            "**************(1, 2)");
+  EXPECT_EQ(fmt::format("{:*>20}", std::pair<int, int>(1, 2)),
+            "**************(1, 2)");
+  EXPECT_EQ(fmt::format("{:*>{}}", std::pair<int, int>(1, 2), 20),
+            "**************(1, 2)");
 }
 
 TEST(ranges_test, format_pair) {
@@ -272,6 +306,23 @@ TEST(ranges_test, disabled_range_formatting_of_path) {
             fmt::range_format::disabled);
 }
 
+template <typename T> struct optional_like {
+  auto begin() const -> const T*;
+  auto end() const -> const T*;
+
+  bool has_value() const noexcept;
+  T& value() &;
+  const T& value() const&;
+  T&& value() &&;
+  const T&& value() const&&;
+};
+
+TEST(ranges_test, disabled_range_formatting_of_optional) {
+  // (C++26) Has a range support for std::optional.
+  EXPECT_EQ((fmt::range_format_kind<optional_like<int>, char>::value),
+            fmt::range_format::disabled);
+}
+
 struct vector_string : std::vector<char> {
   using base = std::vector<char>;
   using base::base;
@@ -297,6 +348,10 @@ TEST(ranges_test, range_format_string) {
 TEST(ranges_test, range_format_debug_string) {
   const vector_debug_string v{'f', 'o', 'o'};
   EXPECT_EQ(fmt::format("{}", v), "\"foo\"");
+  EXPECT_EQ(fmt::format("{}", vector_debug_string{'\n'}), "\"\\n\"");
+  EXPECT_EQ(fmt::format("{}", vector_debug_string{'\\'}), "\"\\\\\"");
+  EXPECT_EQ(fmt::format("{}", vector_debug_string{'\"'}), "\"\\\"\"");
+  EXPECT_EQ(fmt::format("{:8}", vector_debug_string{'a'}), "\"a\"     ");
 }
 
 // A range that provides non-const only begin()/end() to test fmt::join
@@ -330,7 +385,7 @@ template <typename T> class noncopyable_range {
   explicit noncopyable_range(Args&&... args)
       : vec(std::forward<Args>(args)...) {}
 
-  noncopyable_range(noncopyable_range const&) = delete;
+  noncopyable_range(const noncopyable_range&) = delete;
   noncopyable_range(noncopyable_range&) = delete;
 
   auto begin() -> iterator { return vec.begin(); }
@@ -395,13 +450,6 @@ TEST(ranges_test, join) {
   EXPECT_EQ(fmt::format("{}", join(v4, " ")), "0 1 0");
 }
 
-#ifdef __cpp_lib_byte
-TEST(ranges_test, join_bytes) {
-  auto v = std::vector<std::byte>{std::byte(1), std::byte(2), std::byte(3)};
-  EXPECT_EQ(fmt::format("{}", fmt::join(v, ", ")), "1, 2, 3");
-}
-#endif
-
 TEST(ranges_test, join_tuple) {
   // Value tuple args.
   auto t1 = std::tuple<char, int, float>('a', 1, 2.0f);
@@ -424,7 +472,7 @@ TEST(ranges_test, join_tuple) {
   auto t5 = tuple_like{42, "foo"};
   EXPECT_EQ(fmt::format("{}", fmt::join(t5, ", ")), "42, foo");
 
-#  if FMT_TUPLE_JOIN_SPECIFIERS
+#if FMT_TUPLE_JOIN_SPECIFIERS
   // Specs applied to each element.
   auto t5 = std::tuple<int, int, long>(-3, 100, 1);
   EXPECT_EQ(fmt::format("{:+03}", fmt::join(t5, ", ")), "-03, +100, +01");
@@ -437,13 +485,7 @@ TEST(ranges_test, join_tuple) {
   int y = -1;
   auto t7 = std::tuple<int, int&, const int&>(3, y, y);
   EXPECT_EQ(fmt::format("{:03}", fmt::join(t7, ", ")), "003, -01, -01");
-#  endif
-}
-
-TEST(ranges_test, join_initializer_list) {
-  EXPECT_EQ(fmt::format("{}", fmt::join({1, 2, 3}, ", ")), "1, 2, 3");
-  EXPECT_EQ(fmt::format("{}", fmt::join({"fmt", "rocks", "!"}, " ")),
-            "fmt rocks !");
+#endif
 }
 
 struct zstring_sentinel {};
@@ -457,7 +499,7 @@ struct zstring {
   auto end() const -> zstring_sentinel { return {}; }
 };
 
-#  ifdef __cpp_lib_ranges
+#ifdef __cpp_lib_ranges
 struct cpp20_only_range {
   struct iterator {
     int val = 0;
@@ -487,7 +529,7 @@ struct cpp20_only_range {
 };
 
 static_assert(std::input_iterator<cpp20_only_range::iterator>);
-#  endif
+#endif
 
 TEST(ranges_test, join_sentinel) {
   auto hello = zstring{"hello"};
@@ -515,13 +557,13 @@ TEST(ranges_test, join_range) {
   const auto z = std::vector<int>(3u, 0);
   EXPECT_EQ(fmt::format("{}", fmt::join(z, ",")), "0,0,0");
 
-#  ifdef __cpp_lib_ranges
+#ifdef __cpp_lib_ranges
   EXPECT_EQ(fmt::format("{}", cpp20_only_range{.lo = 0, .hi = 5}),
             "[0, 1, 2, 3, 4]");
   EXPECT_EQ(
       fmt::format("{}", fmt::join(cpp20_only_range{.lo = 0, .hi = 5}, ",")),
       "0,1,2,3,4");
-#  endif
+#endif
 }
 
 namespace adl {
@@ -553,6 +595,11 @@ TEST(ranges_test, is_printable) {
   EXPECT_TRUE(is_printable(0x0323));
   EXPECT_FALSE(is_printable(0x0378));
   EXPECT_FALSE(is_printable(0x110000));
+  // Code points assigned after Unicode 13.0.
+  EXPECT_TRUE(is_printable(0x2a6de));
+  EXPECT_TRUE(is_printable(0x1fae0));
+  EXPECT_TRUE(is_printable(0x31350));
+  EXPECT_TRUE(is_printable(0x323b0));
 }
 
 TEST(ranges_test, escape) {
@@ -565,7 +612,7 @@ TEST(ranges_test, escape) {
   if (fmt::detail::use_utf8) {
     EXPECT_EQ(fmt::format("{}", vec{"\xcd\xb8"}), "[\"\\u0378\"]");
     // Unassigned Unicode code points.
-    EXPECT_EQ(fmt::format("{}", vec{"\xf0\xaa\x9b\x9e"}), "[\"\\U0002a6de\"]");
+    EXPECT_EQ(fmt::format("{}", vec{"\xf0\xaa\x9b\xa0"}), "[\"\\U0002a6e0\"]");
     // Broken utf-8.
     EXPECT_EQ(fmt::format("{}", vec{"\xf4\x8f\xbf\xc0"}),
               "[\"\\xf4\\x8f\\xbf\\xc0\"]");
@@ -608,12 +655,11 @@ TEST(ranges_test, vector_char) {
 
 TEST(ranges_test, container_adaptor) {
   {
-    using fmt::detail::is_container_adaptor_like;
     using T = std::nullptr_t;
-    static_assert(is_container_adaptor_like<std::stack<T>>::value, "");
-    static_assert(is_container_adaptor_like<std::queue<T>>::value, "");
-    static_assert(is_container_adaptor_like<std::priority_queue<T>>::value, "");
-    static_assert(!is_container_adaptor_like<std::vector<T>>::value, "");
+    static_assert(fmt::is_container_adaptor<std::stack<T>>::value, "");
+    static_assert(fmt::is_container_adaptor<std::queue<T>>::value, "");
+    static_assert(fmt::is_container_adaptor<std::priority_queue<T>>::value, "");
+    static_assert(!fmt::is_container_adaptor<std::vector<T>>::value, "");
   }
 
   {
@@ -680,6 +726,25 @@ TEST(ranges_test, format_as_tie) {
   EXPECT_EQ(fmt::format("{}", tieable()), "(3, 0.42)");
 }
 
+struct format_as_tuple_like {};
+
+auto format_as(const format_as_tuple_like&) -> std::string { return "Hello"; }
+
+namespace std {
+template <> struct tuple_size<format_as_tuple_like>
+    : integral_constant<size_t, 1> {};
+template <> struct tuple_element<0, format_as_tuple_like> {
+  using type = format_as_tuple_like;
+};
+}  // namespace std
+
+TEST(ranges_test, format_as_tuple_like) {
+  static_assert(fmt::is_tuple_formattable<format_as_tuple_like, char>::value,
+                "format_as must not change tuple formattability");
+  EXPECT_TRUE((fmt::is_formattable<format_as_tuple_like>::value));
+  EXPECT_EQ(fmt::format("{}", format_as_tuple_like{}), "Hello");
+}
+
 struct lvalue_qualified_begin_end {
   int arr[5] = {1, 2, 3, 4, 5};
 
@@ -724,10 +789,17 @@ struct codec_mask {
   int except = 0;
 };
 
+// A named functor instead of a lambda to avoid -Wsubobject-linkage: a lambda
+// gives the filter_view type internal linkage, which propagates to the
+// formatter base class via format_as.
+struct not_equal {
+  int value;
+  bool operator()(int c) const { return c != value; }
+};
+
 auto format_as(codec_mask mask) {
-  // Careful not to capture param by reference here, it will dangle.
   return codec_mask::codecs |
-         std::views::filter([mask](auto c) { return c != mask.except; });
+         std::views::filter(not_equal{mask.except});
 }
 }  // namespace views_filter_view_test
 
@@ -797,3 +869,23 @@ struct not_range {
   void end() const {}
 };
 static_assert(!fmt::is_formattable<not_range>{}, "");
+
+struct test_adaptor {
+  using container_type = std::vector<int>;
+  std::vector<int> c = {1, 2, 3};
+};
+
+namespace fmt {
+template <> struct is_container_adaptor<test_adaptor> : std::false_type {};
+
+template <> struct formatter<test_adaptor> : formatter<string_view> {
+  auto format(const test_adaptor&, format_context& ctx) const
+      -> format_context::iterator {
+    return formatter<string_view>::format("test", ctx);
+  }
+};
+}  // namespace fmt
+
+TEST(ranges_test, container_adaptor_opt_out) {
+  EXPECT_EQ(fmt::format("{}", test_adaptor()), "test");
+}

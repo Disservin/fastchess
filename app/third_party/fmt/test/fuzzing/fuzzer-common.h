@@ -4,7 +4,7 @@
 #ifndef FUZZER_COMMON_H
 #define FUZZER_COMMON_H
 
-#include <fmt/base.h>
+#include <fmt/core.h>
 
 #include <cstdint>  // std::uint8_t
 #include <cstring>  // memcpy
@@ -22,7 +22,7 @@
 #define FMT_FUZZ_SEPARATE_ALLOCATION 1
 
 // The size of the largest possible type in use.
-// To let the the fuzzer mutation be efficient at cross pollinating between
+// To let the fuzzer mutation be efficient at cross pollinating between
 // different types, use a fixed size format. The same bit pattern, interpreted
 // as another type, is likely interesting.
 constexpr auto fixed_size = 16;

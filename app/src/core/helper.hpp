@@ -11,7 +11,7 @@
 #include <type_traits>
 #include <vector>
 
-#include <fmt/include/fmt/core.h>
+#include <fmt/include/fmt/format.h>
 #include <expected.hpp>
 #include <json.hpp>
 

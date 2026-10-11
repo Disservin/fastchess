@@ -21,7 +21,7 @@
 #include <types/exception.hpp>
 #include <types/tournament.hpp>
 
-#include <fmt/include/fmt/core.h>
+#include <fmt/include/fmt/format.h>
 
 namespace fastchess {
 extern const char* version;

@@ -8,7 +8,7 @@
 #include <matchmaking/match/match.hpp>
 #include <types/tournament.hpp>
 
-#include <fmt/include/fmt/core.h>
+#include <fmt/include/fmt/format.h>
 
 namespace fastchess::epd {
 

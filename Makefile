@@ -60,8 +60,8 @@ update-man: ## Update man like page
 
 update-fmt: ## Fetch subtree fmt
 	@echo "Updating fmt.."
-	git fetch https://github.com/fmtlib/fmt.git master
-	git subtree pull --prefix=app/third_party/fmt https://github.com/fmtlib/fmt.git master --squash
+	git fetch https://github.com/fmtlib/fmt.git main
+	git subtree pull --prefix=app/third_party/fmt https://github.com/fmtlib/fmt.git main --squash
 	@echo "Done."
 
 format: ## Format code

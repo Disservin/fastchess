@@ -1,12 +1,12 @@
 // Formatting library for C++ - Noexception tests
 //
-// Copyright (c) 2012 - present, Victor Zverovich
+// Copyright (c) 2012 - present, Victor Zverovich and {fmt} contributors
 // All rights reserved.
 //
 // For the license information refer to format.h.
 
 #include "fmt/args.h"
-#include "fmt/base.h"
+#include "fmt/core.h"
 #include "fmt/chrono.h"
 #include "fmt/color.h"
 #include "fmt/compile.h"

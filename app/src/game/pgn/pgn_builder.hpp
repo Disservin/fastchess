@@ -12,7 +12,7 @@
 #include <game/pgn/openings_data.hpp>
 #include <game/pgn/pgn_gen.hpp>
 
-#include <fmt/include/fmt/core.h>
+#include <fmt/include/fmt/format.h>
 
 namespace fastchess::pgn {
 

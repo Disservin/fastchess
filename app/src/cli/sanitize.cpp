@@ -11,7 +11,7 @@
 #include <matchmaking/sprt/sprt.hpp>
 #include <types/exception.hpp>
 
-#include <fmt/include/fmt/core.h>
+#include <fmt/include/fmt/format.h>
 
 namespace fastchess::cli {
 

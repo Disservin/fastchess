@@ -8,7 +8,7 @@
 #include <sstream>
 #include <string>
 
-#include <fmt/include/fmt/core.h>
+#include <fmt/include/fmt/format.h>
 #include "fmt/include/fmt/std.h"
 
 namespace fastchess::time {

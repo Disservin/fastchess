@@ -1,6 +1,6 @@
 // Formatting library for C++ - dynamic argument store tests
 //
-// Copyright (c) 2012 - present, Victor Zverovich
+// Copyright (c) 2012 - present, Victor Zverovich and {fmt} contributors
 // All rights reserved.
 //
 // For the license information refer to format.h.
@@ -64,7 +64,7 @@ TEST(args_test, custom_format) {
 }
 
 struct to_stringable {
-  friend fmt::string_view to_string_view(to_stringable) { return {}; }
+  friend auto to_string_view(to_stringable) -> fmt::string_view { return {}; }
 };
 
 FMT_BEGIN_NAMESPACE
@@ -199,4 +199,12 @@ TEST(args_test, size) {
 
   store.clear();
   EXPECT_EQ(store.size(), 0);
+}
+
+TEST(args_test, named_arg_count) {
+  fmt::dynamic_format_arg_store<fmt::format_context> store;
+  store.push_back(fmt::arg("a", 42));
+  EXPECT_EQ(store.size(), 1);
+  EXPECT_EQ(fmt::vformat("{0}", store), "42");
+  EXPECT_THROW(fmt::vformat("{1}", store), fmt::format_error);
 }

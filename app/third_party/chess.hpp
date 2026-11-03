@@ -25,7 +25,7 @@ THIS FILE IS AUTO GENERATED DO NOT CHANGE MANUALLY.
 
 Source: https://github.com/Disservin/chess-library
 
-VERSION: 0.9.4
+VERSION: 0.9.11
 */
 
 #ifndef CHESS_HPP
@@ -736,6 +736,14 @@ class Bitboard {
         return index;
     }
 
+    [[nodiscard]]
+#if __cpp_lib_bitops >= 201907L
+    constexpr
+#endif
+        bool hasSingleBit() const noexcept {
+        return count() == 1;
+    }
+
     [[nodiscard]] constexpr std::uint64_t getBits() const noexcept { return bits; }
 
     friend std::ostream& operator<<(std::ostream& os, const Bitboard& bb);
@@ -872,6 +880,13 @@ class Piece {
                                                    "p", "n", "b", "r", "q", "k"};
         if (piece == NONE) return ".";
         return pieceStr[static_cast<int>(piece)];
+    }
+
+    explicit operator std::string_view() const {
+        constexpr static const char* pieceStr[] = {"P", "N", "B", "R", "Q", "K",  //
+                                                   "p", "n", "b", "r", "q", "k"};
+        if (piece == NONE) return ".";
+        return std::string_view(pieceStr[static_cast<int>(piece)], 1);
     }
 
     constexpr operator int() const noexcept { return static_cast<int>(piece); }
@@ -1195,6 +1210,7 @@ class attacks {
 
 #include <array>
 #include <cctype>
+#include <cstring>
 #include <optional>
 
 // check if charconv header is available
@@ -1292,12 +1308,20 @@ class Move {
     std::int16_t score_;
 };
 
+/** A forward move together with the piece that it captured, for reverse play. */
+struct RevMove {
+    Move move;
+    Piece captured = Piece::NONE;
+
+    RevMove() = default;
+    constexpr RevMove(Move move, Piece captured = Piece::NONE) : move(move), captured(captured) {}
+};
+
 }  // namespace chess
 
 
 
 #include <cstddef>
-#include <cstring>
 #include <iterator>
 #include <stdexcept>
 
@@ -1501,6 +1525,8 @@ class movegen {
    private:
     static auto init_squares_between();
     static const std::array<std::array<Bitboard, 64>, 64> SQUARES_BETWEEN_BB;
+    static auto init_squares_line();
+    static const std::array<std::array<Bitboard, 64>, 64> SQUARES_LINE_BB;
 
     // Generate the checkmask. Returns a bitboard where the attacker path between the king and enemy piece is set.
     template <Color::underlying c>
@@ -1559,6 +1585,7 @@ class movegen {
     static bool isEpSquareValid(const Board& board, Square ep);
 
     [[nodiscard]] static Bitboard between(Square sq1, Square sq2) noexcept;
+    [[nodiscard]] static Bitboard line(Square sq1, Square sq2) noexcept;
 
     template <Color::underlying c>
     [[nodiscard]] static bool isLegal(const Board& board, const Move move);
@@ -1755,6 +1782,32 @@ class Zobrist {
         return arr;
     }();
 
+    // Board::isRepetitionVerified() only compares the piece placement after a hash match. With equal
+    // placement and side to move, the hashes can only differ by castling ^ en passant keys, so every
+    // combination of castling rights (16) and en passant state (none or one of 8 files) must hash
+    // differently, otherwise differing castling rights / en passant squares would go unnoticed.
+    static constexpr bool castlingEpKeysDistinct = []() constexpr {
+        U64 keys[16 * 9] = {};
+        int n            = 0;
+
+        for (int cr = 0; cr < 16; ++cr) {
+            for (int ep = -1; ep < 8; ++ep) {
+                U64 key = ep < 0 ? 0 : RANDOM_ARRAY[772 + ep];
+                for (int i = 0; i < 4; ++i)
+                    if (cr & (1 << i)) key ^= RANDOM_ARRAY[768 + i];
+                keys[n++] = key;
+            }
+        }
+
+        for (int i = 0; i < n; ++i)
+            for (int j = i + 1; j < n; ++j)
+                if (keys[i] == keys[j]) return false;
+
+        return true;
+    }();
+
+    static_assert(castlingEpKeysDistinct, "castling/en passant Zobrist keys must not cancel each other out");
+
     static constexpr int MAP_HASH_PIECE[12] = {1, 3, 5, 7, 9, 11, 0, 2, 4, 6, 8, 10};
 
     [[nodiscard]] static U64 piece(Piece piece, Square square) noexcept {
@@ -1835,7 +1888,20 @@ enum class GameResultReason {
     NONE
 };
 
-enum class CheckType { NO_CHECK, DIRECT_CHECK, DISCOVERY_CHECK };
+enum class CheckType {
+    NO_CHECK,
+
+    // In normal mode, you only get CHECK as a return value when move
+    // can actually give a check. No other distinguishing is made.
+    CHECK,
+
+    // In detailed mode you get the precise check type of the move.
+    // The effort is costly, so only use it when detailed information is needed.
+    DIRECT_CHECK = CHECK,
+    DIRECT_DISCOVERY_CHECK,
+    SINGLE_DISCOVERY_CHECK,
+    DOUBLE_DISCOVERY_CHECK
+};
 
 // A compact representation of the board in 24 bytes,
 // does not include the half-move clock or full move number.
@@ -1895,18 +1961,21 @@ class Board {
         Square enpassant;
         std::uint8_t half_moves;
         Piece captured_piece;
+        // the move played from this state, used to rebuild earlier positions when verifying repetitions
+        Move move;
 
         State(const U64& hash, const CastlingRights& castling, const Square& enpassant, const std::uint8_t& half_moves,
-              const Piece& captured_piece)
+              const Piece& captured_piece, const Move& move)
             : hash(hash),
               castling(castling),
               enpassant(enpassant),
               half_moves(half_moves),
-              captured_piece(captured_piece) {}
+              captured_piece(captured_piece),
+              move(move) {}
 
         bool operator==(const State& other) const noexcept {
             return hash == other.hash && castling == other.castling && enpassant == other.enpassant &&
-                   half_moves == other.half_moves && captured_piece == other.captured_piece;
+                   half_moves == other.half_moves && captured_piece == other.captured_piece && move == other.move;
         }
     };
 
@@ -2068,7 +2137,7 @@ class Board {
         // Validate side to move
         assert((at(move.from()) < Piece::BLACKPAWN) == (stm_ == Color::WHITE));
 
-        prev_states_.emplace_back(key_, cr_, ep_sq_, hfm_, captured);
+        prev_states_.emplace_back(key_, cr_, ep_sq_, hfm_, captured, move);
 
         hfm_++;
         plies_++;
@@ -2285,10 +2354,63 @@ class Board {
     }
 
     /**
+     * @brief Reverse a move generated by RevMoveGen without requiring move history.
+     *
+     * The descriptor supplies the captured piece. Lost castling rights and
+     * en-passant state cannot always be inferred from a FEN; castling rights
+     * are reconstructed where the move and piece placement make them apparent.
+     * The half-move clock is conservatively reconstructed.
+     */
+    void unmakeMove(const RevMove& reverse) {
+        const auto move = reverse.move;
+        const auto old_ep = move.typeOf() == Move::ENPASSANT ? move.to() : Square::NO_SQ;
+        const auto old_hfm = ((move.typeOf() == Move::CASTLING || move.typeOf() == Move::NORMAL) &&
+                              reverse.captured == Piece::NONE &&
+                              (move.typeOf() == Move::CASTLING || at<PieceType>(move.to()) != PieceType::PAWN))
+                                 ? static_cast<std::uint8_t>(hfm_ ? hfm_ - 1 : 0)
+                                 : 0;
+        // A FEN for White to move on move 1 has a zero ply counter. Its
+        // predecessor must still be representable as Black to move on move 1.
+        if (plies_ == 0) plies_ = 1;
+        auto old_castling = cr_;
+        const Color mover = ~stm_;
+        const Color captured_color = ~mover;
+        if (move.typeOf() == Move::CASTLING) {
+            old_castling.setCastlingRight(mover, move.to() > move.from() ? CastlingRights::Side::KING_SIDE
+                                                                         : CastlingRights::Side::QUEEN_SIDE,
+                                          move.to().file());
+        } else if (at<PieceType>(move.to()) == PieceType::KING &&
+                   Square::back_rank(move.from(), mover)) {
+            const Rank back_rank = mover == Color::WHITE ? Rank::RANK_1 : Rank::RANK_8;
+            const Square king_home(File::FILE_E, back_rank);
+            const Square king_rook(File::FILE_H, back_rank);
+            const Square queen_rook(File::FILE_A, back_rank);
+            if (move.from() == king_home) {
+                if (at(king_rook) == Piece(PieceType::ROOK, mover))
+                    old_castling.setCastlingRight(mover, CastlingRights::Side::KING_SIDE, File::FILE_H);
+                if (at(queen_rook) == Piece(PieceType::ROOK, mover))
+                    old_castling.setCastlingRight(mover, CastlingRights::Side::QUEEN_SIDE, File::FILE_A);
+            }
+        }
+        if (reverse.captured.type() == PieceType::ROOK && Square::back_rank(move.to(), captured_color)) {
+            const Rank back_rank = captured_color == Color::WHITE ? Rank::RANK_1 : Rank::RANK_8;
+            const Square king_home(File::FILE_E, back_rank);
+            if (at(king_home) == Piece(PieceType::KING, captured_color)) {
+                const auto side = move.to().file() > File::FILE_E ? CastlingRights::Side::KING_SIDE
+                                                                  : CastlingRights::Side::QUEEN_SIDE;
+                old_castling.setCastlingRight(captured_color, side, move.to().file());
+            }
+        }
+        prev_states_.emplace_back(key_, old_castling, old_ep, old_hfm, reverse.captured, move);
+        unmakeMove(move);
+        key_ = zobrist();
+    }
+
+    /**
      * @brief Make a null move. (Switches the side to move)
      */
     void makeNullMove() {
-        prev_states_.emplace_back(key_, cr_, ep_sq_, hfm_, Piece::NONE);
+        prev_states_.emplace_back(key_, cr_, ep_sq_, hfm_, Piece::NONE, Move(Move::NULL_MOVE));
 
         key_ ^= Zobrist::sideToMove();
         if (ep_sq_ != Square::NO_SQ) key_ ^= Zobrist::enpassant(ep_sq_.file());
@@ -2502,15 +2624,37 @@ class Board {
     /**
      * @brief Checks if the current position is a repetition, set this to 1 if
      * you are writing a chess engine.
+     * Candidate positions are found by comparing Zobrist hashes, every hash match is then
+     * verified against the actual piece placement, castling rights and en passant square,
+     * so hash collisions can never produce a false repetition.
      * @param count
      * @return
      */
     [[nodiscard]] bool isRepetition(int count = 2) const noexcept {
-        std::uint8_t c = 0;
-
         // We start the loop from the back and go forward in moves, at most to the
         // last move which reset the half-move counter because repetitions cant
         // be across half-moves.
+        const auto size = static_cast<int>(prev_states_.size());
+
+        // Hot path: identical to the hash-only scan. Hash matches are rare, so the
+        // verification is kept out of line to not slow down the common case.
+        for (int i = size - 2; i >= 0 && i >= size - hfm_ - 1; i -= 2) {
+            if (prev_states_[i].hash == key_) return isRepetitionVerified(count, i);
+        }
+
+        return false;
+    }
+
+    /**
+     * @brief Hash-only version of isRepetition(). Slightly faster since hash matches are not
+     * verified, but it may report a false repetition on a Zobrist hash collision.
+     * Only use this if you can tolerate (very rare) false positives, e.g. in engine search.
+     * @param count
+     * @return
+     */
+    [[nodiscard]] bool isRepetitionFast(int count = 2) const noexcept {
+        int c = 0;
+
         const auto size = static_cast<int>(prev_states_.size());
 
         for (int i = size - 2; i >= 0 && i >= size - hfm_ - 1; i -= 2) {
@@ -2625,7 +2769,20 @@ class Board {
      */
     [[nodiscard]] bool inCheck() const noexcept { return isAttacked(kingSq(stm_), ~stm_); }
 
-    [[nodiscard]] CheckType givesCheck(const Move& m) const noexcept;
+    /**
+     * @brief Checks if the current side to move is in a double check
+     * @return
+     */
+    [[nodiscard]] bool inDoubleCheck() const noexcept { return checkers().count() == 2; }
+
+    /**
+     * @brief Returns the position of all enemy pieces that give check to our king
+     * @return
+     */
+    [[nodiscard]] Bitboard checkers() const noexcept { return attacks::attackers(*this, ~stm_, kingSq(stm_)) & them(stm_); }
+
+    template <bool Detail = false>
+    [[nodiscard]] CheckType givesCheck(const Move m) const noexcept;
 
     /**
      * @brief Checks if the given color has at least 1 piece thats not pawn and not king
@@ -3130,27 +3287,118 @@ class Board {
     std::array<std::array<Bitboard, 2>, 2> castling_path = {};
 
    private:
-    void appendFenPiecePlacement(std::string& ss) const {
-        for (int rank = 7; rank >= 0; rank--) {
-            std::uint32_t free_space = 0;
+    /**
+     * @brief Slow path of isRepetition(), called on the first hash match at prev_states_[first].
+     * Rebuilds the piece placement of earlier positions by undoing the recorded moves on a
+     * mailbox copy and compares it against the current position.
+     */
+#if defined(__GNUC__)
+    __attribute__((noinline, cold))
+#elif defined(_MSC_VER)
+    __declspec(noinline)
+#endif
+    bool isRepetitionVerified(int count, int first) const noexcept {
+        const auto size = static_cast<int>(prev_states_.size());
 
-            for (int file = 0; file < 8; file++) {
-                const int sq = rank * 8 + file;
+        // piece placement of the position at prev_states_[board_idx]
+        std::array<Piece, 64> board = board_;
+        int board_idx               = size;
+        int c                       = 0;
 
-                if (Piece piece = at(Square(sq)); piece != Piece::NONE) {
-                    if (free_space) {
-                        ss += std::to_string(free_space);
-                        free_space = 0;
-                    }
+        for (int i = first; i >= 0 && i >= size - hfm_ - 1; i -= 2) {
+            const auto& state = prev_states_[i];
 
-                    ss += static_cast<std::string>(piece);
-                } else {
-                    free_space++;
-                }
+            if (state.hash != key_) continue;
+
+            // the side to move alternates every ply (null moves included)
+            for (; board_idx > i; --board_idx) {
+                const auto mover = ((size - (board_idx - 1)) & 1) ? ~stm_ : stm_;
+                undoMoveOnMailbox(board, prev_states_[board_idx - 1], mover);
             }
 
-            if (free_space != 0) ss += std::to_string(free_space);
-            ss += (rank > 0 ? "/" : "");
+            // Equal hash + equal placement + equal side to move implies equal castling rights and
+            // en passant square, see Zobrist::castlingEpKeysDistinct. (Rook files of the castling
+            // rights are not hashed, but within one history rights are only ever removed, so the
+            // set of rights determines them.)
+            if (std::memcmp(board.data(), board_.data(), sizeof(board)) != 0) continue;
+
+            if (++c == count) return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @brief Undo the move stored in `state` on a plain mailbox board.
+     * @param board piece placement after the move, becomes the placement before the move
+     * @param state the state recorded before the move was made
+     * @param mover the color which made the move
+     */
+    static void undoMoveOnMailbox(std::array<Piece, 64>& board, const State& state, Color mover) noexcept {
+        const auto move = state.move;
+
+        if (move.move() == Move::NULL_MOVE) return;
+
+        const auto from = move.from().index();
+        const auto to   = move.to().index();
+
+        switch (move.typeOf()) {
+            case Move::CASTLING: {
+                // castling is encoded as king captures own rook
+                const bool king_side   = move.to() > move.from();
+                const auto rook_now_sq = Square(king_side ? File::FILE_F : File::FILE_D, move.from().rank()).index();
+                const auto king_now_sq = Square(king_side ? File::FILE_G : File::FILE_C, move.from().rank()).index();
+
+                board[rook_now_sq] = Piece::NONE;
+                board[king_now_sq] = Piece::NONE;
+                board[from]        = Piece(PieceType::KING, mover);
+                board[to]          = Piece(PieceType::ROOK, mover);
+                break;
+            }
+            case Move::PROMOTION:
+                board[from] = Piece(PieceType::PAWN, mover);
+                board[to]   = state.captured_piece;
+                break;
+            case Move::ENPASSANT:
+                board[from]   = board[to];
+                board[to]     = Piece::NONE;
+                board[to ^ 8] = Piece(PieceType::PAWN, ~mover);
+                break;
+            default:
+                board[from] = board[to];
+                board[to]   = state.captured_piece;
+                break;
+        }
+    }
+
+    void appendFenPiecePlacement(std::string& ss) const {
+        for (int rank = 7; rank >= 0; --rank) {
+            auto rank_bb = (occ() & Rank(rank).bb()) >> (rank * 8);
+            int lsb      = -1;
+            int last_lsb = -1;
+
+            while (rank_bb) {
+                lsb = rank_bb.pop();
+
+                if (lsb != 0 && lsb != last_lsb + 1) {
+                    int free_space = lsb - last_lsb - 1;
+                    if (free_space > 0) ss += char('0' + free_space);
+                }
+
+                last_lsb = lsb;
+
+                Square sq(lsb + rank * 8);
+                ss += static_cast<std::string_view>(at(sq));
+            }
+
+            if (lsb != 7) {
+                if (lsb == -1)
+                    ss += '8';
+                else if (lsb < 7)
+                    ss += char('0' + (7 - lsb));
+            }
+
+            if (rank > 0) ss += '/';
         }
     }
 
@@ -3529,6 +3777,31 @@ class Board {
     // store the original fen string
     // useful when setting up a frc position and the user called set960(true) afterwards
     std::string original_fen_;
+
+    [[nodiscard]] Bitboard pins() const noexcept {
+        Square king_sq = kingSq(stm_);
+        Bitboard occ_us = us(stm_);
+        Bitboard occ_opp = them(stm_);
+
+        return (stm_ == Color::WHITE)
+            ? movegen::pinMask<Color::WHITE, PieceType::ROOK>(*this, king_sq, occ_opp, occ_us)
+            | movegen::pinMask<Color::WHITE, PieceType::BISHOP>(*this, king_sq, occ_opp, occ_us)
+            : movegen::pinMask<Color::BLACK, PieceType::ROOK>(*this, king_sq, occ_opp, occ_us)
+            | movegen::pinMask<Color::BLACK, PieceType::BISHOP>(*this, king_sq, occ_opp, occ_us);
+    }
+
+public:
+    /**
+     * @brief Get the position of all enemy sliders that pin our pieces to our king
+     * @return
+     */
+    [[nodiscard]] Bitboard pinner() const noexcept { return pins() & them(stm_); }
+
+    /**
+     * @brief Get the position of our pieces that are pinned to our king
+     * @return
+     */
+    [[nodiscard]] Bitboard pinned() const noexcept { return pins() & us(stm_); }
 };
 
 inline std::ostream& operator<<(std::ostream& os, const Board& b) {
@@ -3553,88 +3826,136 @@ inline std::ostream& operator<<(std::ostream& os, const Board& b) {
     return os;
 }
 
-inline CheckType Board::givesCheck(const Move& m) const noexcept {
-    const static auto getSniper = [](const Board* board, Square ksq, Bitboard oc) {
-        const auto us_occ = board->us(board->sideToMove());
-        const auto bishop = attacks::bishop(ksq, oc) & board->pieces(PieceType::BISHOP, PieceType::QUEEN) & us_occ;
-        const auto rook   = attacks::rook(ksq, oc) & board->pieces(PieceType::ROOK, PieceType::QUEEN) & us_occ;
+template <bool Detail>
+inline CheckType Board::givesCheck(Move move) const noexcept {
+    assert(at(move.from()).color() == stm_);
+
+    const auto from   = move.from();
+    const auto to     = move.to();
+    const auto ksq    = kingSq(~stm_);
+    const auto fromBB = Bitboard::fromSquare(from);
+    const auto toBB = Bitboard::fromSquare(to);
+    const auto oc     = occ() ^ fromBB;
+    const auto occ_us = us(stm_);
+
+    auto getSniper = [&, this](Bitboard oc) {
+        const Bitboard bishop = attacks::bishop(ksq, oc) & pieces(PieceType::BISHOP, PieceType::QUEEN) & occ_us;
+        const Bitboard rook = attacks::rook(ksq, oc) & pieces(PieceType::ROOK, PieceType::QUEEN) & occ_us;
         return (bishop | rook);
     };
 
-    assert(at(m.from()).color() == stm_);
+    auto direct_check = [&, this]() {
+        Bitboard fromKing = 0;
 
-    const Square from   = m.from();
-    const Square to     = m.to();
-    const Square ksq    = kingSq(~stm_);
-    const Bitboard toBB = Bitboard::fromSquare(to);
-    const PieceType pt  = at(from).type();
+        switch (at(from).type()) {
+        case static_cast<int>(PieceType::PAWN):
+            fromKing = attacks::pawn(~stm_, ksq);
+            break;
+        case static_cast<int>(PieceType::KNIGHT):
+            fromKing = attacks::knight(ksq);
+            break;
+        case static_cast<int>(PieceType::BISHOP):
+            fromKing = attacks::bishop(ksq, occ());
+            break;
+        case static_cast<int>(PieceType::ROOK):
+            fromKing = attacks::rook(ksq, occ());
+            break;
+        case static_cast<int>(PieceType::QUEEN):
+            fromKing = attacks::queen(ksq, occ());
+        }
 
-    Bitboard fromKing = 0ull;
+        return (fromKing & toBB);
+    };
 
-    if (pt == PieceType::PAWN) {
-        fromKing = attacks::pawn(~stm_, ksq);
-    } else if (pt == PieceType::KNIGHT) {
-        fromKing = attacks::knight(ksq);
-    } else if (pt == PieceType::BISHOP) {
-        fromKing = attacks::bishop(ksq, occ());
-    } else if (pt == PieceType::ROOK) {
-        fromKing = attacks::rook(ksq, occ());
-    } else if (pt == PieceType::QUEEN) {
-        fromKing = attacks::queen(ksq, occ());
+    auto have_blocker = [&]() {
+        Bitboard discovery_blocker = 0;
+        {
+            Bitboard snipers = getSniper(0);
+            const Bitboard occ_sn = occ() ^ snipers;
+
+            while (snipers) {
+                const Bitboard blocker = movegen::between(ksq, snipers.pop()) & occ_sn;
+                if (blocker.hasSingleBit()) discovery_blocker |= blocker & occ_us;
+            }
+        }
+
+        return discovery_blocker & fromBB;
+    };
+
+    auto discovery_check = [&]() {
+        return (!movegen::line(from, to).check(ksq.index())) || move.typeOf() == Move::CASTLING;
+    };
+
+    auto ep_check = [&, this]() { return getSniper((oc ^ Bitboard::fromSquare(enpassantSq().ep_square())) | toBB); };
+
+    if constexpr (Detail) {
+        // The moving piece is a blocker.
+        if (have_blocker()) {
+            // Blocker is moving away from the attack line.
+            if (discovery_check()) {
+                // We can also directly attack the king.
+                if (direct_check()) return CheckType::DIRECT_DISCOVERY_CHECK;
+
+                // Tricky: This is THE most rare checking move in chess
+                // when an enpassant reveals two snipers at once.
+                return (move.typeOf() == Move::ENPASSANT) ? ep_check().hasSingleBit()
+                    ? CheckType::SINGLE_DISCOVERY_CHECK : CheckType::DOUBLE_DISCOVERY_CHECK
+                    : CheckType::SINGLE_DISCOVERY_CHECK;
+            }
+
+            // King is on its second home rank.
+            // There is a slider behind our pawn,
+            // it can capture enpassant the pawn and attack the king.
+            else
+                return (move.typeOf() == Move::ENPASSANT && direct_check()) ? CheckType::DIRECT_CHECK : CheckType::NO_CHECK;
+        }
+
+        if (direct_check()) return CheckType::DIRECT_CHECK;
+    }
+    else {
+        if (direct_check()) return CheckType::CHECK;
+
+        if (have_blocker()) return discovery_check() ? CheckType::CHECK : CheckType::NO_CHECK;
     }
 
-    if (fromKing & toBB) return CheckType::DIRECT_CHECK;
-
-    // Discovery check
-    const Bitboard fromBB = Bitboard::fromSquare(from);
-    const Bitboard oc     = occ() ^ fromBB;
-
-    Bitboard sniper = getSniper(this, ksq, oc);
-
-    while (sniper) {
-        Square sq = sniper.pop();
-        return (!(movegen::between(ksq, sq) & toBB) || m.typeOf() == Move::CASTLING) ? CheckType::DISCOVERY_CHECK
-                                                                                     : CheckType::NO_CHECK;
-    }
-
-    switch (m.typeOf()) {
+    switch (move.typeOf()) {
         case Move::NORMAL:
             return CheckType::NO_CHECK;
 
         case Move::PROMOTION: {
-            Bitboard attacks = 0ull;
+            Bitboard attacks;
 
-            switch (m.promotionType()) {
-                case static_cast<int>(PieceType::KNIGHT):
-                    attacks = attacks::knight(to);
-                    break;
-                case static_cast<int>(PieceType::BISHOP):
-                    attacks = attacks::bishop(to, oc);
-                    break;
-                case static_cast<int>(PieceType::ROOK):
-                    attacks = attacks::rook(to, oc);
-                    break;
-                case static_cast<int>(PieceType::QUEEN):
-                    attacks = attacks::queen(to, oc);
-            }
-
-            return (attacks & pieces(PieceType::KING, ~stm_)) ? CheckType::DIRECT_CHECK : CheckType::NO_CHECK;
+        switch (move.promotionType()) {
+            case static_cast<int>(PieceType::KNIGHT):
+                attacks = attacks::knight(to);
+                break;
+            case static_cast<int>(PieceType::BISHOP):
+                attacks = attacks::bishop(to, oc);
+                break;
+            case static_cast<int>(PieceType::ROOK):
+                attacks = attacks::rook(to, oc);
+                break;
+            case static_cast<int>(PieceType::QUEEN):
+                attacks = attacks::queen(to, oc);
         }
 
-        case Move::ENPASSANT: {
-            Square capSq(to.file(), from.rank());
-            return (getSniper(this, ksq, (oc ^ Bitboard::fromSquare(capSq)) | toBB)) ? CheckType::DISCOVERY_CHECK
-                                                                                     : CheckType::NO_CHECK;
+            return (attacks.check(ksq.index())) ? Detail ? CheckType::DIRECT_CHECK : CheckType::CHECK : CheckType::NO_CHECK;
         }
+
+        case Move::ENPASSANT:
+            return ep_check() ? Detail ? CheckType::SINGLE_DISCOVERY_CHECK : CheckType::CHECK : CheckType::NO_CHECK;
 
         case Move::CASTLING: {
-            Square rookTo = Square::castling_rook_square(to > from, stm_);
-            return (attacks::rook(ksq, occ()) & Bitboard::fromSquare(rookTo)) ? CheckType::DISCOVERY_CHECK
-                                                                              : CheckType::NO_CHECK;
+            auto rookBB = Bitboard::fromSquare(Square::castling_rook_square(to > from, stm_));
+
+            return (attacks::rook(ksq, occ()) & rookBB) ? Detail
+                ? CheckType::SINGLE_DISCOVERY_CHECK : CheckType::CHECK
+                : CheckType::NO_CHECK;
         }
     }
 
     assert(false);
+
     return CheckType::NO_CHECK;  // Prevent a compiler warning
 }
 
@@ -3811,6 +4132,25 @@ inline auto movegen::init_squares_between() {
     }
 
     return squares_between_bb;
+}
+
+inline auto movegen::init_squares_line() {
+    std::array<std::array<Bitboard, 64>, 64> squares_line_bb{};
+
+    auto att = [](PieceType pt, Square sq, Bitboard occ) {
+        return (pt == PieceType::BISHOP) ? attacks::bishop(sq, occ) : attacks::rook(sq, occ);
+        };
+
+    for (int sq1 = 0; sq1 < 64; ++sq1) {
+        for (PieceType pt : {PieceType::BISHOP, PieceType::ROOK}) {
+            for (int sq2 = 0; sq2 < 64; ++sq2) {
+                Bitboard b = att(pt, sq1, 0);
+                if (b.check(sq2)) squares_line_bb[sq1][sq2] = (b & att(pt, sq2, 0)).set(sq1).set(sq2);
+            }
+        }
+    }
+
+    return squares_line_bb;
 }
 
 template <Color::underlying c>
@@ -4332,11 +4672,43 @@ template <Color::underlying c>
     const auto occ_all   = occ_us | occ_opp;
     const auto opp_empty = ~occ_us;
 
-    // non-castling king moves (check for normal as king could be in place of a previous promo/ep)
-    if (from_pt.type() == PieceType::KING && move.typeOf() == Move::NORMAL) {
-        const auto seen = seenSquares<~c>(board, opp_empty);
-        if (seen.check(to_index)) return false;
-        if (!(attacks::king(from).check(to_index))) return false;
+    if (move.typeOf() == Move::NORMAL || move.typeOf() == Move::PROMOTION) {
+        // First establish pseudo-legality, then test attacks on our king with
+        // the occupancy after the move. A single candidate needs no pin masks.
+        bool reaches = false;
+        if (from_pt.type() == PieceType::PAWN) {
+            constexpr auto UP = make_direction(Direction::NORTH, c);
+            constexpr auto START_RANK = Rank::rank(Rank::RANK_2, c);
+            constexpr auto PROMO_RANK = Rank::rank(Rank::RANK_8, c);
+            if ((to.rank() == PROMO_RANK) != (move.typeOf() == Move::PROMOTION)) return false;
+            if (to_pt != Piece::NONE) {
+                reaches = attacks::pawn(c, from).check(to_index);
+            } else {
+                reaches = to == from + UP ||
+                    (from.rank() == START_RANK && to == from + UP + UP &&
+                     board.at(from + UP) == Piece::NONE);
+            }
+        } else {
+            if (move.typeOf() != Move::NORMAL) return false;
+            switch (from_pt.type()) {
+                case PieceType(PieceType::KNIGHT): reaches = attacks::knight(from).check(to_index); break;
+                case PieceType(PieceType::BISHOP): reaches = attacks::bishop(from, occ_all).check(to_index); break;
+                case PieceType(PieceType::ROOK): reaches = attacks::rook(from, occ_all).check(to_index); break;
+                case PieceType(PieceType::QUEEN): reaches = attacks::queen(from, occ_all).check(to_index); break;
+                case PieceType(PieceType::KING): reaches = attacks::king(from).check(to_index); break;
+                default: return false;
+            }
+        }
+        if (!reaches) return false;
+
+        const auto king = from_pt.type() == PieceType::KING ? to : board.kingSq(c);
+        const auto occupied = (occ_all ^ Bitboard::fromSquare(from)) | Bitboard::fromSquare(to);
+        const auto enemies = occ_opp & ~Bitboard::fromSquare(to);
+        if (attacks::pawn(c, king) & board.pieces(PieceType::PAWN) & enemies) return false;
+        if (attacks::knight(king) & board.pieces(PieceType::KNIGHT) & enemies) return false;
+        if (attacks::king(king) & board.pieces(PieceType::KING) & enemies) return false;
+        if (attacks::bishop(king, occupied) & board.pieces(PieceType::BISHOP, PieceType::QUEEN) & enemies) return false;
+        if (attacks::rook(king, occupied) & board.pieces(PieceType::ROOK, PieceType::QUEEN) & enemies) return false;
         return true;
     }
 
@@ -4416,69 +4788,6 @@ template <Color::underlying c>
         if (is_possible_pin && !(attacks::rook(king_sq, occ_all ^ connecting_pawns) & opp_qr).empty()) return false;
 
         return true;
-
-    } else if (move.typeOf() == Move::PROMOTION) {
-        // should be pawn
-        if (from_pt.type() != PieceType::PAWN) return false;
-
-        // fall through to normal logic
-    }
-
-    // moves should be on the checkmask
-    if (!checkmask.check(to_index)) return false;
-
-    // piece-specific movement
-    switch (from_pt.type()) {
-        case PieceType(PieceType::PAWN): {
-            // should push to promotion rank iff promoting
-            constexpr auto PROMO_RANK = Rank::rank(Rank::RANK_8, c);
-            if ((to.rank() == PROMO_RANK) != (move.typeOf() == Move::PROMOTION)) return false;
-
-            // should stay along diagonal pin if capturing
-            if (to_pt != Piece::NONE) {
-                if (pin_hv.check(from_index)) return false;
-                if (pin_d.check(from_index) && !pin_d.check(to_index)) return false;
-                return attacks::pawn(c, from).check(to_index);
-            }
-
-            // should stay along hv pin if pushing
-            if (pin_d.check(from_index)) return false;
-            if (pin_hv.check(from_index) && !pin_hv.check(to_index)) return false;
-
-            constexpr auto UP               = make_direction(Direction::NORTH, c);
-            constexpr auto DOUBLE_PUSH_RANK = Rank::rank(Rank::RANK_2, c);
-
-            // single push
-            if (to == from + UP) return true;
-
-            // middle square should be empty if double push
-            if (from.rank() == DOUBLE_PUSH_RANK && to == from + UP + UP) return board.at(from + UP) == Piece::NONE;
-
-            return false;
-        }
-
-        case PieceType(PieceType::KNIGHT): {
-            if (pin_d.check(from_index) || pin_hv.check(from_index)) return false;
-            return attacks::knight(from).check(to_index);
-        }
-
-        case PieceType(PieceType::BISHOP): {
-            if (pin_hv.check(from_index)) return false;
-            if (pin_d.check(from_index) && !pin_d.check(to_index)) return false;
-            return attacks::bishop(from, occ_all).check(to_index);
-        }
-
-        case PieceType(PieceType::ROOK): {
-            if (pin_d.check(from_index)) return false;
-            if (pin_hv.check(from_index) && !pin_hv.check(to_index)) return false;
-            return attacks::rook(from, occ_all).check(to_index);
-        }
-
-        case PieceType(PieceType::QUEEN): {
-            if (pin_d.check(from_index)) return (attacks::bishop(from, occ_all) & pin_d).check(to_index);
-            if (pin_hv.check(from_index)) return (attacks::rook(from, occ_all) & pin_hv).check(to_index);
-            return attacks::queen(from, occ_all).check(to_index);
-        }
     }
 
     assert(false);
@@ -4523,14 +4832,170 @@ inline bool movegen::isEpSquareValid(const Board& board, Square ep) {
     return SQUARES_BETWEEN_BB[sq1.index()][sq2.index()];
 }
 
+[[nodiscard]] inline Bitboard movegen::line(Square sq1, Square sq2) noexcept {
+    return SQUARES_LINE_BB[sq1.index()][sq2.index()];
+}
+
 inline const std::array<std::array<Bitboard, 64>, 64> movegen::SQUARES_BETWEEN_BB = [] {
     attacks::initAttacks();
     return movegen::init_squares_between();
 }();
 
+inline const std::array<std::array<Bitboard, 64>, 64> movegen::SQUARES_LINE_BB = [] {
+    return movegen::init_squares_line();
+    }();
+
+}  // namespace chess
+
+namespace chess {
+
+/** Generates pseudo-legal forward moves which can be undone to reach a board. */
+class RevMoveGen {
+    static void addCaptures(std::vector<RevMove>& moves, Move move, Color captured_color) {
+        constexpr PieceType capture_types[] = {PieceType::PAWN, PieceType::KNIGHT, PieceType::BISHOP,
+                                               PieceType::ROOK, PieceType::QUEEN};
+        for (PieceType pt : capture_types) moves.emplace_back(move, Piece(pt, captured_color));
+    }
+
+    static void genCastlingMoves(std::vector<RevMove>& moves, const Board& board, Color mover) {
+        const Rank back_rank = mover == Color::WHITE ? Rank::RANK_1 : Rank::RANK_8;
+        for (bool king_side : {false, true}) {
+            const Square king_to = Square::castling_king_square(king_side, mover);
+            const Square rook_to = Square::castling_rook_square(king_side, mover);
+            if (board.at(king_to) != Piece(PieceType::KING, mover) ||
+                board.at(rook_to) != Piece(PieceType::ROOK, mover))
+                continue;
+
+            const int first_king_file = board.chess960() ? static_cast<int>(File::FILE_A) : static_cast<int>(File::FILE_E);
+            const int last_king_file = board.chess960() ? static_cast<int>(File::FILE_H) : static_cast<int>(File::FILE_E);
+            const int first_rook_file = board.chess960()
+                                            ? static_cast<int>(File::FILE_A)
+                                            : static_cast<int>(king_side ? File::FILE_H : File::FILE_A);
+            const int last_rook_file = board.chess960() ? static_cast<int>(File::FILE_H) : first_rook_file;
+            for (int king_file = first_king_file; king_file <= last_king_file; ++king_file) {
+                for (int rook_file = first_rook_file; rook_file <= last_rook_file; ++rook_file) {
+                    if ((king_side && rook_file <= king_file) || (!king_side && rook_file >= king_file)) continue;
+                    const Square king_from(static_cast<File>(king_file), back_rank);
+                    const Square rook_from(static_cast<File>(rook_file), back_rank);
+                    if ((king_from != king_to && king_from != rook_to && board.at(king_from) != Piece::NONE) ||
+                        (rook_from != king_to && rook_from != rook_to && board.at(rook_from) != Piece::NONE))
+                        continue;
+                    moves.emplace_back(Move::make<Move::CASTLING>(king_from, rook_from));
+                }
+            }
+        }
+    }
+
+   public:
+    /**
+     * Generate reverse candidates. Each entry stores the forward move and the
+     * captured piece (or Piece::NONE). Output is cleared before generation.
+     * Candidates are geometric; callers can validate predecessor legality by
+     * applying the matching forward move to a copy of the predecessor.
+     */
+    static void genMoves(std::vector<RevMove>& moves, const Board& board) {
+        moves.clear();
+        const Color mover = ~board.sideToMove();
+        const Color captured_color = ~mover;
+        const Bitboard occupied = board.occ();
+        const Bitboard empty = ~occupied;
+        genCastlingMoves(moves, board, mover);
+
+        Bitboard pieces = board.us(mover);
+        while (pieces) {
+            const Square to = pieces.pop();
+            const PieceType pt = board.at<PieceType>(to);
+            Bitboard origins;
+
+            // A promoted piece can also be the result of a pawn move. Keep the
+            // piece's ordinary reverse moves below, and add its pawn origins.
+            if ((pt == PieceType::KNIGHT || pt == PieceType::BISHOP || pt == PieceType::ROOK ||
+                 pt == PieceType::QUEEN) &&
+                to.rank() == (mover == Color::WHITE ? Rank::RANK_8 : Rank::RANK_1)) {
+                const int step = mover == Color::WHITE ? 8 : -8;
+                const int pawn_from = static_cast<int>(to.index()) - step;
+                if (Square::is_valid_sq(pawn_from) && empty.check(pawn_from))
+                    moves.emplace_back(Move::make<Move::PROMOTION>(Square(pawn_from), to, pt));
+
+                Bitboard pawn_captures = attacks::pawn(~mover, to) & empty;
+                while (pawn_captures) {
+                    const Square from = pawn_captures.pop();
+                    const Move move = Move::make<Move::PROMOTION>(from, to, pt);
+                    addCaptures(moves, move, captured_color);
+                }
+            }
+
+            if (pt == PieceType::KNIGHT) {
+                origins = attacks::knight(to);
+            } else if (pt == PieceType::BISHOP) {
+                origins = attacks::bishop(to, occupied);
+            } else if (pt == PieceType::ROOK) {
+                origins = attacks::rook(to, occupied);
+            } else if (pt == PieceType::QUEEN) {
+                origins = attacks::queen(to, occupied);
+            } else if (pt == PieceType::KING) {
+                origins = attacks::king(to);
+            } else if (pt == PieceType::PAWN) {
+                const int step = mover == Color::WHITE ? 8 : -8;
+                const int one = static_cast<int>(to.index()) - step;
+                if (Square::is_valid_sq(one) && empty.check(one)) {
+                    const Square from(one);
+                    if (from.rank() != Rank::RANK_1 && from.rank() != Rank::RANK_8) {
+                        if (to.rank() != Rank::RANK_1 && to.rank() != Rank::RANK_8)
+                            moves.emplace_back(Move::make<Move::NORMAL>(from, to));
+                        else
+                            for (PieceType promo : {PieceType::KNIGHT, PieceType::BISHOP, PieceType::ROOK,
+                                                    PieceType::QUEEN})
+                                moves.emplace_back(Move::make<Move::PROMOTION>(from, to, promo));
+                    }
+                }
+                const int two = static_cast<int>(to.index()) - 2 * step;
+                if ((mover == Color::WHITE ? to.rank() == Rank::RANK_4 : to.rank() == Rank::RANK_5) &&
+                    Square::is_valid_sq(two) && empty.check(two) && empty.check(one))
+                    moves.emplace_back(Move::make<Move::NORMAL>(Square(two), to));
+
+                Bitboard pawn_origins = attacks::pawn(~mover, to) & empty;
+                while (pawn_origins) {
+                    const Square from = pawn_origins.pop();
+                    if (from.rank() == Rank::RANK_1 || from.rank() == Rank::RANK_8) continue;
+                    const bool promotes = to.rank() == (mover == Color::WHITE ? Rank::RANK_8 : Rank::RANK_1);
+                    if (promotes) {
+                        for (PieceType promo : {PieceType::KNIGHT, PieceType::BISHOP, PieceType::ROOK,
+                                                PieceType::QUEEN}) {
+                            const Move m = Move::make<Move::PROMOTION>(from, to, promo);
+                            addCaptures(moves, m, captured_color);
+                        }
+                    } else {
+                        addCaptures(moves, Move::make<Move::NORMAL>(from, to), captured_color);
+                        // En passant captures restore a pawn beside the destination.
+                        if (to.rank() == (mover == Color::WHITE ? Rank::RANK_6 : Rank::RANK_3))
+                            moves.emplace_back(Move::make<Move::ENPASSANT>(from, to),
+                                               Piece(PieceType::PAWN, captured_color));
+                    }
+                }
+                continue;
+            } else {
+                continue;
+            }
+            origins &= empty;
+            while (origins) {
+                const Square from = origins.pop();
+                moves.emplace_back(Move::make<Move::NORMAL>(from, to));
+                addCaptures(moves, Move::make<Move::NORMAL>(from, to), captured_color);
+            }
+        }
+    }
+};
+
 }  // namespace chess
 
 #include <istream>
+
+#if defined(__SSE2__) && (defined(__GNUC__) || defined(__clang__))
+#    include <emmintrin.h>
+#elif (defined(__ARM_NEON) || defined(__ARM_NEON__)) && (defined(__GNUC__) || defined(__clang__))
+#    include <arm_neon.h>
+#endif
 
 namespace chess::pgn {
 
@@ -4556,6 +5021,13 @@ class StringBuffer {
 
         ++index_;
 
+        return true;
+    }
+
+    bool add(const char* data, std::size_t size) {
+        if (size > N - index_) return false;
+        std::memcpy(buffer_.data() + index_, data, size);
+        index_ += size;
         return true;
     }
 
@@ -4633,7 +5105,83 @@ class StreamBuffer {
         return false;
     }
 
+    std::string_view comment() const noexcept {
+        if (comment_borrowed_) return {buffer_.data() + comment_offset_, comment_length_};
+        return comment_storage_;
+    }
+
+    void clearComment() noexcept {
+        if (comment_borrowed_) {
+            comment_borrowed_ = false;
+        } else {
+            comment_storage_.clear();
+        }
+    }
+
+    // Borrow contiguous comments until the callback. Copy only when a comment
+    // spans refills, contains carriage returns, or follows another comment.
+    void readComment() {
+        while (true) {
+            if (buffer_index_ >= bytes_read_ && !fill()) return;
+            const auto begin = buffer_index_;
+            buffer_index_ = delimiterIndex<TokenKind::Comment>();
+            const auto size = static_cast<std::size_t>(buffer_index_ - begin);
+            if (size != 0) {
+                if (!comment_borrowed_ && comment_storage_.empty()) {
+                    comment_offset_ = static_cast<std::size_t>(begin);
+                    comment_length_ = size;
+                    comment_borrowed_ = true;
+                } else {
+                    preserveComment();
+                    comment_storage_.append(buffer_.data() + begin, size);
+                }
+            }
+            if (buffer_index_ < bytes_read_) {
+                const auto delimiter = buffer_[buffer_index_];
+                // Reuse the consumed delimiter to terminate a borrowed span.
+                buffer_[buffer_index_++] = '\0';
+                if (delimiter == '}') return;
+            }
+        }
+    }
+
+    enum class TokenKind { Move, HeaderKey, HeaderValue, Comment };
+
+    template <TokenKind kind>
+    bool readTokenUntil(StringBuffer& token) {
+        while (true) {
+            if (buffer_index_ >= bytes_read_ && !fill()) return true;
+            const auto begin = buffer_index_;
+            buffer_index_ = delimiterIndex<kind>();
+            if (!token.add(buffer_.data() + begin, static_cast<std::size_t>(buffer_index_ - begin))) return false;
+            if (buffer_index_ < bytes_read_) {
+                if (buffer_[buffer_index_] != '\r') return true;
+                ++buffer_index_;
+            }
+        }
+    }
+
+    bool readMoveToken(StringBuffer& token) {
+        if (!readTokenUntil<TokenKind::Move>(token)) return false;
+        skipFollowingSpace();
+        return true;
+    }
+
+    void skipFollowingSpace() {
+        if (buffer_index_ >= bytes_read_ || buffer_[buffer_index_] != ' ') return;
+        ++buffer_index_;
+        while (true) {
+            while (buffer_index_ < bytes_read_) {
+                const auto c = buffer_[buffer_index_];
+                if (c != ' ' && c != '\t' && c != '\n' && c != '\r') break;
+                ++buffer_index_;
+            }
+            if (buffer_index_ < bytes_read_ || !fill()) return;
+        }
+    }
+
     bool fill() {
+        preserveComment();
         buffer_index_ = 0;
 
         stream_.read(buffer_.data(), N * N);
@@ -4667,6 +5215,97 @@ class StreamBuffer {
     }
 
    private:
+    template <TokenKind kind>
+    std::streamsize delimiterIndex() const {
+        auto index = buffer_index_;
+#if defined(__SSE2__) && (defined(__GNUC__) || defined(__clang__))
+        const auto equal = [](__m128i bytes, char c) { return _mm_cmpeq_epi8(bytes, _mm_set1_epi8(c)); };
+        const auto either = [](__m128i a, __m128i b) { return _mm_or_si128(a, b); };
+        if constexpr (kind == TokenKind::Comment || kind == TokenKind::HeaderValue || kind == TokenKind::Move) {
+            while (bytes_read_ - index >= 16) {
+                const auto bytes = _mm_loadu_si128(reinterpret_cast<const __m128i*>(buffer_.data() + index));
+                auto delimiters = equal(bytes, '\r');
+                if constexpr (kind == TokenKind::Comment) {
+                    delimiters = either(delimiters, equal(bytes, '}'));
+                } else {
+                    delimiters = either(delimiters, equal(bytes, '\n'));
+                    if constexpr (kind == TokenKind::HeaderValue) {
+                        delimiters = either(delimiters, equal(bytes, '"'));
+                        delimiters = either(delimiters, equal(bytes, '\\'));
+                    } else {
+                        delimiters = either(delimiters, equal(bytes, ' '));
+                        delimiters = either(delimiters, equal(bytes, '\t'));
+                        delimiters = either(delimiters, equal(bytes, '('));
+                        delimiters = either(delimiters, equal(bytes, ')'));
+                    }
+                }
+                const auto mask = static_cast<unsigned>(_mm_movemask_epi8(delimiters));
+                if (mask != 0) return index + __builtin_ctz(mask);
+                index += 16;
+            }
+        }
+#endif
+#if (defined(__ARM_NEON) || defined(__ARM_NEON__)) && (defined(__GNUC__) || defined(__clang__))
+        if constexpr (kind == TokenKind::Comment || kind == TokenKind::HeaderValue || kind == TokenKind::Move) {
+            while (bytes_read_ - index >= 16) {
+                const auto bytes = vld1q_u8(reinterpret_cast<const std::uint8_t*>(buffer_.data() + index));
+                auto delimiters = vceqq_u8(bytes, vdupq_n_u8('\r'));
+                if constexpr (kind == TokenKind::Comment) {
+                    delimiters = vorrq_u8(delimiters, vceqq_u8(bytes, vdupq_n_u8('}')));
+                } else {
+                    delimiters = vorrq_u8(delimiters, vceqq_u8(bytes, vdupq_n_u8('\n')));
+                    if constexpr (kind == TokenKind::HeaderValue) {
+                        delimiters = vorrq_u8(delimiters, vceqq_u8(bytes, vdupq_n_u8('"')));
+                        delimiters = vorrq_u8(delimiters, vceqq_u8(bytes, vdupq_n_u8('\\')));
+                    } else {
+                        delimiters = vorrq_u8(delimiters, vceqq_u8(bytes, vdupq_n_u8(' ')));
+                        delimiters = vorrq_u8(delimiters, vceqq_u8(bytes, vdupq_n_u8('\t')));
+                        delimiters = vorrq_u8(delimiters, vceqq_u8(bytes, vdupq_n_u8('(')));
+                        delimiters = vorrq_u8(delimiters, vceqq_u8(bytes, vdupq_n_u8(')')));
+                    }
+                }
+                alignas(16) std::uint8_t mask[16];
+                vst1q_u8(mask, delimiters);
+                for (unsigned lane = 0; lane < 16; ++lane) {
+                    if (mask[lane] != 0) return index + lane;
+                }
+                index += 16;
+            }
+        }
+#endif
+        while (index < bytes_read_) {
+            const auto c = buffer_[index];
+            if (c == '\r') break;
+            if constexpr (kind == TokenKind::Comment) {
+                if (c == '}') break;
+            } else {
+                if (c == '\n') break;
+                if constexpr (kind == TokenKind::HeaderValue) {
+                    if (c == '"' || c == '\\') break;
+                } else {
+                    if (c == ' ' || c == '\t') break;
+                    if constexpr (kind == TokenKind::Move) {
+                        if (c == '(' || c == ')') break;
+                    }
+                }
+            }
+            ++index;
+        }
+        return index;
+    }
+
+    void preserveComment() {
+        if (comment_borrowed_) {
+            comment_storage_.assign(buffer_.data() + comment_offset_, comment_length_);
+            comment_borrowed_ = false;
+        }
+    }
+
+    std::string comment_storage_;
+    std::size_t comment_offset_ = 0;
+    std::size_t comment_length_ = 0;
+    bool comment_borrowed_ = false;
+
     std::istream& stream_;
     BufferType buffer_;
     std::streamsize bytes_read_   = 0;
@@ -4714,6 +5353,12 @@ class Visitor {
      * @param comment
      */
     virtual void move(std::string_view move, std::string_view comment) = 0;
+
+    /** @brief Called when a parenthesized side variation begins. */
+    virtual void startVariation() {}
+
+    /** @brief Called when a parenthesized side variation ends. */
+    virtual void endVariation() {}
 
     /**
      * @brief Called when a game ends
@@ -4779,8 +5424,52 @@ template <std::size_t BUFFER_SIZE =
 #endif
           >
 class StreamParser {
+    using TokenKind = typename detail::StreamBuffer<BUFFER_SIZE>::TokenKind;
+
    public:
     StreamParser(std::istream& stream) : stream_buffer(stream) {}
+
+    /**
+     * @brief Enable or disable parsing parenthesized side variations.
+     * Variations are disabled by default to preserve mainline-only behavior.
+     */
+    void setParseVariations(bool enabled) { parse_variations = enabled; }
+
+    bool readNextGame(Visitor& vis) {
+        visitor = &vis;
+        if (parser_error != StreamParserError::None) return false;
+        bool game_started = !pgn_end;
+
+        while (true) {
+            auto c = stream_buffer.some();
+            if (!c.has_value()) {
+                if (!pgn_end) {
+                    onEnd();
+                    return true;
+                }
+                return false;
+            }
+
+            if (in_header) {
+                visitor->skipPgn(false);
+                if (*c == '[') {
+                    visitor->startPgn();
+                    pgn_end = false;
+                    game_started = true;
+                    processHeader();
+                }
+            } else if (in_body) {
+                processBody();
+            }
+
+            if (parser_error != StreamParserError::None) return false;
+            if (!dont_advance_after_body) stream_buffer.advance();
+            dont_advance_after_body = false;
+            if (game_started && pgn_end) return true;
+        }
+    }
+
+    const StreamParserError& error() const { return parser_error; }
 
     StreamParserError readGames(Visitor& vis) {
         visitor = &vis;
@@ -4799,16 +5488,16 @@ class StreamParser {
 
                     processHeader();
 
-                    if (error != StreamParserError::None) {
-                        return error;
+                    if (parser_error != StreamParserError::None) {
+                        return parser_error;
                     }
                 }
 
             } else if (in_body) {
                 processBody();
 
-                if (error != StreamParserError::None) {
-                    return error;
+                if (parser_error != StreamParserError::None) {
+                    return parser_error;
                 }
             }
 
@@ -4820,7 +5509,7 @@ class StreamParser {
             onEnd();
         }
 
-        return error;
+        return parser_error;
     }
 
    private:
@@ -4829,7 +5518,8 @@ class StreamParser {
         header.second.clear();
 
         move.clear();
-        comment.clear();
+        stream_buffer.clearComment();
+        variation_depth = 0;
 
         in_header = true;
         in_body   = false;
@@ -4837,10 +5527,10 @@ class StreamParser {
 
     void callVisitorMoveFunction() {
         if (!move.empty()) {
-            if (!visitor->skip()) visitor->move(move.get(), comment);
+            if (!visitor->skip()) visitor->move(move.get(), stream_buffer.comment());
 
             move.clear();
-            comment.clear();
+            stream_buffer.clearComment();
         }
     }
 
@@ -4853,17 +5543,9 @@ class StreamParser {
                 case '[':
                     stream_buffer.advance();
 
-                    while (auto k = stream_buffer.some()) {
-                        if (is_space(*k)) {
-                            break;
-                        } else {
-                            if (!header.first.add(*k)) {
-                                error = StreamParserError::ExceededMaxStringLength;
-                                return;
-                            }
-
-                            stream_buffer.advance();
-                        }
+                    if (!stream_buffer.template readTokenUntil<TokenKind::HeaderKey>(header.first)) {
+                        parser_error = StreamParserError::ExceededMaxStringLength;
+                        return;
                     }
 
                     stream_buffer.advance();
@@ -4881,7 +5563,7 @@ class StreamParser {
 
                             // we should be now at ]
                             if (stream_buffer.current().value_or('\0') != ']') {
-                                error = StreamParserError::InvalidHeaderMissingClosingBracket;
+                                parser_error = StreamParserError::InvalidHeaderMissingClosingBracket;
                                 return;
                             }
 
@@ -4891,17 +5573,21 @@ class StreamParser {
                         } else if (*k == '\n') {
                             // we missed the closing quote and read until the newline character
                             // this is an invalid pgn, let's throw an error
-                            error = StreamParserError::InvalidHeaderMissingClosingQuote;
+                            parser_error = StreamParserError::InvalidHeaderMissingClosingQuote;
                             return;
                         } else {
                             backslash = false;
 
-                            if (!header.second.add(*k)) {
-                                error = StreamParserError::ExceededMaxStringLength;
+                            if (*k == '"') {
+                                if (!header.second.add(*k)) {
+                                    parser_error = StreamParserError::ExceededMaxStringLength;
+                                    return;
+                                }
+                                stream_buffer.advance();
+                            } else if (!stream_buffer.template readTokenUntil<TokenKind::HeaderValue>(header.second)) {
+                                parser_error = StreamParserError::ExceededMaxStringLength;
                                 return;
                             }
-
-                            stream_buffer.advance();
                         }
                     }
 
@@ -4962,22 +5648,14 @@ class StreamParser {
                 // reading comment
                 stream_buffer.advance();
 
-                while (auto k = stream_buffer.some()) {
-                    stream_buffer.advance();
-
-                    if (*k == '}') {
-                        break;
-                    }
-
-                    comment += *k;
-                }
+                stream_buffer.readComment();
 
                 // the game has no moves, but a comment followed by a game termination
                 if (!visitor->skip()) {
-                    visitor->move("", comment);
+                    visitor->move("", stream_buffer.comment());
 
                     has_comment = false;
-                    comment.clear();
+                    stream_buffer.clearComment();
                 }
             } else {
                 break;
@@ -5016,6 +5694,28 @@ class StreamParser {
                 dont_advance_after_body = true;
                 // break;
                 break;
+            }
+
+            // Side variation delimiters can be adjacent to move tokens.
+            if (*cd == '(' || *cd == ')') {
+                if (*cd == '(') {
+                    if (parse_variations) {
+                        callVisitorMoveFunction();
+                        ++variation_depth;
+                        if (!visitor->skip()) visitor->startVariation();
+                    } else {
+                        stream_buffer.skipUntil('(', ')');
+                        continue;
+                    }
+                } else {
+                    callVisitorMoveFunction();
+                    if (variation_depth > 0) {
+                        --variation_depth;
+                        if (!visitor->skip()) visitor->endVariation();
+                    }
+                }
+                stream_buffer.advance();
+                continue;
             }
 
             // skip move number digits
@@ -5068,7 +5768,7 @@ class StreamParser {
             }
 
             // game termination
-            if (*curr == '*') {
+            if (*curr == '*' && variation_depth == 0) {
                 onEnd();
                 stream_buffer.advance();
 
@@ -5077,7 +5777,7 @@ class StreamParser {
 
             const auto peek = stream_buffer.peek();
 
-            if (*curr == '1') {
+            if (*curr == '1' && variation_depth == 0) {
                 if (peek == '-') {
                     stream_buffer.advance();
                     stream_buffer.advance();
@@ -5095,7 +5795,7 @@ class StreamParser {
             }
 
             // might be 0-1 (game termination) or 0-0-0/0-0 (castling)
-            if (*curr == '0' && stream_buffer.peek() == '-') {
+            if (*curr == '0' && variation_depth == 0 && stream_buffer.peek() == '-') {
                 stream_buffer.advance();
                 stream_buffer.advance();
 
@@ -5116,7 +5816,7 @@ class StreamParser {
                 // castling
                 else {
                     if (!move.add('0') || !move.add('-')) {
-                        error = StreamParserError::ExceededMaxStringLength;
+                        parser_error = StreamParserError::ExceededMaxStringLength;
                         return;
                     }
 
@@ -5130,18 +5830,9 @@ class StreamParser {
     }
 
     bool parseMove() {
-        // reading move
-        while (auto c = stream_buffer.some()) {
-            if (is_space(*c)) {
-                break;
-            }
-
-            if (!move.add(*c)) {
-                error = StreamParserError::ExceededMaxStringLength;
-                return true;
-            }
-
-            stream_buffer.advance();
+        if (!stream_buffer.readMoveToken(move)) {
+            parser_error = StreamParserError::ExceededMaxStringLength;
+            return true;
         }
 
         return parseMoveAppendix();
@@ -5161,25 +5852,34 @@ class StreamParser {
                     // reading comment
                     stream_buffer.advance();
 
-                    while (auto c = stream_buffer.some()) {
-                        stream_buffer.advance();
-
-                        if (*c == '}') {
-                            break;
-                        }
-
-                        comment += *c;
-                    }
+                    stream_buffer.readComment();
+                    stream_buffer.skipFollowingSpace();
 
                     break;
                 }
                 case '(': {
-                    stream_buffer.skipUntil('(', ')');
+                    if (parse_variations) {
+                        callVisitorMoveFunction();
+                        ++variation_depth;
+                        if (!visitor->skip()) visitor->startVariation();
+                        stream_buffer.advance();
+                    } else {
+                        stream_buffer.skipUntil('(', ')');
+                    }
+                    break;
+                }
+                case ')': {
+                    callVisitorMoveFunction();
+                    if (variation_depth > 0) {
+                        --variation_depth;
+                        if (!visitor->skip()) visitor->endVariation();
+                    }
+                    stream_buffer.advance();
                     break;
                 }
                 case '$': {
                     while (auto c = stream_buffer.some()) {
-                        if (is_space(*c)) {
+                        if (is_space(*c) || *c == '(' || *c == ')') {
                             break;
                         }
 
@@ -5189,13 +5889,7 @@ class StreamParser {
                     break;
                 }
                 case ' ': {
-                    while (auto c = stream_buffer.some()) {
-                        if (!is_space(*c)) {
-                            break;
-                        }
-
-                        stream_buffer.advance();
-                    }
+                    stream_buffer.skipFollowingSpace();
 
                     break;
                 }
@@ -5254,11 +5948,10 @@ class StreamParser {
     std::pair<detail::StringBuffer, detail::StringBuffer> header = {detail::StringBuffer{}, detail::StringBuffer{}};
 
     detail::StringBuffer move = {};
-    std::string comment       = {};
 
     // State
 
-    StreamParserError error = StreamParserError::None;
+    StreamParserError parser_error = StreamParserError::None;
 
     bool in_header = true;
     bool in_body   = false;
@@ -5266,7 +5959,113 @@ class StreamParser {
     bool pgn_end = true;
 
     bool dont_advance_after_body = false;
+    std::size_t variation_depth = 0;
+    bool parse_variations = false;
 };
+
+enum class GameEventType { Move, VariationStart, VariationEnd };
+
+struct GameEvent {
+    GameEventType type;
+    std::string san;
+    std::string comment;
+};
+
+/// An owning PGN game. Events retain move order and variation nesting.
+struct Game {
+    std::vector<std::pair<std::string, std::string>> headers;
+    std::vector<GameEvent> events;
+};
+
+namespace detail {
+class GameCollector final : public Visitor {
+   public:
+    void startPgn() override { game = {}; }
+    void header(std::string_view key, std::string_view value) override {
+        game.headers.emplace_back(key, value);
+    }
+    void startMoves() override {}
+    void move(std::string_view san, std::string_view comment) override {
+        game.events.push_back({GameEventType::Move, std::string(san), std::string(comment)});
+    }
+    void startVariation() override { game.events.push_back({GameEventType::VariationStart, {}, {}}); }
+    void endVariation() override { game.events.push_back({GameEventType::VariationEnd, {}, {}}); }
+    void endPgn() override { ready = true; }
+
+    Game game;
+    bool ready = false;
+};
+}  // namespace detail
+
+/// A single-pass range that parses one owning game at a time.
+template <std::size_t BUFFER_SIZE =
+#if defined(__APPLE__) || defined(__MACH__)
+              256
+#elif defined(__unix__) || defined(__unix) || defined(unix)
+              1024
+#else
+              256
+#endif
+          >
+class GameRange {
+   public:
+    explicit GameRange(std::istream& stream) : parser_(stream) {}
+
+    /// Enable or disable variation events. Must be called before iteration.
+    void setParseVariations(bool enabled) { parser_.setParseVariations(enabled); }
+
+    class iterator {
+       public:
+        using iterator_category = std::input_iterator_tag;
+        using value_type = Game;
+        using difference_type = std::ptrdiff_t;
+        using pointer = const Game*;
+        using reference = const Game&;
+
+        iterator() = default;
+        explicit iterator(GameRange* range) : range_(range) { advance(); }
+        reference operator*() const { return range_->collector_.game; }
+        pointer operator->() const { return &range_->collector_.game; }
+        iterator& operator++() { advance(); return *this; }
+        void operator++(int) { advance(); }
+        friend bool operator==(const iterator& lhs, const iterator& rhs) {
+            return (lhs.end_ && rhs.end_) || (lhs.range_ == rhs.range_ && lhs.end_ == rhs.end_);
+        }
+        friend bool operator!=(const iterator& lhs, const iterator& rhs) { return !(lhs == rhs); }
+
+       private:
+        void advance() {
+            if (!range_ || range_->finished_) { end_ = true; return; }
+            range_->collector_.ready = false;
+            end_ = !range_->parser_.readNextGame(range_->collector_) || !range_->collector_.ready;
+            if (end_) range_->finished_ = true;
+        }
+        GameRange* range_ = nullptr;
+        bool end_ = true;
+    };
+
+    iterator begin() { return iterator(this); }
+    iterator end() const { return iterator(); }
+    const StreamParserError& error() const { return parser_.error(); }
+
+   private:
+    StreamParser<BUFFER_SIZE> parser_;
+    detail::GameCollector collector_;
+    bool finished_ = false;
+};
+
+template <std::size_t BUFFER_SIZE =
+#if defined(__APPLE__) || defined(__MACH__)
+              256
+#elif defined(__unix__) || defined(__unix) || defined(unix)
+              1024
+#else
+              256
+#endif
+          >
+GameRange<BUFFER_SIZE> games(std::istream& stream) {
+    return GameRange<BUFFER_SIZE>(stream);
+}
 }  // namespace chess::pgn
 
 
@@ -5435,6 +6234,59 @@ class uci {
 
         static constexpr auto pt_to_pgt = [](PieceType pt) { return 1 << (pt); };
         const SanMoveInformation info   = parseSanInfo(san);
+
+        // SAN already supplies the destination. When exactly one piece can reach
+        // it, validate that candidate instead of generating every move of its type.
+        if (!info.castling_short && !info.castling_long) {
+            const auto side = board.sideToMove();
+            const auto target = board.at(info.to);
+            const bool ep = info.piece == PieceType::PAWN && info.capture &&
+                            info.to == board.enpassantSq();
+            const bool capture = target != Piece::NONE && target.color() != side;
+            if (info.capture == capture || ep) {
+                Bitboard origins;
+                switch (info.piece) {
+                    case PieceType(PieceType::PAWN):
+                        if (info.capture) {
+                            origins = attacks::pawn(~side, info.to);
+                        } else {
+                            const int step = side == Color::WHITE ? 8 : -8;
+                            const int one = info.to.index() - step;
+                            const int two = info.to.index() - 2 * step;
+                            if (Square::is_valid_sq(one)) origins.set(one);
+                            if (Square::is_valid_sq(two)) origins.set(two);
+                        }
+                        break;
+                    case PieceType(PieceType::KNIGHT): origins = attacks::knight(info.to); break;
+                    case PieceType(PieceType::BISHOP): origins = attacks::bishop(info.to, board.occ()); break;
+                    case PieceType(PieceType::ROOK): origins = attacks::rook(info.to, board.occ()); break;
+                    case PieceType(PieceType::QUEEN): origins = attacks::queen(info.to, board.occ()); break;
+                    case PieceType(PieceType::KING): origins = attacks::king(info.to); break;
+                    default: break;
+                }
+                origins &= board.pieces(info.piece, side);
+                if (info.from_file != File::NO_FILE) origins &= Bitboard(info.from_file);
+                if (info.from_rank != Rank::NO_RANK) origins &= Bitboard(info.from_rank);
+                if (origins.count() == 1) {
+                    const auto from = origins.lsb();
+                    const bool promotion_rank = info.piece == PieceType::PAWN &&
+                        (info.to.rank() == Rank::RANK_1 || info.to.rank() == Rank::RANK_8);
+                    // Keep the general path for underspecified promotions.
+                    if ((!promotion_rank || info.promotion != PieceType::NONE) &&
+                        (!ep || info.promotion == PieceType::NONE)) {
+                        const auto candidate = ep ? Move::make<Move::ENPASSANT>(from, info.to) :
+                            info.promotion != PieceType::NONE ?
+                                Move::make<Move::PROMOTION>(from, info.to, info.promotion) :
+                                Move::make<Move::NORMAL>(from, info.to);
+                        if (board.isLegal(candidate)) {
+                            moves.clear();
+                            moves.add(candidate);
+                            return candidate;
+                        }
+                    }
+                }
+            }
+        }
 
         if (info.capture) {
             movegen::legalmoves<movegen::MoveGenType::CAPTURE>(moves, board, pt_to_pgt(info.piece));
@@ -5682,10 +6534,9 @@ class uci {
     }
 
     template <bool LAN = false>
-    static void moveToRep(Board board, const Move& move, std::string& str) {
+    static void moveToRep(const Board& board, const Move& move, std::string& str) {
         if (handleCastling(move, str)) {
-            board.makeMove(move);
-            if (board.inCheck()) appendCheckSymbol(board, str);
+            if (board.givesCheck(move) != CheckType::NO_CHECK) appendCheckSymbol(board, move, str);
             return;
         }
 
@@ -5715,10 +6566,7 @@ class uci {
         appendSquare(move.to(), str);
 
         if (move.typeOf() == Move::PROMOTION) appendPromotion(move, str);
-
-        board.makeMove(move);
-
-        if (board.inCheck()) appendCheckSymbol(board, str);
+        if (board.givesCheck(move) != CheckType::NO_CHECK) appendCheckSymbol(board, move, str);
     }
 
     static bool handleCastling(const Move& move, std::string& str) {
@@ -5742,9 +6590,12 @@ class uci {
         str += std::toupper(static_cast<std::string>(move.promotionType())[0]);
     }
 
-    static void appendCheckSymbol(Board& board, std::string& str) {
-        const auto gameState = board.isGameOver().second;
-        str += (gameState == GameResult::LOSE) ? '#' : '+';
+    static void appendCheckSymbol(const Board& board, const Move& move, std::string& str) {
+        Board tempBoard = board;
+        tempBoard.makeMove(move);
+        assert(tempBoard.inCheck());
+        const auto gameState = tempBoard.isGameOver().first;
+        str += (gameState == GameResultReason::CHECKMATE) ? '#' : '+';
     }
 
     static void resolveAmbiguity(const Board& board, const Move& move, PieceType pieceType, std::string& str) {

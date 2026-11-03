@@ -81,7 +81,9 @@ int64_t parseDuration(std::string_view value, int64_t multiplier) {
     const auto scaled   = static_cast<long double>(duration) * multiplier;
     const auto rounded  = std::round(scaled);
 
-    if (duration < 0 || rounded > std::numeric_limits<int64_t>::max()) {
+    constexpr auto int64_limit = -static_cast<long double>(std::numeric_limits<int64_t>::min());
+
+    if (!std::isfinite(rounded) || duration < 0 || rounded >= int64_limit) {
         throw fastchess::fastchess_exception::format("Invalid time control duration: \"{}\"", value);
     }
 

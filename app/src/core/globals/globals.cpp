@@ -110,6 +110,12 @@ void setCtrlCHandler() {
     if (sigaction(SIGINT, &sa, NULL) == -1) {
         perror("Error setting up signal handler");
     }
+
+    // Handle SIGTERM like SIGINT, so that job schedulers and container
+    // stops wind the tournament down gracefully as well.
+    if (sigaction(SIGTERM, &sa, NULL) == -1) {
+        perror("Error setting up signal handler");
+    }
 }
 #endif
 

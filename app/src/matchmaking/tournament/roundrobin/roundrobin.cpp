@@ -32,6 +32,8 @@ RoundRobin::RoundRobin(const stats_map& results) : BaseTournament(results) {
 void RoundRobin::start() {
     LOG_TRACE("Starting round robin tournament...");
 
+    start_time_ = std::chrono::steady_clock::now();
+
     BaseTournament::start();
 
     // If autosave is enabled, save the results every save_interval games
@@ -40,12 +42,32 @@ void RoundRobin::start() {
     // Account for the initial matchcount
     auto save_iter = initial_matchcount_ + save_interval;
 
+    int time_left_display = 0;
+
     // Wait for games to finish
     while (match_count_ < final_matchcount_ && !atomic::stop) {
         if (save_interval > 0 && match_count_ >= save_iter) {
             saveJson();
             save_iter += save_interval;
         }
+
+        if (!sprt_.isEnabled() && time_left_display % 10 == 0) {
+            const auto games_done = match_count_.load() - initial_matchcount_;
+            if ((int)games_done >= config::TournamentConfig->concurrency) {
+                const auto done           = match_count_.load();
+                const auto total          = final_matchcount_.load();
+                const auto elapsed        = std::chrono::steady_clock::now() - start_time_;
+                const auto games_left     = total - done;
+                const auto estimated_time = elapsed / games_done * games_left;
+                const auto h              = std::chrono::duration_cast<std::chrono::hours>(estimated_time).count();
+                const auto m =
+                    std::chrono::duration_cast<std::chrono::minutes>(estimated_time % std::chrono::hours(1)).count();
+                const auto s =
+                    std::chrono::duration_cast<std::chrono::seconds>(estimated_time % std::chrono::minutes(1)).count();
+                Logger::print<Logger::Level::INFO>("Time Left: {:02}:{:02}:{:02} ({}/{} games)", h, m, s, done, total);
+            }
+        }
+        ++time_left_display;
 
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }

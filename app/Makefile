@@ -25,6 +25,7 @@ EXTRA_LDFLAGS    :=
 SRC_FILES        := \
 	$(SRCDIR)/cli/cli.cpp \
 	$(SRCDIR)/cli/sanitize.cpp \
+	$(SRCDIR)/core/events/events.cpp \
 	$(SRCDIR)/core/globals/globals.cpp \
 	$(SRCDIR)/core/logger/logger.cpp \
 	$(SRCDIR)/core/printing/printing.cpp \

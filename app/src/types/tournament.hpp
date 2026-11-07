@@ -11,6 +11,7 @@
 #include <types/engine_config.hpp>
 #include <types/enums.hpp>
 #include <types/epd.hpp>
+#include <types/events.hpp>
 #include <types/log.hpp>
 #include <types/max_moves_adjudication.hpp>
 #include <types/opening.hpp>
@@ -81,6 +82,9 @@ struct Tournament {
     std::vector<int> affinity_cpus;
 
     Log log = {};
+
+    // not serialized, see Events
+    Events events = {};
 };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Tournament, resign, draw, maxmoves, tb_adjudication, opening, pgn, epd, sprt,
                                    config_name, output, seed, variant, type, gauntlet_seeds, ratinginterval,

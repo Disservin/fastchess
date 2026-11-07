@@ -1,5 +1,6 @@
 #pragma once
 
+#include <optional>
 #include <string>
 #include <string_view>
 
@@ -18,7 +19,9 @@ namespace fastchess::pgn {
 
 class PgnBuilder {
    public:
-    PgnBuilder(const config::Pgn& pgn_config, const MatchData& match, std::size_t round_id);
+    // game_id adds a [GameId] tag, used to link -events games to their PGN entry
+    PgnBuilder(const config::Pgn& pgn_config, const MatchData& match, std::size_t round_id,
+               std::optional<std::size_t> game_id = std::nullopt);
 
     // Get the newly created pgn
     [[nodiscard]] std::string get() const noexcept { return fmt::format("{}\n\n", pgn_generator_.generate()); }

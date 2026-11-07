@@ -73,7 +73,8 @@ class Stream {
         line_buffer_.reserve(300);
     }
 
-    Result readLine(std::vector<Line>& lines, std::string_view searchword) {
+    Result readLine(std::vector<Line>& lines, std::string_view searchword,
+                    const IProcess::LineCallback* callback = nullptr) {
         const ssize_t bytes_read = read(fd_, buffer_.data(), buffer_.size());
 
         if (bytes_read == -1) {
@@ -105,6 +106,8 @@ class Stream {
                 if (realtime_logging_) {
                     Logger::readFromEngine(line_buffer_, ts, log_name_, type_ == Standard::ERR);
                 }
+
+                if (callback && *callback) (*callback)(line_buffer_);
 
                 if (!searchword.empty() && line_buffer_.rfind(searchword, 0) == 0) {
                     line_buffer_.clear();
@@ -306,7 +309,7 @@ class Process : public IProcess {
             auto& out_fd = fds[STDOUT_IDX];
             if (out_fd.revents & (POLLIN | POLLHUP | POLLERR)) {
                 if (out_fd.revents & (POLLHUP | POLLERR)) return Result::Error("Engine crashed (stdout)");
-                if (auto r = sg_out_.readLine(lines, searchword); r.code != Status::NONE) return r;
+                if (auto r = sg_out_.readLine(lines, searchword, &line_callback_); r.code != Status::NONE) return r;
             }
 
             // 3. Check Stderr

@@ -45,7 +45,12 @@ class IProcess {
     IProcess& operator=(const IProcess&) = delete;
     IProcess& operator=(IProcess&&)      = delete;
 
+    using LineCallback = std::function<void(const std::string&)>;
+
     void setRealtimeLogging(bool realtime_logging) noexcept { realtime_logging_ = realtime_logging; }
+
+    // Called for every complete stdout line while reading, empty to disable.
+    void setLineCallback(LineCallback callback) { line_callback_ = std::move(callback); }
 
     virtual void setupRead() = 0;
 
@@ -76,6 +81,8 @@ class IProcess {
     }
 
     bool realtime_logging_ = true;
+
+    LineCallback line_callback_;
 };
 
 }  // namespace fastchess::engine::process

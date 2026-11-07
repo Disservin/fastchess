@@ -224,6 +224,24 @@ TEST_SUITE("Option Parsing Tests") {
                         fastchess_exception);
     }
 
+    TEST_CASE("Events option parsing") {
+        const auto options = cli::OptionsParser(baseArgs({"-events", "file=-", "info=true", "interval=400"}));
+        const auto config  = options.getTournamentConfig();
+
+        CHECK(config.events.enabled());
+        CHECK(config.events.file == "-");
+        CHECK(config.events.info);
+        CHECK(config.events.info_interval_ms == 400);
+
+        // the event stream is a property of the run, it must not end up in config.json
+        const nlohmann::ordered_json json = config;
+        CHECK_FALSE(json.contains("events"));
+
+        CHECK_THROWS_AS(cli::OptionsParser(baseArgs({"-events", "info=true"})), fastchess_exception);
+        CHECK_THROWS_AS(cli::OptionsParser(baseArgs({"-events", "file=x", "info=maybe"})), fastchess_exception);
+        CHECK_THROWS_AS(cli::OptionsParser(baseArgs({"-events", "file=x", "bogus=1"})), fastchess_exception);
+    }
+
     TEST_CASE("Should throw engine with invalid restart") {
         const auto args = cli::Args{
             "fastchess.exe",

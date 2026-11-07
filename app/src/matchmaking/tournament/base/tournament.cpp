@@ -8,6 +8,7 @@
 #include <vector>
 
 #include <affinity/affinity_manager.hpp>
+#include <core/events/events.hpp>
 #include <core/filesystem/file_writer.hpp>
 #include <core/globals/globals.hpp>
 #include <core/logger/logger.hpp>
@@ -17,6 +18,7 @@
 #include <game/book/opening_book.hpp>
 #include <game/epd/epd_builder.hpp>
 #include <game/pgn/pgn_builder.hpp>
+#include <matchmaking/game_events.hpp>
 #include <matchmaking/match/match.hpp>
 #include <matchmaking/output/output.hpp>
 #include <matchmaking/output/output_factory.hpp>
@@ -25,6 +27,8 @@
 #include <types/tournament.hpp>
 
 namespace fastchess {
+
+extern const char* version;
 
 BaseTournament::BaseTournament(const stats_map& results) {
     const auto& config = *config::TournamentConfig;
@@ -119,6 +123,34 @@ void BaseTournament::create() {
     LOG_TRACE("Creating matches...");
 
     final_matchcount_ = generator_->total();
+
+    if (events::EventWriter::enabled()) {
+        const auto& config = *config::TournamentConfig;
+
+        std::vector<std::string> names;
+        for (const auto& engine : *config::EngineConfigs) names.push_back(engine.name);
+
+        events::json event;
+        event["event"]        = "tournament_started";
+        event["schema"]       = events::SCHEMA;
+        std::string ver = version;
+        while (!ver.empty() && ver.back() == ' ') ver.pop_back();
+
+        event["version"]      = ver;
+        event["engines"]      = names;
+        event["total_games"]  = final_matchcount_.load();
+        event["games_played"] = initial_matchcount_;
+        event["resumed"]      = initial_matchcount_ > 0;
+        event["variant"]      = config.variant == VariantType::FRC ? "frc" : "standard";
+        event["type"]         = config.type == TournamentType::GAUNTLET ? "gauntlet" : "roundrobin";
+        event["concurrency"]  = config.concurrency;
+        event["sprt"]         = config.sprt.enabled;
+        event["thinking"]     = config.events.info;
+
+        if (!config.pgn.file.empty()) event["pgn"] = config.pgn.file;
+
+        events::EventWriter::emit(event);
+    }
 
     for (int i = 0; i < pool_.getNumThreads(); i++) {
         startNext();
@@ -225,7 +257,67 @@ void BaseTournament::playGame(const GamePair<EngineConfiguration, EngineConfigur
 
     start();
 
-    auto match = Match(opening);
+    auto match = Match(opening, game_id);
+
+    const bool events_enabled = events::EventWriter::enabled();
+
+    if (events_enabled) {
+        const auto& initial = match.get();
+
+        std::vector<std::string> book_moves;
+        for (const auto& move : initial.moves) book_moves.push_back(move.move);
+
+        const auto white_tc = TimeControl(engine_configs.white.limit.tc);
+        const auto black_tc = TimeControl(engine_configs.black.limit.tc);
+
+        events::json event;
+        event["event"]     = "game_started";
+        event["game"]      = game_id;
+        event["round"]     = round_id + 1;
+        event["white"]     = white_name;
+        event["black"]     = black_name;
+        event["start_fen"] = initial.fen;
+        event["opening"]   = book_moves;
+        event["wtime"]     = events::clockJson(white_tc);
+        event["btime"]     = events::clockJson(black_tc);
+
+        const auto white_tc_str = events::tcString(white_tc);
+        const auto black_tc_str = events::tcString(black_tc);
+
+        if (white_tc_str == black_tc_str) event["tc"] = white_tc_str;
+        event["white_tc"] = white_tc_str;
+        event["black_tc"] = black_tc_str;
+
+        events::EventWriter::emit(event);
+    }
+
+    // -events: exactly one game_finished or game_aborted per game_started
+    const auto emitGameEnd = [&](const MatchData& data, bool recorded, bool in_pgn) {
+        if (!events_enabled) return;
+
+        events::json event;
+
+        if (!recorded) {
+            event["event"]  = "game_aborted";
+            event["game"]   = game_id;
+            event["reason"] = data.reason.empty() ? std::string("Game interrupted") : data.reason;
+            events::EventWriter::emit(event);
+            return;
+        }
+
+        const auto plies = std::count_if(data.moves.begin(), data.moves.end(), [](const auto& m) { return m.legal; });
+
+        event["event"]       = "game_finished";
+        event["game"]        = game_id;
+        event["result"]      = pgn::PgnBuilder::getResultFromWhiteMatch(data.players.white);
+        event["termination"] = events::terminationName(data.termination);
+        event["reason"]      = data.reason;
+        event["plies"]       = plies;
+        if (in_pgn) event["pgn_game_id"] = game_id;
+
+        events::EventWriter::emit(event);
+    };
+
     match.start(*white_engine->get(), *black_engine->get(), cpus);
 
     LOG_TRACE_THREAD("Game {} between {} and {} finished", game_id, white_name, black_name);
@@ -241,9 +333,13 @@ void BaseTournament::playGame(const GamePair<EngineConfiguration, EngineConfigur
 
                 const auto match_data = match.get();
 
+                emitGameEnd(match_data, true, false);
+
                 finish({match_data}, match_data.reason, {*white_engine->get(), *black_engine->get()});
 
                 atomic::abnormal_termination = true;
+            } else {
+                emitGameEnd(match.get(), false, false);
             }
             return;
         }
@@ -263,7 +359,8 @@ void BaseTournament::playGame(const GamePair<EngineConfiguration, EngineConfigur
     // If the game was interrupted(didn't completely finish)
     if (match_data.termination != MatchTermination::INTERRUPT && !atomic::stop) {
         if (!config.pgn.file.empty()) {
-            const auto pgn_str = pgn::PgnBuilder(config.pgn, match_data, round_id + 1).get();
+            const auto pgn_game_id = events_enabled ? std::make_optional(game_id) : std::nullopt;
+            const auto pgn_str     = pgn::PgnBuilder(config.pgn, match_data, round_id + 1, pgn_game_id).get();
             file_writer_pgn_->write(pgn_str);
         }
 
@@ -271,12 +368,16 @@ void BaseTournament::playGame(const GamePair<EngineConfiguration, EngineConfigur
             file_writer_epd_->write(epd::EpdBuilder(config.variant, match_data).get());
         }
 
+        emitGameEnd(match_data, true, !config.pgn.file.empty());
+
         const auto result = pgn::PgnBuilder::getResultFromWhiteMatch(match_data.players.white);
         LOG_TRACE_THREAD("Game {} finished with result {}", game_id, result);
 
         finish({match_data}, match_data.reason, {*white_engine->get(), *black_engine->get()});
 
         startNext();
+    } else {
+        emitGameEnd(match_data, false, false);
     }
 
     // remove engines if restart is enabled, frees up memory

@@ -171,7 +171,8 @@ class TbAdjudicationTracker {
 
 class Match {
    public:
-    Match(const book::Opening& opening);
+    // game_id is only used to tag events of the -events stream
+    explicit Match(const book::Opening& opening, std::size_t game_id = 0);
 
     // starts the match
     void start(engine::UciEngine& white, engine::UciEngine& black, std::optional<std::vector<int>>& cpus);
@@ -212,7 +213,14 @@ class Match {
 
     bool isLegal(chess::Move move) const noexcept;
 
+    // -events: emit a "move" event for the move that was just appended to data_.moves
+    void emitMoveEvent(const Player& us, const Player& them, chess::Color us_color, chess::Move move, bool applied);
+
+    // -events: returns a callback which emits throttled "thinking" events from info lines
+    [[nodiscard]] engine::process::IProcess::LineCallback thinkingCallback(const Player& us, chess::Color us_color);
+
     const book::Opening& opening_;
+    std::size_t game_id_;
 
     MatchData data_     = {};
     chess::Board board_ = chess::Board();

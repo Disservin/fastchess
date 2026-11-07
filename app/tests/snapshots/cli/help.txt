@@ -307,6 +307,19 @@ enable them.
       - err
       - fatal
 
+-events file=(NAME|-) info=(false|true) interval=MS
+Write a machine-readable event stream, one JSON object per line
+(NDJSON), to NAME or to stdout with file=-. On stdout, event lines
+always start with {"event":, which normal output never does. Events
+are written and flushed by a separate thread, so a slow reader never
+stalls games. The option is not saved into the config file. When it
+is enabled, PGN games also get a [GameId "N"] tag. Events:
+tournament_started (with schema), game_started, move, thinking (only
+with info=true, at most one every interval ms per game, default 250),
+game_finished, game_aborted and tournament_finished. Times are in
+milliseconds, moves are in UCI notation, and scores are {"cp":N} or
+{"mate":N} from White’s point of view.
+
 -use-affinity [CPUS]
 Enable thread affinity for binding engines to CPU cores.
 

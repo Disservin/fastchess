@@ -1,3 +1,4 @@
+#include <matchmaking/game_events.hpp>
 #include <matchmaking/match/match.hpp>
 
 #include <doctest/doctest.hpp>
@@ -5,6 +6,19 @@
 namespace fastchess {
 
 TEST_SUITE("Match Test") {
+    TEST_CASE("Event helpers") {
+        // scores are reported from White's point of view
+        CHECK(events::scoreJson({ScoreType::CP, 31}, chess::Color::WHITE).dump() == R"({"cp":31})");
+        CHECK(events::scoreJson({ScoreType::CP, 31}, chess::Color::BLACK).dump() == R"({"cp":-31})");
+        CHECK(events::scoreJson({ScoreType::MATE, -3}, chess::Color::BLACK).dump() == R"({"mate":3})");
+
+        CHECK(events::splitPv("e2e4  e7e5 ") == std::vector<std::string>{"e2e4", "e7e5"});
+        CHECK(events::splitPv("").empty());
+
+        CHECK(events::terminationName(MatchTermination::TIMEOUT) == "time_forfeit");
+        CHECK(events::terminationName(MatchTermination::INTERRUPT) == "interrupted");
+    }
+
     TEST_CASE("DrawTracker") {
         SUBCASE("adjudicates when conditions met") {
             DrawTracker dt(10, 3, 50);

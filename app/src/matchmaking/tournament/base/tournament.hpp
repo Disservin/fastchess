@@ -35,6 +35,9 @@ class BaseTournament {
 
     [[nodiscard]] stats_map getResults() noexcept { return scoreboard_.getResults(); }
 
+    [[nodiscard]] std::uint64_t gamesPlayed() const noexcept { return match_count_; }
+    [[nodiscard]] std::uint64_t totalGames() const noexcept { return final_matchcount_; }
+
    protected:
     using start_fn  = std::function<void()>;
     using finish_fn = std::function<void(const Stats& stats, const std::string& reason, const engines&)>;

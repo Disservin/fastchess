@@ -4,6 +4,7 @@
 #include <cli/cli.hpp>
 #include <cli/cli_args.hpp>
 #include <core/config/config.hpp>
+#include <core/events/events.hpp>
 #include <core/globals/globals.hpp>
 #include <core/logger/logger.hpp>
 #include <core/rand.hpp>
@@ -68,7 +69,31 @@ void TournamentManager::start(const cli::Args& args) {
                                               static_cast<int>(config::TournamentConfig->type));
     }
 
+    if (config::TournamentConfig->events.enabled()) {
+        events::EventWriter::open(config::TournamentConfig->events.file);
+    }
+
     LOG_INFO("Starting tournament...");
     tournament->start();
+
+    const auto played = tournament->gamesPlayed();
+    const auto total  = tournament->totalGames();
+
+    // destroying the tournament stops the remaining games, which emit their game_aborted events
+    tournament.reset();
+
+    auto reason = events::EventWriter::finishReason();
+    if (reason.empty()) {
+        if (played >= total)
+            reason = "completed";
+        else if (atomic::interrupted)
+            reason = "interrupted";
+        else
+            reason = "error";
+    }
+
+    const bool resumable = (reason == "interrupted" || reason == "error") && played < total;
+
+    events::EventWriter::finishTournament(reason, resumable);
 }
 }  // namespace fastchess

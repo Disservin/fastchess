@@ -483,6 +483,28 @@ void parseLog(const KeyValuePairs& params, ArgumentData& argument_data) {
     }
 }
 
+void parseEvents(const KeyValuePairs& params, ArgumentData& argument_data) {
+    auto& events = argument_data.tournament_config.events;
+
+    for (const auto& [key, value] : params) {
+        if (key == "file") {
+            if (value.empty()) OptionsParser::throwMissing("events", key, value);
+            events.file = value;
+        } else if (key == "info" && is_bool(value)) {
+            events.info = value == "true";
+        } else if (key == "interval") {
+            events.info_interval_ms = parseScalar<int>(value);
+            if (events.info_interval_ms < 0) OptionsParser::throwMissing("events", key, value);
+        } else {
+            OptionsParser::throwMissing("events", key, value);
+        }
+    }
+
+    if (!events.enabled()) {
+        throw fastchess_exception("Option -events requires file=<path> or file=-");
+    }
+}
+
 namespace json_config {
 void loadJson(ArgumentData& argument_data, const std::string& filename) {
     Logger::print<Logger::Level::INFO>("Loading config file: {}", filename);
@@ -499,6 +521,9 @@ void loadJson(ArgumentData& argument_data, const std::string& filename) {
     argument_data.old_tournament_config = argument_data.tournament_config;
 
     argument_data.tournament_config = jsonfile.get<config::Tournament>();
+
+    // the event stream is not part of the saved config, keep what was given on the command line
+    argument_data.tournament_config.events = argument_data.old_tournament_config.events;
 
     argument_data.configs.clear();
 
@@ -790,6 +815,7 @@ void OptionsParser::registerOptions() {
     addOption<ParamStyle::Single>("tbadjudicate", parseTbAdjudicate);
     addOption<ParamStyle::Single>("autosaveinterval", parseAutoSaveInterval);
     addOption<ParamStyle::KeyValue>("log", parseLog);
+    addOption<ParamStyle::KeyValue>("events", parseEvents);
     addOption<ParamStyle::KeyValue>("config", json_config::parseConfig);
     addOption<ParamStyle::KeyValue>("report", parseReport);
     addOption<ParamStyle::KeyValue>("output", parseOutput);

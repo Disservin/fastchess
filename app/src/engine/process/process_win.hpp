@@ -338,6 +338,8 @@ class Process : public IProcess {
         if (realtime_logging_) {
             Logger::readFromEngine(current_line_, timestamp, log_name_, false, thread_id);
         }
+
+        if (line_callback_) line_callback_(current_line_);
     }
 
     // The working directory

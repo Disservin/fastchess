@@ -8,6 +8,7 @@
 #include <utility>
 #include <vector>
 
+#include <core/events/events.hpp>
 #include <core/logger/logger.hpp>
 #include <core/memory/scope_guard.hpp>
 #include <core/rand.hpp>
@@ -150,6 +151,11 @@ void RoundRobin::updateSprtStatus(const std::vector<EngineConfiguration>& engine
 
     if (sprtResult != SPRT_CONTINUE || match_count_ == final_matchcount_) {
         LOG_TRACE("SPRT test finished, stopping tournament.");
+
+        if (sprtResult != SPRT_CONTINUE) {
+            events::EventWriter::setFinishReason(sprtResult == SPRT_H0 ? "sprt_h0" : "sprt_h1");
+        }
+
         atomic::stop = true;
 
         const std::string terminationMessage =

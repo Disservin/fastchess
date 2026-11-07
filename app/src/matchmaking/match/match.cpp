@@ -11,6 +11,7 @@
 #include <core/helper.hpp>
 #include <core/logger/logger.hpp>
 #include <core/time/time.hpp>
+#include <matchmaking/game_events.hpp>
 #include <types/exception.hpp>
 #include <types/tournament.hpp>
 
@@ -230,8 +231,9 @@ std::optional<PvCheckResult> checkBestmovePv(std::string_view info, std::string_
     return checkParsedBestmovePv(engine::UciEngine::parseInfo(info), best_move);
 }
 
-Match::Match(const book::Opening& opening)
+Match::Match(const book::Opening& opening, std::size_t game_id)
     : opening_(opening),
+      game_id_(game_id),
       draw_tracker_(config::TournamentConfig->draw),
       resign_tracker_(config::TournamentConfig->resign),
       maxmoves_tracker_(config::TournamentConfig->maxmoves),
@@ -478,10 +480,27 @@ bool Match::playMove(Player& us, Player& them) {
     // prepare the engine for reading
     us.engine.setupReadEngine();
 
+    const auto us_color = board_.sideToMove();
+
+    // live search output for the -events stream, always removed again since
+    // the engine (and its process) outlives this match
+    const bool thinking_events = events::EventWriter::enabled() && config::TournamentConfig->events.info;
+    if (thinking_events) us.engine.setLineCallback(thinkingCallback(us, us_color));
+
     // wait for output line starting with "bestmove"
     const auto t0     = clock::now();
-    const auto status = us.engine.readEngineLowLat("bestmove", us.getTimeoutThreshold());
-    const auto t1     = clock::now();
+    const auto status = [&] {
+        struct Reset {
+            engine::UciEngine& engine;
+            bool active;
+            ~Reset() {
+                if (active) engine.setLineCallback({});
+            }
+        } reset{us.engine, thinking_events};
+
+        return us.engine.readEngineLowLat("bestmove", us.getTimeoutThreshold());
+    }();
+    const auto t1 = clock::now();
 
     LOG_TRACE_THREAD("Engine {} is done thinking", name);
 
@@ -527,6 +546,8 @@ bool Match::playMove(Player& us, Player& them) {
 
     if (best_move) {
         addMoveData(us, *best_move, elapsed_ms, latency, timeleft, legal);
+
+        if (events::EventWriter::enabled()) emitMoveEvent(us, them, us_color, move, legal && !timeout);
     }
 
     // there are two reasons why best_move could be empty
@@ -577,6 +598,82 @@ bool Match::playMove(Player& us, Player& them) {
     checkMateScoreSignMismatch(them, us, board_, start_position_, data_);
 
     return true;
+}
+
+void Match::emitMoveEvent(const Player& us, const Player& them, Color us_color, Move move, bool applied) {
+    const auto& md = data_.moves.back();
+
+    const auto& white = us_color == Color::WHITE ? us : them;
+    const auto& black = us_color == Color::WHITE ? them : us;
+
+    events::json event;
+    event["event"]  = "move";
+    event["game"]   = game_id_;
+    event["ply"]    = data_.moves.size();
+    event["side"]   = events::sideName(us_color);
+    event["engine"] = us.engine.getConfig().name;
+    event["move"]   = md.move;
+    event["legal"]  = md.legal;
+
+    if (applied) {
+        auto board = board_;
+        board.makeMove<true>(move);
+        event["fen"] = board.getFen();
+    }
+
+    event["time_ms"] = md.elapsed_millis;
+    event["wtime"]   = events::clockJson(white.getTimeControl());
+    event["btime"]   = events::clockJson(black.getTimeControl());
+
+    if (md.score) event["score"] = events::scoreJson(*md.score, us_color);
+    if (md.depth > 0) event["depth"] = md.depth;
+    if (md.seldepth > 0) event["seldepth"] = md.seldepth;
+    if (md.nodes > 0) event["nodes"] = md.nodes;
+    if (md.nps > 0) event["nps"] = md.nps;
+    if (md.tbhits > 0) event["tbhits"] = md.tbhits;
+    if (md.hashfull > 0) event["hashfull"] = md.hashfull;
+    if (!md.pv.empty()) event["pv"] = events::splitPv(md.pv);
+
+    events::EventWriter::emit(event);
+}
+
+engine::process::IProcess::LineCallback Match::thinkingCallback(const Player& us, Color us_color) {
+    const auto interval = chrono::milliseconds(config::TournamentConfig->events.info_interval_ms);
+
+    return [this, &us, us_color, interval, last = std::optional<clock::time_point>{}](const std::string& line) mutable {
+        if (line.rfind("info ", 0) != 0 || line.find(" score ") == std::string::npos ||
+            line.find("info string") != std::string::npos) {
+            return;
+        }
+
+        const auto now = clock::now();
+        if (last && now - *last < interval) return;
+
+        const auto info = engine::UciEngine::parseInfo(line);
+        if (info.multipv && *info.multipv != 1) return;
+        if (!info.score) return;
+
+        last = now;
+
+        events::json event;
+        event["event"]  = "thinking";
+        event["game"]   = game_id_;
+        event["ply"]    = data_.moves.size() + 1;
+        event["side"]   = events::sideName(us_color);
+        event["engine"] = us.engine.getConfig().name;
+        event["score"]  = events::scoreJson(*info.score, us_color);
+
+        if (info.lowerbound) event["bound"] = "lower";
+        if (info.upperbound) event["bound"] = "upper";
+        if (info.depth) event["depth"] = *info.depth;
+        if (info.seldepth) event["seldepth"] = *info.seldepth;
+        if (info.nodes) event["nodes"] = *info.nodes;
+        if (info.nps) event["nps"] = *info.nps;
+        if (info.time) event["time_ms"] = *info.time;
+        if (!info.pv.empty()) event["pv"] = info.pv;
+
+        events::EventWriter::emit(event);
+    };
 }
 
 bool Match::validConnection(Player& us, Player& them) {

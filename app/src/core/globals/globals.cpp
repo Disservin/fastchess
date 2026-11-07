@@ -18,6 +18,7 @@ namespace fastchess {
 namespace atomic {
 std::atomic_bool stop                 = false;
 std::atomic_bool abnormal_termination = false;
+std::atomic_bool interrupted          = false;
 }  // namespace atomic
 
 util::ThreadVector<ProcessInformation> process_list;
@@ -63,6 +64,7 @@ void stopProcesses() {
 void consoleHandlerAction() {
     // Logger::print<Logger::Level::WARN>("Received signal, stopping tournament.");
 
+    atomic::interrupted          = true;
     atomic::stop                 = true;
     atomic::abnormal_termination = true;
 }

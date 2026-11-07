@@ -11,6 +11,8 @@ namespace fastchess {
 namespace atomic {
 extern std::atomic_bool stop;
 extern std::atomic_bool abnormal_termination;
+// set when the user stopped the tournament (SIGINT/SIGTERM/console close)
+extern std::atomic_bool interrupted;
 }  // namespace atomic
 
 /**

@@ -11,7 +11,7 @@
 #include <matchmaking/tournament/tournament_manager.hpp>
 
 namespace fastchess {
-const char* version = "alpha 1.8.2 ";
+const char* version = "alpha 1.8.3 ";
 }
 
 namespace ch = std::chrono;

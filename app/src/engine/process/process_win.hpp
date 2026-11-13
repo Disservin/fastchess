@@ -310,7 +310,10 @@ class Process : public IProcess {
     }
 
     [[nodiscard]] bool createProcess(STARTUPINFOA& si) {
-        const auto cmd = fmt::format("{} {}", command_, args_);
+        // Unquoted, Windows splits the path at its spaces: "C:\My Engines\engine.exe" may start C:\My.exe, and the
+        // engine gets "C:\My" as argv[0]. A path cannot contain '"', so one that starts with it is already quoted.
+        const bool quoted = !command_.empty() && command_.front() == '"';
+        const auto cmd    = fmt::format("{} {}", quoted ? command_ : fmt::format("\"{}\"", command_), args_);
 
         const auto success = CreateProcessA(      //
             nullptr,                              //

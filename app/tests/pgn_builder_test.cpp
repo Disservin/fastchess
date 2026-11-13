@@ -449,7 +449,7 @@ Nf6 {+10.15/18 1.821s, engine2 got checkmated} 1-0
 [Result "1-0"]
 [SetUp "1"]
 [FEN "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 17"]
-[PlyCount "4"]
+[PlyCount "3"]
 [Termination "normal"]
 [TimeControl "-"]
 [ECO "C40"]
@@ -491,7 +491,7 @@ Nf6 {+10.15/18 1.821s, engine2 got checkmated} 1-0
 [Result "0-1"]
 [SetUp "1"]
 [FEN "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 17"]
-[PlyCount "1"]
+[PlyCount "0"]
 [Termination "normal"]
 [TimeControl "-"]
 

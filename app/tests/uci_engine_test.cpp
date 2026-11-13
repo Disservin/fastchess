@@ -10,7 +10,9 @@
 #include <thread>
 #include <vector>
 
-#ifndef _WIN64
+#ifdef _WIN64
+#    include <windows.h>
+#else
 #    include <signal.h>
 #endif
 
@@ -530,6 +532,34 @@ TEST_SUITE("Uci Engine Communication Tests") {
 
         std::error_code ec;
         std::filesystem::remove_all(dir, ec);
+    }
+
+    TEST_CASE("Processes started by an engine end with it") {
+        DWORD child_pid = 0;
+
+        {
+            engine::process::Process process;
+            std::vector<engine::process::Line> output;
+
+            process.setRealtimeLogging(false);
+
+            REQUIRE(process.init(".", std::string(path), "", "dummy").code == engine::process::Status::OK);
+            REQUIRE(process.writeInput("start_child\n").code == engine::process::Status::OK);
+            REQUIRE(process.readOutput(output, "child", std::chrono::milliseconds(5000)).code ==
+                    engine::process::Status::OK);
+            REQUIRE(output.back().line != "child failed");
+
+            child_pid = std::stoul(output.back().line.substr(6));
+
+            // the engine exits, the child it started keeps sleeping
+            CHECK(process.writeInput("quit\n").code == engine::process::Status::OK);
+        }
+
+        const HANDLE child = OpenProcess(SYNCHRONIZE, FALSE, child_pid);
+        if (child) {
+            CHECK(WaitForSingleObject(child, 5000) == WAIT_OBJECT_0);
+            CloseHandle(child);
+        }
     }
 #endif
 }

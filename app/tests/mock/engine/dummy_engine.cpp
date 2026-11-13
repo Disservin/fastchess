@@ -6,6 +6,10 @@
 
 #include <signal.h>
 
+#ifdef _WIN64
+#    include <windows.h>
+#endif
+
 bool contains(std::string_view haystack, std::string_view needle) { return haystack.find(needle) != std::string::npos; }
 
 using namespace std;
@@ -24,6 +28,9 @@ int main(int argc, char const *argv[]) {
                 crash_on_go_nodes = true;
             } else if (arg == "--button-option") {
                 advertise_button = true;
+            } else if (arg == "--sleep") {
+                this_thread::sleep_for(chrono::seconds(60));
+                return 0;
             }
 
             std::cout << "argv[" << i << "]: " << argv[i] << std::endl;
@@ -92,6 +99,25 @@ int main(int argc, char const *argv[]) {
                 cout << info << endl;
                 this_thread::sleep_for(chrono::milliseconds(ms++));
             }
+#ifdef _WIN64
+        } else if (cmd == "start_child") {
+            // start another instance that sleeps, it does not inherit our handles
+            char exe[MAX_PATH];
+            GetModuleFileNameA(nullptr, exe, MAX_PATH);
+            std::string cmdline = std::string("\"") + exe + "\" --sleep";
+
+            STARTUPINFOA si{};
+            si.cb = sizeof(si);
+            PROCESS_INFORMATION pi{};
+
+            if (CreateProcessA(nullptr, cmdline.data(), nullptr, nullptr, FALSE, 0, nullptr, nullptr, &si, &pi)) {
+                cout << "child " << pi.dwProcessId << endl;
+                CloseHandle(pi.hThread);
+                CloseHandle(pi.hProcess);
+            } else {
+                cout << "child failed" << endl;
+            }
+#endif
         } else if (cmd == "sleep") {
             this_thread::sleep_for(chrono::milliseconds(1000));
 

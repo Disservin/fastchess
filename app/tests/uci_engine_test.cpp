@@ -4,6 +4,7 @@
 #include <types/engine_config.hpp>
 
 #include <chrono>
+#include <filesystem>
 #include <string>
 #include <string_view>
 #include <thread>
@@ -499,4 +500,36 @@ TEST_SUITE("Uci Engine Communication Tests") {
         CHECK(process.writeInput("stop\n").code == engine::process::Status::ERR);
         CHECK(process.writeInput("quit\n").code == engine::process::Status::ERR);
     }
+
+#ifdef _WIN64
+    TEST_CASE("Start an engine whose path contains a space") {
+        const auto dir         = std::filesystem::temp_directory_path() / "fastchess test";
+        const auto engine_path = dir / "dummy engine.exe";
+        const auto overwrite   = std::filesystem::copy_options::overwrite_existing;
+        std::filesystem::create_directories(dir);
+        std::filesystem::copy_file(std::string(path), engine_path, overwrite);
+        // unquoted, "dummy engine.exe" would start dummy.exe with the argument "engine.exe"
+        std::filesystem::copy_file(std::string(path), dir / "dummy.exe", overwrite);
+
+        {
+            engine::process::Process process;
+            std::vector<engine::process::Line> output;
+
+            process.setRealtimeLogging(false);
+
+            REQUIRE(process.init("", engine_path.string(), "", "dummy").code == engine::process::Status::OK);
+            REQUIRE(process.writeInput("uci\n").code == engine::process::Status::OK);
+            REQUIRE(process.readOutput(output, "uciok", std::chrono::milliseconds(5000)).code ==
+                    engine::process::Status::OK);
+
+            // the dummy engine prints its arguments: a path split at its spaces would show up as arguments
+            for (const auto& line : output) CHECK(line.line.rfind("argv[", 0) != 0);
+
+            CHECK(process.writeInput("quit\n").code == engine::process::Status::OK);
+        }
+
+        std::error_code ec;
+        std::filesystem::remove_all(dir, ec);
+    }
+#endif
 }

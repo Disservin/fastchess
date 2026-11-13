@@ -92,6 +92,9 @@ int main(int argc, char const *argv[]) {
                 cout << info << endl;
                 this_thread::sleep_for(chrono::milliseconds(ms++));
             }
+        } else if (cmd == "bestmove_and_more") {
+            // several lines in a single write, the first one being the bestmove
+            cout << "bestmove e2e4\ninfo string after bestmove\nreadyok\n" << flush;
         } else if (cmd == "sleep") {
             this_thread::sleep_for(chrono::milliseconds(1000));
 

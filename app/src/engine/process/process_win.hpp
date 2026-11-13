@@ -49,6 +49,8 @@ class Process : public IProcess {
         current_line_.reserve(300);
         pi_ = PROCESS_INFORMATION{};
 
+        pending_begin_ = pending_end_ = 0;
+
         SECURITY_ATTRIBUTES saAttr;
         saAttr.nLength              = sizeof(SECURITY_ATTRIBUTES);
         saAttr.bInheritHandle       = TRUE;
@@ -162,6 +164,11 @@ class Process : public IProcess {
 
         lines.clear();
 
+        // first process what the previous call read but did not process
+        if (pending_begin_ < pending_end_ && readBytes(lines, last_word)) {
+            return Result::OK();
+        }
+
         const auto startTime = std::chrono::steady_clock::now();
         const auto timeout   = threshold.count() == 0 ? INFINITE : static_cast<DWORD>(threshold.count());
 
@@ -245,7 +252,10 @@ class Process : public IProcess {
                 continue;
             }
 
-            if (readBytes(buffer, bytesRead, lines, last_word)) {
+            pending_begin_ = 0;
+            pending_end_   = bytesRead;
+
+            if (readBytes(lines, last_word)) {
                 return Result::OK();
             }
         }
@@ -265,12 +275,14 @@ class Process : public IProcess {
     }
 
    private:
-    [[nodiscard]] bool readBytes(const std::array<char, buffer_size>& buffer, DWORD bytes_read,
-                                 std::vector<Line>& lines, std::string_view searchword) {
-        assert(bytes_read <= buffer.size());
+    // Processes the unprocessed part of the buffer, returns true if a line starting with searchword was found.
+    // What follows that line is kept for the next call.
+    [[nodiscard]] bool readBytes(std::vector<Line>& lines, std::string_view searchword) {
+        assert(pending_end_ <= buffer.size());
 
-        std::string_view data(buffer.data(), static_cast<size_t>(bytes_read));
-        size_t start = 0;
+        std::string_view data(buffer.data(), pending_end_);
+        size_t start   = pending_begin_;
+        pending_begin_ = pending_end_ = 0;
 
         while (start < data.size()) {
             const size_t pos = data.find_first_of("\r\n", start);
@@ -285,17 +297,6 @@ class Process : public IProcess {
 
             current_line_.append(data.substr(start, pos - start));
 
-            if (!current_line_.empty()) {
-                addLine(lines);
-
-                if (!searchword.empty() && current_line_.rfind(searchword, 0) == 0) {
-                    current_line_.clear();
-                    return true;
-                }
-
-                current_line_.clear();
-            }
-
             // Treat "\r\n" as one delimiter.
             if (data[pos] == '\r' && pos + 1 < data.size() && data[pos + 1] == '\n') {
                 start = pos + 2;
@@ -304,6 +305,24 @@ class Process : public IProcess {
             }
 
             assert(start <= data.size());
+
+            if (!current_line_.empty()) {
+                addLine(lines);
+
+                if (!searchword.empty() && current_line_.rfind(searchword, 0) == 0) {
+                    current_line_.clear();
+
+                    // keep what follows the searchword for the next read
+                    if (start < data.size()) {
+                        pending_begin_ = start;
+                        pending_end_   = data.size();
+                    }
+
+                    return true;
+                }
+
+                current_line_.clear();
+            }
         }
 
         return false;
@@ -355,6 +374,9 @@ class Process : public IProcess {
     std::string log_name_;
     // The current line read from the engine, avoids reallocations
     std::string current_line_;
+    // Unprocessed part of buffer, e.g. lines written after the searchword in the same write
+    size_t pending_begin_ = 0;
+    size_t pending_end_   = 0;
 
     // True if the process has been initialized
     bool is_initialized_ = false;

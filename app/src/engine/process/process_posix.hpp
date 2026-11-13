@@ -74,20 +74,27 @@ class Stream {
         line_buffer_.reserve(300);
     }
 
+    // Processes the bytes left over from the previous read, if any, otherwise reads from the pipe.
     Result readLine(std::vector<Line>& lines, std::string_view searchword,
                     const IProcess::LineCallback* callback = nullptr) {
-        const ssize_t bytes_read = read(fd_, buffer_.data(), buffer_.size());
+        if (!hasPending()) {
+            const ssize_t bytes_read = read(fd_, buffer_.data(), buffer_.size());
 
-        if (bytes_read == -1) {
-            return Result::Error("read failed");
+            if (bytes_read == -1) {
+                return Result::Error("read failed");
+            }
+
+            if (bytes_read == 0) {
+                return Result::Error("EOF");
+            }
+
+            pending_begin_ = 0;
+            pending_end_   = static_cast<size_t>(bytes_read);
         }
 
-        if (bytes_read == 0) {
-            return Result::Error("EOF");
-        }
-
-        std::string_view data(buffer_.data(), static_cast<size_t>(bytes_read));
-        size_t start = 0;
+        std::string_view data(buffer_.data(), pending_end_);
+        size_t start   = pending_begin_;
+        pending_begin_ = pending_end_ = 0;
 
         while (start < data.size()) {
             const size_t nl = data.find('\n', start);
@@ -112,6 +119,13 @@ class Stream {
 
                 if (!searchword.empty() && line_buffer_.rfind(searchword, 0) == 0) {
                     line_buffer_.clear();
+
+                    // keep what follows the searchword for the next read
+                    if (nl + 1 < data.size()) {
+                        pending_begin_ = nl + 1;
+                        pending_end_   = data.size();
+                    }
+
                     return Result::OK();
                 }
             }
@@ -126,6 +140,9 @@ class Stream {
     void setup() { line_buffer_.clear(); }
 
     bool hasPartial() const { return !line_buffer_.empty(); }
+
+    // True if bytes already read from the pipe have not been processed yet
+    bool hasPending() const { return pending_begin_ < pending_end_; }
 
     void flushPartial(std::vector<Line>& lines) {
         if (line_buffer_.empty()) return;
@@ -160,6 +177,10 @@ class Stream {
     Standard type_;
 
     std::array<char, 4096> buffer_{};
+
+    // unprocessed part of buffer_, e.g. lines written after the searchword in the same write
+    size_t pending_begin_ = 0;
+    size_t pending_end_   = 0;
 };
 
 class Process : public IProcess {
@@ -277,6 +298,11 @@ class Process : public IProcess {
                       std::chrono::milliseconds threshold) override {
         assert(is_initalized_);
         lines.clear();
+
+        // first process what the previous call read but did not process
+        if (sg_out_.hasPending()) {
+            if (auto r = sg_out_.readLine(lines, searchword, &line_callback_); r.code != Status::NONE) return r;
+        }
 
         const int poll_timeout_ms = normalize_poll_timeout_ms(threshold);
 

@@ -123,6 +123,9 @@ int main(int argc, char const *argv[]) {
             cerr << "error output before exit" << endl;
             cout << "info string before exit\nlast line without newline" << flush;
             return 1;
+        } else if (cmd == "bestmove_and_more") {
+            // several lines in a single write, the first one being the bestmove
+            cout << "bestmove e2e4\ninfo string after bestmove\nreadyok\n" << flush;
         } else if (cmd == "sleep") {
             this_thread::sleep_for(chrono::milliseconds(1000));
 

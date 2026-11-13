@@ -1,5 +1,6 @@
 #include <game/pgn/pgn_builder.hpp>
 
+#include <algorithm>
 #include <iterator>
 #include <string>
 #include <string_view>
@@ -67,7 +68,11 @@ PgnBuilder::PgnBuilder(const config::Pgn& pgn_config, const MatchData& match, st
         pgn_generator_.addHeader("GameDuration", match_.duration);
         pgn_generator_.addHeader("GameStartTime", match_.start_time);
         pgn_generator_.addHeader("GameEndTime", match_.end_time);
-        pgn_generator_.addHeader("PlyCount", fmt::format("{}", match_.moves.size()));
+        // The move text stops before an illegal move, so PlyCount counts only the moves written.
+        const auto first_illegal =
+            std::find_if(match_.moves.begin(), match_.moves.end(), [](const auto& move) { return !move.legal; });
+        const auto plies = std::distance(match_.moves.begin(), first_illegal);
+        pgn_generator_.addHeader("PlyCount", fmt::format("{}", plies));
         pgn_generator_.addHeader("Termination", convertMatchTermination(match_.termination));
 
         if (white_player.config.limit.tc == black_player.config.limit.tc) {

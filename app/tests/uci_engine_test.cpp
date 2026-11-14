@@ -1,8 +1,10 @@
 #include <core/config/config.hpp>
 #include <core/globals/globals.hpp>
+#include <core/logger/logger.hpp>
 #include <engine/uci_engine.hpp>
 #include <types/engine_config.hpp>
 
+#include <algorithm>
 #include <chrono>
 #include <filesystem>
 #include <string>
@@ -532,4 +534,39 @@ TEST_SUITE("Uci Engine Communication Tests") {
         std::filesystem::remove_all(dir, ec);
     }
 #endif
+
+    TEST_CASE("Read the last output of an engine that exits at once") {
+        // stderr is only read when logging is enabled
+        const bool should_log = Logger::should_log_;
+        Logger::should_log_   = true;
+
+        std::vector<engine::process::Line> output;
+
+        {
+            engine::process::Process process;
+            process.setRealtimeLogging(false);
+
+            REQUIRE(process.init(".", std::string(path), "", "dummy").code == engine::process::Status::OK);
+            REQUIRE(process.writeInput("exit_with_output\n").code == engine::process::Status::OK);
+
+            // the engine is gone before its output is read
+            const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(5);
+            while (process.alive().code == engine::process::Status::OK && std::chrono::steady_clock::now() < deadline) {
+                std::this_thread::sleep_for(std::chrono::milliseconds(1));
+            }
+
+            const auto res = process.readOutput(output, "bestmove", std::chrono::milliseconds(5000));
+            CHECK(res.code == engine::process::Status::ERR);
+        }
+
+        Logger::should_log_ = should_log;
+
+        const auto contains = [&](const std::string& line) {
+            return std::any_of(output.begin(), output.end(), [&](const auto& l) { return l.line == line; });
+        };
+
+        CHECK(contains("info string before exit"));
+        CHECK(contains("last line without newline"));
+        CHECK(contains("error output before exit"));
+    }
 }

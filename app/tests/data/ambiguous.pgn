@@ -1,0 +1,9 @@
+[Event "ambiguous move"]
+[FEN "4k3/8/8/8/8/2N3N1/8/4K3 w - - 0 1"]
+[SetUp "1"]
+
+1. Kd2 Kd7 2. Ne4 Ke6 *
+
+[Event "after it"]
+
+1. d4 d5 *

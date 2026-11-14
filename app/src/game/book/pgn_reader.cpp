@@ -31,12 +31,19 @@ class PGNVisitor : public chess::pgn::Visitor {
         pgn_.moves.clear();
         ply_count_  = 0;
         early_stop_ = false;
+        invalid_    = false;
     }
 
     void header(std::string_view key, std::string_view value) override {
         if (key == "FEN") {
-            board_.setFen(value);
             pgn_.fen_epd = value;
+
+            // a game from a position that can't be played is left out
+            if (!setPlayablePosition(board_, value)) {
+                LOG_WARN("Invalid FEN in opening book, game left out: {}", value);
+                invalid_ = true;
+                skipPgn(true);
+            }
         }
     }
 
@@ -66,16 +73,27 @@ class PGNVisitor : public chess::pgn::Visitor {
         pgn_.moves.push_back(move_i);
     }
 
-    void endPgn() override { pgns_.push_back(pgn_); }
+    void endPgn() override {
+        if (invalid_) {
+            skipped_++;
+            return;
+        }
+
+        pgns_.push_back(pgn_);
+    }
+
+    [[nodiscard]] std::size_t skipped() const noexcept { return skipped_; }
 
    private:
     std::vector<Opening>& pgns_;
     Opening pgn_;
     chess::Board board_;
     const int plies_limit_;
-    int ply_count_   = 0;
-    bool is_frc_     = false;
-    bool early_stop_ = false;
+    int ply_count_       = 0;
+    bool is_frc_         = false;
+    bool early_stop_     = false;
+    bool invalid_        = false;
+    std::size_t skipped_ = 0;
 };
 
 PgnReader::PgnReader(const std::string& pgn_file_path, int plies_limit, bool is_frc)
@@ -105,6 +123,14 @@ PgnReader::PgnReader(const std::string& pgn_file_path, int plies_limit, bool is_
 
     chess::pgn::StreamParser parser(*input_stream);
     parser.readGames(*vis);
+
+    skipped_ = vis->skipped();
+
+    if (skipped_ > 0) {
+        Logger::print<Logger::Level::WARN>("Warning; Skipped {} opening(s) with an invalid FEN in file: {}", skipped_,
+                                           file_name_);
+    }
+
     if (pgns_.empty()) {
         throw fastchess_exception::format("No openings found in file: {}", file_name_);
     }

@@ -2,6 +2,8 @@
 #include <types/exception.hpp>
 
 #include <memory>
+#include <string>
+#include <vector>
 
 #include <chess.hpp>
 #include <doctest/doctest.hpp>
@@ -172,6 +174,36 @@ TEST_SUITE("PGN Reader") {
 
         CHECK(games[3].fen_epd == "bqnnrkrb/pppppppp/8/8/8/8/PPPPPPPP/BBQNNRKR w HFge - 0 1");
         CHECK(games[3].moves.size() == 0);
+    }
+
+    TEST_CASE("Read PGN file with a comment before the first move") {
+        const auto uci = [](const book::Opening& opening, bool frc) {
+            std::vector<std::string> moves;
+            for (const auto& move : opening.moves) moves.push_back(chess::uci::moveToUci(move, frc));
+            return moves;
+        };
+
+        // The comment comes as an empty move, which is not played.
+        book::PgnReader frc("app/tests/data/comment_first.pgn", -1, true);
+        REQUIRE(frc.get().size() == 2);
+        CHECK(uci(frc.get()[0], true) == std::vector<std::string>{"e2e4", "e7e5", "g1f3"});
+        CHECK(uci(frc.get()[1], true) == std::vector<std::string>{"e1g1", "e8g8", "d2d4"});
+
+        // Without Chess960 the castling rights of the Chess960 game are not read: its line stops at O-O.
+        book::PgnReader standard("app/tests/data/comment_first.pgn");
+        REQUIRE(standard.get().size() == 2);
+        CHECK(uci(standard.get()[0], false) == std::vector<std::string>{"e2e4", "e7e5", "g1f3"});
+        CHECK(standard.get()[1].moves.empty());
+    }
+
+    TEST_CASE("Read PGN file with an ambiguous move") {
+        // The line stops before the ambiguous move, and the next games are read.
+        book::PgnReader reader("app/tests/data/ambiguous.pgn");
+        const auto games = reader.get();
+
+        REQUIRE(games.size() == 2);
+        CHECK(games[0].moves.size() == 2);
+        CHECK(games[1].moves.size() == 2);
     }
 }
 }  // namespace fastchess

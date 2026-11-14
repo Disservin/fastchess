@@ -43,6 +43,9 @@ class PGNVisitor : public chess::pgn::Visitor {
     void startMoves() override {}
 
     void move(std::string_view move, std::string_view) override {
+        // a comment before the first move comes without a move
+        if (move.empty()) return;
+
         if (early_stop_) return;
         if (ply_count_++ >= plies_limit_ && plies_limit_ != -1) return;
 
@@ -52,6 +55,16 @@ class PGNVisitor : public chess::pgn::Visitor {
             move_i = chess::uci::parseSan(board_, move);
         } catch (const chess::uci::SanParseError& e) {
             LOG_ERR("Failed to parse move: {}", e.what());
+            early_stop_ = true;
+            return;
+        } catch (const chess::uci::AmbiguousMoveError& e) {
+            LOG_ERR("Failed to parse move: {}", e.what());
+            early_stop_ = true;
+            return;
+        }
+
+        if (move_i == chess::Move::NO_MOVE) {
+            LOG_ERR("Failed to parse move: {}", move);
             early_stop_ = true;
             return;
         }

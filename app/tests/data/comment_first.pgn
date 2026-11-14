@@ -1,0 +1,11 @@
+[Event "comment before the first move"]
+[Result "*"]
+
+{The comment of the game} 1. e4 e5 2. Nf3 *
+
+[Event "Chess960, comment before the first move"]
+[Variant "Chess960"]
+[FEN "1r2k1r1/pppppppp/8/8/8/8/PPPPPPPP/1R2K1R1 w GBgb - 0 1"]
+[SetUp "1"]
+
+{O-O in Chess960} 1. O-O O-O 2. d4 *

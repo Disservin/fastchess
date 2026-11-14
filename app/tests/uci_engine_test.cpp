@@ -10,7 +10,9 @@
 #include <thread>
 #include <vector>
 
-#ifndef _WIN64
+#ifdef _WIN64
+#    include <windows.h>
+#else
 #    include <signal.h>
 #endif
 
@@ -530,6 +532,29 @@ TEST_SUITE("Uci Engine Communication Tests") {
 
         std::error_code ec;
         std::filesystem::remove_all(dir, ec);
+    }
+
+    TEST_CASE("Engines do not show system error dialogs") {
+        const UINT error_mode = GetErrorMode();
+
+        engine::process::Process process;
+        std::vector<engine::process::Line> output;
+
+        process.setRealtimeLogging(false);
+
+        REQUIRE(process.init(".", std::string(path), "", "dummy").code == engine::process::Status::OK);
+        REQUIRE(process.writeInput("error_mode\n").code == engine::process::Status::OK);
+        REQUIRE(process.readOutput(output, "error_mode", std::chrono::milliseconds(5000)).code ==
+                engine::process::Status::OK);
+
+        const auto engine_mode = static_cast<UINT>(std::stoul(output.back().line.substr(11)));
+        CHECK((engine_mode & SEM_FAILCRITICALERRORS) != 0);
+        CHECK((engine_mode & SEM_NOGPFAULTERRORBOX) != 0);
+
+        // the error mode of fastchess itself is unchanged
+        CHECK(GetErrorMode() == error_mode);
+
+        CHECK(process.writeInput("quit\n").code == engine::process::Status::OK);
     }
 #endif
 }

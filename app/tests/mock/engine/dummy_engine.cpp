@@ -6,6 +6,10 @@
 
 #include <signal.h>
 
+#ifdef _WIN64
+#    include <windows.h>
+#endif
+
 bool contains(std::string_view haystack, std::string_view needle) { return haystack.find(needle) != std::string::npos; }
 
 using namespace std;
@@ -92,6 +96,10 @@ int main(int argc, char const *argv[]) {
                 cout << info << endl;
                 this_thread::sleep_for(chrono::milliseconds(ms++));
             }
+#ifdef _WIN64
+        } else if (cmd == "error_mode") {
+            cout << "error_mode " << GetErrorMode() << endl;
+#endif
         } else if (cmd == "sleep") {
             this_thread::sleep_for(chrono::milliseconds(1000));
 

@@ -16,8 +16,12 @@ class EpdReader {
     [[nodiscard]] auto& get() noexcept { return openings_; }
     [[nodiscard]] const auto& get() const noexcept { return openings_; }
 
+    // Lines left out, their position invalid.
+    [[nodiscard]] std::size_t skipped() const noexcept { return skipped_; }
+
    private:
     std::vector<util::heap_string> openings_;
     std::string epd_file_;
+    std::size_t skipped_ = 0;
 };
 }  // namespace fastchess::book

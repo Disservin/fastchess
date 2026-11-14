@@ -149,6 +149,12 @@ class Process : public IProcess {
             LOG_TRACE_THREAD("Process with pid: {} terminated with status: {}", pi_.hProcess, exitCode);
         }
 
+        // ends the processes the engine started and left running
+        if (job_) {
+            CloseHandle(job_);
+            job_ = NULL;
+        }
+
         is_initialized_ = false;
     }
 
@@ -315,13 +321,16 @@ class Process : public IProcess {
         const bool quoted = !command_.empty() && command_.front() == '"';
         const auto cmd    = fmt::format("{} {}", quoted ? command_ : fmt::format("\"{}\"", command_), args_);
 
+        // suspended until it is in its job, so that nothing it starts escapes the job
+        constexpr DWORD flags = CREATE_NEW_PROCESS_GROUP | CREATE_SUSPENDED;
+
         const auto success = CreateProcessA(      //
             nullptr,                              //
             const_cast<char*>(cmd.c_str()),       //
             nullptr,                              //
             nullptr,                              //
             TRUE,                                 //
-            CREATE_NEW_PROCESS_GROUP,             //
+            flags,                                //
             nullptr,                              //
             wd_.empty() ? nullptr : wd_.c_str(),  //
             &si,                                  //
@@ -330,7 +339,28 @@ class Process : public IProcess {
 
         is_initialized_ = true;
 
+        if (success) {
+            assignJob();
+            ResumeThread(pi_.hThread);
+        }
+
         return success;
+    }
+
+    // The engine and every process it starts are put in a job of their own, killed when the job handle is closed:
+    // by terminate(), or by Windows when fastchess exits, even if it crashes or is killed.
+    void assignJob() {
+        job_ = CreateJobObjectA(nullptr, nullptr);
+        if (!job_) return;
+
+        JOBOBJECT_EXTENDED_LIMIT_INFORMATION limits = {};
+        limits.BasicLimitInformation.LimitFlags     = JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE;
+
+        if (!SetInformationJobObject(job_, JobObjectExtendedLimitInformation, &limits, sizeof(limits)) ||
+            !AssignProcessToJobObject(job_, pi_.hProcess)) {
+            CloseHandle(job_);
+            job_ = NULL;
+        }
     }
 
     void addLine(std::vector<Line>& lines) const {
@@ -360,6 +390,7 @@ class Process : public IProcess {
     bool is_initialized_ = false;
 
     PROCESS_INFORMATION pi_;
+    HANDLE job_ = NULL;
 
     const std::thread::id thread_id = std::this_thread::get_id();
 };

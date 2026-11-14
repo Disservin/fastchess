@@ -532,4 +532,31 @@ TEST_SUITE("Uci Engine Communication Tests") {
         std::filesystem::remove_all(dir, ec);
     }
 #endif
+
+    TEST_CASE("Lines written after the searchword in the same write are kept for the next read") {
+        engine::process::Process process;
+        std::vector<engine::process::Line> output;
+
+        process.setRealtimeLogging(false);
+
+        REQUIRE(process.init(".", std::string(path), "", "dummy").code == engine::process::Status::OK);
+        REQUIRE(process.writeInput("bestmove_and_more\n").code == engine::process::Status::OK);
+
+        auto res = process.readOutput(output, "bestmove", std::chrono::milliseconds(5000));
+
+        CHECK(res.code == engine::process::Status::OK);
+        REQUIRE(output.size() == 1);
+        CHECK(output[0].line == "bestmove e2e4");
+
+        // nothing is written, the engine already sent readyok
+        process.setupRead();
+        res = process.readOutput(output, "readyok", std::chrono::milliseconds(1000));
+
+        CHECK(res.code == engine::process::Status::OK);
+        REQUIRE(output.size() == 2);
+        CHECK(output[0].line == "info string after bestmove");
+        CHECK(output[1].line == "readyok");
+
+        CHECK(process.writeInput("quit\n").code == engine::process::Status::OK);
+    }
 }

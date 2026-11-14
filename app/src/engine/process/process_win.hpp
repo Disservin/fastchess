@@ -220,24 +220,19 @@ class Process : public IProcess {
                     return Result::Error("failed to read from pipe");
                 }
 
-                // The read still pending writes into overlapped and buffer when it completes: before leaving with
-                // it unfinished, cancel it and wait for it, or the kernel writes into a stack frame already gone.
-                const auto abandon_read = [&]() {
-                    CancelIoEx(hChildStdoutRead, &overlapped);
-                    DWORD ignored;
-                    GetOverlappedResult(hChildStdoutRead, &overlapped, &ignored, TRUE);
-                    CloseHandle(overlapped.hEvent);
-                };
-
                 HANDLE wait_handles[] = {overlapped.hEvent, pi_.hProcess};
                 DWORD waitResult      = WaitForMultipleObjects(2, wait_handles, FALSE, timeout);
                 if (waitResult == WAIT_TIMEOUT) {
-                    abandon_read();
+                    // bytes read before the read was cancelled are processed by the next call
+                    pending_begin_ = 0;
+                    pending_end_   = cancelRead(overlapped);
+                    CloseHandle(overlapped.hEvent);
                     return Result{Status::TIMEOUT, "timeout"};
                 }
 
                 if (waitResult == WAIT_OBJECT_0 + 1) {
-                    abandon_read();
+                    (void)cancelRead(overlapped);
+                    CloseHandle(overlapped.hEvent);
 
                     if (!alive()) {
                         return processTerminated(lines);
@@ -248,7 +243,8 @@ class Process : public IProcess {
                 }
 
                 if (waitResult != WAIT_OBJECT_0) {
-                    abandon_read();
+                    (void)cancelRead(overlapped);
+                    CloseHandle(overlapped.hEvent);
                     LOG_FATAL_THREAD("Wait failed");
                     return Result::Error("wait failed");
                 }
@@ -306,6 +302,21 @@ class Process : public IProcess {
         }
 
         return Result::Error("process terminated");
+    }
+
+    // Cancels a pending read and waits until it has ended, returns the number of bytes it read before.
+    // Until then Windows may still write to buffer and to overlapped, which lives on the stack of readOutput():
+    // the parent keeps a handle to the write end of the pipe, so the read only ends when it is cancelled, at the
+    // latest when terminate() closes the pipe, long after readOutput() has returned.
+    [[nodiscard]] DWORD cancelRead(OVERLAPPED& overlapped) {
+        CancelIoEx(hChildStdoutRead, &overlapped);
+
+        DWORD bytes_read = 0;
+        if (!GetOverlappedResult(hChildStdoutRead, &overlapped, &bytes_read, TRUE)) {
+            bytes_read = 0;
+        }
+
+        return bytes_read;
     }
 
     // Processes the unprocessed part of the buffer, returns true if a line starting with searchword was found.

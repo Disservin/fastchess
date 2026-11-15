@@ -103,4 +103,25 @@ TEST_SUITE("Syzygy Tests") {
             throw;
         }
     }
+
+    TEST_CASE("No en passant square is not probed as a1") {
+        // The KNNvKP table is missing, so this position cannot be probed. Passing NO_SQ (64) as the en passant
+        // square made Pyrrhic test a1 instead, generate b2xa1 as an en passant capture, probe the resulting
+        // impossible position (a black pawn on a1) and report a win for Black.
+        const auto syzygyDirs = syzygy3MenPath + separator + syzygy4MenPath + separator + syzygy5MenPath;
+        const int tbPieces    = initSyzygy(syzygyDirs);
+
+        try {
+            CHECK(tbPieces == 5);
+
+            const auto board = Board::fromFen("8/8/8/8/3N4/8/1p6/N1k2K2 b - - 0 1");
+            CHECK(canProbeSyzgyWdl(board));
+            CHECK(probeSyzygyWdl(board, /*ignore50MoveRule*/ false) == GameResult::NONE);
+
+            tearDownSyzygy();
+        } catch (...) {
+            tearDownSyzygy();
+            throw;
+        }
+    }
 }

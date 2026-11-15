@@ -37,12 +37,16 @@ chess::GameResult probeSyzygyWdl(const chess::Board& board, const bool ignore50M
     // We now assume that the half move clock is 0 and the castling rights are empty.
     // If these conditions are not fulfilled, the probe result may be incorrect.
 
+    // Pyrrhic expects 0 when there is no en passant square, not NO_SQ (64).
+    const auto epSq         = board.enpassantSq();
+    const unsigned epSquare = epSq == chess::Square::NO_SQ ? 0u : static_cast<unsigned>(epSq.index());
+
     const unsigned probeResult =
         tb_probe_wdl(board.us(chess::Color::WHITE).getBits(), board.us(chess::Color::BLACK).getBits(),
                      board.pieces(chess::PieceType::KING).getBits(), board.pieces(chess::PieceType::QUEEN).getBits(),
                      board.pieces(chess::PieceType::ROOK).getBits(), board.pieces(chess::PieceType::BISHOP).getBits(),
                      board.pieces(chess::PieceType::KNIGHT).getBits(), board.pieces(chess::PieceType::PAWN).getBits(),
-                     board.enpassantSq().index(), board.sideToMove() == chess::Color::WHITE);
+                     epSquare, board.sideToMove() == chess::Color::WHITE);
 
     if (probeResult == TB_RESULT_FAILED) {
         return chess::GameResult::NONE;

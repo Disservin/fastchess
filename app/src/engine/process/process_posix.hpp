@@ -7,6 +7,7 @@
 #    include <array>
 #    include <cassert>
 #    include <chrono>
+#    include <limits>
 #    include <optional>
 #    include <string>
 #    include <string_view>
@@ -433,7 +434,8 @@ class Process : public IProcess {
     static int normalize_poll_timeout_ms(std::chrono::milliseconds threshold) {
         // wait indefinitely
         if (threshold.count() <= 0) return -1;
-        if (threshold.count() > (std::chrono::milliseconds::max)().count()) return -1;
+        // poll() takes an int: a longer wait is capped rather than truncated (2^32 ms + 1 would be 1 ms).
+        if (threshold.count() > (std::numeric_limits<int>::max)()) return (std::numeric_limits<int>::max)();
         return static_cast<int>(threshold.count());
     }
 

@@ -303,6 +303,20 @@ TEST_SUITE("Uci Engine Communication Tests") {
         CHECK(uci_engine.getStdoutLines()[0]->line == "done");
     }
 
+    TEST_CASE("A wait longer than an int of milliseconds is not truncated") {
+        EngineConfiguration config;
+        config.cmd = path;
+
+        engine::UciEngine uci_engine = engine::UciEngine(config, false);
+
+        CHECK(startTestEngine(uci_engine));
+
+        // The engine answers "sleep" after one second; 2^32 ms + 100 ms truncated to an int would be 100 ms.
+        CHECK(uci_engine.writeEngine("sleep"));
+        const auto res = uci_engine.readEngine("done", std::chrono::milliseconds((1LL << 32) + 100));
+        CHECK(res.code == engine::process::Status::OK);
+    }
+
     TEST_CASE("Testing the EngineProcess class with lower level class functions") {
         EngineConfiguration config;
         config.cmd = path;

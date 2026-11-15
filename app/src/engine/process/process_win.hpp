@@ -4,6 +4,7 @@
 
 #    include <engine/process/iprocess.hpp>
 
+#    include <algorithm>
 #    include <cassert>
 #    include <chrono>
 #    include <string>
@@ -163,7 +164,11 @@ class Process : public IProcess {
         lines.clear();
 
         const auto startTime = std::chrono::steady_clock::now();
-        const auto timeout   = threshold.count() == 0 ? INFINITE : static_cast<DWORD>(threshold.count());
+        // WaitForMultipleObjects takes a DWORD, INFINITE being its largest value: a longer wait is capped rather
+        // than truncated (2^32 ms + 1 would be 1 ms).
+        constexpr auto max_wait = static_cast<std::chrono::milliseconds::rep>(INFINITE - 1);
+        const auto timeout =
+            threshold.count() == 0 ? INFINITE : static_cast<DWORD>((std::min)(threshold.count(), max_wait));
 
         while (true) {
             auto currentTime = std::chrono::steady_clock::now();

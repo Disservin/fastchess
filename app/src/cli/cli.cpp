@@ -90,17 +90,21 @@ int64_t parseDuration(std::string_view value, int64_t multiplier) {
     return static_cast<int64_t>(rounded);
 }
 
+// Larger than any CPU number: a bigger one is a mistake, and a range up to INT_MAX would overflow the loop below
+// and ask for gigabytes of memory.
+constexpr int MAX_CPU = 65535;
+
 // Parse a list of integers on the form 5,10,13-17,23 -> 5,10,13,14,15,16,17,23
 bool parseIntList(std::istringstream& iss, std::vector<int>& list) {
     int int1, int2;
     char c;
 
-    if (!(iss >> int1)) return true;
+    if (!(iss >> int1) || int1 < 0 || int1 > MAX_CPU) return true;
     list.emplace_back(int1);
     if (iss >> c) {
         switch (c) {
             case '-':
-                if (!(iss >> int2) || int2 <= int1) return true;
+                if (!(iss >> int2) || int2 <= int1 || int2 > MAX_CPU) return true;
                 for (int i = int1 + 1; i <= int2; i++) list.emplace_back(i);
                 if (!(iss >> c))
                     return false;

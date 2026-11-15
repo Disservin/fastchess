@@ -769,6 +769,13 @@ TEST_SUITE("Option Parsing Tests") {
         CHECK(cpus == std::vector<int>({3,5,7,8,9}));
     }
 
+    TEST_CASE("Affinity refuses a CPU number out of range") {
+        for (const std::string list : {"0-2147483647", "0-100000000", "70000", "-1", "-5-3", "1,2,99999"}) {
+            CAPTURE(list);
+            CHECK_THROWS_AS(cli::OptionsParser{baseArgs({"-use-affinity", list})}, fastchess_exception);
+        }
+    }
+
     TEST_CASE("Use-affinity without args just enables affinity") {
         const auto args = baseArgs({"-use-affinity"});
         CHECK(cli::OptionsParser(args).getTournamentConfig().affinity);

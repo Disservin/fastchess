@@ -18,6 +18,7 @@
 #    include <core/logger/logger.hpp>
 #    include <core/threading/thread_vector.hpp>
 #    include <engine/process/anon_pipe.hpp>
+#    include <engine/process/line_buffer.hpp>
 
 namespace fastchess {
 
@@ -50,7 +51,7 @@ class Process : public IProcess {
         current_line_.reserve(300);
         pi_ = PROCESS_INFORMATION{};
 
-        pending_begin_ = pending_end_ = 0;
+        output_.clear();
 
         SECURITY_ATTRIBUTES saAttr;
         saAttr.nLength              = sizeof(SECURITY_ATTRIBUTES);
@@ -165,7 +166,7 @@ class Process : public IProcess {
         is_initialized_ = false;
     }
 
-    void setupRead() override { current_line_.clear(); }
+    void setupRead() override { output_.dropPartial(); }
 
     // Read stdout until the line matches last_word or timeout is reached
     // 0 means no timeout
@@ -175,10 +176,8 @@ class Process : public IProcess {
 
         lines.clear();
 
-        // first process what the previous call read but did not process
-        if (pending_begin_ < pending_end_ && readBytes(lines, last_word)) {
-            return Result::OK();
-        }
+        // lines a previous call read after its searchword
+        if (takeLines(lines, last_word)) return Result::OK();
 
         const auto startTime = std::chrono::steady_clock::now();
         // WaitForMultipleObjects takes a DWORD, INFINITE being its largest value: a longer wait is capped rather
@@ -223,15 +222,14 @@ class Process : public IProcess {
                 HANDLE wait_handles[] = {overlapped.hEvent, pi_.hProcess};
                 DWORD waitResult      = WaitForMultipleObjects(2, wait_handles, FALSE, timeout);
                 if (waitResult == WAIT_TIMEOUT) {
-                    // bytes read before the read was cancelled are processed by the next call
-                    pending_begin_ = 0;
-                    pending_end_   = cancelRead(overlapped);
+                    // what was read before the read was cancelled is taken by the next call
+                    cancelRead(overlapped);
                     CloseHandle(overlapped.hEvent);
                     return Result{Status::TIMEOUT, "timeout"};
                 }
 
                 if (waitResult == WAIT_OBJECT_0 + 1) {
-                    (void)cancelRead(overlapped);
+                    cancelRead(overlapped);
                     CloseHandle(overlapped.hEvent);
 
                     if (!alive()) {
@@ -243,7 +241,7 @@ class Process : public IProcess {
                 }
 
                 if (waitResult != WAIT_OBJECT_0) {
-                    (void)cancelRead(overlapped);
+                    cancelRead(overlapped);
                     CloseHandle(overlapped.hEvent);
                     LOG_FATAL_THREAD("Wait failed");
                     return Result::Error("wait failed");
@@ -271,12 +269,9 @@ class Process : public IProcess {
                 continue;
             }
 
-            pending_begin_ = 0;
-            pending_end_   = bytesRead;
+            output_.append({buffer.data(), bytesRead});
 
-            if (readBytes(lines, last_word)) {
-                return Result::OK();
-            }
+            if (takeLines(lines, last_word)) return Result::OK();
         }
     }
 
@@ -296,77 +291,32 @@ class Process : public IProcess {
    private:
     // The engine has exited, a last line without a newline is still part of its output.
     Result processTerminated(std::vector<Line>& lines) {
-        if (!current_line_.empty()) {
-            addLine(lines);
-            current_line_.clear();
-        }
+        (void)takeLines(lines, "");
+        if (output_.takePartial(current_line_)) addLine(lines);
 
         return Result::Error("process terminated");
     }
 
-    // Cancels a pending read and waits until it has ended, returns the number of bytes it read before.
+    // Cancels a pending read and waits until it has ended, keeping what it read before.
     // Until then Windows may still write to buffer and to overlapped, which lives on the stack of readOutput():
     // the parent keeps a handle to the write end of the pipe, so the read only ends when it is cancelled, at the
     // latest when terminate() closes the pipe, long after readOutput() has returned.
-    [[nodiscard]] DWORD cancelRead(OVERLAPPED& overlapped) {
+    void cancelRead(OVERLAPPED& overlapped) {
         CancelIoEx(hChildStdoutRead, &overlapped);
 
         DWORD bytes_read = 0;
-        if (!GetOverlappedResult(hChildStdoutRead, &overlapped, &bytes_read, TRUE)) {
-            bytes_read = 0;
+        if (GetOverlappedResult(hChildStdoutRead, &overlapped, &bytes_read, TRUE) && bytes_read > 0) {
+            output_.append({buffer.data(), bytes_read});
         }
-
-        return bytes_read;
     }
 
-    // Processes the unprocessed part of the buffer, returns true if a line starting with searchword was found.
-    // What follows that line is kept for the next call.
-    [[nodiscard]] bool readBytes(std::vector<Line>& lines, std::string_view searchword) {
-        assert(pending_end_ <= buffer.size());
+    // Takes the complete lines out of output_, up to the first one starting with searchword. Returns true if it was
+    // found, the lines after it stay for the next call.
+    [[nodiscard]] bool takeLines(std::vector<Line>& lines, std::string_view searchword) {
+        while (output_.next(current_line_)) {
+            addLine(lines);
 
-        std::string_view data(buffer.data(), pending_end_);
-        size_t start   = pending_begin_;
-        pending_begin_ = pending_end_ = 0;
-
-        while (start < data.size()) {
-            const size_t pos = data.find_first_of("\r\n", start);
-
-            if (pos == std::string_view::npos) {
-                current_line_.append(data.substr(start));
-                break;
-            }
-
-            assert(pos >= start);
-            assert(pos < data.size());
-
-            current_line_.append(data.substr(start, pos - start));
-
-            // Treat "\r\n" as one delimiter.
-            if (data[pos] == '\r' && pos + 1 < data.size() && data[pos + 1] == '\n') {
-                start = pos + 2;
-            } else {
-                start = pos + 1;
-            }
-
-            assert(start <= data.size());
-
-            if (!current_line_.empty()) {
-                addLine(lines);
-
-                if (!searchword.empty() && current_line_.rfind(searchword, 0) == 0) {
-                    current_line_.clear();
-
-                    // keep what follows the searchword for the next read
-                    if (start < data.size()) {
-                        pending_begin_ = start;
-                        pending_end_   = data.size();
-                    }
-
-                    return true;
-                }
-
-                current_line_.clear();
-            }
+            if (!searchword.empty() && current_line_.rfind(searchword, 0) == 0) return true;
         }
 
         return false;
@@ -471,11 +421,10 @@ class Process : public IProcess {
     std::string args_;
     // The name in the log file
     std::string log_name_;
-    // The current line read from the engine, avoids reallocations
+    // What was read from the engine and not taken out yet
+    LineBuffer output_{"\r\n"};
+    // The line taken out of output_ last, avoids reallocations
     std::string current_line_;
-    // Unprocessed part of buffer, e.g. lines written after the searchword in the same write
-    size_t pending_begin_ = 0;
-    size_t pending_end_   = 0;
 
     // True if the process has been initialized
     bool is_initialized_ = false;

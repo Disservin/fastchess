@@ -117,6 +117,8 @@ int main(int argc, char const *argv[]) {
             } else {
                 cout << "child failed" << endl;
             }
+        } else if (cmd == "error_mode") {
+            cout << "error_mode " << GetErrorMode() << endl;
 #endif
         } else if (cmd == "exit_with_output") {
             // exit right after writing, the last line without a newline

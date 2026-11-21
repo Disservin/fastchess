@@ -7,6 +7,7 @@
 #    include <algorithm>
 #    include <cassert>
 #    include <chrono>
+#    include <mutex>
 #    include <string>
 #    include <thread>
 #    include <vector>
@@ -331,6 +332,15 @@ class Process : public IProcess {
         // suspended until it is in its job, so that nothing it starts escapes the job
         constexpr DWORD flags = CREATE_NEW_PROCESS_GROUP | CREATE_SUSPENDED;
 
+        // The engine inherits the error mode: with these flags, an engine that is missing a DLL or crashes exits at
+        // once, instead of waiting for someone to close a system error dialog. The error mode of fastchess itself is
+        // restored right after; the lock keeps engines started at the same time from restoring it too early.
+        static std::mutex error_mode_mutex;
+        std::lock_guard<std::mutex> lock(error_mode_mutex);
+
+        const UINT error_mode = GetErrorMode();
+        SetErrorMode(error_mode | SEM_FAILCRITICALERRORS | SEM_NOGPFAULTERRORBOX);
+
         const auto success = CreateProcessA(      //
             nullptr,                              //
             const_cast<char*>(cmd.c_str()),       //
@@ -343,6 +353,8 @@ class Process : public IProcess {
             &si,                                  //
             &pi_                                  //
         );
+
+        SetErrorMode(error_mode);
 
         is_initialized_ = true;
 

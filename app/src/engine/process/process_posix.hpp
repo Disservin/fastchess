@@ -30,6 +30,7 @@
 #    include <core/logger/logger.hpp>
 #    include <core/threading/thread_vector.hpp>
 #    include <engine/process/interrupt.hpp>
+#    include <engine/process/line_buffer.hpp>
 #    include <engine/process/pipe.hpp>
 #    include <engine/process/signal.hpp>
 #    include <types/exception.hpp>
@@ -70,13 +71,12 @@ class Stream {
 
     Stream(int fd, bool realtime_logging, Standard type, const std::string& log_name)
         : fd_(fd), realtime_logging_(realtime_logging), log_name_(log_name), type_(type) {
-        line_buffer_.clear();
-        line_buffer_.reserve(300);
+        line_.reserve(300);
     }
 
-    Result readLine(std::vector<Line>& lines, std::string_view searchword,
-                    const IProcess::LineCallback* callback = nullptr) {
-        const ssize_t bytes_read = read(fd_, buffer_.data(), buffer_.size());
+    // Reads what is in the pipe into the line buffer.
+    Result read() {
+        const ssize_t bytes_read = ::read(fd_, buffer_.data(), buffer_.size());
 
         if (bytes_read == -1) {
             return Result::Error("read failed");
@@ -86,80 +86,64 @@ class Stream {
             return Result::Error("EOF");
         }
 
-        std::string_view data(buffer_.data(), static_cast<size_t>(bytes_read));
-        size_t start = 0;
-
-        while (start < data.size()) {
-            const size_t nl = data.find('\n', start);
-
-            if (nl == std::string_view::npos) {
-                line_buffer_.append(data.substr(start));
-                break;
-            }
-
-            line_buffer_.append(data.substr(start, nl - start));
-
-            if (!line_buffer_.empty()) {
-                const auto ts = Logger::should_log_ ? time::datetime_precise() : "";
-
-                lines.emplace_back(Line{line_buffer_, ts, type_});
-
-                if (realtime_logging_) {
-                    Logger::readFromEngine(line_buffer_, ts, log_name_, type_ == Standard::ERR);
-                }
-
-                if (callback && *callback) (*callback)(line_buffer_);
-
-                if (!searchword.empty() && line_buffer_.rfind(searchword, 0) == 0) {
-                    line_buffer_.clear();
-                    return Result::OK();
-                }
-            }
-
-            line_buffer_.clear();
-            start = nl + 1;
-        }
-
-        return Result{Status::NONE, ""};
+        lines_.append({buffer_.data(), static_cast<size_t>(bytes_read)});
+        return Result::OK();
     }
 
-    void setup() { line_buffer_.clear(); }
+    // Takes the complete lines out of the line buffer, up to the first one starting with searchword. Returns true
+    // if it was found, the lines after it stay for the next call.
+    [[nodiscard]] bool takeLines(std::vector<Line>& lines, std::string_view searchword,
+                                 const IProcess::LineCallback* callback = nullptr) {
+        while (lines_.next(line_)) {
+            addLine(lines);
 
-    bool hasPartial() const { return !line_buffer_.empty(); }
+            if (callback && *callback) (*callback)(line_);
 
-    void flushPartial(std::vector<Line>& lines) {
-        if (line_buffer_.empty()) return;
-
-        auto ts = time::datetime_precise();
-        lines.emplace_back(Line{line_buffer_, ts, type_});
-
-        if (realtime_logging_) {
-            Logger::readFromEngine(line_buffer_, ts, log_name_, type_ == Standard::ERR);
+            if (!searchword.empty() && line_.rfind(searchword, 0) == 0) return true;
         }
 
-        line_buffer_.clear();
+        return false;
+    }
+
+    void setup() { lines_.dropPartial(); }
+
+    void flushPartial(std::vector<Line>& lines) {
+        if (lines_.takePartial(line_)) addLine(lines);
     }
 
     // Read what is already in the pipe without waiting for more, then keep a last line without a newline.
     void readRemaining(std::vector<Line>& lines, const IProcess::LineCallback* callback = nullptr) {
         pollfd pfd{fd_, POLLIN, 0};
 
-        while (poll(&pfd, 1, 0) > 0 && readLine(lines, "", callback).code == Status::NONE) {
-        }
+        do {
+            (void)takeLines(lines, "", callback);
+        } while (poll(&pfd, 1, 0) > 0 && read().code == Status::OK);
 
         flushPartial(lines);
     }
 
    private:
+    void addLine(std::vector<Line>& lines) const {
+        const auto ts = Logger::should_log_ ? time::datetime_precise() : "";
+
+        lines.emplace_back(Line{line_, ts, type_});
+
+        if (realtime_logging_) {
+            Logger::readFromEngine(line_, ts, log_name_, type_ == Standard::ERR);
+        }
+    }
+
     // a negative fd is ignored by poll(), so a stream that was never set up has nothing to read
     int fd_                = -1;
     bool realtime_logging_ = false;
 
-    std::string line_buffer_;
     std::string log_name_;
     Standard type_;
 
     std::array<char, 4096> buffer_{};
+    LineBuffer lines_{"\n"};
+    // the line taken out of lines_ last, avoids reallocations
+    std::string line_;
 };
 
 class Process : public IProcess {
@@ -278,6 +262,9 @@ class Process : public IProcess {
         assert(is_initalized_);
         lines.clear();
 
+        // lines a previous call read after its searchword
+        if (sg_out_.takeLines(lines, searchword, &line_callback_)) return Result::OK();
+
         const int poll_timeout_ms = normalize_poll_timeout_ms(threshold);
 
         std::array<pollfd, 3> fds;
@@ -320,16 +307,14 @@ class Process : public IProcess {
             // 2. Check Stdout
             // POLLHUP may come with data still in the pipe, read() only reports the end once it is empty.
             if (fds[STDOUT_IDX].revents & (POLLIN | POLLHUP | POLLERR)) {
-                const auto r = sg_out_.readLine(lines, searchword, &line_callback_);
-                if (r.code == Status::OK) return r;
-                if (r.code != Status::NONE) return engine_ended(lines, "Engine crashed (stdout)");
+                if (sg_out_.read().code != Status::OK) return engine_ended(lines, "Engine crashed (stdout)");
+                if (sg_out_.takeLines(lines, searchword, &line_callback_)) return Result::OK();
             }
 
             // 3. Check Stderr
             if (STDERR_IDX && (fds[*STDERR_IDX].revents & (POLLIN | POLLHUP | POLLERR))) {
-                if (sg_err_.readLine(lines, "").code != Status::NONE) {
-                    return engine_ended(lines, "Engine crashed (stderr)");
-                }
+                if (sg_err_.read().code != Status::OK) return engine_ended(lines, "Engine crashed (stderr)");
+                (void)sg_err_.takeLines(lines, "");
             }
         }
 

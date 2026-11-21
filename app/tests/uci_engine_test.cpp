@@ -549,7 +549,7 @@ TEST_SUITE("Uci Engine Communication Tests") {
     }
 
     TEST_CASE("Processes started by an engine end with it") {
-        DWORD child_pid = 0;
+        HANDLE child = NULL;
 
         {
             engine::process::Process process;
@@ -563,17 +563,18 @@ TEST_SUITE("Uci Engine Communication Tests") {
                     engine::process::Status::OK);
             REQUIRE(output.back().line != "child failed");
 
-            child_pid = std::stoul(output.back().line.substr(6));
+            // opened while the child is alive, so the handle cannot belong to a later process with the same pid
+            const DWORD child_pid = std::stoul(output.back().line.substr(6));
+            child                 = OpenProcess(SYNCHRONIZE, FALSE, child_pid);
+            REQUIRE(child != NULL);
+            REQUIRE(WaitForSingleObject(child, 0) == WAIT_TIMEOUT);
 
             // the engine exits, the child it started keeps sleeping
             CHECK(process.writeInput("quit\n").code == engine::process::Status::OK);
         }
 
-        const HANDLE child = OpenProcess(SYNCHRONIZE, FALSE, child_pid);
-        if (child) {
-            CHECK(WaitForSingleObject(child, 5000) == WAIT_OBJECT_0);
-            CloseHandle(child);
-        }
+        CHECK(WaitForSingleObject(child, 5000) == WAIT_OBJECT_0);
+        CloseHandle(child);
     }
 #endif
 }

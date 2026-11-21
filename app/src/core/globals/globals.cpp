@@ -50,8 +50,8 @@ void stopProcesses() {
         LOG_TRACE("Cleaning up process with pid/handle: {}", process.identifier);
 
 #ifdef _WIN64
+        // the handle belongs to the engine's Process, which closes it
         TerminateProcess(process.identifier, 1);
-        CloseHandle(process.identifier);
 #else
         kill(process.identifier, SIGINT);
         kill(process.identifier, SIGKILL);

@@ -196,7 +196,7 @@ class Process : public IProcess {
                     CloseHandle(overlapped.hEvent);
 
                     if (!alive()) {
-                        return Result::Error("process terminated");
+                        return processTerminated(lines);
                     }
 
                     LOG_FATAL_THREAD("Failed to read from pipe");
@@ -223,7 +223,7 @@ class Process : public IProcess {
                     abandon_read();
 
                     if (!alive()) {
-                        return Result::Error("process terminated");
+                        return processTerminated(lines);
                     }
 
                     LOG_FATAL_THREAD("Process handle signaled but process is still alive");
@@ -240,7 +240,7 @@ class Process : public IProcess {
                     CloseHandle(overlapped.hEvent);
 
                     if (!alive()) {
-                        return Result::Error("process terminated");
+                        return processTerminated(lines);
                     }
 
                     LOG_FATAL_THREAD("Failed to get overlapped result");
@@ -252,7 +252,7 @@ class Process : public IProcess {
 
             if (bytesRead == 0) {
                 if (!alive()) {
-                    return Result::Error("process terminated");
+                    return processTerminated(lines);
                 }
 
                 continue;
@@ -278,6 +278,16 @@ class Process : public IProcess {
     }
 
    private:
+    // The engine has exited, a last line without a newline is still part of its output.
+    Result processTerminated(std::vector<Line>& lines) {
+        if (!current_line_.empty()) {
+            addLine(lines);
+            current_line_.clear();
+        }
+
+        return Result::Error("process terminated");
+    }
+
     [[nodiscard]] bool readBytes(const std::array<char, buffer_size>& buffer, DWORD bytes_read,
                                  std::vector<Line>& lines, std::string_view searchword) {
         assert(bytes_read <= buffer.size());

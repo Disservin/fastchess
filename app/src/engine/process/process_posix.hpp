@@ -140,9 +140,20 @@ class Stream {
         line_buffer_.clear();
     }
 
+    // Read what is already in the pipe without waiting for more, then keep a last line without a newline.
+    void readRemaining(std::vector<Line>& lines, const IProcess::LineCallback* callback = nullptr) {
+        pollfd pfd{fd_, POLLIN, 0};
+
+        while (poll(&pfd, 1, 0) > 0 && readLine(lines, "", callback).code == Status::NONE) {
+        }
+
+        flushPartial(lines);
+    }
+
    private:
-    int fd_;
-    bool realtime_logging_;
+    // a negative fd is ignored by poll(), so a stream that was never set up has nothing to read
+    int fd_                = -1;
+    bool realtime_logging_ = false;
 
     std::string line_buffer_;
     std::string log_name_;
@@ -186,9 +197,9 @@ class Process : public IProcess {
 
         sg_out_ = Stream(in_pipe_.read_end(), realtime_logging_, Standard::OUTPUT, log_name_);
 
-        if (Logger::should_log_) {
-            sg_err_ = Stream(err_pipe_.read_end(), realtime_logging_, Standard::ERR, log_name_);
-        }
+        // stderr is only read when logging
+        sg_err_ =
+            Logger::should_log_ ? Stream(err_pipe_.read_end(), realtime_logging_, Standard::ERR, log_name_) : Stream();
 
         // create a control pipe to interrupt polling when terminating
         interrupt_.cleanup();
@@ -307,25 +318,17 @@ class Process : public IProcess {
             }
 
             // 2. Check Stdout
-            // On POLLHUP there may still be data in the pipe, the end is reported once it has been read.
-            auto& out_fd = fds[STDOUT_IDX];
-            if (out_fd.revents & (POLLIN | POLLHUP | POLLERR)) {
-                if (auto r = sg_out_.readLine(lines, searchword, &line_callback_); r.code != Status::NONE) {
-                    if (r.code == Status::OK) return r;
-
-                    drain_pipes(lines);
-                    return Result::Error("Engine crashed (stdout)");
-                }
+            // POLLHUP may come with data still in the pipe, read() only reports the end once it is empty.
+            if (fds[STDOUT_IDX].revents & (POLLIN | POLLHUP | POLLERR)) {
+                const auto r = sg_out_.readLine(lines, searchword, &line_callback_);
+                if (r.code == Status::OK) return r;
+                if (r.code != Status::NONE) return engine_ended(lines, "Engine crashed (stdout)");
             }
 
             // 3. Check Stderr
-            if (STDERR_IDX) {
-                auto& err_fd = fds[*STDERR_IDX];
-                if (err_fd.revents & (POLLIN | POLLHUP | POLLERR)) {
-                    if (sg_err_.readLine(lines, "").code != Status::NONE) {
-                        drain_pipes(lines);
-                        return Result::Error("Engine crashed (stderr)");
-                    }
+            if (STDERR_IDX && (fds[*STDERR_IDX].revents & (POLLIN | POLLHUP | POLLERR))) {
+                if (sg_err_.readLine(lines, "").code != Status::NONE) {
+                    return engine_ended(lines, "Engine crashed (stderr)");
                 }
             }
         }
@@ -446,33 +449,13 @@ class Process : public IProcess {
         return static_cast<int>(threshold.count());
     }
 
-    // The engine closed its output, most likely it has exited: read what is left in the pipes, so that its last
-    // lines (e.g. why it failed) are not lost, including a last line without a newline. A process started by the
-    // engine may keep a pipe open, so the end of the pipes is awaited for a short time only.
-    void drain_pipes(std::vector<Line>& lines) {
-        const auto deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(500);
-
-        const auto drain = [&](Stream& stream, int fd, const IProcess::LineCallback* callback) {
-            while (true) {
-                const auto left =
-                    std::chrono::duration_cast<std::chrono::milliseconds>(deadline - std::chrono::steady_clock::now());
-                if (left.count() <= 0) break;
-
-                pollfd pfd = create_pollfd(fd, POLLIN);
-                if (poll(&pfd, 1, static_cast<int>(left.count())) <= 0) break;
-
-                // stop at the end of the pipe or on a read error
-                if (stream.readLine(lines, "", callback).code != Status::NONE) break;
-            }
-
-            stream.flushPartial(lines);
-        };
-
-        drain(sg_out_, in_pipe_.read_end(), &line_callback_);
-
-        if (Logger::should_log_) {
-            drain(sg_err_, err_pipe_.read_end(), nullptr);
-        }
+    // The engine closed one of its pipes: whatever it wrote before that is already in the pipes, read it so that
+    // its last lines (e.g. why it failed) are not lost. Nothing is awaited, a process started by the engine may
+    // keep a pipe open.
+    Result engine_ended(std::vector<Line>& lines, const std::string& reason) {
+        sg_out_.readRemaining(lines, &line_callback_);
+        sg_err_.readRemaining(lines);
+        return Result::Error(reason);
     }
 
     void flush_partials_on_timeout(std::vector<Line>& lines) {

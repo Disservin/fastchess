@@ -203,16 +203,24 @@ class Process : public IProcess {
                     return Result::Error("failed to read from pipe");
                 }
 
+                // The read still pending writes into overlapped and buffer when it completes: before leaving with
+                // it unfinished, cancel it and wait for it, or the kernel writes into a stack frame already gone.
+                const auto abandon_read = [&]() {
+                    CancelIoEx(hChildStdoutRead, &overlapped);
+                    DWORD ignored;
+                    GetOverlappedResult(hChildStdoutRead, &overlapped, &ignored, TRUE);
+                    CloseHandle(overlapped.hEvent);
+                };
+
                 HANDLE wait_handles[] = {overlapped.hEvent, pi_.hProcess};
                 DWORD waitResult      = WaitForMultipleObjects(2, wait_handles, FALSE, timeout);
                 if (waitResult == WAIT_TIMEOUT) {
-                    CancelIo(hChildStdoutRead);
-                    CloseHandle(overlapped.hEvent);
+                    abandon_read();
                     return Result{Status::TIMEOUT, "timeout"};
                 }
 
                 if (waitResult == WAIT_OBJECT_0 + 1) {
-                    CloseHandle(overlapped.hEvent);
+                    abandon_read();
 
                     if (!alive()) {
                         return Result::Error("process terminated");
@@ -223,7 +231,7 @@ class Process : public IProcess {
                 }
 
                 if (waitResult != WAIT_OBJECT_0) {
-                    CloseHandle(overlapped.hEvent);
+                    abandon_read();
                     LOG_FATAL_THREAD("Wait failed");
                     return Result::Error("wait failed");
                 }

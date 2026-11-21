@@ -118,6 +118,11 @@ int main(int argc, char const *argv[]) {
                 cout << "child failed" << endl;
             }
 #endif
+        } else if (cmd == "exit_with_output") {
+            // exit right after writing, the last line without a newline
+            cerr << "error output before exit" << endl;
+            cout << "info string before exit\nlast line without newline" << flush;
+            return 1;
         } else if (cmd == "sleep") {
             this_thread::sleep_for(chrono::milliseconds(1000));
 

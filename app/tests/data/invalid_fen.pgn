@@ -1,0 +1,29 @@
+[Event "unreadable placement"]
+[FEN "bqnb1rkr/pp3ppp/3ppn2/2p?????5/5P2/P2P4/NPP1P1PP/BQ1BNRKR w - - 2 9"]
+[SetUp "1"]
+
+9. g3 Nc6 10. Nf3 *
+
+[Event "side that just moved in check"]
+[FEN "4k3/8/8/8/8/8/8/r3K3 b - - 0 1"]
+[SetUp "1"]
+
+1... Rxe1 *
+
+[Event "pawn on the last rank"]
+[FEN "4k2P/8/8/8/8/8/8/4K3 w - - 0 1"]
+[SetUp "1"]
+
+1. Kd2 *
+
+[Event "three pieces giving check"]
+[FEN "4k3/8/3N4/8/Q7/8/8/4R2K b - - 0 1"]
+[SetUp "1"]
+
+1... Kf8 *
+
+[Event "valid"]
+[FEN "5k2/3r1p2/1p3pp1/p2n3p/P6P/1PPR1PP1/3KN3/6b1 w - - 0 34"]
+[SetUp "1"]
+
+34. Ke1 Ke7 *

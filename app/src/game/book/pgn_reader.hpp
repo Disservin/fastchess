@@ -17,10 +17,14 @@ class PgnReader {
     [[nodiscard]] std::vector<Opening>& get() noexcept { return pgns_; }
     [[nodiscard]] const std::vector<Opening>& get() const noexcept { return pgns_; }
 
+    // Games left out, their FEN invalid.
+    [[nodiscard]] std::size_t skipped() const noexcept { return skipped_; }
+
    private:
     std::vector<Opening> pgns_;
     std::string file_name_;
     int plies_limit_;
+    std::size_t skipped_ = 0;
 };
 
 }  // namespace fastchess::book

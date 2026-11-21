@@ -150,6 +150,18 @@ TEST_SUITE("PGN Reader") {
               chess::Move::make(chess::Square::SQ_G1, chess::Square::SQ_F3, chess::PieceType::KNIGHT));
     }
 
+    TEST_CASE("Read PGN file with invalid FEN tags") {
+        // A game whose FEN can't be read or played from (an unknown piece, the side that just moved in check, a pawn
+        // on the last rank, three pieces giving check) is left out, the others are kept.
+        book::PgnReader reader("app/tests/data/invalid_fen.pgn");
+        const auto games = reader.get();
+
+        REQUIRE(games.size() == 1);
+        CHECK(reader.skipped() == 4);
+        CHECK(games[0].fen_epd == "5k2/3r1p2/1p3pp1/p2n3p/P6P/1PPR1PP1/3KN3/6b1 w - - 0 34");
+        CHECK(games[0].moves.size() == 2);
+    }
+
     TEST_CASE("Read PGN file with invalid file") {
         std::unique_ptr<book::PgnReader> reader;
 

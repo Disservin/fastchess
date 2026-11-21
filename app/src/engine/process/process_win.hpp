@@ -143,12 +143,22 @@ class Process : public IProcess {
 
         if (exitCode == STILL_ACTIVE) {
             LOG_TRACE_THREAD("Force terminating process with pid: {}", pi_.hProcess);
-            TerminateProcess(pi_.hProcess, 1);
+            // the job takes the processes the engine started with it
+            if (!job_ || !TerminateJobObject(job_, 1)) TerminateProcess(pi_.hProcess, 1);
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
             GetExitCodeProcess(pi_.hProcess, &exitCode);
         } else {
             LOG_TRACE_THREAD("Process with pid: {} terminated with status: {}", pi_.hProcess, exitCode);
         }
+
+        // ends the processes the engine started and left running
+        if (job_) {
+            CloseHandle(job_);
+            job_ = NULL;
+        }
+
+        if (pi_.hProcess) CloseHandle(pi_.hProcess);
+        pi_ = PROCESS_INFORMATION{};
 
         is_initialized_ = false;
     }
@@ -328,13 +338,16 @@ class Process : public IProcess {
         const bool quoted = !command_.empty() && command_.front() == '"';
         const auto cmd    = fmt::format("{} {}", quoted ? command_ : fmt::format("\"{}\"", command_), args_);
 
+        // suspended until it is in its job, so that nothing it starts escapes the job
+        constexpr DWORD flags = CREATE_NEW_PROCESS_GROUP | CREATE_SUSPENDED;
+
         const auto success = CreateProcessA(      //
             nullptr,                              //
             const_cast<char*>(cmd.c_str()),       //
             nullptr,                              //
             nullptr,                              //
             TRUE,                                 //
-            CREATE_NEW_PROCESS_GROUP,             //
+            flags,                                //
             nullptr,                              //
             wd_.empty() ? nullptr : wd_.c_str(),  //
             &si,                                  //
@@ -343,7 +356,59 @@ class Process : public IProcess {
 
         is_initialized_ = true;
 
-        return success;
+        if (!success) return false;
+
+        assignJob();
+
+        const bool resumed = ResumeThread(pi_.hThread) != static_cast<DWORD>(-1);
+
+        // only needed to resume the process
+        CloseHandle(pi_.hThread);
+        pi_.hThread = NULL;
+
+        if (!resumed) {
+            // a process that never runs would only show up as a timeout later
+            if (!job_ || !TerminateJobObject(job_, 1)) TerminateProcess(pi_.hProcess, 1);
+            WaitForSingleObject(pi_.hProcess, 1000);
+
+            if (job_) CloseHandle(job_);
+            job_ = NULL;
+
+            CloseHandle(pi_.hProcess);
+            pi_.hProcess = NULL;
+
+            return false;
+        }
+
+        return true;
+    }
+
+    // The engine and every process it starts are put in a job of their own, killed when the job handle is closed:
+    // by terminate(), or by Windows when fastchess exits, even if it crashes or is killed.
+    void assignJob() {
+        job_ = CreateJobObjectA(nullptr, nullptr);
+
+        DWORD error = 0;
+
+        if (!job_) {
+            error = GetLastError();
+        } else {
+            JOBOBJECT_EXTENDED_LIMIT_INFORMATION limits = {};
+            limits.BasicLimitInformation.LimitFlags     = JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE;
+
+            if (SetInformationJobObject(job_, JobObjectExtendedLimitInformation, &limits, sizeof(limits)) &&
+                AssignProcessToJobObject(job_, pi_.hProcess)) {
+                return;
+            }
+
+            error = GetLastError();
+            CloseHandle(job_);
+            job_ = NULL;
+        }
+
+        // the engine still runs, only what it starts may outlive it
+        LOG_WARN_THREAD("Failed to put engine {} in a job object (error {}), processes it starts may keep running",
+                        log_name_, error);
     }
 
     void addLine(std::vector<Line>& lines) const {
@@ -373,6 +438,7 @@ class Process : public IProcess {
     bool is_initialized_ = false;
 
     PROCESS_INFORMATION pi_;
+    HANDLE job_ = NULL;
 
     const std::thread::id thread_id = std::this_thread::get_id();
 };

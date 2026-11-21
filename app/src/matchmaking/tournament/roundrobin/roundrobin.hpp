@@ -1,6 +1,7 @@
 #pragma once
 
 #include <atomic>
+#include <chrono>
 #include <mutex>
 #include <vector>
 
@@ -45,6 +46,8 @@ class RoundRobin : public BaseTournament {
     void updateSprtStatus(const std::vector<EngineConfiguration>& engine_configs, const engines& engines);
 
     SPRT sprt_ = SPRT();
+
+    std::chrono::steady_clock::time_point start_time_;
 
     std::mutex output_mutex_;
     std::mutex game_gen_mutex_;

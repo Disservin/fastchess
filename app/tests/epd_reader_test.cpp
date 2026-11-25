@@ -20,6 +20,22 @@ TEST_SUITE("EPD Reader") {
         CHECK(games[2].view() == "8/p3kp1p/1p4p1/2r2b2/2BR3P/1P3P2/P4PK1/8 b - - 0 28");
     }
 
+    TEST_CASE("Read EPD file with invalid lines") {
+        // A line whose position can't be read or played from (an unknown side to move or piece, two white kings,
+        // the side that just moved in check, a pawn on the last rank, three pieces giving check, no white king but
+        // a castling right) is left out.
+        book::EpdReader reader("app/tests/data/invalid.epd");
+
+        const auto games = reader.get();
+
+        REQUIRE(games.size() == 3);
+        CHECK(reader.skipped() == 7);
+
+        CHECK(games[0].view() == "rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2");
+        CHECK(games[1].view() == "r1bqkbnr/pppp1ppp/2n5/1B2p3/4P3/5N2/PPPP1PPP/RNBQK2R b KQkq - hmvc 3; fmvn 3;");
+        CHECK(games[2].view() == "8/8/8/4k3/8/8/4P3/4K3 w - -");
+    }
+
     TEST_CASE("Read EPD file with invalid file") {
         std::unique_ptr<book::EpdReader> reader;
 

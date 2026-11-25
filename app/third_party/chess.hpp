@@ -25,7 +25,7 @@ THIS FILE IS AUTO GENERATED DO NOT CHANGE MANUALLY.
 
 Source: https://github.com/Disservin/chess-library
 
-VERSION: 0.9.11
+VERSION: 0.9.12
 */
 
 #ifndef CHESS_HPP
@@ -3511,6 +3511,16 @@ class Board {
         return at<PieceType>(rook_sq) == PieceType::ROOK && at(rook_sq).color() == color;
     }
 
+    // A castling right needs a single king of that color, on its back rank.
+    [[nodiscard]] static bool isFileLetter(char c) noexcept {
+        return (c >= 'a' && c <= 'h') || (c >= 'A' && c <= 'H');
+    }
+
+    [[nodiscard]] bool hasCastlingKing(Color color) const {
+        const auto kings = pieces(PieceType::KING, color);
+        return kings.count() == 1 && Square::back_rank(Square(kings.lsb()), color);
+    }
+
     bool applyCastlingRight(Color color, CastlingRights::Side side, File fallback) {
         File file = fallback;
 
@@ -3542,8 +3552,11 @@ class Board {
         for (char i : castling) {
             if (i == '-') break;
 
+            const auto color      = isupper(static_cast<unsigned char>(i)) ? Color::WHITE : Color::BLACK;
             const auto king_side  = CastlingRights::Side::KING_SIDE;
             const auto queen_side = CastlingRights::Side::QUEEN_SIDE;
+
+            if (!hasCastlingKing(color)) continue;
 
             if (!chess960_) {
                 if (i == 'K') {
@@ -3562,7 +3575,6 @@ class Board {
             }
 
             // chess960 castling detection
-            const auto color   = isupper(i) ? Color::WHITE : Color::BLACK;
             const auto king_sq = kingSq(color);
 
             if (i == 'K' || i == 'k') {
@@ -3572,8 +3584,9 @@ class Board {
                 auto file = findRookOnSide(color, queen_side);
                 if (file != File::NO_FILE) cr_.setCastlingRight(color, queen_side, file);
             } else {
+                if (!isFileLetter(i)) continue;
                 const auto file = File(std::string_view(&i, 1));
-                if (file == File::NO_FILE || king_sq == Square::NO_SQ) continue;
+                if (!hasRookOnFile(color, file)) continue;
                 const auto side = CastlingRights::closestSide(file, king_sq.file());
                 cr_.setCastlingRight(color, side, file);
             }
@@ -3584,7 +3597,7 @@ class Board {
         for (char i : castling) {
             if (i == '-') break;
 
-            const auto color      = isupper(i) ? Color::WHITE : Color::BLACK;
+            const auto color      = isupper(static_cast<unsigned char>(i)) ? Color::WHITE : Color::BLACK;
             const auto king_sq    = kingSq(color);
             const auto king_side  = CastlingRights::Side::KING_SIDE;
             const auto queen_side = CastlingRights::Side::QUEEN_SIDE;
@@ -3603,8 +3616,9 @@ class Board {
                 continue;
             }
 
+            if (!isFileLetter(i)) continue;
             const auto file = File(std::string_view(&i, 1));
-            if (file == File::NO_FILE || file == king_sq.file()) continue;
+            if (file == king_sq.file()) continue;
 
             if (!hasRookOnFile(color, file)) continue;
 
@@ -3635,13 +3649,29 @@ class Board {
 
         if (move_right != "w" && move_right != "b") return false;
 
-        const auto half_move_opt = detail::parseStringViewToInt(half_move).value_or(0);
-        hfm_                     = half_move_opt;
+        // Parses a move counter and clamps it to [lo, hi]. A number too large for an int still clamps
+        // (to lo if negative, hi otherwise); anything that is not a number gives the fallback.
+        const auto parse_counter = [](std::string_view sv, int fallback, int lo, int hi) {
+            if (const auto parsed = detail::parseStringViewToInt(sv)) return std::clamp(*parsed, lo, hi);
 
-        const auto full_move_opt = detail::parseStringViewToInt(full_move).value_or(1);
-        plies_                   = full_move_opt;
+            const bool negative = !sv.empty() && sv.front() == '-';
+            if (!sv.empty() && (sv.front() == '-' || sv.front() == '+')) sv.remove_prefix(1);
 
-        plies_ = plies_ * 2 - 2;
+            const bool all_digits = !sv.empty() && std::all_of(sv.begin(), sv.end(), [](char c) {
+                return std::isdigit(static_cast<unsigned char>(c));
+            });
+
+            if (!all_digits) return fallback;
+            return negative ? lo : hi;
+        };
+
+        // The half move clock is stored in 8 bits.
+        hfm_ = static_cast<std::uint8_t>(parse_counter(half_move, 0, 0, 255));
+
+        // A full move number below 1 (0 is common) counts as 1. The cap keeps the ply counter (16 bits) below
+        // 32768, which leaves room for more than 32000 further plies before it would wrap.
+        const auto full_move_number = parse_counter(full_move, 1, 1, 16384);
+        plies_                      = static_cast<std::uint16_t>(full_move_number * 2 - 2);
 
         if (en_passant != "-") {
             if (!Square::is_valid_string_sq(en_passant)) {
@@ -3660,26 +3690,33 @@ class Board {
             key_ ^= Zobrist::sideToMove();
         }
 
-        auto square = 56;
+        // eight ranks of eight squares, from the eighth rank down
+        int rank = 7;
+        int file = 0;
         for (char curr : position) {
-            if (isdigit(curr)) {
-                square += (curr - '0');
+            if (curr >= '1' && curr <= '8') {
+                file += curr - '0';
+                if (file > 8) return false;
             } else if (curr == '/') {
-                square -= 16;
+                if (file != 8 || --rank < 0) return false;
+                file = 0;
             } else {
-                auto p = Piece(std::string_view(&curr, 1));
-                if (p == Piece::NONE || !Square::is_valid_sq(square) || at(square) != Piece::NONE) return false;
+                const auto p = Piece(std::string_view(&curr, 1));
+                if (p == Piece::NONE || file >= 8) return false;
+
+                const auto sq = Square(rank * 8 + file++);
 
                 if constexpr (ctor) {
-                    placePieceInternal(p, Square(square));
+                    placePieceInternal(p, sq);
                 } else {
-                    placePiece(p, square);
+                    placePiece(p, sq);
                 }
 
-                key_ ^= Zobrist::piece(p, Square(square));
-                ++square;
+                key_ ^= Zobrist::piece(p, sq);
             }
         }
+
+        if (rank != 0 || file != 8) return false;
 
         if (require_kings &&
             (pieces(PieceType::KING, Color::WHITE) == 0ull || pieces(PieceType::KING, Color::BLACK) == 0ull)) {
@@ -3688,9 +3725,12 @@ class Board {
 
         parse_castling(castling);
 
-        if (ep_sq_ != Square::NO_SQ && !((ep_sq_.rank() == Rank::RANK_3 && stm_ == Color::BLACK) ||
-                                         (ep_sq_.rank() == Rank::RANK_6 && stm_ == Color::WHITE))) {
-            ep_sq_ = Square::NO_SQ;
+        if (ep_sq_ != Square::NO_SQ) {
+            const bool ep_rank_ok = (ep_sq_.rank() == Rank::RANK_3 && stm_ == Color::BLACK) ||
+                                    (ep_sq_.rank() == Rank::RANK_6 && stm_ == Color::WHITE);
+
+            // the en passant check needs a king of the side to move
+            if (!ep_rank_ok || pieces(PieceType::KING, stm_).empty()) ep_sq_ = Square::NO_SQ;
         }
 
         if (ep_sq_ != Square::NO_SQ) {
@@ -3716,6 +3756,8 @@ class Board {
         castling_path = {};
 
         for (Color c : {Color::WHITE, Color::BLACK}) {
+            if (!cr_.has(c)) continue;
+
             const auto king_from = kingSq(c);
 
             for (const auto side : {CastlingRights::Side::KING_SIDE, CastlingRights::Side::QUEEN_SIDE}) {
@@ -5184,8 +5226,11 @@ class StreamBuffer {
         preserveComment();
         buffer_index_ = 0;
 
-        stream_.read(buffer_.data(), N * N);
-        bytes_read_ = stream_.gcount();
+        // a chunk made only of escape lines leaves nothing to parse, read on
+        do {
+            stream_.read(buffer_.data(), N * N);
+            bytes_read_ = dropEscapeLines(stream_.gcount());
+        } while (bytes_read_ == 0 && stream_.gcount() > 0);
 
         return bytes_read_ > 0;
     }
@@ -5215,6 +5260,27 @@ class StreamBuffer {
     }
 
    private:
+    // PGN standard 6: a line whose first character is '%' is an escape line and is ignored.
+    // Removes such lines, with their newline, from the n bytes just read. A line may span several chunks.
+    // Returns the number of bytes kept.
+    std::streamsize dropEscapeLines(std::streamsize n) {
+        if (n <= 0) return n;
+        if (!in_escape_line_ && std::memchr(buffer_.data(), '%', static_cast<std::size_t>(n)) == nullptr) {
+            line_start_ = buffer_[n - 1] == '\n';
+            return n;
+        }
+
+        std::streamsize kept = 0;
+        for (std::streamsize i = 0; i < n; ++i) {
+            const auto c = buffer_[i];
+            in_escape_line_ = in_escape_line_ || (line_start_ && c == '%');
+            line_start_     = c == '\n';
+            if (!in_escape_line_) buffer_[kept++] = c;
+            if (line_start_) in_escape_line_ = false;
+        }
+        return kept;
+    }
+
     template <TokenKind kind>
     std::streamsize delimiterIndex() const {
         auto index = buffer_index_;
@@ -5310,6 +5376,8 @@ class StreamBuffer {
     BufferType buffer_;
     std::streamsize bytes_read_   = 0;
     std::streamsize buffer_index_ = 0;
+    bool line_start_              = true;
+    bool in_escape_line_          = false;
 };
 
 }  // namespace detail
@@ -6235,6 +6303,10 @@ class uci {
         static constexpr auto pt_to_pgt = [](PieceType pt) { return 1 << (pt); };
         const SanMoveInformation info   = parseSanInfo(san);
 
+        if (!info.castling_short && !info.castling_long && info.to == Square::NO_SQ) {
+            return Move::NO_MOVE;
+        }
+
         // SAN already supplies the destination. When exactly one piece can reach
         // it, validate that candidate instead of generating every move of its type.
         if (!info.castling_short && !info.castling_long) {
@@ -6443,7 +6515,22 @@ class uci {
         std::size_t index = 1;
 
         if (san[0] == 'O' || san[0] == '0') {
-            parse_castle(san, info, san[0]);
+            // O-O or O-O-O, with the letter O or the digit 0
+            if (san.length() < 3 || san[1] != '-' || (san[2] != 'O' && san[2] != '0')) {
+#ifndef CHESS_NO_EXCEPTIONS
+                throw SanParseError("Failed to parse san. At step 0: " + std::string(san));
+#endif
+                return info;
+            }
+
+            auto castling = san;
+            parse_castle(castling, info, san[0]);
+
+#ifndef CHESS_NO_EXCEPTIONS
+            if (!info.castling_short && !info.castling_long) {
+                throw SanParseError("Failed to parse san. At step 0: " + std::string(san));
+            }
+#endif
             return info;
         } else if (isFile(san[0])) {
             index--;
@@ -6491,7 +6578,7 @@ class uci {
         // promotion
         if (index < san.size() && san[index] == '=') {
             index++;
-            info.promotion = PieceType(sw(san[index]));
+            if (index < san.size()) info.promotion = PieceType(sw(san[index]));
             if (info.promotion == PieceType::KING || info.promotion == PieceType::PAWN ||
                 info.promotion == PieceType::NONE) {
                 throw_error = true;

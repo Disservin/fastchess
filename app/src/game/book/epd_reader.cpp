@@ -5,7 +5,11 @@
 #include <string>
 #include <vector>
 
+#include <chess.hpp>
+
+#include <core/logger/logger.hpp>
 #include <core/memory/heap_str.hpp>
+#include <game/book/opening.hpp>
 #include <types/exception.hpp>
 
 #ifdef USE_ZLIB
@@ -68,9 +72,25 @@ EpdReader::EpdReader(const std::string& epd_file_path) : epd_file_(epd_file_path
         }
     }
 
+    // a line with a position that can't be played is left out
+    chess::Board board;
+
     std::string line;
     while (safeGetline(*input_stream, line)) {
-        if (!line.empty()) openings_.emplace_back(util::heap_string(line));
+        if (line.empty()) continue;
+
+        if (!setPlayablePosition(board, line)) {
+            LOG_WARN("Invalid FEN or EPD in opening book, line left out: {}", line);
+            skipped_++;
+            continue;
+        }
+
+        openings_.emplace_back(util::heap_string(line));
+    }
+
+    if (skipped_ > 0) {
+        Logger::print<Logger::Level::WARN>("Warning; Skipped {} opening(s) with an invalid FEN or EPD in file: {}",
+                                           skipped_, epd_file_path);
     }
 
     if (openings_.empty()) {

@@ -8,6 +8,7 @@
 #include <filesystem>
 #include <memory>
 #include <mutex>
+#include <set>
 #include <string>
 #include <system_error>
 #include <thread>
@@ -18,18 +19,18 @@ namespace fastchess {
 #ifdef __linux__
 namespace {
 
-// The pipes a process holds besides its stdin, stdout and stderr, read from /proc/<pid>/fd.
-int strayPipes(int pid) {
-    int count = 0;
+// The pipes a process holds besides its stdin, stdout and stderr ("pipe:[inode]"), read from /proc/<pid>/fd.
+std::set<std::string> pipesOf(const std::string& pid) {
+    std::set<std::string> pipes;
     std::error_code ec;
-    for (const auto& entry : std::filesystem::directory_iterator("/proc/" + std::to_string(pid) + "/fd", ec)) {
+    for (const auto& entry : std::filesystem::directory_iterator("/proc/" + pid + "/fd", ec)) {
         const auto fd = entry.path().filename().string();
         if (fd == "0" || fd == "1" || fd == "2") continue;
         std::error_code link_error;
         const auto target = std::filesystem::read_symlink(entry.path(), link_error).string();
-        if (!link_error && target.rfind("pipe:", 0) == 0) ++count;
+        if (!link_error && target.rfind("pipe:", 0) == 0) pipes.insert(target);
     }
-    return count;
+    return pipes;
 }
 
 }  // namespace
@@ -44,6 +45,10 @@ TEST_SUITE("Engine Process") {
         constexpr int threads    = 8;
         constexpr int per_thread = 8;
         constexpr int rounds     = 8;
+
+        // Pipes the test process already holds, inherited from whatever started it (a CI runner gives it some), are
+        // inherited by every child too: only the pipes made while the test runs count.
+        const auto outside = pipesOf("self");
 
         int stray = 0;
         for (int round = 0; round < rounds && stray == 0; ++round) {
@@ -62,7 +67,9 @@ TEST_SUITE("Engine Process") {
             for (auto& worker : workers) worker.join();
 
             process_list.lock();
-            for (const auto& process : process_list) stray += strayPipes(process.identifier);
+            for (const auto& process : process_list)
+                for (const auto& pipe : pipesOf(std::to_string(process.identifier)))
+                    if (outside.count(pipe) == 0) ++stray;
             process_list.unlock();
         }
         CHECK(stray == 0);

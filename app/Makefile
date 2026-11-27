@@ -66,6 +66,7 @@ SRC_FILES_TEST   := \
 	$(TESTDIR)/pgn_builder_test.cpp \
 	$(TESTDIR)/pgn_reader_test.cpp \
 	$(TESTDIR)/player.cpp \
+	$(TESTDIR)/process_test.cpp \
 	$(TESTDIR)/scoreboard_test.cpp \
 	$(TESTDIR)/sprt_test.cpp \
 	$(TESTDIR)/syzygy_test.cpp \

@@ -4,6 +4,8 @@
 #include <unistd.h>
 #include <cstdlib>
 
+#include <engine/process/pipe.hpp>
+
 #ifdef __linux
 #    include <features.h>  // Required for __GLIBC__
 #endif
@@ -59,11 +61,9 @@ class InterruptSignaler {
         }
 #endif
         int pipefds[2];
-        if (pipe(pipefds) == 0) {
+        if (cloexec_pipe(pipefds) == 0) {
             fd_read_  = pipefds[0];
             fd_write_ = pipefds[1];
-            fcntl(fd_read_, F_SETFD, FD_CLOEXEC);
-            fcntl(fd_write_, F_SETFD, FD_CLOEXEC);
         }
     }
 
